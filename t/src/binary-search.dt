@@ -6,7 +6,7 @@
 (import derivations)
 (import utility)
 (import concepts)
-(import concepts-std)
+(import concepts)
 
 (std.concepts.instantiate Vector int)
 (mfor T (sort for-each

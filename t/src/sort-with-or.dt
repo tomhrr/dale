@@ -4,7 +4,7 @@
 (import vector)
 (import algorithms)
 (import concepts)
-(import concepts-std)
+(import concepts)
 
 ; This is a float, because you can't use an int to keep count, because
 ; it will recursively call osetf when you try to incv.

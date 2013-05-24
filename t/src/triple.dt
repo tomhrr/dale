@@ -1,7 +1,7 @@
 (import cstdio)
 (import macros)
 (import utility)
-(import concepts-std)
+(import concepts)
 
 (std.concepts.instantiate Triple int char int)
 
