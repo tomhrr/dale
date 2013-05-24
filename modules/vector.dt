@@ -21,7 +21,6 @@ The `Vector` type implements `BackInsertionSequence` and
 (import cstdlib)
 (import math)
 (import concepts)
-(import concepts-std)
 (import utility)
 
 #|
