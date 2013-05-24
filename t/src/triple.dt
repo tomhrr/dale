@@ -1,0 +1,18 @@
+(import cstdio)
+(import macros)
+(import utility)
+(import concepts-std)
+
+(std.concepts.instantiate Triple int char int)
+
+(def main
+  (fn extern-c int (void)
+    (def thing (var auto (Triple int char int)))
+    (setf (: thing first)  10)
+    (setf (: thing second) #\a)
+    (setf (: thing third)  20)
+    (printf "%d %c %d\n" (@ (: thing first))
+                         (@ (: thing second))
+                         (@ (: thing third)))
+    0))
+    

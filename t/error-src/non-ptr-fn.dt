@@ -1,0 +1,1 @@
+(def myfn (fn extern int ((# (fn int ((# int)))))))

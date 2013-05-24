@@ -1,0 +1,42 @@
+(import cstdio)
+(import macros)
+
+(using-namespace std.macros
+(def testmac
+  (macro intern (frm)
+    (if (exists-macro frm)
+        (do (print frm)
+            (printf " The macro exists\n")
+            (mnfv pool "true"))
+        (do (print frm)
+            (printf " The macro does not exist\n")
+            (mnfv pool "false")))))
+
+(def myidentity
+  (macro intern (f)
+    f))
+
+(def myidentity
+  (macro intern ((f int) f1 f2)
+    f))
+
+(def myidentity
+  (macro intern (void)
+    (qq do (+ 1 1))))
+)
+
+(def main
+  (fn extern-c int (void)
+    (if (testmac (myidentity int))
+        (printf "myidentity macro exists\n")
+        (printf "myidentity macro does not exist (?!)\n"))
+    (if (testmac (myidentity))
+        (printf "myidentity macro exists (2)\n")
+        (printf "myidentity macro does not exist (?!)\n"))
+    (if (testmac (myidentity int (p DNode) (p DNode)))
+        (printf "myidentity macro exists (3)\n")
+        (printf "myidentity macro does not exist (?!)\n"))
+    (if (testmac (not-a-real-macro int))
+        (printf "not-a-real-macro exists (?!)\n")
+        (printf "not-a-real-macro does not exist\n"))
+    0))

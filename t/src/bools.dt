@@ -1,0 +1,14 @@
+(import cstdio)
+
+(def my!=
+  (fn intern bool ((num1 int) (num2 int))
+    (return 
+      (if (= num1 num2) false true))))
+
+(def main
+  (fn extern-c int (void)
+
+    (printf "1 != 2? %d\n" (if (my!= 1 2) 1 0))
+    (printf "1 != 1? %d\n" (if (my!= 1 1) 1 0))
+
+    (return 0)))

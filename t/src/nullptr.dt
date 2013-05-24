@@ -1,0 +1,9 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def np (var auto \ (nullptr char)))
+    (def vp (var auto \ "asdfasdfasdf"))
+    (printf "np is a %s pointer\n" (if (null np) "null" "non-null"))
+    (printf "vp is a %s pointer\n" (if (null vp) "null" "non-null"))
+    0))

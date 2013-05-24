@@ -1,0 +1,47 @@
+(import cstdio)
+(import macros)
+(import cstdlib)
+
+(def m-va-test
+  (macro intern (...)
+    (def arglist   (var auto va-list))
+    (def temp-node (var auto (p DNode)))
+    (def my-sum    (var auto int 0))
+
+    (va-start (cast (# arglist) (p void)))
+
+    (label begin-loop)
+      (if (= 0 arg-count)
+          (goto end-loop)
+          (do
+            (setv arg-count (- arg-count 1))
+            (setv temp-node (va-arg (# arglist) (p DNode)))
+            (setv my-sum (+ my-sum (atoi (@ (: (@ temp-node) token-str)))))
+            (goto begin-loop)))
+
+    (label end-loop)
+      (va-end (cast (# arglist) (p void)))
+
+      (def retval (var auto (p DNode)
+                          (cast (pool-malloc pool (sizeof DNode)) (p DNode))))
+
+      (def nullp  (var auto (p DNode)
+                          (cast (pool-malloc pool (sizeof DNode)) (p DNode))))
+      
+      (setv nullp (cast 0 (p DNode)))
+      
+      (def retstr (var auto (p char) (cast (pool-malloc pool (cast
+      20 size)) (p char))))
+      (sprintf retstr "%d" my-sum)
+
+      (setf (: (@ retval) is-list) 0)
+      (setf (: (@ retval) token-str) retstr)
+      (setf (: (@ retval) list-node) nullp)
+      (setf (: (@ retval) next-node) nullp)
+
+      (return retval)))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (m-va-test 1 2 3 4 5))
+    (return 0)))

@@ -1,0 +1,14 @@
+(import cstdio)
+(import macros)
+
+(def mys
+  (struct (attr must-init) intern ((n int))))
+(def mys2
+  (struct intern ((n int))))
+
+(def main
+  (fn extern-c int (void)
+    (def m  (var auto mys2))
+    (def n  (var auto mys))
+    (def n2 (var auto mys ((n 100))))
+    0))

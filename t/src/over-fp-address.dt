@@ -1,0 +1,19 @@
+(import cstdio)
+
+(def fn
+  (fn extern int ((# int))
+    1))
+
+(def fn
+  (fn extern int ((# int) (b int))
+    2))
+
+(def main
+  (fn extern-c int (void)
+    (def fp  (var auto (p (fn int ((# int)))) 
+                          (# fn int)))
+    (def fp2 (var auto (p (fn int ((# int) (b int)))) 
+                          (# fn int int)))
+    (printf "%d\n" (funcall fp 10))
+    (printf "%d\n" (funcall fp2 10 20))
+    0))

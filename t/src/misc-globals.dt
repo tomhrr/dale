@@ -1,0 +1,40 @@
+(import cstdio)
+(import macros)
+
+(def mys 
+  (struct intern 
+      (
+       (a (p char))
+       (b int)
+       (c int)
+       )))
+
+(def a
+  (var intern (array-of 5 (p char))
+    (array "asdf" "zxcv" "qwer" "ghjk" "tyui")))
+
+(def b
+  (var intern (array-of 2 mys)
+    (array (mys ((a "qwer") (b 1) (c 2)))
+           (mys ((a "zxcv") (b 2) (c 4))))))
+
+(using-namespace std
+
+(def main
+  (fn extern-c int (void)
+      (let ((i \ 0))
+        (for true (< i 5) (incv i)
+          (printf "%s\n" (@$ a i))))
+
+      (printf "(%s) (%d) (%d)\n"
+              (@:@ ($ b 1) a)
+              (@:@ ($ b 1) b)
+              (@:@ ($ b 1) c))
+      (printf "(%s) (%d) (%d)\n"
+              (@:@ ($ b 1) a)
+              (@:@ ($ b 1) b)
+              (@:@ ($ b 1) c))
+      (return 0)
+  ))
+
+)

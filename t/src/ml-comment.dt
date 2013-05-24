@@ -1,0 +1,14 @@
+#| asdf asdf asfd 
+
+
+qwerqwer qwerqwer
+
+
+|#
+
+(import cstdio)
+
+(def main 
+    (fn #| qwer |# extern-c int (void) #| qwer |# 
+        (printf "%d\n" 0)
+        0))

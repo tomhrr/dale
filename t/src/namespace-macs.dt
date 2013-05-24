@@ -1,0 +1,18 @@
+(import cstdio)
+(import macros)
+
+(namespace x
+  (def other-macro
+    (macro intern (x-mac)
+      x-mac)))
+
+(namespace y
+  (def other-macro
+    (macro intern (y-mac)
+      (std.macros.bqq printf "not the identity macro\n"))))
+
+(def main
+  (fn extern-c int (void)
+    (x.other-macro (printf "the identity macro\n"))
+    (y.other-macro (printf "the identity macro\n"))
+    0))

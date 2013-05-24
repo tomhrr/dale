@@ -1,0 +1,32 @@
+(import concepts-core)
+
+(using-namespace std.macros (using-namespace std.concepts
+(def-concept Addable (refines) (T)
+  (if (exists-fn (qq bool + (uq T) (uq T)))
+      true
+      (do (report-error T "type does not implement Addable")
+          false)))
+
+(def-concept Subtractable (refines) (T)
+  (if (exists-fn (qq bool - (uq T) (uq T)))
+      true
+      (do (report-error T "type does not implement Subtractable")
+          false)))
+
+(implement Addable int)
+(implement Subtractable int)
+
+(def-concept-macro Add3 intern ((T1 Addable) (T2 Subtractable))
+  (qq do
+    (def +
+      (fn extern (uq T1) ((a (uq T1)) (b (uq T1)) (c (uq T1)))
+        (+ a (+ b c))))))
+
+(def-concept-macro Add3 intern ((T1 Subtractable) (T2 Addable))
+  (qq do
+    (def +
+      (fn extern (uq T1) ((a (uq T1)) (b (uq T1)) (c (uq T1)))
+        (+ a (+ b c))))))
+
+(instantiate Add3 int int)
+))

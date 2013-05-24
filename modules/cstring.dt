@@ -1,0 +1,127 @@
+#|
+@module cstring
+
+Bindings to `string.h`.
+
+|#
+(module cstring)
+
+#|
+@fn strcpy
+|#
+(def strcpy
+  (fn extern-c int ((dest (p char)) (source (const (p char))))))
+
+#|
+@fn strncpy
+|#
+(def strncpy
+  (fn extern-c (p char) ((dest (p char)) (source (p char)) (size size))))
+
+#|
+@fn strcat
+|#
+(def strcat
+  (fn extern-c int ((str (p char)) (str2 (const (p char))))))
+
+#|
+@fn strncat
+|#
+(def strncat
+  (fn extern-c int ((str (p char)) (str2 (p char)) (size size))))
+
+#|
+@fn strcmp
+|#
+(def strcmp
+  (fn extern-c int ((str (p char)) (str2 (p char)))))
+
+#|
+@fn strncmp
+|#
+(def strncmp
+  (fn extern-c int ((str (p char)) (str2 (p char)) (n size))))
+
+#|
+@fn strchr
+|#
+(def strchr
+  (fn extern-c (p char) ((str (p char)) (c int))))
+
+#|
+@fn strrchr
+|#
+(def strrchr
+  (fn extern-c (p char) ((str (p char)) (c int))))
+
+#|
+@fn strspn
+|#
+(def strspn
+  (fn extern-c size ((str (p char)) (str2 (p char)))))
+
+#|
+@fn strcspn
+|#
+(def strcspn
+  (fn extern-c size ((str (p char)) (str2 (p char)))))
+
+#|
+@fn strpbrk
+|#
+(def strpbrk
+  (fn extern-c (p char) ((str (p char)) (str2 (p char)))))
+
+#|
+@fn strstr
+|#
+(def strstr
+  (fn extern-c (p char) ((str (const (p char))) (str2 (p char)))))
+
+#|
+@fn strlen
+|#
+(def strlen
+  (fn extern-c size ((str (const (p char))))))
+
+#|
+@fn strerror
+|#
+(def strerror
+  (fn extern-c (p char) ((n size))))
+
+#|
+@fn strtok
+|#
+(def strtok
+  (fn extern-c (p char) ((str (p char)) (str2 (p char)))))
+
+#|
+@fn memcpy
+|#
+(def memcpy
+  (fn extern-c (p void) ((str (p void)) (str2 (p void)) (n size))))
+
+#|
+@fn memmove
+|#
+(def memmove
+  (fn extern-c (p void) ((str (p void)) (str2 (p void)) (n size))))
+
+#|
+@fn memcmp
+|#
+(def memcmp
+  (fn extern-c int ((str (p void)) (str2 (p void)) (n size))))
+
+#|
+@fn memchr
+|#
+(def memchr
+  (fn extern-c (p void) ((a (p void)) (b int) (c size))))
+
+#|
+@fn memset
+|#
+(def memset
+  (fn extern-c (p void) ((a (p void)) (b int) (c size))))

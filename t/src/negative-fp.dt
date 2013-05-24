@@ -1,0 +1,5 @@
+(import cstdio) 
+
+(def main
+  (fn extern-c int (void)
+    (return (cast -0.0 int))))

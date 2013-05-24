@@ -1,0 +1,17 @@
+(import cstdio)
+(import macros)
+
+(def main
+  (fn extern-c int (void)
+    (def n (var auto int 10))
+
+    (while (> n 0)
+      (printf "n is %d\n" n)
+      (if (= (/ n 2) 4)
+          (do (setv n (- n 2)) (continue))
+          0)
+      (setv n (- n 1))
+      (continue))
+
+    (printf "Finished\n")
+    (return 0)))

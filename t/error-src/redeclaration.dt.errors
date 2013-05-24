@@ -1,0 +1,2 @@
+./t/error-src/redeclaration.dt:2:8: error: variable 'a' has already been defined in this scope
+./t/error-src/redeclaration.dt:3:8: error: variable 'a' has already been defined in this scope

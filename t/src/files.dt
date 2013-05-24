@@ -1,0 +1,19 @@
+(import cstdio)
+
+(def main 
+  (fn extern-c int (void)
+    (def tempfile (var auto (p file) (tmpfile)))
+    (def buf (var auto (array-of 255 char)))
+    (def bytes (var auto int 0))
+
+    (fprintf tempfile "contents\n")
+    (fseek tempfile 0 (fseekorigin SET))
+    (setv bytes (fread (cast buf (p void)) 
+                       (cast 1 size) 
+                       (cast 20 size) 
+                       tempfile))
+    (printf "%d\n" bytes)
+    (fclose tempfile)
+    (fprintf stdout "to stdout\n")
+    (fprintf stderr "to stderr\n")
+    0))

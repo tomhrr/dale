@@ -1,0 +1,11 @@
+(import cstdio)
+
+(def myfn
+  (fn extern int ((n (p int)))
+    (printf "%d %d\n" (@ ($ n 0)) (@ ($ n 1)))
+    0))
+
+(def main
+  (fn extern-c int (void)
+    (myfn (array-of 2 int (array 1 2)))
+    0))

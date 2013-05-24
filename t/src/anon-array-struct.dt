@@ -1,0 +1,20 @@
+(import cstdio)
+(import macros)
+
+(def m
+  (struct extern
+    ((a int)
+     (b (array-of 5 (struct ((a int) (b char)))))
+     (c int))))
+
+(def main
+  (fn extern-c int (void)
+    (def mym (var auto m))
+    (setf (: ($ (: mym b) 0) a) 10)
+    (setf (: ($ (: mym b) 1) b) #\c)
+    (setf (: ($ (: mym b) 4) a) 100)
+    (printf "%d %c %d\n"
+            (@: ($ (: mym b) 0) a)
+            (@: ($ (: mym b) 1) b)
+            (@: ($ (: mym b) 4) a))
+    0))

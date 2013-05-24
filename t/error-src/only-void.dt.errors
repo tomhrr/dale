@@ -1,0 +1,1 @@
+./t/error-src/only-void.dt:1:25: error: 'void' must be the only parameter

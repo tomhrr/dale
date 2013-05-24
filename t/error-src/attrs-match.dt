@@ -1,0 +1,12 @@
+(import cstdio)
+(import macros)
+
+(def main
+  (fn extern-c int (void)))
+
+(def main
+  (fn (attr inline) extern-c int (void)
+    (let ((i \ 0)
+          (j \ 0))
+      (printf "%d\n" j))
+    0))

@@ -1,0 +1,2 @@
+(def fn (fn extern int ((# int)) 0))
+(def fn (fn extern int ((# int))))

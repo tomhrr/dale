@@ -1,0 +1,21 @@
+(import cstdio)
+
+(def mac1
+  (fn intern int ((a int))
+    (def int1 (var auto int 0))
+    (setv int1 a)
+    (printf "%d\n" int1)
+    (return 0)))
+
+(def mac2
+  (fn intern int ((a int))
+    (def int1 (var auto int 0))
+    (setv int1 a)
+    (printf "%d\n" int1)
+    (return 0)))
+
+(def main
+  (fn extern-c int (void)
+    (mac1 1)
+    (mac2 2)
+    (return 0)))

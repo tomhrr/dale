@@ -1,0 +1,2 @@
+./t/error-src/ol-fn-setf.dt:9:5: error: expected expression with type (p (fn int ((p char)(p char))) (got type (p (fn int ((p char)uint32)) instead)
+./t/error-src/ol-fn-setf.dt:11:13: error: expected expression with type (p (fn int ((p char)(p char))) (got type (p (fn int ((p char)uint32)) instead)

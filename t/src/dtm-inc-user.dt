@@ -1,0 +1,8 @@
+(import dtm-inc)
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (printf "Hello\n")
+    (mod-fn)
+    0))

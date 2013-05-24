@@ -1,0 +1,12 @@
+(import cstdio)
+
+(def strtold
+  (fn extern-c long-double ((nptr (p char))
+                                (endptr (p (p char))))))
+
+(def main
+  (fn extern-c int (void)
+    (def c (var auto \ "123.123"))
+    (def d (var auto \ (strtold c (nullptr (p char)))))
+    (printf "%Lf\n" d)
+    0))

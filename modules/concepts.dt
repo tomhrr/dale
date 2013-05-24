@@ -1,0 +1,37 @@
+#|
+@module concepts
+
+Imports the other concept-related modules, and implements the
+following concepts:
+
+  * `Assignable`;
+  * `EqualityComparable`; and
+  * `LessThanComparable`
+
+over the built-in integral types, as well as `char`, `size` and
+`ptrdiff`. Provides `swap` functions to suit, too.
+
+|#
+(module concepts)
+
+(import concept-defs)
+
+(using-namespace std.macros
+(using-namespace std.concepts
+
+(mfor T (char
+         int  int8  int16  int32  int64
+         uint uint8 uint16 uint32 uint64
+         size ptrdiff)
+  (def swap
+    (fn extern void ((a (p T))
+                         (b (p T)))
+      (let ((temp T (@ a)))
+        (setf a (@ b))
+        (setf b temp)
+        (return))))
+  (implement Assignable T)
+  (implement EqualityComparable T)
+  (implement LessThanComparable T))
+
+))

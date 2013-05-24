@@ -1,0 +1,2 @@
+./t/error-src/no-core-macro.dt:5:3: error: core form names cannot be used as macro names
+./t/error-src/no-core-macro.dt:8:3: error: this core form cannot be overridden

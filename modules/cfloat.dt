@@ -1,0 +1,67 @@
+#|
+@module cfloat
+
+Provides the following floating-point macro constants:
+
+  * FLT-RADIX
+  * FLT-ROUNDS
+  * FLT-DIG
+  * FLT-EPSILON
+  * FLT-MANT-DIG
+  * FLT-MAX
+  * FLT-MAX-EXP
+  * FLT-MIN
+  * FLT-MIN-EXP
+  * DBL-DIG
+  * DBL-EPSILON
+  * DBL-MANT-DIG
+  * DBL-MAX
+  * DBL-MAX-EXP
+  * DBL-MIN
+  * DBL-MIN-EXP
+  * LDBL-DIG
+  * LDBL-EPSILON
+  * LDBL-MANT-DIG
+  * LDBL-MAX
+  * LDBL-MAX-EXP
+  * LDBL-MIN
+  * LDBL-MIN-EXP
+
+|#
+(module cfloat)
+
+(import macros)
+
+(make-macro-constant FLT-RADIX    FLT_RADIX)
+(make-macro-constant FLT-ROUNDS   FLT_ROUNDS)
+(make-macro-constant FLT-DIG      FLT_DIG)
+(make-macro-constant FLT-EPSILON  FLT_EPSILON)
+(make-macro-constant FLT-MANT-DIG FLT_MANT_DIG)
+(make-macro-constant FLT-MAX      FLT_MAX)
+(make-macro-constant FLT-MAX-EXP  FLT_MAX_EXP)
+(make-macro-constant FLT-MIN      FLT_MIN)
+(make-macro-constant FLT-MIN-EXP  FLT_MIN_EXP)
+
+(make-macro-constant DBL-DIG      DBL_DIG)
+(make-macro-constant DBL-EPSILON  DBL_EPSILON)
+(make-macro-constant DBL-MANT-DIG DBL_MANT_DIG)
+(make-macro-constant DBL-MAX      DBL_MAX)
+(make-macro-constant DBL-MAX-EXP  DBL_MAX_EXP)
+(make-macro-constant DBL-MIN      DBL_MIN)
+(make-macro-constant DBL-MIN-EXP  DBL_MIN_EXP)
+
+(make-macro-constant LDBL-DIG      LDBL_DIG)
+(make-macro-constant LDBL-MANT-DIG LDBL_MANT_DIG)
+
+(def LDBL-MIN
+  (macro extern (void)
+    (std.macros.mnfv pool "LDBL_MIN")))
+(def LDBL-MAX
+  (macro extern (void)
+    (std.macros.mnfv pool "LDBL_MAX")))
+(def LDBL-EPSILON
+  (macro extern (void)
+    (std.macros.mnfv pool "LDBL_EPSILON")))
+
+(make-macro-constant LDBL-MAX-EXP  LDBL_MAX_EXP)
+(make-macro-constant LDBL-MIN-EXP  LDBL_MIN_EXP)

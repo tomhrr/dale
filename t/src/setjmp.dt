@@ -1,0 +1,16 @@
+(import cstdio)
+(import csetjmp)
+(import cstdlib)
+
+(using-namespace std
+
+(def main
+  (fn extern-c int (void)
+    (let ((mine jmpbuf))
+      (if (= 0 (setjmp (# mine)))
+          (do (printf "setjmp\n") 0)
+          (do (printf "longjmp\n")
+              (exit 0)))
+      (longjmp (# mine) 1))))
+
+)

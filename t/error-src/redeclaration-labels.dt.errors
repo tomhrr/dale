@@ -1,0 +1,2 @@
+./t/error-src/redeclaration-labels.dt:4:5: error: label 'a' has already been defined in this scope
+./t/error-src/redeclaration-labels.dt:5:5: error: label 'a' has already been defined in this scope

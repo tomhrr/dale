@@ -1,0 +1,33 @@
+(import macros)
+(import cstdlib)
+
+(def mysuperstruct 
+  (struct intern ((a int) (b int))))
+
+(def fn1
+  (fn intern int ((n mysuperstruct))
+    0))
+
+(def fn2
+  (fn intern int ((n mysuperstruct))
+    0))
+
+(def fn1
+  (fn intern int ((n mysuperstruct) (m mysuperstruct))
+    0))
+
+(def show-fn-name
+  (macro intern (lst (c int))
+    (let ((cc    \ (atoi (@:@ c token-str)))
+          (n     \ (fn-by-args-name lst cc))
+          (buf   (array-of 255 char)))
+      (sprintf buf "\"%s\"" n)
+      (let ((nnode \ (std.macros.mnfv pool buf)))
+        (std.macros.qq do (uq nnode))))))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%s\n" (show-fn-name (mysuperstruct) 0))
+    (printf "%s\n" (show-fn-name (mysuperstruct) 1))
+    (printf "%s\n" (show-fn-name (mysuperstruct mysuperstruct) 0))
+    0))

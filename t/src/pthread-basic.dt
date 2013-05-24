@@ -1,0 +1,30 @@
+(import cstdio)
+(import pthread)
+(import macros)
+
+(def run-fn
+  (fn extern int ((n (p char)))
+    (printf "Created thread %d\n" (cast n int))
+    (pthread_exit (nullptr void))
+    0))
+
+(def pt-count
+  (macro intern (void)
+    (std.macros.mnfv pool "100")))
+
+(def main
+  (fn extern-c int (void)
+    (let ((pt (array-of (pt-count) pthread_t))
+          (i int 0))
+      (for true (< i (pt-count)) (incv i)
+          (pthread_create ($ pt i)
+                          (cast 0 (p pthread_attr_t)) 
+                          (cast (# run-fn) (p (fn (p void) ((n (p void))))))
+                          (cast i (p void)))
+          (pthread_detach (@ ($ pt i)))
+      )
+    )
+    (pthread_exit (nullptr void))
+    0
+  )
+)

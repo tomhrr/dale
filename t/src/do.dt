@@ -1,0 +1,11 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def temp (var auto int))
+    (setv temp (do (printf "Setting temp\n") 
+                   (printf "Not just yet though\n")
+                   (printf "OK now!\n")
+                   1))
+    (printf "Temp is %d\n" temp)
+    (return 0)))

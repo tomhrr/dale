@@ -1,0 +1,9 @@
+(import cstdio)
+
+(def myfn (fn intern int ((c char)) 0))
+(def myfn (fn intern int ((# int)) 0))
+
+(def main
+  (fn extern-c int (void)
+    (def n2 (var intern (p (fn int ((# int)))) (# myfn)))
+    0))

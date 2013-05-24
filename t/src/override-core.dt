@@ -1,0 +1,24 @@
+(import cstdio)
+(import macros)
+
+(def setf-both
+  (fn intern void ((dst (p float)) (src (p float)))
+    (printf "Overrode setf for float: old %0.2f, new %0.2f\n" 
+            (core @ dst) (core @ src))
+    (core setf dst (core @ src))
+    (return)))
+
+(def setf-assign
+  (fn intern void ((dst (p float)) (src (p float)))
+    (setf-both dst src)))
+
+(def setf-copy
+  (fn intern void ((dst (p float)) (src (p float)))
+    (setf-both dst src)))
+
+(def main
+  (fn extern-c int (void)
+    (def n (var auto float 0))
+    (setv n 1.0)
+    (printf "%0.2f\n" n)
+    0))

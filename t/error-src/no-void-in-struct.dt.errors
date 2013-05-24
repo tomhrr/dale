@@ -1,0 +1,1 @@
+./t/error-src/no-void-in-struct.dt:1:26: error: 'void' fields are not allowed in structs

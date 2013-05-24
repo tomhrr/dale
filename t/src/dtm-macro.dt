@@ -1,0 +1,7 @@
+(import cstdio)
+(import macros)
+
+(def dtm-module-macro
+  (macro extern (void)
+    (printf "Macro action\n")
+    (nullptr DNode)))

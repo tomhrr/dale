@@ -1,0 +1,5 @@
+./t/error-src/const-init.dt:5:12: error: must have initialiser for variable with const type
+./t/error-src/const-init.dt:6:13: error: must have initialiser for variable with const type
+./t/error-src/const-init.dt:7:5: error: cannot modify const variable
+./t/error-src/const-init.dt:8:5: error: cannot modify const variable
+./t/error-src/const-init.dt:9:5: error: cannot modify const variable

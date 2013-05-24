@@ -1,0 +1,22 @@
+(import cstdio)
+
+(def my-struct (struct extern((a int) (b int) (c (p char)) (d int))))
+(def num (var intern int 1000))
+
+(def main
+  (fn extern-c int (void)
+
+    (def thing (var auto my-struct))
+
+    (setf (: thing a) num)
+    (setf (: thing b) num)
+    (setf (: thing c) "qwer")
+    (setf (: thing d) 20)
+
+    (printf "%d %d %s %d\n" 
+        (@ (: thing a))
+        (@ (: thing b))
+        (@ (: thing c))
+        (@ (: thing d)))
+
+    (return 0)))

@@ -1,0 +1,38 @@
+(import macros)
+(import vector)
+
+(std.concepts.instantiate Vector int)
+
+(def printv
+  (fn intern void ((vecp (p (Vector int))))
+    (let ((b \ (begin vecp))
+          (e \ (end vecp)))
+      (for true (!= b e) (setv b (successor b))
+        (printf "%d\n" (@source b))))
+    (return)))
+
+(def main
+  (fn extern-c int (void)
+    (let ((vec  (Vector int))
+          (vecp \ (# vec)))
+      (init vecp 10)
+      (printv vecp)
+      (insert vecp (begin vecp) 100)
+      (insert vecp (begin vecp) 200)
+      (insert vecp (begin vecp) 300)
+      (printf "Three elements\n")
+      (printv vecp)
+      (erase vecp (successor (begin vecp)))
+      (printf "First and third element\n")
+      (printv vecp)
+      (erase vecp (begin vecp))
+      (printf "Third element\n")
+      (printv vecp)
+      (erase vecp (begin vecp))
+      (erase vecp (begin vecp))
+      (erase vecp (begin vecp))
+      (erase vecp (begin vecp))
+      (printf "No elements\n")
+      (printv vecp)
+    0)))
+

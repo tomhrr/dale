@@ -1,0 +1,21 @@
+(import cstdio)
+(import macros)
+
+(using-namespace std
+
+(def destroy
+  (fn extern void ((n (p float)))
+    (printf "destroying %f\n" (@ n))
+    (return)))
+
+(def main
+  (fn extern-c int (void)
+    (def x (var auto (array-of 3 (array-of 3 float))))
+    (let ((i \ 0))
+      (for true (< i 3) (incv i)
+        (let ((j \ 0))
+          (for true (< j 3) (incv j)
+            (setf ($ ($ x i) j) (cast (* i j) float))))))
+    0))
+
+)

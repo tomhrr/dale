@@ -1,0 +1,26 @@
+(import cstdio) 
+(import macros) 
+
+(using-namespace std.macros
+(def print-struct-names
+  (macro intern (fn)
+    (let ((n   int (struct-member-count fn))
+          (i   int 0))
+      (for true (< i n) (incv i)
+        (printf "%s\n" (struct-member-name fn i))))
+    (mnfv pool "0")))
+)
+
+(namespace bling
+  (def mys (struct extern((n int) (m char)))))
+
+(def mys (struct extern((n int) (m char) (r int))))
+
+(def empty (struct opaque))
+
+(def main
+  (fn extern-c int (void)
+    (print-struct-names bling.mys)
+    (print-struct-names mys)
+    (print-struct-names empty)
+    0))

@@ -1,0 +1,7 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def myarray (var auto (array-of 100 char)))
+    (printf "%d\n" (sizeof myarray))
+    0))

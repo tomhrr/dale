@@ -1,0 +1,30 @@
+(import cstdio)
+(import macros)
+
+(def main
+  (fn extern-c int (void)
+    (def a1 (var auto (array-of 10 (p (array-of 10 (p (array-of 10 int)))))))
+    (def a2 (var auto (array-of 10 (p (array-of 10 int)))))
+    (def a3 (var auto (array-of 10 int)))
+
+    (let ((i int))
+      (for (setv i 0) (< i 10) (incv i)
+        (setf ($ a3 i) i)))
+
+    (let ((i int))
+      (for (setv i 0) (< i 10) (incv i)
+        (setf ($ a2 i) (# a3))))
+
+    (let ((i int))
+      (for (setv i 0) (< i 10) (incv i)
+        (setf ($ a1 i) (# a2))))
+
+    (let ((i int)
+          (j int)
+          (k int))
+      (for (setv i 0) (< i 10) (incv i)
+        (for (setv j 0) (< j 10) (incv j)
+          (for (setv k 0) (< k 10) (incv k)
+            (printf "%d\n" (@ ($ (@ (@ ($ (@ (@ ($ a1 i))) j))) k)))))))
+
+    0))

@@ -1,0 +1,6 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (printf "Included %s properly\n" "file")
+    (return 0)))

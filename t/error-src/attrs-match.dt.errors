@@ -1,0 +1,1 @@
+./t/error-src/attrs-match.dt:8:3: error: attributes for the declaration of function 'main' do not match the attributes for the definition

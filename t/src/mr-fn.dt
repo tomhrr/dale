@@ -1,0 +1,25 @@
+(import cstdio)
+
+(def fn1 (fn extern int ((a int))))
+(def fn2 (fn extern int ((a int))))
+
+(def fn1
+  (fn extern int ((a int))
+    (if (= a 0)
+        0
+        (do (setv a (- a 1)) 
+            (printf "fn1: %d\n" a)
+            (fn2 a)))))
+
+(def fn2
+  (fn extern int ((a int))
+    (if (= a 0)
+        0
+        (do (setv a (- a 1)) 
+            (printf "fn2: %d\n" a)
+            (fn1 a)))))
+
+(def main
+  (fn extern-c int (void)
+    (fn1 10)
+    0))

@@ -1,0 +1,28 @@
+(import macros)
+
+(def mysuperstruct 
+  (struct intern ((a int) (b int))))
+
+(def fn1
+  (fn intern int ((n mysuperstruct))
+    0))
+
+(def fn2
+  (fn intern int ((n mysuperstruct))
+    0))
+
+(def fn1
+  (fn intern int ((n mysuperstruct) (m mysuperstruct))
+    0))
+
+(def count-functions
+  (macro intern (lst)
+    (let ((n     \ (fn-by-args-count lst))
+          (nnode \ (std.macros.mnfv pool n)))
+      (std.macros.qq do (uq nnode)))))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (count-functions (mysuperstruct)))
+    (printf "%d\n" (count-functions (mysuperstruct mysuperstruct)))
+    0))

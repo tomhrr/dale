@@ -1,0 +1,11 @@
+(import cstdio)
+
+(def thing (enum extern int (a b c d)))
+
+(def main
+  (fn extern-c int (void)
+    (def v (var auto int (cast (thing a) int)))
+    (printf "%d\n" v)
+    (def n (var auto thing (cast 3 thing)))
+    (printf "%d\n" (cast n int))
+    0))

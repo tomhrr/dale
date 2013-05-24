@@ -1,0 +1,14 @@
+(import mod-importforms (fun var str enu))
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (fun))
+    (printf "%d\n" var)
+    (def x (var auto str ((a 10) (b 20))))
+    (def y (var auto enu (enu d)))
+    (printf "%d %d %d\n"
+            (@: x a)
+            (@: x b)
+            y)
+    0))

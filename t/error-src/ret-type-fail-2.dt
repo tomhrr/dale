@@ -1,0 +1,6 @@
+(import cstdio)
+(import macros)
+
+(def main
+  (fn extern-c int (void)
+    "asdf"))

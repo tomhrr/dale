@@ -1,0 +1,1 @@
+./t/error-src/bad-linkage.dt:1:18: error: expected 'extern'/'intern'/'auto'/'extern-c' for linkage (got 'blahblah' instead)

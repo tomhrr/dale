@@ -1,0 +1,14 @@
+(import cstdio)
+(import macros)
+
+(def thing (enum intern int (a b c d e f g h)))
+
+(def main
+  (fn extern-c int (void)
+    (let ((n thing b)
+          (m thing d)
+          (o thing (& n m))
+          (p thing (| n m))
+          (q thing (^ n m)))
+      (printf "%d %d %d %d %d\n" n m o p q)
+      0)))

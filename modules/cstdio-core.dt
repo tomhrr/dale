@@ -1,0 +1,69 @@
+#|
+@module cstdio-core
+
+Provides bindings for the parts of `stdio.h` on which the `macros`
+module depends. This is separate from `cstdio`, so that `cstdio` can
+depend in turn on `macros`.
+
+|#
+(module cstdio-core)
+
+#|
+@struct file
+|#
+(def file (struct extern))
+
+#|
+@fn strlen
+|#
+(def strlen
+  (fn extern-c size ((str (p char)))))
+
+#|
+@fn strncpy
+|#
+(def strncpy
+  (fn extern-c (p char) ((dest (p char)) (source (p char)) (size
+  size))))
+
+#|
+@fn fprintf
+|#
+(def fprintf
+  (fn extern-c int ((stream (p file)) (str (p char)) ...)))
+
+#|
+@fn printf
+|#
+(def printf
+  (fn extern-c int ((str (p char)) ...)))
+
+#|
+@fn sprintf
+|#
+(def sprintf
+  (fn extern-c int ((str (p char)) (fmt (p char)) ...)))
+
+#|
+@fn strchr
+|#
+(def strchr
+  (fn extern-c (p char) ((str (p char)) (c int))))
+
+#|
+@fn memset
+|#
+(def memset
+  (fn extern-c (p void) ((a (p void)) (b int) (c size))))
+
+#|
+@fn strcmp
+|#
+(def strcmp
+  (fn extern-c int ((str (p char)) (str2 (p char)))))
+
+#|
+@fn strncmp
+|#
+(def strncmp
+  (fn extern-c int ((str (p char)) (str2 (p char)) (n size))))

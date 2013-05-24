@@ -1,0 +1,18 @@
+(import cstdio)
+
+(def myfn
+  (fn extern int ((a int))
+    (* 2 a)))
+
+(namespace x
+  (def myfn
+    (fn extern int ((a int))
+      (* 3 a))))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (myfn 1))
+    (using-namespace x
+      (printf "%d\n" (myfn 1)))
+    (printf "%d\n" (myfn 1))
+    0))

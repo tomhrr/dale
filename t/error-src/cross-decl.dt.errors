@@ -1,0 +1,2 @@
+./t/error-src/cross-decl.dt:6:7: error: this goto will cross a declaration
+./t/error-src/cross-decl.dt:19:7: error: this goto will cross a declaration

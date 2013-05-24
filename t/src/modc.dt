@@ -1,0 +1,2 @@
+(def modc-val
+  (var extern int 100))

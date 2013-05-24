@@ -1,0 +1,18 @@
+(import cstdio)
+
+(def language (enum extern int (english spanish french)))
+
+(def print
+  (fn extern int ((a language))
+    (if (= a (language english)) (printf "English\n")
+    (if (= a (language spanish)) (printf "Spanish\n")
+    (if (= a (language french))  (printf "French\n")
+                                 (printf "Unknown\n"))))))
+
+(def main
+  (fn extern-c int (void)
+    (print (language english))
+    (print (language spanish))
+    (print (language french))
+    0))
+

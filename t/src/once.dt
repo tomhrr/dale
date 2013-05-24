@@ -1,0 +1,7 @@
+(import cstdio)
+(include "t/include/cycle1.dth")
+
+(def main
+  (fn extern-c int (void)
+    (printf "hello\n")
+    (return 0)))

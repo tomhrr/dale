@@ -1,0 +1,17 @@
+(import concepts-core)
+
+(using-namespace std.macros (using-namespace std.concepts
+(def-concept Addable (refines) (T)
+  (if (exists-fn (qq bool + (uq T) (uq T)))
+      true
+      (do (report-error T "type does not implement Addable")
+          false)))
+
+(def f (struct intern ((a char))))
+
+(implement Addable f)
+))
+
+(def main
+  (fn extern-c int (void)
+    0))

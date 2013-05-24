@@ -1,0 +1,40 @@
+(import cstdio)
+
+(def one
+  (fn extern-c int (void)
+    (label a)
+      (goto e)
+    (label d)
+    (new-scope
+      (label b)
+        (def x (var auto int 0))
+      (label c)
+        (def y (var auto int 0))
+      (label e))
+    0))
+
+(def two
+  (fn extern-c int (void)
+    (label a)
+      (goto c)
+    (label d)
+    (new-scope
+      (label b)
+        (def x (var auto int 0))
+      (label c)
+        (def y (var auto int 0))
+      (label e))
+    0))
+
+(def three
+  (fn extern-c int (void)
+    (label a)
+      (goto b)
+    (label d)
+    (new-scope
+      (label b)
+        (def x (var auto int 0))
+      (label c)
+        (def y (var auto int 0))
+      (label e))
+    0))

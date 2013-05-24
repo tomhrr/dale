@@ -1,0 +1,9 @@
+(module mod-importforms)
+
+(def fun (fn extern int (void) 100))
+
+(def var (var extern int 1000))
+
+(def str (struct extern ((a int) (b int))))
+
+(def enu (enum extern int (a b c d)))

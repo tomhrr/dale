@@ -1,0 +1,109 @@
+#|
+@module ctime
+
+Bindings to `time.h`.
+
+|#
+(module ctime)
+
+(import macros)
+
+#|
+@macro MTIME_T
+
+Macro constant for TIME_T.
+
+|#
+(def MTIME_T
+  (macro extern (void) (std.macros.mnfv pool TIME_T)))
+
+#|
+@macro MCLOCK_T
+
+Macro constant for CLOCK_T.
+
+|#
+(def MCLOCK_T
+  (macro extern (void) (std.macros.mnfv pool CLOCK_T)))
+
+#|
+@struct time
+|#
+(def time  (struct extern ((n (array-of (MTIME_T)  char)))))
+
+#|
+@struct clock
+|#
+(def clock (struct extern ((n (array-of (MCLOCK_T) char)))))
+
+#|
+@struct tm
+|#
+(def tm
+  (struct extern
+          ((sec   int)
+           (min   int)
+           (hour  int)
+           (mday  int)
+           (mon   int)
+           (year  int)
+           (wday  int)
+           (yday  int)
+           (isdst int))))
+
+#|
+@fn clock
+|#
+(def clock
+  (fn extern-c clock (void)))
+
+#|
+@fn time      
+|#
+(def time      
+  (fn extern-c (p time) ((t (p time)))))
+
+#|
+@fn difftime
+|#
+(def difftime
+  (fn extern-c double ((time2 time) (time1 time))))
+
+#|
+@fn mktime
+|#
+(def mktime
+  (fn extern-c time ((tp (p tm)))))
+
+#|
+@fn asctime
+|#
+(def asctime
+  (fn extern-c (p char) ((tp (p tm)))))
+
+#|
+@fn ctime
+|#
+(def ctime
+  (fn extern-c (p char) ((tp (p time)))))
+
+#|
+@fn localtime 
+|#
+(def localtime 
+  (fn extern-c (p tm) ((t (p time)))))
+
+#|
+@fn gmtime
+|#
+(def gmtime
+  (fn extern-c (p tm) ((t (p time)))))
+
+#|
+@fn strftime  
+|#
+(def strftime  
+  (fn extern-c int ((b (p char))
+                        (s size)
+                        (f (p char))
+                        (t (p tm)))))

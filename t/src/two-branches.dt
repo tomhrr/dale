@@ -1,0 +1,27 @@
+(import cstdio)
+
+; Regression test - parseLabel should not add a branch to the new
+; block in the current block if the last instruction in the current
+; block is a terminator.
+
+(def main
+  (fn extern-c int (void)
+
+    (def i (var auto int 0))
+    
+    (printf "Begin\n")
+    (setv i (+ i 2))
+    (goto next-block)
+
+    (label next-block)
+      (printf "In next block\n")
+      (setv i (+ i 2))
+      (goto end-block)
+
+    (label end-block)
+      (setv i (+ i 2))
+      (printf "In end block\n")
+
+      (printf "i is %d\n" i)
+    
+      (return 0)))

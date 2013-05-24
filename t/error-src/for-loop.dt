@@ -1,0 +1,7 @@
+(import macros)
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (for true true true asdf)
+    0))

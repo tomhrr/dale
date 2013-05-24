@@ -1,0 +1,14 @@
+(import macros)
+(import cstdio)
+
+(def testmac
+  (macro extern (void)
+    (std.macros.mnfv pool "")))
+
+(def main
+  (fn extern-c int (void)
+    (printf "pre null\n")
+    (testmac)
+    (printf "post null\n")
+    0))
+

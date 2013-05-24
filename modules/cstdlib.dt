@@ -1,0 +1,186 @@
+#|
+@module cstdlib
+
+Bindings to `stdlib.h`.
+
+The `strto*` functions, with the exception of `strtod`, should not be used
+directly. Instead, use the functions with the explicit type names: e.g.
+`strtoi32`.
+
+|#
+(module cstdlib)
+
+(import macros)
+
+#|
+@fn atexit
+|#
+(def atexit
+  (fn extern-c int ((fcn (p (fn void (void)))))))
+
+#|
+@fn system
+|#
+(def system
+  (fn extern-c int ((s (p char)))))
+
+#|
+@fn getenv
+|#
+(def getenv
+  (fn extern-c (p char) ((s (p char)))))
+
+#|
+@fn bsearch
+|#
+(def bsearch
+  (fn extern-c (p void) ((key  (p void))
+                         (base (p void))
+                         (n    size)
+                         (size size)
+                         (cmp  (p (fn int ((keyval (p void))
+                                               (datum  (p void)))))))))
+
+#|
+@fn qsort
+|#
+(def qsort
+  (fn extern-c void ((base (p void))
+                     (n    size)
+                     (size size)
+                     (cmp  (p (fn int ((keyval (p void))
+                                           (datum  (p void)))))))))
+
+#|
+@fn exit
+|#
+(def exit
+  (fn extern-c int ((exit-code int))))
+
+#|
+@fn abort 
+|#
+(def abort 
+  (fn extern-c void (void)))
+
+#|
+@fn malloc
+|#
+(def malloc
+  (fn extern-c (p void) ((num size))))
+
+#|
+@fn free
+|#
+(def free
+  (fn extern-c void ((ptr (p void)))))
+
+#|
+@fn calloc
+|#
+(def calloc
+  (fn extern-c (p void) ((num size) (size size))))
+
+#|
+@fn realloc
+|#
+(def realloc
+  (fn extern-c (p void) ((ptr (p void)) (size size))))
+
+#|
+@fn atoi
+|#
+(def atoi
+  (fn extern-c int ((str (p char)))))
+
+#|
+@fn atof
+|#
+(def atof
+  (fn extern-c double ((str (p char)))))
+
+#|
+@fn strtod
+|#
+(def strtod
+  (fn extern-c double ((str (p char)) (endp (p (p char))))))
+
+#|
+@fn strtol
+|#
+(def strtol
+  (fn extern-c (long-type) ((str  (p char))
+                            (endp (p (p char)))
+                            (base int))))
+
+#|
+@fn strtoul
+|#
+(def strtoul
+  (fn extern-c (ulong-type) ((str  (p char))
+                             (endp (p (p char)))
+                             (base int))))
+
+#|
+@fn strtoll
+|#
+(def strtoll
+  (fn extern-c (long-long-type) ((str  (p char))
+                                 (endp (p (p char)))
+                                 (base int))))
+
+#|
+@fn strtoull
+|#
+(def strtoull
+  (fn extern-c (ulong-long-type) ((str  (p char))
+                                  (endp (p (p char)))
+                                  (base int))))
+
+#|
+@fn strtoi32
+|#
+(def strtoi32
+  (fn extern int32 ((str  (p char))
+                    (endp (p (p char)))
+                    (base int))
+    (cast (strtol str endp base) int32)))
+
+#|
+@fn strtoi64
+|#
+(def strtoi64
+  (fn extern int64 ((str  (p char))
+                    (endp (p (p char)))
+                    (base int))
+    (cast (strtoll str endp base) int64)))
+
+#|
+@fn strtoui32
+|#
+(def strtoui32
+  (fn extern uint32 ((str  (p char))
+                     (endp (p (p char)))
+                     (base int))
+    (cast (strtoul str endp base) uint32)))
+
+#|
+@fn strtoui64
+|#
+(def strtoui64
+  (fn extern uint64 ((str  (p char))
+                     (endp (p (p char)))
+                     (base int))
+    (cast (strtoull str endp base) uint64)))
+
+#|
+@fn rand
+|#
+(def rand
+  (fn extern-c int (void)))
+
+#|
+@fn srand
+|#
+(def srand
+  (fn extern-c void ((seed uint))))

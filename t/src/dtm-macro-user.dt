@@ -1,0 +1,7 @@
+(import dtm-macro)
+
+(dtm-module-macro)
+
+(def main
+  (fn extern-c int (void)
+    0))

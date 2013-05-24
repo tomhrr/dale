@@ -1,0 +1,9 @@
+(import cerrno)
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (fopen "/a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p" "rw")
+    (fprintf stderr "%d\n" (errno))
+    (perror "asdf")
+    0))

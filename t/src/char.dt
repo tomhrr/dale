@@ -1,0 +1,21 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def str (var auto (array-of 10 char)))
+
+    (printf "%c" #\SPACE)
+    (printf "%c" #\a)
+    (printf "%c" #\TAB)
+    (printf "%c" #\Z)
+    (printf "%c" #\NEWLINE)
+    (printf "%c" #\\)
+    (printf "%c" #\NULL)
+
+    (setf ($ str 0) #\A)
+    (setf ($ str 1) #\z)
+    (setf ($ str 2) #\NEWLINE)
+    (setf ($ str 3) #\NULL)
+
+    (printf "%s" str)
+    0))

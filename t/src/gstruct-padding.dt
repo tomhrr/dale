@@ -1,0 +1,18 @@
+(import cstdio)
+
+(def ss (struct extern ((c char) (b (p char)))))
+
+(def otherfn
+  (fn extern ss (void)
+    (def mm (var auto ss))
+    (setf (: mm c) #\a)
+    (setf (: mm b) "asdf")
+    (return mm)))
+
+(def a (var intern ss (otherfn)))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%c\n" (@ (: a c)))
+    (printf "%s\n" (@ (: a b)))
+    0))

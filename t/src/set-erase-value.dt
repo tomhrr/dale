@@ -1,0 +1,60 @@
+(import cstdio)
+
+(import macros)
+(import utility)
+(import set)
+
+(std.concepts.instantiate Set int)
+
+(def debug (var auto bool false))
+
+(def print-set
+  (fn intern void ((sp (p (Set int)))) 
+    (let ((b \ (begin sp))
+          (e \ (end   sp)))
+      (for true (!= b e) (setv b (successor b))
+        (printf "%d " (@source b))))
+    (printf "\n")
+    (return)))
+
+(def dump-nodes
+  (fn intern void ((sp (p (Set int))))
+    (if (not debug) (return) 0)
+    (let ((b \ (begin sp))
+          (e \ (end   sp)))
+      (for true (!= b e) (setv b (successor b))
+      (printf "%d (%p, %p %p %p)\n" (@source b)
+            (@: b element)
+            (@:@ (@: b element) left)
+            (@:@ (@: b element) up)
+            (@:@ (@: b element) right))))
+    (printf "\n")
+    (return)))
+
+(def main
+  (fn extern-c int (void)
+    (let ((s  (Set int))
+          (sp \ (# s)))
+      (init sp)
+
+      (let ((i \ 0))
+        (for true (< i 100) (incv i)
+          (insert sp i)))
+    
+      (print-set sp)
+
+      (erase sp 50)
+
+      (let ((i \ 0))
+        (for true (< i 100) (setv i (+ i 4))
+          (erase sp i)))
+
+      (print-set sp)
+
+      (if (erase sp 5000)
+          (printf "Erased non-existent element\n")
+          (printf "Unable to erase non-existent element\n"))
+
+    0)))
+
+

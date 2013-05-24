@@ -1,0 +1,17 @@
+(import cstdio) 
+(import macros) 
+
+(def get-arity
+  (macro intern (fn)
+    (let ((n   int (arity fn))
+          (str (array-of 10 char)))
+      (sprintf str "%d" n)
+      (std.macros.mnfv pool str))))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (get-arity malloc))
+    (printf "%d\n" (get-arity printf))
+    (printf "%d\n" (get-arity memcpy))
+    0))
+

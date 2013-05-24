@@ -1,0 +1,12 @@
+(import cstdio)
+(import macros)
+
+(def main
+  (fn extern-c int (void)
+    (let ((a int 1)
+          (b int 2)
+          (c int)
+          (d (p char) "let form"))
+      (setv c 3)
+      (printf "%d: %s\n" (+ a (+ b c)) d))
+    0))

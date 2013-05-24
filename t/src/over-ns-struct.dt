@@ -1,0 +1,37 @@
+(import cstdio)
+
+(def st (struct extern((a int))))
+
+(namespace test1
+  (def st (struct extern((a (p char)))))
+  (def myfn (fn extern int (void)    100))
+  (def myfn (fn extern int ((a int)) 200))
+  (def myfn (fn extern int ((a st))  1000)))
+
+(namespace test2
+  (def st (struct extern((a (p int)))))
+  (def myfn (fn extern int (void)    300))
+  (def myfn (fn extern int ((a int)) 400))
+  (def myfn (fn extern int ((a st))  2000)))
+
+(def myfn (fn extern int ((a st))  3000))
+
+(def main
+  (fn extern-c int (void)
+    (def a (var auto int 5000))
+    (def sti   (var auto st)) 
+    (setf (: sti a) 0)
+    (using-namespace test1 (def stit1 (var auto st)))
+    (setf (: stit1 a) "asdf")
+    (using-namespace test2 (def stit2 (var auto st)))
+    (setf (: stit2 a) (# a))
+
+    (printf "%d\n" (myfn sti))
+    (using-namespace test1
+      (printf "%d\n" (myfn sti))
+      (using-namespace test2
+        (printf "%d\n" (myfn sti))
+        (printf "%d\n" (myfn stit1))
+        (printf "%d\n" (myfn stit2)))
+      (printf "%d\n" (myfn stit1)))
+    0))

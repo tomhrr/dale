@@ -1,0 +1,7 @@
+(import cstdio)
+(include "./t/src/other.dt")
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" other-var)
+    0))

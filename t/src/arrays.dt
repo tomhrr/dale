@@ -1,0 +1,28 @@
+(import cstdio)
+
+(def lst (var intern (array-of 5 int)))
+
+(def test-fn
+  (fn extern int ((lst1 (p int)))
+    (printf "%d %d\n" (@ ($ lst1 0)) (@ ($ lst1 1)))
+    (return 0)))
+
+(def main
+  (fn extern-c int (void)
+    (setf ($ lst 0) 4)
+    (setf ($ lst 1) 3)
+    (setf ($ lst 2) 2)
+    (setf ($ lst 3) 1)
+    (setf ($ lst 4) 0)
+    (printf "%d %d %d %d %d\n" 
+        (@ ($ lst 0))
+        (@ ($ lst 1))
+        (@ ($ lst 2))
+        (@ ($ lst 3))
+        (@ ($ lst 4)))
+    (def lst1 (var auto (array-of 10 int)))
+    (setf ($ lst1 0) 5)
+    (setf ($ lst1 1) 6)
+    (printf "%d %d\n" (@ ($ lst1 0)) (@ ($ lst1 1)))
+    (test-fn lst1)
+    (return 0)))

@@ -1,0 +1,176 @@
+#|
+@module cctype
+
+Bindings to `ctype.h`. These bindings are awkward to use, because each
+takes an `int`, instead of a `char`. See the `ctype` module for a
+neater interface.
+
+|#
+(module cctype)
+
+(import macros)
+
+(using-namespace std.macros
+
+(def link-ctype-fn
+  (macro intern (fn-name)
+    (qq def (uq fn-name)
+      (fn extern-c int ((c int))))))
+
+#|
+@fn isalnum
+
+Determine whether a character is alphanumeric.
+
+@param          c           A character as an integer.
+@param-type     int
+@return-type    int
+@linkage        extern-c
+|#
+(link-ctype-fn isalnum)
+
+#|
+@fn isalpha
+
+Determine whether a character is alphabetical.
+
+@param          c           A character as an integer.
+@param-type     int
+@return-type    int
+@linkage        extern-c
+|#
+(link-ctype-fn isalpha)
+
+#|
+@fn iscntrl
+
+Determine whether a character is a control character.
+
+@param          c           A character as an integer.
+@param-type     int
+@return-type    int
+@linkage        extern-c
+|#
+(link-ctype-fn iscntrl)
+
+#|
+@fn isdigit
+
+Determine whether a character is a digit.
+
+@param          c           A character as an integer.
+@param-type     int
+@return-type    int
+@linkage        extern-c
+|#
+(link-ctype-fn isdigit)
+
+#|
+@fn isgraph
+
+Determine whether a character is printable (excludes space).
+
+@param          c           A character as an integer.
+@param-type     int
+@return-type    int
+@linkage        extern-c
+|#
+(link-ctype-fn isgraph)
+
+#|
+@fn islower
+
+Determine whether a character is lowercase.
+
+@param          c           A character as an integer.
+@param-type     int
+@return-type    int
+@linkage        extern-c
+|#
+(link-ctype-fn islower)
+
+#|
+@fn isprint
+
+Determine whether a character is printable (includes space).
+
+@param          c           A character as an integer.
+@param-type     int
+@return-type    int
+@linkage        extern-c
+|#
+(link-ctype-fn isprint)
+
+#|
+@fn ispunct
+
+Determine whether a character is a punctuation mark.
+
+@param          c           A character as an integer.
+@param-type     int
+@return-type    int
+@linkage        extern-c
+|#
+(link-ctype-fn ispunct)
+
+#|
+@fn isspace
+
+Determine whether a character is a whitespace character.
+
+@param          c           A character as an integer.
+@param-type     int
+@return-type    int
+@linkage        extern-c
+|#
+(link-ctype-fn isspace)
+
+#|
+@fn isupper
+
+Determine whether a character is uppercase.
+
+@param          c           A character as an integer.
+@param-type     int
+@return-type    int
+@linkage        extern-c
+|#
+(link-ctype-fn isupper)
+
+#|
+@fn isxdigit
+
+Determine whether a character is a hexadecimal digit.
+
+@param          c           A character as an integer.
+@param-type     int
+@return-type    int
+@linkage        extern-c
+|#
+(link-ctype-fn isxdigit)
+
+#|
+@fn tolower
+
+Convert a character into a lowercase character, if possible.
+
+@param          c           A character as an integer.
+@param-type     int
+@return-type    int
+@linkage        extern-c
+|#
+(link-ctype-fn tolower)
+
+#|
+@fn toupper
+
+Convert a character into an uppercase character, if possible.
+
+@param          c           A character as an integer.
+@param-type     int
+@return-type    int
+@linkage        extern-c
+|#
+(link-ctype-fn toupper)
+
+)

@@ -1,0 +1,18 @@
+(import dtm-struct)
+(import cstdio)
+(import macros)
+
+(def m
+  (macro extern (void)
+    (let ((m dtm-module-struct ((a 10) (b #\c) (c 20))))
+      (printf "%d %c %d\n"
+              (@: m a)
+              (@: m b)
+              (@: m c))
+      (nullptr DNode))))
+
+(m)
+
+(def main
+  (fn extern-c int (void)
+    0))

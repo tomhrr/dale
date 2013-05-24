@@ -1,0 +1,11 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def f (var auto float 10.0))
+    (def d (var auto float 20.0))
+    (printf "%f\n" f)
+    (printf "%f\n" d)
+    (printf "%f %f\n" d f)
+    (printf "%f %f\n" f d)
+    0))

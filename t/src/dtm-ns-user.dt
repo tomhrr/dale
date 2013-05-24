@@ -1,0 +1,12 @@
+(import dtm-ns)
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (x.f))
+    (printf "%d\n" 2)
+    (let ((thing x.s ((a 10) (b #\c)))
+          (e-val x.e (x.e a)))
+      (printf "%d %c %d\n" (@: thing a) 
+                           (@: thing b)
+                           e-val))
+    0))

@@ -1,0 +1,1 @@
+./t/error-src/extern-plus-init.dt:3:12: error: a function-scoped variable cannot have extern linkage as well as an initialiser

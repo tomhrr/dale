@@ -1,0 +1,18 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def v (var auto (array-of 10 int) (array 1 2 3 4 5 6 7 8 9 10)))
+
+    (printf "%d\n" (@ ($ v 0)))
+    (printf "%d\n" (@ ($ v 1)))
+    (printf "%d\n" (@ ($ v 2)))
+    (printf "%d\n" (@ ($ v 3)))
+    (printf "%d\n" (@ ($ v 4)))
+    (printf "%d\n" (@ ($ v 5)))
+    (printf "%d\n" (@ ($ v 6)))
+    (printf "%d\n" (@ ($ v 7)))
+    (printf "%d\n" (@ ($ v 8)))
+    (printf "%d\n" (@ ($ v 9)))
+    
+    0))

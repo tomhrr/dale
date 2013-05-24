@@ -1,0 +1,53 @@
+(import cstdio)
+(import macros)
+
+; It is necessary to wrap this function because dale does not handle
+; recursive macros at the moment.
+
+(def mreverse-sub
+  (fn intern (p DNode) ((form (p DNode)))
+
+    (def current-node (var auto (p DNode)))
+    (def temp-node    (var auto (p DNode)))
+    (def pr-node      (var auto (p DNode)))
+
+    (setv current-node (@ (: (@ form) list-node)))
+    (setv temp-node    (cast 0 (p DNode)))
+    (setv pr-node      (cast 0 (p DNode)))
+
+    (label begin-loop-1)
+      (if (null (@ (: (@ current-node) list-node)))
+          (goto end-loop-1)
+          (do   (mreverse-sub current-node)
+                (if (null (@ (: (@ current-node) next-node)))
+                    (goto end-loop-1)
+                    (do     (setv current-node (@ (: (@ current-node) next-node)))
+                            (goto begin-loop-1)))))
+
+    (label end-loop-1)
+      (setv current-node (@ (: (@ form) list-node)))
+      (setv temp-node    (cast 0 (p DNode)))
+      (setv pr-node      (cast 0 (p DNode)))
+
+    (label begin-loop)
+      (if (null current-node)
+          (goto end-loop)
+          (do   
+                (setv temp-node (@ (: (@ current-node) next-node)))
+                (setf (: (@ current-node) next-node) pr-node)
+                (setv pr-node current-node)
+                (setv current-node temp-node)
+                (goto begin-loop)))
+
+    (label end-loop)
+      (setf (: (@ form) list-node) pr-node)
+      (return form)))
+
+(def mreverse
+  (macro intern (form)
+    (return (mreverse-sub form))))
+
+(def main
+  (fn extern-c int (void)
+    (mreverse (25 "printing a number %d\n" printf))
+    (mreverse ((5 10 -) return))))

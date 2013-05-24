@@ -1,0 +1,9 @@
+(module dtm-nsimport)
+
+(namespace one
+  (def x (var extern int 100))
+  (def y (var extern int 200)))
+
+(namespace two
+  (def my (struct extern ((a int) (b char))))
+  (def myfn (fn extern int (void) 5000)))

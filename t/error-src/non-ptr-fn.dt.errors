@@ -1,0 +1,1 @@
+./t/error-src/non-ptr-fn.dt:1:27: error: all function parameters must be pointers to functions

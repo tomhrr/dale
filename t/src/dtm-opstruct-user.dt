@@ -1,0 +1,6 @@
+(import dtm-opstruct)
+
+(def a (var intern opstruct))
+(def b (var intern (p opstruct)))
+(def c (var intern instruct))
+(def d (var intern (p instruct)))

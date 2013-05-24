@@ -1,0 +1,215 @@
+# Dale
+
+## 2.9 concept-defs
+
+### Details
+
+Module: concept-defs  
+File: concept-defs  
+
+### Description
+
+Basic concept definitions. Copied from C++'s STL, for the most part.
+
+
+
+### Concepts
+
+#### `Value`
+
+Returns true, regardless of the argument. This is mainly useful when a
+concept macro needs to accept a parameter that isn't a type; there is
+corresponding logic in `concepts-core` for that case that relies on
+this concept being present.
+
+
+#### `Type`
+
+Returns true if the argument is a type.
+
+
+#### `Struct`
+
+Returns true if the argument is a struct type.
+
+
+#### `Assignable`
+
+Returns true if the type is non-const, and a `swap` function exists
+over pointers to the type.
+
+
+#### `DefaultConstructible`
+
+Returns true if variables of the specified type may be declared and
+left uninitialised. (This is a really unfortunate name, but not sure
+what would be better.)
+
+
+#### `EqualityComparable`
+
+Returns true if `=` and `!=` are implemented over the type.
+
+
+#### `LessThanComparable`
+
+Returns true if `<`, `<=`, `>` and `>=` are implemented over the type.
+
+
+#### `Container`
+
+Returns true if the type is `Assignable`, and the following other
+conditions hold:
+
+  * `value-type`, `difference-type` and `size-type` macros exist over
+    pointers to the type;
+  * the `value-type` of the type is `Assignable`;
+  * `size`, `max-size`, `empty`, `swap` and `init` are defined over
+    pointers to the type;
+  * the container has an iterator type; and
+  * `begin` and `end` are defined over the container, and return
+    iterators.
+
+
+#### `ForwardContainer`
+
+Refines `Container`, `EqualityComparable` and `LessThanComparable`.
+
+Additional requirements:
+
+  * the iterator type must be an `InputIterator`; and
+  * the value type for the container must be both `EqualityComparable`
+    and `LessThanComparable`.
+
+
+#### `ReversibleContainer`
+
+Refines `ForwardContainer`.
+
+Additional requirements:
+
+
+#### `RandomAccessContainer`
+
+Refines `ReversibleContainer`. Additionally, the iterator for the
+container must be a `RandomAccessIterator`, and `$` must be defined
+over the container.
+
+
+#### `Sequence`
+
+Refines `ForwardContainer`.
+
+Additional requirements:
+
+  * `front` is defined over pointers to the type;
+  * `insert` is defined, and it takes a pointer to the type, an
+    iterator, and an instance of value-type;
+  * `erase` is defined, and it takes a pointer to the type and an
+    iterator; and
+  * `clear` is defined over pointers to the type.
+
+
+#### `FrontInsertionSequence`
+
+Refines `Sequence`.
+
+Additional requirements:
+
+  * `push-front` and `pop-front` are defined over pointers to the
+    type.
+
+
+#### `BackInsertionSequence`
+
+Refines `Sequence`.
+
+Additional requirements:
+
+  * `push-back`, `pop-back` and `back` are defined over pointers to
+    the type.
+
+
+#### `AssociativeContainer`
+
+Refines `ForwardContainer` and `DefaultConstructible`.
+
+Additional requirements:
+
+  * `key-type`, `erase` (key), `find` (key) and `count` (key) are
+    defined over pointers to the type; and
+  * `erase` is defined over the type's iterator.
+
+
+#### `SimpleAssociativeContainer`
+
+Refines `AssociativeContainer`. The only additional requirement is that
+the key type and value type of the container are the same type.
+
+
+#### `SortedAssociativeContainer`
+
+Refines `AssociativeContainer` and `ReversibleContainer`.
+Additionally, `lower-bound` and `upper-bound`, each taking a container
+pointer type and a key value (and returning an iterator) must be
+defined.
+
+
+#### `UniqueAssociativeContainer`
+
+Refines `AssociativeContainer`. Additionally, `insert` must be
+defined, accepting a pointer to the type and an instance of
+value-type.
+
+
+#### `PairAssociativeContainer`
+
+Refines `AssociativeContainer`. The value-type for the container must
+be a struct, and it must contain two members named `first` and
+`second`.
+
+
+#### `TrivialIterator`
+
+Refines `Assignable`, `EqualityComparable` and `DefaultConstructible`.
+Additionally, `value-type`, `source` (returning a pointer to a value
+of type `value-type`) and `@source` (returning a value of type
+`value-type`) must be defined over the iterator (or a pointer to the
+iterator, in the case of `value-type`).
+
+
+#### `InputIterator`
+
+Refines `TrivialIterator`. `successor`, returning an iterator of the
+same type as the argument iterator, must be defined over the type.
+
+
+#### `OutputIterator`
+
+Refines `Assignable` and `DefaultConstructible`. Additionally,
+`value-type`, `sink` (for setting the iterator's value) and
+`successor` (for getting the next iterator) must be defined over the
+iterator (or a pointer to the iterator, in the case of `value-type`).
+
+
+#### `ForwardIterator`
+
+Refines `InputIterator`. Additionally, calls to `successor` must not
+invalidate previous iterators. (This can't be determined
+automatically, so this concept exists for documentation purposes
+only.)
+
+
+#### `BidirectionalIterator`
+
+Refines `ForwardIterator`. Additionally, `predecessor` must be
+implemented over the iterator, and it must return an instance of the
+same type of iterator.
+
+
+#### `RandomAccessIterator`
+
+Refines `BidirectionalIterator` and `LessThanComparable`.
+Additionally, `distance-type` must be defined over pointers to the
+type, and `+` and `-` must also be defined, each taking an iterator
+and a value of type `distance-type`, and returning a new iterator.

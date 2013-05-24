@@ -1,0 +1,26 @@
+(import cstdio)
+(import macros)
+(import shared-ptr)
+
+(std.concepts.instantiate SharedPtr int)
+
+(def otherfn
+  (fn extern-c (SharedPtr int) ((myptr (SharedPtr int)))
+    (printf "Ref count is %d\n" (@ (@: myptr refcount)))
+    (printf "Entered other function (copied), returning it now\n")
+    (return myptr)))
+
+(def main
+  (fn extern-c int (void)
+    (let ((myptr  (SharedPtr int))
+          (myptr2 (SharedPtr int) (do (init (# myptr2)) 0))
+          (myint \ (malloc' 1 int)))
+      (setf myint 100)
+      (init (# myptr) myint)
+      (setv myptr2 myptr)
+      (printf "Ref count is %d\n" (@ (@: myptr refcount)))
+      (setv myptr (otherfn myptr))
+      (printf "Ref count is %d\n" (@ (@: myptr refcount)))
+      (printf "%d\n" (@ myptr))
+      (printf "%d\n" (@ myptr2))
+      0)))

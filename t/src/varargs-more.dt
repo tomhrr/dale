@@ -1,0 +1,23 @@
+(import cstdio)
+
+(def fn1
+  (fn extern-c int (...)
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (printf "%s\n%s\n%d\n%d\n%s\n%s\n%d\n%d\n"
+            (va-arg (# arglist) (p char))
+            (va-arg (# arglist) (p char))
+            (va-arg (# arglist) int)
+            (va-arg (# arglist) int)
+            (va-arg (# arglist) (p char))
+            (va-arg (# arglist) (p char))
+            (va-arg (# arglist) int)
+            (va-arg (# arglist) int))
+    0))
+
+(def main
+  (fn extern-c int (void)
+    (fn1 "asdf" "qwer" 10 20
+         "zxcv" "tyui" 30 40)
+    0))
+

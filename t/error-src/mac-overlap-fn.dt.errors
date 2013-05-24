@@ -1,0 +1,1 @@
+./t/error-src/mac-overlap-fn.dt:9:3: error: macro 'mytemp' has same parameters as an existing function of that name

@@ -1,0 +1,5 @@
+(once cycle2)
+
+(include "t/include/cycle3.dth")
+
+(def cycle2fn (fn extern int (void) 33))

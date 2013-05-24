@@ -1,0 +1,21 @@
+(import cstdio)
+(import macros)
+(import vector)
+
+(namespace mine
+  (std.concepts.instantiate Vector int)
+)
+
+(using-namespace mine
+  (def main
+    (fn extern-c int (void)
+      (let ((vec (Vector int))
+            (vecp \ (# vec))
+            (myiter (Iterator (Vector int))))
+        (init vecp 100)
+        (push-back vecp 200)
+        (setv myiter (begin vecp))
+        (printf "%d\n" (@source myiter))
+        0)
+      0))
+)

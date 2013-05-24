@@ -1,0 +1,9 @@
+(import cstdio)
+
+(def myfn
+  (fn extern int (void)))
+
+(def main
+  (fn extern-c int (void)
+    (printf "Zero: %d\n" (myfn))
+    0))

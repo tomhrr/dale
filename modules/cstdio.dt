@@ -1,0 +1,349 @@
+#|
+@module cstdio
+
+Bindings to `stdio.h`. Provides the following macro constants:
+  
+  * L-tmpnam
+  * TMP-MAX
+  * FILENAME-MAX
+  * FOPEN-MAX
+  * RAND-MAX
+  * EXIT-FAILURE
+  * EXIT-SUCCESS
+
+|#
+(module cstdio)
+
+(import macros)
+
+#|
+@struct file
+|#
+(def file (struct extern))
+
+#|
+@var stdin
+
+The standard input handle.
+
+|#
+(def stdin  (var extern-c (p file)))
+
+#|
+@var stdout
+
+The standard output handle.
+
+|#
+(def stdout (var extern-c (p file)))
+
+#|
+@var stderr
+
+The standard error handle.
+
+|#
+(def stderr (var extern-c (p file)))
+
+#|
+@fn fdopen
+|#
+(def fdopen
+  (fn extern-c (p file) ((fd int) (mode (p char)))))
+
+#|
+@fn init-channels
+
+Initialises `stdin`, `stdout` and `stderr`. Used implicitly by the
+compiler, when available; there is almost certainly a better/safer way
+to do this.
+
+|#
+(def init-channels
+  (fn extern int (void)
+    (setv stdin  (fdopen 0 "r"))
+    (setv stdout (fdopen 1 "w"))
+    (setv stderr (fdopen 2 "w"))
+    0)) 
+
+#|
+@enum buffer-mode
+|#
+(def buffer-mode
+  (enum extern int (_IOFBF _IOLBF _IONBF)))
+
+#|
+@fn fopen
+|#
+(def fopen
+  (fn extern-c (p file) ((filename (p char)) (mode (p char)))))
+
+#|
+@fn freopen
+|#
+(def freopen
+  (fn extern-c (p file) ((filename (p char)) 
+                         (mode     (p char))
+                         (stream   (p file)))))
+
+#|
+@fn fflush
+|#
+(def fflush
+  (fn extern-c int ((stream (p file)))))
+
+#|
+@fn fclose
+|#
+(def fclose
+  (fn extern-c int ((stream (p file)))))
+
+#|
+@fn remove
+|#
+(def remove
+  (fn extern-c int ((filename (p char)))))
+
+#|
+@fn rename
+|#
+(def rename
+  (fn extern-c int ((old-name (p char))
+                        (new-name (p char)))))
+
+#|
+@fn tmpfile
+|#
+(def tmpfile
+  (fn extern-c (p file) (void)))
+
+#|
+@fn tmpnam
+|#
+(def tmpnam
+  (fn extern-c (p char) ((buffer (p char)))))
+
+#|
+@fn setvbuf
+|#
+(def setvbuf
+  (fn extern-c int ((stream (p file))
+                    (buf    (p char))
+                    (mode   buffer-mode)
+                    (size   size))))
+
+#|
+@fn setbuf
+|#
+(def setbuf
+  (fn extern-c void ((stream (p file))
+                         (buf    (p char)))))
+
+#|
+@fn fprintf
+|#
+(def fprintf
+  (fn extern-c int ((stream (p file)) (str (p char)) ...)))
+
+#|
+@fn printf
+|#
+(def printf
+  (fn extern-c int ((str (p char)) ...)))
+
+#|
+@fn sprintf
+|#
+(def sprintf
+  (fn extern-c int ((str (p char)) (fmt (p char)) ...)))
+
+#|
+@fn vprintf
+|#
+(def vprintf
+  (fn extern-c int ((str (p char)) (arg va-list))))
+
+#|
+@fn vfprintf
+|#
+(def vfprintf
+  (fn extern-c int ((stream (p file)) 
+                    (str    (p char)) 
+                    (arg    va-list))))
+
+#|
+@fn vsprintf
+|#
+(def vsprintf
+  (fn extern-c int ((stream (p file)) 
+                    (str    (p char)) 
+                    (arg    va-list))))
+
+#|
+@fn fgetc
+|#
+(def fgetc
+  (fn extern-c int ((stream (p file)))))
+
+#|
+@fn fgets
+|#
+(def fgets
+  (fn extern-c (p char) ((str    (p char))
+                         (n      int)
+                         (stream (p file)))))
+
+#|
+@fn fputc
+|#
+(def fputc
+  (fn extern-c int ((c int) (stream (p file)))))
+
+#|
+@fn fputs
+|#
+(def fputs
+  (fn extern-c int ((str (p char)) (stream (p file)))))
+
+#|
+@fn getc
+|#
+(def getc
+  (fn extern-c int ((stream (p file)))))
+
+#|
+@fn getchar
+|#
+(def getchar
+  (fn extern-c int ((stream (p file)))))
+
+#|
+@fn gets
+|#
+(def gets
+  (fn extern-c (p char) ((str (p char)))))
+
+#|
+@fn putc
+|#
+(def putc
+  (fn extern-c int ((c int) (stream (p file)))))
+
+#|
+@fn putchar
+|#
+(def putchar
+  (fn extern-c int ((c int))))
+
+#|
+@fn puts
+|#
+(def puts
+  (fn extern-c int ((str (p char)))))
+
+#|
+@fn ungetc
+|#
+(def ungetc
+  (fn extern-c int ((c int) (stream (p file)))))
+
+#|
+@fn fread
+|#
+(def fread
+  (fn extern-c int ((ptr (p void)) 
+                        (size  size)
+                        (count size) 
+                        (stream (p file)))))
+
+#|
+@fn fwrite
+|#
+(def fwrite
+  (fn extern-c int ((ptr (p void))
+                    (size  size)
+                    (count size)
+                    (stream (p file)))))
+
+#|
+@enum fseekorigin
+|#
+(def fseekorigin (enum extern int (SET CUR END)))
+
+#|
+@fn fseek
+|#
+(def fseek
+  (fn extern-c int ((stream (p file)) 
+                    (offset int) 
+                    (origin fseekorigin))))
+
+#|
+@fn ftell
+|#
+(def ftell
+  (fn extern-c int ((stream (p file)))))
+
+#|
+@fn rewind
+|#
+(def rewind
+  (fn extern-c void ((stream (p file)))))
+
+#|
+@macro MFPOS_T
+|#
+(def MFPOS_T
+  (macro extern (void) (std.macros.mnfv pool FPOS_T)))
+
+#|
+@struct fpos
+|#
+(def fpos
+  (struct extern ((n (array-of (MFPOS_T) char)))))
+
+#|
+@fn fgetpos
+|#
+(def fgetpos
+  (fn extern-c int ((stream (p file))
+                    (ptr    (p fpos)))))
+
+#|
+@fn fsetpos
+|#
+(def fsetpos
+  (fn extern-c int ((stream (p file))
+                    (ptr    (p fpos)))))
+
+#|
+@fn clearerr
+|#
+(def clearerr
+  (fn extern-c void ((stream (p file)))))
+
+#|
+@fn feof
+|#
+(def feof
+  (fn extern-c int  ((stream (p file)))))
+
+#|
+@fn ferror
+|#
+(def ferror
+  (fn extern-c int  ((stream (p file)))))
+
+#|
+@fn perror
+|#
+(def perror
+  (fn extern-c void ((str  (p char)))))
+
+(make-macro-constant L-tmpnam     L_tmpnam)
+(make-macro-constant TMP-MAX      TMP_MAX)
+(make-macro-constant FILENAME-MAX FILENAME_MAX)
+(make-macro-constant FOPEN-MAX    FOPEN_MAX)
+(make-macro-constant RAND-MAX     RAND_MAX)
+(make-macro-constant EXIT-FAILURE EXIT_FAILURE)
+(make-macro-constant EXIT-SUCCESS EXIT_SUCCESS)

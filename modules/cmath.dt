@@ -1,0 +1,170 @@
+#|
+@module cmath
+
+Bindings to `math.h`.
+
+|#
+(module cmath)
+
+#|
+@fn log
+|#
+(def log
+  (fn extern-c double ((n double))))
+
+#|
+@fn log10
+|#
+(def log10
+  (fn extern-c double ((n double))))
+
+#|
+@fn ceil
+|#
+(def ceil
+  (fn extern-c double ((n double))))
+
+#|
+@fn floor
+|#
+(def floor
+  (fn extern-c double ((n double))))
+
+#|
+@fn fabs
+|#
+(def fabs
+  (fn extern-c double ((n double))))
+
+#|
+@fn frexp
+|#
+(def frexp
+  (fn extern-c double ((n double) (exp (p int)))))
+
+#|
+@fn modf
+|#
+(def modf
+  (fn extern-c double ((n double) (exp (p double)))))
+
+#|
+@fn fmod
+|#
+(def fmod
+  (fn extern-c double ((n double) (m double))))
+
+#|
+@fn asin
+|#
+(def asin
+  (fn extern-c double ((n double))))
+
+#|
+@fn acos
+|#
+(def acos
+  (fn extern-c double ((n double))))
+
+#|
+@fn atan
+|#
+(def atan
+  (fn extern-c double ((n double))))
+
+#|
+@fn atan2
+|#
+(def atan2
+  (fn extern-c double ((n double))))
+
+#|
+@fn abs
+|#
+(def abs
+  (fn extern-c int ((a int))))
+
+#|
+@struct div-t
+|#
+(def div-t
+  (struct extern ((quot int)
+                  (rem  int))))
+
+#|
+@fn div
+|#
+(def div
+  (fn extern-c div-t ((num int) (denom int))))
+
+#|
+@fn cos
+|#
+(def cos
+  (fn extern-c double ((n double))))
+
+#|
+@fn cosf
+|#
+(def cosf
+  (fn extern-c float ((n float))))
+
+#|
+@fn cosl
+|#
+(def cosl
+  (fn extern-c long-double ((n long-double))))
+
+#|
+@fn sin
+|#
+(def sin
+  (fn extern-c double ((n double))))
+
+#|
+@fn sinf
+|#
+(def sinf
+  (fn extern-c float ((n float))))
+
+#|
+@fn sinl
+|#
+(def sinl
+  (fn extern-c long-double ((n long-double))))
+
+#|
+@fn sqrt
+|#
+(def sqrt
+  (fn extern-c double ((n double))))
+
+#|
+@fn sqrtf
+|#
+(def sqrtf
+  (fn extern-c float ((n float))))
+
+#|
+@fn sqrtl
+|#
+(def sqrtl
+  (fn extern-c long-double ((n long-double))))
+
+#|
+@fn pow
+|#
+(def pow
+  (fn extern-c double ((n double) (m double))))
+
+#|
+@fn powf
+|#
+(def powf
+  (fn extern-c float ((n float) (m float))))
+
+#|
+@fn powl
+|#
+(def powl
+  (fn extern-c long-double ((n long-double) (m long-double))))

@@ -1,0 +1,13 @@
+(import cstdio)
+(import macros)
+
+(def main (fn extern-c int (void)
+    (let ((b (p int) (malloc' 10 int))
+          (i int))
+        (for (setv i 0) (< i 10) (incv i)
+            (setf ($ b i) i))
+        (for (setv i 0) (< i 10) (incv i)
+            (printf "%d\n" (@ ($ b i))))
+        (free' b)
+    )
+    0))

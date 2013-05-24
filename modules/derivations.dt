@@ -1,0 +1,309 @@
+#|
+@module derivations
+
+Provides concept macros for generating common functions over types.
+The difference between this module and `algorithms` is that this one
+is limited to very simple functions, namely the basic relations and
+the `swap` function.
+
+|#
+(module derivations (attr cto))
+
+(import macros)
+(import assert)
+(import cstdio)
+(import concepts)
+
+(using-namespace std.macros
+(using-namespace std.concepts
+
+(def setf-dsref-mul
+  (macro intern (struct-name ...)
+    (setv arg-count (- arg-count 1))
+
+    (def nullp (var auto (p DNode) (cast 0 (p DNode))))
+
+    ; This node will be used to construct the 'do' form at the end.
+    (def first-node  (var auto (p DNode) (cast 0 (p DNode))))
+
+    ; Create an anchor node pointer. This will be set to the value
+    ; of each newly-created node, so that the next node can be
+    ; linked to it.
+    (def anchor-node (var auto (p DNode) (cast 0 (p DNode))))
+
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+
+    (def va-dnode (var auto (p DNode) (cast 0 (p DNode))))
+    (def sf-dnode (var auto (p DNode) (cast 0 (p DNode))))
+    (def sv-dnode (var auto (p DNode) (cast 0 (p DNode))))
+
+    (def st-dnode (var auto (p DNode) (mnfv pool (@:@ struct-name token-str))))
+
+    (label begin-loop)
+    (if (= arg-count 0)
+        (goto end-loop)
+        (do
+            ; Load the next DNode ptr.
+            (setv va-dnode (va-arg (# arglist) (p DNode)))
+            (setv arg-count (- arg-count 1))
+
+            ; Get the struct-field and struct-value nodes.
+            (setv sf-dnode (@:@ va-dnode list-node))
+            (setv sv-dnode (@:@ sf-dnode next-node))
+
+            (setf (:@ sf-dnode next-node) nullp)
+
+            (def setf-list-node (var auto (p DNode)
+                (bqq setf (:@ (uq st-dnode) (uq sf-dnode)) (uq sv-dnode))))
+
+            ; Set first-node to this node, if it's null.
+            (setv first-node (if (null first-node) setf-list-node first-node))
+
+            ; If anchor-node is not null, make setf-list-node its next
+            ; node.
+
+            (if (not (null anchor-node))
+                (do (setf (:@ anchor-node next-node) setf-list-node) 0)
+                0)
+
+            ; Set anchor-node to this node.
+            (setv anchor-node setf-list-node)
+
+            (goto begin-loop)))
+
+    (label end-loop)
+    (va-end (cast (# arglist) (p void)))
+
+    ; Create a 'do' node, link it to first-node.
+    (return (link-nodes-list pool 2 (mnfv pool "do") first-node))))
+
+#|
+@concept-macro swap
+
+Expands to a `swap` function over pointers to the provided type.
+
+@param T    The type node.
+|#
+(def-concept-macro swap extern ((T Type))
+  (qq do
+    (def swap (fn extern void ((a (p (uq T)))
+                               (b (p (uq T))))
+      (let ((temp (uq T) (@ a)))
+        (setf a (@ b))
+        (setf b temp)
+        (return))))))
+
+#|
+@concept-macro !=
+
+Expands to a `!=` function over the provided type. `=` must be defined
+over the type before calling this macro.
+
+@param T    The type node.
+|#
+(def-concept-macro != extern ((T Type))
+  (and (not (exists-fn (bqq bool = (uq T) (uq T))))
+       (do (report-error T "type does not implement =")
+           (return (nullptr DNode))))
+  (qq do
+    (def != (fn extern bool ((a (uq T)) (b (uq T)))
+      (not (= a b))))))
+
+#|
+@concept-macro <=
+
+Expands to a `<=` function over the provided type. `<` must be defined
+over the type before calling this macro.
+
+@param T    The type node.
+|#
+(def-concept-macro <= extern ((T Type))
+  (and (not (exists-fn (bqq bool < (uq T) (uq T))))
+       (do (report-error T "type does not implement <")
+           (return (nullptr DNode))))
+  (qq do
+    (def <= (fn extern bool ((a (uq T)) (b (uq T)))
+      (or (< a b)
+          (not (< b a)))))))
+
+#|
+@concept-macro >
+
+Expands to a `>` function over the provided type. `<` must be defined
+over the type before calling this macro.
+
+@param T    The type node.
+|#
+(def-concept-macro > extern ((T Type))
+  (and (not (exists-fn (bqq bool < (uq T) (uq T))))
+       (do (report-error T "type does not implement <")
+           (return (nullptr DNode))))
+  (qq do
+    (def > (fn extern bool ((a (uq T)) (b (uq T)))
+      (and (not (< a b)) (< b a))))))
+
+#|
+@concept-macro >=
+
+Expands to a `>=` function over the provided type. `<` must be defined
+over the type before calling this macro.
+
+@param T    The type node.
+|#
+(def-concept-macro >= extern ((T Type))
+  (and (not (exists-fn (bqq bool < (uq T) (uq T))))
+       (do (report-error T "type does not implement <")
+           (return (nullptr DNode))))
+  (qq do
+    (def >= (fn extern bool ((a (uq T)) (b (uq T)))
+      (or (not (< a b)) (< b a))))))
+
+#|
+@concept-macro =
+
+Expands to a `=` function over the provided struct type. `=` must be
+defined over each of the struct's member types before calling this
+macro. 
+
+@param T    The struct type node.
+|#
+(def-concept-macro = extern ((T Struct))
+  (let ((n int (struct-member-count T))
+        (i int 0)
+        (holder-node  (p DNode) (make-node pool))
+        (null-node    (p DNode) (cast 0 (p DNode)))
+        (current-node (p DNode) null-node))
+    
+    (and (= n 0)
+         (do (report-error T "struct has no members")
+             (return (mnfv pool "0"))))
+
+    (setf-dsref-mul 
+      holder-node (is-list   1)
+                  (list-node null-node)
+                  (next-node null-node))
+      
+    (for true (< i n) (incv i)
+      (let ((name (p DNode) (mnfv pool (struct-member-name T i)))
+            (type (p DNode) (struct-member-type T i)))
+        
+        (and (not (exists-fn (bqq bool = (uq type) (uq type))))
+             (let ((stc (array-of 255 char))
+                   (ts  (array-of 255 char)))
+               (setf ($ ts 0) #\NULL)
+               (if (not (type-to-string type ts))
+                   (sprintf ts "(unknown type)")
+                   0)
+               (sprintf stc 
+                        "= not defined on struct member (type %s, name %s)" 
+                        ts (@:@ name token-str))
+               (report-error T stc)
+               (return (mnfv pool "0"))))
+
+        (let ((part (p DNode) 
+                    (bqq and (= (@ (: a (uq name))) 
+                               (@ (: b (uq name)))))))
+          (if (not (null current-node))
+              (do (setf (:@ current-node next-node) part)
+                  (setv current-node (get-last-node (@:@ part list-node))))
+              (do (setv current-node (get-last-node (@:@ part list-node)))
+                  (setf (:@ holder-node list-node) (@:@ part list-node)))))))
+
+    (setf (:@ current-node next-node) (mnfv pool "true"))
+
+    (setv holder-node
+      (bqq def = (fn extern bool ((a (uq T)) (b (uq T)))
+          (uq holder-node))))
+
+    (return holder-node)))
+
+#|
+@concept-macro <
+
+Expands to a `<` function over the provided struct type. `<` must be
+defined over each of the struct's member types before calling this
+macro. 
+
+@param T    The struct type node.
+|#
+(def-concept-macro < extern ((T Struct))
+  (let ((n int (struct-member-count T))
+        (i int 0)
+        (holder-node  (p DNode) (make-node pool))
+        (null-node    (p DNode) (cast 0 (p DNode)))
+        (current-node (p DNode) null-node))
+    
+    (and (= n 0)
+         (do (report-error T "struct has no members")
+             (return (mnfv pool "0"))))
+
+    (setf-dsref-mul 
+      holder-node (is-list   1)
+                  (list-node null-node)
+                  (next-node null-node))
+      
+    (for true (< i n) (incv i)
+      (let ((name (p DNode) (mnfv pool (struct-member-name T i)))
+            (type (p DNode) (struct-member-type T i)))
+        
+        (and (not (exists-fn (bqq bool < (uq type) (uq type))))
+             (let ((stc (array-of 255 char))
+                   (ts  (array-of 255 char)))
+               (setf ($ ts 0) #\NULL)
+               (if (not (type-to-string type ts))
+                   (sprintf ts "(unknown type)")
+                   0)
+               (sprintf stc 
+                        "< not defined on struct member (type %s, name %s)" 
+                        ts (:@ name token-str))
+               (report-error T stc)
+               (return (mnfv pool "0"))))
+
+        (let ((part (p DNode) 
+                    (bqq or (< (@ (: a (uq name))) 
+                              (@ (: b (uq name)))))))
+          (if (not (null current-node))
+              (do (setf (:@ current-node next-node) part)
+                  (setv current-node (get-last-node (@:@ part list-node))))
+              (do (setv current-node (get-last-node (@:@ part list-node)))
+                  (setf (:@ holder-node list-node) (@:@ part list-node)))))))
+
+    (setf (:@ current-node next-node) (mnfv pool "false"))
+
+    (setv holder-node
+      (bqq def < (fn extern bool ((a (uq T)) (b (uq T)))
+          (uq holder-node))))
+
+    (return holder-node)))
+
+#|
+@concept-macro relations
+
+Expands to `=`, `!=`, `<`, `<=`, `>` and `>=` functions over the
+provided struct type. Any that have already been defined are skipped.
+
+@param T    The struct type node.
+|#
+(def-concept-macro relations extern ((T Struct))
+  (let ((n=  (p DNode) (if (not (exists-fn (bqq bool = (uq T) (uq T))))
+                 (bqq std.concepts.instantiate = (uq T))
+                 (mnfv pool "true")))
+        (n!= (p DNode) (if (not (exists-fn (bqq bool != (uq T) (uq T))))
+                 (bqq std.concepts.instantiate != (uq T))
+                 (mnfv pool "true")))
+        (n< (p DNode) (if (not (exists-fn (bqq bool < (uq T) (uq T))))
+                 (bqq std.concepts.instantiate < (uq T))
+                 (mnfv pool "true")))
+        (n<= (p DNode) (if (not (exists-fn (bqq bool <= (uq T) (uq T))))
+                 (bqq std.concepts.instantiate <= (uq T))
+                 (mnfv pool "true")))
+        (n> (p DNode) (if (not (exists-fn (bqq bool > (uq T) (uq T))))
+                 (bqq std.concepts.instantiate > (uq T))
+                 (mnfv pool "true")))
+        (n>= (p DNode) (if (not (exists-fn (bqq bool >= (uq T) (uq T))))
+                 (bqq std.concepts.instantiate >= (uq T))
+                 (mnfv pool "true"))))
+      (bqq do (uq n=) (uq n!=) (uq n<) (uq n<=) (uq n>) (uq n>=))))
+
+))

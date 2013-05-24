@@ -1,0 +1,22 @@
+(import cstdio)
+
+(def fib
+  (fn intern int ((a int))
+    (if (< a 2) 
+        1
+        (+ (fib (- a 1)) (fib (- a 2))))))
+
+(def main
+  (fn extern-c int (void)
+    (def i (var auto int 0))
+
+    (label begin-loop)
+      (printf "%d " (fib i))
+      (setv i (+ i 1))
+      (if (= i 10)
+          (goto end-loop)
+          (goto begin-loop))
+
+    (label end-loop)
+      (printf "Finished\n")
+      (return 0)))

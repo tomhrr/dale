@@ -1,0 +1,14 @@
+(import dtm-nsimport (one two.my two.myfn))
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (using-namespace one
+      (printf "%d %d\n" x y))
+    (using-namespace two
+      (def mine (var intern two.my ((a 100) (b #\a))))
+      (printf "%d %c %d\n"
+              (@: mine a)
+              (@: mine b)
+              (myfn)))
+    0))

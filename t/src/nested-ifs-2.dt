@@ -1,0 +1,16 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def i (var auto int 0))
+
+    (label begin-loop)
+      (if (= i 10)
+          (goto end-loop)
+          (do (printf "i is %d\n" i)
+              (setf i (+ i 1))
+              (goto begin-loop)))
+
+    (label end-loop)
+      (printf "Finished\n")
+      (return 0)))

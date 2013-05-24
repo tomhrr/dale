@@ -1,0 +1,30 @@
+(import cstdio)
+
+(def equals
+  (fn extern bool ((a int) (b int))
+    (= a b)))
+
+(def bin-cmp-fn
+  (fn extern (p (fn bool ((a int) (b int)))) (void)
+    (# equals)))
+
+(def call-bin-cmp-fn
+  (fn extern bool ((fn (p (fn bool ((a int) (b int))))) (arg1 int) (arg2 int))
+    (funcall fn arg1 arg2)))
+
+(def main
+  (fn extern-c int (void)
+    (def fn (var auto (p (fn bool ((a int) (b int))))))
+    (setv fn (bin-cmp-fn))
+
+    (def vbool (var auto bool false))
+    (setv vbool (funcall fn 1 2))
+    (printf "%d\n" vbool)
+    (setv vbool (funcall fn 1 1))
+    (printf "%d\n" vbool)
+    (setv vbool (call-bin-cmp-fn (bin-cmp-fn) 1 2))
+    (printf "%d\n" vbool)
+    (setv vbool (call-bin-cmp-fn (bin-cmp-fn) 1 1))
+    (printf "%d\n" vbool)
+
+    0))

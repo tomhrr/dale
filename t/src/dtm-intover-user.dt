@@ -1,0 +1,9 @@
+(import dtm-noimport (x y))
+(import cstdio)
+
+(def z (var extern int 1000))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d %d %d\n" x y z)
+    0))

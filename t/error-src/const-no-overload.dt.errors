@@ -1,0 +1,1 @@
+./t/error-src/const-no-overload.dt:8:3: error: function/macro 'testfn' has already been defined in this scope

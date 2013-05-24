@@ -1,0 +1,12 @@
+(import cstdio)
+(import macros)
+
+(def main
+  (fn extern-c int (void)
+    (def n (var auto int))
+
+    (for (setv n 10) (> n 0) (decv n)
+      (printf "n is %d\n" n))
+
+    (printf "Finished\n")
+    (return 0)))

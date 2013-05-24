@@ -1,0 +1,30 @@
+(import cstdio)
+(import macros)
+(import shared-ptr)
+
+(std.concepts.instantiate SharedPtr int)
+
+; There used to be a deletion option to SharedPtr, so this test
+; actually 'worked'. There will no doubt be some way of confirming
+; that the pointers are actually being freed when the scopes close.
+(def main
+  (fn extern-c int (void)
+    (printf "Begin scope 1\n")
+    (let ((myptr (SharedPtr int))
+          (myint \ (malloc' 1 int)))
+      (setf myint 1)
+      (init (# myptr) myint)
+      (printf "Begin scope 2\n")
+      (let ((myptr2 (SharedPtr int))
+            (myint2 \ (malloc' 1 int)))
+        (setf myint2 2)
+        (init (# myptr2) myint2)
+        (printf "Begin scope 3\n")
+        (let ((myptr3 (SharedPtr int))
+              (myint3 \ (malloc' 1 int)))
+          (setf myint3 3)
+          (init (# myptr3) myint3)
+          (printf "End scope 3\n"))
+        (printf "End scope 2\n"))
+      (printf "End scope 1\n"))
+      0))

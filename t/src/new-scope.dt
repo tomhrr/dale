@@ -1,0 +1,25 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def thing (var auto int 0))
+    (new-scope
+      (def thing (var auto int 1))
+      (printf "%d\n" thing))
+    (printf "%d\n" thing)
+    
+    (new-scope
+      (def thing (var auto int 2))
+      (printf "%d\n" thing)
+      (new-scope
+        (def thing (var auto int 3))
+        (printf "%d\n" thing)
+        (new-scope
+          (printf "%d\n" thing)))
+      (printf "%d\n" thing))
+    
+    (printf "%d\n" thing)
+    (new-scope
+      (printf "%d\n" thing))
+    (printf "%d\n" thing)
+    0))

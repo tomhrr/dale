@@ -1,0 +1,12 @@
+(import cstdio)
+(import macros)
+(import utility)
+
+(std.concepts.instantiate Pair int int)
+
+(def main 
+  (fn extern-c int (void)
+    (let ((p (Pair int int)))
+      (+ p p))
+    0))
+      

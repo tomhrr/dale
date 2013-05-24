@@ -1,0 +1,23 @@
+(import cstdio)
+
+(def mycfun
+  (fn extern-c void (void)
+    (printf "1 ")
+    (return)
+    (return)
+    (return)
+    (return)
+    (return)))
+
+(def myfun
+  (fn extern void (void)
+    (mycfun)
+    (mycfun)))
+
+(def main
+  (fn extern-c int (void)
+    (myfun)
+    (myfun)
+    (myfun)
+    (printf "\n")
+    0))

@@ -1,0 +1,23 @@
+(import cstdio) 
+(import macros) 
+
+(def get-struct-count
+  (macro intern (fn)
+    (let ((n   int (struct-member-count fn))
+          (str (array-of 10 char)))
+      (sprintf str "%d" n)
+      (std.macros.mnfv pool str))))
+
+(namespace bling
+  (def mys (struct extern((n int) (m int)))))
+
+(def mys (struct extern((n int) (m int) (r int))))
+
+(def empty (struct opaque))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (get-struct-count bling.mys))
+    (printf "%d\n" (get-struct-count mys))
+    (printf "%d\n" (get-struct-count empty))
+    0))

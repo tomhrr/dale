@@ -1,0 +1,23 @@
+(import cstdio)
+
+(def Point (struct extern((x int) (y int))))
+
+(def +
+  (fn extern Point ((a Point) (b Point))
+    (Point ((x (+ (@ (: a x)) (@ (: b x))))
+            (y (+ (@ (: a y)) (@ (: b y))))))))
+
+(def print
+  (fn extern int ((a Point))
+    (printf "%d:%d\n" (@ (: a x)) (@ (: a y)))))
+
+(def main
+  (fn extern-c int (void)
+    (def sumpoint 
+      (var auto Point (+ (Point ((x 1) (y 1)))
+                         (Point ((x 1) (y 1))))))
+    (print sumpoint)
+
+    ; ensuring that the address of a struct literal may be taken.
+    (def ppoint (var auto (p Point) (# (Point ((x 1) (y 1))))))
+    0))

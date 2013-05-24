@@ -1,0 +1,12 @@
+(import cstdio)
+
+(def mys (struct opaque))
+(def mys (struct extern((a int))))
+
+(def main
+  (fn extern-c int (void)
+    (def n (var auto mys))
+    (setf (: n a) 10)
+    (printf "%d\n" (@ (: n a)))
+    (printf "All good\n")
+    0))

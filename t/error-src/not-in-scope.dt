@@ -1,0 +1,6 @@
+(import cerrno)
+
+(def main
+  (fn extern-c int (void)
+    (QWER)
+    0))

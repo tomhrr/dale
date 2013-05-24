@@ -1,0 +1,21 @@
+(import cstdio)
+(import macros)
+
+(def m (struct extern ((a (bf int 1)) (b (bf uint 2)) (c (bf uint 5)))))
+
+(def main
+  (fn extern-c int (void)
+    (let ((mm m)
+          (i \ 0))
+      (for (setv i 0) (< i 3) (incv i)
+        (setf (: mm a) (cast i (bf int 1)))
+        (printf "%d\n" (cast (@: mm a) uint)))
+
+      (for (setv i 0) (< i 5) (incv i)
+        (setf (: mm b) (cast i (bf uint 2)))
+        (printf "%d\n" (cast (@: mm b) uint)))
+
+      (for (setv i 0) (< i 33) (incv i)
+        (setf (: mm c) (cast i (bf uint 5)))
+        (printf "%d\n" (cast (@: mm c) uint))))
+    0))

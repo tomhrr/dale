@@ -1,0 +1,12 @@
+(import cstdio)
+
+(def x (var intern int 5))
+(def y (var intern (p int) (# x)))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d %d\n" x (@ y))
+    (setv x 100)
+    (printf "%d %d\n" x (@ y))
+    0
+  ))

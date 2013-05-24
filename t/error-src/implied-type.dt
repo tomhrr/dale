@@ -1,0 +1,5 @@
+(def main
+  (fn extern-c int (void)
+    (def v (var auto \))
+    0))
+

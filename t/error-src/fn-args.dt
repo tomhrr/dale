@@ -1,0 +1,10 @@
+(import cstdio)
+(import macros)
+
+(def inet_aton
+  (fn extern-c int ((addr (p char)) (num uint32))))
+
+(def main
+  (fn extern-c int (void)
+    (inet_aton "1.2.3.4")
+    0))

@@ -1,0 +1,1 @@
+./t/error-src/no-array-params.dt:4:19: error: arrays cannot be function parameters; use a pointer instead

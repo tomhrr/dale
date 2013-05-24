@@ -1,0 +1,32 @@
+(import concepts)
+(import cstdio)
+
+(def x (struct intern ((a int) (b int))))
+
+(std.concepts.implement Type x)
+
+(using-namespace std.macros
+(using-namespace std.concepts
+
+(def exists-test
+  (macro intern (void)
+    (if (exists-concept-macro pool (std.macros.mnfv pool "mycm")
+                                   (qq Type))
+        (printf "mycm exists as a concept macro\n")
+        (printf "mycm does not exist as a concept macro\n"))
+    (nullptr DNode)))
+
+(exists-test)
+
+(std.concepts.def-concept-macro mycm intern ((T Type))
+  (qq def mycm
+    (fn intern int ((a (uq T)))
+      0)))
+
+))
+
+(exists-test)
+
+(def main
+  (fn extern-c int (void)
+    0))

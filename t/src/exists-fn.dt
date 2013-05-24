@@ -1,0 +1,42 @@
+(import cstdio)
+(import macros)
+
+(using-namespace std.macros
+(def testmac
+  (macro intern (frm)
+    (if (exists-fn frm)
+        (do (print frm)
+            (printf " The function exists\n")
+            (mnfv pool "true"))
+        (do (print frm)
+            (printf " The function does not exist\n")
+            (mnfv pool "false")))))
+)
+
+(def myfn
+  (fn extern-c void (void)
+    (return)))
+
+(def mynextfn
+  (fn extern void ((# int))
+    (return)))
+
+(def mynextfn
+  (fn extern void (void)
+    (return)))
+
+(def main
+  (fn extern-c int (void)
+    (if (testmac (bool < int int))
+        (printf "< int int -> bool exists\n")
+        (printf "< int int -> bool does not exist (?!)\n"))
+    (if (testmac (2 3 4))
+        (printf "random stuff function exists (?!)\n")
+        (printf "random stuff function does not exist\n"))
+    (if (testmac (void myfn))
+        (printf "void-void function exists\n")
+        (printf "void-void function does not exist (?!)\n"))
+    (if (testmac (void mynextfn))
+        (printf "void-void overloaded function exists\n")
+        (printf "void-void overloaded function does not exist (?!)\n"))
+    0))

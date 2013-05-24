@@ -1,0 +1,19 @@
+(import cstdio)
+
+(def test
+  (fn extern int ((n int))
+    (def v (var auto int (if (= n 1) (return 2)
+                            (if (= n 2) (return 4)
+                            (if (= n 3) (return 6)
+                            (if (= n 4) (return 8)
+                                        100))))))
+    (return v)))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (test 1))
+    (printf "%d\n" (test 2))
+    (printf "%d\n" (test 3))
+    (printf "%d\n" (test 4))
+    (printf "%d\n" (test 5))
+    0))

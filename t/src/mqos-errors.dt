@@ -1,0 +1,120 @@
+(import cstdio)
+(import macros)
+(import assert)
+(import cstdlib)
+(import cstring)
+(using-namespace std.macros
+(def List
+  (macro intern (frm-name)
+    (def buf (var auto (p char) (cast (malloc (cast 256 size)) (p char))))
+    (strncpy buf "list-" (cast 5 size))
+    (setf ($ buf 5) #\NULL)
+    (strcat buf (@ (:@ frm-name token-str)))
+    (def name-node (var auto (p DNode) (mnfv pool buf)))
+
+    (if (not (exists-type name-node))
+        (do (def v (var auto (array-of 100 char)))
+            (sprintf v "type %s has no corresponding list type" 
+                       (@ (:@ frm-name token-str)))
+            (report-error frm-name v)
+            (cast 0 (p DNode)))
+        name-node)))
+
+(def make-list
+  (macro intern (frm-type frm-name)
+    (def buf (var auto (p char) (cast (malloc (cast 256 size)) (p char))))
+    (strncpy buf "list-" (cast 5 size))
+    (setf ($ buf 5) #\NULL)
+    (strcat buf (@ (:@ frm-name token-str)))
+    (def name-node (var auto (p DNode) (mnfv pool buf)))
+
+    (bqq do
+        
+        (def (uq name-node) 
+          (struct extern((value (uq frm-type)) 
+                   (next   (p (uq name-node))))))
+
+        (def init
+          (fn extern void ((thing (p (uq name-node))))
+            (setf (:@ thing next) (cast 0 (p (uq name-node))))
+            (return)))
+
+        (def index
+          (fn extern (uq frm-type) ((thing (p (uq name-node)))
+                                        (n int))
+            (def my-node (var auto (p (uq name-node)) thing))
+            (def i (var auto int 0))
+            (for (setv i 0) (< i n) (incv i)
+              (setv my-node (@ (:@ my-node next))))
+            (return (@ (:@ my-node value)))))
+
+        (def size
+          (fn extern int ((thing (p (uq name-node))))
+            (def count (var auto int 1))
+            
+            (while (not (null (@ (:@ thing next))))
+              (incv count) 
+              (setv thing (@ (:@ thing next))))
+
+            (return count)))
+
+        (def set
+          (fn extern void ((thing (p (uq name-node)))
+                               (n (uq frm-type)))
+            (setf (:@ thing value) n)
+            (return)))
+
+        (def push
+          (fn extern void ((thing (p (uq name-node)))
+                               (n (uq frm-type)))
+            (def new-node (var auto (p (uq name-node))
+                                       (cast (malloc (* (cast 1 size) (sizeof (uq name-node))))
+                                             (p (uq name-node)))))
+            (init new-node)
+            (setf (:@ new-node value) n)
+            
+            (while (not (null (@ (:@ thing next))))
+              (setv thing (@ (:@ thing next))))
+            
+            (setf (:@ thing next) new-node)
+            (return))))))
+)
+(make-list int   int)
+(make-list float float)
+
+(def main
+  (fn extern-c int (void)
+
+    (List int3)
+    (List int4)
+
+    (def intlist (var auto (p (List int)) (cast (malloc (sizeof (List int)))
+                                                   (p (List int)))))
+    (init intlist)
+    (set intlist 100)
+    (push intlist 200)
+    (push intlist 300)
+
+    (printf "%d\n" (index intlist 0))
+    (printf "%d\n" (index intlist 1))
+    (printf "%d\n" (index intlist 2))
+    (printf "%d\n" (size intlist))
+
+    (def fltlist (var auto (p (List float)) (cast (malloc (sizeof (List float)))
+                                                     (p (List float)))))
+    (init fltlist)
+    (set fltlist 2.1)
+    (push fltlist 2.2)
+    (push fltlist 2.3)
+    (push fltlist 2.4)
+
+    (printf "%f\n" (index fltlist 0))
+    (printf "%f\n" (index fltlist 1))
+    (printf "%f\n" (index fltlist 2))
+    (printf "%f\n" (index fltlist 3))
+    (printf "%d\n" (size fltlist))
+    
+    0))
+
+
+

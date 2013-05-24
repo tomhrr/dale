@@ -1,0 +1,18 @@
+(import cstdio)
+(import csignal)
+
+(using-namespace std
+
+(def main
+  (fn extern-c int (void)
+    (signal (SIGINT) 
+            (fn (p void) ((n int))
+              (printf "Caught sigint\n")
+              (return (nullptr void))))
+    (raise (SIGINT))
+    (printf "Raised sigint\n")
+    (raise (SIGINT))
+    (printf "Raised sigint\n")
+    0))
+
+)

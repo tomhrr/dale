@@ -1,0 +1,44 @@
+#|
+@module clocale
+
+Bindings from `locale.h`.
+
+|#
+(module clocale)
+
+#|
+@struct lconv
+|#
+(def lconv
+  (struct extern
+          ((decimal-point     (p char))
+           (grouping          (p char))
+           (thousands-sep     (p char))
+           (currency-symbol   (p char))
+           (int-curr-symbol   (p char))
+           (mon-decimal-point (p char))
+           (mon-grouping      (p char))
+           (mon-thousands-sep (p char))
+           (negative-sign     (p char))
+           (positive-sign     (p char))
+           (frac-digits       char)
+           (int-frac-digits   char)
+           (n-cs-precedes     char)
+           (n-sep-by-space    char)
+           (n-sign-posn       char)
+           (p-cs-precedes     char)
+           (p-sep-by-space    char)
+           (p-sign-posn       char))))
+
+#|
+@fn localeconv
+|#
+(def localeconv
+  (fn extern-c (p lconv) (void)))
+
+#|
+@fn setlocale
+|#
+(def setlocale
+  (fn extern-c (p char) ((category int)
+                         (locale   (p char)))))

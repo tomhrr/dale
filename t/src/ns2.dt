@@ -1,0 +1,20 @@
+(import cstdio)
+
+(namespace a
+  (namespace b
+    (namespace c
+      (def main (fn extern int (void) 0)))))
+
+(using-namespace a
+  (def blah (fn extern int (void) 0)))
+
+(using-namespace a.b
+  (def blah2 (fn extern int (void) 0)))
+
+(using-namespace a.b.c
+  (def blah2 (fn extern int (void) 0)))
+
+(using-namespace a.b.c
+  (def blah2 (fn extern int (void) 0)))
+  
+

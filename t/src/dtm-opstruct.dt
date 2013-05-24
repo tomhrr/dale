@@ -1,0 +1,4 @@
+(module dtm-opstruct)
+
+(def opstruct (struct opaque ((a int) (b int))))
+(def instruct (struct intern ((a int) (b int))))

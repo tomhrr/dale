@@ -1,0 +1,7 @@
+(def thing (enum extern int (a b c d)))
+
+(def main
+  (fn extern-c int (void)
+    (def m (var auto thing (thing a)))
+    (: m _enum_value)
+    0))

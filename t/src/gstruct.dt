@@ -1,0 +1,41 @@
+(import cstdio)
+
+(def mys
+    (struct extern
+            ((a int8)
+             (b uint8)
+             (c int16)
+             (d uint16)
+             (e int32)
+             (f uint32)
+             (g int64)
+             (h uint64))))
+
+(def num00 (var intern int32 2147483647))
+(def num01 (var intern uint32  4294967295))
+(def num1 (var intern int64 9223372036854775807))
+(def num2 (var intern uint64 18446744073709551615))
+
+(def thing
+    (var intern mys
+        ((a (cast 127 int8))
+         (b (cast 255 uint8))
+         (c (cast 32767 int16))
+         (d (cast 65535 uint16))
+         (e num00)
+         (f num01)
+         (g num1) 
+         (h num2))))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%x\n%x\n%x\n%x\n%x\n%x\n%llx\n%llx\n"
+              (@ (: thing a)   )
+              (@ (: thing b))
+              (@ (: thing c))
+              (@ (: thing d))
+              (@ (: thing e))
+              (@ (: thing f))
+              (@ (: thing g))
+              (@ (: thing h) ))
+    0))

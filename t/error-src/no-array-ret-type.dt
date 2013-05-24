@@ -1,0 +1,7 @@
+; ignore the fact that it is returning an array with
+; automatic storage allocation :)
+
+(def test 
+  (fn extern (array-of 5 int) ((n int))
+    (let ((n (array-of 5 int)))
+      n)))

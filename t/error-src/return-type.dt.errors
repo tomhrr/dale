@@ -1,0 +1,1 @@
+./t/error-src/return-type.dt:3:5: error: expected return expression with type int (got type (p char) instead)

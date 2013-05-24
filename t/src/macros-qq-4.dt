@@ -1,0 +1,16 @@
+(import macros)
+(import cstdio)
+
+(using-namespace std.macros
+(def wrap-body
+  (macro intern (...)
+    (get-varargs-list) 
+    (bqq do
+        (printf "Wrap function start\n")
+        (uql varargs-list)
+        (printf "Wrap function end\n"))))
+)
+(def main
+  (fn extern-c int (void)
+    (wrap-body (printf "0\n") (printf "1\n") (printf "2\n") (printf "4\n"))
+    0))

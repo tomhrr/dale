@@ -1,0 +1,143 @@
+(import cstdio)
+
+(import macros)
+(import utility)
+(import vector)
+(import derivations)
+(import algorithms)
+
+(std.concepts.instantiate Pair int int)
+(std.concepts.implement Struct (Pair int int))
+(std.concepts.instantiate swap (Pair int int))
+(std.concepts.implement Assignable (Pair int int))
+(std.concepts.instantiate relations (Pair int int))
+(std.concepts.implement EqualityComparable (Pair int int))
+(std.concepts.implement LessThanComparable (Pair int int))
+
+(std.concepts.instantiate Vector int)
+(std.concepts.instantiate Vector (Pair int int))
+(std.concepts.instantiate copy (Iterator (Vector (Pair int int)))
+                               (Iterator (Vector (Pair int int))))
+(std.concepts.instantiate assign (Vector (Pair int int))
+                                 (Iterator (Vector (Pair int int))))
+
+(def main
+  (fn extern-c int (void)
+    (let ((vec   (Vector (Pair int int)))
+          (vecp  \ (# vec))
+          (vec2  (Vector (Pair int int)))
+          (vec2p \ (# vec2))
+          (one  (Pair int int) ((first 1) (second 2)))
+          (two  (Pair int int) ((first 3) (second 4))))
+    (init vecp 1)
+    (init vec2p 200)
+    (printf "Empty?: %d\n" (if (empty vecp) 1 0))
+
+    (push-back vecp one)
+    (push-back vecp two)
+    (push-back vecp one)
+    (push-back vecp two)
+    (push-back vecp one)
+    
+    (let ((i int 0))
+      (for true (< i (cast (size vecp) int)) (incv i)
+        (printf "%d %d\n" (@ ($ vecp i)))))
+
+    (printf "Empty?: %d\n" (if (empty vecp) 1 0))
+    (resize vecp (cast 0 size))
+    (printf "Empty?: %d\n" (if (empty vecp) 1 0))
+
+    (let ((i int 0))
+      (for true (< i (cast (size vecp) int)) (incv i)
+        (printf "%d %d\n" (@ ($ vecp i)))))
+
+    (push-back vecp one)
+    (push-back vecp two)
+    (push-back vecp one)
+    (push-back vecp two)
+    (push-back vecp two)
+
+    (push-back vec2p two)
+    (push-back vec2p two)
+    (push-back vec2p two)
+    (push-back vec2p two)
+    (push-back vec2p two)
+
+    (printf "for loop\n")
+
+    (let ((i int 0))
+      (for true (< i (cast (size vecp) int)) (incv i)
+        (printf "%d %d\n" (@ ($ vecp i)))))
+
+    (printf "iterator\n")
+
+    (let ((b (Iterator (Vector (Pair int int))) (begin vecp))
+          (e (Iterator (Vector (Pair int int))) (end   vecp)))
+      (for true (< b e) (setv b (successor b))
+        (printf "%d %d\n" (@source b))
+        (sink b one)))
+   
+    (printf "riterator\n")
+
+    (let ((b (ReverseIterator (Vector (Pair int int))) (rbegin vecp))
+          (e (ReverseIterator (Vector (Pair int int))) (rend   vecp)))
+      0)
+
+    (let ((b (ReverseIterator (Vector (Pair int int))) (rbegin vecp))
+          (e (ReverseIterator (Vector (Pair int int))) (rend   vecp)))
+      (for true (< b e) (setv b (successor b))
+        (printf "%d %d\n" (@source b))))
+
+    (printf "pre copy\n")
+
+    (let ((b (Iterator (Vector (Pair int int))) (begin vec2p))
+          (e (Iterator (Vector (Pair int int))) (end   vec2p)))
+      (for true (< b e) (setv b (successor b))
+        (printf "%d %d\n" (@source b))))
+
+    (copy (begin vecp) (end vecp) (begin vec2p))
+
+    (printf "post copy\n")
+
+    (let ((b (Iterator (Vector (Pair int int))) (begin vec2p))
+          (e (Iterator (Vector (Pair int int))) (end   vec2p)))
+      (for true (< b e) (setv b (successor b))
+        (printf "%d %d\n" (@source b))))
+
+    (clear vecp)
+    (clear vec2p)
+
+    (push-back vec2p two)
+    (push-back vec2p two)
+    (push-back vec2p two)
+    (push-back vec2p two)
+    (push-back vec2p two)
+
+    (printf "pre assign from two to one\n")
+
+    (let ((b (Iterator (Vector (Pair int int))) (begin vecp))
+          (e (Iterator (Vector (Pair int int))) (end   vecp)))
+      (for true (< b e) (setv b (successor b))
+        (printf "%d %d\n" (@source b))))
+
+    (assign vecp (begin vec2p) (end vec2p))
+
+    (printf "post assign\n")
+    
+    (let ((b (Iterator (Vector (Pair int int))) (begin vecp))
+          (e (Iterator (Vector (Pair int int))) (end   vecp)))
+      (for true (< b e) (setv b (successor b))
+        (printf "%d %d\n" (@source b))))
+
+    (let ((n (value-type vecp) (@ ($ vecp 0))))
+      (printf "%d %d\n" n))
+
+    (def m (var auto (Vector int)))
+    (def mp (var auto (p (Vector int)) (# m)))
+    (init mp 100)
+
+    (push-back mp 100)
+    (let ((nn (value-type mp) (@ ($ mp 0))))
+      (printf "%d\n" nn))
+
+    0)))

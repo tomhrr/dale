@@ -1,0 +1,19 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def intp (var auto (p int)))
+    
+    (setv intp (cast (malloc (* (cast 100 size) (sizeof int))) (p int)))
+    (setf ($ intp 0)   0)
+    (setf ($ intp 1)   1)
+    (setf ($ intp 99) 99)
+
+    (printf "%d %d %d\n" 
+        (@ ($ intp 0))
+        (@ ($ intp 1))
+        (@ ($ intp 99)))
+
+    (printf "%d\n" (@ intp))
+    
+    (return 0)))

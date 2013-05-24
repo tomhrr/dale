@@ -1,0 +1,3 @@
+./t/error-src/const-basic.dt:9:5: error: cannot modify const variable
+./t/error-src/const-basic.dt:10:5: error: cannot modify const variable
+./t/error-src/const-basic.dt:11:5: error: cannot modify const variable

@@ -1,0 +1,16 @@
+(import cstdio)
+
+(def mytemp
+  (fn extern int ((a int) (b int))
+    (printf "%d %d\n" a b)
+    0))
+
+(def mytemp
+  (macro extern ((a int) (b int))
+    (printf "%p %p\n" a b)
+    (nullptr DNode)))
+
+(def main
+  (fn extern-c int (void)
+    (mytemp 1 2)
+    0))

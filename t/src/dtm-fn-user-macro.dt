@@ -1,0 +1,14 @@
+(import dtm-fn)
+(import cstdio)
+(import macros)
+
+(def m
+  (macro intern (void)
+    (printf "%d\n" (dtm-module-function))
+    (nullptr DNode)))
+
+(m)
+
+(def main
+  (fn extern-c int (void)
+    0))

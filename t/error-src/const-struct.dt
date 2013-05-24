@@ -1,0 +1,24 @@
+(import cstdio)
+
+(def mystruct
+  (struct intern ((a int) 
+                  (b int) 
+                  (c (p mystruct)))))
+
+(def main
+  (fn extern-c int (void)
+    (def mys3 (var auto mystruct ((a 10) (b 10) (c (nullptr mystruct)))))
+    (def mys2 (var auto mystruct ((a 10) (b 10) (c (# mys3)))))
+    (def mys (var auto (const mystruct) ((a 10) (b 10) (c (# mys2)))))
+    (setf (: mys3 a) 1)
+    (setf (: mys3 b) 2)
+    (setf (: mys2 a) 3)
+    (setf (: mys2 b) 4)
+    (setf (:@ (@: mys c) a) 5)
+    (setf (:@ (@: mys c) b) 6)
+    (setf (:@ (@:@ (@: mys c) c) a) 7)
+    (setf (:@ (@:@ (@: mys c) c) b) 8)
+    (setf (: mys a) 2)
+    (setf (: mys b) 3)
+    (setf (: mys c) (# mys3))
+    0))

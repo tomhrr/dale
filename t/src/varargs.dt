@@ -1,0 +1,29 @@
+(import cstdio)
+
+(def va-test
+  (fn intern int ((args int) ...)
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+
+    (label begin-loop)
+      (if (= 0 args)
+          (goto end-loop)
+          (do
+            (setv args (- args 1))
+            (printf "%s " (va-arg (# arglist) (p char)))
+            (goto begin-loop)))
+
+    (label end-loop)
+      (printf "\n")
+      (va-end (cast (# arglist) (p void)))
+      (return 0)))
+
+(def main
+  (fn extern-c int (void)
+    (va-test 0)
+    (va-test 1 "str1")
+    (va-test 2 "str1" "str2")
+    (va-test 3 "str1" "str2" "str3")
+    (va-test 4 "str1" "str2" "str3" "str4")
+    (va-test 5 "str1" "str2" "str3" "str4" "str5")
+    (return 0)))

@@ -1,0 +1,12 @@
+(import cstdio)
+(import macros)
+
+(def e (enum extern int (ONE TWO THREE)))
+
+(def main
+  (fn extern-c int (void)
+    (let ((a e ONE)
+          (b e TWO)
+          (c e a))
+      (printf "%d %d %d\n" a b c)
+      0)))

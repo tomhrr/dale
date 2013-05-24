@@ -1,0 +1,1 @@
+./t/error-src/bad-mod-name.dt:1:9: error: module name '!!!!!!!' is invalid: module names may only comprise alphanumeric characters, periods, hyphens and underscores

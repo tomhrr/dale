@@ -1,0 +1,3 @@
+(def myextfn
+  (fn extern int (void)
+    (return 100)))

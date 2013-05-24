@@ -1,0 +1,41 @@
+(import cstdio)
+
+(def my-struct 
+  (struct extern((a int) 
+           (b int)
+           (c (p my-struct))
+           (d int)
+           (e (p my-struct)))))
+
+(def main
+  (fn extern-c int (void)
+    
+    (def thing  (var auto my-struct))
+    (def thing2 (var auto my-struct))
+    (def thing3 (var auto my-struct))
+
+    (setf (: thing a) 10)
+    (setf (: thing b) 20)
+    (setf (: thing c) (# thing2))
+    (setf (: thing d) 30)
+    (setf (: thing e) (# thing3))
+
+    (setf (: thing2 a) 40)
+    (setf (: thing2 c) (# thing))
+
+    (setf (: thing3 a) 50)
+    (setf (: thing3 c) (# thing))
+
+    (printf "%d\n" (@ (: thing a)))
+    (printf "%d\n" (@ (: thing b)))
+    (printf "%d\n" (@ (: thing d)))
+
+    (printf "%d\n" (@ (: (@ (@ (: thing2 c))) a)))
+    (printf "%d\n" (@ (: (@ (@ (: thing2 c))) b)))
+    (printf "%d\n" (@ (: (@ (@ (: thing2 c))) d)))
+    
+    (printf "%d\n" (@ (: (@ (@ (: (@ (@ (: thing2 c))) c))) a)))
+    (printf "%d\n" (@ (: (@ (@ (: (@ (@ (: thing3 c))) e))) a)))
+
+
+    (return 0)))

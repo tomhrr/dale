@@ -1,0 +1,58 @@
+(import cstdio)
+
+(namespace x
+  (def other-var (var intern int 100))
+  (def other-fn
+    (fn extern int (void) 
+      1))
+  (def other-st (struct extern((a int) (b char)))))
+
+(namespace y
+  (def other-var (var intern int 200))
+  (def other-fn
+    (fn extern int (void) 
+      2))
+  (def other-st (struct extern((a char) (b int)))))
+
+(using-namespace x
+  (def x-fn-1
+    (fn extern int (void)
+      (other-fn)))
+  (def x-fn-2
+    (fn extern int (void)
+      other-var))
+  (def x-my-st (var intern other-st)))
+
+(using-namespace y
+  (def y-fn-1
+    (fn extern int (void)
+      (other-fn)))
+  (def y-fn-2
+    (fn extern int (void)
+      other-var))
+  (def y-my-st (var intern other-st)))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (x-fn-1))
+    (printf "%d\n" (y-fn-1))
+    (printf "%d\n" (x.other-fn))
+    (printf "%d\n" (y.other-fn))
+    (printf "%d\n" (x-fn-2))
+    (printf "%d\n" (y-fn-2))
+    (printf "%d\n" x.other-var)
+    (printf "%d\n" y.other-var)
+
+    (setf (: x-my-st a) 100)
+    (setf (: x-my-st b) #\")
+
+    (printf "%d\n" (@ (: x-my-st a)))
+    (printf "%c\n" (@ (: x-my-st b)))
+    
+    (setf (: y-my-st a) #\")
+    (setf (: y-my-st b) 100)
+
+    (printf "%c\n" (@ (: y-my-st a)))
+    (printf "%d\n" (@ (: y-my-st b)))
+
+    0))

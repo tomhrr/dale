@@ -1,0 +1,237 @@
+#|
+@module macros
+
+Provides the quasiquotation macro.
+
+|#
+(module macros (attr cto))
+
+(import cstdio-core)
+(import macros-core)
+(import introspection)
+(import stdlib)
+
+(namespace std (namespace macros
+
+#|
+@macro qq
+
+The 'general-use' quasiquotation macro. The forms handled specially
+are:
+
+  * `uq` (unquote): expands to the argument node (token or list);
+  * `uql` (unquote-list): expands to the list node of the argument
+    node, including all following nodes;
+  * `uq-nc` (unquote no-copy): as per `uq`, except that the argument
+    node is not copied on substitution; and
+  * `uql-nc` (unquote-list no-copy): as per `uql`, except that the list
+    nodes are not copied on substitution.
+
+Quasiquotation forms may be nested: each specially-handled form in a
+nested `qq` must be wrapped with an additional `uq` for each level of
+nesting.
+
+The `-nc` versions should only be used when the argument node will not
+be used again.
+
+|#
+(def qq (macro extern (frm ...)
+    (setv arg-count (- arg-count 1))
+    (def myargcount (var auto int arg-count))
+
+    (def nullp (var auto (p DNode) (nullptr DNode)))
+    (def holder (var auto (p DNode) (make-node pool)))
+
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (def va-dnode (var auto (p DNode)))
+    (def temp-node (var auto (p DNode)))
+
+    (def begin (var auto int 1))
+
+    (setf (:@ holder is-list) 1)
+    (setf (:@ holder list-node) frm)
+    (setf (:@ holder next-node) nullp)
+    (setv temp-node frm)
+    (label begin-loop)
+        (if (= arg-count 0) (goto end-loop) 0)
+
+        (setv va-dnode (va-arg (# arglist) (p DNode)))
+        (setf (:@ temp-node next-node) va-dnode)
+        (setv temp-node va-dnode)
+        (setv arg-count (- arg-count 1))
+        (goto begin-loop)
+
+    (label end-loop)
+
+    (def vn (var auto \ (make-gensym-var-node pool)))
+
+    (def current-firstnode (var auto (p DNode) (bqq @:' (uq vn) list-node)))
+    (def current-lastnode  (var auto (p DNode)
+        (@:' current-firstnode list-node next-node next-node)))
+
+    (def block (var auto (p DNode) (bqq do 0)))
+    (def blockstart (var auto (p DNode) block))
+    (setv block (@:' block list-node next-node))
+
+    (def cn (var auto (p DNode) (@:' holder list-node)))
+    (def upvs (var auto (array-of 256 (p DNode))))
+    (def upvs-count (var auto int 0))
+    (def lastnodes (var auto (array-of 256 (p DNode))))
+
+    (def tempform (var auto (p DNode)))
+
+    (def repl-next (var auto int 0))
+    (def processed-list (var auto int 0))
+    (def no-down (var auto int 0))
+
+    ;(printf "qq flag 3\n")
+
+    (label begin-loop2)
+
+        (do (if (= 1 (@:@ cn is-list))
+                (do ;(printf "CN is list\n")
+                (if (= 0 (@:' cn list-node is-list))
+                    (do ;(printf "CN is list with first token: %s\n"
+                                ;(@:' cn list-node token-str))
+                    (if (and (= 0 (strcmp (@:' cn list-node token-str) "uq"))
+                             (not (null (@:' cn list-node next-node))))
+                        (do ;(printf "CN is uq!\n")
+                            (setv processed-list 1)
+                        (do (setv tempform
+                                (if (not (null (@:' cn list-node 
+                                                       next-node 
+                                                       token-str)))
+                                    (@:' cn list-node next-node)
+                                    (do (setv no-down 1)
+                                        (make-node-maker pool 
+                                                     (@:' cn 
+                                                          list-node 
+                                                          next-node)))))
+ 
+                            (setf (:@ block next-node) (bqq do
+                                (setv firstnode (uq current-firstnode))
+                                (setv newnode 
+                                (std.macros.copy pool false (uq tempform)))
+                                (std.macros.copy-to firstnode newnode)))
+                            (setv block (@:@ block next-node))
+                            ;(getchar)
+                            0))
+                    (if (and (= 0 (strcmp (@:' cn list-node token-str) "uql"))
+                             (not (null (@:' cn list-node next-node))))
+                        (do ;(printf "CN is uq!\n")
+                            (setv processed-list 1)
+                        (do (setv tempform (@:' cn list-node next-node))
+                            (setv no-down 1)
+                            (def vn (var auto \ (make-gensym-var-node pool)))
+                            (setf (:@ block next-node) (bqq do
+                                (setv firstnode (uq current-firstnode))
+                                (setv newnode (copy pool true (uq tempform)))
+                                (std.macros.copy-to firstnode newnode)
+                                (def (uq vn)
+                                    (var auto \ (@:@ firstnode
+                                    next-node)))
+                                (setf (:@ firstnode next-node)
+                                      (@:@ newnode next-node))
+                                (setf 
+                                    (:@ (get-last-node newnode)
+                                            next-node) (uq vn))))
+                            (setv block (@:@ block next-node))
+                            ;(getchar)
+                            0))
+                    (if (and (= 0 (strcmp (@:' cn list-node token-str) "uq-nc"))
+                             (not (null (@:' cn list-node next-node))))
+                        (do ;(printf "CN is uq!\n")
+                            (setv processed-list 1)
+                        (do (setv tempform (@:' cn list-node next-node))
+                            (setv no-down 1)
+                            (setf (:@ block next-node) (bqq do
+                                (setv firstnode (uq current-firstnode))
+                                (setv newnode (uq tempform))
+                                (std.macros.copy-to firstnode newnode)))
+                            (setv block (@:@ block next-node))
+                            ;(getchar)
+                            0))
+                    (if (and (= 0 (strcmp (@:' cn list-node token-str) "uql-nc"))
+                             (not (null (@:' cn list-node next-node))))
+                        (do ;(printf "CN is uq!\n")
+                            (setv processed-list 1)
+                        (do (setv tempform (@:' cn list-node next-node))
+                            (setv no-down 1)
+                            (setf (:@ block next-node) (bqq do
+                                (setv firstnode (uq current-firstnode))
+                                (setv newnode (uq tempform))
+                                (std.macros.copy-to firstnode newnode)
+                                (def tv222 
+                                    (var auto \ (@:@ firstnode
+                                    next-node)))
+                                (setf (:@ firstnode next-node)
+                                      (@:@ newnode next-node))
+                                (setf (:@ (get-last-node newnode)
+                                next-node) tv222)))
+                            (setv block (@:@ block next-node))
+                            ;(getchar)
+                            0))
+
+                        0)))))
+                    0))
+                0)
+
+            (if (and (= 0 no-down) (= 1 (@:@ cn is-list)))
+                (do ;(printf "Moving down into this list: ") (DNode-print cn) (printf "\n")
+
+                    (setf ($ upvs upvs-count) cn)
+                    (setf ($ lastnodes upvs-count) current-lastnode)
+                    (incv upvs-count)
+
+                    (setf (:@ current-lastnode next-node)
+                          (mnfv pool "list-node"))
+                    (setv current-lastnode
+                          (@:@ current-lastnode next-node))
+                    (setv cn (@:@ cn list-node))
+                    (goto begin-loop2))
+
+            (if (not (null (@:@ cn next-node)))
+                (do ;(printf "Moving to next node in this list: ") (DNode-print cn) (printf "\n")
+                    (setv no-down 0)
+                    (setf (:@ current-lastnode next-node)
+                          (mnfv pool "next-node"))
+                    (setv current-lastnode
+                          (@:@ current-lastnode next-node))
+                    (setv cn (@:@ cn next-node))
+                    (goto begin-loop2))
+
+            (if (> upvs-count 0)
+                (do ;(printf "Moving upwards: ") (DNode-print cn) (printf "\n")
+                    (setv no-down 0)
+                    (while (> upvs-count 0)
+                        (decv upvs-count)
+                        (setv cn (@ ($ upvs upvs-count)))
+                        (setv current-lastnode (@ ($ lastnodes upvs-count)))
+                        (if (not (null (@:@ cn next-node)))
+                            (do
+                                (setf (:@ current-lastnode next-node)
+                                    (mnfv pool "next-node"))
+                                (setv current-lastnode
+                                    (@:@ current-lastnode next-node))
+                                (setv cn (@:@ cn next-node))
+                                (goto begin-loop2))
+                            0))
+                    (goto end-loop2))
+
+
+                (goto end-loop2)))))
+
+    (label end-loop2)
+        (let ((res \ (bqq do (new-scope
+            (def (uq vn) (var auto (p DNode) (std.macros.copy pool true
+            (get-dnodes (uq-nc holder)))))
+            (def firstnode (var auto (p DNode)))
+            (def trailing  (var auto (p DNode)))
+            (def newnode   (var auto (p DNode)))
+            (uql-nc blockstart)
+            (uq vn)))))
+          ;(DNode-print res)
+          ;(printf "\n")
+          res)))
+))

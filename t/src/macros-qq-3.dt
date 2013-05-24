@@ -1,0 +1,27 @@
+(import macros)
+(import cstdio)
+
+(using-namespace std.macros
+(def wrap-body
+  (macro intern (...)
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (def arg-array 
+        (var auto (p (p DNode))
+                  (cast (pool-malloc pool (* (sizeof (p DNode)) (cast arg-count size))) (p (p DNode)))))
+    (valist-to-dnode-array (cast (# arglist) (p (p void))) arg-count arg-array)
+    
+    (def fst-node 
+        (var auto (p DNode) 
+            (link-nodes-array arg-count arg-array)))
+   
+    (std.macros.bqq do
+        (printf "Wrap function start\n")
+        (uql fst-node)
+        (printf "Wrap function end\n"))))
+)
+
+(def main
+  (fn extern-c int (void)
+    (wrap-body (printf "0\n") (printf "1\n") (printf "2\n") (printf "4\n"))
+    0))

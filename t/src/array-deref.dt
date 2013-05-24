@@ -1,0 +1,10 @@
+(import cstdio)
+(import macros)
+
+(def main
+  (fn extern-c int (void)
+    (let ((n (array-of 3 int) (array 1 2 3))
+          (i \ 0))
+      (for true (< i 3) (incv i)
+        (printf "%d\n" (@$ n i)))
+      0)))

@@ -1,0 +1,29 @@
+(import cstdio)
+(import macros)
+
+(using-namespace std.macros
+(def testmac
+  (macro intern (frm)
+    (if (exists-type frm)
+        (do (print frm)
+            (printf " The type exists\n")
+            (mnfv pool "true"))
+        (do (print frm)
+            (printf " The type does not exist\n")
+            (mnfv pool "false")))))
+)
+
+(def main
+  (fn extern-c int (void)
+    (if (testmac int)
+        (printf "Type int exists\n")
+        (printf "Type int does not exist (?!)\n"))
+
+    (if (testmac (p (p (p int))))
+        (printf "Type ppp int exists\n")
+        (printf "Type ppp int does not exist (?!)\n"))
+
+    (if (testmac not-a-real-type)
+        (printf "Type not-a-real-type exists (?!)\n")
+        (printf "Type not-a-real-type does not exist\n"))
+    0))

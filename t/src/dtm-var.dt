@@ -1,0 +1,1 @@
+(def dtm-module-variable (var extern int 100))

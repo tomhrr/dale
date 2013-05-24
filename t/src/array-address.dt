@@ -1,0 +1,8 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def thing (var auto (array-of 10 int)))
+    (def ptr   (var auto (p (array-of 10 int)) (# thing)))
+    (def ptr2  (var auto (p int) (# ($ thing 0))))
+    0))

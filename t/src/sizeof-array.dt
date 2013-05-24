@@ -1,0 +1,14 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def ptr (var auto int))
+    (def arr (var auto (array-of 10 int)))
+    (def arr2 (var auto (array-of 10 (p int))))
+    (def parr (var auto (p (array-of 10 int))))
+    (def big (var auto (array-of 10 (array-of 10 int))))
+
+    (printf "%d %d\n" (sizeof ptr) 
+                      (sizeof arr))
+        
+    0))

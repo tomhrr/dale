@@ -1,0 +1,1 @@
+./t/error-src/multiple-instantiations.dt:31:19: error: multiple instantiations found: (Subtractable), (Addable) (see macro at 31:1)

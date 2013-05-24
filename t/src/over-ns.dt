@@ -1,0 +1,18 @@
+(import cstdio)
+
+(namespace test1
+  (def myfn (fn extern int (void)    100))
+  (def myfn (fn extern int ((# int)) 200)))
+
+(namespace test2
+  (def myfn (fn extern int (void)    300))
+  (def myfn (fn extern int ((# int)) 400)))
+
+(using-namespace test1 
+(using-namespace test2
+  (def main
+    (fn extern-c int (void)
+      (printf "%d %d\n" (myfn) (myfn 1))
+      (printf "%d %d\n" (test1.myfn) (test2.myfn))
+      (printf "%d %d\n" (test1.myfn 1) (test2.myfn 1))
+      0))))

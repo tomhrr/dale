@@ -1,0 +1,11 @@
+(import cstdio)
+
+(def fn (fn extern void ((n int)) (printf "%d\n" n) (return)))
+
+(def main
+  (fn extern-c int (void)
+    (def mfn (var auto (p (fn void ((n int))))))
+    (setv mfn (# fn int))
+    (funcall mfn 1)
+
+    0))

@@ -1,0 +1,18 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def f (var auto float  0.0))
+    (def d (var auto double 0.0))
+    (def u (var auto uint64 100))
+    (setv f (+ f 10.0))
+    (setv f (+ f (cast 10 float)))
+    (setv d (+ d (cast f double)))
+    (printf "%f\n" f)
+    (printf "%f\n" d)
+    (setv d (+ d (cast (* (cast -1 float) f) double)))
+    (printf "%f\n" d)
+    (setv d (+ d (cast u double)))
+    (printf "%f\n" d)
+    
+    0))

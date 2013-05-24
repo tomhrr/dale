@@ -1,0 +1,23 @@
+(import cstdio)
+(import macros)
+(import shared-ptr)
+
+(std.concepts.instantiate SharedPtr char)
+
+(def main
+  (fn extern-c int (void)
+    (let ((myptr  (SharedPtr char))
+          (myptr2 (SharedPtr char) (do (init (# myptr2)) 0))
+          (myptr3 (SharedPtr char) (do (init (# myptr3)) 0))
+          (myint \ (malloc' 1 char)))
+      (setf myint #\Z)
+      (init (# myptr) myint)
+      (setv myptr2 myptr)
+      (printf "%c\n" (@ myptr))
+      (printf "%c\n" (@ myptr2))
+
+      (setv myptr3 (if true myptr  myptr2))
+      (setv myptr2 (if true myptr2 myptr3))
+      (setv myptr  (if true myptr3 myptr ))
+
+      0)))

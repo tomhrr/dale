@@ -1,0 +1,1 @@
+./t/error-src/no-lvalue-addresses.dt:5:8: error: cannot take address of non-lvalue

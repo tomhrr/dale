@@ -1,0 +1,1 @@
+./t/error-src/redecl-global-difftype.dt:3:8: error: variable 'x' has already been defined in this scope

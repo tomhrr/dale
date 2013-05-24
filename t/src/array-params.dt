@@ -1,0 +1,33 @@
+(import cstdio)
+
+(def fn1
+  (fn extern int ((thing (p int)) (index int))
+    (printf "p int\n")
+    (@ ($ thing index))))
+
+(def fn1
+  (fn extern int ((thing (p (array-of 10 int))) (index1 int) (index2 int))
+    (printf "p array-of 10 int\n")
+    (@ ($ (@ ($ thing index1)) index2))))
+
+(def fn1
+  (fn extern int ((thing (p (array-of 9 int))) (index1 int) (index2 int))
+    (printf "p array-of 9 int\n")
+    (@ ($ (@ ($ thing index1)) index2))))
+
+(def main
+  (fn extern-c int (void)
+    (def thing  (var auto (array-of 10 int)))
+    (def thing2 (var auto (array-of 10 (array-of 10 int))))
+    (def thing3 (var auto (array-of 10 (array-of 9 int))))
+
+    (setf ($ thing 5) 10)
+    (printf "%d\n" (fn1 thing 5))
+
+    (setf ($ (@ ($ thing2 5)) 5) 20)
+    (printf "%d\n" (fn1 thing2 5 5))
+    
+    (setf ($ (@ ($ thing3 5)) 5) 20)
+    (printf "%d\n" (fn1 thing3 5 5))
+
+    0))

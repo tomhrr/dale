@@ -1,0 +1,22 @@
+; Problem was that multiple self-referential structs that had the same
+; layout would be refined properly, but the first argument to
+; refineAbstractTypeTo would not be the value of the new type. Fixed
+; by re-getting the type from the module object.
+
+(import cstdio)
+
+(def mys
+  (struct extern((a int)
+           (b (p mys)))))
+
+(def mys2
+  (struct extern((a int)
+           (b (p mys2)))))
+
+(def main
+  (fn extern-c int (void)
+    (def m1 (var auto mys  ((a 10) (b (cast 0 (p mys))))))
+    (def m2 (var auto mys2 ((a 20) (b (cast 0 (p mys2))))))
+    (printf "%d\n" (@ (: m1 a)))
+    (printf "%d\n" (@ (: m2 a)))
+    0))

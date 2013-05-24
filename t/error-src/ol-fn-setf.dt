@@ -1,0 +1,12 @@
+(import cstdio)
+
+(def inet_aton
+  (fn extern int ((a (p char)) (b uint32))
+    0))
+
+(def main
+  (fn extern-c int (void)
+    (def v (var auto (p (fn int ((a (p char)) (b (p char)))))
+            (# inet_aton)))
+    (setv v (# inet_aton))
+    0))

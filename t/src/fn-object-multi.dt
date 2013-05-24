@@ -1,0 +1,22 @@
+(import cstdio)
+
+(def adder
+  (struct extern((apply (p (fn int ((self (p adder)) (n int)))))
+           (n int))))
+
+(def add1
+  (fn extern int ((self (p adder)) (n int))
+    (setf (:@ self n) (+ n (@ (:@ self n))))
+    (return (@ (:@ self n)))))
+
+(def main
+  (fn extern-c int (void)
+    (def m (var auto adder ((apply (# add1)) (n 0))))
+    (m 1)
+    (m 2)
+    (m 3)
+    (m 4)
+    (m 5)
+    (m 6)
+    (printf "%d\n" (m 7))
+    0))

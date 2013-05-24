@@ -1,0 +1,7 @@
+(import dtm-fn)
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (dtm-module-function))
+    0))

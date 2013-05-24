@@ -1,0 +1,457 @@
+(module pthread)
+
+(import macros)
+
+(def sched_param
+  (struct extern ((__sched_priority int))))
+
+(def pthread_t (struct extern ((n uint64))))
+
+(def timespec
+  (struct extern ((tv_sec int64) (tv_nsec int64))))
+
+(def pthread_attr_t (struct extern ((n int))))
+
+(def __pthread_internal_list 
+  (struct extern (
+    (__prev (p __pthread_internal_list))
+    (__next (p __pthread_internal_list))
+)))
+
+(def __pthread_list_t (struct extern ((n __pthread_internal_list))))
+
+(def pthread_mutex_t (struct extern ((n int))))
+
+(def pthread_mutexattr_t (struct extern ((n int))))
+
+(def pthread_cond_t (struct extern ((n int))))
+
+(def pthread_condattr_t (struct extern ((n int))))
+
+(def pthread_key_t (struct extern ((n uint))))
+
+(def pthread_once_t (struct extern ((n int))))
+
+(def pthread_rwlock_t (struct extern ((n int))))
+
+(def pthread_rwlockattr_t (struct extern ((n int))))
+
+(def pthread_spinlock_t (struct extern ((n int))))
+
+(def pthread_barrier_t (struct extern ((n int))))
+
+(def pthread_barrierattr_t (struct extern ((n int))))
+
+(def __jmp_buf 
+  (macro extern (void) (std.macros.qq  array-of 8 int64 )))
+
+(def PTHREAD_CREATE_JOINABLE
+  (macro extern (void)     (std.macros.mnfv pool "0")))
+(def PTHREAD_CREATE_DETACHED
+  (macro extern (void)     (std.macros.mnfv pool "1")))
+
+(def PTHREAD_MUTEX_TIMED_NP
+  (macro extern (void)     (std.macros.mnfv pool "0")))
+(def PTHREAD_MUTEX_RECURSIVE_NP
+  (macro extern (void)     (std.macros.mnfv pool "1")))
+(def PTHREAD_MUTEX_ERRORCHECK_NP
+  (macro extern (void)     (std.macros.mnfv pool "2")))
+(def PTHREAD_MUTEX_ADAPTIVE_NP
+  (macro extern (void)     (std.macros.mnfv pool "3")))
+(def PTHREAD_MUTEX_NORMAL
+  (macro extern (void)     (std.macros.mnfv pool "0")))
+(def PTHREAD_MUTEX_RECURSIVE
+  (macro extern (void)     (std.macros.mnfv pool "1")))
+(def PTHREAD_MUTEX_ERRORCHECK
+  (macro extern (void)     (std.macros.mnfv pool "2")))
+(def PTHREAD_MUTEX_DEFAULT
+  (macro extern (void)     (std.macros.mnfv pool "0")))
+
+(def PTHREAD_MUTEX_STALLED
+  (macro extern (void)     (std.macros.mnfv pool "0")))
+(def PTHREAD_MUTEX_STALLED_NP
+  (macro extern (void)     (std.macros.mnfv pool "0")))
+(def PTHREAD_MUTEX_ROBUST
+  (macro extern (void)     (std.macros.mnfv pool "1")))
+(def PTHREAD_MUTEX_ROBUST_NP
+  (macro extern (void)     (std.macros.mnfv pool "1")))
+
+(def PTHREAD_RWLOCK_PREFER_READER_NP
+  (macro extern (void)     (std.macros.mnfv pool "0")))
+(def PTHREAD_RWLOCK_PREFER_WRITER_NP
+  (macro extern (void)     (std.macros.mnfv pool "1")))
+(def PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP
+  (macro extern (void)     (std.macros.mnfv pool "2")))
+(def PTHREAD_RWLOCK_DEFAULT_NP
+  (macro extern (void)     (std.macros.mnfv pool "0")))
+
+(def PTHREAD_INHERIT_SCHED
+  (macro extern (void)     (std.macros.mnfv pool "0")))
+(def PTHREAD_EXPLICIT_SCHED
+  (macro extern (void)     (std.macros.mnfv pool "1")))
+
+(def PTHREAD_SCOPE_SYSTEM
+  (macro extern (void)     (std.macros.mnfv pool "0")))
+(def PTHREAD_SCOPE_PROCESS
+  (macro extern (void)     (std.macros.mnfv pool "1")))
+
+(def PTHREAD_PROCESS_PRIVATE
+  (macro extern (void)     (std.macros.mnfv pool "0")))
+(def PTHREAD_PROCESS_SHARED
+  (macro extern (void)     (std.macros.mnfv pool "1")))
+
+(def _pthread_cleanup_buffer 
+  (struct extern (
+    (__routine (p (fn void ((a0 (p void))))))
+    (__arg (p void))
+    (__canceltype int)
+    (__prev (p _pthread_cleanup_buffer))
+)))
+
+(def PTHREAD_CANCEL_ENABLE
+  (macro extern (void)     (std.macros.mnfv pool "0")))
+(def PTHREAD_CANCEL_DISABLE
+  (macro extern (void)     (std.macros.mnfv pool "1")))
+
+(def PTHREAD_CANCEL_DEFERRED
+  (macro extern (void)     (std.macros.mnfv pool "0")))
+(def PTHREAD_CANCEL_ASYNCHRONOUS
+  (macro extern (void)     (std.macros.mnfv pool "1")))
+
+(def pthread_create
+  (fn extern-c int ((__newthread (p pthread_t)) (__attr (p pthread_attr_t)) (__start_routine (p (fn (p void) ((a0 (p void)))))) (__arg (p void)))))
+
+(def pthread_exit
+  (fn extern-c void ((__retval (p void)))))
+
+(def pthread_join
+  (fn extern-c int ((__th pthread_t) (__thread_return (p (p void))))))
+
+(def pthread_detach
+  (fn extern-c int ((__th pthread_t))))
+
+(def pthread_self
+  (fn extern-c pthread_t (void)))
+
+(def pthread_equal
+  (fn extern-c int ((__thread1 pthread_t) (__thread2 pthread_t))))
+
+(def pthread_attr_init
+  (fn extern-c int ((__attr (p pthread_attr_t)))))
+
+(def pthread_attr_destroy
+  (fn extern-c int ((__attr (p pthread_attr_t)))))
+
+(def pthread_attr_getdetachstate
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__detachstate (p int)))))
+
+(def pthread_attr_setdetachstate
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__detachstate int))))
+
+(def pthread_attr_getguardsize
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__guardsize (p size)))))
+
+(def pthread_attr_setguardsize
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__guardsize size))))
+
+(def pthread_attr_getschedparam
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__param (p sched_param)))))
+
+(def pthread_attr_setschedparam
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__param (p sched_param)))))
+
+(def pthread_attr_getschedpolicy
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__policy (p int)))))
+
+(def pthread_attr_setschedpolicy
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__policy int))))
+
+(def pthread_attr_getinheritsched
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__inherit (p int)))))
+
+(def pthread_attr_setinheritsched
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__inherit int))))
+
+(def pthread_attr_getscope
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__scope (p int)))))
+
+(def pthread_attr_setscope
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__scope int))))
+
+(def pthread_attr_getstackaddr
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__stackaddr (p (p void))))))
+
+(def pthread_attr_setstackaddr
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__stackaddr (p void)))))
+
+(def pthread_attr_getstacksize
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__stacksize (p size)))))
+
+(def pthread_attr_setstacksize
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__stacksize size))))
+
+(def pthread_attr_getstack
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__stackaddr (p (p
+  void))) (__stacksize (p size)))))
+
+(def pthread_attr_setstack
+  (fn extern-c int ((__attr (p pthread_attr_t)) (__stackaddr (p
+  void)) (__stacksize size))))
+
+(def pthread_setschedparam
+  (fn extern-c int ((__target_thread pthread_t) (__policy int) (__param (p sched_param)))))
+
+(def pthread_getschedparam
+  (fn extern-c int ((__target_thread pthread_t) (__policy (p int)) (__param (p sched_param)))))
+
+(def pthread_setschedprio
+  (fn extern-c int ((__target_thread pthread_t) (__prio int))))
+
+(def pthread_once
+  (fn extern-c int ((__once_control (p int)) (__init_routine (p (fn void (void)))))))
+
+(def pthread_setcancelstate
+  (fn extern-c int ((__state int) (__oldstate (p int)))))
+
+(def pthread_setcanceltype
+  (fn extern-c int ((__type int) (__oldtype (p int)))))
+
+(def pthread_cancel
+  (fn extern-c int ((__th pthread_t))))
+
+(def pthread_testcancel
+  (fn extern-c void (void)))
+
+(def UnnamedStruct3 
+  (struct extern (
+    (__cancel_jmp_buf (array-of 1 (struct (    (__cancel_jmp_buf (__jmp_buf))
+    (__mask_was_saved int)
+))
+))
+    (__pad (array-of 4 (p void)))
+)))
+
+; __pthread_unwind_buf_t typedef
+(def __pthread_unwind_buf_t 
+  (macro extern (void) (std.macros.mnfv pool "UnnamedStruct3")))
+
+(def __pthread_cleanup_frame
+  (struct extern (
+    (__cancel_routine (p (fn void ((a0 (p void))))))
+    (__cancel_arg (p void))
+    (__do_it int)
+    (__cancel_type int)
+)))
+
+(def __pthread_register_cancel
+  (fn extern-c void ((__buf (p (__pthread_unwind_buf_t))))))
+
+(def __pthread_unregister_cancel
+  (fn extern-c void ((__buf (p (__pthread_unwind_buf_t))))))
+
+(def __pthread_unwind_next
+  (fn extern-c void ((__buf (p (__pthread_unwind_buf_t))))))
+
+(def __jmp_buf_tag 
+  (struct opaque)) 
+
+(def __sigsetjmp
+  (fn extern-c int ((__env (p __jmp_buf_tag)) (__savemask int))))
+
+(def pthread_mutex_init
+  (fn extern-c int ((__mutex (p pthread_mutex_t)) (__mutexattr (p pthread_mutexattr_t)))))
+
+(def pthread_mutex_destroy
+  (fn extern-c int ((__mutex (p pthread_mutex_t)))))
+
+(def pthread_mutex_trylock
+  (fn extern-c int ((__mutex (p pthread_mutex_t)))))
+
+(def pthread_mutex_lock
+  (fn extern-c int ((__mutex (p pthread_mutex_t)))))
+
+(def pthread_mutex_timedlock
+  (fn extern-c int ((__mutex (p pthread_mutex_t)) (__abstime (p timespec)))))
+
+(def pthread_mutex_unlock
+  (fn extern-c int ((__mutex (p pthread_mutex_t)))))
+
+(def pthread_mutex_getprioceiling
+  (fn extern-c int ((__mutex (p pthread_mutex_t)) (__prioceiling (p int)))))
+
+(def pthread_mutex_setprioceiling
+  (fn extern-c int ((__mutex (p pthread_mutex_t)) (__prioceiling int) (__old_ceiling (p int)))))
+
+(def pthread_mutex_consistent
+  (fn extern-c int ((__mutex (p pthread_mutex_t)))))
+
+(def pthread_mutexattr_init
+  (fn extern-c int ((__attr (p pthread_mutexattr_t)))))
+
+(def pthread_mutexattr_destroy
+  (fn extern-c int ((__attr (p pthread_mutexattr_t)))))
+
+(def pthread_mutexattr_getpshared
+  (fn extern-c int ((__attr (p pthread_mutexattr_t)) (__pshared (p int)))))
+
+(def pthread_mutexattr_setpshared
+  (fn extern-c int ((__attr (p pthread_mutexattr_t)) (__pshared int))))
+
+(def pthread_mutexattr_gettype
+  (fn extern-c int ((__attr (p pthread_mutexattr_t)) (__kind (p int)))))
+
+(def pthread_mutexattr_settype
+  (fn extern-c int ((__attr (p pthread_mutexattr_t)) (__kind int))))
+
+(def pthread_mutexattr_getprotocol
+  (fn extern-c int ((__attr (p pthread_mutexattr_t)) (__protocol (p int)))))
+
+(def pthread_mutexattr_setprotocol
+  (fn extern-c int ((__attr (p pthread_mutexattr_t)) (__protocol int))))
+
+(def pthread_mutexattr_getprioceiling
+  (fn extern-c int ((__attr (p pthread_mutexattr_t)) (__prioceiling (p int)))))
+
+(def pthread_mutexattr_setprioceiling
+  (fn extern-c int ((__attr (p pthread_mutexattr_t)) (__prioceiling int))))
+
+(def pthread_mutexattr_getrobust
+  (fn extern-c int ((__attr (p pthread_mutexattr_t)) (__robustness (p int)))))
+
+(def pthread_mutexattr_setrobust
+  (fn extern-c int ((__attr (p pthread_mutexattr_t)) (__robustness int))))
+
+(def pthread_rwlock_init
+  (fn extern-c int ((__rwlock (p pthread_rwlock_t)) (__attr (p pthread_rwlockattr_t)))))
+
+(def pthread_rwlock_destroy
+  (fn extern-c int ((__rwlock (p pthread_rwlock_t)))))
+
+(def pthread_rwlock_rdlock
+  (fn extern-c int ((__rwlock (p pthread_rwlock_t)))))
+
+(def pthread_rwlock_tryrdlock
+  (fn extern-c int ((__rwlock (p pthread_rwlock_t)))))
+
+(def pthread_rwlock_timedrdlock
+  (fn extern-c int ((__rwlock (p pthread_rwlock_t)) (__abstime (p timespec)))))
+
+(def pthread_rwlock_wrlock
+  (fn extern-c int ((__rwlock (p pthread_rwlock_t)))))
+
+(def pthread_rwlock_trywrlock
+  (fn extern-c int ((__rwlock (p pthread_rwlock_t)))))
+
+(def pthread_rwlock_timedwrlock
+  (fn extern-c int ((__rwlock (p pthread_rwlock_t)) (__abstime (p timespec)))))
+
+(def pthread_rwlock_unlock
+  (fn extern-c int ((__rwlock (p pthread_rwlock_t)))))
+
+(def pthread_rwlockattr_init
+  (fn extern-c int ((__attr (p pthread_rwlockattr_t)))))
+
+(def pthread_rwlockattr_destroy
+  (fn extern-c int ((__attr (p pthread_rwlockattr_t)))))
+
+(def pthread_rwlockattr_getpshared
+  (fn extern-c int ((__attr (p pthread_rwlockattr_t)) (__pshared (p int)))))
+
+(def pthread_rwlockattr_setpshared
+  (fn extern-c int ((__attr (p pthread_rwlockattr_t)) (__pshared int))))
+
+(def pthread_rwlockattr_getkind_np
+  (fn extern-c int ((__attr (p pthread_rwlockattr_t)) (__pref (p int)))))
+
+(def pthread_rwlockattr_setkind_np
+  (fn extern-c int ((__attr (p pthread_rwlockattr_t)) (__pref int))))
+
+(def pthread_cond_init
+  (fn extern-c int ((__cond (p pthread_cond_t)) (__cond_attr (p pthread_condattr_t)))))
+
+(def pthread_cond_destroy
+  (fn extern-c int ((__cond (p pthread_cond_t)))))
+
+(def pthread_cond_signal
+  (fn extern-c int ((__cond (p pthread_cond_t)))))
+
+(def pthread_cond_broadcast
+  (fn extern-c int ((__cond (p pthread_cond_t)))))
+
+(def pthread_cond_wait
+  (fn extern-c int ((__cond (p pthread_cond_t)) (__mutex (p pthread_mutex_t)))))
+
+(def pthread_cond_timedwait
+  (fn extern-c int ((__cond (p pthread_cond_t)) (__mutex (p pthread_mutex_t)) (__abstime (p timespec)))))
+
+(def pthread_condattr_init
+  (fn extern-c int ((__attr (p pthread_condattr_t)))))
+
+(def pthread_condattr_destroy
+  (fn extern-c int ((__attr (p pthread_condattr_t)))))
+
+(def pthread_condattr_getpshared
+  (fn extern-c int ((__attr (p pthread_condattr_t)) (__pshared (p int)))))
+
+(def pthread_condattr_setpshared
+  (fn extern-c int ((__attr (p pthread_condattr_t)) (__pshared int))))
+
+(def pthread_condattr_getclock
+  (fn extern-c int ((__attr (p pthread_condattr_t)) (__clock_id (p int)))))
+
+(def pthread_condattr_setclock
+  (fn extern-c int ((__attr (p pthread_condattr_t)) (__clock_id int))))
+
+(def pthread_spin_init
+  (fn extern-c int ((__lock (p int)) (__pshared int))))
+
+(def pthread_spin_destroy
+  (fn extern-c int ((__lock (p int)))))
+
+(def pthread_spin_lock
+  (fn extern-c int ((__lock (p int)))))
+
+(def pthread_spin_trylock
+  (fn extern-c int ((__lock (p int)))))
+
+(def pthread_spin_unlock
+  (fn extern-c int ((__lock (p int)))))
+
+(def pthread_barrier_init
+  (fn extern-c int ((__barrier (p pthread_barrier_t)) (__attr (p pthread_barrierattr_t)) (__count uint))))
+
+(def pthread_barrier_destroy
+  (fn extern-c int ((__barrier (p pthread_barrier_t)))))
+
+(def pthread_barrier_wait
+  (fn extern-c int ((__barrier (p pthread_barrier_t)))))
+
+(def pthread_barrierattr_init
+  (fn extern-c int ((__attr (p pthread_barrierattr_t)))))
+
+(def pthread_barrierattr_destroy
+  (fn extern-c int ((__attr (p pthread_barrierattr_t)))))
+
+(def pthread_barrierattr_getpshared
+  (fn extern-c int ((__attr (p pthread_barrierattr_t)) (__pshared (p int)))))
+
+(def pthread_barrierattr_setpshared
+  (fn extern-c int ((__attr (p pthread_barrierattr_t)) (__pshared int))))
+
+(def pthread_key_create
+  (fn extern-c int ((__key (p uint)) (__destr_function (p (fn void ((a0 (p void)))))))))
+
+(def pthread_key_delete
+  (fn extern-c int ((__key uint))))
+
+(def pthread_getspecific
+  (fn extern-c (p void) ((__key uint))))
+
+(def pthread_setspecific
+  (fn extern-c int ((__key uint) (__pointer (p void)))))
+
+(def pthread_getcpuclockid
+  (fn extern-c int ((__thread_id pthread_t) (__clock_id (p int)))))
+
+(def pthread_atfork
+  (fn extern-c int ((__prepare (p (fn void (void)))) (__parent (p (fn void (void)))) (__child (p (fn void (void)))))))

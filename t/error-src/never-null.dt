@@ -1,0 +1,21 @@
+(import cstdio)
+(import macros)
+
+(def mys (struct extern ((a int) (b int))))
+
+(def myst
+    (var intern mys ((a 10) (b 20))))
+
+(def testfn
+  (fn extern int (void)
+    (if (null ($ myst a)) 1 0)))
+
+(def testfn2
+  (fn extern int (void)
+    (if (null ($ myst b)) 1 0)))
+
+(def main
+  (fn extern-c int (void)
+    (let ((n (array-of 3 int) (array 1 2 3)))
+      (null ($ n 0))
+      0)))

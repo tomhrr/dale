@@ -1,0 +1,108 @@
+(import cstdio)
+
+(import macros)
+(import utility)
+(import set)
+
+(std.concepts.instantiate Set int)
+
+(def debug (var auto bool false))
+
+(def print-set
+  (fn intern void ((sp (p (Set int)))) 
+    (let ((b \ (begin sp))
+          (e \ (end   sp)))
+      (for true (!= b e) (setv b (successor b))
+        (printf "%d " (@source b))))
+    (printf "\n")
+    (return)))
+
+(def dump-nodes
+  (fn intern void ((sp (p (Set int))))
+    (if (not debug) (return) 0)
+    (let ((b \ (begin sp))
+          (e \ (end   sp)))
+      (for true (!= b e) (setv b (successor b))
+      (printf "%d (%p, %p %p %p)\n" (@source b)
+            (@: b element)
+            (@:@ (@: b element) left)
+            (@:@ (@: b element) up)
+            (@:@ (@: b element) right))))
+    (printf "\n")
+    (return)))
+
+(def main
+  (fn extern-c int (void)
+    (let ((s  (Set int))
+          (sp \ (# s)))
+      (init sp)
+
+      (if (empty sp)
+          (printf "Set is empty\n")
+          (printf "Set is not empty\n"))
+
+      (print-set sp)
+
+      (insert sp 3)
+      (printf "Inserted element\n")
+
+      (if (empty sp)
+          (printf "Set is empty\n")
+          (printf "Set is not empty\n"))
+
+      (print-set sp)
+      
+      (insert sp 1)
+      (insert sp 5)
+      (insert sp 2)
+      (insert sp 4)
+
+      (printf "Should be 1..5\n")
+      (print-set sp)
+      (dump-nodes sp)
+
+      (erase (successor (successor (begin sp))))
+      (printf "Should be 1, 2, 4, 5\n")
+      (print-set sp)
+      (dump-nodes sp)
+
+      (erase (begin sp))
+      (printf "Should be 2, 4, 5\n")
+      (print-set sp)
+      (dump-nodes sp)
+
+      (erase (begin sp))
+      (printf "Should be 4, 5\n")
+      (print-set sp)
+
+      (erase (begin sp))
+      (printf "Should be 5\n")
+      (print-set sp)
+      
+      (if (empty sp)
+          (printf "Set is empty\n")
+          (printf "Set is not empty\n"))
+
+      (erase (begin sp))
+      (printf "Should now be empty\n")
+      (print-set sp)
+      
+      (if (empty sp)
+          (printf "Set is empty\n")
+          (printf "Set is not empty\n"))
+
+      (insert sp 5)
+      (insert sp 3)
+      (insert sp 4)
+      (insert sp 2)
+      (insert sp 1)
+
+      (if (empty sp)
+          (printf "Set is empty\n")
+          (printf "Set is not empty\n"))
+
+      (printf "Should be 1..5\n")
+      (print-set sp)
+    0)))
+
+

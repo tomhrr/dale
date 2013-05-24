@@ -1,0 +1,8 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def f (var auto float (/ 1.0 2.0)))
+    (def n (var auto int (cast (* (cast 2 float) f) int)))
+    (printf "%d\n" n)
+    0))

@@ -1,0 +1,9 @@
+(import dtm-noimport (x))
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def myvar (var auto int x))
+    (printf "%d\n" myvar)
+    (printf "%d\n" y)
+    0))

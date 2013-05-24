@@ -1,0 +1,21 @@
+(import macros)
+
+(def my-has-errors
+  (macro intern (N)
+    (std.macros.mnfv pool (if (has-errors N) "true" "false"))))
+
+(def main
+  (fn extern-c int (void)
+    (if (my-has-errors (does-not-exist 1 2))
+        (printf "Function does-not-exist does not exist\n")
+        (printf "Error: has-errors is not working! (1)\n"))
+    (if (my-has-errors (+ 1 2))
+        (printf "Error: has-errors is not working! (2)\n")
+        (printf "Function + int int exists\n"))
+    (if (my-has-errors (!@#$!@#$!@#$!@#$ !@#$!@#$!@#$!@#$))
+        (printf "Function with special characters does not exist\n")
+        (printf "Error: has-errors is not working! (3)\n"))
+    (if (my-has-errors (do 1 2 3 (+ 4 5) (++++++++++++++ 6 7)))
+        (printf "Function further down the tree does not exist\n")
+        (printf "Error: has-errors is not working! (4)\n"))
+    0))

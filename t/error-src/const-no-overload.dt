@@ -1,0 +1,14 @@
+(import cstdio)
+
+(def testfn
+  (fn extern int ((n int))
+    102))
+
+(def testfn
+  (fn extern int ((n (const int)))
+    101))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (testfn 100))
+    0))

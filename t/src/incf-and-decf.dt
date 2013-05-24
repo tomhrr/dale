@@ -1,0 +1,13 @@
+(import cstdio)
+(import macros)
+
+(def mys (struct extern((a int) (b int))))
+
+(def main
+  (fn extern-c int (void)
+    (let ((n mys ((a 10) (b 20))))
+      (incf (: n a))
+      (decf (: n b))
+      (printf "%d\n" (@: n a))
+      (printf "%d\n" (@: n b))
+      0)))

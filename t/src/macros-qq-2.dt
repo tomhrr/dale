@@ -1,0 +1,11 @@
+(import macros)
+(import cstdio)
+
+(def qq-test-2
+  (macro intern (frm)
+    (std.macros.bqq + (uq frm) (uq frm))))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (qq-test-2 500))
+    0))

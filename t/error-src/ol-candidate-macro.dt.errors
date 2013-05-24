@@ -1,0 +1,1 @@
+./t/error-src/ol-candidate-macro.dt:10:5: error: overloaded function/macro not in scope: 'mytemp' (parameters are int, closest candidate expects int int)

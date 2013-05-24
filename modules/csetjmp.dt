@@ -1,0 +1,33 @@
+#|
+@module csetjmp
+
+Bindings to `setjmp.h`. 
+
+Note that destructors will not work properly when `setjmp`/`longjmp`
+are used.
+
+|#
+(module csetjmp)
+
+(import macros)
+
+(def MJMP_BUF_SIZE
+  (macro intern (void) (std.macros.mnfv pool JMP_BUF_SIZE)))
+
+#|
+@struct jmpbuf
+|#
+(def jmpbuf
+  (struct extern ((a (array-of (MJMP_BUF_SIZE) char)))))
+
+#|
+@fn setjmp
+|#
+(def setjmp
+  (fn extern-c int ((a (p jmpbuf)))))
+
+#|
+@fn longjmp
+|#
+(def longjmp
+  (fn extern-c int ((a (p jmpbuf)) (b int))))

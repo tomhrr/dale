@@ -1,0 +1,16 @@
+(import cstdio)
+
+(def main2
+  (fn extern-c int (void)
+    (def mys (struct extern((a int) (b int))))
+    (def m (var auto mys ((a 10) (b 20))))
+    (printf "%d %d\n" (@ (: m a)) (@ (: m b)))
+    0))
+
+(def main
+  (fn extern-c int (void)
+    (main2)
+    (def mys (struct extern((a int) (b int))))
+    (def m (var auto mys ((a 10) (b 20))))
+    (printf "%d %d\n" (@ (: m a)) (@ (: m b)))
+    0))

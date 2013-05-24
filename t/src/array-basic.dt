@@ -1,0 +1,50 @@
+(import array)
+
+(import cstdio)
+
+(std.concepts.instantiate Array int 0)
+(std.concepts.instantiate Array int 10)
+
+(def main (fn extern-c int (void)
+  (let ((arr   (Array int 10))
+        (arrp  \ (# arr))
+        (earr  (Array int 0))
+        (earrp \ (# earr)))
+    (init arrp)
+    (init earrp)
+    (printf "%u %u\n" (size arrp) (max-size arrp))
+    (printf "%d\n" (size earrp))
+    (if (not (empty arrp))
+        (printf "First array is not empty\n")
+        (printf "First array is empty\n"))
+    (if (not (empty earrp))
+        (printf "Second array is not empty\n")
+        (printf "Second array is empty\n"))
+
+    (let ((b \ (begin arrp))
+          (e \ (end   arrp)))
+      (for true (!= b e) (setv b (successor b))
+        (sink b 1)))
+
+    (let ((b \ (begin arrp))
+          (e \ (end   arrp)))
+      (for true (!= b e) (setv b (successor b))
+        (printf "%d " (@source b))))
+
+    (printf "\n")
+
+    (let ((i \ 0)
+          (b \ (rbegin arrp))
+          (e \ (rend   arrp)))
+      (for true (!= b e) (do (setv b (successor b))
+                             (incv i))
+        (sink b i)))
+
+    (let ((b \ (begin arrp))
+          (e \ (end   arrp)))
+      (for true (!= b e) (setv b (successor b))
+        (printf "%d " (@source b))))
+
+    (printf "\n")
+
+    0)))

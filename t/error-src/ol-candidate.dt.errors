@@ -1,0 +1,1 @@
+./t/error-src/ol-candidate.dt:10:5: error: overloaded function/macro not in scope: 'inet_aton' (parameters are (p char), closest candidate expects (p char) uint32)

@@ -1,0 +1,5 @@
+(module modp-infile)
+
+(def modp-fn
+  (fn extern int (void)
+    (* 10 2)))

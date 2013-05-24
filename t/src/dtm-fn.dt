@@ -1,0 +1,3 @@
+(def dtm-module-function
+  (fn extern int (void)
+    100))

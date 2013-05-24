@@ -1,0 +1,50 @@
+(import concepts-core)
+
+(using-namespace std.macros
+
+(std.concepts.def-concept Addable (refines) (T)
+  (if (exists-fn (qq bool + (uq T) (uq T)))
+      true
+      (do (report-error T "type does not implement Addable")
+          false)))
+
+(std.concepts.def-concept Subtractable (refines) (T)
+  (if (exists-fn (qq bool - (uq T) (uq T)))
+      true
+      (do (report-error T "type does not implement Subtractable")
+          false)))
+
+(std.concepts.def-concept AddableAndSubtractable (refines Addable Subtractable) (T)
+  true)
+
+(std.concepts.implement Addable int)
+(std.concepts.implement Subtractable int)
+(std.concepts.implement AddableAndSubtractable int)
+
+(std.concepts.def-concept-macro Add3 intern ((T Addable))
+  (qq do
+    (def +
+      (fn extern (uq T) ((a (uq T)) (b (uq T)) (c (uq T)))
+        (+ a (+ b c))))))
+
+(std.concepts.def-concept-macro Add3 intern ((T Subtractable))
+  (qq do
+    (def +
+      (fn extern (uq T) ((a (uq T)) (b (uq T)) (c (uq T)))
+        (+ a (+ b c))))))
+
+(std.concepts.def-concept-macro Add3 intern ((T AddableAndSubtractable))
+  (qq do
+    (def +
+      (fn extern (uq T) ((a (uq T)) (b (uq T)) (c (uq T)))
+        (+ 1 (+ a (+ b c)))))))
+
+(std.concepts.instantiate Add3 int)
+
+)
+
+(def main
+  (fn extern-c int (void)
+    (let ((n \ (+ 1 2 3)))
+      (printf "%d\n" n))
+    0))

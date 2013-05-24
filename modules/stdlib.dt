@@ -1,0 +1,508 @@
+#|
+@module stdlib
+
+Provides commonly-used macros and functions, including the core
+control structures (`for`, `while` and `let`). All of the bindings
+provided by this library are in the root namespace.
+
+|#
+(module stdlib)
+
+(import macros-core)
+
+(using-namespace std.macros
+
+#|
+@macro @:'
+
+Takes a struct pointer and one or more struct member names as its
+arguments. Expands to repeated calls to `@:@` over the struct and the
+member names. For example, if two members are provided, the expansion
+is `(@:@ (@:@ structp member1) member2)`.
+
+@param structp      The struct pointer argument.
+@param member       The first member's name.
+|#
+(def @:'
+  (macro extern (structp member ...)
+    (setv arg-count (- arg-count 2))
+    (def myargcount (var auto int arg-count))
+
+    (def frm (var auto (p DNode) (bqq @:@ (uq-nc structp) (uq-nc member))))
+    (def va-dnode (var auto (p DNode)))
+
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (def begin (var auto int 1))
+
+    (label begin-loop)
+        (if (= arg-count 0) (goto end-loop) 0)
+
+        (setv va-dnode (va-arg (# arglist) (p DNode)))
+        (setv frm (bqq @:@ (uq-nc frm) (uq-nc va-dnode)))
+        (setv arg-count (- arg-count 1))
+        (goto begin-loop)
+
+    (label end-loop)
+        (return frm)))
+
+#|
+@macro and
+
+Takes a condition expression and a form to execute when the condition
+is true. If the condition is true, returns the result of evaluating
+the form. If the condition is false, returns `false`. Since this is
+implemented with `if`, it is necessary that the `true-case` either
+terminate or return a boolean.
+
+@param condition    The condition expression.
+@param true-case    The form to run when condition is true.
+|#
+(def and (macro extern (condition true-case)
+  (bqq if (uq condition) (uq true-case) false)))
+
+#|
+@macro or
+
+Takes a condition expression and a form to execute when the condition
+is false. If the condition is false, returns the result of evaluating
+the form. If the condition is true, returns `true`. Since this is
+implemented with `if`, it is necessary that the `false-case` either
+terminate or return a boolean.
+
+@param condition    The condition expression.
+@param false-case   The form to run when condition is false.
+|#
+(def or (macro extern (condition false-case)
+  (bqq if (uq condition) true (uq false-case))))
+
+(def break-to-goto
+  (fn (attr cto) intern int ((frm (p DNode)) (pool (p PoolNode)) (data (p void)))
+    (def break-label (var auto (p DNode) (cast data (p DNode))))
+    (def ln          (var auto (p DNode) (@:@ frm list-node)))
+    (def ln-str      (var auto (p char)  (if (not (null ln))
+                                                (@:@ ln token-str)
+                                                (return 0))))
+
+    (if (null ln-str)
+        (return 0)
+        0)
+    (if (!= 0 (strcmp ln-str "break"))
+        (do (if (= 0 (strcmp ln-str "goto"))
+                (do (if (is-gensym-label (@:@ ln next-node) "breaklabel")
+                        (do (setf (:@ frm list-node) (mnfv pool "goto"))
+                            (setf (:@ (@:@ frm list-node) next-node)
+                            break-label))
+                        (return 0)))
+                (return 0))
+            0)
+        0)
+
+    (setf (:@ frm list-node) (mnfv pool "goto"))
+    (setf (:@ (@:@ frm list-node) next-node) break-label)
+    0))
+
+(def continue-to-goto
+  (fn (attr cto) intern int ((frm (p DNode)) (pool (p PoolNode)) (data (p void)))
+    (def break-label (var auto (p DNode) (cast data (p DNode))))
+    (def ln          (var auto (p DNode) (@:@ frm list-node)))
+    (def ln-str      (var auto (p char)  (if (not (null ln))
+                                                (@:@ ln token-str)
+                                                (return 0))))
+
+    (if (null ln-str)
+        (return 0)
+        0)
+    (if (!= 0 (strcmp ln-str "continue"))
+        (do (if (= 0 (strcmp ln-str "goto"))
+                (do (if (is-gensym-label (@:@ ln next-node) "continuelabel")
+                        (do (setf (:@ frm list-node) (mnfv pool "goto"))
+                            (setf (:@ (@:@ frm list-node) next-node)
+                            break-label))
+                        (return 0)))
+                (return 0))
+            0)
+        0)
+
+    (setf (:@ frm list-node) (mnfv pool "goto"))
+    (setf (:@ (@:@ frm list-node) next-node) break-label)
+    0))
+
+#|
+@macro while
+
+Takes a condition expression and an arbitrary number of other forms as
+its arguments. Expands to a form that loops over the provided forms
+for so long as the condition expression evaluates to `true`.
+
+@param condition    The condition expression form.
+|#
+(def while
+  (macro extern (condition ...)
+    (setv arg-count (- arg-count 1))
+    (get-varargs-list)
+
+    (def begin-label
+        (var auto (p DNode) (make-gensym-label-node pool "continuelabel")))
+    (def end-label
+        (var auto (p DNode) (make-gensym-label-node pool "breaklabel")))
+
+    (walk-nodes varargs-list pool (cast end-label   (p void)) 
+                (# break-to-goto))
+    (walk-nodes varargs-list pool (cast begin-label (p void)) 
+                (# continue-to-goto))
+
+    (bqq do
+        (label (uq begin-label))
+          (if (uq-nc condition)
+              (do (uql-nc varargs-list)
+                  (goto (uq begin-label)))
+              (goto (uq end-label)))
+        (label (uq end-label)))))
+
+#|
+@macro incf
+
+Takes a pointer form as its single argument. Expands to a form that
+increments the underlying value and returns true.
+
+@param form     The pointer variable to be incremented.
+|#
+(def incf
+  (macro extern (form)
+    (bqq setf (uq form) (+ (@ (uq form)) 1))))
+
+#|
+@macro decf
+
+Takes a pointer form as its single argument. Expands to a form that
+decrements the underlying value and returns true.
+
+@param form     The pointer variable to be decremented.
+|#
+(def decf
+  (macro extern (form)
+    (bqq setf (uq form) (- (@ (uq form)) 1))))
+
+#|
+@macro incv
+
+Takes a variable form as its single argument. Expands to a form that
+increments the underlying value and returns true.
+
+@param form     The variable to be incremented.
+|#
+(def incv
+  (macro extern (form)
+    (bqq setv (uq form) (+ (uq form) 1))))
+
+#|
+@macro decv
+
+Takes a variable form as its single argument. Expands to a form that
+decrements the underlying value and returns true.
+
+@param form     The variable to be decremented.
+|#
+(def decv
+  (macro extern (form)
+    (bqq setv (uq form) (- (uq form) 1))))
+
+#|
+@macro for
+
+Takes an initialisation form, a condition expression, a loop entry
+form and an arbitrary number of other forms as its arguments. Expands
+into a 'for' loop: the initialisation form is run at the beginning,
+the loop entry form is run on loop entry (except on the first
+iteration), and the loop is only run for so long as the condition
+expression evaluates to true.
+
+@param init-form    The initialisation form.
+@param condition    The condition expression.
+@param loop-entry   The loop entry form.
+|#
+(def for
+  (macro extern (init-form condition loop-entry ...)
+    (setv arg-count (- arg-count 3))
+    (get-varargs-list)
+
+    (def begin-label
+        (var auto (p DNode) (make-gensym-label-node pool)))
+    (def mid-label
+        (var auto (p DNode) (make-gensym-label-node pool "continuelabel")))
+    (def end-label
+        (var auto (p DNode) (make-gensym-label-node pool "breaklabel")))
+
+    (walk-nodes varargs-list pool (cast end-label (p void)) 
+                (# break-to-goto))
+    (walk-nodes varargs-list pool (cast mid-label (p void)) 
+                (# continue-to-goto))
+
+    (def retform (var auto \
+    (bqq do
+        (uq-nc init-form)
+        (label (uq begin-label))
+          (if (uq-nc condition)
+              (do (uql-nc varargs-list)
+                  (label (uq mid-label))
+                  (uq-nc loop-entry)
+                  (goto (uq begin-label)))
+              (goto (uq end-label)))
+        (label (uq end-label)))))
+    retform))
+
+#|
+@macro let
+
+A form for introducing local (automatic storage) variables. It's
+easier to explain by example.
+
+        (let (({name1} {type1} [{value1}])
+              ({name2} {type2} [{value2}]))
+          ; ...
+          )
+
+expands to:
+
+        (new-scope
+          (def {name1} (var auto {type1} {value1}))
+          (def {name2} (var auto {type2} {value2}))
+          ; ...
+          )
+
+|#
+(def let
+  (macro extern (new-vars ...)
+    (setv arg-count (- arg-count 1))
+    (get-varargs-list)
+
+    (def nullp (var auto (p DNode) (cast 0 (p DNode))))
+
+    (def first-node (var auto (p DNode) (cast 0 (p DNode))))
+
+    ; Create an anchor node pointer. This will be set to the value
+    ; of each newly-created node, so that the next node can be
+    ; linked to it.
+    (def anchor-node (var auto (p DNode) (cast 0 (p DNode))))
+
+    (def vars-node (var auto (p DNode) (@:@ new-vars list-node)))
+
+    (def name-node    (var auto (p DNode) (cast 0 (p DNode))))
+    (def type-node    (var auto (p DNode) (cast 0 (p DNode))))
+    (def default-node (var auto (p DNode) (cast 0 (p DNode))))
+
+    (def def-node (var auto (p DNode) (cast 0 (p DNode))))
+
+    (while (not (null vars-node))
+
+      (setv name-node    (@:@ vars-node list-node))
+      (setv type-node    (@:@ name-node next-node))
+      (setv default-node (@:@ type-node next-node))
+
+      (setf (:@ name-node next-node) nullp)
+      (setf (:@ type-node next-node) nullp)
+
+      (if (not (null default-node))
+        (do
+          (setf (:@ default-node next-node) nullp)
+          (setv def-node
+              (bqq def (uq-nc name-node)
+                  (var auto (uq-nc type-node) (uq-nc default-node)))))
+          (setv def-node
+              (bqq def (uq-nc name-node)
+                  (var auto (uq-nc type-node)))))
+
+      (if (null first-node)
+          (do (setv first-node def-node) 0)
+          0)
+
+      (if (not (null anchor-node))
+          (do (setf (:@ anchor-node next-node) def-node) 0)
+          0)
+
+      (setv anchor-node def-node)
+
+      (setv vars-node (@:@ vars-node next-node)))
+
+    (bqq new-scope (uql-nc first-node) (do (uql-nc varargs-list)))))
+
+#|
+@macro malloc'
+
+Expands to a `malloc` that allocates memory sufficient for `n` `T`s.
+
+@param n    The number of objects being allocated.
+@param T    The type of the objects being allocated.
+|#
+(def malloc' (macro extern (n T)
+  (bqq cast (malloc (* (cast (uq n) size) (sizeof (uq T)))) (p (uq T)))))
+
+#|
+@macro free'
+
+Expands to a `free` to which the pointer form argument, after being
+cast to a void pointer, is passed.
+
+@param form     The pointer form.
+|#
+(def free' (macro extern (form)
+  (bqq free (cast (uq form) (p void)))))
+
+#|
+@macro p<=
+|#
+(def p<= (macro extern (ptr1 ptr2)
+  (bqq or (p< (uq ptr1) (uq ptr2)) (p= (uq ptr1) (uq ptr2)))))
+
+#|
+@macro p>=
+|#
+(def p>= (macro extern (ptr1 ptr2)
+  (bqq or (p> (uq ptr1) (uq ptr2)) (p= (uq ptr1) (uq ptr2)))))
+
+#|
+@macro make-macro-constant
+
+Expands to a macro definition, with the specified name, that in turn
+expands to the value.
+
+@param name     The name of the macro constant.
+@param value    The value for the new macro constant.
+|#
+(def make-macro-constant
+  (macro extern (name value)
+    (bqq def (uq name)
+        (macro extern (void) (std.macros.mnfv pool (uq value))))))
+
+#|
+@macro long-type
+
+Expands to `sizeof(long)`. Only intended for use when writing C
+bindings.
+
+|#
+(def long-type
+  (macro extern (void)
+    (let ((n  \ SIZEOF_LONG)
+          (ts \ (if (= n 4)  "int32"
+                (if (= n 8)  "int64"
+                (if (= n 16) "int128"
+                             "invalid-long-type")))))
+      (mnfv pool ts))))
+
+#|
+@macro ulong-type
+
+Expands to `sizeof(unsigned long)`. Only intended for use when writing
+C bindings.
+
+|#
+(def ulong-type
+  (macro extern (void)
+    (let ((n  \ SIZEOF_LONG)
+          (ts \ (if (= n 4)  "uint32"
+                (if (= n 8)  "uint64"
+                (if (= n 16) "uint128"
+                             "invalid-ulong-type")))))
+      (mnfv pool ts))))
+
+#|
+@macro long-long-type
+
+Expands to `sizeof(long long)`. Only intended for use when writing
+C bindings.
+
+|#
+(def long-long-type
+  (macro extern (void)
+    (let ((n  \ SIZEOF_LONG_LONG)
+          (ts \ (if (= n 8)  "int64"
+                (if (= n 16) "int128"
+                             "invalid-long-long-type"))))
+      (mnfv pool ts))))
+
+#|
+@macro ulong-long-type
+
+Expands to `sizeof(unsigned long long)`. Only intended for use when
+writing C bindings.
+
+|#
+(def ulong-long-type
+  (macro extern (void)
+    (let ((n  \ SIZEOF_LONG_LONG)
+          (ts \ (if (= n 8)  "uint64"
+                (if (= n 16) "uint128"
+                             "invalid-ulong-long-type"))))
+      (mnfv pool ts))))
+
+(def mfor-struct
+  (struct intern ((placeholder (p DNode))
+                  (new-token   (p DNode)))))
+
+(def mfor-helper
+    (fn (attr cto) intern int ((frm  (p DNode))
+                        (pool (p PoolNode))
+                        (data (p void)))
+        (if (null (@:@ frm token-str))
+            (return 0)
+            0)
+        (let ((ms \ (cast data (p mfor-struct))))
+          (if (!= 0 (strcmp (@:@ frm token-str)
+                            (@:@ (@:@ ms placeholder) token-str)))
+            (return 0)
+            0)
+          (copy-to frm (@:@ ms new-token))
+          (return 0))))
+
+#|
+@macro mfor
+
+Short for 'macro for', but more akin to a 'foreach'. Takes a
+value-name form, a value-list form and an arbitrary number of other
+forms. For each entry in value-list, bind value-name to that value,
+and expand the other forms, substituting any instance of value-name in
+those forms with the value from value-list. For example:
+
+        (mfor str ("asdf" "zxcv" "qwer")
+          (printf "%s\n" str))
+
+expands to:
+
+        (printf "%s\n" "asdf")
+        (printf "%s\n" "zxcv")
+        (printf "%s\n" "qwer")
+
+|#
+(def mfor
+  (macro extern (value-name value-list ...)
+    (setv arg-count (- arg-count 2))
+    (get-varargs-list)
+    (let ((first-node \ (mnfv pool "do"))
+          (anchor   \ first-node)
+          (body     \ (bqq do (uql varargs-list)))
+          (bodycopy (p DNode))
+          (ms       mfor-struct))
+      (setv value-list (@:@ value-list list-node))
+      (setf (: ms placeholder) value-name)
+      (while (not (null value-list))
+        (setv bodycopy (copy pool true body))
+        (setf (: ms new-token) value-list)
+        (walk-nodes bodycopy pool (cast (# ms) (p void)) (# mfor-helper))
+        (setf (:@ anchor next-node) bodycopy)
+        (setv anchor (@:@ anchor next-node))
+        (setv value-list (@:@ value-list next-node)))
+      (new-scope (bqq (uql first-node))))))
+
+#|
+@macro no-op
+
+Expands to nothing.
+
+|#
+(def no-op
+  (macro extern (void)
+    (nullptr DNode)))
+
+)

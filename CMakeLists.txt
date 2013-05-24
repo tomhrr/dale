@@ -1,0 +1,272 @@
+cmake_minimum_required(VERSION 2.6)
+
+project(Dale)
+
+find_program(LLVM_CONFIG llvm-config DOC "path to llvm-config")
+find_program(CLANG clang DOC "path to clang")
+
+if (NOT LLVM_CONFIG)
+    message (FATAL_ERROR "llvm-config executable not found. Re-run cmake with -DLLVM_CONFIG={path-to-llvm-config}.")
+endif()
+
+execute_process (COMMAND ${LLVM_CONFIG} --version
+                 OUTPUT_VARIABLE LLVM_VERSION
+                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process (COMMAND ${LLVM_CONFIG} --bindir
+                 OUTPUT_VARIABLE LLVM_BIN_DIR
+                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process (COMMAND echo ${LLVM_VERSION}
+                 COMMAND sed -e "s/[^0-9].*//"
+                 OUTPUT_VARIABLE LLVM_VERSION_MAJOR
+                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process (COMMAND echo ${LLVM_VERSION}
+                 COMMAND sed -e "s/.*[^0-9]//"
+                 OUTPUT_VARIABLE LLVM_VERSION_MINOR
+                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+set (Dale_VERSION_MAJOR 0)
+set (Dale_VERSION_MINOR 1)
+set (DALE_INCLUDE_PATH  "${CMAKE_INSTALL_PREFIX}/include/dale")
+set (DALE_LIBRARY_PATH  "${CMAKE_INSTALL_PREFIX}/lib/dale")
+set (DALE_MODULE_PATH   "${CMAKE_INSTALL_PREFIX}/lib/dale")
+set (SYSTEM             "${CMAKE_SYSTEM}")
+set (SYSTEM_NAME        "${CMAKE_SYSTEM_NAME}")
+set (SYSTEM_PROCESSOR   "${CMAKE_SYSTEM_PROCESSOR}")
+set (SIZEOF_DATA_PTR    "${CMAKE_CXX_SIZEOF_DATA_PTR}")
+set (LLVM_VERSION       "${LLVM_VERSION}")
+set (LLVM_VERSION_MAJOR "${LLVM_VERSION_MAJOR}")
+set (LLVM_VERSION_MINOR "${LLVM_VERSION_MINOR}")
+set (LLVM_BIN_DIR       "${LLVM_BIN_DIR}")
+
+set (BUILD_BINDGEN False)
+# Temporarily disabling
+#if (CLANG)
+#    set (BUILD_BINDGEN True)
+#else ()
+#    message("-- Clang not found. dale-bindgen will not be built")
+#endif ()
+
+# Get LLVM configuration details.
+
+execute_process (COMMAND ${LLVM_CONFIG} --libs
+                 OUTPUT_VARIABLE LLVM_LIBS
+                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process (COMMAND ${LLVM_CONFIG} --ldflags
+                 OUTPUT_VARIABLE LLVM_LINK_FLAGS
+                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process (COMMAND ${LLVM_CONFIG} --cppflags
+                 OUTPUT_VARIABLE LLVM_CXX_FLAGS
+                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# Confirm that ffi.h and libffi are present. (Added two common ffi.h
+# path, would be nice if this were a bit more robust.)
+
+find_path (FFI_INCLUDE_PATH ffi.h PATHS /usr/include/i386-linux-gnu /usr/include/x86_64-linux-gnu ${FFI_INCLUDE_DIR})
+if (FFI_INCLUDE_PATH)
+    set (FFI_HEADER ffi.h)
+else ()
+    find_path (FFI_INCLUDE_PATH ffi/ffi.h PATHS ${FFI_INCLUDE_DIR})
+    if (FFI_INCLUDE_PATH)
+        set (FFI_HEADER ffi/ffi.h)
+    endif ()
+endif ()
+
+if (NOT FFI_HEADER)
+    message (FATAL_ERROR "libffi includes (ffi.h) are not found. Re-run cmake with -DFFI_INCLUDE_DIR={path-to-include-dir}")
+endif ()
+
+find_library(FFI_LIBRARY_PATH ffi PATHS ${FFI_LIBRARY_DIR})
+if (NOT FFI_LIBRARY_PATH)
+    message (FATAL_ERROR "libffi is not found. Re-run cmake with -DFFI_LIBRARY_DIR.")
+endif ()
+
+if (NOT FFI_LIBRARY_DIR)
+    set (FFI_LIBRARY_DIR "")
+else ()
+    set (FFI_LIBRARY_DIR "-L${FFI_LIBRARY_DIR}")
+endif ()
+
+if (NOT FFI_INCLUDE_DIR)
+    set (FFI_INCLUDE_DIR "")
+else ()
+    set (FFI_INCLUDE_DIR "-I${FFI_INCLUDE_DIR}")
+endif ()
+
+# Populate the configuration header.
+
+configure_file("${CMAKE_SOURCE_DIR}/src/dale/Config.h.in"
+               "${CMAKE_BINARY_DIR}/Config.h")
+
+# Build type processing. Default is 'Release'.
+
+if (NOT CMAKE_BUILD_TYPE)
+    set (CMAKE_BUILD_TYPE Release CACHE STRING
+         "Choose the type of build. Options are 'Debug' and 'Release'."
+         FORCE)
+endif ()
+
+string (TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
+
+string (COMPARE EQUAL ${CMAKE_BUILD_TYPE} "DEBUG"   IS_DEBUG)
+string (COMPARE EQUAL ${CMAKE_BUILD_TYPE} "RELEASE" IS_RELEASE)
+
+if (NOT IS_DEBUG)
+    if (NOT IS_RELEASE)
+        message (FATAL_ERROR "Invalid CMAKE_BUILD_TYPE specified. Must be either 'Debug' or 'Release'.")
+    endif ()
+endif ()
+
+# Set compile/link flags.
+
+set (DALEC_LINK_FLAGS_       "$ENV{LDFLAGS} ${FFI_LIBRARY_DIR} -lffi -lpthread -ldl")
+string(REGEX REPLACE "^ +" "" DALEC_LINK_FLAGS ${DALEC_LINK_FLAGS_})
+set (CMAKE_CXX_FLAGS         "$ENV{CPPFLAGS} ${FFI_INCLUDE_DIR} -Wall -ansi")
+set (CMAKE_CXX_FLAGS_DEBUG   "-g -ggdb -O0 -fno-inline -Wextra -Wno-unused-parameter")
+set (CMAKE_CXX_FLAGS_RELEASE "-O3 -fomit-frame-pointer")
+
+set (DALE_FLAGS_DEBUG   "-O0")
+# Some of the optimisation passes don't work properly, no doubt
+# because of the module hackery that goes on in generator.
+set (DALE_FLAGS_RELEASE "-O3")
+
+if (IS_DEBUG)
+    set (DALE_FLAGS ${DALE_FLAGS_DEBUG})
+else ()
+    set (DALE_FLAGS ${DALE_FLAGS_RELEASE})
+endif ()
+
+include_directories ("${PROJECT_BINARY_DIR}")
+
+# Compile the compiler.
+
+add_executable (dalec src/dale/dalec.cpp
+                      src/dale/Generator/Generator.cpp
+                      src/dale/Context/Context.cpp
+                      src/dale/ContextSavePoint/ContextSavePoint.cpp
+                      src/dale/Lexer/Lexer.cpp
+                      src/dale/Node/Node.cpp
+                      src/dale/Parser/Parser.cpp
+                      src/dale/Position/Position.cpp
+                      src/dale/Utils/Utils.cpp
+                      src/dale/Token/Token.cpp
+                      src/dale/Error/Error.cpp
+                      src/dale/ErrorReporter/ErrorReporter.cpp
+                      src/dale/ParseResult/ParseResult.cpp
+                      src/dale/Element/Enum/Enum.cpp
+                      src/dale/Element/Function/Function.cpp
+                      src/dale/Element/Type/Type.cpp
+                      src/dale/Element/Variable/Variable.cpp
+                      src/dale/Element/Struct/Struct.cpp
+                      src/dale/NativeTypes/NativeTypes.cpp
+                      src/dale/Element/Label/Label.cpp)
+set_target_properties (dalec PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS} -I.")
+set_target_properties (dalec PROPERTIES LINK_FLAGS "${DALEC_LINK_FLAGS} ${LLVM_LINK_FLAGS}")
+target_link_libraries (dalec ${LLVM_LIBS} ${DALEC_LINK_FLAGS})
+install (TARGETS dalec DESTINATION bin)
+
+# Compile the binding generator.
+
+if (BUILD_BINDGEN)
+    add_executable (dale-bindgen src/dale/dale-bindgen.cpp
+                                src/dale/BindingsConverter.cpp)
+    set_target_properties (dale-bindgen PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS}")
+    set_target_properties (dale-bindgen PROPERTIES LINK_FLAGS    "${LLVM_LINK_FLAGS}")
+    target_link_libraries (dale-bindgen "clangFrontend"
+                                        "clangParse"
+                                        "clangSema"
+                                        "clangAnalysis"
+                                        "clangIndex"
+                                        "clangAST"
+                                        "clangLex"
+                                        "clangBasic"
+                                        "clangDriver"
+                                        "clangFrontendTool"
+                                        "clangSerialization"
+                                        ${LLVM_LIBS})
+    install (TARGETS dale-bindgen DESTINATION bin)
+endif ()
+
+# Run tests.
+
+add_custom_target (test COMMAND ${CMAKE_SOURCE_DIR}/run-tests ${CMAKE_SOURCE_DIR})
+add_dependencies (test dalec libarray.so)
+
+# Manfile for the compiler.
+
+add_custom_target (documentation ALL DEPENDS man/dalec.1.gz)
+install (FILES man/dalec.1.gz DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
+
+# Compile and install standard library files.
+
+add_custom_command (OUTPUT  libdrt.so
+                    COMMAND ${CMAKE_BINARY_DIR}/dalec 
+                                -c ${CMAKE_SOURCE_DIR}/modules/drt.dt 
+                                -o ./temp.dt.s
+                                --no-dale-stdlib
+                                --no-strip
+                                --static-modules)
+add_custom_target (drt ALL DEPENDS libdrt.so)
+add_dependencies (drt dalec)
+install (FILES          ${CMAKE_BINARY_DIR}/libdrt.so
+         DESTINATION    lib/dale)
+
+# Extra 'make clean' files.
+
+set (CLEAN_FILES "libdrt.so;libdrt.bc;libdrt.dtm;libdrt-nomacros.bc;libdrt-nomacros.so")
+
+macro (standard_library path name)
+    add_custom_command(OUTPUT  lib${name}.so
+                       COMMAND ${CMAKE_BINARY_DIR}/dalec 
+                               ${DALE_FLAGS}
+                               -c ${CMAKE_SOURCE_DIR}/${path}
+                               -o ./temp.dt.s
+                       DEPENDS ${CMAKE_SOURCE_DIR}/${path})
+    add_custom_target(${name} ALL DEPENDS lib${name}.so)
+    add_dependencies(${name} dalec ${ARGV2} ${ARGV3} ${ARGV4} ${ARGV5})
+    install (FILES          ${CMAKE_BINARY_DIR}/lib${name}.so
+                            ${CMAKE_BINARY_DIR}/lib${name}-nomacros.so
+                            ${CMAKE_BINARY_DIR}/lib${name}.dtm
+                            ${CMAKE_BINARY_DIR}/lib${name}.bc
+                            ${CMAKE_BINARY_DIR}/lib${name}-nomacros.bc
+             DESTINATION    lib/dale)
+    set (CLEAN_FILES "${CLEAN_FILES};lib${name}.so;lib${name}-nomacros.so;lib${name}.dtm;lib${name}.bc;lib${name}-nomacros.bc")
+endmacro ()
+
+standard_library (modules/cstdio.dt  cstdio  drt macros)
+standard_library (modules/cstring.dt cstring drt)
+standard_library (modules/pthread.dt pthread drt)
+standard_library (modules/cfloat.dt  cfloat  macros)
+standard_library (modules/cctype.dt  cctype  macros cstdio)
+standard_library (modules/ctype.dt   ctype   macros cstdio cctype)
+standard_library (modules/cerrno.dt  cerrno  macros cstdio)
+standard_library (modules/ctime.dt    ctime    drt)
+standard_library (modules/clocale.dt clocale drt)
+standard_library (modules/cstdio-core.dt  cstdio-core  drt)
+standard_library (modules/introspection.dt   introspection  drt)
+standard_library (modules/macros-core.dt  macros-core  cstdio-core)
+standard_library (modules/stdlib.dt  stdlib  macros-core introspection)
+standard_library (modules/macros.dt  macros  cstdio-core macros-core stdlib introspection stdlib)
+standard_library (modules/assert.dt  assert  macros cstdio cstdlib)
+standard_library (modules/concepts-core.dt    concepts-core macros assert unistd cstring)
+standard_library (modules/concept-defs.dt    concept-defs      concepts-core)
+standard_library (modules/concepts.dt    concepts      concept-defs)
+standard_library (modules/cmath.dt   cmath   drt)
+standard_library (modules/math.dt    math    drt cmath)
+standard_library (modules/cstdlib.dt cstdlib drt macros)
+standard_library (modules/csetjmp.dt  csetjmp  macros)
+standard_library (modules/csignal.dt csignal  macros)
+standard_library (modules/unistd.dt unistd  macros)
+standard_library (modules/shared-ptr.dt shared-ptr  macros)
+
+standard_library (modules/utility.dt  utility          concepts cstdio ctype)
+standard_library (modules/vector.dt      vector        utility math)
+standard_library (modules/list.dt        list          utility math)
+standard_library (modules/set.dt         set           utility math)
+standard_library (modules/map.dt         map           utility math set derivations)
+standard_library (modules/array.dt       array         utility math derivations)
+standard_library (modules/algorithms.dt  algorithms    utility)
+standard_library (modules/derivations.dt derivations   utility)
+
+set_directory_properties (PROPERTIES 
+                          ADDITIONAL_MAKE_CLEAN_FILES
+                          "${CLEAN_FILES}")

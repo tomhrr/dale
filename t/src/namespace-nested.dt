@@ -1,0 +1,17 @@
+(import cstdio)
+
+(namespace a
+  (def thing (var intern int 0))
+  (namespace b
+    (def thing (var intern int 1))
+    (namespace c
+      (def thing (var intern int 2)))
+    (def thing2 (var intern int 3)))
+  (def thing2 (var intern int 4)))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d %d %d %d %d\n"
+        a.thing a.b.thing a.b.c.thing a.b.thing2 a.thing2)
+    0))
+

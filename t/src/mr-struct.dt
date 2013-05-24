@@ -1,0 +1,19 @@
+(import cstdio)
+
+(def first  (struct opaque))
+(def second (struct opaque))
+
+(def first  (struct extern((a int)  (n (p second)))))
+(def second (struct extern((a char) (n (p first)))))
+
+(def main
+  (fn extern-c int (void)
+    (def f (var auto first))
+    (def s (var auto second))
+    (setf (: f a) 10)
+    (setf (: s a) #\a)
+    (setf (: f n) (# s))
+    (setf (: s n) (# f))
+    (printf "%d\n" (@ (: (@ (@ (: s n))) a)))
+    (printf "%c\n" (@ (: (@ (@ (: f n))) a)))
+    0))

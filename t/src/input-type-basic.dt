@@ -1,0 +1,21 @@
+(import cstdio) 
+(import macros) 
+
+(using-namespace std.macros
+(def print-arg-types
+  (macro intern (fn)
+    (let ((n int (arity fn))
+          (i int 0))
+      (for true (< i n) (incv i)
+        (print (input-type fn i))
+        (printf "\n")))
+    (mnfv pool "0")))
+)
+
+(def main
+  (fn extern-c int (void)
+    (print-arg-types malloc)
+    (print-arg-types printf)
+    (print-arg-types memcpy)
+    0))
+

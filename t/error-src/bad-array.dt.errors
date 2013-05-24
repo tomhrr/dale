@@ -1,0 +1,1 @@
+./t/error-src/bad-array.dt:1:23: error: 'array-of' requires 2 arguments (got 3 instead)

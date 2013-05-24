@@ -1,0 +1,21 @@
+(import cstdio)
+
+(def destroy
+  (fn extern-c void ((n (p float)))
+    (printf "destroying %f\n" (@ n))
+    (return)))
+
+(def main
+  (fn extern-c int (void)
+    (def i (var auto int 0))
+    (label mylabel)
+      (def x (var auto float (cast i float)))
+      (if (< i 10)
+          (do (incv i)
+              (printf "Moving to mylabel2\n")
+              (goto mylabel2))
+          0)
+
+    (label mylabel2)
+      (printf "Got to mylabel2\n")
+    0))

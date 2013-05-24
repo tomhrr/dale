@@ -1,0 +1,22 @@
+(import cstdio)
+
+(def myfn
+  (fn extern int ((fp (p (fn int ((a int) (b int))))))
+    (funcall fp 1 2)))
+
+(def myfn
+  (fn extern int ((fp (p (fn int ((a int) (b int) (c int))))))
+    (funcall fp 1 2 3)))
+
+(def fp2
+  (fn extern-c int ((a int) (b int))
+    (+ a b)))
+
+(def fp3
+  (fn extern-c int ((a int) (b int) (c int))
+    (+ a (+ b c))))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d %d\n" (myfn (# fp2)) (myfn (# fp3)))
+    0))

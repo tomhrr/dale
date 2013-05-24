@@ -1,0 +1,5 @@
+(module dtm-noimport)
+
+(def x (var extern int 100))
+(def y (var extern int 200))
+(def z (var intern int 300))

@@ -1,0 +1,1 @@
+./t/error-src/must-init.dt:12:13: error: must have initialiser for variable of this type

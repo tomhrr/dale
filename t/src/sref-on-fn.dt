@@ -1,0 +1,15 @@
+(import cstdio)
+
+(def thing (struct extern((a int) (b int))))
+
+(def myfn
+  (fn extern thing ((a int))
+    (return (thing ((a 10))))))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (@ (: (myfn 1) a)))
+    0))
+
+
+

@@ -1,0 +1,9 @@
+(import cstdio)
+
+(def Point (struct extern((x int) (y int))))
+
+(def main
+  (fn extern-c int (void)
+    (def p1 (var auto Point ((x 1) (y 2))))
+    (printf "%d %d\n" (@ (: p1 x)) (@ (: p1 y)))
+    0))

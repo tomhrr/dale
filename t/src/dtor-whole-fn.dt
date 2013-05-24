@@ -1,0 +1,20 @@
+(import cstdio)
+
+(def destroy
+  (fn extern-c void ((n (p float)))
+    (printf "destroying %f\n" (@ n))
+    (return)))
+
+(using-namespace std
+
+(def main
+  (fn extern-c int (void)
+    (def p (var auto \ 7.0))
+    (def q (var auto float 8.0))
+    (def r (var auto float 9.0))
+    (let ((a \ 10) (b \ 1.0) (c \ 20))
+      (let ((x \ 30) (y \ 40) (z \ 1.0))
+        (printf "%d\n" 100)))
+    0))
+
+)

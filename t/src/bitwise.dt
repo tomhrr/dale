@@ -1,0 +1,14 @@
+(import cstdio)
+
+(def main 
+  (fn extern-c int (void)
+    (def n (var auto uint 1))
+    (def one (var auto uint 1))
+    (printf "%u\n" (& n one))
+    (printf "%u\n" (| n one))
+    (printf "%u\n" (^ n one))
+    (printf "%u\n" (<< one 1))
+    (printf "%u\n" (<< (<< one 1) 1))
+    (printf "%u\n" (>> (<< (<< one 1) 1) 1))
+    (printf "%u\n" (~ (cast 0 uint)))
+    0))

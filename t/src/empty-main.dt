@@ -1,0 +1,4 @@
+(def main
+  (fn extern-c int (void)
+    (return 0)))
+

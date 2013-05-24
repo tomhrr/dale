@@ -1,0 +1,12 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (printf "%u\n" 0x1)
+    (printf "%u\n" 0xA)
+    (printf "%u\n" 0xB)
+    (printf "%u\n" 0xF)
+    (printf "%u\n" 0xF0)
+    (printf "%u\n" 0xFFFF)
+    (printf "%u\n" 0xFFFFFFFF)
+    0))

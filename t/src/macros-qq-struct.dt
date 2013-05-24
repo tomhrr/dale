@@ -1,0 +1,39 @@
+(import cstdio)
+(import macros)
+(import cstdlib)
+(import cstring)
+
+(using-namespace std.macros
+(def make-list
+  (macro intern (frm-type frm-name)
+    (def buf (var auto (p char) (cast (malloc (cast 256 size)) (p char))))
+    (strncpy buf "list-" (cast 5 size))
+    (setf ($ buf 5) #\NULL)
+    (strcat buf (@ (:@ frm-name token-str)))
+    (def name-node (var auto (p DNode) (mnfv pool buf)))
+
+    (bqq do
+        (def (uq name-node) 
+            (struct extern((value (uq frm-type)) 
+                     (next   (p (uq name-node)))))))))
+)
+
+(make-list int int)
+
+(def main
+    (fn extern-c int (void)
+    
+    (def thing  (var auto (p list-int) (cast (malloc (sizeof list-int)) (p list-int))))
+    (def thing2 (var auto (p list-int) (cast (malloc (sizeof list-int)) (p list-int))))
+    (setf (:@ thing  value) 100)
+    (setf (:@ thing2 value) 200)
+    (setf (:@ thing  next)  thing2)
+    (setf (:@ thing2 next)  thing)
+    (printf "%d\n" (@ (:@ thing  value)))
+    (printf "%d\n" (@ (:@ thing2 value)))
+    (printf "%d\n" (@ (:@ (@ (:@ thing next)) value)))
+    (printf "%d\n" (@ (:@ (@ (:@ (@ (:@ thing next)) next)) value)))
+    0))
+
+
+

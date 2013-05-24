@@ -1,0 +1,340 @@
+#|
+@module introspection
+
+Exports declarations for various functions provided by the compiler.
+These are only available at compile time, i.e. within macros. Almost
+all of them are interrogative in nature, the two exceptions being
+`register-type` and `report-error`. For the most part, the functions
+that take `(p DNode)` arguments will expand macros in those arguments
+before performing their core task.
+
+|#
+(module introspection)
+
+#|
+@fn exists-fn
+
+Determine whether the specified function exists. The `frm` argument
+should be a list node comprising the return type, the function name
+and the argument types: e.g. `(bool < int int)`.
+
+@param frm      The form describing the function.
+|#
+(def exists-fn (fn extern-c bool ((frm (p DNode)))))
+
+#|
+@fn exists-variable
+
+Determine whether the specified variable exists. The `frm` argument
+should be a token node containing the name of the variable.
+
+@param frm      The token node containing the variable name.
+|#
+(def exists-variable (fn extern-c bool ((frm (p DNode)))))
+
+#|
+@fn exists-type
+
+Determine whether the specified type exists.
+
+@param frm      The form describing the type.
+|#
+(def exists-type (fn extern-c bool ((frm (p DNode)))))
+
+#|
+@fn exists-macro
+
+Determine whether the specified macro exists. The `frm` argument
+should be a list node comprising the macro name and the argument
+types. It is not necessary to provide the exact types specified by the
+macro for its arguments; for example, if a macro `testmacro` takes
+three untyped arguments, then a call to `exists-macro` with a form
+like `(testmacro int bool int)` will return `true`.
+
+@param frm      The form describing the macro.
+|#
+(def exists-macro (fn extern-c bool ((frm (p DNode)))))
+
+#|
+@fn type-of
+
+Evaluates the form and returns its type. For example, if `frm` is `(+
+1 1)`, the result node will be `int` (single token node).
+
+@param frm      The form for which the type should be determined.
+|#
+(def type-of (fn extern-c (p DNode) ((frm (p DNode)))))
+
+#|
+@fn codomain
+
+Returns the codomain (the return type) of the specified function. The
+argument form has the same structure as for `exists-fn`, except that
+there is no return type at the beginning. Returns a null pointer if
+the function doesn't exist.
+
+@param frm      The form describing the function.
+|#
+(def codomain (fn extern-c (p DNode) ((frm (p DNode)))))
+
+#|
+@fn arity
+
+Returns the arity of the specified function (the number of parameters
+that it requires). Only works for functions with `extern-c` linkage.
+The `frm` argument should contain only the name of the function.
+
+@param frm      The token node containing the function name.
+|#
+(def arity (fn extern-c int ((frm (p DNode)))))
+
+#|
+@fn input-type
+
+Returns the type of the specified function's `n`th parameter. Only
+works for functions with `extern-c` linkage. As per `arity`, the `frm`
+argument should contain only the name of the function.
+
+@param frm      The token node containing the function name.
+@param n        The parameter index (begins from 0).
+|#
+(def input-type (fn extern-c (p DNode) ((frm (p DNode)) (n int))))
+
+#|
+@fn struct-member-count
+
+Returns the number of members present in the specified struct.
+
+@param st       The token node containing the struct name.
+|#
+(def struct-member-count (fn extern-c int ((st (p DNode)))))
+
+#|
+@fn struct-member-type
+
+Returns the type of the specified struct's `n`th member.
+
+@param st       The token node containing the struct name.
+@param n        The member index (begins from 0).
+|#
+(def struct-member-type (fn extern-c (p DNode) ((st (p DNode)) (n int))))
+
+#|
+@fn struct-member-name
+
+Returns the name of the specified struct's `n`th member.
+
+@param st       The token node containing the struct name.
+@param n        The member index (begins from 0).
+|#
+(def struct-member-name (fn extern-c (p char) ((st (p DNode)) (n int))))
+
+#|
+@fn report-error
+
+Adds an error message to the compiler's internal error buffer. The
+node provided to this function will be used to set the line/column
+numbers and the filename in the error message.
+
+@param frm      The node that 'caused' the error.
+@param err      The error string.
+|#
+(def report-error
+  (fn extern-c void ((frm (p DNode)) (err (p char)))))
+
+#|
+@fn register-type
+
+Registers a name (the 'display name') against a concrete type. Such
+registrations are used by the compiler for things like error messages,
+so this function is primarily useful for macros that create generic
+types. In the case of `(Pair int int)`, for example, the concrete type
+is a struct with a name like `pairii`, but that type is registered
+against the form `(Pair int int)`, so error messages concerning that
+type use the latter form.
+
+@param from     The concrete type, as a string.
+@param to       The display name for the type, as a string.
+|#
+(def register-type (fn extern-c bool ((from (p char)) (to (p char)))))
+
+#|
+@fn type-to-display-string
+
+Writes the specified type's display string to `buf`. This string is
+either the display name provided by way of `register-type`, or the
+stringification of the provided form.
+
+@param frm      The type form.
+@param buf      A buffer into which the display string will be written.
+|#
+(def type-to-display-string (fn extern-c bool ((frm (p DNode)) 
+                                               (buf (p char)))))
+
+#|
+@fn type-to-string
+
+Writes the specified type's concrete type string to `buf`. For
+example, `(Pair int int)` has a concrete type of `pairii`, so passing
+the former as the `frm` will cause the latter to be written to `buf`.
+
+@param frm      The concrete type, as a form.
+@param buf      A buffer into which the encoded type name will be written.
+|#
+(def type-to-string (fn extern-c bool ((frm (p DNode)) (buf (p char)))))
+
+#|
+@fn is-char-type
+
+Returns a boolean indicating whether the specified type is a character
+type.
+
+@param frm      The type form.
+|#
+(def is-char-type (fn extern-c bool ((frm (p DNode)))))
+
+#|
+@fn is-integer-type
+
+Returns a boolean indicating whether the specified type is an integer
+type (either signed or unsigned).
+
+@param frm      The type form.
+|#
+(def is-integer-type (fn extern-c bool ((frm (p DNode)))))
+
+#|
+@fn is-signed-integer-type
+
+Returns a boolean indicating whether the specified type is a signed
+integer type.
+
+@param frm      The type form.
+|#
+(def is-signed-integer-type (fn extern-c bool ((frm (p DNode)))))
+
+#|
+@fn is-unsigned-integer-type
+
+Returns a boolean indicating whether the specified type is an unsigned
+integer type.
+
+@param frm      The type form.
+|#
+(def is-unsigned-integer-type (fn extern-c bool ((frm (p DNode)))))
+
+#|
+@fn is-floating-point-type
+
+Returns a boolean indicating whether the specified type is a
+floating-point type.
+
+@param frm      The type form.
+|#
+(def is-floating-point-type (fn extern-c bool ((frm (p DNode)))))
+
+#|
+@fn is-pointer-type
+
+Returns a boolean indicating whether the specified type is a
+pointer type.
+
+@param frm      The type form.
+|#
+(def is-pointer-type (fn extern-c bool ((frm (p DNode)))))
+
+#|
+@fn is-pointer-to-type
+
+Returns a boolean indicating whether the first type form is a pointer
+to the type represented by the second form.
+
+@param ptr-type     The pointer type form.
+@param pte-type     The pointee type form.
+|#
+(def is-pointer-to-type (fn extern-c bool ((ptr-type (p DNode)) 
+                                           (pte-type (p DNode)))))
+
+#|
+@fn pointee-type
+
+Returns the type to which the type form points.
+
+@param ptr-type     The pointer type form.
+|#
+(def pointee-type (fn extern-c (p DNode) ((ptr-type (p DNode)))))
+
+#|
+@fn is-const
+
+Returns a boolean indicating whether the type is a `const` type.
+
+@param frm      The type form.
+|#
+(def is-const (fn extern-c bool ((frm (p DNode)))))
+
+#|
+@fn fn-by-args-count
+
+Takes a form (list node) of parameter types. Returns the number of
+functions that have those parameter types as their own.
+
+@param frm      A list of parameter types.
+|#
+(def fn-by-args-count (fn extern-c int ((frm (p DNode)))))
+
+#|
+@fn fn-by-args-name
+
+Takes a form (list node) of parameter types and an index. Returns the
+name of the `n`th function that has those parameters types as its own.
+Intended for use in conjunction with `fn-by-args-count`.
+
+@param frm      A list of parameter types.
+@param n        The function list index.
+|#
+(def fn-by-args-name (fn extern-c (const (p char)) 
+                                  ((frm (p DNode)) (n int))))
+
+#|
+@fn must-init
+
+Returns a boolean indicating whether the specified struct type must be
+initialised when it is declared.
+
+@param st       The token node containing the struct name.
+|#
+(def must-init (fn extern-c bool ((st (p DNode)))))
+
+#|
+@fn has-errors
+
+Evaluates the provided form and returns a boolean indicating whether
+any errors were encountered.
+
+@param frm      The form to be evaluated.
+|#
+(def has-errors (fn extern-c bool ((frm (p DNode)))))
+
+#|
+@fn types-equal
+
+Returns a boolean indicating whether the two type forms are equal.
+
+@param type-1   The first type form.
+@param type-2   The second type form.
+|#
+(def types-equal (fn extern-c bool ((type-1 (p DNode))
+                                    (type-2 (p DNode)))))
+
+#|
+@fn printf-length
+
+Returns a 'length' string that can be put between the '%' and type
+specifier in a printf formatter string, based on the size of the
+provided type. For example, if the argument form is a token node
+containing the string "size", then then returned string will be "z".
+
+@param frm      The type of the printf argument.
+|#
+(def printf-length (fn extern-c (const (p char)) ((frm (p DNode)))))

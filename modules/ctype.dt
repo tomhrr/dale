@@ -1,0 +1,171 @@
+#|
+@module ctype
+
+Wrappers for the `cctype` functions. These differ insofar as they
+accept `char` arguments, and return either `bool` or `char` results,
+as appropriate. They are also located within the `std` namespace, as
+opposed to the root namespace.
+
+|#
+(module ctype)
+
+(import cctype)
+(import macros)
+
+(def make-ctype-fn
+  (macro intern (fn-name)
+    (std.macros.qq def (uq fn-name)
+      (fn (attr inline) extern bool ((c char)) 
+        (!= 0 ((uq fn-name) (cast c int)))))))
+
+(namespace std
+  #|
+  @fn std.isalnum
+  
+  Determine whether a character is alphanumeric.
+  
+  @param          c           A character.
+  @param-type     char
+  @return-type    bool
+  @linkage        extern
+  |#
+  (make-ctype-fn isalnum)
+  
+  #|
+  @fn std.isalpha
+  
+  Determine whether a character is alphabetical.
+  
+  @param          c           A character.
+  @param-type     char
+  @return-type    bool
+  @linkage        extern
+  |#
+  (make-ctype-fn isalpha)
+
+  #|
+  @fn std.iscntrl
+  
+  Determine whether a character is a control character.
+  
+  @param          c           A character.
+  @param-type     char
+  @return-type    bool
+  @linkage        extern
+  |#
+  (make-ctype-fn iscntrl)
+
+  #|
+  @fn std.isdigit
+  
+  Determine whether a character is a digit.
+  
+  @param          c           A character.
+  @param-type     char
+  @return-type    bool
+  @linkage        extern
+  |#
+  (make-ctype-fn isdigit)
+
+  #|
+  @fn std.isgraph
+  
+  Determine whether a character is printable (excludes space).
+  
+  @param          c           A character.
+  @param-type     char
+  @return-type    bool
+  @linkage        extern
+  |#
+  (make-ctype-fn isgraph)
+
+  #|
+  @fn std.islower
+  
+  Determine whether a character is lowercase.
+  
+  @param          c           A character.
+  @param-type     char
+  @return-type    bool
+  @linkage        extern
+  |#
+  (make-ctype-fn islower)
+
+  #|
+  @fn std.isprint
+  
+  Determine whether a character is printable (includes space).
+  
+  @param          c           A character.
+  @param-type     char
+  @return-type    bool
+  @linkage        extern
+  |#
+  (make-ctype-fn isprint)
+
+  #|
+  @fn std.ispunct
+  
+  Determine whether a character is a punctuation mark.
+  
+  @param          c           A character.
+  @param-type     char
+  @return-type    bool
+  @linkage        extern
+  |#
+  (make-ctype-fn ispunct)
+
+  #|
+  @fn std.isspace
+  
+  Determine whether a character is a whitespace character.
+  
+  @param          c           A character.
+  @param-type     char
+  @return-type    bool
+  @linkage        extern
+  |#
+  (make-ctype-fn isspace)
+
+  #|
+  @fn std.isupper
+  
+  Determine whether a character is an uppercase character.
+  
+  @param          c           A character.
+  @param-type     char
+  @return-type    bool
+  @linkage        extern
+  |#
+  (make-ctype-fn isupper)
+
+  #|
+  @fn std.isxdigit
+  
+  Determine whether a character is a hexadecimal digit.
+  
+  @param          c           A character.
+  @param-type     char
+  @return-type    bool
+  @linkage        extern
+  |#
+  (make-ctype-fn isxdigit)
+
+  #|
+  @fn tolower
+
+  Convert a character into a lowercase character, if possible.
+
+  |#
+  (def tolower
+    (fn extern char ((c char))
+      (cast (tolower (cast c int)) char)))
+  #|
+  @fn toupper
+  
+  Convert a character into an uppercase character, if possible.
+
+  |#
+  (def toupper
+    (fn extern char ((c char))
+      (cast (toupper (cast c int)) char))))

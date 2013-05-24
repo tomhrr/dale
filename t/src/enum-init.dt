@@ -1,0 +1,11 @@
+(import cstdio)
+
+(def language (enum extern int (english spanish french)))
+
+(def main
+  (fn extern-c int (void)
+    (def e  (var auto language (language english)))
+    (def e2 (var auto language english))
+    (printf "%d %d\n" (cast e int) (cast e2 int))
+    0))
+

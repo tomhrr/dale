@@ -1,0 +1,34 @@
+(import cstdio)
+(import math)
+(import macros)
+
+(using-namespace std
+
+(def even?
+  (fn intern bool ((i int))
+    (= 0 (mod i 2))))
+
+(def destroy
+  (fn extern int ((val (p float)))
+    (printf "destroyed float\n")))
+
+(def otherfn
+  (fn extern int (void)
+    (def x (var auto \ (fn int ((n float)) 0)))
+    0))
+
+(def main
+  (fn extern-c int (void)
+    (let ((fp \ (fn int ((n int))
+                   (let ((i \ 0))
+                     (for true (< i n) (incv i)
+                       (printf "i->n: %d\n" i)))))
+          (i  \ 0))
+      (for true (< i 10) (incv i)
+        (printf "I is %d\n" i)
+        (let ((fp2 \ (fn int ((n int)) (printf "%d\n" n) 0)))
+          (if (even? i)
+              (continue)
+              (do (fp2 i) (fp i))))))))
+
+)

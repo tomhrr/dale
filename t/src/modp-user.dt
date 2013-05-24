@@ -1,0 +1,10 @@
+(import modp)
+(import modp2)
+
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (modp-fn))
+    (printf "%d\n" (modp2-fn))
+    0))

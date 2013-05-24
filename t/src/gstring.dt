@@ -1,0 +1,16 @@
+(import cstdio)
+
+(def s
+  (var intern (p char) "asdf"))
+
+(def stype
+  (struct extern((a (p char)))))
+
+(def mys
+  (var intern stype ((a "qwer"))))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%s\n" s)
+    (printf "%s\n" (@ (: mys a)))
+    0))

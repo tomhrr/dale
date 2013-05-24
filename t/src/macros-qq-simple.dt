@@ -1,0 +1,11 @@
+(import cstdio)
+(import macros)
+
+(def qq-test
+  (macro intern (void)
+    (std.macros.bqq + 1 2)))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (qq-test))
+    0))

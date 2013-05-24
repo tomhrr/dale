@@ -1,0 +1,17 @@
+(import dtm-var)
+(import cstdio)
+(import macros)
+
+(def m
+  (macro intern (void)
+    (printf "%d\n" dtm-module-variable)
+    (incv dtm-module-variable)
+    (printf "%d\n" dtm-module-variable)
+    (nullptr DNode)))
+
+(m)
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" dtm-module-variable)
+    0))

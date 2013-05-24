@@ -1,0 +1,20 @@
+(import cstdio)
+(import macros)
+
+(def mac1
+  (macro intern (frm1 frm2)
+    (def blah (var auto (p DNode)))
+    (setv blah frm1)
+    (return blah)))
+
+(def mac2
+  (macro intern (frm1 frm2)
+    (def blah (var auto (p DNode)))
+    (setv blah frm2)
+    (return blah)))
+
+(def main
+  (fn extern-c int (void)
+    (mac1 1 1)
+    (mac2 2 2)
+    (return 0)))

@@ -1,0 +1,9 @@
+(import cstdio)
+(import macros)
+
+(def label
+  (macro intern (a b c) a))
+
+(def label
+  (fn intern int ((a int))
+    0))

@@ -1,0 +1,13 @@
+(import cstdio)
+
+(def myfn
+  (fn extern-c int (void)
+    (printf "hello\n")
+    0))
+
+(def main
+  (fn extern-c int (void)
+    (def m (var auto (p (fn int (void)))))
+    (setv m (# myfn))
+    (m)
+    0))

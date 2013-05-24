@@ -1,0 +1,50 @@
+(import cstdio)
+
+(def s1 (struct extern((a int))))
+(def s2 (struct extern((b int))))
+(def s3 (struct extern((c int))))
+
+(def myfn 
+  (fn extern int (void) 
+    (printf "fn for void\n")
+    0))
+
+(def myfn 
+  (fn extern int ((thing s1)) 
+    (printf "fn for s1\n")
+    (@ (: thing a))))
+
+(def myfn 
+  (fn extern int ((thing s2)) 
+    (printf "fn for s2\n")
+    (@ (: thing b))))
+
+(def myfn 
+  (fn extern int ((thing s3)) 
+    (printf "fn for s3\n")
+    (@ (: thing c))))
+
+(def myfn 
+  (fn extern int ((a int)) 
+    (printf "fn for int\n")
+    a))
+
+(def myfn 
+  (fn extern int ((b char)) 
+    (printf "fn for char\n")
+    100))
+
+(def main
+  (fn extern-c int (void)
+    (def thing1 (var auto s1))
+    (def thing2 (var auto s2))
+    (def thing3 (var auto s3))
+    (def thing4 (var auto int 0))
+    (def thing5 (var auto char #\b))
+    (myfn)
+    (myfn thing1)
+    (myfn thing2)
+    (myfn thing3)
+    (myfn thing4)
+    (myfn thing5)
+    0))

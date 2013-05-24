@@ -1,0 +1,28 @@
+(import cstdio)
+
+(import macros)
+(import vector)
+(import algorithms)
+
+(std.concepts.instantiate Vector int)
+(std.concepts.instantiate find (Iterator (Vector int)))
+
+(def main
+  (fn extern-c int (void)
+    (let ((v  (Vector int))
+          (vp (p (Vector int)) (# v))
+          (i  int 0))
+      (init vp)
+      
+      (for true (< i 10) (incv i)
+        (push-back vp i))
+
+      (for (setv i 0) (< i 20) (setv i (+ i 2))
+        (let ((b (Iterator (Vector int)) (begin vp))
+              (e (Iterator (Vector int)) (end   vp))
+              (f (Iterator (Vector int))))
+          (setv f (find b e i))
+          (if (not (= e f))
+              (printf "Found %d\n" (@source f))
+              (printf "Did not find %d\n" i)))))
+    0))

@@ -1,0 +1,30 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    
+    (def i (var auto int 0))
+    (def j (var auto int 0))
+
+    (label begin-loop)
+
+      (printf "In loop, index is %d\n" i)
+      
+      (label begin-inner-loop)
+        (printf "In inner loop, index is %d\n" j)
+        (setv j (+ j 1))
+        (if (= j 3)
+            (goto end-inner-loop)
+            (goto begin-inner-loop))
+    
+      (label end-inner-loop)
+        (setv j 0)
+        (setv i (+ i 1))
+        (if (= i 3)
+            (goto end-loop)
+            (goto begin-loop))
+
+    (label end-loop)
+      (printf "Finished loop\n")
+    
+    (return 0)))

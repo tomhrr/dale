@@ -1,0 +1,24 @@
+(import ctype)
+(import cstdio)
+
+(def right/wrong
+  (fn intern void ((a bool))
+    (if a (printf "Right\n") (printf "Wrong\n"))
+    (return)))
+
+(def main
+  (fn extern-c int (void)
+    (right/wrong (std.isalnum  #\D))
+    (right/wrong (std.isalpha  #\u))
+    (right/wrong (std.iscntrl  #\m))
+    (right/wrong (std.isdigit  #\b))
+    (right/wrong (std.isgraph  #\SPACE))
+    (right/wrong (std.islower  #\T))
+    (right/wrong (std.isprint  #\e))
+    (right/wrong (std.ispunct  #\s))
+    (right/wrong (std.isspace  #\t))
+    (right/wrong (std.isupper  #\!))
+    (right/wrong (std.isxdigit #\?))
+    (right/wrong (= #\A (std.toupper #\a)))
+    (right/wrong (= #\a (std.tolower #\A)))
+    0))

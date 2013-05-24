@@ -1,0 +1,370 @@
+#|
+@module math
+
+Defines overloaded functions corresponding generally with those from
+`cmath`. Each is in the `std` namespace.
+
+  * Over signed and unsigned integers:
+    * `mod` (same function as `%`).
+
+  * Over signed integers only:
+    * `abs`; and
+    * `div`.
+
+  * Over floating-point types:
+    * `cos`, `sin`, `tan`;
+    * `cosh`, `sinh`, `tanh`;
+    * `acos`, `asin`, `atan`, `atan2`;
+    * `sqrt`;
+    * `exp`;
+    * `log`, `log10`;
+    * `ceil`, `floor`;
+    * `fabs`;
+    * `frexp`; and
+    * `modf`, `fmod`.
+
+A macro constant for `e` is also provided.
+
+|#
+(module math)
+
+(import macros)
+(import cmath)
+
+(using-namespace std.macros
+
+(namespace std
+  (def mfor-signed-ints
+    (macro intern (frm)
+      (qq do
+        (mfor T (int int16 int32 int64 int128)
+          ((uq frm) T)))))
+
+  (def mfor-unsigned-ints
+    (macro intern (frm)
+      (qq do
+        (mfor T (uint uint16 uint32 uint64 uint128)
+          ((uq frm) T)))))
+
+  (def mfor-ints
+    (macro intern (frm)
+      (qq do (mfor-signed-ints   (uq frm))
+              (mfor-unsigned-ints (uq frm)))))
+
+  (def mfor-floating-point
+    (macro intern (frm)
+      (qq do 
+        (mfor T (float double long-double)
+          ((uq frm) T)))))
+
+  (def make-mod
+    (macro extern (T)
+      (if (not (exists-type T))
+          (return (nullptr DNode))
+          0)
+      (qq def mod
+        (fn extern (uq T) ((a (uq T)) (b (uq T)))
+            (- a (* (/ a b) b))))))
+
+  (mfor-ints make-mod)
+
+  (def make-abs
+    (macro extern (T)
+      (if (not (exists-type T))
+          (return (nullptr DNode))
+          0)
+      (qq def abs
+        (fn extern (uq T) ((n (uq T)))
+          (if (< n (cast 0  (uq T)))
+              (* n (cast -1 (uq T)))
+              n)))))
+
+  (mfor-signed-ints make-abs)
+
+  (def make-div
+    (macro intern (T)
+      (if (not (exists-type T))
+          (return (nullptr DNode))
+          0)
+      (let ((struct-name (array-of 255 char))
+            (sn-node     (p DNode)))
+        (sprintf struct-name "div-%s" (@:@ T token-str))
+        (setv sn-node (std.macros.mnfv pool struct-name))
+        (qq do
+          (def (uq sn-node)
+            (struct extern ((quot (uq T))
+                            (rem  (uq T)))))
+          (def div
+            (fn extern (uq sn-node) ((num   (uq T))
+                                         (denom (uq T)))
+              (let ((mysn-node (uq sn-node) ((quot (/   num denom))
+                                             (rem  (mod num denom)))))
+                mysn-node)))))))
+
+  (mfor-signed-ints make-div)
+
+  (def e
+    (macro extern (void)
+      (std.macros.mnfv pool "2.7182818284590452353602874713526624977572470936999595749669")))
+
+  (def cos
+    (fn extern float ((n float))
+      (cosf n)))
+
+  (def cos
+    (fn extern double ((n double))
+      (.cos n)))
+
+  (def cos
+    (fn extern long-double ((n long-double))
+      (cosl n)))
+
+  (def sin
+    (fn extern float ((n float))
+      (sinf n)))
+
+  (def sin
+    (fn extern double ((n double))
+      (.sin n)))
+
+  (def sin
+    (fn extern long-double ((n long-double))
+      (sinl n)))
+
+  (def tan
+    (fn extern float ((n float))
+      (/ (sin n)
+         (cos n))))
+
+  (def tan
+    (fn extern double ((n double))
+      (/ (sin n)
+         (cos n))))
+
+  (def tan
+    (fn extern long-double ((n long-double))
+      (/ (sin n)
+         (cos n))))
+
+  (def asin
+    (fn extern float ((n float))
+      (cast (asin (cast n double)) float)))
+
+  (def asin
+    (fn extern double ((n double))
+      (.asin n)))
+
+  (def asin
+    (fn extern long-double ((n long-double))
+      (cast (asin (cast n long-double)) long-double)))
+
+  (def acos
+    (fn extern float ((n float))
+      (cast (acos (cast n double)) float)))
+
+  (def acos
+    (fn extern double ((n double))
+      (.acos n)))
+
+  (def acos
+    (fn extern long-double ((n long-double))
+      (cast (acos (cast n long-double)) long-double)))
+
+  (def atan
+    (fn extern float ((n float))
+      (cast (atan (cast n double)) float)))
+
+  (def atan
+    (fn extern double ((n double))
+      (.atan n)))
+
+  (def atan
+    (fn extern long-double ((n long-double))
+      (cast (atan (cast n long-double)) long-double)))
+
+  (def atan2
+    (fn extern float ((n float))
+      (cast (atan2 (cast n double)) float)))
+
+  (def atan2
+    (fn extern double ((n double))
+      (.atan2 n)))
+
+  (def atan2
+    (fn extern long-double ((n long-double))
+      (cast (atan2 (cast n long-double)) long-double)))
+
+  (def sqrt
+    (fn extern float ((n float))
+      (sqrtf n)))
+
+  (def sqrt
+    (fn extern double ((n double))
+      (.sqrt n)))
+
+  (def sqrt
+    (fn extern long-double ((n long-double))
+      (sqrtl n)))
+
+  (def pow
+    (fn extern float ((n float) (pow float))
+      (powf n pow)))
+
+  (def pow
+    (fn extern double ((n double) (pow double))
+      (.pow n pow)))
+
+  (def pow
+    (fn extern long-double ((n long-double) (pow long-double))
+      (powl n pow)))
+
+  (def make-sinh
+    (macro extern (T)
+      (if (not (exists-type T))
+          (return (nullptr DNode))
+          0)
+      (qq def sinh
+        (fn extern (uq T) ((n (uq T)))
+          (let ((e \ (cast (e) (uq T))))
+            (/ (- (pow e n)
+                  (pow e (* n (cast -1.0 (uq T)))))
+               (cast 2 (uq T))))))))
+
+  (mfor-floating-point make-sinh)
+
+  (def make-cosh
+    (macro extern (T)
+      (if (not (exists-type T))
+          (return (nullptr DNode))
+          0)
+      (qq def cosh
+        (fn extern (uq T) ((n (uq T)))
+          (let ((e \ (cast (e) (uq T))))
+            (/ (+ (pow e n)
+                  (pow e (* n (cast -1.0 (uq T)))))
+               (cast 2 (uq T))))))))
+
+  (mfor-floating-point make-cosh)
+
+  (def make-tanh
+    (macro extern (T)
+      (if (not (exists-type T))
+          (return (nullptr DNode))
+          0)
+      (qq def tanh
+        (fn extern (uq T) ((n (uq T)))
+          (/ (sinh n)
+             (cosh n))))))
+
+  (mfor-floating-point make-tanh)
+
+  (def make-exp
+    (macro extern (T)
+      (if (not (exists-type T))
+          (return (nullptr DNode))
+          0)
+      (qq def exp
+        (fn extern (uq T) ((n (uq T)))
+          (let ((e \ (cast (e) (uq T))))
+            (pow e n))))))
+
+  (mfor-floating-point make-exp)
+
+  (def log
+    (fn extern float ((n float))
+      (cast (log (cast n double)) float)))
+
+  (def log
+    (fn extern double ((n double))
+      (.log n)))
+
+  (def log
+    (fn extern long-double ((n long-double))
+      (cast (log (cast n double)) long-double)))
+
+  (def log10
+    (fn extern float ((n float))
+      (cast (log10 (cast n double)) float)))
+
+  (def log10
+    (fn extern double ((n double))
+      (.log10 n)))
+
+  (def log10
+    (fn extern long-double ((n long-double))
+      (cast (log10 (cast n double)) long-double)))
+
+  (def ceil
+    (fn extern float ((n float))
+      (cast (ceil (cast n double)) float)))
+
+  (def ceil
+    (fn extern double ((n double))
+      (.ceil n)))
+
+  (def ceil
+    (fn extern long-double ((n long-double))
+      (cast (ceil (cast n double)) long-double)))
+
+  (def floor
+    (fn extern float ((n float))
+      (cast (floor (cast n double)) float)))
+
+  (def floor
+    (fn extern double ((n double))
+      (.floor n)))
+
+  (def floor
+    (fn extern long-double ((n long-double))
+      (cast (floor (cast n double)) long-double)))
+
+  (def fabs
+    (fn extern float ((n float))
+      (cast (fabs (cast n double)) float)))
+
+  (def fabs
+    (fn extern double ((n double))
+      (.fabs n)))
+
+  (def fabs
+    (fn extern long-double ((n long-double))
+      (cast (fabs (cast n double)) long-double)))
+
+  (def frexp
+    (fn extern float ((n float) (exp (p int)))
+      (cast (frexp (cast n double) exp) float)))
+
+  (def frexp
+    (fn extern double ((n double) (exp (p int)))
+      (.frexp n exp)))
+
+  (def frexp
+    (fn extern long-double ((n long-double) (exp (p int)))
+      (cast (frexp (cast n double) exp) long-double)))
+
+  (def modf
+    (fn extern float ((n float) (exp (p double)))
+      (cast (modf (cast n double) exp) float)))
+
+  (def modf
+    (fn extern double ((n double) (exp (p double)))
+      (.modf n exp)))
+
+  (def modf
+    (fn extern long-double ((n long-double) (exp (p double)))
+      (cast (modf (cast n double) exp) long-double)))
+
+  (def fmod
+    (fn extern float ((n float) (m float))
+      (cast (fmod (cast n double) (cast m double)) float)))
+
+  (def fmod
+    (fn extern double ((n double) (m double))
+      (.fmod n m)))
+
+  (def fmod
+    (fn extern long-double ((n long-double) (m long-double))
+      (cast (fmod (cast n double) (cast m double)) long-double)))
+
+)
+)

@@ -1,0 +1,38 @@
+(import concepts-core)
+
+(using-namespace std.macros
+
+(std.concepts.def-concept Addable (refines) (T)
+  (if (exists-fn (qq bool + (uq T) (uq T)))
+      true
+      (do (report-error T "type does not implement Addable")
+          false)))
+
+(def f (struct intern ((a char))))
+
+(std.concepts.implement Addable int)
+
+(std.concepts.def-concept-macro Add3 intern ((T Addable))
+  (qq do
+    (def +
+      (fn extern (uq T) ((a (uq T)) (b (uq T)) (c (uq T)))
+        (+ a (+ b c))))))
+
+(std.concepts.def-concept-macro Add4 intern ((T Addable))
+  (qq do
+    (def +
+      (fn extern (uq T) ((a (uq T)) (b (uq T)) (c (uq T)) (d (uq T)))
+        (+ a (+ b (+ c d)))))))
+
+)
+
+(std.concepts.instantiate Add3 int)
+(std.concepts.instantiate Add4 int)
+
+(def main
+  (fn extern-c int (void)
+    (let ((n \ (+ 1 2 3)))
+      (printf "%d\n" n))
+    (let ((m \ (+ 1 2 3 4)))
+      (printf "%d\n" m))
+    0))

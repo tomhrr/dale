@@ -1,0 +1,102 @@
+#|
+@module assert
+
+Macros for runtime assertions. User-defined compile-time errors can be
+reported to the compiler by way of `report-error`, which is defined in
+the `introspection` module.
+
+|#
+(module assert (attr cto))
+
+(import cstdio)
+(import macros)
+(import cstdlib)
+(import introspection)
+
+(namespace std
+
+(def assertions-enabled
+  (var intern int 1))
+
+#|
+@macro disable-assertions
+
+If called, subsequent calls to `assert` will expand to a no-op. Note
+that assertions are enabled by default.
+
+|#
+(def disable-assertions
+  (macro extern (void)
+    (setv assertions-enabled 0)
+    (nullptr DNode)))
+
+#|
+@macro enable-assertions
+
+If called, subsequent calls to `assert` will expand to actual
+assertions.
+
+|#
+(def enable-assertions
+  (macro extern (void)
+    (setv assertions-enabled 1)
+    (nullptr DNode)))
+
+#|
+@macro assert
+
+Expands to a form that tests the condition; if the condition is false,
+then an error message is printed to `stderr` and execution is aborted
+(via `abort`). The error message will include the filename, line
+number and column number of the condition node, as per a normal
+compiler error message.
+
+If assertions have been disabled, by way of `disable-assertions`, then
+subsequent calls to this macro will expand to no-ops.
+
+@param condition    The condition expression.
+|#
+(def assert (macro extern (condition)
+  (and (not (= 1 assertions-enabled))
+       (return (nullptr DNode)))
+
+  (let ((cond-str          (array-of 1024 char))
+        (cond-str-node     (p DNode))
+        (filename-str      (array-of 1024 char))
+        (filename-node     (p DNode))
+        (begin-line-str    (array-of 25 char))
+        (begin-line-node   (p DNode))
+        (begin-column-str  (array-of 25 char))
+        (begin-column-node (p DNode))
+        (last-charp        (p char)))
+    
+    (setf ($ cond-str 0) #\")
+    (setf ($ cond-str 1) #\NULL)
+    (std.macros.sprint (p+ cond-str 1) condition)
+
+    (setv last-charp (strchr cond-str #\NULL))
+    (setf last-charp #\")
+    (setf (p+ last-charp 1) #\NULL)
+    (setv cond-str-node (std.macros.mnfv pool cond-str))
+
+    (sprintf filename-str "%c%s%c" #\" (@:@ condition filename) #\")
+    (setv filename-node (std.macros.mnfv pool filename-str))
+
+    (sprintf begin-line-str "%d" (@:@ condition begin-line))
+    (setv begin-line-node (std.macros.mnfv pool begin-line-str))
+
+    (sprintf begin-column-str "%d" (@:@ condition begin-column))
+    (setv begin-column-node (std.macros.mnfv pool begin-column-str))
+
+    (std.macros.qq do
+      (if (not (uq condition))
+          (do (fprintf stderr 
+                       "%s:%d:%d: Assertion '%s' failed.\n"
+                       (uq filename-node)
+                       (uq begin-line-node)
+                       (uq begin-column-node)
+                       (uq cond-str-node))
+              (abort) 0)
+          1)))))
+
+)

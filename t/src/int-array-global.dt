@@ -1,0 +1,38 @@
+(import cstdio)
+(import macros)
+
+(def n (var intern (array-of 4 uint8)   (array 0x0B 0x0B 0x0C 0x0D)))
+(def m (var intern (array-of 4 uint16)  (array 0x0B 0x0B 0x0C 0x0D)))
+(def o (var intern (array-of 4 uint32)  (array 0x0B 0x0B 0x0C 0x0D)))
+(def p (var intern (array-of 4 uint64)  (array 0x0B 0x0B 0x0C 0x0D)))
+
+(def r (var intern (array-of 4 int8)    (array 0x0B 0x0B 0x0C 0x0D)))
+(def s (var intern (array-of 4 int16)   (array 0x0B 0x0B 0x0C 0x0D)))
+(def t (var intern (array-of 4 int32)   (array 0x0B 0x0B 0x0C 0x0D)))
+(def u (var intern (array-of 4 int64)   (array 0x0B 0x0B 0x0C 0x0D)))
+
+(using-namespace std
+
+(def main
+  (fn extern-c int (void)
+    (let ((i \ 0))
+      (for (setv i 0) (< i 4) (incv i)
+        (printf "%u\n" (@$ n i)))
+      (for (setv i 0) (< i 4) (incv i)
+        (printf "%u\n" (@$ m i)))
+      (for (setv i 0) (< i 4) (incv i)
+        (printf "%u\n" (@$ o i)))
+      (for (setv i 0) (< i 4) (incv i)
+        (printf "%u\n" (@$ p i)))
+
+      (for (setv i 0) (< i 4) (incv i)
+        (printf "%d\n" (@$ r i)))
+      (for (setv i 0) (< i 4) (incv i)
+        (printf "%d\n" (@$ s i)))
+      (for (setv i 0) (< i 4) (incv i)
+        (printf "%d\n" (@$ t i)))
+      (for (setv i 0) (< i 4) (incv i)
+        (printf "%d\n" (@$ u i)))
+  )))
+
+)

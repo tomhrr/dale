@@ -1,0 +1,52 @@
+(import cstdio)
+
+(def mys
+    (struct extern((a int8)
+             (b uint8)
+             (c int16)
+             (d uint16)
+             (e int32)
+             (f uint32)
+             (g int64)
+             (h uint64)
+             (i int128)
+             (j uint128))))
+
+(def num00 (var intern int32 2147483647))
+(def num01 (var intern uint32  4294967295))
+(def num1 (var intern int64 9223372036854775807))
+(def num2 (var intern uint64 18446744073709551615))
+(def num3 (var intern int128 170141183460469231731687303715884105727))
+(def num4 (var intern uint128 340282366920938463463374607431768211455))
+
+(def thing
+    (var intern mys
+        ((a (cast 127 int8))
+         (b (cast 255 uint8))
+         (c (cast 32767 int16))
+         (d (cast 65535 uint16))
+         (e num00)
+         (f num01)
+         (g num1) 
+         (h num2)
+         (i num3)
+         (j num4))))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%x\n%x\n%x\n%x\n%x\n%x\n%llx\n%llx\n"
+              (@ (: thing a))  
+              (@ (: thing b))
+              (@ (: thing c))
+              (@ (: thing d))
+              (@ (: thing e))
+              (@ (: thing f))
+              (@ (: thing g))
+              (@ (: thing h)) )
+    (printf "%llx" (>> (@ (: thing i)) 64))
+    (printf "%llx\n" (& (@ (: thing i)) 
+                        (- (<< (cast 1 int128)  64) (cast 1 int128))))
+    (printf "%llx" (>> (@ (: thing j)) 64))
+    (printf "%llx\n" (& (@ (: thing j)) 
+                        (- (<< (cast 1 uint128) 64) (cast 1 uint128))))
+    0))

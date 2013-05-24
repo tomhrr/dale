@@ -1,0 +1,24 @@
+(import cstdio)
+(import macros)
+(import assert)
+
+(using-namespace std.macros
+(def my-type-of
+  (macro extern (var)
+    (let ((type-dnode (p DNode) (type-of var)))
+      (if (null type-dnode)
+          (do (report-error var "Unable to get type for node")
+              (return (nullptr DNode)))
+          0)
+      (print type-dnode)
+      (printf "\n")
+      type-dnode)))
+)
+
+(def main
+  (fn extern-c int (void)
+    (let ((n (my-type-of 10) 0))
+      (let ((m (my-type-of n) n))
+        (let ((o (my-type-of (+ 1 n)) (+ 1 n)))
+          (printf "%d %d %d\n" n m o))))
+    0))

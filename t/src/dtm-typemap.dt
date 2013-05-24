@@ -1,0 +1,8 @@
+(module pairintint)
+
+(import cstdio)
+(import macros)
+(import utility)
+(import concepts-std)
+
+(std.concepts.instantiate Pair int int)

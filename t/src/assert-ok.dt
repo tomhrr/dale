@@ -1,0 +1,8 @@
+(import assert)
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (std.assert (= 1 1))
+    (printf "hello\n")
+    0))

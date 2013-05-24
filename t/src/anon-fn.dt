@@ -1,0 +1,11 @@
+(import cstdio)
+
+(def test
+  (fn extern int ((fn (p (fn int ((a int)))))
+                      (val int))
+    (funcall fn val)))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (test (fn int ((a int)) (* 2 a)) 10))
+    0))

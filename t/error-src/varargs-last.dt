@@ -1,0 +1,3 @@
+(import macros)
+
+(def blah (macro extern (# ... b)))

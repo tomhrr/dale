@@ -1,0 +1,21 @@
+(import cstdio)
+(import macros)
+
+(using-namespace std.macros
+
+(def make-+
+  (macro intern (T)
+    (qq def +
+      (macro intern ((a (uq T)) (b (uq T)) (c (uq T)))
+        (qq + (uq (uq a)) (+ (uq (uq b)) (uq (uq c))))))))
+
+(make-+ int)
+(make-+ float)
+
+)
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (+ 1 2 3))
+    (printf "%f\n" (+ 1.0 2.0 3.0))
+    0))

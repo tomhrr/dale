@@ -1,0 +1,7 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (printf "Size of 1 + 1 is: %d\n"
+            (sizeof (+ 1 1)))
+    0))

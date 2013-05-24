@@ -1,0 +1,3 @@
+(def main
+  (fn extern-c int (void)
+    "asdf"))

@@ -1,0 +1,34 @@
+(import cstdio) 
+(import macros) 
+
+(using-namespace std.macros
+(def compose-unary
+  (macro intern (new-name
+                 fn1
+                 fn2
+                 first-arg)
+    (let ((fn1-ret-type (p DNode) (codomain (qq (uq fn1) 
+                                                (uq first-arg))))
+          (fn2-ret-type (p DNode) (codomain (qq (uq fn2) 
+                                                (uq fn1-ret-type)))))
+      (bqq def (uq new-name)
+        (fn extern (uq fn2-ret-type) ((n (uq first-arg)))
+          ((uq fn2) ((uq fn1) n)))))))
+)
+(def ++
+  (fn extern int ((n int))
+    (+ n 1)))
+
+(compose-unary +++   ++   ++ int)
+(compose-unary ++++  +++  ++ int)
+(compose-unary +++++ ++++ ++ int)
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d %d %d %d\n"
+        (++    1)
+        (+++   1)
+        (++++  1)
+        (+++++ 1))
+    0))
+

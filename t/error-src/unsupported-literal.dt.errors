@@ -1,0 +1,3 @@
+./t/error-src/unsupported-literal.dt:9:22: error: expected return expression with type mys (got type float instead)
+./t/error-src/unsupported-literal.dt:10:39: error: expected return expression with type temp.temp2.temp3.mys (got type float instead)
+./t/error-src/unsupported-literal.dt:11:27: error: expected return expression with type temp.mys (got type float instead)

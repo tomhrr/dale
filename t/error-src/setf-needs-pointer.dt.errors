@@ -1,0 +1,1 @@
+./t/error-src/setf-needs-pointer.dt:4:11: error: 'setf' requires a pointer for argument 1 (got a value instead)

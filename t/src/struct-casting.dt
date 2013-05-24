@@ -1,0 +1,10 @@
+(import cstdio)
+
+(def mys
+  (struct extern((a int64) (b int64))))
+
+(def main
+  (fn extern-c int (void)
+    (def n (var auto mys ((a 10) (b 20))))
+    (printf "%lld %lld\n" (@ (: n a)) (@ (: n b)))
+    0))

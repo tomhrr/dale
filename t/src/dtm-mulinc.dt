@@ -1,0 +1,8 @@
+(import cstdio)
+(import mod1)
+(import mod2)
+
+(def main
+  (fn extern-c int (void)
+    (printf "hello\n")
+    0))

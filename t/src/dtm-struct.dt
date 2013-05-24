@@ -1,0 +1,1 @@
+(def dtm-module-struct    (struct extern ((a int) (b char) (c int))))

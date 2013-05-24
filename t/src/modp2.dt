@@ -1,0 +1,5 @@
+(import modc)
+
+(def modp2-fn
+  (fn extern int (void)
+    (* modc-val 2)))

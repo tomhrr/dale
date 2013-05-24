@@ -1,0 +1,14 @@
+(import cstdio)
+(import macros)
+(import utility)
+(import concepts-std)
+
+(std.concepts.instantiate Pair int char)
+
+(def main
+  (fn extern-c int (void)
+    (def thing (var auto (Pair int char)))
+    (setf (: thing first)  10)
+    (setf (: thing second) #\a)
+    (printf "%d %c\n" (@ (: thing first)) (@ (: thing second)))
+    0))

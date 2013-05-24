@@ -1,0 +1,22 @@
+(import cstdio)
+
+(def a (var intern int8    127))
+(def b (var intern uint8   255))
+(def c (var intern int16   32767))
+(def d (var intern uint16  65535))
+(def e (var intern int32   2147483647))
+(def f (var intern uint32  4294967295))
+(def g (var intern int64   9223372036854775807))
+(def h (var intern uint64  18446744073709551615))
+(def i (var intern int128  170141183460469231731687303715884105727))
+(def j (var intern uint128 340282366920938463463374607431768211455))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%x\n%x\n%x\n%x\n%x\n%x\n%llx\n%llx\n"
+              a   b   c   d   e   f     g     h) 
+    (printf "%llx" (>> i 64))
+    (printf "%llx\n" (& i (- (<< (cast 1 int128)  64) (cast 1 int128))))
+    (printf "%llx" (>> j 64))
+    (printf "%llx\n" (& j (- (<< (cast 1 uint128) 64) (cast 1 uint128))))
+    0))

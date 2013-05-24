@@ -1,0 +1,3 @@
+(def a (var intern int 0))
+(def a (var intern int 0))
+(def a (var intern int 0))

@@ -1,0 +1,1 @@
+(def blah (var intern (array-of 10 20 int)))

@@ -1,0 +1,12 @@
+(import cstdio)
+
+(def s (struct extern((a char) (b double) (c char) (d int))))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d %d %d %d\n"
+            (offsetof s a)
+            (offsetof s b)
+            (offsetof s c)
+            (offsetof s d))
+    0))

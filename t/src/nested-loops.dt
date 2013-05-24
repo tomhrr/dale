@@ -1,0 +1,28 @@
+(import cstdio)
+(import macros)
+
+(using-namespace std
+
+(def main
+  (fn extern-c int (void)
+    (let ((i \ 0)
+          (j \ 0)
+          (k \ 0))
+      (for (setv i 0) (< i 3) (incv i)
+        (printf "i: %d\n" i)
+        (and (= i 1)
+             (do (printf "break on i = 2\n") (break)))
+        (for (setv j 0) (< j 3) (incv j)
+          (printf "j: %d\n" j)
+          (and (= j 0)
+               (do (printf "continue on j = 0\n") (continue)))
+          (for (setv k 0) (< k 3) (incv k)
+            (printf "k: %d\n" k)
+            (and (= k 0)
+                 (do (printf "continue on k = 0\n") (continue)))
+            (and (= k 2)
+                 (do (printf "break on k = 2\n") (break)))
+            (printf "%d %d %d\n" i j k)))))
+    0))
+
+)

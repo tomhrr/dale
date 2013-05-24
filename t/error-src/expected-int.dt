@@ -1,0 +1,5 @@
+(def v (var intern int (do (return "a"))))
+
+(def v (var intern int 1.10))
+
+(def v (var intern int ()))

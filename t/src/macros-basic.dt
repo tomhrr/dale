@@ -1,0 +1,12 @@
+(import cstdio)
+(import macros)
+
+(def identity2
+  (macro intern (form)
+    (return form)))
+
+(def main
+  (fn extern-c int (void)
+    (identity2 (printf "Should be returned\n"))
+    (identity2 (printf "%d\n" (+ 1 2)))
+    (identity2 (return 0))))

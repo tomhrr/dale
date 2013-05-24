@@ -1,0 +1,20 @@
+(import cstdio)
+
+(def +1
+  (fn intern int ((n int))
+    (+ 1 n)))
+
+(def +2
+  (fn intern int ((n int))
+    (+ 2 n)))
+
+(def implicit-with-if
+  (fn intern int ((n int))
+    (if (< n 50) 3 4)))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" (+1 0))
+    (printf "%d\n" (+2 0))
+    (printf "%d\n" (implicit-with-if 25))
+    0))

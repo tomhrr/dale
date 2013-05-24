@@ -1,0 +1,1 @@
+(def myfn (fn extern int (void) 0))

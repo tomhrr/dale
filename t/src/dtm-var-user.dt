@@ -1,0 +1,7 @@
+(import dtm-var)
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" dtm-module-variable)
+    0))

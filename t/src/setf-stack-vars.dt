@@ -1,0 +1,12 @@
+(import cstdio)
+
+(def main
+  (fn extern-c int (void)
+    (def var1 (var auto int 0))
+    (printf "Var 1 is %d\n" var1)
+    (def var2 (var auto int 500))
+    (printf "Var 2 is %d\n" var2)
+    (setv var1 100)
+    (setv var2 200)
+    (printf "Var 1 is %d, Var 2 is %d\n" var1 var2)
+    (return 0)))

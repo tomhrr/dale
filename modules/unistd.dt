@@ -1,0 +1,939 @@
+(module unistd)
+
+(import macros)
+
+(def access
+  (fn extern-c int ((__name (p char)) (__type int))))
+
+(def faccessat
+  (fn extern-c int ((__fd int) (__file (p char)) (__type int) (__flag int))))
+
+(def lseek
+  (fn extern-c size ((__fd int) (__offset size) (__whence int))))
+
+(def close
+  (fn extern-c int ((__fd int))))
+
+(def read
+  (fn extern-c size ((__fd int) (__buf (p void)) (__nbytes size))))
+
+(def write
+  (fn extern-c size ((__fd int) (__buf (p void)) (__n size))))
+
+(def pread
+  (fn extern-c size ((__fd int) (__buf (p void)) (__nbytes size) (__offset size))))
+
+(def pwrite
+  (fn extern-c size ((__fd int) (__buf (p void)) (__n size) (__offset size))))
+
+(def pipe
+  (fn extern-c int ((__pipedes (p int)))))
+
+(def alarm
+  (fn extern-c uint ((__seconds uint))))
+
+(def sleep
+  (fn extern-c uint ((__seconds uint))))
+
+(def ualarm
+  (fn extern-c uint ((__value uint) (__interval uint))))
+
+(def usleep
+  (fn extern-c int ((__useconds uint))))
+
+(def pause
+  (fn extern-c int (void)))
+
+(def chown
+  (fn extern-c int ((__file (p char)) (__owner uint) (__group uint))))
+
+(def fchown
+  (fn extern-c int ((__fd int) (__owner uint) (__group uint))))
+
+(def lchown
+  (fn extern-c int ((__file (p char)) (__owner uint) (__group uint))))
+
+(def fchownat
+  (fn extern-c int ((__fd int) (__file (p char)) (__owner uint) (__group uint) (__flag int))))
+
+(def chdir
+  (fn extern-c int ((__path (p char)))))
+
+(def fchdir
+  (fn extern-c int ((__fd int))))
+
+(def getcwd
+  (fn extern-c (p char) ((__buf (p char)) (__size int64))))
+
+(def getwd
+  (fn extern-c (p char) ((__buf (p char)))))
+
+(def dup
+  (fn extern-c int ((__fd int))))
+
+(def dup2
+  (fn extern-c int ((__fd int) (__fd2 int))))
+
+(def __environ (var extern-c (p (p char))))
+
+(def execve
+  (fn extern-c int ((__path (p char)) (__argv (p (p char))) (__envp (p (p char))))))
+
+(def fexecve
+  (fn extern-c int ((__fd int) (__argv (p (p char))) (__envp (p (p char))))))
+
+(def execv
+  (fn extern-c int ((__path (p char)) (__argv (p (p char))))))
+
+(def execle
+  (fn extern-c int ((__path (p char)) (__arg (p char)) ...)))
+
+(def execl
+  (fn extern-c int ((__path (p char)) (__arg (p char)) ...)))
+
+(def execvp
+  (fn extern-c int ((__file (p char)) (__argv (p (p char))))))
+
+(def execlp
+  (fn extern-c int ((__file (p char)) (__arg (p char)) ...)))
+
+(def nice
+  (fn extern-c int ((__inc int))))
+
+(def _exit
+  (fn extern-c void ((__status int))))
+
+(using-namespace std.macros
+
+(def _PC_LINK_MAX
+  (macro extern (void)     (mnfv pool "0")))
+(def _PC_MAX_CANON
+  (macro extern (void)     (mnfv pool "1")))
+(def _PC_MAX_INPUT
+  (macro extern (void)     (mnfv pool "2")))
+(def _PC_NAME_MAX
+  (macro extern (void)     (mnfv pool "3")))
+(def _PC_PATH_MAX
+  (macro extern (void)     (mnfv pool "4")))
+(def _PC_PIPE_BUF
+  (macro extern (void)     (mnfv pool "5")))
+(def _PC_CHOWN_RESTRICTED
+  (macro extern (void)     (mnfv pool "6")))
+(def _PC_NO_TRUNC
+  (macro extern (void)     (mnfv pool "7")))
+(def _PC_VDISABLE
+  (macro extern (void)     (mnfv pool "8")))
+(def _PC_SYNC_IO
+  (macro extern (void)     (mnfv pool "9")))
+(def _PC_ASYNC_IO
+  (macro extern (void)     (mnfv pool "10")))
+(def _PC_PRIO_IO
+  (macro extern (void)     (mnfv pool "11")))
+(def _PC_SOCK_MAXBUF
+  (macro extern (void)     (mnfv pool "12")))
+(def _PC_FILESIZEBITS
+  (macro extern (void)     (mnfv pool "13")))
+(def _PC_REC_INCR_XFER_SIZE
+  (macro extern (void)     (mnfv pool "14")))
+(def _PC_REC_MAX_XFER_SIZE
+  (macro extern (void)     (mnfv pool "15")))
+(def _PC_REC_MIN_XFER_SIZE
+  (macro extern (void)     (mnfv pool "16")))
+(def _PC_REC_XFER_ALIGN
+  (macro extern (void)     (mnfv pool "17")))
+(def _PC_ALLOC_SIZE_MIN
+  (macro extern (void)     (mnfv pool "18")))
+(def _PC_SYMLINK_MAX
+  (macro extern (void)     (mnfv pool "19")))
+(def _PC_2_SYMLINKS
+  (macro extern (void)     (mnfv pool "20")))
+
+(def _SC_ARG_MAX
+  (macro extern (void)     (mnfv pool "0")))
+(def _SC_CHILD_MAX
+  (macro extern (void)     (mnfv pool "1")))
+(def _SC_CLK_TCK
+  (macro extern (void)     (mnfv pool "2")))
+(def _SC_NGROUPS_MAX
+  (macro extern (void)     (mnfv pool "3")))
+(def _SC_OPEN_MAX
+  (macro extern (void)     (mnfv pool "4")))
+(def _SC_STREAM_MAX
+  (macro extern (void)     (mnfv pool "5")))
+(def _SC_TZNAME_MAX
+  (macro extern (void)     (mnfv pool "6")))
+(def _SC_JOB_CONTROL
+  (macro extern (void)     (mnfv pool "7")))
+(def _SC_SAVED_IDS
+  (macro extern (void)     (mnfv pool "8")))
+(def _SC_REALTIME_SIGNALS
+  (macro extern (void)     (mnfv pool "9")))
+(def _SC_PRIORITY_SCHEDULING
+  (macro extern (void)     (mnfv pool "10")))
+(def _SC_TIMERS
+  (macro extern (void)     (mnfv pool "11")))
+(def _SC_ASYNCHRONOUS_IO
+  (macro extern (void)     (mnfv pool "12")))
+(def _SC_PRIORITIZED_IO
+  (macro extern (void)     (mnfv pool "13")))
+(def _SC_SYNCHRONIZED_IO
+  (macro extern (void)     (mnfv pool "14")))
+(def _SC_FSYNC
+  (macro extern (void)     (mnfv pool "15")))
+(def _SC_MAPPED_FILES
+  (macro extern (void)     (mnfv pool "16")))
+(def _SC_MEMLOCK
+  (macro extern (void)     (mnfv pool "17")))
+(def _SC_MEMLOCK_RANGE
+  (macro extern (void)     (mnfv pool "18")))
+(def _SC_MEMORY_PROTECTION
+  (macro extern (void)     (mnfv pool "19")))
+(def _SC_MESSAGE_PASSING
+  (macro extern (void)     (mnfv pool "20")))
+(def _SC_SEMAPHORES
+  (macro extern (void)     (mnfv pool "21")))
+(def _SC_SHARED_MEMORY_OBJECTS
+  (macro extern (void)     (mnfv pool "22")))
+(def _SC_AIO_LISTIO_MAX
+  (macro extern (void)     (mnfv pool "23")))
+(def _SC_AIO_MAX
+  (macro extern (void)     (mnfv pool "24")))
+(def _SC_AIO_PRIO_DELTA_MAX
+  (macro extern (void)     (mnfv pool "25")))
+(def _SC_DELAYTIMER_MAX
+  (macro extern (void)     (mnfv pool "26")))
+(def _SC_MQ_OPEN_MAX
+  (macro extern (void)     (mnfv pool "27")))
+(def _SC_MQ_PRIO_MAX
+  (macro extern (void)     (mnfv pool "28")))
+(def _SC_VERSION
+  (macro extern (void)     (mnfv pool "29")))
+(def _SC_PAGESIZE
+  (macro extern (void)     (mnfv pool "30")))
+(def _SC_RTSIG_MAX
+  (macro extern (void)     (mnfv pool "31")))
+(def _SC_SEM_NSEMS_MAX
+  (macro extern (void)     (mnfv pool "32")))
+(def _SC_SEM_VALUE_MAX
+  (macro extern (void)     (mnfv pool "33")))
+(def _SC_SIGQUEUE_MAX
+  (macro extern (void)     (mnfv pool "34")))
+(def _SC_TIMER_MAX
+  (macro extern (void)     (mnfv pool "35")))
+(def _SC_BC_BASE_MAX
+  (macro extern (void)     (mnfv pool "36")))
+(def _SC_BC_DIM_MAX
+  (macro extern (void)     (mnfv pool "37")))
+(def _SC_BC_SCALE_MAX
+  (macro extern (void)     (mnfv pool "38")))
+(def _SC_BC_STRING_MAX
+  (macro extern (void)     (mnfv pool "39")))
+(def _SC_COLL_WEIGHTS_MAX
+  (macro extern (void)     (mnfv pool "40")))
+(def _SC_EQUIV_CLASS_MAX
+  (macro extern (void)     (mnfv pool "41")))
+(def _SC_EXPR_NEST_MAX
+  (macro extern (void)     (mnfv pool "42")))
+(def _SC_LINE_MAX
+  (macro extern (void)     (mnfv pool "43")))
+(def _SC_RE_DUP_MAX
+  (macro extern (void)     (mnfv pool "44")))
+(def _SC_CHARCLASS_NAME_MAX
+  (macro extern (void)     (mnfv pool "45")))
+(def _SC_2_VERSION
+  (macro extern (void)     (mnfv pool "46")))
+(def _SC_2_C_BIND
+  (macro extern (void)     (mnfv pool "47")))
+(def _SC_2_C_DEV
+  (macro extern (void)     (mnfv pool "48")))
+(def _SC_2_FORT_DEV
+  (macro extern (void)     (mnfv pool "49")))
+(def _SC_2_FORT_RUN
+  (macro extern (void)     (mnfv pool "50")))
+(def _SC_2_SW_DEV
+  (macro extern (void)     (mnfv pool "51")))
+(def _SC_2_LOCALEDEF
+  (macro extern (void)     (mnfv pool "52")))
+(def _SC_PII
+  (macro extern (void)     (mnfv pool "53")))
+(def _SC_PII_XTI
+  (macro extern (void)     (mnfv pool "54")))
+(def _SC_PII_SOCKET
+  (macro extern (void)     (mnfv pool "55")))
+(def _SC_PII_INTERNET
+  (macro extern (void)     (mnfv pool "56")))
+(def _SC_PII_OSI
+  (macro extern (void)     (mnfv pool "57")))
+(def _SC_POLL
+  (macro extern (void)     (mnfv pool "58")))
+(def _SC_SELECT
+  (macro extern (void)     (mnfv pool "59")))
+(def _SC_UIO_MAXIOV
+  (macro extern (void)     (mnfv pool "60")))
+(def _SC_IOV_MAX
+  (macro extern (void)     (mnfv pool "60")))
+(def _SC_PII_INTERNET_STREAM
+  (macro extern (void)     (mnfv pool "61")))
+(def _SC_PII_INTERNET_DGRAM
+  (macro extern (void)     (mnfv pool "62")))
+(def _SC_PII_OSI_COTS
+  (macro extern (void)     (mnfv pool "63")))
+(def _SC_PII_OSI_CLTS
+  (macro extern (void)     (mnfv pool "64")))
+(def _SC_PII_OSI_M
+  (macro extern (void)     (mnfv pool "65")))
+(def _SC_T_IOV_MAX
+  (macro extern (void)     (mnfv pool "66")))
+(def _SC_THREADS
+  (macro extern (void)     (mnfv pool "67")))
+(def _SC_THREAD_SAFE_FUNCTIONS
+  (macro extern (void)     (mnfv pool "68")))
+(def _SC_GETGR_R_SIZE_MAX
+  (macro extern (void)     (mnfv pool "69")))
+(def _SC_GETPW_R_SIZE_MAX
+  (macro extern (void)     (mnfv pool "70")))
+(def _SC_LOGIN_NAME_MAX
+  (macro extern (void)     (mnfv pool "71")))
+(def _SC_TTY_NAME_MAX
+  (macro extern (void)     (mnfv pool "72")))
+(def _SC_THREAD_DESTRUCTOR_ITERATIONS
+  (macro extern (void)     (mnfv pool "73")))
+(def _SC_THREAD_KEYS_MAX
+  (macro extern (void)     (mnfv pool "74")))
+(def _SC_THREAD_STACK_MIN
+  (macro extern (void)     (mnfv pool "75")))
+(def _SC_THREAD_THREADS_MAX
+  (macro extern (void)     (mnfv pool "76")))
+(def _SC_THREAD_ATTR_STACKADDR
+  (macro extern (void)     (mnfv pool "77")))
+(def _SC_THREAD_ATTR_STACKSIZE
+  (macro extern (void)     (mnfv pool "78")))
+(def _SC_THREAD_PRIORITY_SCHEDULING
+  (macro extern (void)     (mnfv pool "79")))
+(def _SC_THREAD_PRIO_INHERIT
+  (macro extern (void)     (mnfv pool "80")))
+(def _SC_THREAD_PRIO_PROTECT
+  (macro extern (void)     (mnfv pool "81")))
+(def _SC_THREAD_PROCESS_SHARED
+  (macro extern (void)     (mnfv pool "82")))
+(def _SC_NPROCESSORS_CONF
+  (macro extern (void)     (mnfv pool "83")))
+(def _SC_NPROCESSORS_ONLN
+  (macro extern (void)     (mnfv pool "84")))
+(def _SC_PHYS_PAGES
+  (macro extern (void)     (mnfv pool "85")))
+(def _SC_AVPHYS_PAGES
+  (macro extern (void)     (mnfv pool "86")))
+(def _SC_ATEXIT_MAX
+  (macro extern (void)     (mnfv pool "87")))
+(def _SC_PASS_MAX
+  (macro extern (void)     (mnfv pool "88")))
+(def _SC_XOPEN_VERSION
+  (macro extern (void)     (mnfv pool "89")))
+(def _SC_XOPEN_XCU_VERSION
+  (macro extern (void)     (mnfv pool "90")))
+(def _SC_XOPEN_UNIX
+  (macro extern (void)     (mnfv pool "91")))
+(def _SC_XOPEN_CRYPT
+  (macro extern (void)     (mnfv pool "92")))
+(def _SC_XOPEN_ENH_I18N
+  (macro extern (void)     (mnfv pool "93")))
+(def _SC_XOPEN_SHM
+  (macro extern (void)     (mnfv pool "94")))
+(def _SC_2_CHAR_TERM
+  (macro extern (void)     (mnfv pool "95")))
+(def _SC_2_C_VERSION
+  (macro extern (void)     (mnfv pool "96")))
+(def _SC_2_UPE
+  (macro extern (void)     (mnfv pool "97")))
+(def _SC_XOPEN_XPG2
+  (macro extern (void)     (mnfv pool "98")))
+(def _SC_XOPEN_XPG3
+  (macro extern (void)     (mnfv pool "99")))
+(def _SC_XOPEN_XPG4
+  (macro extern (void)     (mnfv pool "100")))
+(def _SC_CHAR_BIT
+  (macro extern (void)     (mnfv pool "101")))
+(def _SC_CHAR_MAX
+  (macro extern (void)     (mnfv pool "102")))
+(def _SC_CHAR_MIN
+  (macro extern (void)     (mnfv pool "103")))
+(def _SC_INT_MAX
+  (macro extern (void)     (mnfv pool "104")))
+(def _SC_INT_MIN
+  (macro extern (void)     (mnfv pool "105")))
+(def _SC_LONG_BIT
+  (macro extern (void)     (mnfv pool "106")))
+(def _SC_WORD_BIT
+  (macro extern (void)     (mnfv pool "107")))
+(def _SC_MB_LEN_MAX
+  (macro extern (void)     (mnfv pool "108")))
+(def _SC_NZERO
+  (macro extern (void)     (mnfv pool "109")))
+(def _SC_SSIZE_MAX
+  (macro extern (void)     (mnfv pool "110")))
+(def _SC_SCHAR_MAX
+  (macro extern (void)     (mnfv pool "111")))
+(def _SC_SCHAR_MIN
+  (macro extern (void)     (mnfv pool "112")))
+(def _SC_SHRT_MAX
+  (macro extern (void)     (mnfv pool "113")))
+(def _SC_SHRT_MIN
+  (macro extern (void)     (mnfv pool "114")))
+(def _SC_UCHAR_MAX
+  (macro extern (void)     (mnfv pool "115")))
+(def _SC_UINT_MAX
+  (macro extern (void)     (mnfv pool "116")))
+(def _SC_ULONG_MAX
+  (macro extern (void)     (mnfv pool "117")))
+(def _SC_USHRT_MAX
+  (macro extern (void)     (mnfv pool "118")))
+(def _SC_NL_ARGMAX
+  (macro extern (void)     (mnfv pool "119")))
+(def _SC_NL_LANGMAX
+  (macro extern (void)     (mnfv pool "120")))
+(def _SC_NL_MSGMAX
+  (macro extern (void)     (mnfv pool "121")))
+(def _SC_NL_NMAX
+  (macro extern (void)     (mnfv pool "122")))
+(def _SC_NL_SETMAX
+  (macro extern (void)     (mnfv pool "123")))
+(def _SC_NL_TEXTMAX
+  (macro extern (void)     (mnfv pool "124")))
+(def _SC_XBS5_ILP32_OFF32
+  (macro extern (void)     (mnfv pool "125")))
+(def _SC_XBS5_ILP32_OFFBIG
+  (macro extern (void)     (mnfv pool "126")))
+(def _SC_XBS5_LP64_OFF64
+  (macro extern (void)     (mnfv pool "127")))
+(def _SC_XBS5_LPBIG_OFFBIG
+  (macro extern (void)     (mnfv pool "128")))
+(def _SC_XOPEN_LEGACY
+  (macro extern (void)     (mnfv pool "129")))
+(def _SC_XOPEN_REALTIME
+  (macro extern (void)     (mnfv pool "130")))
+(def _SC_XOPEN_REALTIME_THREADS
+  (macro extern (void)     (mnfv pool "131")))
+(def _SC_ADVISORY_INFO
+  (macro extern (void)     (mnfv pool "132")))
+(def _SC_BARRIERS
+  (macro extern (void)     (mnfv pool "133")))
+(def _SC_BASE
+  (macro extern (void)     (mnfv pool "134")))
+(def _SC_C_LANG_SUPPORT
+  (macro extern (void)     (mnfv pool "135")))
+(def _SC_C_LANG_SUPPORT_R
+  (macro extern (void)     (mnfv pool "136")))
+(def _SC_CLOCK_SELECTION
+  (macro extern (void)     (mnfv pool "137")))
+(def _SC_CPUTIME
+  (macro extern (void)     (mnfv pool "138")))
+(def _SC_THREAD_CPUTIME
+  (macro extern (void)     (mnfv pool "139")))
+(def _SC_DEVICE_IO
+  (macro extern (void)     (mnfv pool "140")))
+(def _SC_DEVICE_SPECIFIC
+  (macro extern (void)     (mnfv pool "141")))
+(def _SC_DEVICE_SPECIFIC_R
+  (macro extern (void)     (mnfv pool "142")))
+(def _SC_FD_MGMT
+  (macro extern (void)     (mnfv pool "143")))
+(def _SC_FIFO
+  (macro extern (void)     (mnfv pool "144")))
+(def _SC_PIPE
+  (macro extern (void)     (mnfv pool "145")))
+(def _SC_FILE_ATTRIBUTES
+  (macro extern (void)     (mnfv pool "146")))
+(def _SC_FILE_LOCKING
+  (macro extern (void)     (mnfv pool "147")))
+(def _SC_FILE_SYSTEM
+  (macro extern (void)     (mnfv pool "148")))
+(def _SC_MONOTONIC_CLOCK
+  (macro extern (void)     (mnfv pool "149")))
+(def _SC_MULTI_PROCESS
+  (macro extern (void)     (mnfv pool "150")))
+(def _SC_SINGLE_PROCESS
+  (macro extern (void)     (mnfv pool "151")))
+(def _SC_NETWORKING
+  (macro extern (void)     (mnfv pool "152")))
+(def _SC_READER_WRITER_LOCKS
+  (macro extern (void)     (mnfv pool "153")))
+(def _SC_SPIN_LOCKS
+  (macro extern (void)     (mnfv pool "154")))
+(def _SC_REGEXP
+  (macro extern (void)     (mnfv pool "155")))
+(def _SC_REGEX_VERSION
+  (macro extern (void)     (mnfv pool "156")))
+(def _SC_SHELL
+  (macro extern (void)     (mnfv pool "157")))
+(def _SC_SIGNALS
+  (macro extern (void)     (mnfv pool "158")))
+(def _SC_SPAWN
+  (macro extern (void)     (mnfv pool "159")))
+(def _SC_SPORADIC_SERVER
+  (macro extern (void)     (mnfv pool "160")))
+(def _SC_THREAD_SPORADIC_SERVER
+  (macro extern (void)     (mnfv pool "161")))
+(def _SC_SYSTEM_DATABASE
+  (macro extern (void)     (mnfv pool "162")))
+(def _SC_SYSTEM_DATABASE_R
+  (macro extern (void)     (mnfv pool "163")))
+(def _SC_TIMEOUTS
+  (macro extern (void)     (mnfv pool "164")))
+(def _SC_TYPED_MEMORY_OBJECTS
+  (macro extern (void)     (mnfv pool "165")))
+(def _SC_USER_GROUPS
+  (macro extern (void)     (mnfv pool "166")))
+(def _SC_USER_GROUPS_R
+  (macro extern (void)     (mnfv pool "167")))
+(def _SC_2_PBS
+  (macro extern (void)     (mnfv pool "168")))
+(def _SC_2_PBS_ACCOUNTING
+  (macro extern (void)     (mnfv pool "169")))
+(def _SC_2_PBS_LOCATE
+  (macro extern (void)     (mnfv pool "170")))
+(def _SC_2_PBS_MESSAGE
+  (macro extern (void)     (mnfv pool "171")))
+(def _SC_2_PBS_TRACK
+  (macro extern (void)     (mnfv pool "172")))
+(def _SC_SYMLOOP_MAX
+  (macro extern (void)     (mnfv pool "173")))
+(def _SC_STREAMS
+  (macro extern (void)     (mnfv pool "174")))
+(def _SC_2_PBS_CHECKPOINT
+  (macro extern (void)     (mnfv pool "175")))
+(def _SC_V6_ILP32_OFF32
+  (macro extern (void)     (mnfv pool "176")))
+(def _SC_V6_ILP32_OFFBIG
+  (macro extern (void)     (mnfv pool "177")))
+(def _SC_V6_LP64_OFF64
+  (macro extern (void)     (mnfv pool "178")))
+(def _SC_V6_LPBIG_OFFBIG
+  (macro extern (void)     (mnfv pool "179")))
+(def _SC_HOST_NAME_MAX
+  (macro extern (void)     (mnfv pool "180")))
+(def _SC_TRACE
+  (macro extern (void)     (mnfv pool "181")))
+(def _SC_TRACE_EVENT_FILTER
+  (macro extern (void)     (mnfv pool "182")))
+(def _SC_TRACE_INHERIT
+  (macro extern (void)     (mnfv pool "183")))
+(def _SC_TRACE_LOG
+  (macro extern (void)     (mnfv pool "184")))
+(def _SC_LEVEL1_ICACHE_SIZE
+  (macro extern (void)     (mnfv pool "185")))
+(def _SC_LEVEL1_ICACHE_ASSOC
+  (macro extern (void)     (mnfv pool "186")))
+(def _SC_LEVEL1_ICACHE_LINESIZE
+  (macro extern (void)     (mnfv pool "187")))
+(def _SC_LEVEL1_DCACHE_SIZE
+  (macro extern (void)     (mnfv pool "188")))
+(def _SC_LEVEL1_DCACHE_ASSOC
+  (macro extern (void)     (mnfv pool "189")))
+(def _SC_LEVEL1_DCACHE_LINESIZE
+  (macro extern (void)     (mnfv pool "190")))
+(def _SC_LEVEL2_CACHE_SIZE
+  (macro extern (void)     (mnfv pool "191")))
+(def _SC_LEVEL2_CACHE_ASSOC
+  (macro extern (void)     (mnfv pool "192")))
+(def _SC_LEVEL2_CACHE_LINESIZE
+  (macro extern (void)     (mnfv pool "193")))
+(def _SC_LEVEL3_CACHE_SIZE
+  (macro extern (void)     (mnfv pool "194")))
+(def _SC_LEVEL3_CACHE_ASSOC
+  (macro extern (void)     (mnfv pool "195")))
+(def _SC_LEVEL3_CACHE_LINESIZE
+  (macro extern (void)     (mnfv pool "196")))
+(def _SC_LEVEL4_CACHE_SIZE
+  (macro extern (void)     (mnfv pool "197")))
+(def _SC_LEVEL4_CACHE_ASSOC
+  (macro extern (void)     (mnfv pool "198")))
+(def _SC_LEVEL4_CACHE_LINESIZE
+  (macro extern (void)     (mnfv pool "199")))
+(def _SC_IPV6
+  (macro extern (void)     (mnfv pool "235")))
+(def _SC_RAW_SOCKETS
+  (macro extern (void)     (mnfv pool "236")))
+(def _SC_V7_ILP32_OFF32
+  (macro extern (void)     (mnfv pool "237")))
+(def _SC_V7_ILP32_OFFBIG
+  (macro extern (void)     (mnfv pool "238")))
+(def _SC_V7_LP64_OFF64
+  (macro extern (void)     (mnfv pool "239")))
+(def _SC_V7_LPBIG_OFFBIG
+  (macro extern (void)     (mnfv pool "240")))
+(def _SC_SS_REPL_MAX
+  (macro extern (void)     (mnfv pool "241")))
+(def _SC_TRACE_EVENT_NAME_MAX
+  (macro extern (void)     (mnfv pool "242")))
+(def _SC_TRACE_NAME_MAX
+  (macro extern (void)     (mnfv pool "243")))
+(def _SC_TRACE_SYS_MAX
+  (macro extern (void)     (mnfv pool "244")))
+(def _SC_TRACE_USER_EVENT_MAX
+  (macro extern (void)     (mnfv pool "245")))
+(def _SC_XOPEN_STREAMS
+  (macro extern (void)     (mnfv pool "246")))
+(def _SC_THREAD_ROBUST_PRIO_INHERIT
+  (macro extern (void)     (mnfv pool "247")))
+(def _SC_THREAD_ROBUST_PRIO_PROTECT
+  (macro extern (void)     (mnfv pool "248")))
+
+(def _CS_PATH
+  (macro extern (void)     (mnfv pool "0")))
+(def _CS_V6_WIDTH_RESTRICTED_ENVS
+  (macro extern (void)     (mnfv pool "1")))
+(def _CS_GNU_LIBC_VERSION
+  (macro extern (void)     (mnfv pool "2")))
+(def _CS_GNU_LIBPTHREAD_VERSION
+  (macro extern (void)     (mnfv pool "3")))
+(def _CS_V5_WIDTH_RESTRICTED_ENVS
+  (macro extern (void)     (mnfv pool "4")))
+(def _CS_V7_WIDTH_RESTRICTED_ENVS
+  (macro extern (void)     (mnfv pool "5")))
+(def _CS_LFS_CFLAGS
+  (macro extern (void)     (mnfv pool "1000")))
+(def _CS_LFS_LDFLAGS
+  (macro extern (void)     (mnfv pool "1001")))
+(def _CS_LFS_LIBS
+  (macro extern (void)     (mnfv pool "1002")))
+(def _CS_LFS_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1003")))
+(def _CS_LFS64_CFLAGS
+  (macro extern (void)     (mnfv pool "1004")))
+(def _CS_LFS64_LDFLAGS
+  (macro extern (void)     (mnfv pool "1005")))
+(def _CS_LFS64_LIBS
+  (macro extern (void)     (mnfv pool "1006")))
+(def _CS_LFS64_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1007")))
+(def _CS_XBS5_ILP32_OFF32_CFLAGS
+  (macro extern (void)     (mnfv pool "1100")))
+(def _CS_XBS5_ILP32_OFF32_LDFLAGS
+  (macro extern (void)     (mnfv pool "1101")))
+(def _CS_XBS5_ILP32_OFF32_LIBS
+  (macro extern (void)     (mnfv pool "1102")))
+(def _CS_XBS5_ILP32_OFF32_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1103")))
+(def _CS_XBS5_ILP32_OFFBIG_CFLAGS
+  (macro extern (void)     (mnfv pool "1104")))
+(def _CS_XBS5_ILP32_OFFBIG_LDFLAGS
+  (macro extern (void)     (mnfv pool "1105")))
+(def _CS_XBS5_ILP32_OFFBIG_LIBS
+  (macro extern (void)     (mnfv pool "1106")))
+(def _CS_XBS5_ILP32_OFFBIG_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1107")))
+(def _CS_XBS5_LP64_OFF64_CFLAGS
+  (macro extern (void)     (mnfv pool "1108")))
+(def _CS_XBS5_LP64_OFF64_LDFLAGS
+  (macro extern (void)     (mnfv pool "1109")))
+(def _CS_XBS5_LP64_OFF64_LIBS
+  (macro extern (void)     (mnfv pool "1110")))
+(def _CS_XBS5_LP64_OFF64_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1111")))
+(def _CS_XBS5_LPBIG_OFFBIG_CFLAGS
+  (macro extern (void)     (mnfv pool "1112")))
+(def _CS_XBS5_LPBIG_OFFBIG_LDFLAGS
+  (macro extern (void)     (mnfv pool "1113")))
+(def _CS_XBS5_LPBIG_OFFBIG_LIBS
+  (macro extern (void)     (mnfv pool "1114")))
+(def _CS_XBS5_LPBIG_OFFBIG_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1115")))
+(def _CS_POSIX_V6_ILP32_OFF32_CFLAGS
+  (macro extern (void)     (mnfv pool "1116")))
+(def _CS_POSIX_V6_ILP32_OFF32_LDFLAGS
+  (macro extern (void)     (mnfv pool "1117")))
+(def _CS_POSIX_V6_ILP32_OFF32_LIBS
+  (macro extern (void)     (mnfv pool "1118")))
+(def _CS_POSIX_V6_ILP32_OFF32_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1119")))
+(def _CS_POSIX_V6_ILP32_OFFBIG_CFLAGS
+  (macro extern (void)     (mnfv pool "1120")))
+(def _CS_POSIX_V6_ILP32_OFFBIG_LDFLAGS
+  (macro extern (void)     (mnfv pool "1121")))
+(def _CS_POSIX_V6_ILP32_OFFBIG_LIBS
+  (macro extern (void)     (mnfv pool "1122")))
+(def _CS_POSIX_V6_ILP32_OFFBIG_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1123")))
+(def _CS_POSIX_V6_LP64_OFF64_CFLAGS
+  (macro extern (void)     (mnfv pool "1124")))
+(def _CS_POSIX_V6_LP64_OFF64_LDFLAGS
+  (macro extern (void)     (mnfv pool "1125")))
+(def _CS_POSIX_V6_LP64_OFF64_LIBS
+  (macro extern (void)     (mnfv pool "1126")))
+(def _CS_POSIX_V6_LP64_OFF64_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1127")))
+(def _CS_POSIX_V6_LPBIG_OFFBIG_CFLAGS
+  (macro extern (void)     (mnfv pool "1128")))
+(def _CS_POSIX_V6_LPBIG_OFFBIG_LDFLAGS
+  (macro extern (void)     (mnfv pool "1129")))
+(def _CS_POSIX_V6_LPBIG_OFFBIG_LIBS
+  (macro extern (void)     (mnfv pool "1130")))
+(def _CS_POSIX_V6_LPBIG_OFFBIG_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1131")))
+(def _CS_POSIX_V7_ILP32_OFF32_CFLAGS
+  (macro extern (void)     (mnfv pool "1132")))
+(def _CS_POSIX_V7_ILP32_OFF32_LDFLAGS
+  (macro extern (void)     (mnfv pool "1133")))
+(def _CS_POSIX_V7_ILP32_OFF32_LIBS
+  (macro extern (void)     (mnfv pool "1134")))
+(def _CS_POSIX_V7_ILP32_OFF32_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1135")))
+(def _CS_POSIX_V7_ILP32_OFFBIG_CFLAGS
+  (macro extern (void)     (mnfv pool "1136")))
+(def _CS_POSIX_V7_ILP32_OFFBIG_LDFLAGS
+  (macro extern (void)     (mnfv pool "1137")))
+(def _CS_POSIX_V7_ILP32_OFFBIG_LIBS
+  (macro extern (void)     (mnfv pool "1138")))
+(def _CS_POSIX_V7_ILP32_OFFBIG_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1139")))
+(def _CS_POSIX_V7_LP64_OFF64_CFLAGS
+  (macro extern (void)     (mnfv pool "1140")))
+(def _CS_POSIX_V7_LP64_OFF64_LDFLAGS
+  (macro extern (void)     (mnfv pool "1141")))
+(def _CS_POSIX_V7_LP64_OFF64_LIBS
+  (macro extern (void)     (mnfv pool "1142")))
+(def _CS_POSIX_V7_LP64_OFF64_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1143")))
+(def _CS_POSIX_V7_LPBIG_OFFBIG_CFLAGS
+  (macro extern (void)     (mnfv pool "1144")))
+(def _CS_POSIX_V7_LPBIG_OFFBIG_LDFLAGS
+  (macro extern (void)     (mnfv pool "1145")))
+(def _CS_POSIX_V7_LPBIG_OFFBIG_LIBS
+  (macro extern (void)     (mnfv pool "1146")))
+(def _CS_POSIX_V7_LPBIG_OFFBIG_LINTFLAGS
+  (macro extern (void)     (mnfv pool "1147")))
+(def _CS_V6_ENV
+  (macro extern (void)     (mnfv pool "1148")))
+(def _CS_V7_ENV
+  (macro extern (void)     (mnfv pool "1149")))
+)
+
+(def pathconf
+  (fn extern-c (long-type) ((__path (p char)) (__name int))))
+
+(def fpathconf
+  (fn extern-c (long-type) ((__fd int) (__name int))))
+
+(def sysconf
+  (fn extern-c (long-type) ((__name int))))
+
+(def confstr
+  (fn extern-c size ((__name int) (__buf (p char)) (__len size))))
+
+(def getpid
+  (fn extern-c int (void)))
+
+(def getppid
+  (fn extern-c int (void)))
+
+(def getpgrp
+  (fn extern-c int (void)))
+
+(def __getpgid
+  (fn extern-c int ((__pid int))))
+
+(def getpgid
+  (fn extern-c int ((__pid int))))
+
+(def setpgid
+  (fn extern-c int ((__pid int) (__pgid int))))
+
+(def setpgrp
+  (fn extern-c int (void)))
+
+(def setsid
+  (fn extern-c int (void)))
+
+(def getsid
+  (fn extern-c int ((__pid int))))
+
+(def getuid
+  (fn extern-c uint (void)))
+
+(def geteuid
+  (fn extern-c uint (void)))
+
+(def getgid
+  (fn extern-c uint (void)))
+
+(def getegid
+  (fn extern-c uint (void)))
+
+(def getgroups
+  (fn extern-c int ((__size int) (__list (p uint)))))
+
+(def setuid
+  (fn extern-c int ((__uid uint))))
+
+(def setreuid
+  (fn extern-c int ((__ruid uint) (__euid uint))))
+
+(def seteuid
+  (fn extern-c int ((__uid uint))))
+
+(def setgid
+  (fn extern-c int ((__gid uint))))
+
+(def setregid
+  (fn extern-c int ((__rgid uint) (__egid uint))))
+
+(def setegid
+  (fn extern-c int ((__gid uint))))
+
+(def fork
+  (fn extern-c int (void)))
+
+(def vfork
+  (fn extern-c int (void)))
+
+(def ttyname
+  (fn extern-c (p char) ((__fd int))))
+
+(def ttyname_r
+  (fn extern-c int ((__fd int) (__buf (p char)) (__buflen size))))
+
+(def isatty
+  (fn extern-c int ((__fd int))))
+
+(def ttyslot
+  (fn extern-c int (void)))
+
+(def link
+  (fn extern-c int ((__from (p char)) (__to (p char)))))
+
+(def linkat
+  (fn extern-c int ((__fromfd int) (__from (p char)) (__tofd int) (__to (p char)) (__flags int))))
+
+(def symlink
+  (fn extern-c int ((__from (p char)) (__to (p char)))))
+
+(def readlink
+  (fn extern-c size ((__path (p char)) (__buf (p char)) (__len size))))
+
+(def symlinkat
+  (fn extern-c int ((__from (p char)) (__tofd int) (__to (p char)))))
+
+(def readlinkat
+  (fn extern-c size ((__fd int) (__path (p char)) (__buf (p char))
+  (__len size))))
+
+(def unlink
+  (fn extern-c int ((__name (p char)))))
+
+(def unlinkat
+  (fn extern-c int ((__fd int) (__name (p char)) (__flag int))))
+
+(def rmdir
+  (fn extern-c int ((__path (p char)))))
+
+(def tcgetpgrp
+  (fn extern-c int ((__fd int))))
+
+(def tcsetpgrp
+  (fn extern-c int ((__fd int) (__pgrp_id int))))
+
+(def getlogin
+  (fn extern-c (p char) (void)))
+
+(def getlogin_r
+  (fn extern-c int ((__name (p char)) (__name_len size))))
+
+(def setlogin
+  (fn extern-c int ((__name (p char)))))
+
+(def optarg (var extern-c (p char)))
+
+(def optind (var extern-c int))
+
+(def opterr (var extern-c int))
+
+(def optopt (var extern-c int))
+
+(def getopt
+  (fn extern-c int ((___argc int) (___argv (p (p char))) (__shortopts (p char)))))
+
+(def gethostname
+  (fn extern-c int ((__name (p char)) (__len size))))
+
+(def sethostname
+  (fn extern-c int ((__name (p char)) (__len size))))
+
+(def sethostid
+  (fn extern-c int ((__id (long-type)))))
+
+(def getdomainname
+  (fn extern-c int ((__name (p char)) (__len size))))
+
+(def setdomainname
+  (fn extern-c int ((__name (p char)) (__len size))))
+
+(def vhangup
+  (fn extern-c int (void)))
+
+(def revoke
+  (fn extern-c int ((__file (p char)))))
+
+(def profil
+  (fn extern-c int ((__sample_buffer (p uint16)) (__size size)
+  (__offset size) (__scale uint))))
+
+(def acct
+  (fn extern-c int ((__name (p char)))))
+
+(def getusershell
+  (fn extern-c (p char) (void)))
+
+(def endusershell
+  (fn extern-c void (void)))
+
+(def setusershell
+  (fn extern-c void (void)))
+
+(def daemon
+  (fn extern-c int ((__nochdir int) (__noclose int))))
+
+(def chroot
+  (fn extern-c int ((__path (p char)))))
+
+(def getpass
+  (fn extern-c (p char) ((__prompt (p char)))))
+
+(def fsync
+  (fn extern-c int ((__fd int))))
+
+(def gethostid
+  (fn extern-c (long-type) (void)))
+
+(def sync
+  (fn extern-c void (void)))
+
+(def getpagesize
+  (fn extern-c int (void)))
+
+(def getdtablesize
+  (fn extern-c int (void)))
+
+(def truncate
+  (fn extern-c int ((__file (p char)) (__length size))))
+
+(def ftruncate
+  (fn extern-c int ((__fd int) (__length size))))
+
+(def brk
+  (fn extern-c int ((__addr (p void)))))
+
+(def sbrk
+  (fn extern-c (p void) ((__delta intptr))))
+
+(def syscall
+  (fn extern-c (long-type) ((__sysno (long-type)) ...)))
+
+(def lockf
+  (fn extern-c int ((__fd int) (__cmd int) (__len size))))
+
+(def fdatasync
+  (fn extern-c int ((__fildes int))))
+
+(def ctermid
+  (fn extern-c (p char) ((__s (p char)))))

@@ -1,0 +1,11 @@
+(import cstdio)
+
+(def num (var intern int))
+(def mys (struct extern((a int) (b int))))
+(def myv (var intern mys))
+
+(def main
+  (fn extern-c int (void)
+    (printf "%d\n" num)
+    (printf "%d %d\n" (@ (: myv a)) (@ (: myv b)))
+    0))

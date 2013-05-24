@@ -1,0 +1,17 @@
+(import cstdio)
+(import macros)
+(import shared-ptr)
+
+(make-SharedPtr int)
+
+(using-namespace std
+
+(def main
+  (fn extern-c int (void)
+    (let ((myint \ (malloc' 1 int))
+          (myptr (SharedPtr int) (do (init (# myptr) myint) 0)))
+      (setv myptr 100)
+      (printf "%d\n" (@ myptr))
+      0)))
+
+)
