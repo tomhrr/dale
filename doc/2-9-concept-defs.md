@@ -88,6 +88,11 @@ Refines `ForwardContainer`.
 
 Additional requirements:
 
+  * the container has a reverse iterator type;
+  * that type is an `InputIterator`; and
+  * `rbegin` and `rend` are defined over pointers to the container
+    type, and they both return reverse iterators.
+
 
 #### `RandomAccessContainer`
 

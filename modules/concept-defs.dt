@@ -213,6 +213,7 @@ Additional requirements:
   * that type is an `InputIterator`; and
   * `rbegin` and `rend` are defined over pointers to the container
     type, and they both return reverse iterators.
+
 |#
 (def-concept ReversibleContainer (refines ForwardContainer) (T)
   (let ((success \ true))
