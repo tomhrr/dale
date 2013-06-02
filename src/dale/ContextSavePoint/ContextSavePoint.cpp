@@ -6,7 +6,7 @@
 #define DEBUG 0
 
 /* todo: probably a fair bit of leakage going on here. Have to remove
- * structs, enums, variables and labels from their parent modules as
+ * structs, enums, variables from their parent modules as
  * well. */
 
 namespace dale
@@ -15,7 +15,6 @@ ContextSavePoint::ContextSavePoint(Context *ctx)
 {
     function_count = new std::map<std::string, int>;
     variables      = new std::set<std::string>;
-    labels         = new std::set<std::string>;
     structs        = new std::set<std::string>;
     enums          = new std::set<std::string>;
     namespaces     = new std::map<std::string, ContextSavePoint *>;
@@ -37,14 +36,6 @@ ContextSavePoint::ContextSavePoint(Context *ctx)
             b != e;
             ++b) {
         variables->insert(b->first);
-    }
-
-    for (std::map<std::string, Element::Label*>::iterator
-            b = ctx->labels->begin(),
-            e = ctx->labels->end();
-            b != e;
-            ++b) {
-        labels->insert(b->first);
     }
 
     for (std::map<std::string, Element::Struct*>::iterator
@@ -87,7 +78,6 @@ ContextSavePoint::~ContextSavePoint(void)
 {
     delete function_count;
     delete variables;
-    delete labels;
     delete structs;
     delete enums;
     delete namespaces;
@@ -137,16 +127,6 @@ bool ContextSavePoint::restore(void)
             ++b) {
         if (structs->find(b->first) == structs->end()) {
             ctx->structs->erase(b);
-        }
-    }
-
-    for (std::map<std::string, Element::Label *>::iterator
-            b = ctx->labels->begin(),
-            e = ctx->labels->end();
-            b != e;
-            ++b) {
-        if (labels->find(b->first) == labels->end()) {
-            ctx->labels->erase(b);
         }
     }
 

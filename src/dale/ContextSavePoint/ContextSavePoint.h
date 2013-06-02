@@ -20,7 +20,6 @@ private:
     NativeTypes *nt;
     std::map<std::string, int> *function_count;
     std::set<std::string> *variables;
-    std::set<std::string> *labels;
     std::set<std::string> *structs;
     std::set<std::string> *enums;
     int active_namespace_count;

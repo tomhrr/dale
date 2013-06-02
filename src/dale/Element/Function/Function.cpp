@@ -14,6 +14,8 @@ Function::Function()
     cto           = 0;
     is_destructor = 0;
     is_setf_fn    = 0;
+    defgotos      = new std::vector<DeferredGoto *>;
+    labels        = new std::map<std::string, Element::Label *>;
 }
 
 Function::Function(
@@ -33,15 +35,31 @@ Function::Function(
     cto = 0;
     is_destructor = 0;
     is_setf_fn    = 0;
+
+    defgotos      = new std::vector<DeferredGoto *>;
+    labels        = new std::map<std::string, Element::Label *>;
 }
 
 Function::~Function()
 {
-    //delete return_type;
-    //dale::stl::deleteElements(parameter_types);
-
-    //delete parameter_types;
     delete internal_name;
+    delete defgotos;
+    delete labels;
+}
+
+Element::Label *Function::getLabel(const char *str)
+{
+    std::map<std::string, Element::Label*>::iterator b = labels->find(str);
+    if (b == labels->end()) {
+        return NULL;
+    }
+    return b->second;
+}
+
+bool Function::addLabel(const char *str, Element::Label *label)
+{
+    labels->insert(std::pair<std::string, Element::Label *>(str, label));
+    return true;
 }
 
 int Function::isVarArgs(void)

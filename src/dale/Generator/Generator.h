@@ -46,7 +46,6 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/ValueSymbolTable.h"
-/*#include "llvm/Transforms/Scalar.h"*/
 #include "llvm/ADT/StringRef.h"
 
 struct DNode
@@ -84,18 +83,6 @@ enum Produce {
 };
 
 typedef std::vector<Node*> symlist;
-
-class DeferredGoto
-{
-public:
-    llvm::Instruction *marker;
-    std::string *label_name;
-    int no_instruction;
-    llvm::BasicBlock *block_marker;
-    Context *ctx;
-    int index;
-    Node *node;
-};
 
 class Generator
 {

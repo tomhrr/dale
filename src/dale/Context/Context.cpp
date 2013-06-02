@@ -15,7 +15,6 @@ Context::Context(ErrorReporter *new_erep)
     variables = new std::map<std::string, Element::Variable *>;
     structs   = new std::map<std::string, Element::Struct *>;
     enums     = new std::map<std::string, Element::Enum *>;
-    labels    = new std::map<std::string, Element::Label *>;
 
     /* active_namespaces determines the namespace into which new
      * bindings will be put. */
@@ -63,8 +62,6 @@ Context::~Context(void)
     }
     variables->clear();
     delete variables;
-
-    delete labels;
 
     delete structs;
 
@@ -192,13 +189,6 @@ void Context::dump(void)
             b != e;
             ++b) {
         fprintf(stderr, "Enum: %s\n", b->first.c_str());
-    }
-
-    for (std::map<std::string, Element::Label *>::iterator
-            b = labels->begin(), e = labels->end();
-            b != e;
-            ++b) {
-        fprintf(stderr, "Label: %s\n", b->first.c_str());
     }
 
     for (std::map<std::string, Context*>::iterator
@@ -698,6 +688,11 @@ int Context::addFunction(const char *name,
     return 1;
 }
 
+int Context::getNextLVIndex(void)
+{
+    return ++lv_index;
+}
+
 int Context::addVariable(const char *name, Element::Variable *variable)
 {
     std::map<std::string, Element::Variable *>::iterator iter;
@@ -711,26 +706,6 @@ int Context::addVariable(const char *name, Element::Variable *variable)
             std::pair<std::string, Element::Variable *>(temp_name, variable)
         );
         variable->index = ++lv_index;
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-int Context::addLabel(const char *name, Element::Label *label)
-{
-    std::map<std::string, Element::Label *>::iterator iter;
-    std::string temp_name(name);
-    // Do not add to current_context, because labels are
-    // function-scoped.
-
-    iter = labels->find(temp_name);
-
-    if (iter == labels->end()) {
-        labels->insert(
-            std::pair<std::string, Element::Label *>(temp_name, label)
-        );
-        label->index = ++lv_index;
         return 1;
     } else {
         return 0;
@@ -790,21 +765,6 @@ int Context::removeVariable(const char *name)
         return 0;
     } else {
         cc.variables->erase(iter);
-        return 1;
-    }
-}
-
-int Context::removeLabel(const char *name)
-{
-    std::map<std::string, Element::Label *>::iterator iter;
-    std::string temp_name(name);
-
-    iter = labels->find(temp_name);
-
-    if (iter == labels->end()) {
-        return 0;
-    } else {
-        labels->erase(iter);
         return 1;
     }
 }
@@ -1384,20 +1344,6 @@ Element::Variable *Context::getVariable(const char *name)
     return NULL;
 }
 
-Element::Label *Context::getLabel(const char *name)
-{
-    std::map<std::string, Element::Label *>::iterator iter;
-    std::string temp_name(name);
-
-    iter = labels->find(temp_name);
-
-    if (iter == labels->end()) {
-        return NULL;
-    } else {
-        return iter->second;
-    }
-}
-
 Element::Struct *Context::getStruct(const char *name)
 {
     std::string temp_name(name);
@@ -1671,11 +1617,6 @@ int Context::getVariablesInCurrentScope(
     return 1;
 }
 
-void Context::clearLabels(void)
-{
-    labels->clear();
-}
-
 void Context::toString(std::string *str)
 {
     std::map<std::string, Element::Variable *>::iterator iter;
@@ -1804,28 +1745,6 @@ int Context::merge(Context *other)
         ++other_ns_iter;
     }
 
-    return 1;
-}
-
-static int var_count = 0;
-
-int Context::getUnusedVarname(std::string *str)
-{
-    char buf[256];
-    sprintf(buf, "%d", var_count++);
-    str->append("_dv");
-    str->append(buf);
-    return 1;
-}
-
-static int label_count = 0;
-
-int Context::getUnusedLabelname(std::string *str)
-{
-    char buf[256];
-    sprintf(buf, "%d", label_count++);
-    str->append("_dl");
-    str->append(buf);
     return 1;
 }
 

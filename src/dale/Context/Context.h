@@ -1,7 +1,6 @@
 #ifndef DALE_CONTEXT
 #define DALE_CONTEXT
 
-#include "../Element/Label/Label.h"
 #include "../Element/Function/Function.h"
 #include "../Element/Variable/Variable.h"
 #include "../Element/Struct/Struct.h"
@@ -27,7 +26,6 @@ public:
     std::map<std::string,
         std::vector<Element::Function *>* > *functions;
     std::map<std::string, Element::Variable *>   *variables;
-    std::map<std::string, Element::Label *>      *labels;
     std::map<std::string, Element::Struct   *>   *structs;
     std::map<std::string, Element::Enum     *>   *enums;
 
@@ -48,6 +46,7 @@ public:
     int next_sub_index;
     int lv_index;
 
+    int getNextLVIndex(void);
     int getCurrentNamespaceIndex(void);
 
     Context(ErrorReporter *erep);
@@ -63,11 +62,9 @@ public:
                     Element::Function *function,
                     Node *n);
     int addVariable(const char *name, Element::Variable *variable);
-    int addLabel(const char *name, Element::Label *label);
     int addStruct(const char *name, Element::Struct *element_struct);
     int addEnum(const char *name, Element::Enum *element_enum);
     int removeVariable(const char *name);
-    int removeLabel(const char *name);
     int removeStruct(const char *name);
     int removeEnum(const char *name);
     Element::Function *getFunction(const char *name,
@@ -75,12 +72,8 @@ public:
                                    *> *types,
                                    int is_macro);
     Element::Variable *getVariable(const char *name);
-    Element::Label *getLabel(const char *name);
     Element::Struct *getStruct(const char *name);
     Element::Enum *getEnum(const char *name);
-    void clearLabels(void);
-    int getUnusedVarname(std::string *str);
-    int getUnusedLabelname(std::string *str);
     void toString(std::string *str);
 
     void printNamespaces(void);

@@ -519,10 +519,15 @@ int mod_path_count = 0;
 
 int prefunction_ctx_index;
 
+static int var_count = 0;
 int Generator::getUnusedVarname(std::string *mystr)
 {
+    char buf[256];
     do {
-        ctx->getUnusedVarname(mystr);
+        mystr->clear();
+        sprintf(buf, "%d", var_count++);
+        mystr->append("_dv");
+        mystr->append(buf);
     } while (mod->getGlobalVariable(llvm::StringRef(*mystr)));
 
     return 1;
@@ -537,7 +542,6 @@ Generator::Generator()
 
     nt                 = new NativeTypes();
 
-    defgotos           = new std::vector<DeferredGoto *>;
     included_inodes    = new std::multiset<ino_t>;
     included_once_tags = new std::set<std::string>;
     included_modules   = new std::set<std::string>;
@@ -618,7 +622,6 @@ Generator::~Generator()
 {
     delete ctx;
     delete prsr;
-    delete defgotos;
     delete included_inodes;
     delete included_once_tags;
     delete included_modules;
@@ -7670,7 +7673,7 @@ ParseResult *Generator::parseGoto(Element::Function *dfn,
 
     Token *t = lname->token;
 
-    Element::Label *mylabel = ctx->getLabel(t->str_value.c_str());
+    Element::Label *mylabel = dfn->getLabel(t->str_value.c_str());
 
     if (!mylabel) {
         /* Block does not exist - add to defgotos. Also add a
@@ -7693,15 +7696,13 @@ ParseResult *Generator::parseGoto(Element::Function *dfn,
         dg->node = myn;
 
         if (block->size() == 0) {
-            dg->no_instruction = 1;
             dg->marker         = NULL;
         } else {
-            dg->no_instruction = 0;
             llvm::Instruction *tinstr = &(block->back());
             dg->marker = tinstr;
         }
 
-        defgotos->push_back(dg);
+        dfn->defgotos->push_back(dg);
 
         llvm::IRBuilder<> builder(block);
         builder.CreateBitCast(
@@ -7735,6 +7736,7 @@ ParseResult *Generator::parseGoto(Element::Function *dfn,
                 myp.block = temp->block;
             }
         }
+        block = myp.block;
         llvm::IRBuilder<> builder(block);
         llvm::BasicBlock *to_block = mylabel->block;
         builder.CreateBr(to_block);
@@ -7800,12 +7802,7 @@ ParseResult *Generator::parseLabel(Element::Function *dfn,
         builder.CreateBr(new_block);
     }
 
-    Element::Label *my_label = new Element::Label();
-    my_label->block = new_block;
-    my_label->ctx = ctx->current_context;
-
-    int res = ctx->addLabel(t->str_value.c_str(), my_label);
-    if (!res) {
+    if (dfn->getLabel(t->str_value.c_str())) {
         Error *e = new Error(
             ErrorInst::Generator::RedeclarationOfLabel,
             n,
@@ -7814,6 +7811,13 @@ ParseResult *Generator::parseLabel(Element::Function *dfn,
         erep->addError(e);
         return NULL;
     }
+
+    int index = ctx->getNextLVIndex();
+    Element::Label *my_label = new Element::Label();
+    my_label->block = new_block;
+    my_label->ctx = ctx->current_context;
+    my_label->index = index;
+    dfn->addLabel(t->str_value.c_str(), my_label);
 
     return new ParseResult(
                new_block,
@@ -9297,11 +9301,6 @@ int Generator::makeTemporaryGlobalFunction(
 
     int error_count = erep->getErrorTypeCount(ErrorType::Error);
 
-    *dgs = *defgotos;
-    defgotos->clear();
-    *mls = *(ctx->labels);
-    ctx->clearLabels();
-
     global_functions.push_back(dfn);
     global_function = dfn;
 
@@ -9339,9 +9338,6 @@ void Generator::removeTemporaryGlobalFunction(
     } else {
         global_block = NULL;
     }
-
-    *defgotos = *dgs;
-    *(ctx->labels) = *mls;
 
     /* Remove the temporary function. */
     current->llvm_function->eraseFromParent();
@@ -12450,12 +12446,6 @@ tryvar:
      * create an anonymous function and return a pointer to it. */
 
     if (first->is_token and !first->token->str_value.compare("fn")) {
-        std::vector<DeferredGoto*> mine = *defgotos;
-        defgotos->clear();
-        std::map<std::string, Element::Label*> mylabels =
-            *(ctx->labels);
-        ctx->clearLabels();
-
         int preindex = ctx->index;
 
         std::vector<std::string> nss;
@@ -12472,8 +12462,6 @@ tryvar:
                    - error_count;
 
         if (diff) {
-            *defgotos = mine;
-            *(ctx->labels) = mylabels;
             for (std::vector<std::string>::reverse_iterator
                     b = nss.rbegin(),
                     e = nss.rend();
@@ -12518,8 +12506,6 @@ tryvar:
             (*b)->index = 0;
         }
 
-        *defgotos = mine;
-        *(ctx->labels) = mylabels;
         for (std::vector<std::string>::reverse_iterator
                 b = nss.rbegin(),
                 e = nss.rend();
@@ -13518,12 +13504,6 @@ Node *Generator::parseOptionalMacroCall(Node *n)
 
     int error_count = erep->getErrorTypeCount(ErrorType::Error);
 
-    std::vector<DeferredGoto*> mine = *defgotos;
-    defgotos->clear();
-    std::map<std::string, Element::Label*> mylabels =
-        *(ctx->labels);
-    ctx->clearLabels();
-
     global_functions.push_back(dfn);
     global_function = dfn;
 
@@ -13565,9 +13545,6 @@ Node *Generator::parseOptionalMacroCall(Node *n)
     } else {
         global_block = NULL;
     }
-
-    *defgotos = mine;
-    *(ctx->labels) = mylabels;
 
     /* Remove the temporary function. */
     fn->eraseFromParent();
@@ -14034,7 +14011,8 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
 
     int current_block_count = dfn->llvm_function->size();
     int current_instr_index = block->size();
-    int current_dgcount = defgotos->size();
+    int current_dgcount = dfn->defgotos->size();
+    std::map<std::string, Element::Label *> labels = *(dfn->labels);
     llvm::BasicBlock *original_block = block;
     ContextSavePoint *csp = new ContextSavePoint(ctx);
 
@@ -14146,10 +14124,11 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
             bl->eraseFromParent();
         }
 
-        int dg_to_pop_back = defgotos->size() - current_dgcount;
+        int dg_to_pop_back = dfn->defgotos->size() - current_dgcount;
         while (dg_to_pop_back--) {
-            defgotos->pop_back();
+            dfn->defgotos->pop_back();
         }
+        *dfn->labels = labels;
 
         csp->restore();
 
@@ -14629,14 +14608,14 @@ int Generator::parseFunctionBody(Element::Function *dfn,
     int bcount;
     int bmax;
 
-    if (defgotos->size() > 0) {
+    if (dfn->defgotos->size() > 0) {
         /* Have got deferred gotos - try to resolve. */
         std::vector<DeferredGoto *>::iterator dgiter =
-            defgotos->begin();
+            dfn->defgotos->begin();
 
-        while (dgiter != defgotos->end()) {
+        while (dgiter != dfn->defgotos->end()) {
             std::string *ln     = (*dgiter)->label_name;
-            Element::Label *ell = ctx->getLabel(ln->c_str());
+            Element::Label *ell = dfn->getLabel(ln->c_str());
             if (!ell) {
                 Error *e = new Error(
                     ErrorInst::Generator::LabelNotInScope,
@@ -14661,7 +14640,7 @@ int Generator::parseFunctionBody(Element::Function *dfn,
             llvm::IRBuilder<> builder(block_marker);
             builder.SetInsertPoint(block_marker);
 
-            if ((*dgiter)->no_instruction) {
+            if (!((*dgiter)->marker)) {
                 if (block_marker->size() == 0) {
                     builder.SetInsertPoint(block_marker);
                 } else {
@@ -14746,7 +14725,8 @@ int Generator::parseFunctionBody(Element::Function *dfn,
                  * cross that variable declaration, in which case
                  * you want to bail. (This is because the
                  * declaration may result in a destructor being
-                 * called on scope close.) */
+                 * called on scope close, and the variable may not be
+                 * initialised when the goto is reached.) */
                 std::vector<Element::Variable *> vars_before;
                 std::vector<Element::Variable *> real_vars_before;
                 while (ell_ctx) {
@@ -14897,8 +14877,8 @@ finish:
     /* Clear deferred gotos and labels. For anonymous functions,
      * these are saved and restored in parseFunctionBodyInstr. */
 
-    defgotos->clear();
-    ctx->clearLabels();
+    dfn->defgotos->clear();
+    dfn->labels->clear();
 
     global_blocks.pop_back();
     if (global_blocks.size()) {
