@@ -2,6 +2,7 @@
 #define DALE_CONTEXT_SAVEPOINT
 
 #include "../Context/Context.h"
+#include "../NamespaceSavePoint/NamespaceSavePoint.h"
 
 #include <vector>
 #include <string>
@@ -9,6 +10,11 @@
 
 namespace dale
 {
+struct SPNode
+{
+    NamespaceSavePoint *nsp;
+    std::map<std::string, SPNode *> children;
+};
 class ContextSavePoint
 {
 public:
@@ -17,18 +23,10 @@ public:
     bool restore(void);
 
 private:
-    NativeTypes *nt;
-    std::map<std::string, int> *function_count;
-    std::set<std::string> *variables;
-    std::set<std::string> *structs;
-    std::set<std::string> *enums;
-    int active_namespace_count;
-    int used_namespace_count;
-    std::map<std::string, ContextSavePoint *> *namespaces;
-    int current_namespace_count;
-    Context *my_context;
-
-    /* todo: sub-contexts. */
+    SPNode *nsps;
+    int active_count;
+    int used_count;
+    Context *src_ctx;
 };
 }
 

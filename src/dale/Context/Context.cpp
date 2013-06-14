@@ -1,506 +1,191 @@
 #include "Context.h"
 
 #include "llvm/LinkAllVMCore.h"
-#include "../NativeTypes/NativeTypes.h"
-
-#define DEBUG 0
 
 namespace dale
 {
-Context::Context(ErrorReporter *new_erep)
+Context::Context(void)
 {
-    nt = new NativeTypes();
-    functions = new std::map<std::string,
-    std::vector<Element::Function *>* >;
-    variables = new std::map<std::string, Element::Variable *>;
-    structs   = new std::map<std::string, Element::Struct *>;
-    enums     = new std::map<std::string, Element::Enum *>;
+    /* For serialisation use only. Native types and an error reporter
+     * must be set post-deserialisation. */
+}
 
-    /* active_namespaces determines the namespace into which new
-     * bindings will be put. */
-    active_namespaces    =
-        new std::vector<std::pair<std::string, Context*> >;
-    /* used_namespaces is the list of namespaces for lookup -
-     * introduced via a (using-namespace <x>) call. */
-    used_namespaces      =
-        new std::vector<std::pair<std::string, Context*> >;
-    /* A map of all activated namespaces for the current context.
-     * */
-    namespace_to_context = new std::map<std::string, Context *>;
+Context::Context(ErrorReporter *er,
+                 NativeTypes *nt)
+{
+    this->nt = nt;
+    this->er = er;
 
-    erep = new_erep;
+    Namespace *root = new Namespace(er, ".", NULL, 0);
+    namespaces = new NSNode();
+    namespaces->ns = root;
 
-    current_namespaces = new std::vector<std::string>;
+    active_ns_nodes.push_back(namespaces);
+    used_ns_nodes.push_back(namespaces);
+}
 
-    current_context = NULL;
-    parent_context = NULL;
-
-    index = 0;
-    next_sub_index = 1;
-    top_context = NULL;
-    lv_index = 0;
+void 
+Context::deleteNamespaces(NSNode *node)
+{
+    for (std::map<std::string, NSNode *>::iterator
+            b = node->children.begin(),
+            e = node->children.end();
+            b != e;
+            ++b) {
+        deleteNamespaces(b->second);
+    }
+    delete node->ns;
+    delete node;
 }
 
 Context::~Context(void)
 {
-    std::map<std::string, std::vector<Element::Function *> *>::iterator iter
-    = functions->begin();
-
-    while (iter != functions->end()) {
-        delete iter->second;
-        ++iter;
-    }
-    functions->clear();
-    delete functions;
-
-    std::map<std::string, Element::Variable *>::iterator viter
-    = variables->begin();
-
-    while (viter != variables->end()) {
-        delete viter->second;
-        ++viter;
-    }
-    variables->clear();
-    delete variables;
-
-    delete structs;
-
-    std::map<std::string, Element::Enum *>::iterator eiter
-    = enums->begin();
-
-    while (eiter != enums->end()) {
-        delete eiter->second;
-        ++eiter;
-    }
-
-    delete enums;
-
-    delete current_namespaces;
-    delete active_namespaces;
-    delete used_namespaces;
-    delete namespace_to_context;
+    deleteNamespaces(namespaces);
 }
 
-int Context::getContextDepth(Context *myctx, int *depth)
+int
+Context::getNextLVIndex(void)
 {
-    for (std::map<std::string, Context *>::iterator
-            b = namespace_to_context->begin(),
-            e = namespace_to_context->end();
-            b != e;
-            ++b) {
-        Context *check = b->second;
-        if (check == myctx) {
-            *depth = 0;
-            return 1;
+    return ++lv_index;
+}
+
+Namespace *
+Context::ns(void)
+{
+    return active_ns_nodes.back()->ns;
+}
+
+bool
+Context::popUntilNamespace(Namespace *ns)
+{
+    for (;;) {
+        if (active_ns_nodes.size() == 0) {
+            return false;
         }
-        if (check->getContextDepth(myctx, depth)) {
-            *depth = *depth + 1;
-            return 1;
+        if (active_ns_nodes.back()->ns == ns) {
+            return true;
         }
+        active_ns_nodes.pop_back();
     }
-    return 0;
-}
-
-int Context::getVarsAfterIndex(int index,
-                               std::vector<Element::Variable *> *vars)
-{
-    for (std::map<std::string, Element::Variable *>::iterator
-            vb = variables->begin(),
-            ve = variables->end();
-            vb != ve;
-            ++vb) {
-        Element::Variable *v = vb->second;
-        if (!v->index) {
-            continue;
+    for (;;) {
+        if (used_ns_nodes.size() == 0) {
+            return false;
         }
-        if (v->index >= index) {
-            vars->push_back(v);
+        if (used_ns_nodes.back()->ns == ns) {
+            return true;
         }
+        used_ns_nodes.pop_back();
     }
-
-    for (std::map<std::string, Context*>::iterator
-            b = namespace_to_context->begin(),
-            e = namespace_to_context->end();
-            b != e;
-            ++b) {
-        Context *myctx = b->second;
-        myctx->getVarsAfterIndex(index, vars);
-    }
-
-    return 1;
 }
 
-int Context::getVarsBeforeIndex(int index,
-                                std::vector<Element::Variable *> *vars)
+bool
+Context::activateNamespace(const char *name)
 {
-    for (std::map<std::string, Element::Variable *>::iterator
-            vb = variables->begin(),
-            ve = variables->end();
-            vb != ve;
-            ++vb) {
-        Element::Variable *v = vb->second;
-        if (!v->index) {
-            continue;
-        }
-        if (v->index < index) {
-            vars->push_back(v);
-        }
+    NSNode *current_nsnode = active_ns_nodes.back();
+    std::map<std::string, NSNode *> *children = &current_nsnode->children;
+
+    std::map<std::string, NSNode *>::iterator
+        b = children->find(std::string(name));
+
+    if (b != children->end()) {
+        active_ns_nodes.push_back(b->second);
+        used_ns_nodes.push_back(b->second);
+        return true;
     }
 
-    for (std::map<std::string, Context*>::iterator
-            b = namespace_to_context->begin(),
-            e = namespace_to_context->end();
-            b != e;
-            ++b) {
-        Context *myctx = b->second;
-        myctx->getVarsBeforeIndex(index, vars);
-    }
+    Namespace *new_ns = new Namespace(er, name, 
+                                      current_nsnode->ns,
+                                      (current_nsnode->ns->lv_index + 1));
+    NSNode *new_namespaces = new NSNode();
+    new_namespaces->ns = new_ns;
+    current_nsnode->children.insert(
+        std::pair<std::string, NSNode *>(
+            std::string(name),
+            new_namespaces
+        )
+    );
 
-    return 1;
+    active_ns_nodes.push_back(new_namespaces);
+    used_ns_nodes.push_back(new_namespaces);
+
+    return true;
 }
 
-void Context::dump(void)
+bool
+Context::deactivateNamespace(const char *name)
 {
-    for (std::map<std::string,
-            std::vector<Element::Function *>* >::iterator
-            b = functions->begin(), e = functions->end();
-            b != e;
-            ++b) {
-        fprintf(stderr, "Function: %s (%d)\n", b->first.c_str(),
-                (int) b->second->size());
-    }
-
-    for (std::map<std::string, Element::Variable*>::iterator
-            b = variables->begin(), e = variables->end();
-            b != e;
-            ++b) {
-        fprintf(stderr, "Variable: %s\n", b->first.c_str());
-    }
-
-    for (std::map<std::string, Element::Struct*>::iterator
-            b = structs->begin(), e = structs->end();
-            b != e;
-            ++b) {
-        fprintf(stderr, "Struct: %s\n", b->first.c_str());
-    }
-
-    for (std::map<std::string, Element::Enum*>::iterator
-            b = enums->begin(), e = enums->end();
-            b != e;
-            ++b) {
-        fprintf(stderr, "Enum: %s\n", b->first.c_str());
-    }
-
-    for (std::map<std::string, Context*>::iterator
-            b = namespace_to_context->begin(),
-            e = namespace_to_context->end();
-            b != e;
-            ++b) {
-        fprintf(stderr, "Sub-context: %s\n", b->first.c_str());
-        Context *myctx = b->second;
-        myctx->dump();
-    }
-
-    return;
-}
-
-int Context::getCurrentNamespaceIndex(void)
-{
-    Context& cc = (current_context == NULL) ? *this : *current_context;
-
-    return cc.index;
-}
-
-int Context::popUntilNamespaceIndex(int index,
-                                    std::vector<std::string> *nss)
-{
-    while (getCurrentNamespaceIndex() != index) {
-        if (active_namespaces->size() == 0) {
-            fprintf(stderr, "popUntilNamespaceIndex failed "
-                    "(namespace not found).");
-            abort();
-        }
-        std::string ns = active_namespaces->back().first;
-        nss->push_back(ns);
-        deactivateNamespace(ns.c_str());
-    }
-
-    return 1;
-}
-
-void Context::printNamespaces(void)
-{
-    std::vector<std::pair<std::string, Context*> >::iterator iter;
-
-    printf("Active namespaces (%lu): ",
-           (unsigned long) active_namespaces->size());
-
-    for (iter = active_namespaces->begin();
-            iter != active_namespaces->end();
-            ++iter) {
-        printf("%s ", (*iter).first.c_str());
-    }
-    printf("\n");
-
-    printf("Used namespaces (%lu): ",
-           (unsigned long) used_namespaces->size());
-    for (iter = used_namespaces->begin();
-            iter != used_namespaces->end();
-            ++iter) {
-        printf("%s ", (*iter).first.c_str());
-    }
-    printf("\n");
-}
-
-static int anon_ns = 0;
-
-int Context::activateAnonymousNamespace(void)
-{
-    std::string anon("anon");
-    char buf[256];
-    sprintf(buf, "%d", anon_ns++);
-    anon.append(buf);
-
-    return activateNamespace(anon.c_str());
-}
-
-int Context::deactivateAnonymousNamespace(void)
-{
-    // Get the context from the back. Remove it from the parent's
-    // context. Once an anonymous namespace is deactivated, you
-    // will never need it again. (todo: leakage.)
-
-    std::pair<std::string, Context *> &p =
-        active_namespaces->back();
-    p.second->parent_context->namespace_to_context->erase(p.first);
-
-    used_namespaces->pop_back();
-    active_namespaces->pop_back();
-
-    current_context =
-        (active_namespaces->empty())
-        ? NULL
-        : active_namespaces->back().second;
-
-    return 1;
-}
-
-int Context::activateNamespace(const char *name)
-{
-    // Keep a pointer to the map where it should be added/checked
-    // for.
-
-    std::map<std::string, Context*> *ns_to_context =
-        this->namespace_to_context;
-
-    // Iterate over the active namespaces to find the current map.
-
-    std::vector<std::pair<std::string, Context*> >::iterator ns_iter =
-        active_namespaces->begin();
-
-    std::map<std::string, Context*>::iterator ctx_iter;
-
-    std::vector<std::string> new_current_namespaces;
-
-    while (ns_iter != active_namespaces->end()) {
-        std::string ns_name = ns_iter->first;
-
-        new_current_namespaces.push_back(ns_name);
-
-        ctx_iter = ns_to_context->find(ns_name);
-
-        if (ctx_iter == ns_to_context->end()) {
-            Error *e = new Error(
-                ErrorInst::Generator::NamespaceNotInContext,
-                new Node(),
-                ns_name.c_str()
-            );
-            erep->addError(e);
-            return 0;
-        }
-
-        ns_to_context = ctx_iter->second->namespace_to_context;
-
-        ++ns_iter;
-    }
-
-    /* Check for a mapping. If it doesn't exist, then create it. */
-
-    std::string n(name);
-    new_current_namespaces.push_back(n);
-    ctx_iter = ns_to_context->find(name);
-    Context *new_current_ctx = NULL;
-
-    if (ctx_iter == ns_to_context->end()) {
-        Context *new_ctx = new Context(erep);
-        new_ctx->parent_context =
-            (current_context ? current_context : this);
-        new_ctx->index   = next_sub_index++;
-        new_current_ctx  = new_ctx;
-        delete new_ctx->current_namespaces;
-        new_ctx->current_namespaces =
-            new std::vector<std::string>(new_current_namespaces);
-
-        ns_to_context->insert(
-            std::pair<std::string, Context *>(n, new_ctx)
-        );
-    } else {
-        new_current_ctx = ctx_iter->second;
-    }
-
-    current_context = new_current_ctx;
-
-    /* Add new namespace to active namespaces. */
-    std::pair<std::string, Context*> new_pair(n, current_context);
-    active_namespaces->push_back(new_pair);
-
-    /* Add new namespace to used namespaces. */
-    used_namespaces->push_back(new_pair);
-
-    return 1;
-}
-
-int Context::unuseNamespace(const char *name)
-{
-    if (DEBUG) {
-        fprintf(stderr,
-                "Popping namespace, ignoring name "
-                "argument (%s).\n", name);
-    }
-    used_namespaces->pop_back();
-
-    return 1;
-}
-
-/* Assumption here is that this only fails on extern_c
- * linkage in namespaces. */
-int Context::getNewFunctionName(const char *name,
-                                std::string *new_name,
-                                int linkage,
-                                std::vector<Element::Variable *> *params) {
-
-    if (linkage == dale::Linkage::Extern_C) {
-        if (active_namespaces->size() > 0) {
-            return 0;
-        } else {
-            new_name->append(name);
-            return 1;
-        }
-    }
-
-    getNewName(name, new_name);
-
-    std::vector<Element::Variable *>::iterator iter = params->begin();
-    while (iter != params->end()) {
-        (*iter)->type->toEncStr(new_name);
-        ++iter;
-    }
-
-    return 1;
-}
-
-int Context::getNewName(const char *name, std::string *new_name)
-{
-    new_name->clear();
-
-    std::string name_ss(name);
-    std::string encoded_ss;
-    encodeNonAN(&name_ss, &encoded_ss);
-
-    std::map<std::string, Context*>::iterator ctx_iter;
-
-    std::vector<std::pair<std::string, Context*> >::iterator iter;
-
-    bool has_active_namespaces = (active_namespaces->size() > 0);
-
-    new_name->append("_Z");
-
-    if (has_active_namespaces) {
-        new_name->append("N");
-    }
-
-    for (iter = active_namespaces->begin();
-            iter != active_namespaces->end();
-            ++iter) {
-
-        int len = iter->first.length();
-        char num[255];
-        sprintf(num, "%d", len);
-
-        new_name->append(num);
-        new_name->append(iter->first);
-    }
-
-    int len = strlen(name);
-    char num[255];
-    sprintf(num, "%d", len);
-    new_name->append(num);
-
-    new_name->append(encoded_ss);
-
-    if (has_active_namespaces) {
-        new_name->append("E");
-    }
-
-    return 1;
-}
-
-int Context::encodeNonAN(const std::string *from, std::string *to)
-{
-    std::string::const_iterator iter = from->begin();
-
-    while (iter != from->end()) {
-        char c = *iter;
-        char buf[5];
-
-        if (!isalnum(c) && c != '_') {
-            sprintf(buf, "$%x", c);
-        } else {
-            sprintf(buf, "%c", c);
-        }
-
-        to->append(buf);
-
-        ++iter;
-    }
-
-    return 1;
-}
-
-int Context::deactivateNamespace(const char *name)
-{
-    if (strcmp(name, active_namespaces->back().first.c_str())) {
+    if (strcmp(name, active_ns_nodes.back()->ns->name.c_str())) {
+        fprintf(stderr, "A Current: (%s)\n",
+                active_ns_nodes.back()->ns->name.c_str());
+        fprintf(stderr, "A Trying:  (%s)\n", name);
         Error *e = new Error(
             ErrorInst::Generator::CannotDeactivateInactiveNamespace,
-            new Node(),
+            nullNode(),
             name
         );
-        erep->addError(e);
-        return 0;
+        er->addError(e);
+        return false;
     }
 
-    if (strcmp(name, used_namespaces->back().first.c_str())) {
+    if (strcmp(name, used_ns_nodes.back()->ns->name.c_str())) {
+        fprintf(stderr, "U Current: (%s)\n",
+                used_ns_nodes.back()->ns->name.c_str());
+        fprintf(stderr, "U Trying:  (%s)\n", name);
+        used_ns_nodes.back()->ns->print();
         Error *e = new Error(
             ErrorInst::Generator::CannotDeactivateNonLastNamespace,
-            new Node(),
+            nullNode(),
             name
         );
-        erep->addError(e);
-        return 0;
+        er->addError(e);
+        return false;
     }
 
-    used_namespaces->pop_back();
-    active_namespaces->pop_back();
+    used_ns_nodes.pop_back();
+    active_ns_nodes.pop_back();
 
-    current_context =
-        (active_namespaces->empty())
-        ? NULL
-        : active_namespaces->back().second;
-
-    return 1;
+    return true;
 }
 
-void splitString(std::string *str, std::vector<std::string> *lst, char c)
+static int anon_count = 0;
+
+bool
+Context::activateAnonymousNamespace(void)
+{
+    char buf[8];
+    sprintf(buf, "anon%d", ++anon_count);
+    return activateNamespace(buf);
+}
+
+bool
+Context::deactivateAnonymousNamespace(void)
+{
+    /*
+    NSNode *current_nsnode = active_ns_nodes.back();
+    if (current_nsnode->ns->name.compare("_")) {
+        Error *e = new Error(
+            ErrorInst::Generator::NamespaceNotInScope,
+            nullNode(),
+            "_"
+        );
+        er->addError(e);
+        return false;
+    }
+    */
+
+    active_ns_nodes.pop_back();
+    used_ns_nodes.pop_back();
+    
+    //deleteNamespace/acurrent_nsnode);
+
+    //active_ns_nodes.back()->children.erase("_");
+
+    return true;
+}
+
+void splitString(std::string *str, 
+                 std::vector<std::string> *lst, 
+                 char c)
 {
     int index = 0;
     int len = str->length();
@@ -510,1526 +195,806 @@ void splitString(std::string *str, std::vector<std::string> *lst, char c)
         if (found == -1) {
             found = str->length();
         }
-        std::string temp(str->substr(index, found - index));
-        lst->push_back(temp);
+        lst->push_back(str->substr(index, found - index));
         index = found + 1;
     }
 }
 
-int Context::useNamespace(const char *name)
+NSNode *
+getNSNodeFromNode(std::vector<std::string> *ns_parts,
+                  NSNode *current)
 {
-    std::string ns_name(name);
-
-    Context *new_ctx;
-
-    if (!getContextFromNamespace(name, &new_ctx, 0)) {
-        return 0;
-    }
-
-    /* Split the string into its components, separated by periods, and
-     * then use each namespace in turn. */
-
-    std::vector<std::string> lst;
-    splitString(&ns_name, &lst, '.');
-
-    std::pair<std::string, Context*> new_pair(lst.back(), new_ctx);
-    used_namespaces->push_back(new_pair);
-
-    return 1;
-}
-
-int Context::addFunction(const char *name,
-                         Element::Function *function,
-                         Node *n)
-{
-    if (DEBUG)  printf("Adding function '%s'\n", name);
-
-    std::map<std::string, std::vector<Element::Function *>* >::iterator iter;
-    std::vector<Element::Function *>::iterator fn_iter;
-
-    std::string temp_name(name);
-    Context& cc = (current_context == NULL) ? *this : *current_context;
-
-    iter = cc.functions->find(temp_name);
-
-    /* There used to be a bunch of code here for checking for
-     * duplicate declarations, etc. etc. This is now (mostly) handled
-     * in the Generator. One thing that is done here is the checking
-     * for functions that have the same types as an extant macro, and
-     * vice-versa. */
-
-    if (iter != cc.functions->end()) {
-        if (!function->is_macro) {
-            fn_iter = iter->second->begin();
-            while (fn_iter != iter->second->end()) {
-                if ((!(*fn_iter)->is_macro)) {
-                    if ((*fn_iter) == function) {
-                        /* Same function, no need to add. */
-                        return 1;
-                    } else if (function->isEqualTo((*fn_iter))
-                               && (!(*fn_iter)->llvm_function ||
-                                   !(*fn_iter)->llvm_function->size())) {
-                        /* Declaration, remove the current
-                         * function and replace with the new. */
-                        iter->second->erase(fn_iter);
-                    } else if (function->isEqualTo((*fn_iter))
-                               && ((*fn_iter)->llvm_function &&
-                                   (*fn_iter)->llvm_function->size())) {
-                        /* Have got a populated function already,
-                         * don't add this new function. */
-                        return 1;
-                    } else {
-                        ++fn_iter;
-                    }
-                } else {
-                    /* Iterator contains a macro. If the parameter
-                     * type lists are the same (save for the first
-                     * two macro arguments), then throw an error.
-                     * */
-                    std::vector<Element::Variable *>::iterator b2 =
-                        (*fn_iter)->parameter_types->begin();
-                    ++b2;
-                    ++b2;
-                    if (dale::stl::isEqualToIter(
-                                function->parameter_types->begin(),
-                                function->parameter_types->end(),
-                                b2,
-                                (*fn_iter)->parameter_types->end()
-                            )) {
-                        Node *mine;
-                        if (n) {
-                            mine = n;
-                        }
-                        else {
-                            mine = new Node();
-                        }
-                        Error *e = new Error(
-                            ErrorInst::Generator::FunctionHasSameParamsAsMacro,
-                            mine, name
-                        );
-                        erep->addError(e);
-                        return 0;
-                    }
-
-                    ++fn_iter;
-                }
-            }
-        } else {
-            /* Macro is being added. If a macro with a body
-             * already exists, then don't add this new function.
-             * */
-            fn_iter = iter->second->begin();
-            while (fn_iter != iter->second->end()) {
-                if (((*fn_iter)->is_macro)) {
-                    if ((*fn_iter) == function) {
-                        /* Same function, no need to add. */
-                        return 1;
-                    } else if (function->isEqualTo((*fn_iter))
-                               && (!(*fn_iter)->llvm_function ||
-                                   !(*fn_iter)->llvm_function->size())) {
-                        /* Declaration, remove the current
-                         * function and replace with the new. */
-                        iter->second->erase(fn_iter);
-                    } else if (function->isEqualTo((*fn_iter))
-                               && ((*fn_iter)->llvm_function &&
-                                   (*fn_iter)->llvm_function->size())) {
-                        /* Have got a populated macro already,
-                         * don't add this new macro. */
-                        return 1;
-                    } else {
-                        ++fn_iter;
-                    }
-                } else {
-                    /* Iterator contains a function. If the parameter
-                     * type lists are the same (save for the first
-                     * two macro arguments), then throw an error.
-                     * */
-                    std::vector<Element::Variable *>::iterator b2 =
-                        function->parameter_types->begin();
-                    ++b2;
-                    ++b2;
-                    if (dale::stl::isEqualToIter(
-                                b2,
-                                function->parameter_types->end(),
-                                (*fn_iter)->parameter_types->begin(),
-                                (*fn_iter)->parameter_types->end()
-                            )) {
-                        Node *mine;
-                        if (n) {
-                            mine = n;
-                        }
-                        else {
-                            mine = new Node();
-                        }
-                        Error *e = new Error(
-                            ErrorInst::Generator::MacroHasSameParamsAsFunction,
-                            mine, name
-                        );
-                        erep->addError(e);
-                        return 0;
-                    }
-                    ++fn_iter;
-                }
-            }
+    for (std::vector<std::string>::iterator 
+            b = ns_parts->begin(),
+            e = ns_parts->end();
+            b != e;
+            ++b) {
+        std::map<std::string, NSNode *>::iterator
+            next_current = current->children.find((*b));
+        if (next_current == current->children.end()) {
+            return NULL;
         }
-        iter->second->push_back(function);
-    } else {
-        std::vector<Element::Function *> *fns =
-            new std::vector<Element::Function *>;
-        fns->push_back(function);
-
-        cc.functions->insert(
-            std::pair<std::string, std::vector<Element::Function *> *>(
-                temp_name, fns
-            )
-        );
+        current = next_current->second;
     }
 
-    return 1;
+    return current;
 }
 
-int Context::getNextLVIndex(void)
-{
-    return ++lv_index;
-}
-
-int Context::addVariable(const char *name, Element::Variable *variable)
-{
-    std::map<std::string, Element::Variable *>::iterator iter;
-    std::string temp_name(name);
-    Context& cc = (current_context == NULL) ? *this : *current_context;
-
-    iter = cc.variables->find(temp_name);
-
-    if (iter == cc.variables->end()) {
-        cc.variables->insert(
-            std::pair<std::string, Element::Variable *>(temp_name, variable)
-        );
-        variable->index = ++lv_index;
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-int Context::addStruct(const char *name, Element::Struct *element_struct)
-{
-    std::map<std::string, Element::Struct *>::iterator iter;
-    std::string temp_name(name);
-    Context& cc = (current_context == NULL) ? *this : *current_context;
-
-    iter = cc.structs->find(temp_name);
-
-    if (iter == cc.structs->end()) {
-        cc.structs->insert(
-            std::pair<std::string, Element::Struct *>(
-                temp_name, element_struct
-            )
-        );
-
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-int Context::addEnum(const char *name, Element::Enum *element_enum)
-{
-    std::map<std::string, Element::Enum *>::iterator iter;
-    std::string temp_name(name);
-    Context& cc = (current_context == NULL) ? *this : *current_context;
-
-    iter = cc.enums->find(temp_name);
-
-    if (iter == cc.enums->end()) {
-        cc.enums->insert(
-            std::pair<std::string, Element::Enum *>(
-                temp_name, element_enum
-            )
-        );
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-int Context::removeVariable(const char *name)
-{
-    std::map<std::string, Element::Variable *>::iterator iter;
-    std::string temp_name(name);
-    Context& cc = (current_context == NULL) ? *this : *current_context;
-
-    iter = cc.variables->find(temp_name);
-
-    if (iter == cc.variables->end()) {
-        return 0;
-    } else {
-        cc.variables->erase(iter);
-        return 1;
-    }
-}
-
-int Context::removeStruct(const char *name)
-{
-    std::map<std::string, Element::Struct *>::iterator iter;
-    std::string temp_name(name);
-    Context& cc = (current_context == NULL) ? *this : *current_context;
-
-    iter = cc.structs->find(temp_name);
-
-    if (iter == cc.structs->end()) {
-        return 0;
-    } else {
-        delete iter->second;
-        cc.structs->erase(iter);
-        return 1;
-    }
-}
-
-int Context::removeEnum(const char *name)
-{
-    std::map<std::string, Element::Enum *>::iterator iter;
-    std::string temp_name(name);
-    Context& cc = (current_context == NULL) ? *this : *current_context;
-
-    iter = cc.enums->find(temp_name);
-
-    if (iter == cc.enums->end()) {
-        return 0;
-    } else {
-        delete iter->second;
-        cc.enums->erase(iter);
-        return 1;
-    }
-}
-
-int Context::getContextFromNamespace(const char *name,
-                                     Context **ctx_ptr_ptr,
-                                     int ignore_last)
+NSNode *
+Context::getNSNode(const char *name, 
+                   bool ignore_last,
+                   std::vector<std::string> *ns_parts)
 {
     if (name[0] == '.') {
-        Context *cc = (top_context == NULL) ? this : top_context;
-        *ctx_ptr_ptr = cc;
-        return 1;
+        return namespaces;
     }
 
-    std::vector<std::string> lst;
-    std::string str(name);
-    splitString(&str, &lst, '.');
+    std::string ss_name(name);
+    splitString(&ss_name, ns_parts, '.');
 
-    std::vector<std::string>::iterator comp_iter = lst.begin();
-
-    std::map<std::string, Context*> *ns_to_context = namespace_to_context;
-    std::map<std::string, Context*>::iterator ctx_iter;
-
-    while (comp_iter != lst.end()) {
-        ctx_iter = ns_to_context->find((*comp_iter));
-
-        if (ctx_iter == ns_to_context->end()) {
-            return 0;
-        }
-
-        ns_to_context = ctx_iter->second->namespace_to_context;
-
-        ++comp_iter;
-
-        if (ignore_last && ((comp_iter + 1) == lst.end())) {
-            break;
-        }
+    if (ignore_last) {
+        ns_parts->pop_back();
     }
 
-    *ctx_ptr_ptr = ctx_iter->second;
+    NSNode *from_active =
+        getNSNodeFromNode(ns_parts, active_ns_nodes.back());
+    if (from_active) {
+        return from_active;
+    }
 
-    return 1;
+    NSNode *from_root =
+        getNSNodeFromNode(ns_parts, namespaces);
+    if (from_root) {
+        return from_root;
+    }
+
+    return NULL;
 }
 
-Element::Function *Context::getFunctionBare(
-    std::vector<Element::Function *> *function_list,
-    std::vector<Element::Type *> *types,
-    Element::Function **pclosest_fn,
-    int is_macro
-) {
-    if (!types) {
-        Element::Function *last_no_size = NULL;
+NSNode *
+Context::getNSNode(const char *name, bool ignore_last)
+{
+    std::vector<std::string> ns_parts;
+    return getNSNode(name, ignore_last, &ns_parts);
+}
 
-        std::vector<Element::Function *>::reverse_iterator iter;
-        iter = function_list->rbegin();
-        while (iter != function_list->rend()) {
-            if ((*iter)->llvm_function
-                    && (*iter)->llvm_function->size()
-                    && (is_macro == (*iter)->is_macro)) {
-                return (*iter);
-            }
-            last_no_size =
-                (is_macro == (*iter)->is_macro)
-                ? (*iter)
-                : last_no_size;
-            ++iter;
-        }
-        int fn_list_size = function_list->size();
-        if (fn_list_size == 0) {
-            return NULL;
-        }
-        return last_no_size;
-    } else {
-        /* If types are provided, is_macro is only taken into
-         * account if it is true. This is because you may want to
-         * get only the macros at a given point (the top-level),
-         * but there is no point at which you want prospective
-         * functions sans macros. */
-
-        // Get an iterator over the function list.
-        std::vector<Element::Function *>::iterator fn_iter;
-        std::vector<Element::Type *>::iterator arg_type_iter;
-        std::vector<Element::Variable *>::iterator fn_arg_type_iter;
-
-        // Get an iterator over the types.
-        fn_iter = function_list->begin();
-
-        Element::Function *best_va_fn = NULL;
-        int best_va_count = -1;
-
-        Element::Function *decl_fn    = NULL;
-        Element::Function *closest_fn = NULL;
-        int best_closest_count = -1;
-
-        // For each function:
-        while (fn_iter != function_list->end()) {
-            /* If the function is not a macro, but is_macro is
-             * set, then skip it. */
-            if (is_macro && !((*fn_iter)->is_macro)) {
-                ++fn_iter;
-                continue;
-            }
-
-            // Iterate over the function's arg types and the
-            // provided types.
-            fn_arg_type_iter = (*fn_iter)->parameter_types->begin();
-            arg_type_iter    = types->begin();
-            int matched_arg_count = 0;
-            int broke_on_va       = 0;
-            int broke_on_failure  = 0;
-
-            /* If this is a macro, then increment the function's
-             * parameter types iterator twice, to account for the
-             * implicit arguments. */
-            if ((*fn_iter)->is_macro) {
-                ++fn_arg_type_iter;
-                ++fn_arg_type_iter;
-            }
-
-            while (fn_arg_type_iter
-                    != (*fn_iter)->parameter_types->end()) {
-
-                // If the function's current element is
-                // varargs, then record the number of real
-                // arguments matched and keep a pointer to
-                // this function (if the number of matched
-                // arguments is better than that which is
-                // currently recorded) - then go to the next
-                // function.
-
-                if ((*fn_arg_type_iter)->type->base_type
-                        == Type::VarArgs) {
-                    if (matched_arg_count > best_va_count) {
-                        best_va_count = matched_arg_count;
-                        best_va_fn = (*fn_iter);
-                        broke_on_va = 1;
-                        break;
-                    } else {
-                        broke_on_failure = 1;
-                        break;
-                    }
-                }
-
-                if (arg_type_iter == types->end()) {
-                    broke_on_failure = 1;
-                    break;
-                }
-
-                // If an element matches, keep going.
-                // If it doesn't, go to the next function.
-                if ((*arg_type_iter)->isEqualTo(
-                            (*fn_arg_type_iter)->type,
-                            IGNORE_ARG_CONSTNESS)) {
-                    ++arg_type_iter;
-                    ++fn_arg_type_iter;
-                    ++matched_arg_count;
-                    continue;
-                } else {
-                    broke_on_failure = 1;
-                    break;
-                }
-            }
-
-            if ((!broke_on_failure)
-                    && (!broke_on_va)
-                    && (arg_type_iter == types->end())) {
-                // If the function is a declaration, store it
-                // in decl_fn, to use in the event that the
-                // real function cannot be found.
-
-                if (!(*fn_iter)->llvm_function->size()) {
-                    decl_fn = (*fn_iter);
-                } else {
-                    return (*fn_iter);
-                }
-            }
-
-            if (broke_on_failure) {
-                if (matched_arg_count > best_closest_count) {
-                    best_closest_count = matched_arg_count;
-                    closest_fn = (*fn_iter);
-                }
-            }
-
-            ++fn_iter;
-        }
-
-        // If no exact match - is there a varargs match? - if
-        // so, use that, otherwise, is there a declaration
-        // match? if so, use that.
-
-        if (best_va_fn) {
-            return best_va_fn;
-        } else if (decl_fn) {
-            return decl_fn;
-        }
-
-        /* Nothing - set closest_fn (if it isn't null). */
-        if (pclosest_fn) {
-            *pclosest_fn = closest_fn;
-        }
-
-        /* If the argument type list does not comprise (p DNode)s,
-         * then change the last argument to a (p DNode) and
-         * re-call this function. (E.g. you may have a macro
-         * called identity that takes a (p DNode) - if you call it
-         * with a value parseable as an int, it won't be found
-         * until you check for (p DNode) arguments. Undoubtedly
-         * there is a much more efficient way of doing this. */
-        std::vector<Element::Type *>::reverse_iterator rarg_type_iter;
-        rarg_type_iter = types->rbegin();
-
-        Element::Type *temp_type = new Element::Type();
-        temp_type->struct_name = new std::string("DNode");
-        temp_type->namespaces  = new std::vector<std::string>;
-        Element::Type *r_type = new Element::Type(temp_type);
-
-        while (rarg_type_iter != types->rend()) {
-            Element::Type *temp = *rarg_type_iter;
-            if (!( temp->points_to
-                    &&
-                    temp->points_to->struct_name
-                    &&
-                    !(temp->points_to
-                      ->struct_name
-                      ->compare("DNode")))) {
-                break;
-            }
-            ++rarg_type_iter;
-        }
-
-        if (rarg_type_iter == types->rend()) {
-            return NULL;
-        }
-
-        Element::Type *old_type = (*rarg_type_iter);
-        (*rarg_type_iter) = r_type;
-        Element::Function *temp = getFunctionBare(
-                                      function_list,
-                                      types,
-                                      NULL,
-                                      1
-                                  );
-        (*rarg_type_iter) = old_type;
-        if (temp) {
-            return temp;
-        }
-
+Namespace *
+Context::getNamespace(const char *name, bool ignore_last)
+{
+    NSNode *nsnode = getNSNode(name, ignore_last);
+    if (!nsnode) {
         return NULL;
     }
-}
-
-int Context::isOverloadedFunctionBare(
-    Element::Function *check_fn,
-    std::vector<Element::Function *> *function_list
-)
-{
-    std::vector<Element::Function *>::iterator iter
-    = function_list->begin();
-
-    while (iter != function_list->end()) {
-        if (!(*iter)->isEqualTo(check_fn)) {
-            return 1;
-        }
-        ++iter;
-    }
-
-    return 0;
+    return nsnode->ns;
 }
 
 bool
-Context::existsNonExternCFunctionBare(
-    std::vector<Element::Function *> *fnvector)
+Context::useNamespace(const char *name)
 {
-    std::vector<Element::Function *>::iterator iter =
-        fnvector->begin();
-
-    while (iter != fnvector->end()) {
-        if ((*iter)->return_type->linkage != Linkage::Extern_C) {
-            return true;
-        }
-        ++iter;
-    }
-
-    return false;
-}
-
-bool Context::existsNonExternCFunction(const char *name)
-{
-    std::map<std::string, std::vector<Element::Function *> *>::iterator iter;
-    std::string temp_name(name);
-
-    if (strchr(name, '.')) {
-        Context *new_ctx;
-        if (!getContextFromNamespace(name, &new_ctx, 1)) {
-            return false;
-        }
-        std::vector<std::string> lst;
-        splitString(&temp_name, &lst, '.');
-
-        iter = new_ctx->functions->find(lst.back());
-
-        if (iter != new_ctx->functions->end()) {
-            return existsNonExternCFunctionBare(iter->second);
-        }
+    NSNode *nsnode = getNSNode(name, false);
+    if (!nsnode) {
         return false;
     }
 
-    iter = functions->find(temp_name);
+    used_ns_nodes.push_back(nsnode);
+    return true;
+}
 
-    if (iter != functions->end()) {
-        return existsNonExternCFunctionBare(iter->second);
+bool
+Context::unuseNamespace(void)
+{
+    used_ns_nodes.pop_back();
+    return true;
+}
+
+void 
+eraseLLVMMacros_(NSNode *node)
+{
+    for (std::map<std::string, NSNode *>::iterator
+            b = node->children.begin(),
+            e = node->children.end();
+            b != e;
+            ++b) {
+        eraseLLVMMacros_(b->second);
+    }
+    node->ns->eraseLLVMMacros();
+}
+
+void
+Context::eraseLLVMMacros(void)
+{
+    eraseLLVMMacros_(namespaces);
+}
+
+void 
+eraseLLVMMacrosAndCTOFunctions_(NSNode *node)
+{
+    for (std::map<std::string, NSNode *>::iterator
+            b = node->children.begin(),
+            e = node->children.end();
+            b != e;
+            ++b) {
+        eraseLLVMMacrosAndCTOFunctions_(b->second);
+    }
+    node->ns->eraseLLVMMacrosAndCTOFunctions();
+}
+
+void
+Context::eraseLLVMMacrosAndCTOFunctions(void)
+{
+    eraseLLVMMacrosAndCTOFunctions_(namespaces);
+}
+
+bool
+existsNonExternCFunctionInList(std::vector<Element::Function *> *fn_list)
+{
+    for (std::vector<Element::Function *>::iterator
+            b = fn_list->begin(),
+            e = fn_list->end();
+            b != e;
+            ++b) {
+        if ((*b)->return_type->linkage != Linkage::Extern_C) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
+Context::existsNonExternCFunction(const char *name)
+{
+    std::map<std::string, std::vector<Element::Function *> *>::iterator 
+        iter;
+
+    const char *fn_name;
+    Namespace *name_ns;
+
+    if (strchr(name, '.')) {
+        name_ns = getNamespace(name, true);
+        if (!name_ns) {
+            return false;
+        }
+        fn_name = strrchr(name, '.') + 1;
+        iter = name_ns->functions.find(fn_name);
+        if (iter != name_ns->functions.end()) {
+            return existsNonExternCFunctionInList(iter->second);
+        }
+    }
+
+    for (std::vector<NSNode *>::reverse_iterator
+            rb = used_ns_nodes.rbegin(),
+            re = used_ns_nodes.rend();
+            rb != re;
+            ++rb) {
+        iter = (*rb)->ns->functions.find(name);
+        if (iter != (*rb)->ns->functions.end()) {
+            bool res = existsNonExternCFunctionInList(iter->second);
+            if (res) {
+                return true;
+            }
+        }
     }
 
     return false;
 }
 
 bool
-Context::existsExternCFunctionBare(std::vector<Element::Function *> *fnvector)
+existsExternCFunctionInList(std::vector<Element::Function *> *fn_list)
 {
-    std::vector<Element::Function *>::iterator iter =
-        fnvector->begin();
-
-    while (iter != fnvector->end()) {
-        if ((*iter)->return_type->linkage == Linkage::Extern_C) {
+    for (std::vector<Element::Function *>::iterator
+            b = fn_list->begin(),
+            e = fn_list->end();
+            b != e;
+            ++b) {
+        if ((*b)->return_type->linkage == Linkage::Extern_C) {
             return true;
         }
-        ++iter;
+    }
+    return false;
+}
+
+bool
+Context::existsExternCFunction(const char *name)
+{
+    std::map<std::string, std::vector<Element::Function *> *>::iterator 
+        iter;
+
+    const char *fn_name;
+    Namespace *name_ns;
+
+    if (strchr(name, '.')) {
+        name_ns = getNamespace(name, true);
+        if (!name_ns) {
+            return false;
+        }
+        fn_name = strrchr(name, '.') + 1;
+        iter = name_ns->functions.find(fn_name);
+        if (iter != name_ns->functions.end()) {
+            return existsExternCFunctionInList(iter->second);
+        }
+    }
+
+    for (std::vector<NSNode *>::reverse_iterator
+            rb = used_ns_nodes.rbegin(),
+            re = used_ns_nodes.rend();
+            rb != re;
+            ++rb) {
+        iter = (*rb)->ns->functions.find(name);
+        if (iter != (*rb)->ns->functions.end()) {
+            bool res = existsExternCFunctionInList(iter->second);
+            if (res) {
+                return true;
+            }
+        }
     }
 
     return false;
 }
 
-bool Context::existsExternCFunction(const char *name)
+bool
+isOverloadedFunctionInList(Element::Function *fn,
+                           std::vector<Element::Function *> *fn_list)
 {
-    std::map<std::string, std::vector<Element::Function *> *>::iterator iter;
-    std::string temp_name(name);
-
-    if (strchr(name, '.')) {
-        Context *new_ctx;
-        if (!getContextFromNamespace(name, &new_ctx, 1)) {
-            return 0;
+    for (std::vector<Element::Function *>::iterator
+            b = fn_list->begin(),
+            e = fn_list->end();
+            b != e;
+            ++b) {
+        if (!(*b)->isEqualTo(fn)) {
+            return true;
         }
-        std::vector<std::string> lst;
-        splitString(&temp_name, &lst, '.');
-
-        iter = new_ctx->functions->find(lst.back());
-
-        if (iter != new_ctx->functions->end()) {
-            return existsExternCFunctionBare(iter->second);
-        }
-        return 0;
     }
-
-    iter = functions->find(temp_name);
-
-    if (iter != functions->end()) {
-        return existsExternCFunctionBare(iter->second);
-    }
-
     return false;
 }
 
-/* isOverloaded does not mean isExtern - this only returns true if
- * there are multiple extern functions with the same name. */
-int Context::isOverloadedFunction(const char *name)
+bool
+Context::isOverloadedFunction(const char *name)
 {
-    std::map<std::string, std::vector<Element::Function *> *>::iterator iter;
-    std::string temp_name(name);
+    std::map<std::string, std::vector<Element::Function *> *>::iterator 
+        iter;
 
     if (strchr(name, '.')) {
-        Context *new_ctx;
-        if (!getContextFromNamespace(name, &new_ctx, 1)) {
-            return 0;
+        Namespace *ns = getNamespace(name, true);
+        if (!ns) {
+            return false;
         }
-        std::vector<std::string> lst;
-        splitString(&temp_name, &lst, '.');
+        const char *fn_name = strrchr(name, '.') + 1;
 
-        iter = new_ctx->functions->find(lst.back());
+        iter = ns->functions.find(fn_name);
 
-        if (iter != new_ctx->functions->end()) {
-            return isOverloadedFunctionBare(iter->second->front(),
-                                            iter->second);
+        if (iter != ns->functions.end()) {
+            return isOverloadedFunctionInList(iter->second->front(),
+                                              iter->second);
         }
-        return 0;
+
+        return false;
     }
 
-    std::vector<std::pair<std::string, Context*> >::reverse_iterator used_iter;
-    used_iter = used_namespaces->rbegin();
     Element::Function *check_fn = NULL;
 
-    while (used_iter != used_namespaces->rend()) {
-        iter = used_iter->second->functions->find(temp_name);
-
-        if (iter != used_iter->second->functions->end()) {
+    for (std::vector<NSNode *>::reverse_iterator
+            rb = used_ns_nodes.rbegin(),
+            re = used_ns_nodes.rend();
+            rb != re;
+            ++rb) {
+        iter = (*rb)->ns->functions.find(name);
+        if (iter != (*rb)->ns->functions.end()) {
             if (!check_fn) {
                 check_fn = iter->second->front();
             }
-            int res = isOverloadedFunctionBare(check_fn, iter->second);
-            if (res) {
-                return 1;
+            if (isOverloadedFunctionInList(check_fn,
+                                           iter->second)) {
+                return true;
             }
         }
-        ++used_iter;
     }
-
-    iter = functions->find(temp_name);
-
-    if (iter != functions->end()) {
-        return isOverloadedFunctionBare(iter->second->front(),
-                                        iter->second);
-    }
-
-    return 0;
+            
+    return false;
 }
 
-Element::Function *Context::getFunction(
-    const char *name,
-    std::vector<Element::Type *> *types,
-    int is_macro
-)
+Element::Function *
+Context::getFunction(const char *name,
+                     std::vector<Element::Type *> *types,
+                     Element::Function **closest_fn,
+                     bool is_macro)
 {
-    /* If 'types' is null, this will return the last entry from
-       the relevant list. */
+    if (strchr(name, '.')) {
+        Namespace *ns = getNamespace(name, true);
+        if (!ns) {
+            return NULL;
+        }
+        const char *fn_name = strrchr(name, '.') + 1;
+        return ns->getFunction(fn_name, types, closest_fn, is_macro);
+    }
 
+    for (std::vector<NSNode *>::reverse_iterator
+            rb = used_ns_nodes.rbegin(),
+            re = used_ns_nodes.rend();
+            rb != re;
+            ++rb) {
+        Element::Function *fn = 
+            (*rb)->ns->getFunction(name, types, closest_fn, is_macro);
+        if (fn) {
+            return fn;
+        }
+    }
+
+    return NULL;
+}
+
+Element::Function *
+Context::getFunction(const char *name,
+                     std::vector<Element::Type *> *types,
+                     bool is_macro)
+{
     return getFunction(name, types, NULL, is_macro);
 }
 
-Element::Function *Context::getFunction(
-    const char *name,
-    std::vector<Element::Type *> *types,
-    Element::Function **closest_fn,
-    int is_macro
-)
+Element::Variable *
+Context::getVariable(const char *name)
 {
-    /* If the string begins with 'llvm.', then it is an intrinsic.
-     * These are always stored in the top-level context. If
-     * nothing is found, then continue with checking as per
-     * normal. */
-
-    std::map<std::string, std::vector<Element::Function *> *>::iterator iter;
-    std::string temp_name(name);
-
-    if (strstr(name, "llvm.") == name) {
-        iter = functions->find(temp_name);
-        if (iter != functions->end()) {
-            return getFunctionBare(iter->second, types,
-                                   closest_fn, is_macro);
-        }
-    }
-
-    /* If the string matches '.', then it is qualified - only
-     * accepting fully qualified functions for the moment. */
-
     if (strchr(name, '.')) {
-        Context *new_ctx;
-        if (!getContextFromNamespace(name, &new_ctx, 1)) {
+        Namespace *ns = getNamespace(name, true);
+        if (!ns) {
             return NULL;
         }
-        std::vector<std::string> lst;
-        splitString(&temp_name, &lst, '.');
+        const char *var_name = strrchr(name, '.') + 1;
+        return ns->getVariable(var_name);
+    }
 
-        iter = new_ctx->functions->find(lst.back());
-
-        if (iter != new_ctx->functions->end()) {
-            return getFunctionBare(iter->second, types,
-                                   closest_fn, is_macro);
+    for (std::vector<NSNode *>::reverse_iterator
+            rb = used_ns_nodes.rbegin(),
+            re = used_ns_nodes.rend();
+            rb != re;
+            ++rb) {
+        Element::Variable *var = (*rb)->ns->getVariable(name);
+        if (var) {
+            return var;
         }
-
-        return NULL;
     }
-
-    std::vector<std::pair<std::string, Context*> >::reverse_iterator used_iter;
-    used_iter = used_namespaces->rbegin();
-
-    while (used_iter != used_namespaces->rend()) {
-        iter = used_iter->second->functions->find(temp_name);
-
-        if (iter != used_iter->second->functions->end()) {
-            Element::Function *temp =
-                getFunctionBare(iter->second, types,
-                                closest_fn, is_macro);
-            if (temp) {
-                return temp;
-            }
-        }
-        ++used_iter;
-    }
-
-    iter = functions->find(temp_name);
-
-    if (iter != functions->end()) {
-        return getFunctionBare(iter->second, types,
-                               closest_fn, is_macro);
-    }
-
+            
     return NULL;
 }
 
-Element::Variable *Context::getVariable(const char *name)
+Element::Struct *
+Context::getStruct(const char *name)
 {
-    std::map<std::string, Element::Variable *>::iterator iter;
-    std::string temp_name(name);
-
-    /* If the string matches '.', then it is qualified - only
-     * accepting fully qualified variables for the moment. */
-
     if (strchr(name, '.')) {
-        Context *new_ctx;
-        if (!getContextFromNamespace(name, &new_ctx, 1)) {
+        Namespace *ns = getNamespace(name, true);
+        if (!ns) {
             return NULL;
         }
-        std::vector<std::string> lst;
-        splitString(&temp_name, &lst, '.');
+        const char *st_name = strrchr(name, '.') + 1;
+        return ns->getStruct(st_name);
+    }
 
-        iter = new_ctx->variables->find(lst.back());
-
-        if (iter != new_ctx->variables->end()) {
-            return iter->second;
+    for (std::vector<NSNode *>::reverse_iterator
+            rb = used_ns_nodes.rbegin(),
+            re = used_ns_nodes.rend();
+            rb != re;
+            ++rb) {
+        Element::Struct *st = (*rb)->ns->getStruct(name);
+        if (st) {
+            return st;
         }
-
-        return NULL;
     }
-
-    std::vector<std::pair<std::string, Context*> >::reverse_iterator used_iter;
-    used_iter = used_namespaces->rbegin();
-
-    while (used_iter != used_namespaces->rend()) {
-        iter = used_iter->second->variables->find(temp_name);
-
-        if (iter != used_iter->second->variables->end()) {
-            return iter->second;
-        }
-        ++used_iter;
-    }
-
-    iter = variables->find(temp_name);
-
-    if (iter != variables->end()) {
-        return iter->second;
-    }
-
+ 
     return NULL;
 }
 
-Element::Struct *Context::getStruct(const char *name)
+Element::Struct *
+Context::getStruct(const char *name,
+                   std::vector<std::string> *namespaces)
 {
-    std::string temp_name(name);
-
-    /* If the string matches '.', then it is qualified - only
-     * accepting fully qualified structs for the moment. */
-
-    if (strchr(name, '.')) {
-        Context *new_ctx;
-        if (!getContextFromNamespace(name, &new_ctx, 1)) {
-            return NULL;
-        }
-        const char *lastpart = strrchr(name, '.');
-        ++lastpart;
-
-        Element::Struct *str = new_ctx->getStruct(lastpart);
-
-        if (str) {
-            return str;
-        }
-
-        return NULL;
-    }
-
-    std::vector<std::pair<std::string, Context*> >::reverse_iterator used_iter;
-    used_iter = used_namespaces->rbegin();
-
-    while (used_iter != used_namespaces->rend()) {
-        Element::Struct *str =
-            used_iter->second->getStruct(name);
-
-        if (str) {
-            return str;
-        }
-        ++used_iter;
-    }
-
-    std::map<std::string, Element::Struct*>::iterator str_iter;
-    str_iter = structs->find(temp_name);
-
-    if (str_iter != structs->end()) {
-        return str_iter->second;
-    }
-
-    return NULL;
-}
-
-Element::Enum *Context::getEnum(const char *name)
-{
-    std::string temp_name(name);
-
-    /* If the string matches '.', then it is qualified - only
-     * accepting fully qualified enums for the moment. */
-
-    if (strchr(name, '.')) {
-        Context *new_ctx;
-        if (!getContextFromNamespace(name, &new_ctx, 1)) {
-            return NULL;
-        }
-        std::vector<std::string> lst;
-        splitString(&temp_name, &lst, '.');
-
-        Element::Enum *str = new_ctx->getEnum(lst.back().c_str());
-
-        if (str) {
-            return str;
-        }
-
-        return NULL;
-    }
-
-    std::vector<std::pair<std::string, Context*> >::reverse_iterator used_iter;
-    used_iter = used_namespaces->rbegin();
-
-    while (used_iter != used_namespaces->rend()) {
-        Element::Enum *str =
-            used_iter->second->getEnum(name);
-
-        if (str) {
-            return str;
-        }
-        ++used_iter;
-    }
-
-    std::map<std::string, Element::Enum*>::iterator str_iter;
-    str_iter = enums->find(temp_name);
-
-    if (str_iter != enums->end()) {
-        return str_iter->second;
-    }
-
-    return NULL;
-}
-
-void Context::setNamespacesForStruct(const char *name,
-                                     std::vector<std::string> *namespaces)
-{
-    namespaces->clear();
-    std::string temp_name(name);
-
-    /* If the string matches '.', then it is qualified - only
-     * accepting full qualifications for the moment. */
-
-    if (strchr(name, '.')) {
-        Context *new_ctx;
-        if (!getContextFromNamespace(name, &new_ctx, 1)) {
-            return;
-        }
-        splitString(&temp_name, namespaces, '.');
-        namespaces->pop_back();
-        return;
-    }
-
-    std::vector<std::pair<std::string, Context*> >::reverse_iterator used_iter;
-    used_iter = used_namespaces->rbegin();
-
-    while (used_iter != used_namespaces->rend()) {
-        Element::Struct *str =
-            used_iter->second->getStruct(name);
-
-        if (str) {
-            std::vector<std::string>::iterator my_iter
-            = used_iter->second->current_namespaces->begin();
-            while (my_iter != used_iter->second->current_namespaces->end()) {
-                namespaces->push_back((*my_iter));
-                ++my_iter;
-            }
-
-            return;
-        }
-        ++used_iter;
-    }
-
-    return;
-}
-
-void Context::setNamespacesForEnum(const char *name,
-                                   std::vector<std::string> *namespaces)
-{
-    namespaces->clear();
-    std::string temp_name(name);
-
-    /* If the string matches '.', then it is qualified - only
-     * accepting full qualifications for the moment. */
-
-    if (strchr(name, '.')) {
-        Context *new_ctx;
-        if (!getContextFromNamespace(name, &new_ctx, 1)) {
-            return;
-        }
-        splitString(&temp_name, namespaces, '.');
-        namespaces->pop_back();
-        return;
-    }
-
-    std::vector<std::pair<std::string, Context*> >::reverse_iterator used_iter;
-    used_iter = used_namespaces->rbegin();
-
-    while (used_iter != used_namespaces->rend()) {
-        Element::Enum *str =
-            used_iter->second->getEnum(name);
-
-        if (str) {
-            std::vector<std::string>::iterator my_iter
-            = used_iter->second->current_namespaces->begin();
-            while (my_iter != used_iter->second->current_namespaces->end()) {
-                namespaces->push_back((*my_iter));
-                ++my_iter;
-            }
-
-            return;
-        }
-        ++used_iter;
-    }
-
-    return;
-}
-
-void Context::setNamespaces(std::vector<std::string> *namespaces)
-{
-    namespaces->clear();
-
-    std::vector<std::pair<std::string, Context*> >::iterator iter =
-        active_namespaces->begin();
-
-    while (iter != active_namespaces->end()) {
-        namespaces->push_back(iter->first);
-        ++iter;
-    }
-
-    return;
-}
-
-Element::Struct *Context::getStructWithNamespaces(
-    const char *name,
-    std::vector<std::string> *namespaces
-)
-{
-    // Joining together and using getStruct, could be made quicker.
-
     if (name == NULL) {
         return NULL;
     }
 
-    if (namespaces == NULL) {
+    if ((namespaces == NULL) || (namespaces->size() == 0)) {
         return getStruct(name);
     }
 
-    std::string temp_name;
-    std::vector<std::string>::iterator iter = namespaces->begin();
-    while (iter != namespaces->end()) {
-        temp_name.append(*iter);
-        temp_name.append(".");
-        ++iter;
-    }
-    temp_name.append(name);
-
-    return getStruct(temp_name.c_str());
-}
-
-int Context::getFunctionNames(
-    std::set<std::string> *names
-)
-{
-    Context &cc = *this;
-    for (std::map<std::string, std::vector<Element::Function *> *>::iterator
-            b = cc.functions->begin(),
-            e = cc.functions->end();
+    std::string full_name;
+    for (std::vector<std::string>::iterator
+            b = namespaces->begin(),
+            e = namespaces->end();
             b != e;
             ++b) {
-        names->insert(b->first);
+        full_name.append((*b))
+                 .append(".");
     }
-    for (std::map<std::string, Context *>::iterator
-            b = namespace_to_context->begin(),
-            e = namespace_to_context->end();
+    full_name.append(std::string(name));
+
+    return getStruct(full_name.c_str());
+}
+
+Element::Enum *
+Context::getEnum(const char *name)
+{
+    if (strchr(name, '.')) {
+        Namespace *ns = getNamespace(name, true);
+        if (!ns) {
+            return NULL;
+        }
+        const char *en_name = strrchr(name, '.') + 1;
+        return ns->getEnum(en_name);
+    }
+
+    for (std::vector<NSNode *>::reverse_iterator
+            rb = used_ns_nodes.rbegin(),
+            re = used_ns_nodes.rend();
+            rb != re;
+            ++rb) {
+        Element::Enum *en = (*rb)->ns->getEnum(name);
+        if (en) {
+            return en;
+        }
+    }
+            
+    return NULL;
+}
+
+bool 
+Context::setNamespacesForStruct(const char *name,
+                                std::vector<std::string> *namespaces)
+{
+    std::string ss_name(name);
+
+    if (strchr(name, '.')) {
+        Namespace *ns = getNamespace(name, true);
+        if (!ns) {
+            return false;
+        }
+        const char *st_name = strrchr(name, '.') + 1;
+        if (!ns->getStruct(st_name)) {
+            return false;
+        }
+        splitString(&ss_name, namespaces, '.');
+        namespaces->pop_back();
+        return true;
+    }
+
+    for (std::vector<NSNode *>::reverse_iterator
+            rb = used_ns_nodes.rbegin(),
+            re = used_ns_nodes.rend();
+            rb != re;
+            ++rb) {
+        Element::Struct *st = (*rb)->ns->getStruct(name);
+        if (st) {
+            (*rb)->ns->setNamespaces(namespaces);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool
+Context::setNamespacesForEnum(const char *name,
+                              std::vector<std::string> *namespaces)
+{
+    std::string ss_name(name);
+
+    if (strchr(name, '.')) {
+        Namespace *ns = getNamespace(name, true);
+        if (!ns) {
+            return false;
+        }
+        const char *en_name = strrchr(name, '.') + 1;
+        if (!ns->getEnum(en_name)) {
+            return false;
+        }
+        splitString(&ss_name, namespaces, '.');
+        namespaces->pop_back();
+        return true;
+    }
+
+    for (std::vector<NSNode *>::reverse_iterator
+            rb = used_ns_nodes.rbegin(),
+            re = used_ns_nodes.rend();
+            rb != re;
+            ++rb) {
+        Element::Enum *en = (*rb)->ns->getEnum(name);
+        if (en) {
+            (*rb)->ns->setNamespaces(namespaces);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void
+getFunctionNames_(std::set<std::string> *names,
+                  NSNode *nsnode)
+{
+    for (std::map<std::string, NSNode *>::iterator
+            b = nsnode->children.begin(),
+            e = nsnode->children.end();
             b != e;
             ++b) {
-        b->second->getFunctionNames(names);
+        getFunctionNames_(names, b->second);
     }
-
-    return 1;
+    nsnode->ns->getFunctionNames(names);
 }
 
-int Context::getFunctionNamesInCurrentScope(
-    std::set<std::string> *names
-)
+void 
+Context::getFunctionNames(std::set<std::string> *names)
 {
-    Context& cc = (current_context == NULL) ? *this : *current_context;
-    for (std::map<std::string, std::vector<Element::Function *> *>::iterator
-            b = cc.functions->begin(),
-            e = cc.functions->end();
+    getFunctionNames_(names, namespaces);
+}
+
+bool
+merge_(NSNode *nsnode_dst, NSNode *nsnode_src)
+{
+    Namespace *ns_dst = nsnode_dst->ns;
+    Namespace *ns_src = nsnode_src->ns;
+
+    for (std::map<std::string, NSNode *>::iterator
+            src_b = nsnode_src->children.begin(),
+            src_e = nsnode_src->children.end();
+            src_b != src_e;
+            ++src_b) {
+        std::map<std::string, NSNode *>::iterator dst_m =
+            nsnode_dst->children.find(src_b->first);
+        if (dst_m != nsnode_dst->children.end()) {
+            merge_(dst_m->second, src_b->second);
+        } else {
+            src_b->second->ns->parent_namespace = ns_dst;
+            nsnode_dst->children.insert(
+                std::pair<std::string, NSNode *>(
+                    src_b->first, src_b->second
+                )
+            );
+        } 
+    }
+
+    ns_dst->merge(ns_src);
+
+    return true;
+}
+
+bool
+Context::merge(Context *other)
+{
+    return merge_(namespaces, other->namespaces);
+}
+
+bool
+regetPointers_(llvm::Module *mod, NSNode *nsnode)
+{
+    for (std::map<std::string, NSNode *>::iterator
+            b = nsnode->children.begin(),
+            e = nsnode->children.end();
             b != e;
             ++b) {
-        names->insert(b->first);
+        regetPointers_(mod, b->second);
     }
-    return 1;
+    nsnode->ns->regetPointers(mod);
+    return true;
 }
 
-int Context::getVariablesInCurrentScope(
-    std::vector<Element::Variable *> *vars
-)
+bool
+regetFunctionPointers(llvm::Module *mod, NSNode *nsnode)
 {
-    Context& cc = (current_context == NULL) ? *this : *current_context;
-    for (std::map<std::string, Element::Variable *>::reverse_iterator
-            b = cc.variables->rbegin(),
-            e = cc.variables->rend();
+    for (std::map<std::string, NSNode *>::iterator
+            b = nsnode->children.begin(),
+            e = nsnode->children.end();
             b != e;
             ++b) {
-        vars->push_back(b->second);
+        regetFunctionPointers(mod, b->second);
     }
-    return 1;
+    nsnode->ns->regetFunctionPointers(mod);
+    return true;
 }
 
-void Context::toString(std::string *str)
+bool
+Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
 {
-    std::map<std::string, Element::Variable *>::iterator iter;
-
-    for (iter = variables->begin(); iter != variables->end(); ++iter) {
-        str->append((iter)->second->name->c_str());
-        str->append(" ");
-        (iter)->second->type->toStringProper(str);
-        str->append("\n");
+    for (std::map<std::string, NSNode *>::iterator
+            b = nsnode->children.begin(),
+            e = nsnode->children.end();
+            b != e;
+            ++b) {
+        rebuildFunctions(mod, b->second);
     }
 
-    return;
-}
+    Namespace *ns = nsnode->ns; 
 
-int isExternLinkage(int linkage)
-{
-    return ((linkage == Linkage::Extern) || (linkage == Linkage::Extern_C));
-}
+    std::map<std::string, std::vector<Element::Function *>* >::iterator
+        b, e;
 
-int isExternStructLinkage(int linkage)
-{
-    return ((linkage == StructLinkage::Extern) ||
-            (linkage == StructLinkage::Opaque));
-}
+    for (b = ns->functions.begin(), e = ns->functions.end(); b != e; ++b) {
+        if (!b->first.compare("va-start")) {
+            continue;
+        }
+        if (!b->first.compare("va-end")) {
+            continue;
+        }
+        for (std::vector<Element::Function *>::iterator
+                fb = b->second->begin(),
+                fe = b->second->end();
+                fb != fe;
+                ++fb) {
+            Element::Function *fn = (*fb);
+ 
+            std::vector<llvm::Type*> types;
 
-int isExternEnumLinkage(int linkage)
-{
-    return (linkage == EnumLinkage::Extern);
-}
-
-/* Merges the argument context into this context. All externally
- * visible 'things' from the second context will be added to the
- * first context. */
-int Context::merge(Context *other)
-{
-    std::map<std::string, std::vector<Element::Function *> *>::iterator
-    fn_iter = other->functions->begin();
-
-    std::vector<Element::Function *>::iterator ind_fn_end;
-    std::vector<Element::Function *>::iterator ind_fn_iter;
-
-    while (fn_iter != other->functions->end()) {
-        int ii;
-        int len = fn_iter->second->size();
-
-        for (ii = 0; ii < len; ++ii) {
-            Element::Function *temp = fn_iter->second->at(ii);
-            if (isExternLinkage(temp->return_type->linkage)) {
-                if (!addFunction(fn_iter->first.c_str(),
-                                 temp,
-                                 NULL)) {
-                    fprintf(stderr,
-                            "Unable to merge function (%s).\n",
-                            fn_iter->first.c_str());
+            for (std::vector<Element::Variable *>::iterator
+                    vb = fn->parameter_types->begin(),
+                    ve = fn->parameter_types->end();
+                    vb != ve;
+                    ++vb) {
+                Element::Variable *var = (*vb);
+                if (var->type->base_type == Type::VarArgs) {
+                    break;
+                }
+                llvm::Type *llvm_type =
+                    toLLVMType(var->type, NULL, false, false);
+                if (!llvm_type) {
+                    er->flush();
+                    fprintf(stderr, "Failed conversion 1 (%s).\n",
+                            b->first.c_str());
                     abort();
                 }
+                types.push_back(llvm_type);
+            }
+
+            llvm::Type *llvm_return_type =
+                toLLVMType(fn->return_type, NULL, true, false);
+            if (!llvm_return_type) {
+                er->flush();
+                fprintf(stderr, "Failed conversion 2 (RT) (%s).\n",
+                        b->first.c_str());
+                abort();
+            }
+
+            bool varargs = fn->isVarArgs();
+
+            llvm::FunctionType *ft =
+                llvm::FunctionType::get(
+                    llvm_return_type,
+                    llvm::ArrayRef<llvm::Type*>(types),
+                    varargs
+                );
+            
+            fn->llvm_function =
+                llvm::dyn_cast<llvm::Function>(
+                    mod->getFunction(fn->internal_name->c_str())
+                );
+            
+            if (!fn->llvm_function) {
+                fn->llvm_function =
+                    llvm::dyn_cast<llvm::Function>(
+                        mod->getOrInsertFunction(fn->internal_name->c_str(), 
+                                                 ft)
+                    );
+            }
+            if (!fn->llvm_function) {
+                fprintf(stderr, "Internal error: unable to re-get "
+                        "function ('%s').\n",
+                        fn->internal_name->c_str());
+                abort();
             }
         }
-        ++fn_iter;
+    }
+    
+    return true;
+}
+
+bool
+Context::rebuildVariables(llvm::Module *mod, NSNode *nsnode)
+{
+    for (std::map<std::string, NSNode *>::iterator
+            b = nsnode->children.begin(),
+            e = nsnode->children.end();
+            b != e;
+            ++b) {
+        rebuildVariables(mod, b->second);
     }
 
-    std::map<std::string, Element::Enum *>::iterator enum_iter =
-        other->enums->begin();
+    Namespace *ns = nsnode->ns;
 
-    while (enum_iter != other->enums->end()) {
-        if (isExternEnumLinkage(enum_iter->second->linkage)) {
-            addEnum(enum_iter->first.c_str(),
-                    enum_iter->second);
+//    std::map<std::string,
+  //      Element::Variable *>::iterator viter =
+    //        newctx->variables.begin();
+
+    for (std::map<std::string, Element::Variable *>::iterator
+            b = ns->variables.begin(),
+            e = ns->variables.end();
+            b != e;
+            ++b) {
+        /* todo: feels like a horrible hack. How does an empty-string
+         * variable get into this map? */
+        if (!b->first.compare("")) {
+            continue;
         }
-        ++enum_iter;
-    }
-
-    std::map<std::string, Element::Variable *>::iterator var_iter
-    = other->variables->begin();
-
-    while (var_iter != other->variables->end()) {
-        if (isExternLinkage(var_iter->second->type->linkage)) {
-            if (!getVariable(var_iter->first.c_str())) {
-                if (!addVariable(var_iter->first.c_str(),
-                                 var_iter->second)) {
-                    fprintf(stderr,
-                            "Unable to merge variable (%s).\n",
-                            var_iter->first.c_str());
-                    abort();
-                }
+        Element::Variable *var = b->second;
+        /* internal_name is only set when the variable's value
+         * pointer needs to be updated after module linkage. */
+        if (var->internal_name
+                && var->internal_name->size() > 0) {
+            Element::Type *pptype = 
+                new Element::Type(var->type->makeCopy());
+            if (!pptype) {
+                fprintf(stderr, "Unable to get pointer type.\n");
+                abort();
             }
-        }
-        ++var_iter;
-    }
 
-    std::map<std::string, Element::Struct *>::iterator str_iter
-    = other->structs->begin();
-
-    while (str_iter != other->structs->end()) {
-        if (!getStruct(str_iter->first.c_str())) {
-            if (isExternStructLinkage(str_iter->second->linkage)) {
-                if (!addStruct(str_iter->first.c_str(), str_iter->second)) {
-                    fprintf(stderr,
-                            "Unable to merge struct (%s).\n",
-                            str_iter->first.c_str());
-                    abort();
-                }
+            llvm::Type *tt = toLLVMType(pptype, NULL, true, true);
+            if (!tt) {
+                fprintf(stderr, "Unable to perform type conversion.\n");
+                abort();
             }
-        }
-        ++str_iter;
-    }
+            llvm::PointerType *pt =
+                llvm::cast<llvm::PointerType>(tt);
+            llvm::Type *elt = pt->getElementType();
+            if (!elt) {
+                fprintf(stderr, "Unable to get element type.\n");
+                abort();
+            }
 
-    std::map<std::string, Context*>::iterator this_ns_iter, other_ns_iter;
-    other_ns_iter = other->namespace_to_context->begin();
-
-    while (other_ns_iter != other->namespace_to_context->end()) {
-        if (strstr(other_ns_iter->first.c_str(), "anon")
-                != other_ns_iter->first.c_str()) {
-            this_ns_iter = namespace_to_context->find(other_ns_iter->first);
-            if (this_ns_iter != namespace_to_context->end()) {
-                this_ns_iter->second->merge(other_ns_iter->second);
-            } else {
-                namespace_to_context->insert(
-                    std::pair<std::string, Context*>(
-                        other_ns_iter->first,
-                        other_ns_iter->second
+            var->value =
+                llvm::cast<llvm::Value>(
+                    mod->getOrInsertGlobal(
+                        var->internal_name->c_str(),
+                        elt
                     )
                 );
-            }
-        }
-        ++other_ns_iter;
-    }
-
-    return 1;
-}
-
-int Context::removeAllMacros(void)
-{
-    std::map<std::string,
-        std::vector<Element::Function *>* >::iterator iter
-        = functions->begin();
-
-    std::vector<Element::Function *>::iterator fiter;
-
-    while (iter != functions->end()) {
-        fiter = iter->second->begin();
-
-        while (fiter != iter->second->end()) {
-            if ((*fiter)->is_macro && (*fiter)->llvm_function) {
-                llvm::Function *llvm_fnptr = (*fiter)->llvm_function;
-                llvm_fnptr->eraseFromParent();
-                (*fiter)->llvm_function = NULL;
-                ++fiter;
-                while (fiter != iter->second->end()) {
-                    if ((*fiter)->llvm_function
-                            == llvm_fnptr) {
-                        (*fiter)->llvm_function = NULL;
-                    }
-                    ++fiter;
-                }
-                fiter = iter->second->begin();
-                continue;
-            }
-            ++fiter;
-        }
-        ++iter;
-    }
-
-    return 0;
-}
-
-int Context::regetPointers(llvm::Module *mod)
-{
-    Context& cc = (top_context == NULL)
-                  ? *this : *top_context;
-
-    for (std::map<std::string, Element::Struct *>::iterator
-            b = structs->begin(),
-            e = structs->end();
-            b != e;
-            ++b) {
-        Element::Struct *mine = b->second;
-        if (mine->internal_name) {
-            std::string temp;
-            temp.append("struct_").append(*(mine->internal_name));
-
-            llvm::StructType *myst =
-                mod->getTypeByName(temp);
-            if (!myst) {
-                temp.clear();
-                temp.append(*(mine->internal_name));
-                myst = mod->getTypeByName(temp);
-            }
-            if (!myst) {
-                fprintf(stderr, "Could not get type for struct "
-                                "%s (tried that name as well as "
-                                "struct_<that name>.\n",
-                        mine->internal_name->c_str());
+            if (!var->value) {
+                fprintf(stderr, "Internal error: unable to re-get "
+                        "global variable ('%s').\n",
+                        var->internal_name->c_str());
                 abort();
             }
-            mine->type =
-                mod->getTypeByName(temp);
-            if (!mine->type) {
-                fprintf(stderr, "Could not get type for struct "
-                        "%s\n",
-                        mine->internal_name->c_str());
+        } else {
+            var->value =
+                llvm::cast<llvm::Value>(
+                    mod->getOrInsertGlobal(
+                        (*b).first.c_str(),
+                        llvm::cast<llvm::PointerType>(toLLVMType(
+                                    new
+                                    Element::Type(var->type
+                                                     ->makeCopy()),
+                                    NULL, true, true))->getElementType()
+
+                    )
+                );
+            if (!var->value) {
+                fprintf(stderr, "Internal error: unable to re-get "
+                        "global variable ('%s', '%s').\n",
+                        (*b).first.c_str(),
+                        var->internal_name
+                        ->c_str());
                 abort();
             }
         }
     }
 
-    std::map<std::string,
-        Element::Variable *>::iterator viter =
-            variables->begin();
-
-    while (viter != variables->end()) {
-        if ((*viter).second->value) {
-            /* internal_name is only set when the variable's value
-             * pointer needs to be updated after module linkage.
-             * */
-            if ((*viter).second->internal_name
-                    && (*viter).second->internal_name->size() > 0) {
-                (*viter).second->value =
-                    llvm::cast<llvm::Value>(
-                        mod->getOrInsertGlobal(
-                            (*viter).second->internal_name->c_str(),
-                            llvm::cast<llvm::PointerType>(
-                                (*viter).second->value->getType()
-                            )->getElementType()
-                        )
-                    );
-                if (!(*viter).second->value) {
-                    fprintf(stderr, "Internal error: unable to re-get "
-                            "global variable ('%s', '%s').\n",
-                            (*viter).first.c_str(),
-                            (*viter).second->internal_name
-                            ->c_str());
-                    abort();
-                }
-            }
-        }
-        ++viter;
-    }
-
-    std::map<std::string,
-        std::vector<Element::Function *>* >::iterator fn_iter =
-            functions->begin();
-
-    while (fn_iter != functions->end()) {
-        std::vector<Element::Function *>::iterator single_fn_iter =
-            fn_iter->second->begin();
-
-        while (single_fn_iter != fn_iter->second->end()) {
-            if (strcmp(fn_iter->first.c_str(), "va-start")
-                    && strcmp(fn_iter->first.c_str(), "va-end")) {
-
-                if ((*single_fn_iter)->llvm_function) {
-                    /* Try to get the function first. */
-                    (*single_fn_iter)->llvm_function =
-                        mod->getFunction(
-                            (*single_fn_iter)->internal_name->c_str()
-                        );
-                    if (!(*single_fn_iter)->llvm_function) {
-                        /* Convert to llvm args. */
-                        std::vector<llvm::Type*> fn_args;
-
-                        std::vector<Element::Variable *>::iterator iter;
-                        std::vector<Element::Variable *>
-                        *fn_args_internal = (*single_fn_iter)->parameter_types;
-                        llvm::Type *temp;
-
-                        iter = fn_args_internal->begin();
-                        while (iter != fn_args_internal->end()) {
-                            if ((*iter)->type->base_type == Type::VarArgs) {
-                                break;
-                            }
-                            temp =
-                                cc.daleToLLVMType((*iter)->type, NULL, false,
-                                                  false);
-                            if (!temp) {
-                                erep->flush();
-                                fprintf(stderr, "failed conversion 1\n");
-                                abort();
-                            }
-                            fn_args.push_back(temp);
-                            ++iter;
-                        }
-
-                        llvm::Type *llvm_r_type =
-                            cc.daleToLLVMType((*single_fn_iter)->return_type,
-                                              NULL, true, false);
-                        if (!llvm_r_type) {
-                            erep->flush();
-                            fprintf(stderr, "failed conversion 2\n");
-                            abort();
-                        }
-                        bool varargs = (*single_fn_iter)->isVarArgs();
-
-                        llvm::FunctionType *ft =
-                            llvm::FunctionType::get(
-                                llvm_r_type,
-                                llvm::ArrayRef<llvm::Type*>(fn_args),
-                                varargs
-                            );
-
-                        (*single_fn_iter)->llvm_function =
-                            llvm::dyn_cast<llvm::Function>(
-                                mod->getOrInsertFunction(
-                                    (*single_fn_iter)->internal_name->c_str(),
-                                    ft
-                                )
-                            );
-                        if (!(*single_fn_iter)->llvm_function) {
-                            fprintf(stderr, "Internal error: unable to re-get "
-                                    "function ('%s').\n",
-                                    fn_iter->first.c_str());
-                            abort();
-                        }
-                    }
-                }
-            }
-            ++single_fn_iter;
-        }
-        ++fn_iter;
-    }
-
-    std::map<std::string, Context *>::iterator niter =
-        namespace_to_context->begin();
-
-    while (niter != namespace_to_context->end()) {
-        niter->second->erep = erep;
-        niter->second->top_context =
-            top_context ? top_context : this;
-        niter->second->regetPointers(mod);
-        ++niter;
-    }
-
-    return 1;
+    return true;
 }
 
-llvm::Type *Context::daleToLLVMType(Element::Type *type,
-                                    Node *n,
-                                    bool
-                                    allow_non_first_class,
-                                    bool
-                                    externally_defined)
+bool
+Context::regetPointers(llvm::Module *mod)
 {
-    int error_count =
-        erep->getErrorTypeCount(ErrorType::Error);
-
-    /* If type designates an opaque struct, then disallow
-     * instantiation. */
-    if (!allow_non_first_class) {
-        if (type->struct_name) {
-            Element::Struct *structp =
-                getStructWithNamespaces(type->struct_name->c_str(),
-                                        type->namespaces);
-            if (structp) {
-                if (((structp->linkage == StructLinkage::Opaque)
-                        || (structp->element_types->size() == 0))
-                        && !externally_defined) {
-                    Node *mine;
-                    if (n) {
-                        mine = n;
-                    }
-                    else {
-                        mine = new Node();
-                    }
-                    Error *e = new Error(
-                        ErrorInst::Generator::CannotInstantiateOpaqueStruct,
-                        mine
-                    );
-                    erep->addError(e);
-                    return NULL;
-                }
-            }
-        }
-    }
-
-    llvm::Type *llvm_type = daleToLLVMTypeInternal(type, n);
-
-    if (!llvm_type) {
-        return llvm_type;
-    }
-
-    if (!allow_non_first_class && !llvm_type->isFirstClassType()) {
-        if (type->struct_name && externally_defined) {
-            /* Even when allow_non_first_class is specified, if
-             * this is an externally defined struct, then return
-             * the type (see e.g. _IO_2_1_stdin_). */
-            return llvm_type;
-        }
-        if (error_count != erep->getErrorTypeCount(ErrorType::Error)) {
-            return llvm_type;
-        }
-        std::string temp;
-        type->toStringProper(&temp);
-        Node *mine;
-        if (n) {
-            mine = n;
-        }
-        else {
-            mine = new Node();
-        }
-        Error *e = new Error(
-            ErrorInst::Generator::TypeIsNotFirstClass,
-            mine,
-            temp.c_str()
-        );
-        erep->addError(e);
-        return NULL;
-    }
-
-    return llvm_type;
+    regetPointers_(mod, namespaces);
+    rebuildFunctions(mod, namespaces);
+    return true;
 }
 
-llvm::Type *Context::daleToLLVMTypeInternal(Element::Type *type,
-        Node *n)
+bool
+Context::regetPointersForNewModule(llvm::Module *mod)
+{
+    regetPointers_(mod, namespaces);
+    rebuildVariables(mod, namespaces);
+    rebuildFunctions(mod, namespaces);
+    regetFunctionPointers(mod, namespaces);
+    return true;
+}
+
+llvm::Type *
+Context::toLLVMType(Element::Type *type,
+                    Node *n)
 {
     llvm::LLVMContext &lc = llvm::getGlobalContext();
 
@@ -2048,7 +1013,7 @@ llvm::Type *Context::daleToLLVMTypeInternal(Element::Type *type,
             if ((*iter)->base_type == Type::VarArgs) {
                 is_varargs = 1;
             } else {
-                llvm::Type *t = daleToLLVMTypeInternal((*iter), n);
+                llvm::Type *t = toLLVMType((*iter), n);
                 if (!t) {
                     return NULL;
                 }
@@ -2059,7 +1024,7 @@ llvm::Type *Context::daleToLLVMTypeInternal(Element::Type *type,
 
         llvm::FunctionType *fntype = 
             llvm::FunctionType::get(
-                daleToLLVMTypeInternal(type->return_type, n),
+                toLLVMType(type->return_type, n),
                 llvm_fn_params,
                 is_varargs
             );
@@ -2069,7 +1034,7 @@ llvm::Type *Context::daleToLLVMTypeInternal(Element::Type *type,
     if (type->is_array) {
         llvm::Type *new_type =
             llvm::ArrayType::get(
-                daleToLLVMTypeInternal(type->array_type, n),
+                toLLVMType(type->array_type, n),
                 type->array_size
             );
         return new_type;
@@ -2077,7 +1042,7 @@ llvm::Type *Context::daleToLLVMTypeInternal(Element::Type *type,
 
     if (type->points_to != NULL) {
         llvm::Type *temp_type =
-            daleToLLVMTypeInternal(type->points_to, n);
+            toLLVMType(type->points_to, n);
 
         if (!temp_type) {
             return NULL;
@@ -2085,15 +1050,13 @@ llvm::Type *Context::daleToLLVMTypeInternal(Element::Type *type,
         /* If this is a pointer to void, then return a _vp struct
          * instead. */
         if (temp_type->isVoidTy()) {
-            Element::Struct *structp =
-                getStructWithNamespaces("_vp", NULL);
-
+            Element::Struct *structp = getStruct("_vp", NULL);
             if (!structp) {
                 fprintf(stderr, "Internal error: no _vp struct.\n");
                 abort();
             }
             if (!structp->type) {
-                fprintf(stderr, "Internal error: found struct, "
+                fprintf(stderr, "Internal error: found vp struct, "
                         "but it doesn't have a type. (%s)\n",
                         type->struct_name->c_str());
                 abort();
@@ -2179,8 +1142,7 @@ llvm::Type *Context::daleToLLVMTypeInternal(Element::Type *type,
     /* Check for a struct. */
     if (type->struct_name != NULL) {
         Element::Struct *structp =
-            getStructWithNamespaces(type->struct_name->c_str(),
-                                    type->namespaces);
+            getStruct(type->struct_name->c_str(), type->namespaces);
 
         if (structp) {
             if (!structp->type) {
@@ -2195,20 +1157,228 @@ llvm::Type *Context::daleToLLVMTypeInternal(Element::Type *type,
 
     std::string temp;
     type->toStringProper(&temp);
-    Node *mine;
-    if (n) {
-        mine = n;
-    }
-    else {
-        mine = new Node();
-    }
     Error *e = new Error(
         ErrorInst::Generator::UnableToConvertTypeToLLVMType,
-        mine,
+        (n ? n : nullNode()),
         temp.c_str()
     );
-    erep->addError(e);
+    er->addError(e);
 
     return NULL;
 }
+
+llvm::Type *
+Context::toLLVMType(Element::Type *type,
+                    Node *n,
+                    bool allow_non_first_class,
+                    bool externally_defined)
+{
+    int error_count =
+        er->getErrorTypeCount(ErrorType::Error);
+
+    /* If type designates an opaque struct, then disallow
+     * instantiation. */
+    if (!allow_non_first_class) {
+        if (type->struct_name) {
+            Element::Struct *structp =
+                getStruct(type->struct_name->c_str(),
+                          type->namespaces);
+            if (structp) {
+                if (((structp->linkage == StructLinkage::Opaque)
+                        || (structp->element_types->size() == 0))
+                        && !externally_defined) {
+                    Error *e = new Error(
+                        ErrorInst::Generator::CannotInstantiateOpaqueStruct,
+                        (n ? n : nullNode())
+                    );
+                    er->addError(e);
+                    return NULL;
+                }
+            }
+        }
+    }
+
+    llvm::Type *llvm_type = toLLVMType(type, n);
+
+    if (!llvm_type) {
+        return llvm_type;
+    }
+
+    if (!allow_non_first_class && !llvm_type->isFirstClassType()) {
+        if (type->struct_name && externally_defined) {
+            /* Even when allow_non_first_class is specified, if
+             * this is an externally defined struct, then return
+             * the type (see e.g. _IO_2_1_stdin_). */
+            return llvm_type;
+        }
+        if (error_count != er->getErrorTypeCount(ErrorType::Error)) {
+            return llvm_type;
+        }
+        std::string temp;
+        type->toStringProper(&temp);
+        Error *e = new Error(
+            ErrorInst::Generator::TypeIsNotFirstClass,
+            (n ? n : nullNode()),
+            temp.c_str()
+        );
+        er->addError(e);
+        return NULL;
+    }
+
+    return llvm_type;
+}
+
+bool
+removeUnneeded_(std::set<std::string> *forms,
+                std::set<std::string> *found_forms,
+                NSNode *nsnode)
+{
+    nsnode->ns->removeUnneeded(forms, found_forms);
+
+    for (std::map<std::string, NSNode *>::iterator
+            b = nsnode->children.begin(),
+            e = nsnode->children.end();
+            b != e;
+            ++b) {
+        std::set<std::string>::iterator fb = forms->find(b->first);
+        if (fb != forms->end()) {
+            found_forms->insert((*fb));
+            continue;
+        }
+
+        std::set<std::string> subforms;
+        for (std::set<std::string>::iterator
+                fb = forms->begin(),
+                fe = forms->end();
+                fb != fe;
+                ++fb) {
+            if (fb->find(b->first) == 0) {
+                std::string subform((*fb));
+                subform.erase(0, (b->first.size() + 1));
+                subforms.insert(subform);
+            }
+        }
+
+        std::set<std::string> subfound_forms;
+
+        removeUnneeded_(&subforms,
+                        &subfound_forms,
+                        b->second);
+
+        for (std::set<std::string>::iterator
+                sfb = subfound_forms.begin(),
+                sfe = subfound_forms.end();
+                sfb != sfe;
+                ++sfb) {
+            std::string fullform;
+            fullform.append(b->first)
+                    .append(".")
+                    .append(*sfb);
+            found_forms->insert(fullform);
+        }
+    }
+
+    return true;
+}
+
+bool
+Context::removeUnneeded(std::set<std::string> *forms,
+                        std::set<std::string> *found_forms)
+{
+    return removeUnneeded_(forms, found_forms, namespaces);
+}
+
+bool
+eraseOnceForms_(std::set<std::string> *once_tags,
+                llvm::Module *mod,
+                NSNode *nsnode)
+{
+    for (std::map<std::string, NSNode *>::iterator
+            b = nsnode->children.begin(),
+            e = nsnode->children.end();
+            b != e;
+            ++b) {
+        eraseOnceForms_(once_tags, mod, b->second);
+    }
+    nsnode->ns->eraseOnceFunctions(once_tags, mod);
+    nsnode->ns->eraseOnceVariables(once_tags, mod);
+
+    return true;
+}
+
+bool
+Context::eraseOnceForms(std::set<std::string> *once_tags,
+                        llvm::Module *mod)
+{
+    return eraseOnceForms_(once_tags, mod, namespaces);
+}
+
+void
+relink_(NSNode *nsnode)
+{
+    for (std::map<std::string, NSNode *>::iterator
+            b = nsnode->children.begin(),
+            e = nsnode->children.end();
+            b != e;
+            ++b) {
+        b->second->ns->parent_namespace = nsnode->ns;
+        relink_(b->second);
+    }
+}
+
+void
+Context::relink(void)
+{
+    relink_(namespaces);
+}
+
+void
+print_(NSNode *nsnode)
+{
+    nsnode->ns->print();
+
+    for (std::map<std::string, NSNode *>::iterator
+            b = nsnode->children.begin(),
+            e = nsnode->children.end();
+            b != e;
+            ++b) {
+        fprintf(stderr, "Namespace (>): %s\n",
+                        b->first.c_str());
+        print_(b->second);
+    }
+}
+
+void
+Context::print(void)
+{
+    print_(namespaces);
+}
+
+bool
+deleteAnonymousNamespaces_(NSNode *nsnode)
+{
+    if (nsnode->ns->name.find("anon") == 0) {
+        delete nsnode->ns;
+    }
+
+    for (std::map<std::string, NSNode *>::iterator
+            b = nsnode->children.begin(),
+            e = nsnode->children.end();
+            b != e;
+            ++b) {
+        deleteAnonymousNamespaces_(b->second);
+        if (b->first.find("anon") == 0) {
+            nsnode->children.erase(b);
+        }
+    }
+
+    return true;
+}
+
+bool
+Context::deleteAnonymousNamespaces(void)
+{
+    return deleteAnonymousNamespaces_(namespaces);
+}
+
 }

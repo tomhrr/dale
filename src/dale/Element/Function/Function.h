@@ -42,6 +42,7 @@ public:
     int attrsAreEqual(Element::Function *fn);
     Element::Label *getLabel(const char *str);
     bool addLabel(const char *str, Element::Label *label);
+    bool isDeclaration(void);
 };
 }
 }

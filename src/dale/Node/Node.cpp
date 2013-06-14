@@ -153,4 +153,14 @@ void Node::copyMetaTo(Node *other)
     other->macro_end = macro_end;
     other->filename = filename;
 }
+
+Node *null_node;
+Node *nullNode(void)
+{
+    if (null_node) {
+        return null_node;
+    }
+    null_node = new Node(0);
+    return null_node;
+}
 }

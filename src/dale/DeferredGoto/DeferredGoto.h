@@ -6,8 +6,8 @@
 
 namespace dale
 {
-class Context;
 class Node;
+class Namespace;
 
 /*! DeferredGoto
     
@@ -26,8 +26,8 @@ public:
     std::string *label_name;
     /*! The block to which the goto should be added. */
     llvm::BasicBlock *block_marker;
-    /*! The context to which the label's function belongs. */
-    Context *ctx;
+    /*! The namespace to which the label's function belongs. */
+    Namespace *ns;
     /*! The label's index. Used to determine the variables for which
      *  destructor calls should be added. */
     int index;

@@ -141,7 +141,10 @@ include_directories ("${PROJECT_BINARY_DIR}")
 
 add_executable (dalec src/dale/dalec.cpp
                       src/dale/Generator/Generator.cpp
+                      src/dale/Linkage/Linkage.cpp
+                      src/dale/Namespace/Namespace.cpp
                       src/dale/Context/Context.cpp
+                      src/dale/NamespaceSavePoint/NamespaceSavePoint.cpp
                       src/dale/ContextSavePoint/ContextSavePoint.cpp
                       src/dale/Lexer/Lexer.cpp
                       src/dale/Node/Node.cpp

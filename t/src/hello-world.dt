@@ -1,4 +1,4 @@
-(import cstdio)
+(import cstdio-core)
 
 (def main
   (fn extern-c int (void)

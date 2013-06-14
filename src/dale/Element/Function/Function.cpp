@@ -108,5 +108,10 @@ int Function::attrsAreEqual(Element::Function *other_fn)
 
     return 1;
 }
+
+bool Function::isDeclaration(void)
+{
+    return (!llvm_function || (llvm_function->size() == 0));
+}
 }
 }

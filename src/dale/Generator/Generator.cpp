@@ -517,7 +517,7 @@ int inc_path_count = 0;
 char *mod_paths[100];
 int mod_path_count = 0;
 
-int prefunction_ctx_index;
+Namespace *prefunction_ns;
 
 static int var_count = 0;
 int Generator::getUnusedVarname(std::string *mystr)
@@ -535,7 +535,7 @@ int Generator::getUnusedVarname(std::string *mystr)
 
 Generator::Generator()
 {
-    prefunction_ctx_index = -1;
+    prefunction_ns = NULL;
 
     llvm::InitializeNativeTarget();
     llvm::InitializeAllAsmPrinters();
@@ -687,7 +687,7 @@ Element::Function *Generator::addSimpleUnaryFunction(const char *name,
 
     std::vector<llvm::Type*> new_args;
 
-    llvm::Type *llvm_type1 = daleToLLVMType(type1, NULL, false);
+    llvm::Type *llvm_type1 = toLLVMType(type1, NULL, false);
     if (!llvm_type1) {
         failedDaleToLLVMTypeConversion(type1);
         return NULL;
@@ -695,7 +695,7 @@ Element::Function *Generator::addSimpleUnaryFunction(const char *name,
     new_args.push_back(llvm_type1);
 
     llvm::Type *llvm_ret_type =
-        daleToLLVMType(return_type, NULL, false);
+        toLLVMType(return_type, NULL, false);
     if (!llvm_ret_type) {
         failedDaleToLLVMTypeConversion(return_type);
         return NULL;
@@ -709,15 +709,10 @@ Element::Function *Generator::addSimpleUnaryFunction(const char *name,
         );
 
     std::string new_name;
-    int gnfn_res = ctx->getNewFunctionName(name,
-                                           &new_name,
-                                           return_type->linkage,
-                                           new_args_ctx);
-    if (!gnfn_res) {
-        fprintf(stderr, "Internal error: "
-                "could not get function name\n");
-        abort();
-    }
+    ctx->ns()->functionNameToSymbol(name,
+                                    &new_name,
+                                    return_type->linkage,
+                                    new_args_ctx);
 
     llvm::Function *new_fn =
         llvm::cast<llvm::Function>(
@@ -740,7 +735,7 @@ Element::Function *Generator::addSimpleUnaryFunction(const char *name,
     );
     myfn->once_tag = current_once_tag;
 
-    ctx->addFunction(name, myfn, NULL);
+    ctx->ns()->addFunction(name, myfn, NULL);
 
     llvm::Function::arg_iterator largs = new_fn->arg_begin();
     std::vector<Element::Variable *>::iterator iter;
@@ -796,12 +791,12 @@ Element::Function *Generator::addSimpleBinaryFunction(const char *name,
 
     std::vector<llvm::Type*> new_args;
     new_args.reserve(2);
-    llvm::Type *llvm_type1 = daleToLLVMType(type1, NULL, false);
+    llvm::Type *llvm_type1 = toLLVMType(type1, NULL, false);
     if (!llvm_type1) {
         failedDaleToLLVMTypeConversion(type1);
         return NULL;
     }
-    llvm::Type *llvm_type2 = daleToLLVMType(type2, NULL, false);
+    llvm::Type *llvm_type2 = toLLVMType(type2, NULL, false);
     if (!llvm_type2) {
         failedDaleToLLVMTypeConversion(type2);
         return NULL;
@@ -811,18 +806,13 @@ Element::Function *Generator::addSimpleBinaryFunction(const char *name,
 
     std::string new_name;
     new_name.reserve(20);
-    int gnfn_res = ctx->getNewFunctionName(name,
-                                           &new_name,
-                                           return_type->linkage,
-                                           new_args_ctx);
-    if (!gnfn_res) {
-        fprintf(stderr, "Internal error: "
-                "could not get function name\n");
-        abort();
-    }
+    ctx->ns()->functionNameToSymbol(name,
+                                    &new_name,
+                                    return_type->linkage,
+                                    new_args_ctx);
 
     llvm::Type *llvm_return_type =
-        daleToLLVMType(return_type, NULL, false);
+        toLLVMType(return_type, NULL, false);
     if (!llvm_return_type) {
         failedDaleToLLVMTypeConversion(return_type);
         return NULL;
@@ -855,7 +845,7 @@ Element::Function *Generator::addSimpleBinaryFunction(const char *name,
     );
     myfn->once_tag = current_once_tag;
 
-    ctx->addFunction(name, myfn, NULL);
+    ctx->ns()->addFunction(name, myfn, NULL);
 
     llvm::Function::arg_iterator largs = new_fn->arg_begin();
     std::vector<Element::Variable *>::iterator iter;
@@ -955,10 +945,10 @@ void Generator::make_enum_function(
     llvm::IRBuilder<> builder(block);
 
     llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(daleToLLVMType(type, NULL, false))
+                                builder.CreateAlloca(toLLVMType(type, NULL, false))
                             );
     llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(daleToLLVMType(type, NULL, false))
+                                builder.CreateAlloca(toLLVMType(type, NULL, false))
                             );
     builder.CreateStore((*iter)->value,
                         new_ptr1);
@@ -999,7 +989,7 @@ void Generator::make_enum_function(
                             store_ptr1);
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, daleToLLVMType(new Element::Type(type),
+                store_ptr1, toLLVMType(new Element::Type(type),
                                            NULL, false)
             );
         llvm::Value *newint =
@@ -1033,7 +1023,7 @@ void Generator::make_enum_function2(
     llvm::IRBuilder<> builder(block);
 
     llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(daleToLLVMType(type, NULL, false))
+                                builder.CreateAlloca(toLLVMType(type, NULL, false))
                             );
     builder.CreateStore((*iter)->value,
                         new_ptr1);
@@ -1362,7 +1352,7 @@ void Generator::addUnsignedInt(Element::Type *type)
         llvm::IRBuilder<> builder(block);
 
         llvm::Type *llvm_type =
-            daleToLLVMType(type, NULL, false);
+            toLLVMType(type, NULL, false);
         if (!llvm_type) {
             failedDaleToLLVMTypeConversion(type);
             return;
@@ -1394,14 +1384,14 @@ int Generator::addVariable(const char *name,
     var->name->append(name);
     var->type = type;
     var->internal_name->append(name);
-    int avres = ctx->addVariable(name, var);
+    int avres = ctx->ns()->addVariable(name, var);
     if (!avres) {
         fprintf(stderr, "Unable to add %s.\n", name);
         abort();
     }
 
     llvm::Type *rdttype =
-        daleToLLVMType(type, NULL, false, false);
+        toLLVMType(type, NULL, false, false);
     if (!rdttype) {
         failedDaleToLLVMTypeConversion(type);
         return 0;
@@ -1569,11 +1559,11 @@ void Generator::addCommonDeclarations(void)
     type_pvoid = new Element::Type(new Element::Type(Type::Void));
 
     std::vector<llvm::Type*> va_start_args;
-    va_start_args.push_back(daleToLLVMType(type_pvoid, NULL, false));
+    va_start_args.push_back(toLLVMType(type_pvoid, NULL, false));
 
     llvm::FunctionType *va_start_ft =
         getFunctionType(
-            daleToLLVMType(type_void, NULL, true),
+            toLLVMType(type_void, NULL, true),
             va_start_args,
             false
         );
@@ -1598,7 +1588,7 @@ void Generator::addCommonDeclarations(void)
 
     std::string temp222;
 
-    ctx->addFunction(
+    ctx->ns()->addFunction(
         "va-start",
         new Element::Function(
             type_void,
@@ -1628,7 +1618,7 @@ void Generator::addCommonDeclarations(void)
                               type_pvoid)
     );
 
-    ctx->addFunction(
+    ctx->ns()->addFunction(
         "va-end",
         new Element::Function(
             type_void,
@@ -2003,35 +1993,7 @@ void Generator::removeMacrosAndCTOFunctions(Context *myctx,
     if (reget_pointers) {
         myctx->regetPointers(mod);
     }
-
-    for (std::map<std::string, std::vector<Element::Function
-            *>*>::iterator b = myctx->functions->begin(), e =
-                myctx->functions->end(); b != e; ++b) {
-        for (std::vector<Element::Function *>::iterator
-                fb = b->second->begin(),
-                fe = b->second->end();
-                fb != fe;
-                ++fb) {
-            Element::Function *f = (*fb);
-            if (f->is_macro || f->cto) {
-                if (f->llvm_function) {
-                    llvm::Module *m = f->llvm_function->getParent();
-                    if (m->getFunction(llvm::StringRef(
-                                           f->internal_name->c_str()))) {
-                        f->llvm_function->eraseFromParent();
-                    }
-                }
-            }
-        }
-    }
-    for (std::map<std::string, Context*>::iterator
-            b = myctx->namespace_to_context->begin(),
-            e = myctx->namespace_to_context->end();
-            b != e;
-            ++b) {
-        removeMacrosAndCTOFunctions(b->second,
-                                    reget_pointers);
-    }
+    myctx->eraseLLVMMacrosAndCTOFunctions();
 }
 
 int Generator::run(std::vector<const char *> *filenames,
@@ -2126,8 +2088,7 @@ int Generator::run(std::vector<const char *> *filenames,
         const char *filename = (*iter);
         erep->current_filename = filename;
 
-        ctx  = new Context(erep);
-        ctx->filename = filename;
+        ctx  = new Context(erep, nt);
         FILE *new_fp = fopen(filename, "r");
         if (!new_fp) {
             perror("Unable to open file");
@@ -2223,7 +2184,7 @@ int Generator::run(std::vector<const char *> *filenames,
         removeFluff();
 
         if (remove_macros) {
-            ctx->removeAllMacros();
+            ctx->eraseLLVMMacros();
             has_defined_extern_macro = 0;
         }
 
@@ -2304,7 +2265,7 @@ int Generator::run(std::vector<const char *> *filenames,
     }
 
     if (remove_macros) {
-        ctx->removeAllMacros();
+        ctx->eraseLLVMMacros();
         has_defined_extern_macro = 0;
     }
 
@@ -2339,6 +2300,9 @@ int Generator::run(std::vector<const char *> *filenames,
             PMB.populateLTOPassManager(PM, true, true);
         }
     }
+
+    /* Remove all anonymous namespaces. */
+    ctx->deleteAnonymousNamespaces();
 
     if (module_name.size() > 0) {
         /* Strip the bodies of the standard functions, and remove
@@ -2924,7 +2888,8 @@ void Generator::parseUsingNamespaceTopLevel(Node *top)
         ++symlist_iter;
     }
 
-    ctx->unuseNamespace(t->str_value.c_str());
+    ctx->unuseNamespace();
+    //ctx->unuseNamespace(t->str_value.c_str());
 
     return;
 }
@@ -2977,271 +2942,6 @@ void Generator::parseNamespace(Node *top)
     ctx->deactivateNamespace(t->str_value.c_str());
 
     return;
-}
-
-void Generator::regetPointersForFVDM(Context *newctx)
-{
-    std::map<std::string,
-        Element::Variable *>::iterator viter =
-            newctx->variables->begin();
-
-    while (viter != newctx->variables->end()) {
-        /* internal_name is only set when the variable's value
-         * pointer needs to be updated after module linkage. */
-        if ((*viter).second->internal_name
-                && (*viter).second->internal_name->size() > 0) {
-            Element::Type *pptype =
-                new
-            Element::Type((*viter).second->type->makeCopy());
-            if (!pptype) {
-                fprintf(stderr, "Unable to get pointer type.\n");
-                abort();
-            }
-
-            llvm::Type *tt =
-                daleToLLVMType(pptype, NULL, true);
-            if (!tt) {
-                fprintf(stderr, "Unable to perform type conversion.\n");
-                abort();
-            }
-            llvm::PointerType *pt =
-                llvm::cast<llvm::PointerType>(tt);
-            llvm::Type *elt = pt->getElementType();
-            if (!elt) {
-                fprintf(stderr, "Unable to get element type.\n");
-                abort();
-            }
-
-            (*viter).second->value =
-                llvm::cast<llvm::Value>(
-                    mod->getOrInsertGlobal(
-                        (*viter).second->internal_name->c_str(),
-                        elt
-                    )
-                );
-            if (!(*viter).second->value) {
-                fprintf(stderr, "Internal error: unable to re-get "
-                        "global variable ('%s', '%s').\n",
-                        (*viter).first.c_str(),
-                        (*viter).second->internal_name
-                        ->c_str());
-                abort();
-            }
-        } else {
-            (*viter).second->value =
-                llvm::cast<llvm::Value>(
-                    mod->getOrInsertGlobal(
-                        (*viter).first.c_str(),
-                        llvm::cast<llvm::PointerType>(daleToLLVMType(
-                                    new
-                                    Element::Type((*viter).second->type
-                                                        ->makeCopy()),
-                                    NULL, true))->getElementType()
-
-                    )
-                );
-            if (!(*viter).second->value) {
-                fprintf(stderr, "Internal error: unable to re-get "
-                        "global variable ('%s', '%s').\n",
-                        (*viter).first.c_str(),
-                        (*viter).second->internal_name
-                        ->c_str());
-                abort();
-            }
-        }
-        //}
-        ++viter;
-    }
-
-    std::map<std::string,
-        std::vector<Element::Function *>* >::iterator fn_iter =
-            newctx->functions->begin();
-
-    while (fn_iter != newctx->functions->end()) {
-        std::vector<Element::Function *>::iterator single_fn_iter =
-            fn_iter->second->begin();
-
-        while (single_fn_iter != fn_iter->second->end()) {
-            if (strcmp(fn_iter->first.c_str(), "va-start")
-                    && strcmp(fn_iter->first.c_str(), "va-end")) {
-
-                (*single_fn_iter)->llvm_function =
-                    llvm::dyn_cast<llvm::Function>(
-                        mod->getFunction(
-                            (*single_fn_iter)->internal_name->c_str()
-                        )
-                    );
-                if (!(*single_fn_iter)->llvm_function) {
-                    /* This is no longer an error - there are
-                     * module optimisations which may remove
-                     * functions from the module even when
-                     * they were present in the context. */
-                }
-            }
-            ++single_fn_iter;
-        }
-        ++fn_iter;
-    }
-
-    std::map<std::string, Context *>::iterator niter =
-        newctx->namespace_to_context->begin();
-
-    niter = newctx->namespace_to_context->begin();
-
-    while (niter != newctx->namespace_to_context->end()) {
-        regetPointersForFVDM(niter->second);
-        ++niter;
-    }
-
-    return;
-}
-
-void Generator::regetPointersForDM(Context *newctx)
-{
-    ctx->merge(newctx);
-
-    regetPointersForFVDM(newctx);
-
-    return;
-}
-
-int Generator::removeUnneededForms(
-    Context *mynewcontext,
-    std::set<std::string> *forms_set,
-    std::set<std::string> *found
-)
-{
-    std::set<std::string>::iterator fs_iter;
-
-    for (std::map<std::string, std::vector<Element::Function*>*
-            >::iterator mb = mynewcontext->functions->begin(),
-            me = mynewcontext->functions->end();
-            mb != me;
-            ++mb) {
-        fs_iter = forms_set->find(mb->first);
-        if (fs_iter == forms_set->end()) {
-            mynewcontext->functions->erase(mb);
-        } else {
-            /* If every function is intern, then skip this (but
-             * don't erase - it will not be merged in any event).
-             * */
-            int has_extern;
-            for (std::vector<Element::Function*>::iterator
-                    b = mb->second->begin(),
-                    e = mb->second->end();
-                    b != e;
-                    ++b) {
-                if (((*b)->return_type->linkage == Linkage::Extern) ||
-                        ((*b)->return_type->linkage == Linkage::Extern_C) ||
-                        ((*b)->return_type->linkage == Linkage::Extern_Weak)) {
-                    has_extern = 1;
-                    break;
-                }
-            }
-            if (has_extern) {
-                found->insert(*fs_iter);
-            }
-        }
-    }
-
-    for (std::map<std::string, Element::Variable *>::iterator
-            mb = mynewcontext->variables->begin(),
-            me = mynewcontext->variables->end();
-            mb != me;
-            ++mb) {
-        fs_iter = forms_set->find(mb->first);
-        if (fs_iter == forms_set->end()) {
-            mynewcontext->variables->erase(mb);
-        } else {
-            if ((mb->second->type->linkage == Linkage::Extern) ||
-                    (mb->second->type->linkage == Linkage::Extern_C)) {
-                found->insert(*fs_iter);
-            }
-        }
-    }
-
-    for (std::map<std::string, Element::Struct *>::iterator
-            mb = mynewcontext->structs->begin(),
-            me = mynewcontext->structs->end();
-            mb != me;
-            ++mb) {
-        fs_iter = forms_set->find(mb->first);
-        if (fs_iter == forms_set->end()) {
-            mynewcontext->structs->erase(mb);
-        } else {
-            if ((mb->second->linkage == StructLinkage::Extern) ||
-                    (mb->second->linkage == StructLinkage::Opaque)) {
-                found->insert(*fs_iter);
-            }
-        }
-    }
-
-    for (std::map<std::string, Element::Enum *>::iterator
-            mb = mynewcontext->enums->begin(),
-            me = mynewcontext->enums->end();
-            mb != me;
-            ++mb) {
-        fs_iter = forms_set->find(mb->first);
-        if (fs_iter == forms_set->end()) {
-            mynewcontext->enums->erase(mb);
-        } else {
-            if ((mb->second->linkage == EnumLinkage::Extern)) {
-                found->insert(*fs_iter);
-            }
-        }
-    }
-
-    /* If forms_set contains the namespace name, import
-     * everything from the namespace. Otherwise, make a new
-     * forms_set containing each form that begins with the
-     * namespace name, strip the namespace name (and separating
-     * period) from each form, and move downwards (also make a new
-     * found_forms object). On return, take the found_forms,
-     * prepend the namespace name (plus separating period) to each
-     * form, and add them to the current found_forms set. */
-
-    std::map<std::string, Context *>::iterator niter =
-        mynewcontext->namespace_to_context->begin();
-
-    while (niter != mynewcontext->namespace_to_context->end()) {
-        fs_iter = forms_set->find(niter->first);
-        if (fs_iter == forms_set->end()) {
-            std::set<std::string> subforms_set;
-            for (std::set<std::string>::iterator
-                    b = forms_set->begin(),
-                    e = forms_set->end();
-                    b != e;
-                    ++b) {
-                if (((*b).find(niter->first)) == 0) {
-                    std::string nons(*b);
-                    nons.erase(0, (niter->first.size() + 1));
-                    subforms_set.insert(nons);
-                }
-            }
-            std::set<std::string> subfound;
-
-            removeUnneededForms(niter->second,
-                                &subforms_set,
-                                &subfound);
-
-            for (std::set<std::string>::iterator
-                    b = subfound.begin(),
-                    e = subfound.end();
-                    b != e;
-                    ++b) {
-                std::string temp;
-                temp.append(niter->first)
-                .append(".")
-                .append(*b);
-                found->insert(temp);
-            }
-        } else {
-            found->insert(*fs_iter);
-        }
-        ++niter;
-    }
-
-    return 1;
 }
 
 static int module_number = 0;
@@ -3339,7 +3039,7 @@ int Generator::addDaleModule(Node *n,
         .append(so_suffix);
     }
 
-    Context *mynewcontext = new Context(erep);
+    Context *mynewcontext = new Context(erep, nt);
 
     int fd = fileno(test);
     struct stat buf;
@@ -3459,55 +3159,8 @@ int Generator::addDaleModule(Node *n,
                    std::insert_iterator<std::set<std::string> >(
                        common,
                        common.end()));
-    for (std::set<std::string>::iterator b = common.begin(),
-            e = common.end();
-            b != e;
-            ++b) {
-        for (std::map<std::string, std::vector<Element::Function*>*
-                >::iterator mb = mynewcontext->functions->begin(),
-                me = mynewcontext->functions->end();
-                mb != me;
-                ++mb) {
-            for (std::vector<Element::Function*>::iterator
-                    fb = mb->second->begin(),
-                    fe = mb->second->end();
-                    fb != fe;
-                    ++fb) {
-                if (((*fb)->internal_name != NULL)
-                        && ((*fb)->once_tag.length() > 0)
-                        && ((*fb)->once_tag == *b)) {
-                    llvm::Function *temp =
-                        Result->getFunction(
-                            llvm::StringRef((*fb)->internal_name->c_str())
-                        );
-                    if (temp) {
-                        temp->deleteBody();
-                    }
-                }
-            }
-        }
 
-        for (std::map<std::string, Element::Variable *>::iterator
-                vb = mynewcontext->variables->begin(),
-                ve = mynewcontext->variables->end();
-                vb != ve;
-                ++vb) {
-
-            Element::Variable *vv = vb->second;
-            if ((vv->internal_name != NULL)
-                    && (vv->once_tag.length() > 0)
-                    && (vv->once_tag == *b)) {
-                llvm::GlobalVariable *gv =
-                    Result->getGlobalVariable(
-                        llvm::StringRef(vv->internal_name->c_str())
-                    );
-                if (gv) {
-                    gv->setInitializer(NULL);
-                    vv->value = llvm::cast<llvm::Value>(gv);
-                }
-            }
-        }
-    }
+    mynewcontext->eraseOnceForms(&common, Result);
 
     std::set<std::string> current;
     std::merge(included_once_tags->begin(),
@@ -3547,9 +3200,7 @@ int Generator::addDaleModule(Node *n,
         }
 
         std::set<std::string> found;
-        removeUnneededForms(mynewcontext,
-                            &forms_set,
-                            &found);
+        mynewcontext->removeUnneeded(&forms_set, &found);
 
         std::set<std::string> not_found;
         set_difference(forms_set.begin(), forms_set.end(),
@@ -3588,13 +3239,30 @@ int Generator::addDaleModule(Node *n,
      * things in mynewcontext won't be able to be re-got. Skipping
      * failed function re-getting for the time being: they should
      * be picked up on the later regetPointers call, anyway. */
-    llvm::Module *temporary = mod;
-    mod = Result;
-    regetPointersForDM(mynewcontext);
-    mod = temporary;
 
     ctx->merge(mynewcontext);
+    
+    /* At this point, there won't be a valid used node in
+     * mynewcontext. Therefore, it is necessary to clear that list and
+     * add the root namespace to it. */
+    mynewcontext->used_ns_nodes.clear();
+    mynewcontext->used_ns_nodes.push_back(mynewcontext->namespaces);
+
+    mynewcontext->regetPointersForNewModule(Result);
+
+    /* todo: Don't think this is needed. Shouldn't affect anything
+     * given the previous merge. */
+    //ctx->merge(mynewcontext);
+    /* todo: Don't think this is needed. If you re-get pointers here,
+     * then various things can't be found, because it will rebuild
+     * functions which may only be present in Result, rather than mod. */
+    /* todo part 2: Had this commented out, as per the above. However,
+     * it's likely that parts here are now referring to Result, in
+     * error. (Still doesn't make sense though, given that various
+     * things shouldn't be in mod at this point.) */
     ctx->regetPointers(mod);
+
+    ctx->relink();
 
     return 1;
 }
@@ -3824,8 +3492,7 @@ void Generator::parseInclude(Node *top)
 
     prsr = newParser(include_file, filename_buf.c_str());
     Context *old_ctx = ctx;
-    ctx = new Context(erep);
-    ctx->filename = filename_buf.c_str();
+    ctx = new Context(erep, nt);
     ctx->merge(old_ctx);
 
     std::string module_name("MyModule");
@@ -4011,7 +3678,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
 
     /* Enums have a maximum size of 64 bits. */
     llvm::Type *d_enumtype =
-        daleToLLVMType(enumtype, NULL, false);
+        toLLVMType(enumtype, NULL, false);
     if (!d_enumtype) {
         failedDaleToLLVMTypeConversion(enumtype);
         return;
@@ -4131,7 +3798,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
         ++iter;
     }
 
-    int res = ctx->addEnum(name, enm);
+    int res = ctx->ns()->addEnum(name, enm);
     if (!res) {
         Error *e = new Error(
             ErrorInst::Generator::RedeclarationOfEnum,
@@ -4161,7 +3828,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
     std::string name2;
     name2.append("struct_");
     std::string name3;
-    ctx->getNewName(name, &name3);
+    ctx->ns()->nameToSymbol(name, &name3);
     name2.append(name3);
     enum_str->internal_name->append(name2);
 
@@ -4178,7 +3845,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
 
     enum_str->type = llvm_new_struct;
 
-    res = ctx->addStruct(name, enum_str);
+    res = ctx->ns()->addStruct(name, enum_str);
     if (!res) {
         Error *e = new Error(
             ErrorInst::Generator::RedeclarationOfStruct,
@@ -4221,10 +3888,10 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
         llvm::IRBuilder<> builder(block);
 
         llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(daleToLLVMType(ttt, NULL, false))
+                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
                                 );
         llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(daleToLLVMType(ttt, NULL, false))
+                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
                                 );
         builder.CreateStore((*iter)->value,
                             new_ptr1);
@@ -4259,7 +3926,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
 
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, daleToLLVMType(new Element::Type(ttt),
+                store_ptr1, toLLVMType(new Element::Type(ttt),
                                            NULL, false)
             );
         llvm::Value *newint =
@@ -4285,10 +3952,10 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
         llvm::IRBuilder<> builder(block);
 
         llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(daleToLLVMType(ttt, NULL, false))
+                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
                                 );
         llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(daleToLLVMType(ttt, NULL, false))
+                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
                                 );
         builder.CreateStore((*iter)->value,
                             new_ptr1);
@@ -4322,7 +3989,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
 
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, daleToLLVMType(new Element::Type(ttt),
+                store_ptr1, toLLVMType(new Element::Type(ttt),
                                            NULL, false)
             );
         llvm::Value *newint =
@@ -4348,10 +4015,10 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
         llvm::IRBuilder<> builder(block);
 
         llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(daleToLLVMType(ttt, NULL, false))
+                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
                                 );
         llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(daleToLLVMType(ttt, NULL, false))
+                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
                                 );
         builder.CreateStore((*iter)->value,
                             new_ptr1);
@@ -4385,7 +4052,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
 
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, daleToLLVMType(new Element::Type(ttt),
+                store_ptr1, toLLVMType(new Element::Type(ttt),
                                            NULL, false)
             );
         llvm::Value *newint =
@@ -4411,10 +4078,10 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
         llvm::IRBuilder<> builder(block);
 
         llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(daleToLLVMType(ttt, NULL, false))
+                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
                                 );
         llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(daleToLLVMType(ttt, NULL, false))
+                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
                                 );
         builder.CreateStore((*iter)->value,
                             new_ptr1);
@@ -4449,7 +4116,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
 
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, daleToLLVMType(new Element::Type(ttt),
+                store_ptr1, toLLVMType(new Element::Type(ttt),
                                            NULL, false)
             );
         llvm::Value *newint =
@@ -4482,7 +4149,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
         llvm::IRBuilder<> builder(block);
 
         llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(daleToLLVMType(ttt, NULL, false))
+                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
                                 );
         builder.CreateStore((*iter)->value,
                             new_ptr1);
@@ -4511,7 +4178,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
 
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, daleToLLVMType(new Element::Type(ttt),
+                store_ptr1, toLLVMType(new Element::Type(ttt),
                                            NULL, false)
             );
         llvm::Value *newint =
@@ -4537,7 +4204,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
         llvm::IRBuilder<> builder(block);
 
         llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(daleToLLVMType(ttt, NULL, false))
+                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
                                 );
         builder.CreateStore((*iter)->value,
                             new_ptr1);
@@ -4566,7 +4233,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
 
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, daleToLLVMType(new Element::Type(ttt),
+                store_ptr1, toLLVMType(new Element::Type(ttt),
                                            NULL, false)
             );
         llvm::Value *newint =
@@ -4737,13 +4404,13 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
             break;
         }
         if (count <= 1) {
-            temp = daleToLLVMType((*iter)->type, NULL, false);
+            temp = toLLVMType((*iter)->type, NULL, false);
             if (!temp) {
                 failedDaleToLLVMTypeConversion((*iter)->type);
                 return;
             }
         } else {
-            temp = daleToLLVMType(r_type, NULL, false);
+            temp = toLLVMType(r_type, NULL, false);
             if (!temp) {
                 failedDaleToLLVMTypeConversion(r_type);
                 return;
@@ -4754,7 +4421,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
         ++iter;
     }
 
-    temp = daleToLLVMType(r_type, NULL, false);
+    temp = toLLVMType(r_type, NULL, false);
     if (!temp) {
         failedDaleToLLVMTypeConversion(r_type);
         return;
@@ -4769,17 +4436,10 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
 
     std::string new_name;
 
-    int gnfn_res =
-        ctx->getNewFunctionName(name,
-                                &new_name,
-                                linkage,
-                                mc_args_internal);
-
-    if (!gnfn_res) {
-        fprintf(stderr, "Internal error: "
-                "could not get function name\n");
-        abort();
-    }
+    ctx->ns()->functionNameToSymbol(name,
+                            &new_name,
+                            linkage,
+                            mc_args_internal);
 
     if (mod->getFunction(llvm::StringRef(new_name.c_str()))) {
         Error *e = new Error(
@@ -4839,7 +4499,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
         new Element::Function(r_type, mc_args_internal, fn, 1,
                               &new_name);
 
-    if (!ctx->addFunction(name, dfn, top)) {
+    if (!ctx->ns()->addFunction(name, dfn, top)) {
         return;
     }
     if (current_once_tag.length() > 0) {
@@ -4868,6 +4528,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
         erep->getErrorTypeCount(ErrorType::Error);
 
     ctx->activateAnonymousNamespace();
+    std::string anon_name = ctx->ns()->name;
 
     global_functions.push_back(dfn);
     global_function = dfn;
@@ -4881,14 +4542,14 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
         global_function = NULL;
     }
 
-    ctx->deactivateAnonymousNamespace();
+    ctx->deactivateNamespace(anon_name.c_str());
 
     int error_post_count =
         erep->getErrorTypeCount(ErrorType::Error);
     if (error_count != error_post_count) {
         std::map<std::string, std::vector<Element::Function*>*
-        >::iterator i = ctx->functions->find(name);
-        if (i != ctx->functions->end()) {
+        >::iterator i = ctx->ns()->functions.find(name);
+        if (i != ctx->ns()->functions.end()) {
             for (std::vector<Element::Function *>::iterator
                     j = i->second->begin(),
                     k = i->second->end();
@@ -4918,7 +4579,7 @@ int Generator::addOpaqueStruct(const char *name, Node *top,
     std::string name2;
     name2.append("struct_");
     std::string name3;
-    ctx->getNewName(name, &name3);
+    ctx->ns()->nameToSymbol(name, &name3);
     name2.append(name3);
 
     sty->setName(name2.c_str());
@@ -4932,7 +4593,7 @@ int Generator::addOpaqueStruct(const char *name, Node *top,
     new_struct->internal_name->append(name2.c_str());
     new_struct->once_tag = current_once_tag;
 
-    if (!ctx->addStruct(name, new_struct)) {
+    if (!ctx->ns()->addStruct(name, new_struct)) {
         /* Only an error if there is not an existing struct. This
          * used to add an error message if the struct had already
          * been fully defined, but that is not an error in C, so
@@ -5123,7 +4784,7 @@ void Generator::parseStructDefinition(const char *name, Node *top)
     llvm::Type *temp;
 
     while (iter != elements_internal->end()) {
-        temp = daleToLLVMType((*iter)->type, NULL, false);
+        temp = toLLVMType((*iter)->type, NULL, false);
         if (!temp) {
             failedDaleToLLVMTypeConversion((*iter)->type);
             return;
@@ -5135,7 +4796,7 @@ void Generator::parseStructDefinition(const char *name, Node *top)
     std::string name2;
 
     std::string name3;
-    ctx->getNewName(name, &name3);
+    ctx->ns()->nameToSymbol(name, &name3);
     name2.append(name3);
 
     bool already_exists = true;
@@ -5206,7 +4867,7 @@ void Generator::parseStructDefinition(const char *name, Node *top)
     delete elements_internal;
 
     if (!already_exists) {
-        if (!ctx->addStruct(name, new_struct)) {
+        if (!ctx->ns()->addStruct(name, new_struct)) {
             printf("Does not already exist, but can't add\n");
             Error *e = new Error(
                 ErrorInst::Generator::RedeclarationOfStruct,
@@ -5297,7 +4958,7 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
     if (linkage == Linkage::Extern_C) {
         new_name.append(name);
     } else {
-        ctx->getNewName(name, &new_name);
+        ctx->ns()->nameToSymbol(name, &new_name);
     }
 
     Element::Variable *check = ctx->getVariable(name);
@@ -5316,7 +4977,7 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
     var2->type = r_type;
     var2->internal_name->append(new_name);
     var2->once_tag = current_once_tag;
-    int avres = ctx->addVariable(name, var2);
+    int avres = ctx->ns()->addVariable(name, var2);
 
     if (!avres) {
         Error *e = new Error(
@@ -5334,7 +4995,7 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
          && (linkage != Linkage::Intern));
 
     llvm::Type *rdttype =
-        daleToLLVMType(r_type, top, false,
+        toLLVMType(r_type, top, false,
                        (has_extern_linkage && !has_initialiser));
     if (!rdttype) {
         failedDaleToLLVMTypeConversion(r_type);
@@ -5512,7 +5173,7 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
         std::vector<llvm::Constant *> constants;
 
         Element::Struct *str =
-            ctx->getStructWithNamespaces(
+            ctx->getStruct(
                 type->struct_name->c_str(),
                 type->namespaces
             );
@@ -5568,7 +5229,7 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
         }
 
         llvm::Type *llvm_type =
-            daleToLLVMType(type, NULL, false);
+            toLLVMType(type, NULL, false);
         if (!llvm_type) {
             failedDaleToLLVMTypeConversion(type);
             return NULL;
@@ -5617,7 +5278,7 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
         llvm::GlobalVariable *svar2 =
             llvm::cast<llvm::GlobalVariable>(
                 mod->getOrInsertGlobal(varname2.c_str(),
-                                       daleToLLVMType(archar, NULL, false))
+                                       toLLVMType(archar, NULL, false))
             );
 
         svar2->setInitializer(myconststr);
@@ -5655,7 +5316,7 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
         }
 a:
         llvm::Type *llvm_type =
-            daleToLLVMType(type, NULL, false);
+            toLLVMType(type, NULL, false);
         if (!llvm_type) {
             failedDaleToLLVMTypeConversion(type);
             return NULL;
@@ -5704,7 +5365,7 @@ a:
         llvm::Constant *mine =
             llvm::ConstantArray::get(
                 llvm::cast<llvm::ArrayType>(
-                    daleToLLVMType(type, top, false, false)
+                    toLLVMType(type, top, false, false)
                 ),
                 constants
             );
@@ -5775,7 +5436,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
     // specified type.
 
     llvm::Type *llvm_return_type =
-        daleToLLVMType(type, top, false);
+        toLLVMType(type, top, false);
     if (!llvm_return_type) {
         failedDaleToLLVMTypeConversion(type);
         return NULL;
@@ -5793,7 +5454,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
     std::string new_name;
     char buf[255];
     sprintf(buf, "___myfn%d", myn++);
-    ctx->getNewName(buf, &new_name);
+    ctx->ns()->nameToSymbol(buf, &new_name);
 
     if (mod->getFunction(llvm::StringRef(new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
@@ -5834,7 +5495,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
         return NULL;
     }
 
-    llvm::Type *tttt = daleToLLVMType(type_void, NULL, true);
+    llvm::Type *tttt = toLLVMType(type_void, NULL, true);
     llvm::FunctionType *wrapft =
         getFunctionType(
             tttt,
@@ -5845,7 +5506,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
     std::string wrap_new_name;
     char wrap_buf[255];
     sprintf(wrap_buf, "___myfn%d", myn++);
-    ctx->getNewName(wrap_buf, &wrap_new_name);
+    ctx->ns()->nameToSymbol(wrap_buf, &wrap_new_name);
 
     if (mod->getFunction(llvm::StringRef(wrap_new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
@@ -6240,7 +5901,7 @@ void Generator::parseFunction(const char *name, Node *n,
                               int is_anonymous)
 {
     if (!is_anonymous) {
-        prefunction_ctx_index = ctx->getCurrentNamespaceIndex();
+        prefunction_ns = ctx->ns();
     }
 
     assert(n->list && "must receive a list!");
@@ -6447,7 +6108,7 @@ void Generator::parseFunction(const char *name, Node *n,
         if ((*iter)->type->base_type == Type::VarArgs) {
             break;
         }
-        temp = daleToLLVMType((*iter)->type, NULL, false);
+        temp = toLLVMType((*iter)->type, NULL, false);
         if (!temp) {
             failedDaleToLLVMTypeConversion((*iter)->type);
             return;
@@ -6462,19 +6123,20 @@ void Generator::parseFunction(const char *name, Node *n,
      * parameters, it will work properly. */
 
     ctx->activateAnonymousNamespace();
+    std::string anon_name = ctx->ns()->name;
 
     for (std::vector<Element::Variable *>::iterator
             b = fn_args_internal->begin(),
             e = fn_args_internal->end();
             b != e;
             ++b) {
-        ctx->addVariable((*b)->name->c_str(), (*b));
+        ctx->ns()->addVariable((*b)->name->c_str(), (*b));
     }
 
     Element::Type *r_type = parseType((*lst)[return_type_index], false,
                                       false);
 
-    ctx->deactivateAnonymousNamespace();
+    ctx->deactivateNamespace(anon_name.c_str());
 
     if (r_type == NULL) {
         return;
@@ -6494,7 +6156,7 @@ void Generator::parseFunction(const char *name, Node *n,
      * LLVM function type. */
 
     llvm::Type *llvm_r_type =
-        daleToLLVMType(r_type, NULL, true);
+        toLLVMType(r_type, NULL, true);
     if (!llvm_r_type) {
         failedDaleToLLVMTypeConversion(r_type);
         return;
@@ -6508,21 +6170,12 @@ void Generator::parseFunction(const char *name, Node *n,
         );
 
     std::string new_name;
-    int gnfn_res = ctx->getNewFunctionName(name,
-                                           &new_name,
-                                           linkage,
-                                           fn_args_internal);
+    ctx->ns()->functionNameToSymbol(name,
+                                    &new_name,
+                                    linkage,
+                                    fn_args_internal);
 
-    if (!gnfn_res) {
-        /* Assumption here is that this only fails on extern_c
-         * linkage in namespaces. */
-        Error *e = new Error(
-            ErrorInst::Generator::ExternCInNamespace,
-            n
-        );
-        erep->addError(e);
-        return;
-    }
+    /* todo: extern_c functions in namespaces. */
 
     Element::Function *dfn =
         new Element::Function(r_type, fn_args_internal, NULL, 0,
@@ -6643,7 +6296,7 @@ void Generator::parseFunction(const char *name, Node *n,
 
     /* Add the function to the context. */
     dfn->llvm_function = fn;
-    if (!ctx->addFunction(name, dfn, n)) {
+    if (!ctx->ns()->addFunction(name, dfn, n)) {
         return;
     }
 
@@ -6659,6 +6312,7 @@ void Generator::parseFunction(const char *name, Node *n,
     }
 
     ctx->activateAnonymousNamespace();
+    std::string anon_name2 = ctx->ns()->name;
 
     global_functions.push_back(dfn);
     global_function = dfn;
@@ -6719,7 +6373,7 @@ void Generator::parseFunction(const char *name, Node *n,
         }
     }
 
-    ctx->deactivateAnonymousNamespace();
+    ctx->deactivateNamespace(anon_name2.c_str());
 
     return;
 }
@@ -7251,7 +6905,7 @@ ParseResult *Generator::parseSetf(Element::Function *dfn,
         }
         llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
                                     builder.CreateAlloca(
-                                        daleToLLVMType(pr_value->type, NULL, false)
+                                        toLLVMType(pr_value->type, NULL, false)
                                     )
                                 );
         builder.CreateStore(pr_value->value, new_ptr2);
@@ -7688,8 +7342,8 @@ ParseResult *Generator::parseGoto(Element::Function *dfn,
 
         DeferredGoto *dg = new DeferredGoto;
         dg->label_name = name;
-        dg->ctx = ctx->current_context;
-        dg->index = ctx->lv_index;
+        dg->ns = ctx->ns();
+        dg->index = ctx->ns()->lv_index;
         dg->block_marker = block;
         Node *myn = new Node();
         n->copyTo(myn);
@@ -7715,7 +7369,7 @@ ParseResult *Generator::parseGoto(Element::Function *dfn,
          * Add a destructIfApplicable call for each of these
          * variables. */
         std::vector<Element::Variable *> myvars;
-        ctx->getVarsAfterIndex(mylabel->index, &myvars);
+        ctx->ns()->getVarsAfterIndex(mylabel->index, &myvars);
         ParseResult myp;
         myp.block = block;
         for (std::vector<Element::Variable *>::iterator
@@ -7812,10 +7466,10 @@ ParseResult *Generator::parseLabel(Element::Function *dfn,
         return NULL;
     }
 
-    int index = ctx->getNextLVIndex();
+    int index = ctx->ns()->lv_index++;
     Element::Label *my_label = new Element::Label();
     my_label->block = new_block;
-    my_label->ctx = ctx->current_context;
+    my_label->ns = ctx->ns();
     my_label->index = index;
     dfn->addLabel(t->str_value.c_str(), my_label);
 
@@ -8271,7 +7925,7 @@ ParseResult *Generator::parseNullPtr(Element::Function *dfn,
 
     llvm::IRBuilder<> builder(block);
     llvm::Type *llvm_ptype =
-        daleToLLVMType(ptype, NULL, false);
+        toLLVMType(ptype, NULL, false);
     if (!llvm_ptype) {
         failedDaleToLLVMTypeConversion(ptype);
         return NULL;
@@ -8432,7 +8086,8 @@ ParseResult *Generator::parseUsingNamespace(Element::Function *dfn,
         }
     }
 
-    ctx->unuseNamespace(t->str_value.c_str());
+    ctx->unuseNamespace();
+    //ctx->unuseNamespace(t->str_value.c_str());
 
     return pr_value;
 }
@@ -8566,7 +8221,7 @@ ParseResult *Generator::destructIfApplicable(ParseResult *pr,
             if (builder) {
                 llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
                         builder->CreateAlloca(
-                            daleToLLVMType(pr->type, NULL, false))
+                            toLLVMType(pr->type, NULL, false))
                         );
                 builder->CreateStore(pr->value, new_ptr2);
                 actual_value = new_ptr2;
@@ -8574,7 +8229,7 @@ ParseResult *Generator::destructIfApplicable(ParseResult *pr,
                 llvm::IRBuilder<> builder(mbl);
                 llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
                         builder.CreateAlloca(
-                            daleToLLVMType(pr->type, NULL, false))
+                            toLLVMType(pr->type, NULL, false))
                         );
                 builder.CreateStore(pr->value, new_ptr2);
                 actual_value = new_ptr2;
@@ -8649,7 +8304,7 @@ ParseResult *Generator::destructIfApplicable(ParseResult *pr,
     std::vector<llvm::Value *> call_args;
     llvm::Value *new_ptr2 = 
         llvm::cast<llvm::Value>(
-            builder->CreateAlloca(daleToLLVMType(pr->type, NULL, false))
+            builder->CreateAlloca(toLLVMType(pr->type, NULL, false))
         );
     builder->CreateStore(pr->value, new_ptr2);
     call_args.push_back(new_ptr2);
@@ -8704,11 +8359,11 @@ ParseResult *Generator::copyWithSetfIfApplicable(
     }
     llvm::IRBuilder<> builder(pr->block);
     llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(daleToLLVMType(pr->type, NULL,
+                                builder.CreateAlloca(toLLVMType(pr->type, NULL,
                                         false))
                             );
     llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(daleToLLVMType(pr->type, NULL,
+                                builder.CreateAlloca(toLLVMType(pr->type, NULL,
                                         false))
                             );
 
@@ -8739,7 +8394,7 @@ int Generator::scopeClose(Element::Function *dfn,
 {
     /* Get variables in the current scope. */
     std::vector<Element::Variable *> stack_vars;
-    ctx->getVariablesInCurrentScope(&stack_vars);
+    ctx->ns()->getVariables(&stack_vars);
 
     /* For each variable, look for an associated destructor.
      * (todo: cache the results here so you don't call getFunction
@@ -8800,6 +8455,7 @@ ParseResult *Generator::parseNewScope(Element::Function *dfn,
     symlist *lst = n->list;
 
     ctx->activateAnonymousNamespace();
+    std::string anon_name = ctx->ns()->name;
 
     std::vector<Node *>::iterator node_iter;
     node_iter = lst->begin();
@@ -8823,7 +8479,7 @@ ParseResult *Generator::parseNewScope(Element::Function *dfn,
     }
 
     scopeClose(dfn, block, NULL);
-    ctx->deactivateAnonymousNamespace();
+    ctx->deactivateNamespace(anon_name.c_str());
 
     return pr_value;
 }
@@ -9232,7 +8888,7 @@ int Generator::makeTemporaryGlobalFunction(
     /* Create a temporary function for evaluating the arguments. */
 
     llvm::Type *llvm_return_type =
-        daleToLLVMType(type_int, NULL, false);
+        toLLVMType(type_int, NULL, false);
     if (!llvm_return_type) {
         failedDaleToLLVMTypeConversion(type_int);
         return 0;
@@ -9250,7 +8906,7 @@ int Generator::makeTemporaryGlobalFunction(
     std::string new_name;
     char buf[255];
     sprintf(buf, "___myfn%d", myn++);
-    ctx->getNewName(buf, &new_name);
+    ctx->ns()->nameToSymbol(buf, &new_name);
 
     if (mod->getFunction(llvm::StringRef(new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
@@ -9407,7 +9063,7 @@ bool Generator::mustInit(DNode *dnode)
     }
     if (ptype->struct_name) {
         Element::Struct *structp =
-            ctx->getStructWithNamespaces(
+            ctx->getStruct(
                 ptype->struct_name->c_str(),
                 ptype->namespaces
             );
@@ -9934,10 +9590,10 @@ ParseResult *Generator::getAlignmentofType(llvm::BasicBlock *block,
         Element::Type *type)
 {
     std::vector<llvm::Type*> elements_llvm;
-    elements_llvm.push_back(daleToLLVMType(type_char, NULL, false));
+    elements_llvm.push_back(toLLVMType(type_char, NULL, false));
 
     llvm::Type *llvm_type =
-        daleToLLVMType(type, NULL, false);
+        toLLVMType(type, NULL, false);
     if (!llvm_type) {
         failedDaleToLLVMTypeConversion(type);
         return NULL;
@@ -9954,7 +9610,7 @@ ParseResult *Generator::getAlignmentofType(llvm::BasicBlock *block,
     std::string name2;
     name2.append("struct_");
     std::string name3;
-    ctx->getNewName(buf, &name3);
+    ctx->ns()->nameToSymbol(buf, &name3);
     name2.append(name3);
 
     llvm_new_struct->setName(name2.c_str());
@@ -9993,7 +9649,7 @@ ParseResult *Generator::getOffsetofType(llvm::BasicBlock *block,
     llvm::IRBuilder<> builder(block);
 
     llvm::Type *llvm_type =
-        daleToLLVMType(type, NULL, false);
+        toLLVMType(type, NULL, false);
     if (!llvm_type) {
         failedDaleToLLVMTypeConversion(type);
         return NULL;
@@ -10007,7 +9663,7 @@ ParseResult *Generator::getOffsetofType(llvm::BasicBlock *block,
         myindex = index;
     } else {
         Element::Struct *structp =
-            ctx->getStructWithNamespaces(
+            ctx->getStruct(
                 type->struct_name->c_str(),
                 type->namespaces
             );
@@ -10050,7 +9706,7 @@ ParseResult *Generator::getSizeofType(llvm::BasicBlock *block,
     llvm::IRBuilder<> builder(block);
 
     llvm::Type *llvm_type =
-        daleToLLVMType(type, NULL, false);
+        toLLVMType(type, NULL, false);
     if (!llvm_type) {
         failedDaleToLLVMTypeConversion(type);
         return NULL;
@@ -10080,7 +9736,7 @@ size_t Generator::getOffsetofTypeImmediate(Element::Type *type,
         int index)
 {
     llvm::Type *llvm_return_type =
-        daleToLLVMType(type_size, NULL, false);
+        toLLVMType(type_size, NULL, false);
     if (!llvm_return_type) {
         failedDaleToLLVMTypeConversion(type_size);
         return 0;
@@ -10098,7 +9754,7 @@ size_t Generator::getOffsetofTypeImmediate(Element::Type *type,
     std::string new_name;
     char buf[255];
     sprintf(buf, "___myfn%d", myn++);
-    ctx->getNewName(buf, &new_name);
+    ctx->ns()->nameToSymbol(buf, &new_name);
 
     if (mod->getFunction(llvm::StringRef(new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
@@ -10153,7 +9809,7 @@ size_t Generator::getOffsetofTypeImmediate(Element::Type *type,
 size_t Generator::getSizeofTypeImmediate(Element::Type *type)
 {
     llvm::Type *llvm_return_type =
-        daleToLLVMType(type_size, NULL, false);
+        toLLVMType(type_size, NULL, false);
     if (!llvm_return_type) {
         failedDaleToLLVMTypeConversion(type_size);
         return 0;
@@ -10171,7 +9827,7 @@ size_t Generator::getSizeofTypeImmediate(Element::Type *type)
     std::string new_name;
     char buf[255];
     sprintf(buf, "___myfn%d", myn++);
-    ctx->getNewName(buf, &new_name);
+    ctx->ns()->nameToSymbol(buf, &new_name);
 
     if (mod->getFunction(llvm::StringRef(new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
@@ -10262,7 +9918,7 @@ ParseResult *Generator::parseOffsetof(Element::Function *dfn,
     }
 
     Element::Struct *str =
-        ctx->getStructWithNamespaces(
+        ctx->getStruct(
             mytype->struct_name->c_str(),
             mytype->namespaces
         );
@@ -10651,7 +10307,7 @@ ParseResult *Generator::parseVaArg(Element::Function *dfn,
      */
 
     llvm::Type *llvm_type =
-        daleToLLVMType(type, NULL, false);
+        toLLVMType(type, NULL, false);
     if (!llvm_type) {
         failedDaleToLLVMTypeConversion(type);
         return NULL;
@@ -10959,13 +10615,13 @@ ParseResult *Generator::doCast(llvm::BasicBlock *block,
     std::string *struct_name;
 
     llvm::Type *llvm_from_type =
-        daleToLLVMType(from_type, NULL, false);
+        toLLVMType(from_type, NULL, false);
     if (!llvm_from_type) {
         failedDaleToLLVMTypeConversion(from_type);
         return NULL;
     }
     llvm::Type *llvm_to_type =
-        daleToLLVMType(to_type, NULL, false);
+        toLLVMType(to_type, NULL, false);
     if (!llvm_to_type) {
         failedDaleToLLVMTypeConversion(to_type);
         return NULL;
@@ -11052,7 +10708,7 @@ ParseResult *Generator::doCast(llvm::BasicBlock *block,
         Element::Type ptemp_to_type(temp_to_type);
         llvm::Value *intptr =
             builder.CreateBitCast(
-                one, daleToLLVMType(&ptemp_to_type,
+                one, toLLVMType(&ptemp_to_type,
                                     NULL, false)
             );
 
@@ -11088,7 +10744,7 @@ ParseResult *Generator::doCast(llvm::BasicBlock *block,
 
         // Store the integer.
         llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-            builder.CreateAlloca(daleToLLVMType(to_type_temp, NULL, false))
+            builder.CreateAlloca(toLLVMType(to_type_temp, NULL, false))
                                 );
         builder.CreateStore(value,
                             new_ptr1);
@@ -11097,7 +10753,7 @@ ParseResult *Generator::doCast(llvm::BasicBlock *block,
         Element::Type pto_type(to_type);
         llvm::Value *sp =
             builder.CreateBitCast(
-                new_ptr1, daleToLLVMType(&pto_type,
+                new_ptr1, toLLVMType(&pto_type,
                                          NULL, false)
             );
 
@@ -11116,7 +10772,7 @@ ParseResult *Generator::doCast(llvm::BasicBlock *block,
         Element::Type pto_type(to_type);
         llvm::Value *sp =
             builder.CreateBitCast(
-                new_ptr1, daleToLLVMType(&pto_type, NULL, false)
+                new_ptr1, toLLVMType(&pto_type, NULL, false)
             );
         llvm::Value *newint =
             builder.CreateLoad(sp);
@@ -11260,7 +10916,7 @@ ParseResult *Generator::parseSref(Element::Function *dfn,
     if (!getAddress) {
         llvm::IRBuilder<> builder(pr_struct->block);
         llvm::Type *llvm_type =
-            daleToLLVMType(pr_struct->type, NULL, false);
+            toLLVMType(pr_struct->type, NULL, false);
         if (!llvm_type) {
             failedDaleToLLVMTypeConversion(pr_struct->type);
             return NULL;
@@ -11314,7 +10970,7 @@ ParseResult *Generator::parseSref(Element::Function *dfn,
     Token *t = ref->token;
 
     Element::Struct *structp =
-        ctx->getStructWithNamespaces(
+        ctx->getStruct(
             pr_struct->type->points_to->struct_name->c_str(),
             pr_struct->type->points_to->namespaces
         );
@@ -11676,7 +11332,7 @@ ParseResult *Generator::parseIf(Element::Function *dfn,
     llvm::IRBuilder<> builder3(done_block);
 
     llvm::Type *llvm_then_type =
-        daleToLLVMType(pr_then->type, NULL, false);
+        toLLVMType(pr_then->type, NULL, false);
     if (!llvm_then_type) {
         failedDaleToLLVMTypeConversion(pr_then->type);
         return NULL;
@@ -11816,7 +11472,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         block = p->block;
 
         llvm::IRBuilder<> builder(block);
-        llvm::Type *et = daleToLLVMType(type, (*newlist)[2], false);
+        llvm::Type *et = toLLVMType(type, (*newlist)[2], false);
         if (!et) {
             failedDaleToLLVMTypeConversion(type);
             return NULL;
@@ -11825,12 +11481,11 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         llvm::Value *new_ptr = llvm::cast<llvm::Value>(
                                    builder.CreateAlloca(et)
                                );
-
         Element::Variable *var2 = new Element::Variable();
         var2->name->append(name);
         var2->type = type->makeCopy();
         var2->value = new_ptr;
-        int avres = ctx->addVariable(name, var2);
+        int avres = ctx->ns()->addVariable(name, var2);
 
         if (!avres) {
             Error *e = new Error(
@@ -11873,7 +11528,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
             std::vector<llvm::Value *> call_args2;
             call_args2.push_back(new_ptr);
             llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                        builder.CreateAlloca(daleToLLVMType(type, NULL, false))
+                                        builder.CreateAlloca(toLLVMType(type, NULL, false))
                                     );
             builder.CreateStore(p->value, new_ptr2);
             call_args2.push_back(new_ptr2);
@@ -11911,7 +11566,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         /* If it's a struct, check if it's must-init. */
         if (type->struct_name) {
             Element::Struct *mine =
-                ctx->getStructWithNamespaces(
+                ctx->getStruct(
                     type->struct_name->c_str(),
                     type->namespaces
                 );
@@ -11931,7 +11586,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         /* Add an alloca instruction for this variable. */
 
         llvm::IRBuilder<> builder(block);
-        llvm::Type *et = daleToLLVMType(type, (*newlist)[2], false);
+        llvm::Type *et = toLLVMType(type, (*newlist)[2], false);
         if (!et) {
             fprintf(stderr, "Failed conversion\n");
             failedDaleToLLVMTypeConversion(type);
@@ -11941,12 +11596,11 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         llvm::Value *new_ptr = llvm::cast<llvm::Value>(
                                    builder.CreateAlloca(et)
                                );
-
         Element::Variable *var2 = new Element::Variable();
         var2->name->append(name);
         var2->type = type;
         var2->value = new_ptr;
-        int avres = ctx->addVariable(name, var2);
+        int avres = ctx->ns()->addVariable(name, var2);
         if (!avres) {
             Error *e = new Error(
                 ErrorInst::Generator::RedefinitionOfVariable,
@@ -12005,7 +11659,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
 
         /* Handle arrays that were given a length of 0. */
         if (is_zero_sized) {
-            et = daleToLLVMType(type, (*newlist)[2], false);
+            et = toLLVMType(type, (*newlist)[2], false);
             new_ptr = llvm::cast<llvm::Value>(
                           builder.CreateAlloca(et)
                       );
@@ -12024,7 +11678,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
             std::vector<llvm::Value *> call_args2;
             call_args2.push_back(new_ptr);
             llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                        builder2.CreateAlloca(daleToLLVMType(type, NULL, false))
+                                        builder2.CreateAlloca(toLLVMType(type, NULL, false))
                                     );
             builder2.CreateStore(p->value, new_ptr2);
             call_args2.push_back(new_ptr2);
@@ -12314,10 +11968,11 @@ tryvar:
                 if (var->type->is_array) {
                     /* If the variable is an array, return a pointer of
                     * the array's type. */
-
                     llvm::Value *p_to_array =
-                        builder.CreateGEP(var->value,
-                                          llvm::ArrayRef<llvm::Value*>(two_zero_indices));
+                        builder.CreateGEP(
+                            var->value,
+                            llvm::ArrayRef<llvm::Value*>(two_zero_indices)
+                        );
 
                     return new ParseResult(
                                block,
@@ -12354,7 +12009,7 @@ tryvar:
             temp->array_size = size;
 
             llvm::Type *llvm_type =
-                daleToLLVMType(temp, NULL, false);
+                toLLVMType(temp, NULL, false);
             if (!llvm_type) {
                 failedDaleToLLVMTypeConversion(temp);
                 return NULL;
@@ -12388,7 +12043,7 @@ tryvar:
             var2->internal_name->append(varname);
             var2->type = temp;
             var2->value = llvm::cast<llvm::Value>(var);
-            int avres = ctx->addVariable(varname.c_str(), var2);
+            int avres = ctx->ns()->addVariable(varname.c_str(), var2);
 
             if (!avres) {
                 Error *e = new Error(
@@ -12446,10 +12101,11 @@ tryvar:
      * create an anonymous function and return a pointer to it. */
 
     if (first->is_token and !first->token->str_value.compare("fn")) {
-        int preindex = ctx->index;
+        int preindex = ctx->lv_index;
 
-        std::vector<std::string> nss;
-        ctx->popUntilNamespaceIndex(prefunction_ctx_index, &nss);
+        std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
+        std::vector<NSNode *> used_ns_nodes   = ctx->used_ns_nodes;
+        ctx->popUntilNamespace(prefunction_ns);
 
         char buf[255];
         sprintf(buf, "_anon_%d", anoncount++);
@@ -12462,13 +12118,8 @@ tryvar:
                    - error_count;
 
         if (diff) {
-            for (std::vector<std::string>::reverse_iterator
-                    b = nss.rbegin(),
-                    e = nss.rend();
-                    b != e;
-                    ++b) {
-                ctx->activateNamespace((*b).c_str());
-            }
+            ctx->active_ns_nodes = active_ns_nodes;
+            ctx->used_ns_nodes = used_ns_nodes;
             return NULL;
         }
 
@@ -12497,7 +12148,7 @@ tryvar:
         );
 
         std::vector<Element::Variable *> myvars;
-        ctx->getVarsAfterIndex(preindex, &myvars);
+        ctx->ns()->getVarsAfterIndex(preindex, &myvars);
         for (std::vector<Element::Variable *>::iterator
                 b = myvars.begin(),
                 e = myvars.end();
@@ -12506,13 +12157,8 @@ tryvar:
             (*b)->index = 0;
         }
 
-        for (std::vector<std::string>::reverse_iterator
-                b = nss.rbegin(),
-                e = nss.rend();
-                b != e;
-                ++b) {
-            ctx->activateNamespace((*b).c_str());
-        }
+        ctx->active_ns_nodes = active_ns_nodes;
+        ctx->used_ns_nodes = used_ns_nodes;
 
         return p;
     }
@@ -12525,8 +12171,8 @@ tryvar:
             && (!first->is_token)) {
 
         Element::Struct *str =
-            ctx->getStructWithNamespaces(wanted_type->struct_name->c_str(),
-                                         wanted_type->namespaces);
+            ctx->getStruct(wanted_type->struct_name->c_str(),
+                           wanted_type->namespaces);
 
         if (!str) {
             fprintf(stderr,
@@ -12947,7 +12593,7 @@ past_sl_parse:
          * function object. */
         Element::Type *try_fnp_inner_type = try_fnp->type->points_to;
         Element::Struct *mystruct =
-            ctx->getStructWithNamespaces(
+            ctx->getStruct(
                 try_fnp_inner_type->struct_name->c_str(),
                 try_fnp_inner_type->namespaces
             );
@@ -13036,14 +12682,14 @@ void Generator::setPdnode()
         Element::Type *tt = new Element::Type(st);
 
         llvm::Type *dnode =
-            daleToLLVMType(st, NULL, false);
+            toLLVMType(st, NULL, false);
         if (!dnode) {
             failedDaleToLLVMTypeConversion(st);
             return;
         }
 
         llvm::Type *pointer_to_dnode =
-            daleToLLVMType(tt, NULL, false);
+            toLLVMType(tt, NULL, false);
         if (!pointer_to_dnode) {
             failedDaleToLLVMTypeConversion(tt);
             return;
@@ -13278,7 +12924,7 @@ Node *Generator::parseMacroCall(Node *n,
 
         llvm::FunctionType *cup_ft =
             getFunctionType(
-                daleToLLVMType(cup_r_type, NULL, true),
+                toLLVMType(cup_r_type, NULL, true),
                 cup_mc_args,
                 false
             );
@@ -13430,7 +13076,7 @@ Node *Generator::parseOptionalMacroCall(Node *n)
     /* Create a temporary function for evaluating the arguments. */
 
     llvm::Type *llvm_return_type =
-        daleToLLVMType(type_int, NULL, false);
+        toLLVMType(type_int, NULL, false);
     if (!llvm_return_type) {
         failedDaleToLLVMTypeConversion(type_int);
         return NULL;
@@ -13448,7 +13094,7 @@ Node *Generator::parseOptionalMacroCall(Node *n)
     std::string new_name;
     char buf[255];
     sprintf(buf, "___myfn%d", myn++);
-    ctx->getNewName(buf, &new_name);
+    ctx->ns()->nameToSymbol(buf, &new_name);
 
     if (mod->getFunction(llvm::StringRef(new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
@@ -13618,7 +13264,7 @@ ParseResult *Generator::parseEnumLiteral(llvm::BasicBlock *block,
                           llvm::ArrayRef<llvm::Value*>(two_zero_indices));
 
     llvm::Type *llvm_type =
-        daleToLLVMType(myenumstructtype->element_types->at(0),
+        toLLVMType(myenumstructtype->element_types->at(0),
                        NULL, false);
     if (!llvm_type) {
         failedDaleToLLVMTypeConversion(
@@ -13731,7 +13377,7 @@ ParseResult *Generator::parseArrayLiteral(Element::Function *dfn,
     array_type->array_size = *size;
 
     llvm::Type *llvm_array_type =
-        daleToLLVMType(array_type, n, false);
+        toLLVMType(array_type, n, false);
     if (!llvm_array_type) {
         failedDaleToLLVMTypeConversion(array_type);
         return NULL;
@@ -14000,6 +13646,52 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
     /* Skip the function name. */
     ++symlist_iter;
 
+    /* The processing below is only required when the function/macro
+     * name is overloaded. For now, short-circuit for macros that are
+     * not overloaded, because that will give the greatest benefits.
+     * */
+
+    if (!ctx->isOverloadedFunction(t->str_value.c_str())) {
+        std::map<std::string, std::vector<Element::Function *> *>::iterator
+            iter;
+        Element::Function *fn = NULL;
+        for (std::vector<NSNode *>::reverse_iterator
+                rb = ctx->used_ns_nodes.rbegin(),
+                re = ctx->used_ns_nodes.rend();
+                rb != re;
+                ++rb) {
+            iter = (*rb)->ns->functions.find(name);
+            if (iter != (*rb)->ns->functions.end()) {
+                fn = iter->second->at(0);
+                break;
+            }
+        }
+        if (fn && fn->is_macro) {
+            setPdnode();
+            /* If the third argument is either non-existent, or a (p
+             * DNode) (because typed arguments must appear before the
+             * first (p DNode) argument), then short-circuit, so long
+             * as the argument count is ok. */
+            std::vector<Element::Variable*>::iterator
+                b = (fn->parameter_types->begin() + 2);
+            if ((b == fn->parameter_types->end())
+                    || (*b)->type->isEqualTo(type_pdnode)) {
+                bool use = false;
+                if (fn->isVarArgs()) {
+                    use = ((fn->numberOfRequiredArgs() - 2)
+                            <= (lst->size() - 1));
+                } else {
+                    use = ((fn->numberOfRequiredArgs() - 2)
+                            == (lst->size() - 1));
+                }
+                if (use) {
+                    *macro_to_call = fn;
+                    return NULL;
+                }
+            }
+        }
+    }
+
     std::vector<Error*> errors;
 
     /* Record the number of blocks and the instruction index in the
@@ -14050,7 +13742,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
         if (p->type->is_array) {
             llvm::IRBuilder<> builder(block);
             llvm::Type *llvm_type =
-                daleToLLVMType(p->type, NULL, false);
+                toLLVMType(p->type, NULL, false);
             if (!llvm_type) {
                 failedDaleToLLVMTypeConversion(p->type);
                 return NULL;
@@ -14131,10 +13823,12 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
         *dfn->labels = labels;
 
         csp->restore();
+        delete csp;
 
         *macro_to_call = fn;
         return NULL;
     }
+    delete csp;
 
     /* If the function is not a macro, and errors were encountered
      * during argument processing, then this function has been
@@ -14415,14 +14109,14 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                         /* Target integer is signed - use sext. */
                         (*call_args_iter) =
                             builder.CreateSExt((*call_args_iter),
-                                               daleToLLVMType(type_int,
+                                               toLLVMType(type_int,
                                                               NULL, false));
                         (*call_arg_types_iter) = type_int;
                     } else {
                         /* Target integer is not signed - use zext. */
                         (*call_args_iter) =
                             builder.CreateZExt((*call_args_iter),
-                                               daleToLLVMType(type_uint,
+                                               toLLVMType(type_uint,
                                                               NULL, false));
                         (*call_arg_types_iter) = type_uint;
                     }
@@ -14511,7 +14205,7 @@ int Generator::parseFunctionBody(Element::Function *dfn,
             myvar->type->toStringProper(&mtype);
             myvar->type = type_pdnode;
         }
-        avres = ctx->addVariable(
+        avres = ctx->ns()->addVariable(
                     myvar->name->c_str(), myvar
                 );
         if (!avres) {
@@ -14528,7 +14222,7 @@ int Generator::parseFunctionBody(Element::Function *dfn,
 
         /* Make CreateAlloca instructions for each argument. */
         llvm::Type *llvm_type =
-            daleToLLVMType(myvar->type,
+            toLLVMType(myvar->type,
                            NULL,
                            false);
         if (!llvm_type) {
@@ -14691,35 +14385,29 @@ int Generator::parseFunctionBody(Element::Function *dfn,
                 }
             }
 
-            /* Get the goto's context. */
-            Context *goto_ctx = (*dgiter)->ctx;
+            /* Get the goto's namespace. */
+            Namespace *goto_ns = (*dgiter)->ns;
 
             /* Create a vector of variables to destruct. This will
-             * be the vector of all variables in the goto_context
+             * be the vector of all variables in the goto_namespace
              * and upwards, until either null (top of function) or
              * the other context is hit. Variables in the other
              * context are excluded. */
             std::vector<Element::Variable *> variables;
-            Context *current_ctx = goto_ctx;
-            while (current_ctx != ell->ctx) {
-                for (std::map<std::string, Element::Variable *>::iterator
-                        vb = current_ctx->variables->begin(),
-                        ve = current_ctx->variables->end();
-                        vb != ve;
-                        ++vb) {
-                    variables.push_back(vb->second);
-                }
-                current_ctx = current_ctx->parent_context;
-                if (!current_ctx) {
+            Namespace *current_ns = goto_ns;
+            while (current_ns != ell->ns) {
+                current_ns->getVariables(&variables);
+                current_ns = current_ns->parent_namespace;
+                if (!current_ns) {
                     break;
                 }
             }
 
-            if (current_ctx != ell->ctx) {
-                Context *ell_ctx = ell->ctx;
-                /* Didn't hit the label's context on the way
-                 * upwards. If the label's context, or any context
-                 * in which the label's context is located, has a
+            if (current_ns != ell->ns) {
+                Namespace *ell_ns = ell->ns;
+                /* Didn't hit the label's namespace on the way
+                 * upwards. If the label's namespace, or any namespace
+                 * in which the label's namespace is located, has a
                  * variable declaration with an index smaller than
                  * that of the label, then the goto is going to
                  * cross that variable declaration, in which case
@@ -14729,9 +14417,9 @@ int Generator::parseFunctionBody(Element::Function *dfn,
                  * initialised when the goto is reached.) */
                 std::vector<Element::Variable *> vars_before;
                 std::vector<Element::Variable *> real_vars_before;
-                while (ell_ctx) {
+                while (ell_ns) {
                     vars_before.clear();
-                    ell_ctx->getVarsBeforeIndex(ell->index, &vars_before);
+                    ell_ns->getVarsBeforeIndex(ell->index, &vars_before);
                     if (vars_before.size() > 0) {
                         for
                         (std::vector<Element::Variable*>::iterator
@@ -14753,7 +14441,7 @@ int Generator::parseFunctionBody(Element::Function *dfn,
                             goto finish;
                         }
                     }
-                    ell_ctx = ell_ctx->parent_context;
+                    ell_ns = ell_ns->parent_namespace;
                 }
             }
 
@@ -15442,21 +15130,21 @@ Element::Type *Generator::parseType(Node *top,
     return NULL;
 }
 
-llvm::Type *Generator::daleToLLVMType(Element::Type *type,
+llvm::Type *Generator::toLLVMType(Element::Type *type,
                                       Node *n,
                                       bool
                                       allow_non_first_class,
                                       bool
                                       externally_defined)
 {
-    return ctx->daleToLLVMType(type, n, allow_non_first_class,
+    return ctx->toLLVMType(type, n, allow_non_first_class,
                                externally_defined);
 }
 
-llvm::Type *Generator::daleToLLVMTypeInternal(Element::Type *type,
+llvm::Type *Generator::toLLVMType(Element::Type *type,
         Node *n)
 {
-    return ctx->daleToLLVMTypeInternal(type, n);
+    return ctx->toLLVMType(type, n);
 }
 
 llvm::GlobalValue::LinkageTypes Generator::daleToLLVMLinkage(int linkage)
@@ -15920,7 +15608,7 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
             svar2 =
                 llvm::cast<llvm::GlobalVariable>(
                     mod->getOrInsertGlobal(varname2.c_str(),
-                                           daleToLLVMType(archar, NULL, false))
+                                           toLLVMType(archar, NULL, false))
                 );
 
             svar2->setInitializer(arr);
@@ -15951,7 +15639,7 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
             llvm::cast<llvm::Constant>(
                 llvm::ConstantPointerNull::get(
                     llvm::cast<llvm::PointerType>(
-                        daleToLLVMType(type_pchar, NULL, false)
+                        toLLVMType(type_pchar, NULL, false)
                     )
                 )
             )
@@ -16057,7 +15745,7 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
         llvm::cast<llvm::Constant>(
             llvm::ConstantPointerNull::get(
                 llvm::cast<llvm::PointerType>(
-                    daleToLLVMType(type_pchar, NULL, false)
+                    toLLVMType(type_pchar, NULL, false)
                 )
             )
         )

@@ -7,6 +7,7 @@
 #include "../Element/Type/Type.h"
 #include "../Element/Variable/Variable.h"
 #include "../Context/Context.h"
+#include "../Namespace/Namespace.h"
 
 namespace dale
 {
@@ -473,14 +474,99 @@ char *deserialise(char *in, Element::Enum **en)
     return deserialise(in, enn);
 }
 
+void serialise(FILE *out, Namespace *ns)
+{
+    serialise(out, &(ns->functions));
+    serialise(out, &(ns->variables));
+    serialise(out, &(ns->structs));
+    serialise(out, &(ns->enums));
+    serialise(out, &(ns->name));
+    serialise(out, &(ns->symbol_prefix));
+    return;
+}
+
+void serialise(FILE *out, Namespace **ns)
+{
+    serialise(out, *ns);
+}
+
+char *deserialise(char *in, Namespace *ns)
+{
+    std::map<std::string, std::vector<Element::Function *>*> *fns =
+        new std::map<std::string, std::vector<Element::Function
+    *>*>;
+    in = deserialise(in, fns);
+    ns->functions = *fns;
+
+    std::map<std::string, Element::Variable *> *vars =
+        new std::map<std::string, Element::Variable*>;
+    in = deserialise(in, vars);
+    ns->variables = *vars;
+
+    std::map<std::string, Element::Struct *> *sts =
+        new std::map<std::string, Element::Struct *>;
+    in = deserialise(in, sts);
+    ns->structs = *sts;
+
+    std::map<std::string, Element::Enum *> *ens =
+        new std::map<std::string, Element::Enum *>;
+    in = deserialise(in, ens);
+    ns->enums = *ens;
+
+    std::string name;
+    in = deserialise(in, &name);
+    ns->name = name;
+
+    std::string symbol_prefix;
+    in = deserialise(in, &symbol_prefix);
+    ns->symbol_prefix = symbol_prefix;
+
+    if (ns->symbol_prefix.size()) {
+        ns->has_symbol_prefix = true;
+    }
+
+    return in;
+}
+
+void serialise(FILE *out, NSNode *nsnode)
+{
+    serialise(out, nsnode->ns);
+    serialise(out, &(nsnode->children));
+
+    return;
+}
+
+void serialise(FILE *out, NSNode **nsnode)
+{
+    serialise(out, *nsnode);
+    
+    return;
+}
+
+char *deserialise(char *in, NSNode *nsnode)
+{
+    Namespace *ns = new Namespace();
+    in = deserialise(in, ns);
+    nsnode->ns = ns;
+
+    std::map<std::string, NSNode *> *children = new
+        std::map<std::string, NSNode *>;
+    in = deserialise(in, children);
+    nsnode->children = *children;
+
+    return in;
+}
+
+char *deserialise(char *in, NSNode **nsnode)
+{
+    NSNode *nsn = new NSNode();
+    *nsnode = nsn;
+    return deserialise(in, nsn);
+}
+
 void serialise(FILE *out, Context *ctx)
 {
-    serialise(out, ctx->functions);
-    serialise(out, ctx->variables);
-    serialise(out, ctx->structs);
-    serialise(out, ctx->enums);
-    serialise(out, ctx->namespace_to_context);
-    serialise(out, ctx->current_namespaces);
+    serialise(out, ctx->namespaces);
 
     return;
 }
@@ -492,43 +578,16 @@ void serialise(FILE *out, Context **ctx)
 
 char *deserialise(char *in, Context *ctx)
 {
-    std::map<std::string, std::vector<Element::Function *>*> *fns =
-        new std::map<std::string, std::vector<Element::Function
-    *>*>;
-    in = deserialise(in, fns);
-    ctx->functions = fns;
-
-    std::map<std::string, Element::Variable *> *vars =
-        new std::map<std::string, Element::Variable*>;
-    in = deserialise(in, vars);
-    ctx->variables = vars;
-
-    std::map<std::string, Element::Struct *> *sts =
-        new std::map<std::string, Element::Struct *>;
-    in = deserialise(in, sts);
-    ctx->structs = sts;
-
-    std::map<std::string, Element::Enum *> *ens =
-        new std::map<std::string, Element::Enum *>;
-    in = deserialise(in, ens);
-    ctx->enums = ens;
-
-    std::map<std::string, Context *> *ctxs =
-        new std::map<std::string, Context *>;
-    in = deserialise(in, ctxs);
-    ctx->namespace_to_context = ctxs;
-
-    std::vector<std::string> *cns =
-        new std::vector<std::string>;
-    in = deserialise(in, cns);
-    ctx->current_namespaces = cns;
+    NSNode *nsnode = new NSNode();
+    in = deserialise(in, nsnode);
+    ctx->namespaces = nsnode;
 
     return in;
 }
 
 char *deserialise(char *in, Context **ctx)
 {
-    Context *mc = new Context(NULL);
+    Context *mc = new Context();
     *ctx = mc;
     return deserialise(in, mc);
 }

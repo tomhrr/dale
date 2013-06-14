@@ -16,7 +16,7 @@
 
 namespace dale
 {
-class Context;
+class Namespace;
 
 namespace Element
 {
@@ -25,7 +25,7 @@ class Label
 public:
     llvm::BasicBlock *block;
     int              index;
-    Context *ctx;
+    Namespace        *ns;
 
     Label();
     ~Label();

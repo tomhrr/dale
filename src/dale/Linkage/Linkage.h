@@ -14,6 +14,9 @@ enum
     Extern_C,
     Extern_Weak
 };
+
+bool isExtern(int linkage);
+bool isExternAll(int linkage);
 }
 
 namespace StructLinkage
@@ -25,6 +28,7 @@ enum
     Extern,
     Opaque
 };
+bool isExtern(int linkage);
 }
 
 namespace EnumLinkage
@@ -35,6 +39,7 @@ enum
     Intern,
     Extern
 };
+bool isExtern(int linkage);
 }
 }
 

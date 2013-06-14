@@ -1,6 +1,8 @@
 #ifndef DALE_CONTEXT
 #define DALE_CONTEXT
 
+#include "../Namespace/Namespace.h"
+#include "../Linkage/Linkage.h"
 #include "../Element/Function/Function.h"
 #include "../Element/Variable/Variable.h"
 #include "../Element/Struct/Struct.h"
@@ -14,153 +16,105 @@
 #include <string>
 #include <map>
 
-/* This class needs some template action for add/remove/get. Also need
- * to drop the macro stuff. */
-
 namespace dale
 {
+struct NSNode
+{
+    Namespace *ns;
+    std::map<std::string, NSNode *> children;
+};
+
 class Context
 {
 public:
     NativeTypes *nt;
-    std::map<std::string,
-        std::vector<Element::Function *>* > *functions;
-    std::map<std::string, Element::Variable *>   *variables;
-    std::map<std::string, Element::Struct   *>   *structs;
-    std::map<std::string, Element::Enum     *>   *enums;
-
-    std::vector<std::string> *current_namespaces;
-
-    std::vector<std::pair<std::string, Context*> > *active_namespaces;
-    std::vector<std::pair<std::string, Context*> > *used_namespaces;
-    std::map<std::string, Context*> *namespace_to_context;
-
-    Context *current_context;
-    Context *top_context;
-    Context *parent_context;
-    ErrorReporter *erep;
-
-    const char *filename;
-
-    int index;
-    int next_sub_index;
+    ErrorReporter *er;
+    NSNode *namespaces;
+    std::vector<NSNode *> active_ns_nodes;
+    std::vector<NSNode *> used_ns_nodes;
     int lv_index;
 
+    Context(void);
+    Context(ErrorReporter *erep,
+            NativeTypes *nt);
+    ~Context(void);
+
     int getNextLVIndex(void);
-    int getCurrentNamespaceIndex(void);
+    
+    // Short, because it will be used often (get currently-active
+    // namespace).
+    Namespace *ns(void);
+    bool popUntilNamespace(Namespace *ns);
 
-    Context(ErrorReporter *erep);
-    int activateNamespace(const char *name);
-    int deactivateNamespace(const char *name);
+    bool activateNamespace(const char *name);
+    bool deactivateNamespace(const char *name);
 
-    int useNamespace(const char *name);
-    int unuseNamespace(const char *name);
+    bool activateAnonymousNamespace(void);
+    bool deactivateAnonymousNamespace(void);
 
-    int getNewName(const char *name, std::string *new_name);
+    NSNode *getNSNode(const char *name, 
+                      bool ignore_last,
+                      std::vector<std::string> *ns_parts);
+    NSNode *getNSNode(const char *name, 
+                      bool ignore_last);
+    Namespace *getNamespace(const char *name,
+                            bool ignore_last);
 
-    int addFunction(const char *name,
-                    Element::Function *function,
-                    Node *n);
-    int addVariable(const char *name, Element::Variable *variable);
-    int addStruct(const char *name, Element::Struct *element_struct);
-    int addEnum(const char *name, Element::Enum *element_enum);
-    int removeVariable(const char *name);
-    int removeStruct(const char *name);
-    int removeEnum(const char *name);
-    Element::Function *getFunction(const char *name,
-                                   std::vector<Element::Type
-                                   *> *types,
-                                   int is_macro);
-    Element::Variable *getVariable(const char *name);
-    Element::Struct *getStruct(const char *name);
-    Element::Enum *getEnum(const char *name);
-    void toString(std::string *str);
+    bool useNamespace(const char *name);
+    bool unuseNamespace(void);
 
-    void printNamespaces(void);
-    int getContextFromNamespace(const char *name, Context **ctx_ptr_ptr, int ignore_last);
-
-    int activateAnonymousNamespace(void);
-    int deactivateAnonymousNamespace(void);
-
-    Element::Struct *getStructWithNamespaces(
-        const char *name,
-        std::vector<std::string> *namespaces
-    );
-
-    void setNamespacesForStruct(const char *name,
-                                std::vector<std::string> *namespaces);
-    void setNamespacesForEnum(const char *name,
-                              std::vector<std::string> *namespaces);
-
-    void setNamespaces(std::vector<std::string> *namespaces);
-    int merge(Context *other);
-
-    int encodeNonAN(const std::string *from, std::string *to);
-
-    int getNewFunctionName(const char *name,
-                           std::string *new_name,
-                           int linkage,
-                           std::vector<Element::Variable *> *params);
-    void dump(void);
-
-    llvm::Type *daleToLLVMType(Element::Type *type,
-                               Node *n,
-                               bool
-                               allow_non_first_class,
-                               bool
-                               externally_defined);
-    llvm::Type *daleToLLVMTypeInternal(Element::Type *type,
-                                       Node *n);
-
-    Element::Function *getFunctionBare(
-        std::vector<Element::Function *> *function_list,
-        std::vector<Element::Type *> *types,
-        Element::Function **closest_fn,
-        int is_macro
-    );
-
-    int getVariablesInCurrentScope(
-        std::vector<Element::Variable *> *vars
-    );
+    void eraseLLVMMacros(void);
+    void eraseLLVMMacrosAndCTOFunctions(void);
 
     bool existsExternCFunction(const char *name);
     bool existsNonExternCFunction(const char *name);
-    bool existsNonExternCFunctionBare(std::vector<Element::Function *> *fns);
-    bool existsExternCFunctionBare(std::vector<Element::Function *> *fns);
+    bool isOverloadedFunction(const char *name);
 
-    int removeAllMacros(void);
+    Element::Function *getFunction(const char *name,
+                                   std::vector<Element::Type *> *types,
+                                   Element::Function **closest_fn,
+                                   bool is_macro);
+    Element::Function *getFunction(const char *name,
+                                   std::vector<Element::Type *> *types,
+                                   bool is_macro);
+    Element::Variable *getVariable(const char *name);
+    Element::Struct *getStruct(const char *name);
+    Element::Struct *getStruct(const char *name,
+                               std::vector<std::string> *namespaces);
+    Element::Enum *getEnum(const char *name);
 
-    int isOverloadedFunctionBare(
-        Element::Function *check_fn,
-        std::vector<Element::Function *> *function_list
-    );
-    int getContextDepth(Context *myctx, int *depth);
-    int getVarsAfterIndex(int index,
-                          std::vector<Element::Variable
-                          *> *vars);
-    int getVarsBeforeIndex(int index,
-                           std::vector<Element::Variable *> *vars);
-    int isOverloadedFunction(const char *name);
-    int regetPointers(llvm::Module *mod);
-    Element::Function *getFunction(
-        const char *name,
-        std::vector<Element::Type *> *types,
-        Element::Function **closest_fn,
-        int is_macro
-    );
+    void getFunctionNames(std::set<std::string> *names);
 
-    int getFunctionNames(
-        std::set<std::string> *names
-    );
-    int getFunctionNamesInCurrentScope(
-        std::set<std::string> *names
-    );
+    bool setNamespacesForStruct(const char *name,
+                                std::vector<std::string> *namespaces);
+    bool setNamespacesForEnum(const char *name,
+                              std::vector<std::string> *namespaces);
 
+    bool merge(Context *other);
 
-    int popUntilNamespaceIndex(int index,
-                               std::vector<std::string> *nss);
+    llvm::Type *toLLVMType(Element::Type *type,
+                           Node *n,
+                           bool allow_non_first_class,
+                           bool externally_defined);
+    llvm::Type *toLLVMType(Element::Type *type,
+                           Node *n);
 
-    ~Context();
+    bool regetPointers(llvm::Module *mod);
+    bool regetPointersForNewModule(llvm::Module *mod);
+    bool rebuildFunctions(llvm::Module *mod, NSNode *node);
+    bool rebuildVariables(llvm::Module *mod, NSNode *node);
+
+    bool removeUnneeded(std::set<std::string> *forms,
+                        std::set<std::string> *found_forms);
+
+    bool eraseOnceForms(std::set<std::string> *once_tags,
+                        llvm::Module *mod);
+    bool deleteAnonymousNamespaces(void);
+    void deleteNamespaces(NSNode *nsnode);
+
+    void relink(void);
+
+    void print(void);
 };
 }
 

@@ -32,6 +32,8 @@ public:
     void copyTo(Node *other);
     ~Node(void);
 };
+
+Node *nullNode(void);
 }
 
 #endif
