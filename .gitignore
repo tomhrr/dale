@@ -1,8 +1,8 @@
-\.o
-\.bc
-\.dtm
-\.so
-\.swp
+*.o
+*.bc
+*.dtm
+*.so
+*.swp
 src/dale/Config\.h
 dale-bindgen
 dalec
@@ -16,3 +16,4 @@ doc/html
 doc/2-
 doc/3-
 doc/drt.md
+a.out
