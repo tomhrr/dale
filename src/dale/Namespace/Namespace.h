@@ -226,27 +226,95 @@ public:
      *  names (it's just a simple sanity check).
      */
     bool merge(Namespace *other);
+
+    /*! Reget all structs' LLVM types from the module.
+     *  @param mod The module from which the type should be reloaded.
+     *
+     *  Aborts if a particular struct's type cannot be got from the
+     *  module.
+     */
     bool regetStructPointers(llvm::Module *mod);
+    /*! Reget all variables' LLVM values from the module.
+     *  @param mod The module from which the value should be reloaded.
+     *
+     *  Values are only got for variables that already have LLVM
+     *  values. If the variable's value doesn't exist in the module, a
+     *  new value (uninitialised) will be added to it. Aborts if a
+     *  value cannot be got or inserted.
+     */
     bool regetVariablePointers(llvm::Module *mod);
+    /*! Reget all functions' LLVM functions from the module.
+     *  @param mod The module from which the function should be reloaded.
+     *
+     *  Unlike the other 'reget' methods, this one will not fail if a
+     *  given function cannot be found in the module.
+     */
     bool regetFunctionPointers(llvm::Module *mod);
+    /*! Reget all LLVM types/values/functions from the module.
+     *  @param mod The module from which the bindings should be reloaded.
+     *
+     *  Calls each of the other 'reget' methods.
+     */
     bool regetPointers(llvm::Module *mod);
 
+    /*! Erase LLVM function bodies for functions with a given 'once' tag.
+     *  @param once_tags The current set of 'once' tags.
+     *  @param mod The LLVM module to use for erasure.
+     *
+     *  This does not remove the functions that have one of the
+     *  specified 'once' tags from the namespace: it just deletes the
+     *  LLVM function body, so that the LLVM function becomes a
+     *  declaration.
+     */
     bool eraseOnceFunctions(std::set<std::string> *once_tags,
                             llvm::Module *mod);
+    /*! Erase LLVM variable values for variables with a given 'once' tag.
+     *  @param once_tags The current set of 'once' tags.
+     *  @param mod The LLVM module to use for erasure.
+     *
+     *  This does not remove the variables that have one of the
+     *  specified 'once' tags from the namespace: it just removes the
+     *  variables' initialisers, so that they become declarations.
+     */
     bool eraseOnceVariables(std::set<std::string> *once_tags,
                             llvm::Module *mod);
 
+    /*! Remove structs that aren't included in the set of forms.
+     *  @param forms The names of structs that should be retained.
+     *  @param found_forms A set to which found names will be added.
+     *
+     *  Each of the 'removeUnneeded' functions operates in the same
+     *  way: for the particular type of binding, once it has been run,
+     *  the only bindings that will remain in the namespace will be 
+     *  those with a name that is present in the 'forms' set. The 
+     *  names of those bindings that were retained, i.e. the 
+     *  intersection of 'forms' and the binding names, will be added 
+     *  to the 'found_forms' set.
+     */
     bool removeUnneededStructs(std::set<std::string> *forms,
-                       std::set<std::string> *found_forms);
+                               std::set<std::string> *found_forms);
+    /*! Remove variables that aren't included in the set of forms.
+     *  @param forms The names of variables that should be retained.
+     *  @param found_forms A set to which found names will be added. */
     bool removeUnneededVariables(std::set<std::string> *forms,
                                  std::set<std::string> *found_forms);
+    /*! Remove functions that aren't included in the set of forms.
+     *  @param forms The names of functions that should be retained.
+     *  @param found_forms A set to which found names will be added. */
     bool removeUnneededFunctions(std::set<std::string> *forms,
                                  std::set<std::string> *found_forms);
+    /*! Remove enums that aren't included in the set of forms.
+     *  @param forms The names of enums that should be retained.
+     *  @param found_forms A set to which found names will be added. */
     bool removeUnneededEnums(std::set<std::string> *forms,
                              std::set<std::string> *found_forms);
+    /*! Remove bindings that aren't included in the set of forms.
+     *  @param forms The names of bindings that should be retained.
+     *  @param found_forms A set to which found bindings will be added. */
     bool removeUnneeded(std::set<std::string> *forms,
                         std::set<std::string> *found_forms);
 
+    /*! Print the namespace's details to stderr. */
     void print(void);
 };
 }

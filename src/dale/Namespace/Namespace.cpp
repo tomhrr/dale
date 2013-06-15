@@ -863,17 +863,8 @@ Namespace::regetFunctionPointers(llvm::Module *mod)
                 fb != fe;
                 ++fb) {
             Element::Function *fn = (*fb);
-            /* todo: trying this for a moment. */
-            /*
-            if (!fn->llvm_function) {
-                continue;
-            }
-            */
             fn->llvm_function =
                 mod->getFunction(fn->internal_name->c_str());
-            /* If fn->llvm_function is NULL at this point, is becomes
-             * the responsibility of Context::rebuildFunctions to fix
-             * it. */
         }
     }
 
