@@ -98,6 +98,16 @@ public:
                            bool externally_defined);
     llvm::Type *toLLVMType(Element::Type *type,
                            Node *n);
+    llvm::Type *toLLVMTypeStruct(Element::Type *type,
+                                 Node *n);
+    llvm::Type *toLLVMTypeBase(Element::Type *type,
+                               Node *n);
+    llvm::Type *toLLVMTypeFunction(Element::Type *type,
+                                   Node *n);
+    llvm::Type *toLLVMTypePointer(Element::Type *type,
+                                  Node *n);
+    llvm::Type *toLLVMTypeArray(Element::Type *type,
+                                Node *n);
 
     bool regetPointers(llvm::Module *mod);
     bool regetPointersForNewModule(llvm::Module *mod);

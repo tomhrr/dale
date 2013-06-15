@@ -993,6 +993,135 @@ Context::regetPointersForNewModule(llvm::Module *mod)
 }
 
 llvm::Type *
+Context::toLLVMTypeFunction(Element::Type *type,
+                            Node *n)
+{
+    std::vector<llvm::Type*> llvm_fn_params;
+    bool is_varargs = 0;
+
+    std::vector<Element::Type*>::iterator iter;
+    iter = type->parameter_types->begin();
+
+    while (iter != type->parameter_types->end()) {
+        if ((*iter)->base_type == Type::VarArgs) {
+            is_varargs = true;
+        } else {
+            llvm::Type *t = toLLVMType((*iter), n);
+            if (!t) {
+                return NULL;
+            }
+            llvm_fn_params.push_back(t);
+        }
+        ++iter;
+    }
+
+    llvm::FunctionType *fntype = 
+        llvm::FunctionType::get(
+            toLLVMType(type->return_type, n),
+            llvm_fn_params,
+            is_varargs
+        );
+    return fntype;
+}
+
+llvm::Type *
+Context::toLLVMTypeArray(Element::Type *type,
+                         Node *n)
+{
+    llvm::Type *new_type =
+        llvm::ArrayType::get(
+            toLLVMType(type->array_type, n),
+            type->array_size
+        );
+    return new_type;
+}
+
+llvm::Type *
+Context::toLLVMTypePointer(Element::Type *type,
+                           Node *n)
+{
+    llvm::Type *temp_type =
+        toLLVMType(type->points_to, n);
+
+    if (!temp_type) {
+        return NULL;
+    }
+    /* If this is a pointer to void, then return a _vp struct
+        * instead. */
+    if (temp_type->isVoidTy()) {
+        Element::Struct *structp = getStruct("_vp", NULL);
+        if (!structp) {
+            fprintf(stderr, "Internal error: no _vp struct.\n");
+            abort();
+        }
+        if (!structp->type) {
+            fprintf(stderr, "Internal error: found vp struct, "
+                    "but it doesn't have a type. (%s)\n",
+                    type->struct_name->c_str());
+            abort();
+        }
+        return llvm::PointerType::getUnqual(structp->type);
+    }
+    return llvm::PointerType::getUnqual(temp_type);
+}
+
+llvm::Type *
+Context::toLLVMTypeBase(Element::Type *type,
+                        Node *n)
+{
+    llvm::LLVMContext &lc = llvm::getGlobalContext();
+
+    int base_type = type->base_type;
+    llvm::Type *lbt = NULL;
+
+    switch (base_type) {
+        case Type::Int:        lbt = nt->getNativeIntType();          break;
+        case Type::UInt:       lbt = nt->getNativeUIntType();         break;
+        case Type::Char:       lbt = nt->getNativeCharType();         break;
+        case Type::Void:       lbt = llvm::Type::getVoidTy(lc);       break;
+        case Type::Bool:       lbt = llvm::Type::getInt1Ty(lc);       break;
+        case Type::Float:      lbt = llvm::Type::getFloatTy(lc);      break;
+        case Type::Double:     lbt = llvm::Type::getDoubleTy(lc);     break;
+        case Type::LongDouble: lbt = nt->getNativeLongDoubleType();   break;
+        case Type::Int8:       lbt = llvm::Type::getInt8Ty(lc);       break;
+        case Type::UInt8:      lbt = llvm::Type::getInt8Ty(lc);       break;
+        case Type::Int16:      lbt = llvm::Type::getInt16Ty(lc);      break;
+        case Type::UInt16:     lbt = llvm::Type::getInt16Ty(lc);      break;
+        case Type::Int32:      lbt = llvm::Type::getInt32Ty(lc);      break;
+        case Type::UInt32:     lbt = llvm::Type::getInt32Ty(lc);      break;
+        case Type::Int64:      lbt = llvm::Type::getInt64Ty(lc);      break;
+        case Type::UInt64:     lbt = llvm::Type::getInt64Ty(lc);      break;
+        case Type::IntPtr:     lbt = nt->getNativeIntptrType();       break;
+        case Type::Size:       lbt = nt->getNativeSizeType();         break;
+        case Type::PtrDiff:    lbt = nt->getNativePtrDiffType();      break;
+        case Type::Int128:     lbt = llvm::IntegerType::get(lc, 128); break;
+        case Type::UInt128:    lbt = llvm::IntegerType::get(lc, 128); break;
+    }
+
+    return lbt;
+}
+
+llvm::Type *
+Context::toLLVMTypeStruct(Element::Type *type,
+                          Node *n)
+{
+    Element::Struct *structp =
+        getStruct(type->struct_name->c_str(), type->namespaces);
+
+    if (structp) {
+        if (!structp->type) {
+            fprintf(stderr, "Internal error: found struct, "
+                    "but it doesn't have a type. (%s)\n",
+                    type->struct_name->c_str());
+            abort();
+        }
+        return structp->type;
+    }
+
+    return NULL;
+}
+
+llvm::Type *
 Context::toLLVMType(Element::Type *type,
                     Node *n)
 {
@@ -1003,164 +1132,35 @@ Context::toLLVMType(Element::Type *type,
     }
 
     if (type->is_function) {
-        std::vector<llvm::Type*> llvm_fn_params;
-        int is_varargs = 0;
-
-        std::vector<Element::Type*>::iterator iter;
-        iter = type->parameter_types->begin();
-
-        while (iter != type->parameter_types->end()) {
-            if ((*iter)->base_type == Type::VarArgs) {
-                is_varargs = 1;
-            } else {
-                llvm::Type *t = toLLVMType((*iter), n);
-                if (!t) {
-                    return NULL;
-                }
-                llvm_fn_params.push_back(t);
-            }
-            ++iter;
-        }
-
-        llvm::FunctionType *fntype = 
-            llvm::FunctionType::get(
-                toLLVMType(type->return_type, n),
-                llvm_fn_params,
-                is_varargs
-            );
-        return fntype;
+        return toLLVMTypeFunction(type, n);
     }
 
     if (type->is_array) {
-        llvm::Type *new_type =
-            llvm::ArrayType::get(
-                toLLVMType(type->array_type, n),
-                type->array_size
-            );
-        return new_type;
+        return toLLVMTypeArray(type, n);
     }
 
     if (type->points_to != NULL) {
-        llvm::Type *temp_type =
-            toLLVMType(type->points_to, n);
-
-        if (!temp_type) {
-            return NULL;
-        }
-        /* If this is a pointer to void, then return a _vp struct
-         * instead. */
-        if (temp_type->isVoidTy()) {
-            Element::Struct *structp = getStruct("_vp", NULL);
-            if (!structp) {
-                fprintf(stderr, "Internal error: no _vp struct.\n");
-                abort();
-            }
-            if (!structp->type) {
-                fprintf(stderr, "Internal error: found vp struct, "
-                        "but it doesn't have a type. (%s)\n",
-                        type->struct_name->c_str());
-                abort();
-            }
-            return llvm::PointerType::getUnqual(structp->type);
-        }
-        return llvm::PointerType::getUnqual(temp_type);
+        return toLLVMTypePointer(type, n);
     }
 
-    int base_type = type->base_type;
-    llvm::Type *lbt = NULL;
-
-    switch (base_type) {
-    case Type::Int:
-        lbt = nt->getNativeIntType();
-        break;
-    case Type::UInt:
-        lbt = nt->getNativeUIntType();
-        break;
-    case Type::Char:
-        lbt = nt->getNativeCharType();
-        break;
-    case Type::Void:
-        lbt = llvm::Type::getVoidTy(lc);
-        break;
-    case Type::Bool:
-        lbt = llvm::Type::getInt1Ty(lc);
-        break;
-    case Type::Float:
-        lbt = llvm::Type::getFloatTy(lc);
-        break;
-    case Type::Double:
-        lbt = llvm::Type::getDoubleTy(lc);
-        break;
-    case Type::LongDouble:
-        lbt = nt->getNativeLongDoubleType();
-        break;
-    case Type::Int8:
-        lbt = llvm::Type::getInt8Ty(lc);
-        break;
-    case Type::UInt8:
-        lbt = llvm::Type::getInt8Ty(lc);
-        break;
-    case Type::Int16:
-        lbt = llvm::Type::getInt16Ty(lc);
-        break;
-    case Type::UInt16:
-        lbt = llvm::Type::getInt16Ty(lc);
-        break;
-    case Type::Int32:
-        lbt = llvm::Type::getInt32Ty(lc);
-        break;
-    case Type::UInt32:
-        lbt = llvm::Type::getInt32Ty(lc);
-        break;
-    case Type::Int64:
-        lbt = llvm::Type::getInt64Ty(lc);
-        break;
-    case Type::UInt64:
-        lbt = llvm::Type::getInt64Ty(lc);
-        break;
-    case Type::IntPtr:
-        lbt = nt->getNativeIntptrType();
-        break;
-    case Type::Size:
-        lbt = nt->getNativeSizeType();
-        break;
-    case Type::PtrDiff:
-        lbt = nt->getNativePtrDiffType();
-        break;
-    case Type::Int128:
-        lbt = llvm::IntegerType::get(lc, 128);
-        break;
-    case Type::UInt128:
-        lbt = llvm::IntegerType::get(lc, 128);
-        break;
+    llvm::Type *base_type = toLLVMTypeBase(type, n);
+    if (base_type) {
+        return base_type;
     }
 
-    if (lbt) {
-        return lbt;
-    }
-
-    /* Check for a struct. */
     if (type->struct_name != NULL) {
-        Element::Struct *structp =
-            getStruct(type->struct_name->c_str(), type->namespaces);
-
-        if (structp) {
-            if (!structp->type) {
-                fprintf(stderr, "Internal error: found struct, "
-                        "but it doesn't have a type. (%s)\n",
-                        type->struct_name->c_str());
-                abort();
-            }
-            return structp->type;
+        llvm::Type *struct_type = toLLVMTypeStruct(type, n);
+        if (struct_type) {
+            return struct_type;
         }
     }
 
-    std::string temp;
-    type->toStringProper(&temp);
+    std::string type_str;
+    type->toStringProper(&type_str);
     Error *e = new Error(
         ErrorInst::Generator::UnableToConvertTypeToLLVMType,
         (n ? n : nullNode()),
-        temp.c_str()
+        type_str.c_str()
     );
     er->addError(e);
 
