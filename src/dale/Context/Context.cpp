@@ -43,12 +43,6 @@ Context::~Context(void)
     deleteNamespaces(namespaces);
 }
 
-int
-Context::getNextLVIndex(void)
-{
-    return ++lv_index;
-}
-
 Namespace *
 Context::ns(void)
 {
@@ -115,9 +109,6 @@ bool
 Context::deactivateNamespace(const char *name)
 {
     if (strcmp(name, active_ns_nodes.back()->ns->name.c_str())) {
-        fprintf(stderr, "A Current: (%s)\n",
-                active_ns_nodes.back()->ns->name.c_str());
-        fprintf(stderr, "A Trying:  (%s)\n", name);
         Error *e = new Error(
             ErrorInst::Generator::CannotDeactivateInactiveNamespace,
             nullNode(),
@@ -128,9 +119,6 @@ Context::deactivateNamespace(const char *name)
     }
 
     if (strcmp(name, used_ns_nodes.back()->ns->name.c_str())) {
-        fprintf(stderr, "U Current: (%s)\n",
-                used_ns_nodes.back()->ns->name.c_str());
-        fprintf(stderr, "U Trying:  (%s)\n", name);
         used_ns_nodes.back()->ns->print();
         Error *e = new Error(
             ErrorInst::Generator::CannotDeactivateNonLastNamespace,

@@ -24,32 +24,80 @@ struct NSNode
     std::map<std::string, NSNode *> children;
 };
 
+/*! Context
+
+    A class for containing the details of a tree of namespaces.
+    Provides for activating/deactivating namespaces (named and
+    anonymous), searching for bindings throughout the tree and
+    constructing LLVM types from 'internal' types, amongst other
+    things.
+
+    Within this class, an 'active' namespace is one into which new
+    bindings will be put, whereas a 'used' namespace is one that is
+    only used for binding resolution. Note that all 'active'
+    namespaces are also 'used' namespaces, for so long as they are
+    active.
+*/
 class Context
 {
 public:
+    /*! The native types for the context. Used primarily for type
+     *  conversion. */
     NativeTypes *nt;
+    /*! The error reporter for this context. */
     ErrorReporter *er;
+    /*! The node for the root namespace. */
     NSNode *namespaces;
+    /*! The list of the currently-active nodes, with the most
+     *  recently-activated node being at the back. */
     std::vector<NSNode *> active_ns_nodes;
+    /*! The list of the currently-used nodes, with the most
+     *  recently-used node being at the back. */
     std::vector<NSNode *> used_ns_nodes;
+    /*! The current label-variable index for the context. */
     int lv_index;
 
+    /*! The void constructor, intended solely for use by the
+     *  deserialisation procedures. */
     Context(void);
-    Context(ErrorReporter *erep,
+    /*! The normal constructor.
+     *  @param er The error reporter.
+     *  @param nt The native types. */
+    Context(ErrorReporter *er,
             NativeTypes *nt);
     ~Context(void);
-
-    int getNextLVIndex(void);
-    
-    // Short, because it will be used often (get currently-active
-    // namespace).
+ 
+    /*! Get the currently-active namespace. */
     Namespace *ns(void);
+    /*! Pop active/used namespaces until the given namespace has been reached.
+     *  @param ns The namespace that needs to be reached. */
     bool popUntilNamespace(Namespace *ns);
 
+    /*! Activate the namespace with the given name.
+     *  @param name The name of the namespace.
+     * 
+     *  If the namespace does not already exist, then a new namespace
+     *  object will be created and added to the tree.
+     */
     bool activateNamespace(const char *name);
+    /*! Deactivate the namespace with the given name.
+     *  @param name The name of the namespace.
+     *
+     *  Reports errors and returns false if the namespace is not the
+     *  most recently activated and used namespace.
+     */
     bool deactivateNamespace(const char *name);
 
+    /*! Activate a new anonymous namespace. */
     bool activateAnonymousNamespace(void);
+    /*! Deactivate an anonymous namespace.
+     *
+     *  The only difference between this method and
+     *  deactivateNamespace is that the latter checks that the name of
+     *  the namespace is 'correct'; i.e., deactivateNamespace may be
+     *  used directly, as the pair to a corresponding
+     *  activateAnonymousNamespace call, by fetching the namespace's
+     *  name manually after activation. */
     bool deactivateAnonymousNamespace(void);
 
     NSNode *getNSNode(const char *name, 
