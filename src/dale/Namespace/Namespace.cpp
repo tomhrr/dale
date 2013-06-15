@@ -7,8 +7,6 @@ namespace dale
 {
 Namespace::Namespace(void)
 {
-    /* For serialisation use only. A parent namespace and error
-     * reporter must be set post-deserialisation. */
     this->parent_namespace = NULL;
     this->er = NULL;
 }
