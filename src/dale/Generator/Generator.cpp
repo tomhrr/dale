@@ -2301,9 +2301,6 @@ int Generator::run(std::vector<const char *> *filenames,
         }
     }
 
-    /* Remove all anonymous namespaces. */
-    ctx->deleteAnonymousNamespaces();
-
     if (module_name.size() > 0) {
         /* Strip the bodies of the standard functions, and remove
          * them from context as well. */
@@ -2638,6 +2635,9 @@ done:
 /* The only time this returns 0 is on EOF - possibly problematic. */
 int Generator::parseTopLevel(Node *top)
 {
+    /* Remove all anonymous namespaces. */
+    ctx->deleteAnonymousNamespaces();
+
     if (!top) {
         return 0;
     }

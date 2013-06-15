@@ -152,7 +152,7 @@ static int anon_count = 0;
 bool
 Context::activateAnonymousNamespace(void)
 {
-    char buf[8];
+    char buf[10];
     sprintf(buf, "anon%d", ++anon_count);
     return activateNamespace(buf);
 }
