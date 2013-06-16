@@ -962,6 +962,23 @@ Context::rebuildVariables(llvm::Module *mod, NSNode *nsnode)
     return true;
 }
 
+llvm::GlobalValue::LinkageTypes 
+Context::toLLVMLinkage(int linkage)
+{
+    return
+        (linkage == dale::Linkage::Auto)
+        ? llvm::GlobalValue::InternalLinkage
+        : (linkage == dale::Linkage::Intern)
+        ? llvm::GlobalValue::InternalLinkage
+        : (linkage == dale::Linkage::Extern)
+        ? llvm::GlobalValue::ExternalLinkage
+        : (linkage == dale::Linkage::Extern_C)
+        ? llvm::GlobalValue::ExternalLinkage
+        : (linkage == dale::Linkage::Extern_Weak)
+        ? llvm::GlobalValue::LinkOnceODRLinkage
+        : llvm::GlobalValue::ExternalLinkage;
+}
+
 bool
 Context::regetPointers(llvm::Module *mod)
 {

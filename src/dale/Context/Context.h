@@ -143,7 +143,7 @@ public:
     llvm::Type *toLLVMType(Element::Type *type,
                            Node *n,
                            bool allow_non_first_class,
-                           bool externally_defined);
+                           bool externally_defined = false);
     llvm::Type *toLLVMType(Element::Type *type,
                            Node *n);
     llvm::Type *toLLVMTypeStruct(Element::Type *type,
@@ -156,6 +156,7 @@ public:
                                   Node *n);
     llvm::Type *toLLVMTypeArray(Element::Type *type,
                                 Node *n);
+    llvm::GlobalValue::LinkageTypes toLLVMLinkage(int linkage);
 
     bool regetPointers(llvm::Module *mod);
     bool regetPointersForNewModule(llvm::Module *mod);

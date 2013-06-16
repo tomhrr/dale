@@ -97,4 +97,24 @@ int NativeTypes::getNativeSizeSize(void)
 {
     return native_size_size;
 }
+
+int NativeTypes::internalSizeToRealSize(int n)
+{
+    if (n > 1000) {
+        return n - 1000;
+    }
+
+    switch (n) {
+    case 1:
+        return getNativeIntSize();
+    case 2:
+        return getNativePtrSize();
+    case 3:
+        return getNativeSizeSize();
+    case 4:
+        return getNativePtrDiffSize();
+    default:
+        return n;
+    }
+}
 }

@@ -27,6 +27,7 @@
 #include "../Utils/Utils.h"
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../Element/Enum/Enum.h"
+#include "../BasicTypes/BasicTypes.h"
 
 #include "llvm/LLVMContext.h"
 #include "llvm/Module.h"
@@ -291,49 +292,6 @@ private:
                                bool getAddress, bool
                                prefixed_with_core);
 
-    Element::Function *addSimpleUnaryFunction(const char *name,
-            Element::Type *return_type,
-            Element::Type *type1);
-
-    Element::Function *addSimpleBinaryFunction(const char *name,
-            Element::Type *return_type,
-            Element::Type *type1,
-            Element::Type *type2);
-
-    void make_function(const char *name,
-                       llvm::Value* (llvm::IRBuilder<>:: *method_name)
-                       (llvm::Value*, llvm::Value*,
-                        const llvm::Twine &),
-                       Element::Type *ret_type,
-                       Element::Type *type);
-    void make_function2(const char *name,
-                        llvm::Value* (llvm::IRBuilder<>:: *method_name)
-                        (llvm::Value*, llvm::Value*, const
-                         llvm::Twine &),
-                        Element::Type *ret_type,
-                        Element::Type *type1,
-                        Element::Type *type2);
-
-    void make_enum_function(
-        const char *name,
-        llvm::Value* (llvm::IRBuilder<>:: *method_name)
-        (llvm::Value*, llvm::Value*, const
-         llvm::Twine &),
-        Element::Type *ret_type,
-        Element::Type *type,
-        int mylinkage);
-
-    void make_enum_function2(
-        const char *name,
-        llvm::Value* (llvm::IRBuilder<>:: *method_name)
-        (llvm::Value*, llvm::Value*, const
-         llvm::Twine &),
-        Element::Type *ret_type,
-        Element::Type *type,
-        Element::Type *type2,
-        Element::Type *undertype,
-        int mylinkage);
-
     void regetPointersForFVDM(Context *newctx);
     void regetPointersForDM(Context *newctx);
 
@@ -348,11 +306,6 @@ private:
     void deleteDNode(DNode *dnode);
 
     Parser *newParser(FILE *new_fp, const char *filename);
-
-    void addUnsignedInt(Element::Type *type);
-    void addSignedInt(Element::Type *type);
-
-    void addFloatingPoint(Element::Type *type);
 
     ParseResult *doCast(llvm::BasicBlock *block,
                         llvm::Value *value,

@@ -673,85 +673,6 @@ Parser *Generator::newParser(FILE *new_fp, const char *filename)
     return new Parser(lxr, erep, filename);
 }
 
-Element::Function *Generator::addSimpleUnaryFunction(const char *name,
-        Element::Type *return_type,
-        Element::Type *type1)
-{
-    return_type->linkage = Linkage::Intern;
-
-    std::vector<Element::Variable*> *new_args_ctx =
-        new std::vector<Element::Variable*>;
-
-    new_args_ctx->push_back(
-        new Element::Variable((char *) "a", type1));
-
-    std::vector<llvm::Type*> new_args;
-
-    llvm::Type *llvm_type1 = toLLVMType(type1, NULL, false);
-    if (!llvm_type1) {
-        failedDaleToLLVMTypeConversion(type1);
-        return NULL;
-    }
-    new_args.push_back(llvm_type1);
-
-    llvm::Type *llvm_ret_type =
-        toLLVMType(return_type, NULL, false);
-    if (!llvm_ret_type) {
-        failedDaleToLLVMTypeConversion(return_type);
-        return NULL;
-    }
-
-    llvm::FunctionType *new_ft =
-        getFunctionType(
-            llvm_ret_type,
-            new_args,
-            false
-        );
-
-    std::string new_name;
-    ctx->ns()->functionNameToSymbol(name,
-                                    &new_name,
-                                    return_type->linkage,
-                                    new_args_ctx);
-
-    llvm::Function *new_fn =
-        llvm::cast<llvm::Function>(
-            mod->getOrInsertFunction(new_name.c_str(), new_ft)
-        );
-
-    new_fn->setCallingConv(llvm::CallingConv::C);
-    new_fn->setLinkage(llvm::GlobalValue::LinkOnceAnyLinkage);
-    new_fn->addFnAttr(llvm::Attribute::NoUnwind |
-                      llvm::Attribute::ReadOnly |
-                      llvm::Attribute::AlwaysInline);
-
-    Element::Function *myfn =
-        new Element::Function(
-        return_type,
-        new_args_ctx,
-        new_fn,
-        0,
-        &new_name
-    );
-    myfn->once_tag = current_once_tag;
-
-    ctx->ns()->addFunction(name, myfn, NULL);
-
-    llvm::Function::arg_iterator largs = new_fn->arg_begin();
-    std::vector<Element::Variable *>::iterator iter;
-    iter = new_args_ctx->begin();
-
-    while (iter != new_args_ctx->end()) {
-        llvm::Value *temp = largs;
-        ++largs;
-        temp->setName((*iter)->name->c_str());
-        (*iter)->value = temp;
-        ++iter;
-    }
-
-    return myfn;
-}
-
 llvm::ConstantInt *Generator::getNativeInt(int n)
 {
     return llvm::ConstantInt::get(nt->getNativeIntType(), n);
@@ -771,609 +692,6 @@ llvm::ConstantInt *Generator::getConstantInt(
     return llvm::ConstantInt::get(type,
                                   llvm::StringRef(numstr),
                                   radix);
-}
-
-Element::Function *Generator::addSimpleBinaryFunction(const char *name,
-        Element::Type *return_type,
-        Element::Type *type1,
-        Element::Type *type2)
-{
-    return_type->linkage = Linkage::Intern;
-
-    std::vector<Element::Variable*> *new_args_ctx =
-        new std::vector<Element::Variable*>;
-    new_args_ctx->reserve(2);
-
-    new_args_ctx->push_back(
-        new Element::Variable((char *) "a", type1));
-    new_args_ctx->push_back(
-        new Element::Variable((char *) "b", type2));
-
-    std::vector<llvm::Type*> new_args;
-    new_args.reserve(2);
-    llvm::Type *llvm_type1 = toLLVMType(type1, NULL, false);
-    if (!llvm_type1) {
-        failedDaleToLLVMTypeConversion(type1);
-        return NULL;
-    }
-    llvm::Type *llvm_type2 = toLLVMType(type2, NULL, false);
-    if (!llvm_type2) {
-        failedDaleToLLVMTypeConversion(type2);
-        return NULL;
-    }
-    new_args.push_back(llvm_type1);
-    new_args.push_back(llvm_type2);
-
-    std::string new_name;
-    new_name.reserve(20);
-    ctx->ns()->functionNameToSymbol(name,
-                                    &new_name,
-                                    return_type->linkage,
-                                    new_args_ctx);
-
-    llvm::Type *llvm_return_type =
-        toLLVMType(return_type, NULL, false);
-    if (!llvm_return_type) {
-        failedDaleToLLVMTypeConversion(return_type);
-        return NULL;
-    }
-    llvm::FunctionType *new_ft =
-        getFunctionType(
-            llvm_return_type,
-            new_args,
-            false
-        );
-
-    llvm::Function *new_fn =
-        llvm::cast<llvm::Function>(
-            mod->getOrInsertFunction(new_name.c_str(), new_ft)
-        );
-
-    new_fn->setCallingConv(llvm::CallingConv::C);
-    new_fn->setLinkage(llvm::GlobalValue::LinkOnceAnyLinkage);
-    new_fn->addFnAttr(llvm::Attribute::NoUnwind |
-                      llvm::Attribute::ReadOnly |
-                      llvm::Attribute::AlwaysInline);
-
-    Element::Function *myfn =
-        new Element::Function(
-        return_type,
-        new_args_ctx,
-        new_fn,
-        0,
-        &new_name
-    );
-    myfn->once_tag = current_once_tag;
-
-    ctx->ns()->addFunction(name, myfn, NULL);
-
-    llvm::Function::arg_iterator largs = new_fn->arg_begin();
-    std::vector<Element::Variable *>::iterator iter;
-    iter = new_args_ctx->begin();
-
-    while (iter != new_args_ctx->end()) {
-        llvm::Value *temp = largs;
-        ++largs;
-        temp->setName((*iter)->name->c_str());
-        (*iter)->value = temp;
-        ++iter;
-    }
-
-    return myfn;
-}
-
-void Generator::make_function(const char *name,
-                              llvm::Value* (llvm::IRBuilder<>:: *method_name)
-                              (llvm::Value*, llvm::Value*, const
-                               llvm::Twine &),
-                              Element::Type *ret_type,
-                              Element::Type *type)
-{
-    Element::Function *fn =
-        addSimpleBinaryFunction(name, ret_type, type, type);
-
-    std::vector<Element::Variable *>::iterator iter;
-    iter = fn->parameter_types->begin();
-
-    llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                 fn->llvm_function);
-
-    llvm::IRBuilder<> builder(block);
-    llvm::Twine bling;
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           ((builder).*(method_name))((*iter)->value, (*(iter +
-                                   1))->value, bling)
-                       );
-    builder.CreateRet(res);
-}
-
-void Generator::make_function2(
-    const char *name,
-    llvm::Value* (llvm::IRBuilder<>:: *method_name)
-    (llvm::Value*, llvm::Value*, const
-     llvm::Twine &),
-    Element::Type *ret_type,
-    Element::Type *type1,
-    Element::Type *type2)
-{
-    Element::Function *fn =
-        addSimpleBinaryFunction(name, ret_type, type1, type2);
-
-    std::vector<Element::Variable *>::iterator iter;
-    iter = fn->parameter_types->begin();
-
-    llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                 fn->llvm_function);
-
-    ParseResult *temp =
-        doCast(block, (*(iter + 1))->value, type2, type1, NULL);
-
-    llvm::IRBuilder<> builder(temp->block);
-    llvm::Twine bling;
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           ((builder).*(method_name))((*iter)->value, temp->value,
-                                   bling)
-                       );
-    builder.CreateRet(res);
-}
-
-void Generator::make_enum_function(
-    const char *name,
-    llvm::Value* (llvm::IRBuilder<>:: *method_name)
-    (llvm::Value*, llvm::Value*, const
-     llvm::Twine &),
-    Element::Type *ret_type,
-    Element::Type *type,
-    int mylinkage)
-{
-    Element::Function *fn =
-        addSimpleBinaryFunction(name, ret_type, type, type);
-    fn->return_type->linkage = mylinkage;
-    fn->llvm_function->setLinkage(
-        daleToLLVMLinkage(mylinkage)
-    );
-
-    std::vector<Element::Variable *>::iterator iter;
-    iter = fn->parameter_types->begin();
-
-    llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                 fn->llvm_function);
-
-    llvm::IRBuilder<> builder(block);
-
-    llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(toLLVMType(type, NULL, false))
-                            );
-    llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(toLLVMType(type, NULL, false))
-                            );
-    builder.CreateStore((*iter)->value,
-                        new_ptr1);
-    builder.CreateStore((*(iter + 1))->value,
-                        new_ptr2);
-
-    llvm::Value *one =
-        builder.CreateLoad(
-            builder.CreateGEP(new_ptr1,
-                              llvm::ArrayRef<llvm::Value*>(
-                                  two_zero_indices
-                              ))
-        );
-    llvm::Value *two =
-        builder.CreateLoad(
-            builder.CreateGEP(new_ptr2,
-                              llvm::ArrayRef<llvm::Value*>(
-                                  two_zero_indices
-                              ))
-        );
-
-    llvm::Twine bling;
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           ((builder).*(method_name))(one, two, bling)
-                       );
-
-    if (ret_type != type) {
-        /* It is assumed in this case that the method provided
-         * will create a value of ret_type. */
-        builder.CreateRet(res);
-    } else {
-        /* Otherwise, store the value created by the method,
-         * bitcast to a pointer to type and load that value. */
-        llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
-                                      builder.CreateAlloca(res->getType())
-                                  );
-        builder.CreateStore(res,
-                            store_ptr1);
-        llvm::Value *sp =
-            builder.CreateBitCast(
-                store_ptr1, toLLVMType(new Element::Type(type),
-                                           NULL, false)
-            );
-        llvm::Value *newint =
-            builder.CreateLoad(sp);
-        builder.CreateRet(newint);
-    }
-}
-
-void Generator::make_enum_function2(
-    const char *name,
-    llvm::Value* (llvm::IRBuilder<>:: *method_name)
-    (llvm::Value*, llvm::Value*, const
-     llvm::Twine &),
-    Element::Type *ret_type,
-    Element::Type *type,
-    Element::Type *type2,
-    Element::Type *undertype,
-    int mylinkage)
-{
-    Element::Function *fn =
-        addSimpleBinaryFunction(name, ret_type, type, type2);
-    fn->return_type->linkage = mylinkage;
-
-    std::vector<Element::Variable *>::iterator iter;
-    iter = fn->parameter_types->begin();
-
-    llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                 fn->llvm_function);
-
-    llvm::IRBuilder<> builder(block);
-
-    llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(toLLVMType(type, NULL, false))
-                            );
-    builder.CreateStore((*iter)->value,
-                        new_ptr1);
-
-    llvm::Value *one =
-        builder.CreateLoad(
-            builder.CreateGEP(new_ptr1,
-                              llvm::ArrayRef<llvm::Value*>(
-                                  two_zero_indices
-                              ))
-        );
-
-    ParseResult *temp =
-        doCast(block, (*(iter + 1))->value, type2, undertype, NULL);
-    builder.SetInsertPoint(temp->block);
-
-    llvm::Twine bling;
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           ((builder).*(method_name))(one, temp->value, bling)
-                       );
-    builder.CreateRet(res);
-}
-
-void Generator::addSignedInt(Element::Type *type)
-{
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("+", type, type, type);
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateAdd((*iter)->value,
-                                       (*(iter + 1))->value,
-                                       bling)
-                           );
-        builder.CreateRet(res);
-    }
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("-", type, type, type);
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateSub((*iter)->value,
-                                       (*(iter + 1))->value,
-                                       bling)
-                           );
-        builder.CreateRet(res);
-    }
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("/", type, type, type);
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateSDiv((*iter)->value,
-                                       (*(iter + 1))->value,
-                                       bling)
-                           );
-        builder.CreateRet(res);
-    }
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("*", type, type, type);
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateMul((*iter)->value,
-                                       (*(iter + 1))->value,
-                                       bling)
-                           );
-        builder.CreateRet(res);
-    }
-    make_function("=",  &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, type);
-    make_function("!=", &llvm::IRBuilder<>::CreateICmpNE,  type_bool, type);
-    make_function("<",  &llvm::IRBuilder<>::CreateICmpSLT, type_bool, type);
-    make_function("<=", &llvm::IRBuilder<>::CreateICmpSLE, type_bool, type);
-    make_function(">",  &llvm::IRBuilder<>::CreateICmpSGT, type_bool, type);
-    make_function(">=", &llvm::IRBuilder<>::CreateICmpSGE, type_bool, type);
-
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("<<", type, type, type_int);
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        ParseResult *temp =
-            doCast(block, (*(iter + 1))->value, type_int, type, NULL);
-
-        llvm::IRBuilder<> builder(temp->block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateShl((*iter)->value, temp->value,
-                                       bling)
-                           );
-        builder.CreateRet(res);
-    }
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction(">>", type, type, type_int);
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        ParseResult *temp =
-            doCast(block, (*(iter + 1))->value, type_int, type, NULL);
-
-        llvm::IRBuilder<> builder(temp->block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateLShr((*iter)->value, temp->value,
-                                       bling)
-                           );
-        builder.CreateRet(res);
-    }
-    make_function("&",  &llvm::IRBuilder<>::CreateAnd,     type,      type);
-    make_function("|",  &llvm::IRBuilder<>::CreateOr,      type,      type);
-    make_function("^",  &llvm::IRBuilder<>::CreateXor,     type,      type);
-    return;
-}
-
-void Generator::addFloatingPoint(Element::Type *type)
-{
-    make_function("+",  &llvm::IRBuilder<>::CreateFAdd, type, type);
-    make_function("-",  &llvm::IRBuilder<>::CreateFSub, type, type);
-    make_function("/",  &llvm::IRBuilder<>::CreateFDiv, type, type);
-    make_function("*",  &llvm::IRBuilder<>::CreateFMul, type, type);
-    make_function("=",  &llvm::IRBuilder<>::CreateFCmpOEQ, type_bool, type);
-    make_function("!=", &llvm::IRBuilder<>::CreateFCmpONE, type_bool, type);
-    make_function("<",  &llvm::IRBuilder<>::CreateFCmpOLT, type_bool, type);
-    make_function("<=", &llvm::IRBuilder<>::CreateFCmpOLE, type_bool, type);
-    make_function(">",  &llvm::IRBuilder<>::CreateFCmpOGT, type_bool, type);
-    make_function(">=", &llvm::IRBuilder<>::CreateFCmpOGE, type_bool, type);
-    return;
-}
-
-void Generator::addUnsignedInt(Element::Type *type)
-{
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("+", type, type, type);
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateAdd((*iter)->value,
-                                       (*(iter + 1))->value,
-                                       bling)
-                           );
-        builder.CreateRet(res);
-    }
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("-", type, type, type);
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateSub((*iter)->value,
-                                       (*(iter + 1))->value,
-                                       bling)
-                           );
-        builder.CreateRet(res);
-    }
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("/", type, type, type);
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateSDiv((*iter)->value,
-                                       (*(iter + 1))->value,
-                                       bling)
-                           );
-        builder.CreateRet(res);
-    }
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("*", type, type, type);
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateMul((*iter)->value,
-                                       (*(iter + 1))->value,
-                                       bling)
-                           );
-        builder.CreateRet(res);
-    }
-    make_function("=",  &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, type);
-    make_function("!=", &llvm::IRBuilder<>::CreateICmpNE,  type_bool, type);
-    make_function("<",  &llvm::IRBuilder<>::CreateICmpULT, type_bool, type);
-    make_function("<=", &llvm::IRBuilder<>::CreateICmpULE, type_bool, type);
-    make_function(">",  &llvm::IRBuilder<>::CreateICmpUGT, type_bool, type);
-    make_function(">=", &llvm::IRBuilder<>::CreateICmpUGE, type_bool, type);
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("<<", type, type, type_int);
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        ParseResult *temp =
-            doCast(block, (*(iter + 1))->value, type_int, type, NULL);
-
-        llvm::IRBuilder<> builder(temp->block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateShl((*iter)->value, temp->value,
-                                       bling)
-                           );
-        builder.CreateRet(res);
-    }
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction(">>", type, type, type_int);
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        ParseResult *temp =
-            doCast(block, (*(iter + 1))->value, type_int, type, NULL);
-
-        llvm::IRBuilder<> builder(temp->block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateLShr((*iter)->value, temp->value,
-                                       bling)
-                           );
-        builder.CreateRet(res);
-    }
-    make_function("&",  &llvm::IRBuilder<>::CreateAnd,     type,      type);
-    make_function("|",  &llvm::IRBuilder<>::CreateOr,      type,      type);
-    make_function("^",  &llvm::IRBuilder<>::CreateXor,     type,      type);
-
-    /* Bitwise negation */
-
-    {
-        Element::Function *fn =
-            addSimpleUnaryFunction("~", type, type);
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-        llvm::IRBuilder<> builder(block);
-
-        llvm::Type *llvm_type =
-            toLLVMType(type, NULL, false);
-        if (!llvm_type) {
-            failedDaleToLLVMTypeConversion(type);
-            return;
-        }
-
-        llvm::Value *max =
-            llvm::ConstantInt::get(llvm_type, 0);
-
-        llvm::Value *real_max =
-            builder.CreateSub(
-                max,
-                llvm::ConstantInt::get(llvm_type, 1)
-            );
-
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateXor((*iter)->value, real_max)
-                           );
-        builder.CreateRet(res);
-    }
-
-    return;
 }
 
 int Generator::addVariable(const char *name,
@@ -1403,7 +721,7 @@ int Generator::addVariable(const char *name,
                                    rdttype)
         );
 
-    lvar->setLinkage(daleToLLVMLinkage(Linkage::Extern_Weak));
+    lvar->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_Weak));
     lvar->setInitializer(init);
     var->value = lvar;
 
@@ -1414,22 +732,21 @@ static int added_common_declarations = 0;
 
 void Generator::addCommonDeclarations(void)
 {
+    BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int);
+    BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_char);
+    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint);
+    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_intptr);
+    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_ptrdiff);
+    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_size);
 
-    addSignedInt(type_int);
-    addSignedInt(type_char);
-    addUnsignedInt(type_uint);
-    addUnsignedInt(type_intptr);
-    addUnsignedInt(type_ptrdiff);
-    addUnsignedInt(type_size);
-
-    addSignedInt(type_int8);
-    addUnsignedInt(type_uint8);
-    addSignedInt(type_int16);
-    addUnsignedInt(type_uint16);
-    addSignedInt(type_int32);
-    addUnsignedInt(type_uint32);
-    addSignedInt(type_int64);
-    addUnsignedInt(type_uint64);
+    BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int8);
+    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint8);
+    BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int16);
+    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint16);
+    BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int32);
+    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint32);
+    BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int64);
+    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint64);
 
     /* i128 (actually any integer type with a size of more than 64
      * bits) does not work properly in some respects on x86-32
@@ -1438,13 +755,13 @@ void Generator::addCommonDeclarations(void)
      * completely. */
 
     if (is_x86_64) {
-        addSignedInt(type_int128);
-        addUnsignedInt(type_uint128);
+        BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int128);
+        BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint128);
     }
 
-    addFloatingPoint(type_float);
-    addFloatingPoint(type_double);
-    addFloatingPoint(type_longdouble);
+    BasicTypes::addFloatingPoint(ctx, mod, &current_once_tag, type_float);
+    BasicTypes::addFloatingPoint(ctx, mod, &current_once_tag, type_double);
+    BasicTypes::addFloatingPoint(ctx, mod, &current_once_tag, type_longdouble);
 
     /* The basic math functions and the varargs functions are
      * added to every module, but the structs are not, because
@@ -3870,387 +3187,8 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
                    ? Linkage::Extern
                    : Linkage::Intern;
 
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("+", ttt, ttt, ttt);
-        fn->return_type->linkage = flinkage;
-        fn->llvm_function->setLinkage(
-            daleToLLVMLinkage(flinkage)
-        );
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
-                                );
-        llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
-                                );
-        builder.CreateStore((*iter)->value,
-                            new_ptr1);
-        builder.CreateStore((*(iter + 1))->value,
-                            new_ptr2);
-
-        llvm::Value *one =
-            builder.CreateLoad(
-                builder.CreateGEP(new_ptr1,
-                                  llvm::ArrayRef<llvm::Value*>(
-                                      two_zero_indices
-                                  ))
-            );
-        llvm::Value *two =
-            builder.CreateLoad(
-                builder.CreateGEP(new_ptr2,
-                                  llvm::ArrayRef<llvm::Value*>(
-                                      two_zero_indices
-                                  ))
-            );
-
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateAdd(one, two, bling)
-                           );
-
-        llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
-                                      builder.CreateAlloca(d_enumtype)
-                                  );
-        builder.CreateStore(res,
-                            store_ptr1);
-
-        llvm::Value *sp =
-            builder.CreateBitCast(
-                store_ptr1, toLLVMType(new Element::Type(ttt),
-                                           NULL, false)
-            );
-        llvm::Value *newint =
-            builder.CreateLoad(sp);
-        builder.CreateRet(newint);
-    }
-
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("-", ttt, ttt, ttt);
-        fn->return_type->linkage = flinkage;
-        fn->llvm_function->setLinkage(
-            daleToLLVMLinkage(flinkage)
-        );
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
-                                );
-        llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
-                                );
-        builder.CreateStore((*iter)->value,
-                            new_ptr1);
-        builder.CreateStore((*(iter + 1))->value,
-                            new_ptr2);
-
-        llvm::Value *one =
-            builder.CreateLoad(
-                builder.CreateGEP(new_ptr1,
-                                  llvm::ArrayRef<llvm::Value*>(
-                                      two_zero_indices
-                                  ))
-            );
-        llvm::Value *two =
-            builder.CreateLoad(
-                builder.CreateGEP(new_ptr2,
-                                  llvm::ArrayRef<llvm::Value*>(
-                                      two_zero_indices
-                                  ))
-            );
-
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateSub(one, two, bling)
-                           );
-        llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
-                                      builder.CreateAlloca(d_enumtype)
-                                  );
-        builder.CreateStore(res,
-                            store_ptr1);
-
-        llvm::Value *sp =
-            builder.CreateBitCast(
-                store_ptr1, toLLVMType(new Element::Type(ttt),
-                                           NULL, false)
-            );
-        llvm::Value *newint =
-            builder.CreateLoad(sp);
-        builder.CreateRet(newint);
-    }
-
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("*", ttt, ttt, ttt);
-        fn->return_type->linkage = flinkage;
-        fn->llvm_function->setLinkage(
-            daleToLLVMLinkage(flinkage)
-        );
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
-                                );
-        llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
-                                );
-        builder.CreateStore((*iter)->value,
-                            new_ptr1);
-        builder.CreateStore((*(iter + 1))->value,
-                            new_ptr2);
-
-        llvm::Value *one =
-            builder.CreateLoad(
-                builder.CreateGEP(new_ptr1,
-                                  llvm::ArrayRef<llvm::Value*>(
-                                      two_zero_indices
-                                  ))
-            );
-        llvm::Value *two =
-            builder.CreateLoad(
-                builder.CreateGEP(new_ptr2,
-                                  llvm::ArrayRef<llvm::Value*>(
-                                      two_zero_indices
-                                  ))
-            );
-
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateMul(one, two, bling)
-                           );
-        llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
-                                      builder.CreateAlloca(d_enumtype)
-                                  );
-        builder.CreateStore(res,
-                            store_ptr1);
-
-        llvm::Value *sp =
-            builder.CreateBitCast(
-                store_ptr1, toLLVMType(new Element::Type(ttt),
-                                           NULL, false)
-            );
-        llvm::Value *newint =
-            builder.CreateLoad(sp);
-        builder.CreateRet(newint);
-    }
-
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("/", ttt, ttt, ttt);
-        fn->return_type->linkage = flinkage;
-        fn->llvm_function->setLinkage(
-            daleToLLVMLinkage(flinkage)
-        );
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
-                                );
-        llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
-                                );
-        builder.CreateStore((*iter)->value,
-                            new_ptr1);
-        builder.CreateStore((*(iter + 1))->value,
-                            new_ptr2);
-
-        llvm::Value *one =
-            builder.CreateLoad(
-                builder.CreateGEP(new_ptr1,
-                                  llvm::ArrayRef<llvm::Value*>(
-                                      two_zero_indices
-                                  ))
-            );
-        llvm::Value *two =
-            builder.CreateLoad(
-                builder.CreateGEP(new_ptr2,
-                                  llvm::ArrayRef<llvm::Value*>(
-                                      two_zero_indices
-                                  ))
-            );
-
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateSDiv(one, two, bling)
-                           );
-
-        llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
-                                      builder.CreateAlloca(d_enumtype)
-                                  );
-        builder.CreateStore(res,
-                            store_ptr1);
-
-        llvm::Value *sp =
-            builder.CreateBitCast(
-                store_ptr1, toLLVMType(new Element::Type(ttt),
-                                           NULL, false)
-            );
-        llvm::Value *newint =
-            builder.CreateLoad(sp);
-        builder.CreateRet(newint);
-    }
-
-    make_enum_function("=",  &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, ttt, flinkage);
-    make_enum_function("!=", &llvm::IRBuilder<>::CreateICmpNE,  type_bool, ttt, flinkage);
-    make_enum_function("<",  &llvm::IRBuilder<>::CreateICmpULT, type_bool, ttt, flinkage);
-    make_enum_function("<=", &llvm::IRBuilder<>::CreateICmpULE, type_bool, ttt, flinkage);
-    make_enum_function(">",  &llvm::IRBuilder<>::CreateICmpUGT, type_bool, ttt, flinkage);
-    make_enum_function(">=", &llvm::IRBuilder<>::CreateICmpUGE, type_bool, ttt, flinkage);
-
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction("<<", ttt, ttt, type_int);
-        fn->return_type->linkage = flinkage;
-        fn->llvm_function->setLinkage(
-            daleToLLVMLinkage(flinkage)
-        );
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
-                                );
-        builder.CreateStore((*iter)->value,
-                            new_ptr1);
-
-        llvm::Value *one =
-            builder.CreateLoad(
-                builder.CreateGEP(new_ptr1,
-                                  llvm::ArrayRef<llvm::Value*>(
-                                      two_zero_indices
-                                  ))
-            );
-
-        ParseResult *temp =
-            doCast(block, (*(iter + 1))->value, type_int, enumtype, NULL);
-        builder.SetInsertPoint(temp->block);
-
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateShl(one, temp->value, bling)
-                           );
-        llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
-                                      builder.CreateAlloca(d_enumtype)
-                                  );
-        builder.CreateStore(res,
-                            store_ptr1);
-
-        llvm::Value *sp =
-            builder.CreateBitCast(
-                store_ptr1, toLLVMType(new Element::Type(ttt),
-                                           NULL, false)
-            );
-        llvm::Value *newint =
-            builder.CreateLoad(sp);
-        builder.CreateRet(newint);
-    }
-
-    {
-        Element::Function *fn =
-            addSimpleBinaryFunction(">>", ttt, ttt, type_int);
-        fn->return_type->linkage = flinkage;
-        fn->llvm_function->setLinkage(
-            daleToLLVMLinkage(flinkage)
-        );
-
-        std::vector<Element::Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        llvm::IRBuilder<> builder(block);
-
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(toLLVMType(ttt, NULL, false))
-                                );
-        builder.CreateStore((*iter)->value,
-                            new_ptr1);
-
-        llvm::Value *one =
-            builder.CreateLoad(
-                builder.CreateGEP(new_ptr1,
-                                  llvm::ArrayRef<llvm::Value*>(
-                                      two_zero_indices
-                                  ))
-            );
-
-        ParseResult *temp =
-            doCast(block, (*(iter + 1))->value, type_int, enumtype, NULL);
-        builder.SetInsertPoint(temp->block);
-
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateLShr(one, temp->value, bling)
-                           );
-        llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
-                                      builder.CreateAlloca(d_enumtype)
-                                  );
-        builder.CreateStore(res,
-                            store_ptr1);
-
-        llvm::Value *sp =
-            builder.CreateBitCast(
-                store_ptr1, toLLVMType(new Element::Type(ttt),
-                                           NULL, false)
-            );
-        llvm::Value *newint =
-            builder.CreateLoad(sp);
-        builder.CreateRet(newint);
-    }
-
-    /*
-    No more structural equivalence, so make_enum_function needs to not
-    return a value of the underlying enum type here.  Just disabling
-    it for now, because they aren't used anywhere important, IIRC.
-    (This has since been fixed.)
-    */
-
-    make_enum_function("&",  &llvm::IRBuilder<>::CreateAnd,     ttt,       ttt, flinkage);
-    make_enum_function("|",  &llvm::IRBuilder<>::CreateOr,      ttt,       ttt, flinkage);
-    make_enum_function("^",  &llvm::IRBuilder<>::CreateXor,     ttt,       ttt, flinkage);
+    BasicTypes::addEnum(ctx, mod, &current_once_tag, ttt,
+                        enumtype, d_enumtype, flinkage);
 
     return;
 }
@@ -4473,7 +3411,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
 
     fn->setCallingConv(llvm::CallingConv::C);
 
-    fn->setLinkage(daleToLLVMLinkage(linkage));
+    fn->setLinkage(ctx->toLLVMLinkage(linkage));
 
     llvm::Function::arg_iterator largs = fn->arg_begin();
 
@@ -5018,7 +3956,7 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
                                    rdttype)
         );
 
-    var->setLinkage(daleToLLVMLinkage(linkage));
+    var->setLinkage(ctx->toLLVMLinkage(linkage));
 
     if (init) {
         var->setInitializer(init);
@@ -5283,7 +4221,7 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
 
         svar2->setInitializer(myconststr);
         svar2->setConstant(true);
-        svar2->setLinkage(daleToLLVMLinkage(Linkage::Intern));
+        svar2->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
         llvm::Value *temps[2];
         temps[0] = llvm_native_zero;
@@ -5475,7 +4413,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
 
     fn->setCallingConv(llvm::CallingConv::C);
 
-    fn->setLinkage(daleToLLVMLinkage(Linkage::Extern_C));
+    fn->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_C));
 
     Element::Function *dfn =
         new Element::Function(type, &args, fn, 0,
@@ -6265,8 +5203,8 @@ void Generator::parseFunction(const char *name, Node *n,
     fn->setCallingConv(llvm::CallingConv::C);
     fn->setLinkage(
         (lst->size() == (unsigned) (next_index + 2))
-        ? (daleToLLVMLinkage(override_linkage))
-        : (daleToLLVMLinkage(linkage))
+        ? (ctx->toLLVMLinkage(override_linkage))
+        : (ctx->toLLVMLinkage(linkage))
     );
 
     llvm::Function::arg_iterator largs = fn->arg_begin();
@@ -9775,7 +8713,7 @@ size_t Generator::getOffsetofTypeImmediate(Element::Type *type,
 
     fn->setCallingConv(llvm::CallingConv::C);
 
-    fn->setLinkage(daleToLLVMLinkage(Linkage::Intern));
+    fn->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);
@@ -9848,7 +8786,7 @@ size_t Generator::getSizeofTypeImmediate(Element::Type *type)
 
     fn->setCallingConv(llvm::CallingConv::C);
 
-    fn->setLinkage(daleToLLVMLinkage(Linkage::Intern));
+    fn->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);
@@ -10610,198 +9548,10 @@ ParseResult *Generator::doCast(llvm::BasicBlock *block,
                                Node *n,
                                int implicit)
 {
-    llvm::IRBuilder<> builder(block);
-    llvm::Value *res;
-    std::string *struct_name;
-
-    llvm::Type *llvm_from_type =
-        toLLVMType(from_type, NULL, false);
-    if (!llvm_from_type) {
-        failedDaleToLLVMTypeConversion(from_type);
-        return NULL;
-    }
-    llvm::Type *llvm_to_type =
-        toLLVMType(to_type, NULL, false);
-    if (!llvm_to_type) {
-        failedDaleToLLVMTypeConversion(to_type);
-        return NULL;
-    }
-
-    if (from_type->isFloatingPointType()
-            && to_type->isFloatingPointType()) {
-        int a = from_type->getFPRelativeSize();
-        int b = to_type->getFPRelativeSize();
-        if (a < b) {
-            /* Target floating point is larger. */
-            res = builder.CreateFPExt(value, llvm_to_type);
-        } else {
-            /* Target floating point is smaller. */
-            res = builder.CreateFPTrunc(value, llvm_to_type);
-        }
-    } else if (from_type->isFloatingPointType()
-               && to_type->isIntegerType()) {
-        if (to_type->isSignedIntegerType()) {
-            res = builder.CreateFPToSI(value, llvm_to_type);
-        } else {
-            res = builder.CreateFPToUI(value, llvm_to_type);
-        }
-    } else if (from_type->isIntegerType()
-               && to_type->isFloatingPointType()) {
-        if (from_type->isSignedIntegerType()) {
-            res = builder.CreateSIToFP(value, llvm_to_type);
-        } else {
-            res = builder.CreateUIToFP(value, llvm_to_type);
-        }
-    } else if ((from_type->isIntegerType() && to_type->isIntegerType())
-               || (from_type->base_type == Type::Bool
-                   && to_type->isIntegerType())
-               || (from_type->isIntegerType()
-                   && to_type->base_type == Type::Bool)) {
-        int pr_size =
-            mySizeToRealSize(from_type->getIntegerSize());
-        int ta_size =
-            mySizeToRealSize(to_type->getIntegerSize());
-
-        if (pr_size <= ta_size) {
-            /* Target integer is larger. */
-            if (to_type->isSignedIntegerType()) {
-                /* Target integer is signed - use sext. */
-                res = builder.CreateSExt(value, llvm_to_type);
-            } else {
-                /* Target integer is not signed - use zext. */
-                res = builder.CreateZExt(value, llvm_to_type);
-            }
-        } else {
-            /* Target integer is smaller - use trunc regardless of
-             * signedness. */
-            res = builder.CreateTrunc(value, llvm_to_type);
-        }
-    } else if (!implicit && from_type->isIntegerType()
-               && !(from_type->points_to) && to_type->points_to) {
-        res = builder.CreateIntToPtr(value, llvm_to_type);
-    } else if (!implicit && from_type->points_to && !(to_type->points_to)
-               && to_type->isIntegerType()) {
-        res = builder.CreatePtrToInt(value, llvm_to_type);
-    } else if (from_type->points_to && to_type->points_to) {
-        res = builder.CreateBitCast(value, llvm_to_type);
-    } else if ((struct_name = from_type->struct_name)
-               && (to_type->isIntegerType())
-               && (ctx->getEnum(struct_name->c_str()))) {
-
-        Element::Struct *mystruct =
-            ctx->getStruct(from_type->struct_name->c_str());
-        Element::Type *temp_to_type = mystruct->element_types->at(0);
-
-        // Store the struct.
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(llvm_from_type)
-                                );
-        builder.CreateStore(value,
-                            new_ptr1);
-
-        // Get a pointer to it.
-        llvm::Value *one =
-            builder.CreateGEP(new_ptr1,
-                              llvm::ArrayRef<llvm::Value*>(two_zero_indices));
-
-        // Bitcast the pointer to an int pointer of the right size.
-        Element::Type ptemp_to_type(temp_to_type);
-        llvm::Value *intptr =
-            builder.CreateBitCast(
-                one, toLLVMType(&ptemp_to_type,
-                                    NULL, false)
-            );
-
-        // Load that value.
-        llvm::Value *newint =
-            builder.CreateLoad(intptr);
-
-        // Cast that value to a value of the right type.
-
-        ParseResult *temptemp = doCast(block,
-                                       newint,
-                                       temp_to_type,
-                                       to_type,
-                                       n);
-
-        block = temptemp->block;
-        res   = temptemp->value;
-
-    } else if ((struct_name = to_type->struct_name)
-               && (from_type->isIntegerType())
-               && (ctx->getEnum(struct_name->c_str()))) {
-
-        Element::Struct *mystruct = ctx->getStruct(to_type->struct_name->c_str());
-        Element::Type *to_type_temp = mystruct->element_types->at(0);
-
-        ParseResult *temptemp = doCast(block,
-                                       value,
-                                       from_type,
-                                       to_type_temp,
-                                       n);
-        block = temptemp->block;
-        value = temptemp->value;
-
-        // Store the integer.
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-            builder.CreateAlloca(toLLVMType(to_type_temp, NULL, false))
-                                );
-        builder.CreateStore(value,
-                            new_ptr1);
-
-        // Bitcast the int pointer to a struct pointer.
-        Element::Type pto_type(to_type);
-        llvm::Value *sp =
-            builder.CreateBitCast(
-                new_ptr1, toLLVMType(&pto_type,
-                                         NULL, false)
-            );
-
-        // Load that value.
-        llvm::Value *newint =
-            builder.CreateLoad(sp);
-
-        // Return that value.
-        res = newint;
-    } else if (to_type->is_array) {
-        // Store the value.
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(llvm_from_type)
-                                );
-        builder.CreateStore(value, new_ptr1);
-        Element::Type pto_type(to_type);
-        llvm::Value *sp =
-            builder.CreateBitCast(
-                new_ptr1, toLLVMType(&pto_type, NULL, false)
-            );
-        llvm::Value *newint =
-            builder.CreateLoad(sp);
-        res = newint;
-
-    } else {
-        std::string fts;
-        std::string tts;
-        from_type->toStringProper(&fts);
-        to_type->toStringProper(&tts);
-
-        Error *e = new Error(
-            ErrorInst::Generator::InvalidCast,
-            n,
-            fts.c_str(), tts.c_str()
-        );
-        erep->addError(e);
-        return NULL;
-    }
-
-    ParseResult *pn = new ParseResult(
-        block,
-        to_type,
-        res
-    );
-
-    return pn;
+    return Operation::Cast::execute(ctx, mod, block,
+                                    value, from_type, to_type,
+                                    n, implicit);
 }
-
 
 ParseResult *Generator::parseCast(Element::Function *dfn,
                                   llvm::BasicBlock *block,
@@ -11715,22 +10465,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
 
 int Generator::mySizeToRealSize(int n)
 {
-    if (n > 1000) {
-        return n - 1000;
-    }
-
-    switch (n) {
-    case 1:
-        return nt->getNativeIntSize();
-    case 2:
-        return nt->getNativePtrSize();
-    case 3:
-        return nt->getNativeSizeSize();
-    case 4:
-        return nt->getNativePtrDiffSize();
-    default:
-        return n;
-    }
+    return nt->internalSizeToRealSize(n);
 }
 
 static int anoncount = 0;
@@ -12034,7 +10769,7 @@ tryvar:
                                            llvm_type)
                 );
 
-            var->setLinkage(daleToLLVMLinkage(Linkage::Intern));
+            var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
             var->setInitializer(init);
             var->setConstant(true);
 
@@ -12945,7 +11680,7 @@ Node *Generator::parseMacroCall(Node *n,
         llvm::Function *cup_fn = llvm::dyn_cast<llvm::Function>(cup_fnc);
 
         cup_fn->setCallingConv(llvm::CallingConv::C);
-        cup_fn->setLinkage(daleToLLVMLinkage(Linkage::Intern));
+        cup_fn->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
         llvm::BasicBlock *cup_block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(),
@@ -15147,22 +13882,6 @@ llvm::Type *Generator::toLLVMType(Element::Type *type,
     return ctx->toLLVMType(type, n);
 }
 
-llvm::GlobalValue::LinkageTypes Generator::daleToLLVMLinkage(int linkage)
-{
-    return
-        (linkage == dale::Linkage::Auto)
-        ? llvm::GlobalValue::InternalLinkage
-        : (linkage == dale::Linkage::Intern)
-        ? llvm::GlobalValue::InternalLinkage
-        : (linkage == dale::Linkage::Extern)
-        ? llvm::GlobalValue::ExternalLinkage
-        : (linkage == dale::Linkage::Extern_C)
-        ? llvm::GlobalValue::ExternalLinkage
-        : (linkage == dale::Linkage::Extern_Weak)
-        ? llvm::GlobalValue::LinkOnceODRLinkage
-        : llvm::GlobalValue::ExternalLinkage;
-}
-
 llvm::Value *Generator::coerceValue(llvm::Value *from_value,
                                     Element::Type *from_type,
                                     Element::Type *to_type,
@@ -15556,7 +14275,7 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
             mod->getOrInsertGlobal(varname.c_str(), llvm_type)
         );
 
-    var->setLinkage(daleToLLVMLinkage(Linkage::Intern));
+    var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
     std::vector<llvm::Constant *> constants;
     llvm::Constant *first =
@@ -15613,7 +14332,7 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
 
             svar2->setInitializer(arr);
             svar2->setConstant(true);
-            svar2->setLinkage(daleToLLVMLinkage(Linkage::Intern));
+            svar2->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
             string_cache.insert(std::pair<std::string,
                                 llvm::GlobalVariable*>(

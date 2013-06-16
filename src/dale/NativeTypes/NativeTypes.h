@@ -32,10 +32,11 @@ public:
     llvm::Type        *getNativeDoubleType(void);
     llvm::Type        *getNativeLongDoubleType(void);
     llvm::IntegerType *getNativeSizeType(void);
-    int                      getNativeIntSize(void);
-    int                      getNativePtrSize(void);
-    int                      getNativeSizeSize(void);
-    int                      getNativePtrDiffSize(void);
+    int getNativeIntSize(void);
+    int getNativePtrSize(void);
+    int getNativeSizeSize(void);
+    int getNativePtrDiffSize(void);
+    int internalSizeToRealSize(int size);
 };
 }
 
