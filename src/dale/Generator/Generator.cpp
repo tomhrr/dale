@@ -85,77 +85,6 @@ const char *core_forms_no[30] = {
     "new-scope", "array-of",  "setv", "@$", ":@", "@:", "@:@", NULL
 };
 
-int strip_forms_max = 241; 
-const char *strip_forms[242] = {
-    "_Z9pool$2dfreePZ8PoolNode",    "_Z11pool$2dmallocPZ8PoolNodew",
-    "_Z3notb", "_Z1$2bii",    "_Z1$2dii",    "_Z1$2fii",    "_Z1$2aii",
-    "_Z1$3dii", "_Z2$21$3dii",    "_Z1$3cii",    "_Z2$3c$3dii",
-    "_Z1$3eii", "_Z2$3e$3dii", "_Z2$3c$3cii",    "_Z2$3e$3eii",
-    "_Z1$26ii", "_Z1$7cii",    "_Z1$5eii", "_Z1$2bcc",    "_Z1$2dcc",
-    "_Z1$2fcc", "_Z1$2acc",    "_Z1$3dcc", "_Z2$21$3dcc",    "_Z1$3ccc",
-    "_Z2$3c$3dcc", "_Z1$3ecc",    "_Z2$3e$3dcc", "_Z2$3c$3cci",
-    "_Z2$3e$3eci", "_Z1$26cc",    "_Z1$7ccc",    "_Z1$5ecc", "_Z1$2bjj",
-    "_Z1$2djj", "_Z1$2fjj",    "_Z1$2ajj",    "_Z1$3djj", "_Z2$21$3djj",
-    "_Z1$3cjj", "_Z2$3c$3djj",    "_Z1$3ejj",    "_Z2$3e$3djj",
-    "_Z2$3c$3cji", "_Z2$3e$3eji",    "_Z1$26jj",    "_Z1$7cjj",
-    "_Z1$5ejj", "_Z1$7ej", "_Z1$2bll",    "_Z1$2dll",    "_Z1$2fll",
-    "_Z1$2all", "_Z1$3dll", "_Z2$21$3dll",    "_Z1$3cll",
-    "_Z2$3c$3dll",    "_Z1$3ell", "_Z2$3e$3dll",    "_Z2$3c$3cli",
-    "_Z2$3e$3eli",    "_Z1$26ll", "_Z1$7cll", "_Z1$5ell",    "_Z1$7el",
-    "_Z1$2bxx",    "_Z1$2dxx", "_Z1$2fxx", "_Z1$2axx",    "_Z1$3dxx",
-    "_Z2$21$3dxx",    "_Z1$3cxx", "_Z2$3c$3dxx", "_Z1$3exx",
-    "_Z2$3e$3dxx",    "_Z2$3c$3cxi", "_Z2$3e$3exi",    "_Z1$26xx",
-    "_Z1$7cxx",    "_Z1$5exx",    "_Z1$7ex", "_Z1$2bww",    "_Z1$2dww",
-    "_Z1$2fww",    "_Z1$2aww",    "_Z1$3dww", "_Z2$21$3dww",
-    "_Z1$3cww", "_Z2$3c$3dww",    "_Z1$3eww", "_Z2$3e$3dww",
-    "_Z2$3c$3cwi", "_Z2$3e$3ewi",    "_Z1$26ww", "_Z1$7cww",
-    "_Z1$5eww",    "_Z1$7ew", "_Z1$2byy",    "_Z1$2dyy", "_Z1$2fyy",
-    "_Z1$2ayy",    "_Z1$3dyy", "_Z2$21$3dyy",    "_Z1$3cyy",
-    "_Z2$3c$3dyy",    "_Z1$3eyy",    "_Z2$3e$3dyy", "_Z2$3c$3cyi",
-    "_Z2$3e$3eyi",    "_Z1$26yy",    "_Z1$7cyy",    "_Z1$5eyy",
-    "_Z1$2bmm", "_Z1$2dmm",    "_Z1$2fmm",    "_Z1$2amm",    "_Z1$3dmm",
-    "_Z2$21$3dmm", "_Z1$3cmm",    "_Z2$3c$3dmm",    "_Z1$3emm",
-    "_Z2$3e$3dmm", "_Z2$3c$3cmi",    "_Z2$3e$3emi",    "_Z1$26mm",
-    "_Z1$7cmm",    "_Z1$5emm", "_Z1$7em",    "_Z1$2bnn",    "_Z1$2dnn",
-    "_Z1$2fnn",    "_Z1$2ann", "_Z1$3dnn",    "_Z2$21$3dnn",
-    "_Z1$3cnn",    "_Z2$3c$3dnn",    "_Z1$3enn", "_Z2$3e$3dnn",
-    "_Z2$3c$3cni",    "_Z2$3e$3eni",    "_Z1$26nn", "_Z1$7cnn",
-    "_Z1$5enn",    "_Z1$2boo",    "_Z1$2doo",    "_Z1$2foo", "_Z1$2aoo",
-    "_Z1$3doo",    "_Z2$21$3doo",    "_Z1$3coo",    "_Z2$3c$3doo",
-    "_Z1$3eoo", "_Z2$3e$3doo",    "_Z2$3c$3coi",    "_Z2$3e$3eoi",
-    "_Z1$26oo",    "_Z1$7coo", "_Z1$5eoo",    "_Z1$7eo",    "_Z1$2bpp",
-    "_Z1$2dpp",    "_Z1$2fpp", "_Z1$2app",    "_Z1$3dpp",
-    "_Z2$21$3dpp", "_Z1$3cpp",    "_Z2$3c$3dpp", "_Z1$3epp",
-    "_Z2$3e$3dpp", "_Z2$3c$3cpi",    "_Z2$3e$3epi",    "_Z1$26pp",
-    "_Z1$7cpp",    "_Z1$5epp", "_Z1$2bqq",    "_Z1$2dqq",    "_Z1$2fqq",
-    "_Z1$2aqq",    "_Z1$3dqq", "_Z2$21$3dqq",    "_Z1$3cqq",
-    "_Z2$3c$3dqq", "_Z1$3eqq", "_Z2$3e$3dqq",    "_Z2$3c$3cqi",
-    "_Z2$3e$3eqi",    "_Z1$26qq", "_Z1$7cqq",    "_Z1$5eqq",    "_Z1$7eq",
-    "_Z1$2brr",    "_Z1$2drr", "_Z1$2frr",    "_Z1$2arr",    "_Z1$3drr",
-    "_Z2$21$3drr",    "_Z1$3crr", "_Z2$3c$3drr",    "_Z1$3err",
-    "_Z2$3e$3drr",    "_Z2$3c$3cri", "_Z2$3e$3eri",    "_Z1$26rr",
-    "_Z1$7crr",    "_Z1$5err",    "_Z1$2bss", "_Z1$2dss",    "_Z1$2fss",
-    "_Z1$2ass",    "_Z1$3dss",    "_Z2$21$3dss", "_Z1$3css",
-    "_Z2$3c$3dss",    "_Z1$3ess",    "_Z2$3e$3dss", "_Z2$3c$3csi",
-    "_Z2$3e$3esi",    "_Z1$26ss",    "_Z1$7css",    "_Z1$5ess", "_Z1$7es",
-    "_Z1$2bff",    "_Z1$2dff",    "_Z1$2fff",    "_Z1$2aff", "_Z1$3dff",
-    "_Z2$21$3dff",    "_Z1$3cff",    "_Z2$3c$3dff",    "_Z1$3eff",
-    "_Z2$3e$3dff", "_Z1$2bdd",    "_Z1$2ddd",    "_Z1$2fdd",
-    "_Z1$2add", "_Z1$3ddd", "_Z2$21$3ddd",    "_Z1$3cdd",
-    "_Z2$3c$3ddd",    "_Z1$3edd", "_Z2$3e$3ddd", NULL
-}; 
-
-int strip_forms_64_max = 31; 
-const char *strip_forms_64[32] = {
-    "_Z1$2btt", "_Z1$2dtt", "_Z1$2ftt", "_Z1$2att", "_Z1$3dtt",
-    "_Z2$21$3dtt", "_Z1$3ctt", "_Z2$3c$3dtt", "_Z1$3ett",
-    "_Z2$3e$3dtt", "_Z2$3c$3cti", "_Z2$3e$3eti", "_Z1$26tt",
-    "_Z1$7ctt", "_Z1$5ett", "_Z1$2buu", "_Z1$2duu", "_Z1$2fuu",
-    "_Z1$2auu", "_Z1$3duu", "_Z2$21$3duu", "_Z1$3cuu", "_Z2$3c$3duu",
-    "_Z1$3euu", "_Z2$3e$3duu", "_Z2$3c$3cui", "_Z2$3e$3eui",
-    "_Z1$26uu", "_Z1$7cuu", "_Z1$5euu", "_Z1$7eu", NULL
-};
-
 std::vector<dale::Element::Function*> global_functions;
 std::vector<llvm::BasicBlock*>        global_blocks;
 
@@ -1641,19 +1570,6 @@ int Generator::run(std::vector<const char *> *filenames,
     }
 
     if (module_name.size() > 0) {
-        /* Strip the bodies of the standard functions, and remove
-         * them from context as well. */
-        if (!nostrip) {
-            for (int i = 0; i < strip_forms_max; i++) {
-                //mod->getFunction(strip_forms[i])->deleteBody();
-            }
-            if (is_x86_64) {
-                for (int i = 0; i < strip_forms_64_max; i++) {
-                  //mod->getFunction(strip_forms_64[i])->deleteBody();
-                }
-            }
-        }
-
         /* If module_name starts with '/', or was set in code,
          * then treat it as fully qualified; otherwise, put the
          * module files into DALE_MODULE_PATH. */
