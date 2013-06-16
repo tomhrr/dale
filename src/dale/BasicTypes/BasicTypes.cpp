@@ -208,41 +208,6 @@ makeFunction(Context *ctx,
     builder.CreateRet(res);
 }
 
-void
-makeFunction(Context *ctx,
-             llvm::Module *mod,
-             std::string *once_tag, 
-             const char *name,
-             llvm::Value* (llvm::IRBuilder<>:: *method_name)
-                (llvm::Value*, llvm::Value*, const llvm::Twine &),
-             Element::Type *ret_type,
-             Element::Type *type1,
-             Element::Type *type2)
-{
-    Element::Function *fn =
-        addSimpleBinaryFunction(ctx, mod, once_tag,
-                                name, ret_type, type1, type2);
-
-    std::vector<Element::Variable *>::iterator iter;
-    iter = fn->parameter_types->begin();
-
-    llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                 fn->llvm_function);
-
-    ParseResult *temp =
-        Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, type2, type1, NULL);
-
-    llvm::IRBuilder<> builder(temp->block);
-    llvm::Twine bling;
-    llvm::Value *res = 
-        llvm::cast<llvm::Value>(
-            ((builder).*(method_name))((*iter)->value, temp->value,
-            bling)
-        );
-    builder.CreateRet(res);
-}
-
 void 
 makeEnumFunction(Context *ctx,
                  llvm::Module *mod,
@@ -331,66 +296,6 @@ makeEnumFunction(Context *ctx,
             builder.CreateLoad(sp);
         builder.CreateRet(newint);
     }
-}
-
-void 
-makeEnumFunction(Context *ctx,
-                 llvm::Module *mod,
-                 std::string *once_tag, 
-                 const char *name,
-                 llvm::Value* (llvm::IRBuilder<>:: *method_name)
-                     (llvm::Value*, llvm::Value*, const llvm::Twine &),
-                 Element::Type *ret_type,
-                 Element::Type *type,
-                 Element::Type *type2,
-                 Element::Type *undertype,
-                 int mylinkage)
-{
-    std::vector<llvm::Value *> two_zero_indices;
-    llvm::Value *llvm_native_zero =
-        llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0);
-    two_zero_indices.push_back(llvm_native_zero);
-    two_zero_indices.push_back(llvm_native_zero);
-
-    Element::Function *fn =
-        addSimpleBinaryFunction(ctx, mod, once_tag,
-                                name, ret_type, type, type2);
-    fn->return_type->linkage = mylinkage;
-
-    std::vector<Element::Variable *>::iterator iter;
-    iter = fn->parameter_types->begin();
-
-    llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                 fn->llvm_function);
-
-    llvm::IRBuilder<> builder(block);
-
-    llvm::Value *new_ptr1 = 
-        llvm::cast<llvm::Value>(
-            builder.CreateAlloca(ctx->toLLVMType(type, NULL, false))
-        );
-    builder.CreateStore((*iter)->value,
-                        new_ptr1);
-
-    llvm::Value *one =
-        builder.CreateLoad(
-            builder.CreateGEP(new_ptr1,
-                              llvm::ArrayRef<llvm::Value*>(
-                                  two_zero_indices
-                              ))
-        );
-
-    ParseResult *temp =
-        Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, type2, undertype, NULL);
-    builder.SetInsertPoint(temp->block);
-
-    llvm::Twine bling;
-    llvm::Value *res = 
-        llvm::cast<llvm::Value>(
-            ((builder).*(method_name))(one, temp->value, bling)
-        );
-    builder.CreateRet(res);
 }
 
 void

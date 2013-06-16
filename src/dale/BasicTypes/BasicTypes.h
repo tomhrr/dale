@@ -47,17 +47,6 @@ makeFunction(Context *ctx,
              Element::Type *type);
 
 void
-makeFunction(Context *ctx,
-             llvm::Module *mod,
-             std::string *once_tag,
-             const char *name,
-             llvm::Value* (llvm::IRBuilder<>:: *method_name)
-                (llvm::Value*, llvm::Value*, const llvm::Twine &),
-             Element::Type *ret_type,
-             Element::Type *type1,
-             Element::Type *type2);
-
-void
 makeEnumFunction(Context *ctx,
                  llvm::Module *mod,
                  std::string *once_tag,
@@ -66,19 +55,6 @@ makeEnumFunction(Context *ctx,
                      (llvm::Value*, llvm::Value*, const llvm::Twine &),
                  Element::Type *ret_type,
                  Element::Type *type,
-                 int mylinkage);
-
-void
-makeEnumFunction(Context *ctx,
-                 llvm::Module *mod,
-                 std::string *once_tag,
-                 const char *name,
-                 llvm::Value* (llvm::IRBuilder<>:: *method_name)
-                     (llvm::Value*, llvm::Value*, const llvm::Twine &),
-                 Element::Type *ret_type,
-                 Element::Type *type,
-                 Element::Type *type2,
-                 Element::Type *undertype,
                  int mylinkage);
 
 void
