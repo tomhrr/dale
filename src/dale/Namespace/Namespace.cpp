@@ -349,7 +349,8 @@ Namespace::getFunction(const char *name,
             // in decl_fn, to use in the event that the
             // real function cannot be found.
 
-            if (!(*fn_iter)->llvm_function->size()) {
+            if (!(*fn_iter)->llvm_function
+                    || (!(*fn_iter)->llvm_function->size())) {
                 decl_fn = (*fn_iter);
             } else {
                 return (*fn_iter);
@@ -695,7 +696,7 @@ Namespace::merge(Namespace *other)
                 fb != fe;
                 ++fb) {
             Element::Function *fn = (*fb);
-            if (!Linkage::isExtern(fn->return_type->linkage)) {
+            if (!Linkage::isExternAll(fn->return_type->linkage)) {
                 continue;
             }
             bool added = addFunction(b->first.c_str(), fn, NULL);

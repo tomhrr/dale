@@ -124,6 +124,7 @@ private:
                        int override_linkage,
                        int is_anonymous);
     void addCommonDeclarations(void);
+    void addVarargsFunctions(void);
     void parseInclude(Node *top);
     void parseModuleName(Node *top);
     void parseImport(Node *top);
@@ -464,7 +465,8 @@ private:
     void removeMacrosAndCTOFunctions(Context *myctx, int reget_pointers);
     int addVariable(const char *name,
                     Element::Type *type,
-                    llvm::Constant *init);
+                    llvm::Constant *init,
+                    bool ignore_if_present = false);
 
     ParseResult *parseFuncallInternal(
         Element::Function *dfn,

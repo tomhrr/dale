@@ -213,6 +213,10 @@ add_custom_command (OUTPUT  libdrt.so
 add_custom_target (drt ALL DEPENDS libdrt.so)
 add_dependencies (drt dalec)
 install (FILES          ${CMAKE_BINARY_DIR}/libdrt.so
+                        ${CMAKE_BINARY_DIR}/libdrt-nomacros.so
+                        ${CMAKE_BINARY_DIR}/libdrt.dtm
+                        ${CMAKE_BINARY_DIR}/libdrt.bc
+                        ${CMAKE_BINARY_DIR}/libdrt-nomacros.bc
          DESTINATION    lib/dale)
 
 # Extra 'make clean' files.

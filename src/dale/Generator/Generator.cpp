@@ -502,6 +502,8 @@ llvm::Value *llvm_native_zero = NULL;
 llvm::Value *llvm_native_one  = NULL;
 
 int nesting = 0;
+int g_no_acd;
+int g_nodrt;
 
 std::vector<llvm::Value *> two_zero_indices;
 
@@ -696,7 +698,8 @@ llvm::ConstantInt *Generator::getConstantInt(
 
 int Generator::addVariable(const char *name,
                            Element::Type *type,
-                           llvm::Constant *init)
+                           llvm::Constant *init,
+                           bool ignore_if_present)
 {
     Element::Variable *var = new Element::Variable();
     var->name->append(name);
@@ -704,6 +707,9 @@ int Generator::addVariable(const char *name,
     var->internal_name->append(name);
     int avres = ctx->ns()->addVariable(name, var);
     if (!avres) {
+        if (ignore_if_present) {
+            return 1;
+        }
         fprintf(stderr, "Unable to add %s.\n", name);
         abort();
     }
@@ -844,107 +850,6 @@ void Generator::addCommonDeclarations(void)
         "        0) "
         "    (free (cast pool-node (p void))) "
         "    (return)))"
-    );
-
-    /* (def _vp (struct extern ((p char)))) */
-
-    Token *mychar = new Token(TokenType::String,0,0,0,0);
-    mychar->str_value.append("char");
-    Token *myp = new Token(TokenType::String,0,0,0,0);
-    myp->str_value.append("p");
-
-    std::vector<Node*> *pp = new std::vector<Node*>;
-    stl::push_back2(pp, new Node(myp),
-                    new Node(mychar));
-
-    std::vector<Node*> *pp2 = new std::vector<Node*>;
-    pp2->push_back(new Node(pp));
-
-    Token *mys = new Token(TokenType::String,0,0,0,0);
-    mys->str_value.append("struct");
-    Token *mye = new Token(TokenType::String,0,0,0,0);
-    mye->str_value.append("extern");
-
-    std::vector<Node*> *pp3 = new std::vector<Node*>;
-    stl::push_back3(pp3, new Node(mys),
-                    new Node(mye),
-                    new Node(pp2));
-
-    parseStructDefinition("_vp", new Node(pp3));
-    erep->flush();
-
-    type_pvoid = new Element::Type(new Element::Type(Type::Void));
-
-    std::vector<llvm::Type*> va_start_args;
-    va_start_args.push_back(toLLVMType(type_pvoid, NULL, false));
-
-    llvm::FunctionType *va_start_ft =
-        getFunctionType(
-            toLLVMType(type_void, NULL, true),
-            va_start_args,
-            false
-        );
-
-    llvm::Function *va_start_fn =
-        llvm::cast<llvm::Function>(
-            mod->getOrInsertFunction(
-                "llvm.va_start",
-                va_start_ft
-            )
-        );
-
-    va_start_fn->setCallingConv(llvm::CallingConv::C);
-
-    std::vector<Element::Variable *> *va_start_args_ctx =
-        new std::vector<Element::Variable *>;
-
-    va_start_args_ctx->push_back(
-        new Element::Variable((char *) "arglist",
-                              type_pvoid)
-    );
-
-    std::string temp222;
-
-    ctx->ns()->addFunction(
-        "va-start",
-        new Element::Function(
-            type_void,
-            va_start_args_ctx,
-            va_start_fn,
-            0,
-            &temp222
-        ),
-        NULL
-    );
-
-    llvm::Function *va_end_fn =
-        llvm::cast<llvm::Function>(
-            mod->getOrInsertFunction(
-                "llvm.va_end",
-                va_start_ft
-            )
-        );
-
-    va_end_fn->setCallingConv(llvm::CallingConv::C);
-
-    std::vector<Element::Variable*> *va_end_args_ctx =
-        new std::vector<Element::Variable*>;
-
-    va_end_args_ctx->push_back(
-        new Element::Variable((char *) "arglist",
-                              type_pvoid)
-    );
-
-    ctx->ns()->addFunction(
-        "va-end",
-        new Element::Function(
-            type_void,
-            va_end_args_ctx,
-            va_end_fn,
-            0,
-            &temp222
-        ),
-        NULL
     );
 
     /* Add jmp_buf size constant. */
@@ -1141,6 +1046,113 @@ void Generator::addCommonDeclarations(void)
     return;
 }
 
+void
+Generator::addVarargsFunctions(void)
+{
+    /* (def _vp (struct extern ((p char)))) */
+
+    Token *mychar = new Token(TokenType::String,0,0,0,0);
+    mychar->str_value.append("char");
+    Token *myp = new Token(TokenType::String,0,0,0,0);
+    myp->str_value.append("p");
+
+    std::vector<Node*> *pp = new std::vector<Node*>;
+    stl::push_back2(pp, new Node(myp),
+                    new Node(mychar));
+
+    std::vector<Node*> *pp2 = new std::vector<Node*>;
+    pp2->push_back(new Node(pp));
+
+    Token *mys = new Token(TokenType::String,0,0,0,0);
+    mys->str_value.append("struct");
+    Token *mye = new Token(TokenType::String,0,0,0,0);
+    mye->str_value.append("extern");
+
+    std::vector<Node*> *pp3 = new std::vector<Node*>;
+    stl::push_back3(pp3, new Node(mys),
+                    new Node(mye),
+                    new Node(pp2));
+
+    parseStructDefinition("_vp", new Node(pp3));
+    erep->flush();
+
+    type_pvoid = new Element::Type(new Element::Type(Type::Void));
+
+    std::vector<llvm::Type*> va_start_args;
+    va_start_args.push_back(toLLVMType(type_pvoid, NULL, false));
+
+    llvm::FunctionType *va_start_ft =
+        getFunctionType(
+            toLLVMType(type_void, NULL, true),
+            va_start_args,
+            false
+        );
+
+    llvm::Function *va_start_fn =
+        llvm::cast<llvm::Function>(
+            mod->getOrInsertFunction(
+                "llvm.va_start",
+                va_start_ft
+            )
+        );
+
+    va_start_fn->setCallingConv(llvm::CallingConv::C);
+
+    std::vector<Element::Variable *> *va_start_args_ctx =
+        new std::vector<Element::Variable *>;
+
+    va_start_args_ctx->push_back(
+        new Element::Variable((char *) "arglist",
+                              type_pvoid)
+    );
+
+    std::string temp222;
+
+    ctx->ns()->addFunction(
+        "va-start",
+        new Element::Function(
+            type_void,
+            va_start_args_ctx,
+            va_start_fn,
+            0,
+            &temp222
+        ),
+        NULL
+    );
+
+    llvm::Function *va_end_fn =
+        llvm::cast<llvm::Function>(
+            mod->getOrInsertFunction(
+                "llvm.va_end",
+                va_start_ft
+            )
+        );
+
+    va_end_fn->setCallingConv(llvm::CallingConv::C);
+
+    std::vector<Element::Variable*> *va_end_args_ctx =
+        new std::vector<Element::Variable*>;
+
+    va_end_args_ctx->push_back(
+        new Element::Variable((char *) "arglist",
+                              type_pvoid)
+    );
+
+    ctx->ns()->addFunction(
+        "va-end",
+        new Element::Function(
+            type_void,
+            va_end_args_ctx,
+            va_end_fn,
+            0,
+            &temp222
+        ),
+        NULL
+    );
+
+    return;
+}
+
 static int mc_count   = 0;
 static int mcpn_count = 0;
 static int globmarker = 0;
@@ -1330,6 +1342,9 @@ int Generator::run(std::vector<const char *> *filenames,
                    int mydebug,
                    int nodrt)
 {
+    g_no_acd = no_acd;
+    g_nodrt  = nodrt;
+
     debug = mydebug;
 
     const char *libdrt_path = NULL;
@@ -1436,7 +1451,14 @@ int Generator::run(std::vector<const char *> *filenames,
         ee->InstallLazyFunctionCreator(myLFC);
 
         if (!no_acd) {
-            addCommonDeclarations();
+            addVarargsFunctions();
+            if (nodrt) {
+                addCommonDeclarations();
+            } else {
+                std::vector<const char*> import_forms;
+                addDaleModule(nullNode(), "drt", &import_forms);
+                setPdnode();
+            }
         }
         int error_count = 0;
 
@@ -1623,11 +1645,11 @@ int Generator::run(std::vector<const char *> *filenames,
          * them from context as well. */
         if (!nostrip) {
             for (int i = 0; i < strip_forms_max; i++) {
-                mod->getFunction(strip_forms[i])->deleteBody();
+                //mod->getFunction(strip_forms[i])->deleteBody();
             }
             if (is_x86_64) {
                 for (int i = 0; i < strip_forms_64_max; i++) {
-                    mod->getFunction(strip_forms_64[i])->deleteBody();
+                  //mod->getFunction(strip_forms_64[i])->deleteBody();
                 }
             }
         }
@@ -2822,7 +2844,15 @@ void Generator::parseInclude(Node *top)
 
     ee->addModule(mod);
 
-    addCommonDeclarations();
+    if (!g_no_acd) {
+        if (g_nodrt) {
+            addCommonDeclarations();
+        } else {
+            std::vector<const char*> import_forms;
+            addDaleModule(nullNode(), "drt", &import_forms);
+            setPdnode();
+        }
+    }
 
     return;
 }
@@ -3225,6 +3255,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
         return;
     }
 
+    setPdnode();
     Element::Type *r_type = type_pdnode->makeCopy();
     r_type->linkage = linkage;
 
@@ -11419,15 +11450,15 @@ void Generator::setPdnode()
         llvm::Type *dnode =
             toLLVMType(st, NULL, false);
         if (!dnode) {
-            failedDaleToLLVMTypeConversion(st);
-            return;
+            fprintf(stderr, "Unable to fetch DNode type.\n");
+            abort();
         }
 
         llvm::Type *pointer_to_dnode =
             toLLVMType(tt, NULL, false);
         if (!pointer_to_dnode) {
-            failedDaleToLLVMTypeConversion(tt);
-            return;
+            fprintf(stderr, "Unable to fetch pointer to DNode type.\n");
+            abort();
         }
 
         type_dnode = st;

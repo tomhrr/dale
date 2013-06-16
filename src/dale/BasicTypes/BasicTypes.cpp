@@ -12,7 +12,7 @@ addSimpleUnaryFunction(Context *ctx,
                        Element::Type *return_type,
                        Element::Type *type1)
 {
-    return_type->linkage = Linkage::Intern;
+    return_type->linkage = Linkage::Extern;
 
     std::vector<Element::Variable*> *new_args_ctx =
         new std::vector<Element::Variable*>;
@@ -95,7 +95,7 @@ addSimpleBinaryFunction(Context *ctx,
                         Element::Type *type1,
                         Element::Type *type2)
 {
-    return_type->linkage = Linkage::Intern;
+    return_type->linkage = Linkage::Extern;
 
     std::vector<Element::Variable*> *new_args_ctx =
         new std::vector<Element::Variable*>;
