@@ -479,8 +479,8 @@ Generator::Generator()
     set_module_name    = 0;
 
     modules         = new std::vector<llvm::Module *>;
-    dtm_modules     = new std::map<std::string, llvm::Module *>;
-    dtm_nm_modules  = new std::map<std::string, llvm::Module *>;
+    dtm_modules     = new std::map<std::string, llvm::Module*>;
+    dtm_nm_modules  = new std::map<std::string, llvm::Module*>;
     linkers         = new std::vector<llvm::Linker *>;
     parsers         = new std::vector<Parser *>;
     contexts        = new std::vector<Context *>;
@@ -575,6 +575,29 @@ Generator::~Generator()
     delete modules;
     delete dtm_modules;
     delete dtm_nm_modules;
+}
+
+llvm::Module *loadModule(std::string *path)
+{
+    const llvm::sys::Path sys_path(*path);
+
+    llvm::OwningPtr<llvm::MemoryBuffer> buffer;
+    llvm::MemoryBuffer::getFileOrSTDIN(sys_path.c_str(), buffer);
+
+    std::string errmsg;
+    llvm::Module *module = 
+        llvm::getLazyBitcodeModule(buffer.get(),
+                                   llvm::getGlobalContext(),
+                                   &errmsg);
+
+    if (!module) {
+        fprintf(stderr,
+                "Internal error: cannot load module: %s\n",
+                errmsg.c_str());
+        abort();
+    }
+
+    return module;
 }
 
 llvm::FunctionType *getFunctionType(llvm::Type *t,
@@ -1747,7 +1770,7 @@ int Generator::run(std::vector<const char *> *filenames,
                         mdtm_modules->begin(), e = mdtm_modules->end();
                     b != e; ++b) {
                 if (cto_modules->find(b->first) == cto_modules->end()) {
-                    if (linker->LinkInModule((*b).second, &err)) {
+                    if (linker->LinkInModule(b->second, &err)) {
                         fprintf(stderr,
                                 "Internal error: unable to link "
                                 "dale module: %s\n",
@@ -1769,7 +1792,7 @@ int Generator::run(std::vector<const char *> *filenames,
                 std::map<std::string, llvm::Module *>::iterator
                 found = mdtm_modules->find(std::string(*b));
                 if (found != mdtm_modules->end()) {
-                    if (linker->LinkInModule((*found).second, &err)) {
+                    if (linker->LinkInModule(found->second, &err)) {
                         fprintf(stderr,
                                 "Internal error: unable to link "
                                 "dale module: %s\n",
@@ -2328,42 +2351,14 @@ int Generator::addDaleModule(Node *n,
         addTypeMapEntry(x.c_str(), y.c_str());
     }
 
-    const llvm::sys::Path bb(tmn2);
-    std::string tmn5(tmn2);
-    tmn5.replace(tmn5.find(".bc"), 3, bc_nm_suffix);
-    const llvm::sys::Path bb_nm(tmn5);
+    std::string module_path(tmn2);
+    std::string module_path_nomacros(tmn2);
 
-    std::string errmsg;
+    module_path_nomacros.replace(module_path_nomacros.find(".bc"), 
+                                 3, bc_nm_suffix);
 
-    llvm::OwningPtr<llvm::MemoryBuffer> Buffer_Nm;
-    llvm::MemoryBuffer::getFileOrSTDIN(bb_nm.c_str(), Buffer_Nm);
-    llvm::OwningPtr<llvm::MemoryBuffer> Buffer;
-    llvm::MemoryBuffer::getFileOrSTDIN(bb.c_str(), Buffer);
-
-    /* Just trying this - when using getLazyBitcodeModule, later
-     * on, if linking modules statically, there was a failure in
-     * BitstreamCursor::Read. */
-    llvm::Module *Result = llvm::ParseBitcodeFile(Buffer.get(),
-                           llvm::getGlobalContext(),
-                           &errmsg);
-
-    if (!Result) {
-        fprintf(stderr,
-                "Internal error: cannot load module: %s\n",
-                errmsg.c_str());
-        abort();
-    }
-
-    llvm::Module *Result_Nm = llvm::ParseBitcodeFile(Buffer_Nm.get(),
-                              llvm::getGlobalContext(),
-                              &errmsg);
-
-    if (!Result_Nm) {
-        fprintf(stderr,
-                "Internal error: cannot load module (nomacros): %s\n",
-                errmsg.c_str());
-        abort();
-    }
+    llvm::Module *new_module          = loadModule(&module_path);
+    llvm::Module *new_module_nomacros = loadModule(&module_path_nomacros);
 
     included_modules->insert(real_module_name);
 
@@ -2415,7 +2410,7 @@ int Generator::addDaleModule(Node *n,
                        common,
                        common.end()));
 
-    mynewcontext->eraseOnceForms(&common, Result);
+    mynewcontext->eraseOnceForms(&common, new_module);
 
     std::set<std::string> current;
     std::merge(included_once_tags->begin(),
@@ -2433,11 +2428,13 @@ int Generator::addDaleModule(Node *n,
     included_modules->insert(real_module_name);
 
     dtm_modules->insert(std::pair<std::string, llvm::Module *>(
-                            std::string(real_module_name), Result
+                            std::string(real_module_name),
+                            new_module
                         ));
 
     dtm_nm_modules->insert(std::pair<std::string, llvm::Module *>(
-                               std::string(real_module_name), Result_Nm
+                               std::string(real_module_name), 
+                               new_module_nomacros
                            ));
 
     /* Remove from mynewctx things not mentioned in import_forms,
@@ -2487,13 +2484,11 @@ int Generator::addDaleModule(Node *n,
 
     }
 
-    ctx->regetPointers(mod);
-
-    /* Result is unlinked at this point. So if the original module
-     * was optimised, there is a good chance that a bunch of
-     * things in mynewcontext won't be able to be re-got. Skipping
-     * failed function re-getting for the time being: they should
-     * be picked up on the later regetPointers call, anyway. */
+    /* new_module is unlinked at this point. So if the original module
+     * was optimised, there is a good chance that a bunch of things in
+     * mynewcontext won't be able to be re-got. Skipping failed
+     * function re-getting for the time being: they should be picked
+     * up on the later regetPointers call, anyway. */
 
     ctx->merge(mynewcontext);
     
@@ -2503,16 +2498,17 @@ int Generator::addDaleModule(Node *n,
     mynewcontext->used_ns_nodes.clear();
     mynewcontext->used_ns_nodes.push_back(mynewcontext->namespaces);
 
-    mynewcontext->regetPointersForNewModule(Result);
+    mynewcontext->regetPointersForNewModule(new_module);
 
     /* todo: Don't think this is needed. Shouldn't affect anything
      * given the previous merge. */
     //ctx->merge(mynewcontext);
     /* todo: Don't think this is needed. If you re-get pointers here,
      * then various things can't be found, because it will rebuild
-     * functions which may only be present in Result, rather than mod. */
+     * functions which may only be present in new_module, rather than
+     * mod. */
     /* todo part 2: Had this commented out, as per the above. However,
-     * it's likely that parts here are now referring to Result, in
+     * it's likely that parts here are now referring to new_module, in
      * error. (Still doesn't make sense though, given that various
      * things shouldn't be in mod at this point.) */
     ctx->regetPointers(mod);

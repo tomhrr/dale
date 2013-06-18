@@ -11,7 +11,7 @@ use Test::More tests => 4;
 my @res = `dalec -O0 -o ./t.dt.o -c $test_dir/t/src/dtm-importforms.dt`;
 is_deeply(\@res, [], 'no compilation errors');
 
-@res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtm-importforms-user.dt -o dtm-importforms-user --static-modules`;
+@res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtm-importforms-user.dt -o dtm-importforms-user`;
 chomp for @res;
 is_deeply(\@res, 
           [ ], 

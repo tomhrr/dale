@@ -95,8 +95,8 @@ private:
     llvm::Module          *mod;
 
     std::vector<llvm::Module *> *modules;
-    std::map<std::string, llvm::Module *> *dtm_modules;
-    std::map<std::string, llvm::Module *> *dtm_nm_modules;
+    std::map<std::string, llvm::Module*> *dtm_modules;
+    std::map<std::string, llvm::Module*> *dtm_nm_modules;
     std::vector<Parser *>       *parsers;
     std::vector<Context *>      *contexts;
     std::vector<llvm::Linker *> *linkers;
