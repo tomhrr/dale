@@ -124,6 +124,7 @@ private:
                        int override_linkage,
                        int is_anonymous);
     void addCommonDeclarations(void);
+    void addVoidPointerType(void);
     void addVarargsFunctions(void);
     void parseInclude(Node *top);
     void parseModuleName(Node *top);

@@ -793,12 +793,6 @@ Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
         b, e;
 
     for (b = ns->functions.begin(), e = ns->functions.end(); b != e; ++b) {
-        if (!b->first.compare("va-start")) {
-            continue;
-        }
-        if (!b->first.compare("va-end")) {
-            continue;
-        }
         for (std::vector<Element::Function *>::iterator
                 fb = b->second->begin(),
                 fe = b->second->end();

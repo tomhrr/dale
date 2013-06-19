@@ -688,8 +688,125 @@ int Generator::addVariable(const char *name,
 
 static int added_common_declarations = 0;
 
+void
+Generator::addVoidPointerType(void)
+{
+    /* (def _vp (struct extern ((p char)))) */
+
+    Token *mychar = new Token(TokenType::String,0,0,0,0);
+    mychar->str_value.append("char");
+    Token *myp = new Token(TokenType::String,0,0,0,0);
+    myp->str_value.append("p");
+
+    std::vector<Node*> *pp = new std::vector<Node*>;
+    stl::push_back2(pp, new Node(myp),
+                    new Node(mychar));
+
+    std::vector<Node*> *pp2 = new std::vector<Node*>;
+    pp2->push_back(new Node(pp));
+
+    Token *mys = new Token(TokenType::String,0,0,0,0);
+    mys->str_value.append("struct");
+    Token *mye = new Token(TokenType::String,0,0,0,0);
+    mye->str_value.append("extern");
+
+    std::vector<Node*> *pp3 = new std::vector<Node*>;
+    stl::push_back3(pp3, new Node(mys),
+                    new Node(mye),
+                    new Node(pp2));
+
+    parseStructDefinition("_vp", new Node(pp3));
+    erep->flush();
+}
+
+void
+Generator::addVarargsFunctions(void)
+{
+    type_pvoid = new Element::Type(new Element::Type(Type::Void));
+
+    std::vector<llvm::Type*> va_start_args;
+    va_start_args.push_back(toLLVMType(type_pvoid, NULL, false));
+
+    llvm::FunctionType *va_start_ft =
+        getFunctionType(
+            toLLVMType(type_void, NULL, true),
+            va_start_args,
+            false
+        );
+
+    llvm::Function *va_start_fn =
+        llvm::cast<llvm::Function>(
+            mod->getOrInsertFunction(
+                "llvm.va_start",
+                va_start_ft
+            )
+        );
+
+    va_start_fn->setCallingConv(llvm::CallingConv::C);
+
+    std::vector<Element::Variable *> *va_start_args_ctx =
+        new std::vector<Element::Variable *>;
+
+    va_start_args_ctx->push_back(
+        new Element::Variable((char *) "arglist",
+                              type_pvoid)
+    );
+
+    std::string *str_va_start = new std::string("llvm.va_start");
+    Element::Type *ret_type = new Element::Type(Type::Void);
+    ret_type->linkage = Linkage::Extern;
+
+    ctx->ns()->addFunction(
+        "va-start",
+        new Element::Function(
+            ret_type,
+            va_start_args_ctx,
+            va_start_fn,
+            0,
+            str_va_start
+        ),
+        NULL
+    );
+
+    llvm::Function *va_end_fn =
+        llvm::cast<llvm::Function>(
+            mod->getOrInsertFunction(
+                "llvm.va_end",
+                va_start_ft
+            )
+        );
+
+    va_end_fn->setCallingConv(llvm::CallingConv::C);
+
+    std::vector<Element::Variable*> *va_end_args_ctx =
+        new std::vector<Element::Variable*>;
+
+    va_end_args_ctx->push_back(
+        new Element::Variable((char *) "arglist",
+                              type_pvoid)
+    );
+
+    std::string *str_va_end = new std::string("llvm.va_end");
+
+    ctx->ns()->addFunction(
+        "va-end",
+        new Element::Function(
+            ret_type,
+            va_end_args_ctx,
+            va_end_fn,
+            0,
+            str_va_end
+        ),
+        NULL
+    );
+
+    return;
+}
+
 void Generator::addCommonDeclarations(void)
 {
+    addVarargsFunctions();
+
     BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int);
     BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_char);
     BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint);
@@ -998,113 +1115,6 @@ void Generator::addCommonDeclarations(void)
     return;
 }
 
-void
-Generator::addVarargsFunctions(void)
-{
-    /* (def _vp (struct extern ((p char)))) */
-
-    Token *mychar = new Token(TokenType::String,0,0,0,0);
-    mychar->str_value.append("char");
-    Token *myp = new Token(TokenType::String,0,0,0,0);
-    myp->str_value.append("p");
-
-    std::vector<Node*> *pp = new std::vector<Node*>;
-    stl::push_back2(pp, new Node(myp),
-                    new Node(mychar));
-
-    std::vector<Node*> *pp2 = new std::vector<Node*>;
-    pp2->push_back(new Node(pp));
-
-    Token *mys = new Token(TokenType::String,0,0,0,0);
-    mys->str_value.append("struct");
-    Token *mye = new Token(TokenType::String,0,0,0,0);
-    mye->str_value.append("extern");
-
-    std::vector<Node*> *pp3 = new std::vector<Node*>;
-    stl::push_back3(pp3, new Node(mys),
-                    new Node(mye),
-                    new Node(pp2));
-
-    parseStructDefinition("_vp", new Node(pp3));
-    erep->flush();
-
-    type_pvoid = new Element::Type(new Element::Type(Type::Void));
-
-    std::vector<llvm::Type*> va_start_args;
-    va_start_args.push_back(toLLVMType(type_pvoid, NULL, false));
-
-    llvm::FunctionType *va_start_ft =
-        getFunctionType(
-            toLLVMType(type_void, NULL, true),
-            va_start_args,
-            false
-        );
-
-    llvm::Function *va_start_fn =
-        llvm::cast<llvm::Function>(
-            mod->getOrInsertFunction(
-                "llvm.va_start",
-                va_start_ft
-            )
-        );
-
-    va_start_fn->setCallingConv(llvm::CallingConv::C);
-
-    std::vector<Element::Variable *> *va_start_args_ctx =
-        new std::vector<Element::Variable *>;
-
-    va_start_args_ctx->push_back(
-        new Element::Variable((char *) "arglist",
-                              type_pvoid)
-    );
-
-    std::string temp222;
-
-    ctx->ns()->addFunction(
-        "va-start",
-        new Element::Function(
-            type_void,
-            va_start_args_ctx,
-            va_start_fn,
-            0,
-            &temp222
-        ),
-        NULL
-    );
-
-    llvm::Function *va_end_fn =
-        llvm::cast<llvm::Function>(
-            mod->getOrInsertFunction(
-                "llvm.va_end",
-                va_start_ft
-            )
-        );
-
-    va_end_fn->setCallingConv(llvm::CallingConv::C);
-
-    std::vector<Element::Variable*> *va_end_args_ctx =
-        new std::vector<Element::Variable*>;
-
-    va_end_args_ctx->push_back(
-        new Element::Variable((char *) "arglist",
-                              type_pvoid)
-    );
-
-    ctx->ns()->addFunction(
-        "va-end",
-        new Element::Function(
-            type_void,
-            va_end_args_ctx,
-            va_end_fn,
-            0,
-            &temp222
-        ),
-        NULL
-    );
-
-    return;
-}
-
 static int mc_count   = 0;
 static int mcpn_count = 0;
 static int globmarker = 0;
@@ -1368,6 +1378,8 @@ int Generator::run(std::vector<const char *> *filenames,
         }
     }
 
+    bool added_vp = false;
+
     while (iter != filenames->end()) {
         const char *filename = (*iter);
         erep->current_filename = filename;
@@ -1403,7 +1415,10 @@ int Generator::run(std::vector<const char *> *filenames,
         ee->InstallLazyFunctionCreator(myLFC);
 
         if (!no_acd) {
-            addVarargsFunctions();
+            if (!added_vp) {
+                addVoidPointerType();
+                added_vp = true;
+            }
             if (nodrt) {
                 addCommonDeclarations();
             } else {

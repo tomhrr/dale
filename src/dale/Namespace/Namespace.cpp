@@ -852,12 +852,6 @@ Namespace::regetFunctionPointers(llvm::Module *mod)
         b, e;
     
     for (b = functions.begin(), e = functions.end(); b != e; ++b) {
-        if (b->first.compare("va-start")) {
-            continue;
-        }
-        if (b->first.compare("va-end")) {
-            continue;
-        }
         for (std::vector<Element::Function *>::iterator
                 fb = b->second->begin(),
                 fe = b->second->end();
