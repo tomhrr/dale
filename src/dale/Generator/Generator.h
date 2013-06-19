@@ -269,6 +269,16 @@ private:
     void parseNamespace(Node *top);
     void parseUsingNamespaceTopLevel(Node *top);
 
+    ParseResult *parseVaStart(Element::Function *dfn,
+                              llvm::BasicBlock *block,
+                              Node *n,
+                              bool getAddress, bool
+                              prefixed_with_core);
+    ParseResult *parseVaEnd(Element::Function *dfn,
+                            llvm::BasicBlock *block,
+                            Node *n,
+                            bool getAddress, bool
+                            prefixed_with_core);
     ParseResult *parseVaArg(Element::Function *dfn,
                             llvm::BasicBlock *block,
                             Node *n,

@@ -68,19 +68,21 @@
     (((((ret) == ULONG_MAX || ((ret) == 0)) && (errno == ERANGE)) \
         || (((ret) == 0) && ((str) == (end)))))
 
-int core_forms_max = 33;
-const char *core_forms_strs[34] = {
+int core_forms_max = 35;
+const char *core_forms_strs[36] = {
     "goto", "label", "return", "setf", "@", ":", "#", "$",
     "get-dnodes", "p=", "p+", "p-", "p<", "p>", "def", "if", "null",
     "nullptr", "do", "cast", "va-arg", "sizeof", "offsetof",
+    "va-start", "va-end",
     "alignmentof", "funcall", "using-namespace", "new-scope",
     "array-of", "setv", "@$", "@:", ":@", "@:@", NULL
 };
 
-int core_forms_no_max = 29;
-const char *core_forms_no[30] = {
+int core_forms_no_max = 31;
+const char *core_forms_no[32] = {
     "goto", "label", "return", ":", "get-dnodes", "p=", "p+", "p-", "p<",
     "p>", "def", "if", "null", "nullptr", "do", "cast", "va-arg",
+    "va-start", "va-end",
     "sizeof", "offsetof", "alignmentof", "funcall", "using-namespace",
     "new-scope", "array-of",  "setv", "@$", ":@", "@:", "@:@", NULL
 };
@@ -722,10 +724,8 @@ Generator::addVoidPointerType(void)
 void
 Generator::addVarargsFunctions(void)
 {
-    type_pvoid = new Element::Type(new Element::Type(Type::Void));
-
     std::vector<llvm::Type*> va_start_args;
-    va_start_args.push_back(toLLVMType(type_pvoid, NULL, false));
+    va_start_args.push_back(toLLVMType(type_pchar, NULL, false));
 
     llvm::FunctionType *va_start_ft =
         getFunctionType(
@@ -744,30 +744,6 @@ Generator::addVarargsFunctions(void)
 
     va_start_fn->setCallingConv(llvm::CallingConv::C);
 
-    std::vector<Element::Variable *> *va_start_args_ctx =
-        new std::vector<Element::Variable *>;
-
-    va_start_args_ctx->push_back(
-        new Element::Variable((char *) "arglist",
-                              type_pvoid)
-    );
-
-    std::string *str_va_start = new std::string("llvm.va_start");
-    Element::Type *ret_type = new Element::Type(Type::Void);
-    ret_type->linkage = Linkage::Extern;
-
-    ctx->ns()->addFunction(
-        "va-start",
-        new Element::Function(
-            ret_type,
-            va_start_args_ctx,
-            va_start_fn,
-            0,
-            str_va_start
-        ),
-        NULL
-    );
-
     llvm::Function *va_end_fn =
         llvm::cast<llvm::Function>(
             mod->getOrInsertFunction(
@@ -778,34 +754,12 @@ Generator::addVarargsFunctions(void)
 
     va_end_fn->setCallingConv(llvm::CallingConv::C);
 
-    std::vector<Element::Variable*> *va_end_args_ctx =
-        new std::vector<Element::Variable*>;
-
-    va_end_args_ctx->push_back(
-        new Element::Variable((char *) "arglist",
-                              type_pvoid)
-    );
-
-    std::string *str_va_end = new std::string("llvm.va_end");
-
-    ctx->ns()->addFunction(
-        "va-end",
-        new Element::Function(
-            ret_type,
-            va_end_args_ctx,
-            va_end_fn,
-            0,
-            str_va_end
-        ),
-        NULL
-    );
-
     return;
 }
 
 void Generator::addCommonDeclarations(void)
 {
-    addVarargsFunctions();
+    addVoidPointerType();
 
     BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int);
     BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_char);
@@ -1378,8 +1332,6 @@ int Generator::run(std::vector<const char *> *filenames,
         }
     }
 
-    bool added_vp = false;
-
     while (iter != filenames->end()) {
         const char *filename = (*iter);
         erep->current_filename = filename;
@@ -1413,12 +1365,9 @@ int Generator::run(std::vector<const char *> *filenames,
         }
 
         ee->InstallLazyFunctionCreator(myLFC);
+        addVarargsFunctions();
 
         if (!no_acd) {
-            if (!added_vp) {
-                addVoidPointerType();
-                added_vp = true;
-            }
             if (nodrt) {
                 addCommonDeclarations();
             } else {
@@ -2770,6 +2719,7 @@ void Generator::parseInclude(Node *top)
     linker = new llvm::Linker(module_name.c_str(), mod, false);
 
     ee->addModule(mod);
+    addVarargsFunctions();
 
     if (!g_no_acd) {
         if (g_nodrt) {
@@ -9166,6 +9116,96 @@ ParseResult *Generator::parseFuncall(Element::Function *dfn,
            );
 }
 
+ParseResult *Generator::parseVaStart(Element::Function *dfn,
+                                     llvm::BasicBlock *block,
+                                     Node *n,
+                                     bool getAddress,
+                                     bool prefixed_with_core)
+{
+    if (!assertArgNums("va-start", n, 1, 1)) {
+        return NULL;
+    }
+
+    symlist *lst = n->list;
+
+    ParseResult *pr_valist =
+        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL);
+    if (!pr_valist) {
+        return NULL;
+    }
+
+    llvm::IRBuilder<> builder(pr_valist->block);
+    llvm::Function *va_start =
+        mod->getFunction(llvm::StringRef("llvm.va_start"));
+    if (!va_start) {
+        fprintf(stderr, "Unable to load va_start.");
+        abort();
+    }
+
+    std::vector<llvm::Value*> call_args;
+    ParseResult *to_pchar = doCast(pr_valist->block,
+                                   pr_valist->value,
+                                   pr_valist->type,
+                                   type_pchar,
+                                   n);
+    call_args.push_back(to_pchar->value);
+    builder.CreateCall(va_start,
+                       llvm::ArrayRef<llvm::Value*>(call_args)); 
+        
+    ParseResult *pn = new ParseResult(
+        to_pchar->block,
+        type_void,
+        NULL
+    );
+    
+    return pn;
+}
+
+ParseResult *Generator::parseVaEnd(Element::Function *dfn,
+                                     llvm::BasicBlock *block,
+                                     Node *n,
+                                     bool getAddress,
+                                     bool prefixed_with_core)
+{
+    if (!assertArgNums("va-end", n, 1, 1)) {
+        return NULL;
+    }
+
+    symlist *lst = n->list;
+
+    ParseResult *pr_valist =
+        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL);
+    if (!pr_valist) {
+        return NULL;
+    }
+
+    llvm::IRBuilder<> builder(pr_valist->block);
+    llvm::Function *va_end =
+        mod->getFunction(llvm::StringRef("llvm.va_end"));
+    if (!va_end) {
+        fprintf(stderr, "Unable to load va_end.");
+        abort();
+    }
+
+    std::vector<llvm::Value*> call_args;
+    ParseResult *to_pchar = doCast(pr_valist->block,
+                                   pr_valist->value,
+                                   pr_valist->type,
+                                   type_pchar,
+                                   n);
+    call_args.push_back(to_pchar->value);
+    builder.CreateCall(va_end,
+                       llvm::ArrayRef<llvm::Value*>(call_args)); 
+        
+    ParseResult *pn = new ParseResult(
+        to_pchar->block,
+        type_void,
+        NULL
+    );
+    
+    return pn;
+}
+
 ParseResult *Generator::parseVaArg(Element::Function *dfn,
                                    llvm::BasicBlock *block,
                                    Node *n,
@@ -11173,6 +11213,8 @@ past_sl_parse:
         : (eq("do"))      ? &dale::Generator::parseDo
         : (eq("cast"))    ? &dale::Generator::parseCast
         : (eq("va-arg"))  ? &dale::Generator::parseVaArg
+        : (eq("va-start")) ? &dale::Generator::parseVaStart
+        : (eq("va-end"))   ? &dale::Generator::parseVaEnd
         : (eq("sizeof"))  ? &dale::Generator::parseSizeof
         : (eq("offsetof")) ? &dale::Generator::parseOffsetof
         : (eq("alignmentof"))  ? &dale::Generator::parseAlignmentof

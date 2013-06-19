@@ -83,10 +83,19 @@ Executes `true-case` if `condition` is true; otherwise, executes
 
 Returns `value` from the current procedure to the caller.
 
+#### (`va-start` {`pointer-to-va-list`})
+
+Initialises the `va-list`, for later use with `va-arg`.
+
 #### (`va-arg` {`pointer-to-va-list`} {`argument-type`})
 
 Returns the next argument from the `va-list`, cast to the specified
 type.
+
+#### (`va-end` {`pointer-to-va-list`})
+
+Performs any necessary cleanup required by way of the use of the
+`va-list`. 
 
 #### (`array-of` {`count`} {`type`} (`array` *`a1`* *`a2`* ... *`aN`*))
 
