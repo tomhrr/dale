@@ -482,7 +482,7 @@ Generator::Generator()
 
     modules         = new std::vector<llvm::Module *>;
     dtm_modules     = new std::map<std::string, llvm::Module*>;
-    dtm_nm_modules  = new std::map<std::string, llvm::Module*>;
+    dtm_nm_modules  = new std::map<std::string, std::string>;
     linkers         = new std::vector<llvm::Linker *>;
     parsers         = new std::vector<Parser *>;
     contexts        = new std::vector<Context *>;
@@ -1724,14 +1724,30 @@ int Generator::run(std::vector<const char *> *filenames,
     } else {
         int rgp = 1;
         std::string err;
-        if (static_mods_all) {
-            /* If macros aren't wanted, link against the nomacros
-             * version. */
-            std::map<std::string, llvm::Module *> *mdtm_modules =
-                (remove_macros ? dtm_nm_modules : dtm_modules);
 
+        std::map<std::string, llvm::Module *> mdtm_modules;
+        if (static_mods_all || (static_modules->size() > 0)) {
+            if (remove_macros) {
+                for (std::map<std::string, std::string>::iterator 
+                        b = dtm_nm_modules->begin(), 
+                        e = dtm_nm_modules->end();
+                        b != e; ++b) {
+                    mdtm_modules.insert(
+                        std::pair<std::string, llvm::Module*>(
+                            b->first,
+                            loadModule(&(b->second))
+                        )
+                    );
+                }
+            } else {
+                mdtm_modules = *dtm_modules;
+            }
+            rgp = 0;
+        }
+
+        if (static_mods_all) {
             for (std::map<std::string, llvm::Module *>::iterator b =
-                        mdtm_modules->begin(), e = mdtm_modules->end();
+                        mdtm_modules.begin(), e = mdtm_modules.end();
                     b != e; ++b) {
                 if (cto_modules->find(b->first) == cto_modules->end()) {
                     if (linker->LinkInModule(b->second, &err)) {
@@ -1743,19 +1759,14 @@ int Generator::run(std::vector<const char *> *filenames,
                     }
                 }
             }
-            rgp = 0;
         } else if (static_modules->size() > 0) {
-            /* If macros aren't wanted, link against the nomacros
-             * version. */
-            std::map<std::string, llvm::Module *> *mdtm_modules =
-                (remove_macros ? dtm_nm_modules : dtm_modules);
             for (std::vector<const char *>::iterator b =
                         static_modules->begin(), e =
                         static_modules->end();
                     b != e; ++b) {
                 std::map<std::string, llvm::Module *>::iterator
-                found = mdtm_modules->find(std::string(*b));
-                if (found != mdtm_modules->end()) {
+                found = mdtm_modules.find(std::string(*b));
+                if (found != mdtm_modules.end()) {
                     if (linker->LinkInModule(found->second, &err)) {
                         fprintf(stderr,
                                 "Internal error: unable to link "
@@ -2321,8 +2332,7 @@ int Generator::addDaleModule(Node *n,
     module_path_nomacros.replace(module_path_nomacros.find(".bc"), 
                                  3, bc_nm_suffix);
 
-    llvm::Module *new_module          = loadModule(&module_path);
-    llvm::Module *new_module_nomacros = loadModule(&module_path_nomacros);
+    llvm::Module *new_module = loadModule(&module_path);
 
     included_modules->insert(real_module_name);
 
@@ -2396,9 +2406,9 @@ int Generator::addDaleModule(Node *n,
                             new_module
                         ));
 
-    dtm_nm_modules->insert(std::pair<std::string, llvm::Module *>(
+    dtm_nm_modules->insert(std::pair<std::string, std::string>(
                                std::string(real_module_name), 
-                               new_module_nomacros
+                               module_path_nomacros
                            ));
 
     /* Remove from mynewctx things not mentioned in import_forms,
