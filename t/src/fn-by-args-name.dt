@@ -18,6 +18,7 @@
 
 (def show-fn-name
   (macro intern (lst (c int))
+    (fn-by-args-count lst)
     (let ((cc    \ (atoi (@:@ c token-str)))
           (n     \ (fn-by-args-name lst cc))
           (buf   (array-of 255 char)))

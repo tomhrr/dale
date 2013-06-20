@@ -7948,6 +7948,11 @@ bool Generator::isConst(DNode *dnode)
     return false;
 }
 
+/* Function name lists will be stored here by fnByArgsCount, keyed on
+ * the stringification of of the parameter types. This map will, in
+ * turn, be used by fnByArgsName. */
+std::map<std::string, std::vector<std::string>*> fn_by_args;
+
 int Generator::fnByArgsCount(DNode *dnode)
 {
     Node *n = DNodeToIntNode(dnode);
@@ -7967,6 +7972,7 @@ int Generator::fnByArgsCount(DNode *dnode)
     = lst->begin();
     int c = 0;
 
+    std::string map_key;
     std::vector<Element::Type *> parameter_types;
     while (iter != lst->end()) {
         Element::Type *ptype = parseType((*iter), false,
@@ -7975,9 +7981,19 @@ int Generator::fnByArgsCount(DNode *dnode)
             popErrors(original_error_count);
             return 0;
         }
+        ptype->toStringProper(&map_key);
         parameter_types.push_back(ptype);
         ++iter;
         ++c;
+    }
+
+    std::map<std::string, std::vector<std::string>*>::iterator
+        b = fn_by_args.find(map_key),
+        e = fn_by_args.end();
+    if (b != e) {
+        std::vector<std::string>* fn_by_args_list = b->second;
+        delete fn_by_args_list;
+        fn_by_args.erase(b);
     }
 
     /* For each function that exists, see if it has an instance
@@ -7985,8 +8001,9 @@ int Generator::fnByArgsCount(DNode *dnode)
 
     std::set<std::string> function_names;
     ctx->getFunctionNames(&function_names);
+    std::vector<std::string> *fn_by_args_list = 
+        new std::vector<std::string>;
 
-    int count = 0;
     for (std::set<std::string>::iterator
             b = function_names.begin(),
             e = function_names.end();
@@ -7998,11 +8015,18 @@ int Generator::fnByArgsCount(DNode *dnode)
                              NULL,
                              0);
         if (thefn && (!(thefn->is_macro))) {
-            ++count;
+            fn_by_args_list->push_back((*b));
         }
     }
 
-    return count;
+    fn_by_args.insert(
+        std::pair<std::string, std::vector<std::string>*>(
+            map_key,
+            fn_by_args_list
+        )
+    );
+
+    return (int) fn_by_args_list->size();
 }
 
 const char *Generator::fnByArgsName(DNode *dnode, int acount)
@@ -8020,11 +8044,9 @@ const char *Generator::fnByArgsName(DNode *dnode, int acount)
 
     symlist *lst = n->list;
 
-    std::vector<Node *>::iterator iter
-    = lst->begin();
-    int c = 0;
+    std::vector<Node *>::iterator iter = lst->begin();
 
-    std::vector<Element::Type *> parameter_types;
+    std::string map_key;
     while (iter != lst->end()) {
         Element::Type *ptype = parseType((*iter), false,
                                          false);
@@ -8032,37 +8054,24 @@ const char *Generator::fnByArgsName(DNode *dnode, int acount)
             popErrors(original_error_count);
             return 0;
         }
-        parameter_types.push_back(ptype);
+        ptype->toStringProper(&map_key);
         ++iter;
-        ++c;
     }
 
-    /* For each function that exists, see if it has an instance
-     * for the provided parameter types. */
+    std::map<std::string, std::vector<std::string>*>::iterator
+        b = fn_by_args.find(map_key),
+        e = fn_by_args.end();
 
-    std::set<std::string> function_names;
-    ctx->getFunctionNames(&function_names);
-
-    int count = 0;
-    for (std::set<std::string>::iterator
-            b = function_names.begin(),
-            e = function_names.end();
-            b != e;
-            ++b) {
-        Element::Function *thefn =
-            ctx->getFunction(b->c_str(),
-                             &parameter_types,
-                             NULL,
-                             0);
-        if (thefn && (!(thefn->is_macro))) {
-            if (count == acount) {
-                return b->c_str();
-            }
-            ++count;
-        }
+    if (b == e) {
+        return NULL;
     }
 
-    return NULL;
+    std::vector<std::string> *fn_by_args_list = b->second;
+    if (acount > (fn_by_args_list->size() - 1)) {
+        return NULL;
+    }
+
+    return fn_by_args_list->at(acount).c_str();
 }
 
 bool Generator::existsFunction(DNode *dnode)

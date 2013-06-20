@@ -344,7 +344,10 @@ Parameters:
   * `(frm (p DNode))`: A list of parameter types.  
 
 Takes a form (list node) of parameter types. Returns the number of
-functions that have those parameter types as their own.
+functions that have those parameter types as their own. Calling this
+function initialises an internal list containing the names of the
+functions with the specified parameter types, which list is used by
+`fn-by-args-name`.
 
 
 #### `fn-by-args-name`
@@ -358,7 +361,8 @@ Parameters:
 
 Takes a form (list node) of parameter types and an index. Returns the
 name of the `n`th function that has those parameters types as its own.
-Intended for use in conjunction with `fn-by-args-count`.
+The call to this function must be preceded, at some point, by a call
+to `fn-by-args-count` that uses the same set of parameter types.
 
 
 #### `must-init`
