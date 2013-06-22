@@ -799,7 +799,15 @@ Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
                 fb != fe;
                 ++fb) {
             Element::Function *fn = (*fb);
- 
+
+            fn->llvm_function =
+                llvm::dyn_cast<llvm::Function>(
+                    mod->getFunction(fn->internal_name->c_str())
+                );
+            if (fn->llvm_function) {
+                continue;
+            }
+            
             std::vector<llvm::Type*> types;
 
             for (std::vector<Element::Variable *>::iterator
@@ -842,16 +850,9 @@ Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
             
             fn->llvm_function =
                 llvm::dyn_cast<llvm::Function>(
-                    mod->getFunction(fn->internal_name->c_str())
+                    mod->getOrInsertFunction(fn->internal_name->c_str(), 
+                                             ft)
                 );
-            
-            if (!fn->llvm_function) {
-                fn->llvm_function =
-                    llvm::dyn_cast<llvm::Function>(
-                        mod->getOrInsertFunction(fn->internal_name->c_str(), 
-                                                 ft)
-                    );
-            }
             if (!fn->llvm_function) {
                 fprintf(stderr, "Internal error: unable to re-get "
                         "function ('%s').\n",

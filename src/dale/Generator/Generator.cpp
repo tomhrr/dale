@@ -2461,36 +2461,8 @@ int Generator::addDaleModule(Node *n,
 
     }
 
-    /* new_module is unlinked at this point. So if the original module
-     * was optimised, there is a good chance that a bunch of things in
-     * mynewcontext won't be able to be re-got. Skipping failed
-     * function re-getting for the time being: they should be picked
-     * up on the later regetPointers call, anyway. */
-
     ctx->merge(mynewcontext);
-    
-    /* At this point, there won't be a valid used node in
-     * mynewcontext. Therefore, it is necessary to clear that list and
-     * add the root namespace to it. */
-    mynewcontext->used_ns_nodes.clear();
-    mynewcontext->used_ns_nodes.push_back(mynewcontext->namespaces);
-
-    mynewcontext->merge(ctx);
-    mynewcontext->regetPointersForNewModule(new_module);
-
-    /* todo: Don't think this is needed. Shouldn't affect anything
-     * given the previous merge. */
-    //ctx->merge(mynewcontext);
-    /* todo: Don't think this is needed. If you re-get pointers here,
-     * then various things can't be found, because it will rebuild
-     * functions which may only be present in new_module, rather than
-     * mod. */
-    /* todo part 2: Had this commented out, as per the above. However,
-     * it's likely that parts here are now referring to new_module, in
-     * error. (Still doesn't make sense though, given that various
-     * things shouldn't be in mod at this point.) */
-    ctx->regetPointers(mod);
-
+    ctx->regetPointersForNewModule(mod);
     ctx->relink();
 
     return 1;
