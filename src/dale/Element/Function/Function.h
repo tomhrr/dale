@@ -26,6 +26,7 @@ public:
     int cto;
     int is_destructor;
     int is_setf_fn;
+    bool serialise;
 
     Function();
     Function(Element::Type *return_type,

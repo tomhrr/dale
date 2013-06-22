@@ -314,6 +314,9 @@ public:
     bool removeUnneeded(std::set<std::string> *forms,
                         std::set<std::string> *found_forms);
 
+    /*! Remove bindings that were added by way of module import. */
+    bool removeDeserialised(void);
+
     /*! Print the namespace's details to stderr. */
     void print(void);
 };

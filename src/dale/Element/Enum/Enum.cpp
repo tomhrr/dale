@@ -10,6 +10,7 @@ Enum::Enum()
     type = NULL;
     names_to_numbers = new std::map<std::string, int64_t>;
     linkage = 0;
+    serialise = true;
 }
 
 Enum::~Enum()

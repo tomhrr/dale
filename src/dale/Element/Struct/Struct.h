@@ -35,6 +35,7 @@ public:
     std::string once_tag;
     int linkage;
     int must_init;
+    bool serialise;
 
     Struct();
     ~Struct();

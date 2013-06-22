@@ -1036,6 +1036,73 @@ Namespace::removeUnneededFunctions(std::set<std::string> *forms,
 }
 
 bool
+Namespace::removeDeserialised(void)
+{
+    {
+        std::map<std::string, Element::Variable *>::iterator
+            b = variables.begin(),
+            e = variables.end();
+
+        while (b != e) {
+            if (!b->second->serialise) {
+                variables.erase(b++);
+            } else {
+                ++b;
+            }
+        }
+    }
+
+    {
+        std::map<std::string, Element::Struct *>::iterator
+            b = structs.begin(),
+            e = structs.end();
+
+        while (b != e) {
+            if (!b->second->serialise) {
+                structs.erase(b++);
+            } else {
+                ++b;
+            }
+        }
+    }
+
+    {
+        std::map<std::string, Element::Enum *>::iterator
+            b = enums.begin(),
+            e = enums.end();
+        
+        while (b != e) {
+            if (!b->second->serialise) {
+                enums.erase(b++);
+            } else {
+                ++b;
+            }
+        }
+    }
+
+    std::map<std::string, std::vector<Element::Function*> *>::iterator
+        fb = functions.begin(),
+        fe = functions.end();
+
+    while (fb != fe) {
+        std::vector<Element::Function*>::iterator
+            fnb = fb->second->begin(),
+            fne = fb->second->end();
+        while (fnb != fne) {
+            if (!(*fnb)->serialise) {
+                fnb = fb->second->erase(fnb);
+                fne = fb->second->end();
+            } else {
+                ++fnb;
+            }
+        }
+        ++fb;
+    }
+
+    return true;
+}
+
+bool
 Namespace::removeUnneeded(std::set<std::string> *forms,
                           std::set<std::string> *found_forms)
 {

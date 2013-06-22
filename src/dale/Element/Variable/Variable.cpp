@@ -10,6 +10,7 @@ Variable::Variable()
     internal_name   = new std::string;
     has_initialiser = 0;
     index           = 0;
+    serialise       = true;
 }
 
 Variable::Variable(char *new_name, Element::Type *new_type)

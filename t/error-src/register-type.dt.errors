@@ -1,1 +1,1 @@
-./t/error-src/register-type.dt:10:7: error: overloaded function/macro not in scope: '+' (parameters are (Pair int int) (Pair int int), closest candidate expects buffer-mode buffer-mode) (see macro at 9:5)
+./t/error-src/register-type.dt:10:7: error: overloaded function/macro not in scope: '+' (parameters are (Pair int int) (Pair int int), closest candidate expects int int) (see macro at 9:5)

@@ -163,6 +163,7 @@ public:
     bool rebuildFunctions(llvm::Module *mod, NSNode *node);
     bool rebuildVariables(llvm::Module *mod, NSNode *node);
 
+    bool removeDeserialised(void);
     bool removeUnneeded(std::set<std::string> *forms,
                         std::set<std::string> *found_forms);
 

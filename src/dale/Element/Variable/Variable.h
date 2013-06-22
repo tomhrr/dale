@@ -34,6 +34,7 @@ public:
     int           has_initialiser;
     std::string once_tag;
     int index;
+    bool serialise;
 
     Variable();
     Variable(char *new_name, Element::Type *new_type);

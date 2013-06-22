@@ -336,6 +336,7 @@ char *deserialise(char *in, Element::Variable *v)
 char *deserialise(char *in, Element::Variable **v)
 {
     Element::Variable *vv = new Element::Variable();
+    vv->serialise = false;
     *v = vv;
     return deserialise(in, vv);
 }
@@ -387,6 +388,7 @@ char *deserialise(char *in, Element::Function *fn)
 char *deserialise(char *in, Element::Function **fn)
 {
     Element::Function *ff = new Element::Function();
+    ff->serialise = false;
     *fn = ff;
     return deserialise(in, ff);
 }
@@ -434,6 +436,7 @@ char *deserialise(char *in, Element::Struct *st)
 char *deserialise(char *in, Element::Struct **st)
 {
     Element::Struct *stt = new Element::Struct();
+    stt->serialise = false;
     *st = stt;
     return deserialise(in, stt);
 }
@@ -470,6 +473,7 @@ char *deserialise(char *in, Element::Enum *en)
 char *deserialise(char *in, Element::Enum **en)
 {
     Element::Enum *enn = new Element::Enum();
+    enn->serialise = false;
     *en = enn;
     return deserialise(in, enn);
 }

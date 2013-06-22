@@ -1380,4 +1380,27 @@ Context::deleteAnonymousNamespaces(void)
     return deleteAnonymousNamespaces_(namespaces);
 }
 
+bool
+removeDeserialised_(NSNode *nsnode)
+{
+    for (std::map<std::string, NSNode *>::iterator
+            b = nsnode->children.begin(),
+            e = nsnode->children.end();
+            b != e;
+            ++b) {
+        removeDeserialised_(b->second);
+    }
+
+    nsnode->ns->removeDeserialised();
+
+    return true;
+}
+
+bool
+Context::removeDeserialised(void)
+{
+    return removeDeserialised_(namespaces);
+}
+
+
 }

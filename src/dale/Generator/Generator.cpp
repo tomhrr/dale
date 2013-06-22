@@ -1574,27 +1574,6 @@ int Generator::run(std::vector<const char *> *filenames,
         std::string asm_path(module_prefix);
         std::string lib_path(module_prefix);
 
-        /* Dump the context into module_path. */
-        module_prefix.append(".dtm");
-        FILE *mod_data = fopen(module_prefix.c_str(), "w");
-        if (!mod_data) {
-            perror("Cannot create module file");
-            return 0;
-        }
-        serialise(mod_data, ctx);
-
-        /* Add the included 'once' tags to the dtm. */
-        serialise(mod_data, included_once_tags);
-        /* Add the included module names to the dtm. */
-        serialise(mod_data, included_modules);
-        /* Add the cto flag to the dtm. */
-        serialise(mod_data, cto);
-        /* Add the typemap (ugh). */
-        serialise(mod_data, &dale_typemap);
-
-        fflush(mod_data);
-        fclose(mod_data);
-
         /* Write the bitcode to this path. */
         bc_path.append(".bc");
         FILE *bc = fopen(bc_path.c_str(), "w");
@@ -1721,6 +1700,30 @@ int Generator::run(std::vector<const char *> *filenames,
                     "temporary assembly file.\n");
             abort();
         }
+
+        /* Dump the context into module_path. */
+        ctx->removeDeserialised();
+        module_prefix.append(".dtm");
+        FILE *mod_data = fopen(module_prefix.c_str(), "w");
+        if (!mod_data) {
+            perror("Cannot create module file");
+            return 0;
+        }
+        serialise(mod_data, ctx);
+
+        /* Add the included 'once' tags to the dtm. */
+        serialise(mod_data, included_once_tags);
+        /* Add the included module names to the dtm. */
+        serialise(mod_data, included_modules);
+        /* Add the cto flag to the dtm. */
+        serialise(mod_data, cto);
+        /* Add the typemap (ugh). */
+        serialise(mod_data, &dale_typemap);
+
+        fflush(mod_data);
+        fclose(mod_data);
+
+
     } else {
         int rgp = 1;
         std::string err;
@@ -2472,6 +2475,7 @@ int Generator::addDaleModule(Node *n,
     mynewcontext->used_ns_nodes.clear();
     mynewcontext->used_ns_nodes.push_back(mynewcontext->namespaces);
 
+    mynewcontext->merge(ctx);
     mynewcontext->regetPointersForNewModule(new_module);
 
     /* todo: Don't think this is needed. Shouldn't affect anything

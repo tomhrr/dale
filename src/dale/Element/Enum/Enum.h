@@ -34,6 +34,7 @@ public:
     std::map<std::string, int64_t> *names_to_numbers;
     std::string once_tag;
     int linkage;
+    bool serialise;
 
     Enum();
     ~Enum();

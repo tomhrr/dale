@@ -14,6 +14,7 @@ Struct::Struct()
     internal_name    = new std::string();
     linkage          = 0;
     must_init        = 0;
+    serialise        = true;
 }
 
 Struct::~Struct()

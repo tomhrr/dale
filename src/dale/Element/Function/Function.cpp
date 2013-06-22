@@ -16,6 +16,7 @@ Function::Function()
     is_setf_fn    = 0;
     defgotos      = new std::vector<DeferredGoto *>;
     labels        = new std::map<std::string, Element::Label *>;
+    serialise     = true;
 }
 
 Function::Function(
@@ -35,6 +36,7 @@ Function::Function(
     cto = 0;
     is_destructor = 0;
     is_setf_fn    = 0;
+    serialise     = true;
 
     defgotos      = new std::vector<DeferredGoto *>;
     labels        = new std::map<std::string, Element::Label *>;
