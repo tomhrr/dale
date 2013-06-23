@@ -164,6 +164,7 @@ Namespace::addVariable(const char *name,
         variables.insert(
             std::pair<std::string, Element::Variable *>(ss_name, variable)
         );
+        variables_ordered.push_back(ss_name);
         variable->index = ++lv_index;
         return true;
     } else {
@@ -186,6 +187,7 @@ Namespace::addStruct(const char *name,
                 ss_name, element_struct
             )
         );
+        structs_ordered.push_back(ss_name);
         return true;
     } else {
         return false;
@@ -207,6 +209,7 @@ Namespace::addEnum(const char *name,
                 ss_name, element_enum
             )
         );
+        enums_ordered.push_back(ss_name);
         return true;
     } else {
         return false;

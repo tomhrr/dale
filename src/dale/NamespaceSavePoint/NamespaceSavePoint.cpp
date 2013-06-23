@@ -18,29 +18,9 @@ NamespaceSavePoint::NamespaceSavePoint(Namespace *ns)
         );
     }
 
-    for (std::map<std::string, Element::Variable*>::iterator
-            b = ns->variables.begin(),
-            e = ns->variables.end();
-            b != e;
-            ++b) {
-        variables.insert(b->first);
-    }
-
-    for (std::map<std::string, Element::Struct*>::iterator
-            b = ns->structs.begin(),
-            e = ns->structs.end();
-            b != e;
-            ++b) {
-        structs.insert(b->first);
-    }
-
-    for (std::map<std::string, Element::Enum*>::iterator
-            b = ns->enums.begin(),
-            e = ns->enums.end();
-            b != e;
-            ++b) {
-        enums.insert(b->first);
-    }
+    variable_count = ns->variables_ordered.size();
+    struct_count   = ns->structs_ordered.size();
+    enum_count     = ns->enums_ordered.size();
 
     src_ns = ns;
 }
@@ -76,34 +56,31 @@ bool NamespaceSavePoint::restore(void)
         }
     }
 
-    for (std::map<std::string, Element::Variable *>::iterator
-            b = src_ns->variables.begin(),
-            e = src_ns->variables.end();
-            b != e;
-            ++b) {
-        if (variables.find(b->first) == variables.end()) {
-            src_ns->variables.erase(b);
-        }
+    int variable_diff = 
+        src_ns->variables_ordered.size()
+            - variable_count;
+
+    while (variable_diff--) {
+        src_ns->variables.erase(src_ns->variables_ordered.back());
+        src_ns->variables_ordered.pop_back();
     }
 
-    for (std::map<std::string, Element::Struct *>::iterator
-            b = src_ns->structs.begin(),
-            e = src_ns->structs.end();
-            b != e;
-            ++b) {
-        if (structs.find(b->first) == structs.end()) {
-            src_ns->structs.erase(b);
-        }
+    int struct_diff = 
+        src_ns->structs_ordered.size()
+            - struct_count;
+
+    while (struct_diff--) {
+        src_ns->structs.erase(src_ns->structs_ordered.back());
+        src_ns->structs_ordered.pop_back();
     }
 
-    for (std::map<std::string, Element::Enum *>::iterator
-            b = src_ns->enums.begin(),
-            e = src_ns->enums.end();
-            b != e;
-            ++b) {
-        if (enums.find(b->first) == enums.end()) {
-            src_ns->enums.erase(b);
-        }
+    int enum_diff = 
+        src_ns->enums_ordered.size()
+            - enum_count;
+
+    while (enum_diff--) {
+        src_ns->enums.erase(src_ns->enums_ordered.back());
+        src_ns->enums_ordered.pop_back();
     }
 
     return true;

@@ -46,6 +46,13 @@ public:
     std::map<std::string, Element::Struct *> structs;
     /*! A map from enum name to enum. */
     std::map<std::string, Element::Enum *> enums;
+    /*! The variable names in order of addition. */
+    std::vector<std::string> variables_ordered;
+    /*! The struct names in order of addition. */
+    std::vector<std::string> structs_ordered;
+    /*! The enum names in order of addition. */
+    std::vector<std::string> enums_ordered;
+
     /*! The error reporter for this namespace. */
     ErrorReporter *er;
     /*! The current label-variable index. This value is assigned to new
