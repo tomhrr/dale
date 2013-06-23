@@ -24,6 +24,7 @@ public:
 
 private:
     SPNode *nsps;
+    NSNode *active;
     int active_count;
     int used_count;
     Context *src_ctx;

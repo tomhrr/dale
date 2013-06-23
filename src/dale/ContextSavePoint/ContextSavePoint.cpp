@@ -29,8 +29,9 @@ makeNamespaceSavePoints(NSNode *nsnode, SPNode *spnode)
 
 ContextSavePoint::ContextSavePoint(Context *ctx)
 {
+    active = ctx->active_ns_nodes.back();
     nsps = new SPNode();
-    makeNamespaceSavePoints(ctx->namespaces, nsps);
+    makeNamespaceSavePoints(active, nsps);
     src_ctx = ctx;
     active_count = src_ctx->active_ns_nodes.size();
     used_count   = src_ctx->used_ns_nodes.size();
@@ -91,7 +92,7 @@ ContextSavePoint::restore(void)
     }
 
     restore_(nsps);
-    eraseUnneeded(src_ctx, nsps, src_ctx->namespaces);
+    eraseUnneeded(src_ctx, nsps, active);
     return true;
 }
 }
