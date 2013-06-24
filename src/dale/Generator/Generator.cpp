@@ -155,9 +155,9 @@ extern "C" {
         return global_generator->isConst(dnode);
     }
 
-    int fn_2D_by_2D_args_2D_count(DNode *dnode)
+    int fn_2D_by_2D_args_2D_count(DNode *dnode, const char *prefix)
     {
-        return global_generator->fnByArgsCount(dnode);
+        return global_generator->fnByArgsCount(dnode, prefix);
     }
 
     const char* fn_2D_by_2D_args_2D_name(DNode *dnode, int acount)
@@ -312,9 +312,9 @@ bool isConstExternal(DNode *dnode)
     return global_generator->isConst(dnode);
 }
 
-int fnByArgsCountExternal(DNode *dnode)
+int fnByArgsCountExternal(DNode *dnode, const char *prefix)
 {
-    return global_generator->fnByArgsCount(dnode);
+    return global_generator->fnByArgsCount(dnode, prefix);
 }
 
 const char *fnByArgsNameExternal(DNode *dnode, int acount)
@@ -7929,7 +7929,7 @@ bool Generator::isConst(DNode *dnode)
  * turn, be used by fnByArgsName. */
 std::map<std::string, std::vector<std::string>*> fn_by_args;
 
-int Generator::fnByArgsCount(DNode *dnode)
+int Generator::fnByArgsCount(DNode *dnode, const char *prefix)
 {
     Node *n = DNodeToIntNode(dnode);
 
@@ -7976,7 +7976,12 @@ int Generator::fnByArgsCount(DNode *dnode)
      * for the provided parameter types. */
 
     std::set<std::string> function_names;
-    ctx->getFunctionNames(&function_names);
+    bool has_prefix = prefix;
+    if (!prefix) {
+        prefix = "";
+    }
+    std::string ss_prefix(prefix);
+    ctx->getFunctionNames(&function_names, (has_prefix ? &ss_prefix : NULL));
     std::vector<std::string> *fn_by_args_list = 
         new std::vector<std::string>;
 

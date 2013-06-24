@@ -153,8 +153,10 @@ public:
      *  The variables are added to the vector in reverse order. */
     void getVariables(std::vector<Element::Variable *> *vars);
     /*! Get all of the function names from this namespace.
-     *  @param names A set to which the function names will be added. */
-    void getFunctionNames(std::set<std::string> *names);
+     *  @param names A set to which the function names will be added.
+     *  @param prefix An optional function name prefix. */
+    void getFunctionNames(std::set<std::string> *names,
+                          std::string *prefix);
 
     /*! Get all of the variables after a certain index.
      *  @param index The lower-bound for the index.

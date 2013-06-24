@@ -651,13 +651,24 @@ Namespace::eraseLLVMMacrosAndCTOFunctions(void)
 }
 
 void
-Namespace::getFunctionNames(std::set<std::string> *names)
+Namespace::getFunctionNames(std::set<std::string> *names,
+                            std::string *prefix)
 {
     std::map<std::string, std::vector<Element::Function*> *>::iterator
         b, e;
 
-    for (b = functions.begin(), e = functions.end(); b != e; ++b) {
-        names->insert(b->first);
+    if (!prefix) {
+        for (b = functions.begin(), e = functions.end(); b != e; ++b) {
+            names->insert(b->first);
+        }
+    } else {
+        b = functions.lower_bound(*prefix);
+        e = functions.end();
+        for (b = functions.lower_bound(*prefix), e = functions.end();
+                (b != e) && (b->first.find(*prefix) == 0);
+                ++b) {
+            names->insert(b->first);
+        }
     }
 }
 

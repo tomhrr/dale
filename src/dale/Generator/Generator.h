@@ -523,7 +523,7 @@ public:
     bool hasErrors(DNode *dnode);
     bool mustInit(DNode *dnode);
     bool isConst(DNode *dnode);
-    int fnByArgsCount(DNode *dnode);
+    int fnByArgsCount(DNode *dnode, const char *prefix);
     const char* fnByArgsName(DNode *dnode, int acount);
     DNode *typeOf(DNode *dnode);
     const char *printfLength(DNode *dnode);

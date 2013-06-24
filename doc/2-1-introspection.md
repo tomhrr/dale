@@ -342,12 +342,15 @@ Returns: `int`
 Parameters:  
 
   * `(frm (p DNode))`: A list of parameter types.  
+  * `(prefix (p char))`: An optional function name prefix.  
 
-Takes a form (list node) of parameter types. Returns the number of
-functions that have those parameter types as their own. Calling this
-function initialises an internal list containing the names of the
-functions with the specified parameter types, which list is used by
-`fn-by-args-name`.
+Takes a form (list node) of parameter types and a function prefix
+string (may be null). Returns the number of functions that have those
+parameter types as their own. If the function prefix string is
+provided, then only functions that begin with that prefix will be
+taken into account. Calling this function initialises an internal list
+containing the names of the functions with the specified parameter
+types, which list is used by `fn-by-args-name`.
 
 
 #### `fn-by-args-name`

@@ -694,6 +694,7 @@ Context::setNamespacesForEnum(const char *name,
 
 void
 getFunctionNames_(std::set<std::string> *names,
+                  std::string *prefix,
                   NSNode *nsnode)
 {
     for (std::map<std::string, NSNode *>::iterator
@@ -701,15 +702,16 @@ getFunctionNames_(std::set<std::string> *names,
             e = nsnode->children.end();
             b != e;
             ++b) {
-        getFunctionNames_(names, b->second);
+        getFunctionNames_(names, prefix, b->second);
     }
-    nsnode->ns->getFunctionNames(names);
+    nsnode->ns->getFunctionNames(names, prefix);
 }
 
 void 
-Context::getFunctionNames(std::set<std::string> *names)
+Context::getFunctionNames(std::set<std::string> *names,
+                          std::string *prefix)
 {
-    getFunctionNames_(names, namespaces);
+    getFunctionNames_(names, prefix, namespaces);
 }
 
 bool

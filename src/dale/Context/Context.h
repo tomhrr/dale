@@ -131,7 +131,8 @@ public:
                                std::vector<std::string> *namespaces);
     Element::Enum *getEnum(const char *name);
 
-    void getFunctionNames(std::set<std::string> *names);
+    void getFunctionNames(std::set<std::string> *names,
+                          std::string *prefix);
 
     bool setNamespacesForStruct(const char *name,
                                 std::vector<std::string> *namespaces);
