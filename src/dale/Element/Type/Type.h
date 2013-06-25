@@ -46,7 +46,6 @@ public:
     int            is_array;
     int64_t        array_size;
     Element::Type  *array_type;
-    int            linkage;
     int            is_function;
     int            bitfield_size;
     int            is_const;

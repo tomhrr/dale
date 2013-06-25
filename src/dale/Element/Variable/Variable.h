@@ -34,6 +34,7 @@ public:
     int           has_initialiser;
     std::string once_tag;
     int index;
+    int linkage;
     bool serialise;
 
     Variable();

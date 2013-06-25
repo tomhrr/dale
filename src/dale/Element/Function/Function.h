@@ -26,6 +26,7 @@ public:
     int cto;
     int is_destructor;
     int is_setf_fn;
+    int linkage;
     bool serialise;
 
     Function();

@@ -710,7 +710,7 @@ Namespace::merge(Namespace *other)
                 fb != fe;
                 ++fb) {
             Element::Function *fn = (*fb);
-            if (!Linkage::isExternAll(fn->return_type->linkage)) {
+            if (!Linkage::isExternAll(fn->linkage)) {
                 continue;
             }
             bool added = addFunction(b->first.c_str(), fn, NULL);
@@ -748,7 +748,7 @@ Namespace::merge(Namespace *other)
             e = other->variables.end();
             b != e;
             ++b) {
-        if (!Linkage::isExtern(b->second->type->linkage)) {
+        if (!Linkage::isExtern(b->second->linkage)) {
             continue;
         }
         if (getVariable(b->first.c_str())) {
@@ -1003,7 +1003,7 @@ Namespace::removeUnneededVariables(std::set<std::string> *forms,
         if (fb == forms->end()) {
             variables.erase(b++);
         } else {
-            if (Linkage::isExtern(b->second->type->linkage)) {
+            if (Linkage::isExtern(b->second->linkage)) {
                 found_forms->insert((*fb));
             }
             ++b;
@@ -1034,7 +1034,7 @@ Namespace::removeUnneededFunctions(std::set<std::string> *forms,
                     fne = b->second->end();
                     fnb != fne;
                     ++fnb) {
-                if (Linkage::isExternAll((*fnb)->return_type->linkage)) {
+                if (Linkage::isExternAll((*fnb)->linkage)) {
                     has_extern = true;
                     break;
                 }

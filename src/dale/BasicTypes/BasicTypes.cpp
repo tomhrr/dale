@@ -12,7 +12,7 @@ addSimpleUnaryFunction(Context *ctx,
                        Element::Type *return_type,
                        Element::Type *type1)
 {
-    return_type->linkage = Linkage::Extern;
+    int linkage = Linkage::Extern;
 
     std::vector<Element::Variable*> *new_args_ctx =
         new std::vector<Element::Variable*>;
@@ -45,7 +45,7 @@ addSimpleUnaryFunction(Context *ctx,
     std::string new_name;
     ctx->ns()->functionNameToSymbol(name,
                                     &new_name,
-                                    return_type->linkage,
+                                    linkage,
                                     new_args_ctx);
 
     llvm::Function *new_fn =
@@ -67,6 +67,7 @@ addSimpleUnaryFunction(Context *ctx,
         0,
         &new_name
     );
+    myfn->linkage = linkage;
     myfn->once_tag = *once_tag;
 
     ctx->ns()->addFunction(name, myfn, NULL);
@@ -95,7 +96,7 @@ addSimpleBinaryFunction(Context *ctx,
                         Element::Type *type1,
                         Element::Type *type2)
 {
-    return_type->linkage = Linkage::Extern;
+    int linkage = Linkage::Extern;
 
     std::vector<Element::Variable*> *new_args_ctx =
         new std::vector<Element::Variable*>;
@@ -123,7 +124,7 @@ addSimpleBinaryFunction(Context *ctx,
     new_name.reserve(20);
     ctx->ns()->functionNameToSymbol(name,
                                     &new_name,
-                                    return_type->linkage,
+                                    linkage,
                                     new_args_ctx);
 
     llvm::Type *llvm_return_type =
@@ -159,6 +160,7 @@ addSimpleBinaryFunction(Context *ctx,
             0,
             &new_name
         );
+    myfn->linkage = linkage;
     myfn->once_tag = *once_tag;
 
     ctx->ns()->addFunction(name, myfn, NULL);
@@ -228,7 +230,7 @@ makeEnumFunction(Context *ctx,
     Element::Function *fn =
         addSimpleBinaryFunction(ctx, mod, once_tag, name, 
                                 ret_type, type, type);
-    fn->return_type->linkage = mylinkage;
+    fn->linkage = mylinkage;
     fn->llvm_function->setLinkage(
         ctx->toLLVMLinkage(mylinkage)
     );
@@ -673,7 +675,7 @@ addEnum(Context *ctx,
     {
         Element::Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "+", enum_type, enum_type, enum_type);
-        fn->return_type->linkage = flinkage;
+        fn->linkage = flinkage;
         fn->llvm_function->setLinkage(
             ctx->toLLVMLinkage(flinkage)
         );
@@ -737,7 +739,7 @@ addEnum(Context *ctx,
     {
         Element::Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "-", enum_type, enum_type, enum_type);
-        fn->return_type->linkage = flinkage;
+        fn->linkage = flinkage;
         fn->llvm_function->setLinkage(
             ctx->toLLVMLinkage(flinkage)
         );
@@ -800,7 +802,7 @@ addEnum(Context *ctx,
     {
         Element::Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "*", enum_type, enum_type, enum_type);
-        fn->return_type->linkage = flinkage;
+        fn->linkage = flinkage;
         fn->llvm_function->setLinkage(
             ctx->toLLVMLinkage(flinkage)
         );
@@ -863,7 +865,7 @@ addEnum(Context *ctx,
     {
         Element::Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "/", enum_type, enum_type, enum_type);
-        fn->return_type->linkage = flinkage;
+        fn->linkage = flinkage;
         fn->llvm_function->setLinkage(
             ctx->toLLVMLinkage(flinkage)
         );
@@ -934,7 +936,7 @@ addEnum(Context *ctx,
     {
         Element::Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "<<", enum_type, enum_type, type_int);
-        fn->return_type->linkage = flinkage;
+        fn->linkage = flinkage;
         fn->llvm_function->setLinkage(
             ctx->toLLVMLinkage(flinkage)
         );
@@ -990,7 +992,7 @@ addEnum(Context *ctx,
     {
         Element::Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, ">>", enum_type, enum_type, type_int);
-        fn->return_type->linkage = flinkage;
+        fn->linkage = flinkage;
         fn->llvm_function->setLinkage(
             ctx->toLLVMLinkage(flinkage)
         );

@@ -321,7 +321,7 @@ existsNonExternCFunctionInList(std::vector<Element::Function *> *fn_list)
             e = fn_list->end();
             b != e;
             ++b) {
-        if ((*b)->return_type->linkage != Linkage::Extern_C) {
+        if ((*b)->linkage != Linkage::Extern_C) {
             return true;
         }
     }
@@ -374,7 +374,7 @@ existsExternCFunctionInList(std::vector<Element::Function *> *fn_list)
             e = fn_list->end();
             b != e;
             ++b) {
-        if ((*b)->return_type->linkage == Linkage::Extern_C) {
+        if ((*b)->linkage == Linkage::Extern_C) {
             return true;
         }
     }

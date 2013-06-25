@@ -659,6 +659,7 @@ int Generator::addVariable(const char *name,
     var->name->append(name);
     var->type = type;
     var->internal_name->append(name);
+    var->linkage = Linkage::Extern;
     int avres = ctx->ns()->addVariable(name, var);
     if (!avres) {
         if (ignore_if_present) {
@@ -3119,8 +3120,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
     }
 
     setPdnode();
-    Element::Type *r_type = type_pdnode->makeCopy();
-    r_type->linkage = linkage;
+    Element::Type *r_type = type_pdnode;
 
     /* Parse arguments - push onto the list that gets created. */
 
@@ -3156,6 +3156,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
      * dropped for non-varargs macros if necessary.) */
 
     var = new Element::Variable((char*)"arg-count", type_int);
+    var->linkage = Linkage::Auto;
     mc_args_internal->push_back(var);
 
     /* An implicit pool argument is also added. */
@@ -3168,6 +3169,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
     Element::Variable *var1 = new Element::Variable(
         (char*)"pool", ptt
     );
+    var1->linkage = Linkage::Auto;
     mc_args_internal->push_back(var1);
 
     int past_first = 0;
@@ -3205,11 +3207,13 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
                 var = new Element::Variable();
                 var->type = new Element::Type(Type::VarArgs);
                 var->name = new std::string("");
+                var->linkage = Linkage::Auto;
                 mc_args_internal->push_back(var);
                 break;
             }
             var = new Element::Variable();
             var->type = r_type->makeCopy();
+            var->linkage = Linkage::Auto;
             var->name = new std::string((*node_iter)->token->str_value);
             past_first = 1;
             mc_args_internal->push_back(var);
@@ -3330,6 +3334,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
     Element::Function *dfn =
         new Element::Function(r_type, mc_args_internal, fn, 1,
                               &new_name);
+    dfn->linkage = linkage;
 
     if (!ctx->ns()->addFunction(name, dfn, top)) {
         return;
@@ -3764,8 +3769,6 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
         return;
     }
 
-    r_type->linkage = linkage;
-
     int size = 0;
 
     Node *n2 = NULL;
@@ -3796,7 +3799,7 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
     Element::Variable *check = ctx->getVariable(name);
     if (check
             && check->type->isEqualTo(r_type)
-            && (check->type->linkage == r_type->linkage)
+            && (check->linkage == linkage)
             && !has_initialiser) {
         /* Redeclaration of global variable - no problem. */
         return;
@@ -3809,6 +3812,7 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
     var2->type = r_type;
     var2->internal_name->append(new_name);
     var2->once_tag = current_once_tag;
+    var2->linkage = linkage;
     int avres = ctx->ns()->addVariable(name, var2);
 
     if (!avres) {
@@ -4312,7 +4316,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
     Element::Function *dfn =
         new Element::Function(type, &args, fn, 0,
                               &new_name);
-
+    dfn->linkage = Linkage::Intern;
     int error_count =
         erep->getErrorTypeCount(ErrorType::Error);
 
@@ -4982,8 +4986,6 @@ void Generator::parseFunction(const char *name, Node *n,
         return;
     }
 
-    r_type->linkage = linkage;
-
     /* Convert the return type into an LLVM type and create the
      * LLVM function type. */
 
@@ -5012,6 +5014,7 @@ void Generator::parseFunction(const char *name, Node *n,
     Element::Function *dfn =
         new Element::Function(r_type, fn_args_internal, NULL, 0,
                               &new_name, always_inline);
+    dfn->linkage = linkage;
     dfn->cto = my_cto;
     if (!strcmp(name, "setf-copy")) {
         dfn->is_setf_fn = 1;
@@ -7769,12 +7772,13 @@ int Generator::makeTemporaryGlobalFunction(
     std::vector<Element::Variable *> vars;
 
     Element::Function *dfn =
-        new Element::Function(type_int->makeCopy(),
+        new Element::Function(type_int,
                               &vars,
                               fn,
                               0,
                               new std::string(new_name),
                               0);
+    dfn->linkage = Linkage::Intern;
     if (!dfn) {
         fprintf(stderr, "Internal error: unable to create new "
                 "function (!) '%s'.\n",
@@ -8127,7 +8131,7 @@ DNode *Generator::inputType(DNode *fn_name_nd, int arg_count)
     if (!fn) {
         return NULL;
     }
-    if (fn->return_type->linkage != Linkage::Extern_C) {
+    if (fn->linkage != Linkage::Extern_C) {
         return NULL;
     }
     if ((int) (fn->parameter_types->size() - 1) < arg_count) {
@@ -8154,7 +8158,7 @@ int Generator::arity(DNode *fn_name_nd)
     if (!fn) {
         return -1;
     }
-    if (fn->return_type->linkage != Linkage::Extern_C) {
+    if (fn->linkage != Linkage::Extern_C) {
         return -1;
     }
     return fn->numberOfRequiredArgs();
@@ -10233,6 +10237,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         var2->name->append(name);
         var2->type = type->makeCopy();
         var2->value = new_ptr;
+        var2->linkage = Linkage::Auto;
         int avres = ctx->ns()->addVariable(name, var2);
 
         if (!avres) {
@@ -10310,7 +10315,6 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         if (!type) {
             return NULL;
         }
-        type->linkage = linkage;
         /* If it's a struct, check if it's must-init. */
         if (type->struct_name) {
             Element::Struct *mine =
@@ -10348,6 +10352,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         var2->name->append(name);
         var2->type = type;
         var2->value = new_ptr;
+        var2->linkage = linkage;
         int avres = ctx->ns()->addVariable(name, var2);
         if (!avres) {
             Error *e = new Error(
@@ -10776,6 +10781,7 @@ tryvar:
             var2->internal_name->append(varname);
             var2->type = temp;
             var2->value = llvm::cast<llvm::Value>(var);
+            var2->linkage = Linkage::Intern;
             int avres = ctx->ns()->addVariable(varname.c_str(), var2);
 
             if (!avres) {
@@ -11860,12 +11866,13 @@ Node *Generator::parseOptionalMacroCall(Node *n)
     std::vector<Element::Variable *> vars;
 
     Element::Function *dfn =
-        new Element::Function(type_int->makeCopy(),
+        new Element::Function(type_int,
                               &vars,
                               fn,
                               0,
                               new std::string(new_name),
                               0);
+    dfn->linkage = Linkage::Intern;
     if (!dfn) {
         fprintf(stderr, "Internal error: unable to create new "
                 "function (!) '%s'.\n",
@@ -12930,6 +12937,7 @@ int Generator::parseFunctionBody(Element::Function *dfn,
         myvar->has_initialiser = myvart->has_initialiser;
         myvar->once_tag = myvart->once_tag;
         myvar->index = myvart->index;
+        myvar->linkage = Linkage::Auto;
 
         if (mcount >= 2 && dfn->is_macro) {
             /* Macro arguments, past the first two, always have a
@@ -13317,6 +13325,8 @@ void Generator::parseArgument(Element::Variable *var, Node *top,
                               bool allow_anon_structs,
                               bool allow_bitfields)
 {
+    var->linkage = Linkage::Auto;
+
     if (!top->is_list) {
         /* Can only be void or varargs. */
         Token *t = top->token;
@@ -13478,7 +13488,7 @@ Element::Type *Generator::parseType(Node *top,
         const char *typs = t->str_value.c_str();
 
         int base_type =
-            (!strcmp(typs, "void"))        ? Type::Void
+              (!strcmp(typs, "void"))        ? Type::Void
             : (!strcmp(typs, "int" ))        ? Type::Int
             : (!strcmp(typs, "uint" ))       ? Type::UInt
             : (!strcmp(typs, "char"))        ? Type::Char

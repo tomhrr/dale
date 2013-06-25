@@ -94,7 +94,6 @@ Type::Type()
     base_type       = 0;
     is_array        = 0;
     array_size      = 0;
-    linkage         = 0;
     points_to       = NULL;
     array_type      = NULL;
     bitfield_size   = 0;
@@ -115,7 +114,6 @@ Type::Type(int new_base_type,
     base_type  = new_base_type;
     is_array   = new_is_array;
     array_size = new_array_size;
-    linkage    = 0;
     bitfield_size = 0;
     points_to  = NULL;
     array_type      = NULL;
@@ -136,7 +134,6 @@ Type::Type(Element::Type *new_points_to,
     base_type  = 0;
     is_array   = new_is_array;
     array_size = new_array_size;
-    linkage    = 0;
     points_to  = new_points_to;
     array_type      = NULL;
     bitfield_size = 0;
@@ -495,7 +492,6 @@ Element::Type *Type::makeCopy(void)
     new_type->base_type     = base_type;
     new_type->is_array      = is_array;
     new_type->array_size    = array_size;
-    new_type->linkage       = linkage;
     new_type->is_function   = is_function;
     new_type->bitfield_size = bitfield_size;
     new_type->is_const      = is_const;

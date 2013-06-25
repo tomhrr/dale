@@ -157,7 +157,6 @@ void serialise(FILE *out, Element::Type *t)
         c = 'S';
         serialise(out, &c);
         serialise(out, &(t->base_type));
-        serialise(out, &(t->linkage));
         return;
     }
     c = 'N';
@@ -174,7 +173,6 @@ void serialise(FILE *out, Element::Type *t)
         serialise(out, 1);
         serialise(out, t->array_type);
     }
-    serialise(out, &(t->linkage));
     serialise(out, &(t->is_function));
     if (!t->struct_name) {
         serialise(out, 0);
@@ -214,7 +212,6 @@ char *deserialise(char *in, Element::Type *t)
     in = deserialise(in, &c);
     if (c == 'S') {
         in = deserialise(in, &(t->base_type));
-        in = deserialise(in, &(t->linkage));
         t->is_array = 0;
         t->array_size = 0;
         t->array_type = NULL;
@@ -245,7 +242,6 @@ char *deserialise(char *in, Element::Type *t)
         in = deserialise(in, at);
         t->array_type = at;
     }
-    in = deserialise(in, &(t->linkage));
     in = deserialise(in, &(t->is_function));
     in = deserialise(in, &is_present);
     if (is_present) {
@@ -293,6 +289,7 @@ void serialise(FILE *out, Element::Variable *v)
 {
     serialise(out, v->type);
     serialise(out, v->name);
+    serialise(out, v->linkage);
     if (!v->internal_name) {
         serialise(out, 0);
     } else {
@@ -316,6 +313,8 @@ char *deserialise(char *in, Element::Variable *v)
     std::string *name = new std::string();
     in = deserialise(in, name);
     v->name = name;
+
+    in = deserialise(in, &(v->linkage));
 
     int is_present;
     in = deserialise(in, &is_present);
@@ -350,6 +349,7 @@ void serialise(FILE *out, Element::Function *fn)
     serialise(out, fn->always_inline);
     serialise(out, fn->once_tag);
     serialise(out, fn->cto);
+    serialise(out, fn->linkage);
 
     return;
 }
@@ -381,6 +381,7 @@ char *deserialise(char *in, Element::Function *fn)
     in = deserialise(in, &(fn->always_inline));
     in = deserialise(in, &(fn->once_tag));
     in = deserialise(in, &(fn->cto));
+    in = deserialise(in, &(fn->linkage));
 
     return in;
 }
