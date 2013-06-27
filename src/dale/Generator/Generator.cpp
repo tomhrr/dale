@@ -397,6 +397,7 @@ void failedDaleToLLVMTypeConversion(Element::Type *type)
  * code, these shouldn't change). */
 
 Element::Type *type_void;
+Element::Type *type_varargs;
 Element::Type *type_int;
 Element::Type *type_intptr;
 Element::Type *type_size;
@@ -489,6 +490,7 @@ Generator::Generator()
 
     type_bool        = new Element::Type(Type::Bool);
     type_void        = new Element::Type(Type::Void);
+    type_varargs     = new Element::Type(Type::VarArgs);
     type_int         = new Element::Type(Type::Int);
     type_intptr      = new Element::Type(Type::IntPtr);
     type_size        = new Element::Type(Type::Size);
@@ -3205,7 +3207,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
                     return;
                 }
                 var = new Element::Variable();
-                var->type = new Element::Type(Type::VarArgs);
+                var->type = type_varargs;
                 var->name = new std::string("");
                 var->linkage = Linkage::Auto;
                 mc_args_internal->push_back(var);
@@ -3785,7 +3787,6 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
         : NULL;
 
     if ((init == NULL) && (has_initialiser)) {
-        delete r_type;
         return;
     }
 
@@ -5585,7 +5586,7 @@ ParseResult *Generator::parseReturn(Element::Function *dfn,
         builder.CreateRetVoid();
         ParseResult *p = new ParseResult(
             block,
-            new Element::Type(Type::Int),
+            type_int,
             llvm_native_zero
         );
         p->do_not_destruct       = 1;
@@ -6081,11 +6082,6 @@ ParseResult *Generator::parseAddressOf(Element::Function *dfn,
                     erep->addError(e);
                     return NULL;
                 }
-
-                while (titer != types.end()) {
-                    delete (*titer);
-                    ++titer;
-                }
             }
 
             Element::Type *type = new Element::Type();
@@ -6233,7 +6229,7 @@ ParseResult *Generator::parseGoto(Element::Function *dfn,
 
     ParseResult *p = new ParseResult(
         block,
-        new Element::Type(Type::Int),
+        type_int,
         llvm_native_zero
     );
     /* Ugh. If setf was defined for ints, the caller of this
@@ -6310,7 +6306,7 @@ ParseResult *Generator::parseLabel(Element::Function *dfn,
 
     return new ParseResult(
                new_block,
-               new Element::Type(Type::Int),
+               type_int,
                llvm_native_zero
            );
 }
@@ -6416,7 +6412,7 @@ ParseResult *Generator::parsePtrEquals(Element::Function *dfn,
 
     ParseResult *pn = new ParseResult(
         p2->block,
-        new Element::Type(Type::Bool),
+        type_bool,
         res
     );
 
@@ -6656,7 +6652,7 @@ ParseResult *Generator::parsePtrLessThan(Element::Function *dfn,
 
     ParseResult *pn = new ParseResult(
         p2->block,
-        new Element::Type(Type::Bool),
+        type_bool,
         res
     );
 
@@ -6716,7 +6712,7 @@ ParseResult *Generator::parsePtrMoreThan(Element::Function *dfn,
 
     ParseResult *pn = new ParseResult(
         p2->block,
-        new Element::Type(Type::Bool),
+        type_bool,
         res
     );
 
@@ -6847,7 +6843,7 @@ ParseResult *Generator::parseNull(Element::Function *dfn,
 
     ParseResult *pn = new ParseResult(
         pr_value->block,
-        new Element::Type(Type::Bool),
+        type_bool,
         icmpres
     );
 
@@ -8486,7 +8482,7 @@ ParseResult *Generator::getAlignmentofType(llvm::BasicBlock *block,
 
     return new ParseResult(
                block,
-               new Element::Type(Type::Size),
+               type_size,
                res2
            );
 }
@@ -8545,7 +8541,7 @@ ParseResult *Generator::getOffsetofType(llvm::BasicBlock *block,
 
     return new ParseResult(
                block,
-               new Element::Type(Type::Size),
+               type_size,
                res2
            );
 }
@@ -8576,7 +8572,7 @@ ParseResult *Generator::getSizeofType(llvm::BasicBlock *block,
 
     return new ParseResult(
                block,
-               new Element::Type(Type::Size),
+               type_size,
                res2
            );
 }
@@ -10162,7 +10158,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         parseStructDefinition(name, ndef);
         ParseResult *new_pr = new ParseResult(
             block,
-            new Element::Type(Type::Int),
+            type_int,
             llvm::ConstantInt::get(nt->getNativeIntType(), 0)
         );
         return new_pr;
@@ -10195,7 +10191,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
 
     ParseResult *retpr = new ParseResult(
         block,
-        new Element::Type(Type::Int),
+        type_int,
         llvm::ConstantInt::get(nt->getNativeIntType(), 0)
     );
     retpr->do_not_destruct       = 1;
@@ -10379,7 +10375,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
 
             ParseResult *new_pr = new ParseResult(
                 block,
-                new Element::Type(Type::Int),
+                type_int,
                 llvm::ConstantInt::get(nt->getNativeIntType(), 0)
             );
 
@@ -10575,7 +10571,7 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
             } else {
                 return new ParseResult(
                            block,
-                           new Element::Type(Type::Int),
+                           type_int,
                            getConstantInt(
                                nt->getNativeIntType(),
                                t->str_value.c_str()
@@ -10587,7 +10583,7 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
                     && wanted_type->base_type == Type::Float) {
                 return new ParseResult(
                            block,
-                           new Element::Type(Type::Float),
+                           type_float,
                            llvm::ConstantFP::get(
                                llvm::Type::getFloatTy(llvm::getGlobalContext()),
                                llvm::StringRef(t->str_value.c_str())
@@ -10597,7 +10593,7 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
                        && wanted_type->base_type == Type::Double) {
                 return new ParseResult(
                            block,
-                           new Element::Type(Type::Double),
+                           type_double,
                            llvm::ConstantFP::get(
                                llvm::Type::getDoubleTy(llvm::getGlobalContext()),
                                llvm::StringRef(t->str_value.c_str())
@@ -10607,7 +10603,7 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
                        && wanted_type->base_type == Type::LongDouble) {
                 return new ParseResult(
                            block,
-                           new Element::Type(Type::LongDouble),
+                           type_longdouble,
                            llvm::ConstantFP::get(
                                nt->getNativeLongDoubleType(),
                                llvm::StringRef(t->str_value.c_str())
@@ -10616,7 +10612,7 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
             } else {
                 return new ParseResult(
                            block,
-                           new Element::Type(Type::Float),
+                           type_float,
                            llvm::ConstantFP::get(
                                llvm::Type::getFloatTy(llvm::getGlobalContext()),
                                llvm::StringRef(t->str_value.c_str())
@@ -10632,7 +10628,7 @@ tryvar:
             if (is_true || is_false) {
                 return new ParseResult(
                            block,
-                           new Element::Type(Type::Bool),
+                           type_bool,
                            llvm::ConstantInt::get(
                                llvm::Type::getInt1Ty(llvm::getGlobalContext()),
                                is_true
@@ -10675,7 +10671,7 @@ tryvar:
 
                 return new ParseResult(
                            block,
-                           new Element::Type(Type::Char),
+                           type_char,
                            llvm::ConstantInt::get(nt->getNativeCharType(), c)
                        );
             }
@@ -10803,7 +10799,7 @@ tryvar:
 
             return new ParseResult(
                        block,
-                       new Element::Type(new Element::Type(Type::Char)),
+                       type_pchar,
                        charpointer
                    );
         } else {
@@ -12761,7 +12757,6 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
             std::string args;
             while (titer != call_arg_types.end()) {
                 (*titer)->toStringProper(&args);
-                delete (*titer);
                 ++titer;
                 if (titer != call_arg_types.end()) {
                     args.append(" ");
@@ -12839,7 +12834,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                         llvm::Type::getDoubleTy(llvm::getGlobalContext())
                     );
                 (*call_arg_types_iter) =
-                    new Element::Type(Type::Double);
+                    type_double;
             } else if ((*call_arg_types_iter)->isIntegerType()) {
                 int real_size =
                     mySizeToRealSize(
@@ -13342,10 +13337,10 @@ void Generator::parseArgument(Element::Variable *var, Node *top,
         }
 
         if (!strcmp(t->str_value.c_str(), "void")) {
-            var->type = new Element::Type(Type::Void);
+            var->type = type_void;
             return;
         } else if (!strcmp(t->str_value.c_str(), "...")) {
-            var->type = new Element::Type(Type::VarArgs);
+            var->type = type_varargs;
             return;
         } else {
             Error *e = new Error(
@@ -13487,45 +13482,43 @@ Element::Type *Generator::parseType(Node *top,
 
         const char *typs = t->str_value.c_str();
 
-        int base_type =
-              (!strcmp(typs, "void"))        ? Type::Void
-            : (!strcmp(typs, "int" ))        ? Type::Int
-            : (!strcmp(typs, "uint" ))       ? Type::UInt
-            : (!strcmp(typs, "char"))        ? Type::Char
-            : (!strcmp(typs, "bool"))        ? Type::Bool
-            : (!strcmp(typs, "int8"))        ? Type::Int8
-            : (!strcmp(typs, "uint8"))       ? Type::UInt8
-            : (!strcmp(typs, "int16"))       ? Type::Int16
-            : (!strcmp(typs, "uint16"))      ? Type::UInt16
-            : (!strcmp(typs, "int32"))       ? Type::Int32
-            : (!strcmp(typs, "uint32"))      ? Type::UInt32
-            : (!strcmp(typs, "int64"))       ? Type::Int64
-            : (!strcmp(typs, "uint64"))      ? Type::UInt64
-            : (!strcmp(typs, "int128"))      ? Type::Int128
-            : (!strcmp(typs, "uint128"))     ? Type::UInt128
-            : (!strcmp(typs, "intptr"))      ? Type::IntPtr
-            : (!strcmp(typs, "size"))        ? Type::Size
-            : (!strcmp(typs, "ptrdiff"))     ? Type::PtrDiff
-            : (!strcmp(typs, "float"))       ? Type::Float
-            : (!strcmp(typs, "double"))      ? Type::Double
-            : (!strcmp(typs, "long-double")) ? Type::LongDouble
-            : -1;
+        Element::Type *mt =
+              (!strcmp(typs, "int" ))        ? type_int
+            : (!strcmp(typs, "void"))        ? type_void
+            : (!strcmp(typs, "char"))        ? type_char
+            : (!strcmp(typs, "bool"))        ? type_bool
+            : (!strcmp(typs, "uint" ))       ? type_uint
+            : (!strcmp(typs, "int8"))        ? type_int8
+            : (!strcmp(typs, "uint8"))       ? type_uint8
+            : (!strcmp(typs, "int16"))       ? type_int16
+            : (!strcmp(typs, "uint16"))      ? type_uint16
+            : (!strcmp(typs, "int32"))       ? type_int32
+            : (!strcmp(typs, "uint32"))      ? type_uint32
+            : (!strcmp(typs, "int64"))       ? type_int64
+            : (!strcmp(typs, "uint64"))      ? type_uint64
+            : (!strcmp(typs, "int128"))      ? type_int128
+            : (!strcmp(typs, "uint128"))     ? type_uint128
+            : (!strcmp(typs, "intptr"))      ? type_intptr
+            : (!strcmp(typs, "size"))        ? type_size
+            : (!strcmp(typs, "ptrdiff"))     ? type_ptrdiff
+            : (!strcmp(typs, "float"))       ? type_float
+            : (!strcmp(typs, "double"))      ? type_double
+            : (!strcmp(typs, "long-double")) ? type_longdouble
+                                             : NULL;
 
-        if (!is_x86_64
-                && (base_type == Type::Int128
-                    || base_type == Type::UInt128)) {
-            Error *e = new Error(
-                ErrorInst::Generator::TypeNotSupported,
-                top,
-                typs
-            );
-            erep->addError(e);
-            return NULL;
-        }
-
-        if (base_type != -1) {
-            /* Got simple type - return it. */
-            return new Element::Type(base_type);
+        if (mt) {
+            if (!is_x86_64
+                    && (mt->base_type == Type::Int128
+                        || mt->base_type == Type::UInt128)) {
+                Error *e = new Error(
+                    ErrorInst::Generator::TypeNotSupported,
+                    top,
+                    typs
+                );
+                erep->addError(e);
+                return NULL;
+            }
+            return mt;
         }
 
         /* Not a simple type - check if it is a struct. */
@@ -13551,15 +13544,13 @@ Element::Type *Generator::parseType(Node *top,
             return ttt;
         }
 
-        if (base_type == -1) {
-            Error *e = new Error(
-                ErrorInst::Generator::TypeNotInScope,
-                top,
-                typs
-            );
-            erep->addError(e);
-            return NULL;
-        }
+        Error *err = new Error(
+            ErrorInst::Generator::TypeNotInScope,
+            top,
+            typs
+        );
+        erep->addError(err);
+        return NULL;
     }
 
     // If here, node is a list node. First, try for a macro call.
@@ -13668,6 +13659,7 @@ Element::Type *Generator::parseType(Node *top,
         if (size == -1) {
             return NULL;
         }
+        bf_type = bf_type->makeCopy();
         bf_type->bitfield_size = size;
         return bf_type;
     }
@@ -13693,7 +13685,7 @@ Element::Type *Generator::parseType(Node *top,
 
         Element::Type *const_type =
             parseType((*lst)[1], allow_anon_structs,
-                      allow_bitfields);
+                      allow_bitfields)->makeCopy();
 
         if (const_type == NULL) {
             return NULL;
