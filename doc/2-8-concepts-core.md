@@ -60,20 +60,20 @@ Linkage: `extern`
 Returns: `bool`  
 Parameters:  
 
-  * `(pool (p PoolNode))`: A PoolNode.  
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The node containing the concept name.  
 
 Determines whether the given concept, as described by the node, has
 been defined.
 
 
-#### `std.concepts.implements`
+#### `std.concepts.implements-fn`
 
 Linkage: `extern`  
 Returns: `bool`  
 Parameters:  
 
-  * `(pool (p PoolNode))`  
+  * `(mc (p MContext))`  
   * `(T (p DNode))`  
   * `(C (p DNode))`  
 
@@ -86,7 +86,7 @@ Linkage: `extern`
 Returns: `(p (p char))`  
 Parameters:  
 
-  * `(pool (p PoolNode))`  
+  * `(mc (p MContext))`  
   * `(T (p DNode))`  
 
 
@@ -98,7 +98,7 @@ Linkage: `extern`
 Returns: `bool`  
 Parameters:  
 
-  * `(pool (p PoolNode))`  
+  * `(mc (p MContext))`  
   * `(Tupper (p char))`  
   * `(Tlower (p char))`  
 
@@ -123,7 +123,7 @@ Linkage: `extern`
 Returns: `(p concept-node)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`  
+  * `(mc (p MContext))`  
   * `(name (p DNode))`  
 
 
@@ -135,7 +135,7 @@ Linkage: `extern`
 Returns: `(p concept-node)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`  
+  * `(mc (p MContext))`  
   * `(T (p DNode))`  
 
 
@@ -147,7 +147,7 @@ Linkage: `intern`
 Returns: `bool`  
 Parameters:  
 
-  * `(pool (p PoolNode))`  
+  * `(mc (p MContext))`  
   * `(macro-name (p DNode))`  
   * `(mt-vl (p DNode))`  
   * `(tnames bool)`  
@@ -162,7 +162,7 @@ Linkage: `extern`
 Returns: `bool`  
 Parameters:  
 
-  * `(pool (p PoolNode))`  
+  * `(mc (p MContext))`  
   * `(macro-name (p DNode))`  
   * `(macro-types (p DNode))`  
 
@@ -175,7 +175,7 @@ Linkage: `intern`
 Returns: `int`  
 Parameters:  
 
-  * `(pool (p PoolNode))`  
+  * `(mc (p MContext))`  
   * `(errn (p DNode))`  
   * `(tcl-list (p (p concept-node)))`  
   * `(tcl-count int)`  
@@ -231,7 +231,7 @@ accept one parameter.
 
 The body of the concept must evaluate to a boolean value indicating
 whether the specified parameters satisfy the concept. Its environment
-is as per a normal macro, so a `pool` is present.
+is as per a normal macro, so an `mc` is present.
 
 Concepts, once defined, can be used to 'tag' the parameters to a macro
 constructed by way of `def-concept-macro`.

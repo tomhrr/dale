@@ -175,11 +175,15 @@ xor', respectively.
 Each shift function takes an `int` value as its second argument, and
 returns a value of the type of its first argument.
 
-#### (`pool-malloc` {`pointer-to-poolnode`} {`size`})
+#### (`pool-malloc` {`pointer-to-mcontext`} {`size`})
 
 Allocates and returns uninitialised memory, as per `malloc`. For use
 within macros. The memory will be freed by the compiler after the
 macro has been evaluated.
+
+#### (`arg-count` {`pointer-to-mcontext`})
+
+Returns the number of arguments passed to the macro.
 
 #### (`not` {`bool-expression`})
 

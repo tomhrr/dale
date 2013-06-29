@@ -46,12 +46,11 @@ no-op).
 
 ### Macro context
 
-The body of a macro has access to two arguments implicitly provided by
-the compiler: `pool` and `arg-count`. 
-
-`pool` is a pointer to a struct of type `PoolNode`. It is used within
-the macro body to allocate memory, by way of the `pool-malloc`
-function, which has the following prototype:
+The body of a macro has access to a macro context argument named
+'mc'. This argument is of type `(p MContext)`, where `MContext` is an
+opaque struct type. The context can be used to allocate memory for use
+within the macro by way of the `pool-malloc` function, which has the
+following prototype:
 
         (def pool-malloc
           (fn extern (p void) ((pool-node (p PoolNode)) (n size))))
@@ -59,11 +58,15 @@ function, which has the following prototype:
 Memory allocated by way of this function will be freed by the compiler
 after it has finished evaluating the macro.
 
-`arg-count` is an `int` containing the total number of arguments
-passed to the macro. This is present so that varargs macros can be
+The number of arguments passed to the macro can be retrieved by way of
+the `arg-count` function, which takes the context as its single
+argument. This function is present so that varargs macros can be
 supported without requiring macro users to also provide the number of
 arguments/forms being passed to the macro. Varargs macros otherwise
 operate in the same way as varargs functions.
+
+Aside from these, each of the [introspection](./2-1-introspection.md)
+functions takes a macro context as its first argument.
 
 ### Examples
 

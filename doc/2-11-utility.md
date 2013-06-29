@@ -30,6 +30,7 @@ Linkage: `extern`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(prefix (const (p char)))`: The type string prefix.  
   * `(T (p DNode))`: The type node.  
   * `(buf (p char))`: The buffer for the type string.  
@@ -46,6 +47,7 @@ Linkage: `extern`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(prefix (const (p char)))`: The type string prefix.  
   * `T1`: The first type node.  
   * `T2`: The second type node.  
@@ -61,6 +63,7 @@ Linkage: `extern`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(prefix (const (p char)))`: The type string prefix.  
   * `T1`: The first type node.  
   * `T2`: The second type node.  
@@ -77,6 +80,7 @@ Linkage: `extern`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(prefix (const (p char)))`: The type display string prefix.  
   * `(T (p DNode))`: The type node.  
   * `(buf (p char))`: The buffer for the type display string.  
@@ -92,6 +96,7 @@ Linkage: `extern`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(prefix (const (p char)))`: The type display string prefix.  
   * `T1`: The first type node.  
   * `T2`: The second type node.  
@@ -107,6 +112,7 @@ Linkage: `extern`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(prefix (const (p char)))`: The type display string prefix.  
   * `T1`: The first type node.  
   * `T2`: The second type node.  

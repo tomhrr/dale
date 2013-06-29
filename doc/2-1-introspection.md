@@ -34,6 +34,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The form describing the function.  
 
 Determine whether the specified function exists. The `frm` argument
@@ -47,6 +48,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The token node containing the variable name.  
 
 Determine whether the specified variable exists. The `frm` argument
@@ -59,6 +61,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The form describing the type.  
 
 Determine whether the specified type exists.
@@ -70,6 +73,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The form describing the macro.  
 
 Determine whether the specified macro exists. The `frm` argument
@@ -86,6 +90,7 @@ Linkage: `extern-c`
 Returns: `(p DNode)`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The form for which the type should be determined.  
 
 Evaluates the form and returns its type. For example, if `frm` is `(+
@@ -98,6 +103,7 @@ Linkage: `extern-c`
 Returns: `(p DNode)`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The form describing the function.  
 
 Returns the codomain (the return type) of the specified function. The
@@ -112,6 +118,7 @@ Linkage: `extern-c`
 Returns: `int`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The token node containing the function name.  
 
 Returns the arity of the specified function (the number of parameters
@@ -125,6 +132,7 @@ Linkage: `extern-c`
 Returns: `(p DNode)`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The token node containing the function name.  
   * `(n int)`: The parameter index (begins from 0).  
 
@@ -139,6 +147,7 @@ Linkage: `extern-c`
 Returns: `int`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(st (p DNode))`: The token node containing the struct name.  
 
 Returns the number of members present in the specified struct.
@@ -150,6 +159,7 @@ Linkage: `extern-c`
 Returns: `(p DNode)`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(st (p DNode))`: The token node containing the struct name.  
   * `(n int)`: The member index (begins from 0).  
 
@@ -162,6 +172,7 @@ Linkage: `extern-c`
 Returns: `(p char)`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(st (p DNode))`: The token node containing the struct name.  
   * `(n int)`: The member index (begins from 0).  
 
@@ -174,6 +185,7 @@ Linkage: `extern-c`
 Returns: `void`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The node that 'caused' the error.  
   * `(err (p char))`: The error string.  
 
@@ -188,6 +200,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(from (p char))`: The concrete type, as a string.  
   * `(to (p char))`: The display name for the type, as a string.  
 
@@ -206,6 +219,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The type form.  
   * `(buf (p char))`: A buffer into which the display string will be written.  
 
@@ -220,6 +234,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The concrete type, as a form.  
   * `(buf (p char))`: A buffer into which the encoded type name will be written.  
 
@@ -234,6 +249,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The type form.  
 
 Returns a boolean indicating whether the specified type is a character
@@ -246,6 +262,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The type form.  
 
 Returns a boolean indicating whether the specified type is an integer
@@ -258,6 +275,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The type form.  
 
 Returns a boolean indicating whether the specified type is a signed
@@ -270,6 +288,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The type form.  
 
 Returns a boolean indicating whether the specified type is an unsigned
@@ -282,6 +301,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The type form.  
 
 Returns a boolean indicating whether the specified type is a
@@ -294,6 +314,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The type form.  
 
 Returns a boolean indicating whether the specified type is a
@@ -306,6 +327,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(ptr-type (p DNode))`: The pointer type form.  
   * `(pte-type (p DNode))`: The pointee type form.  
 
@@ -319,6 +341,7 @@ Linkage: `extern-c`
 Returns: `(p DNode)`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(ptr-type (p DNode))`: The pointer type form.  
 
 Returns the type to which the type form points.
@@ -330,6 +353,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The type form.  
 
 Returns a boolean indicating whether the type is a `const` type.
@@ -341,6 +365,7 @@ Linkage: `extern-c`
 Returns: `int`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: A list of parameter types.  
   * `(prefix (p char))`: An optional function name prefix.  
 
@@ -359,6 +384,7 @@ Linkage: `extern-c`
 Returns: `(const (p char))`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: A list of parameter types.  
   * `(n int)`: The function list index.  
 
@@ -374,6 +400,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(st (p DNode))`: The token node containing the struct name.  
 
 Returns a boolean indicating whether the specified struct type must be
@@ -386,6 +413,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The form to be evaluated.  
 
 Evaluates the provided form and returns a boolean indicating whether
@@ -398,6 +426,7 @@ Linkage: `extern-c`
 Returns: `bool`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(type-1 (p DNode))`: The first type form.  
   * `(type-2 (p DNode))`: The second type form.  
 
@@ -410,6 +439,7 @@ Linkage: `extern-c`
 Returns: `(const (p char))`  
 Parameters:  
 
+  * `(mc (p MContext))`: An MContext.  
   * `(frm (p DNode))`: The type of the printf argument.  
 
 Returns a 'length' string that can be put between the '%' and type

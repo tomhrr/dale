@@ -32,7 +32,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`: A PoolNode.  
+  * `(mc (p MContext))`: An MContext.  
 
 Returns a newly-allocated node.
 
@@ -43,7 +43,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`: A PoolNode.  
+  * `(mc (p MContext))`: An MContext.  
   * `(follow bool)`: Whether to include the nodes that follow `form`.  
   * `(form (p DNode))`: The node to copy.  
 
@@ -56,7 +56,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`: A PoolNode.  
+  * `(mc (p MContext))`: An MContext.  
   * `(form (p DNode))`: The node to copy.  
   * `(follow bool)`: Whether to include the nodes that follow `form`.  
 
@@ -119,7 +119,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`: A PoolNode.  
+  * `(mc (p MContext))`: An MContext.  
   * `(token-string (p char))`: The token string for the new node.  
 
 Short for 'make-node-from-value'. There are several implementations of
@@ -135,7 +135,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`: A PoolNode.  
+  * `(mc (p MContext))`: An MContext.  
   * `(n int)`: An integer.  
 
 
@@ -147,7 +147,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`: A PoolNode.  
+  * `(mc (p MContext))`: An MContext.  
   * `(f float)`: A float.  
 
 
@@ -159,7 +159,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`: A PoolNode.  
+  * `(mc (p MContext))`: An MContext.  
   * `(d double)`: A double.  
 
 
@@ -171,7 +171,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`: A PoolNode.  
+  * `(mc (p MContext))`: An MContext.  
   * `(ld long-double)`: A long double.  
 
 
@@ -183,7 +183,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`  
+  * `(mc (p MContext))`  
   * `(token-string (p char))`  
   * `(begin-line int)`  
   * `(begin-column int)`  
@@ -218,7 +218,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`  
+  * `(mc (p MContext))`  
   * `(argcount int)`  
 
 As per `link-nodes`, except that an additional list node is allocated
@@ -232,7 +232,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`  
+  * `(mc (p MContext))`  
   * `(argcount int)`  
   * `(begin-line int)`  
   * `(begin-column int)`  
@@ -305,7 +305,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`: A PoolNode.  
+  * `(mc (p MContext))`: An MContext.  
   * `(prefix (p char))`: The prefix for the label name.  
 
 Generates a new label name, constructs a token node to suit and
@@ -318,7 +318,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`: A PoolNode.  
+  * `(mc (p MContext))`: An MContext.  
 
 As per the previous implementation, except that no prefix is required
 (it is set to the empty string).
@@ -343,7 +343,7 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`: A PoolNode.  
+  * `(mc (p MContext))`: An MContext.  
 
 Generates a new variable name, constructs a token node to suit and
 returns that node.
@@ -356,9 +356,9 @@ Returns: `bool`
 Parameters:  
 
   * `(form (p DNode))`: The node to walk.  
-  * `(pool (p PoolNode))`: A PoolNode.  
+  * `(mc (p MContext))`: An MContext.  
   * `(data (p void))`: Arbitrary data.  
-  * `(fn (p (fn int ((form (p DNode)) (pool (p PoolNode)) (data (p void))))))`: The function pointer to call on each node.  
+  * `(fn (p (fn int ((form (p DNode)) (mc (p MContext)) (data (p void))))))`: The function pointer to call on each node.  
 
 'Walks' through a node, recursively, calling the provided function
 pointer on each node. The provided `data` argument is passed to the
@@ -384,13 +384,13 @@ Linkage: `extern`
 Returns: `(p DNode)`  
 Parameters:  
 
-  * `(pool (p PoolNode))`  
+  * `(mc (p MContext))`  
   * `(form (p DNode))`  
 
 Constructs a node that, when evaluated, constructs the provided node.
 For example, if the node is a simple token, then the returned node
-will be `(mnfv pool token-str)`, where `token-str` is the token from
-the provided node.
+will be `(mnfv mc token-str)`, where `token-str` is the token
+from the provided node.
 
 
 #### `std.macros.bqq-helper`
@@ -400,7 +400,7 @@ Returns: `(p DNode)`
 Parameters:  
 
   * `(frm (p DNode))`  
-  * `(pool (p PoolNode))`  
+  * `(mc (p MContext))`  
   * `(arg-count int)`  
 
 A helper function for `bqq` (bootstrap-qq).
