@@ -294,7 +294,7 @@ to do this.
 @macro MFPOS_T
 |#
 (def MFPOS_T
-  (macro extern (void) (std.macros.mnfv mcontext FPOS_T)))
+  (macro extern (void) (std.macros.mnfv mc FPOS_T)))
 
 #|
 @struct fpos

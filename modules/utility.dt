@@ -217,9 +217,9 @@ the argument type.
 (def Iterator
   (macro extern (T)
     (let ((typename (array-of 250 char)))
-      (and (not (make-type-string mcontext "iterator" T typename))
+      (and (not (make-type-string mc "iterator" T typename))
            (return (nullptr DNode)))
-      (def n (var auto (p DNode) (mnfv mcontext typename)))
+      (def n (var auto (p DNode) (mnfv mc typename)))
       (return n))))
 
 #|
@@ -233,9 +233,9 @@ the argument type.
 (def ReverseIterator
   (macro extern (T)
     (let ((typename (array-of 250 char)))
-      (and (not (make-type-string mcontext "riterator" T typename))
+      (and (not (make-type-string mc "riterator" T typename))
            (return (nullptr DNode)))
-      (def n (var auto (p DNode) (mnfv mcontext typename)))
+      (def n (var auto (p DNode) (mnfv mc typename)))
       (return n))))
 
 #|
@@ -250,15 +250,15 @@ Expands to a struct definition with two members, named `first` and
 (def-concept-macro Pair extern ((T1 Type) (T2 Type))
   (let ((typename (array-of 250 char))
         (etypename (array-of 250 char)))
-    (and (not (make-type-string mcontext "pair" T1 T2 typename))
+    (and (not (make-type-string mc "pair" T1 T2 typename))
          (return (nullptr DNode)))
-    (and (not (make-type-display-string mcontext "Pair" T1 T2 etypename))
+    (and (not (make-type-display-string mc "Pair" T1 T2 etypename))
          (return (nullptr DNode)))
-    (register-type mcontext typename etypename)
-    (if (exists-type mcontext (qq Pair (uq T1) (uq T2)))
+    (register-type mc typename etypename)
+    (if (exists-type mc (qq Pair (uq T1) (uq T2)))
         (do (return (nullptr DNode)) 0)
         0)
-    (def n (var auto (p DNode) (mnfv mcontext typename)))
+    (def n (var auto (p DNode) (mnfv mc typename)))
     (qq def (uq n)
       (struct extern ((first (uq T1)) (second (uq T2)))))))
 
@@ -274,9 +274,9 @@ the concept macro.
 (def Pair
   (macro extern (T1 T2)
     (let ((typename (array-of 250 char)))
-      (and (not (make-type-string mcontext "pair" T1 T2 typename))
+      (and (not (make-type-string mc "pair" T1 T2 typename))
            (return (nullptr DNode)))
-      (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
+      (def n (var auto (p DNode) (std.macros.mnfv mc typename)))
       (return n))))
 
 #|
@@ -292,12 +292,12 @@ Expands to a struct definition with three members, named `first`,
 (def-concept-macro Triple extern ((T1 Type) (T2 Type) (T3 Type))
   (let ((typename  (array-of 250 char))
         (etypename (array-of 250 char)))
-    (and (not (make-type-string mcontext "triple" T1 T2 T3 typename))
+    (and (not (make-type-string mc "triple" T1 T2 T3 typename))
          (return (nullptr DNode)))
-    (and (not (make-type-display-string mcontext "Triple" T1 T2 T3 etypename))
+    (and (not (make-type-display-string mc "Triple" T1 T2 T3 etypename))
          (return (nullptr DNode)))
-    (register-type mcontext typename etypename)
-    (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
+    (register-type mc typename etypename)
+    (def n (var auto (p DNode) (std.macros.mnfv mc typename)))
     (qq def (uq n)
       (struct extern ((first (uq T1)) (second (uq T2)) (third (uq T3)))))))
 
@@ -314,8 +314,8 @@ the concept macro.
 (def Triple
   (macro extern (T1 T2 T3)
     (let ((typename (array-of 250 char)))
-      (and (not (make-type-string mcontext "triple" T1 T2 T3 typename))
+      (and (not (make-type-string mc "triple" T1 T2 T3 typename))
            (return (nullptr DNode)))
-      (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
+      (def n (var auto (p DNode) (std.macros.mnfv mc typename)))
       (return n))))
 ))

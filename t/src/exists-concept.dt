@@ -10,7 +10,7 @@
 
 (def exists-test
   (macro intern (void)
-    (if (exists-concept-macro mcontext (std.macros.mnfv mcontext "mycm")
+    (if (exists-concept-macro mc (std.macros.mnfv mc "mycm")
                                        (qq Type))
         (printf "mycm exists as a concept macro\n")
         (printf "mycm does not exist as a concept macro\n"))

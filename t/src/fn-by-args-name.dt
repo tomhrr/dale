@@ -18,12 +18,12 @@
 
 (def show-fn-name
   (macro intern (lst (c int))
-    (fn-by-args-count mcontext lst (nullptr char))
+    (fn-by-args-count mc lst (nullptr char))
     (let ((cc    \ (atoi (@:@ c token-str)))
-          (n     \ (fn-by-args-name mcontext lst cc))
+          (n     \ (fn-by-args-name mc lst cc))
           (buf   (array-of 255 char)))
       (sprintf buf "\"%s\"" n)
-      (let ((nnode \ (std.macros.mnfv mcontext buf)))
+      (let ((nnode \ (std.macros.mnfv mc buf)))
         (std.macros.qq do (uq nnode))))))
 
 (def main

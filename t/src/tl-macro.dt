@@ -4,7 +4,7 @@
 (using-namespace std.macros
 (def def-main-fn
   (macro intern (...)
-    (def arg-count (var auto \ (arg-count mcontext)))
+    (def arg-count (var auto \ (arg-count mc)))
     (get-varargs-list)
     (bqq def main (fn extern-c int (void) (uql varargs-list) 0))))
 )

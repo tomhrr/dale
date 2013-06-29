@@ -59,7 +59,7 @@ A macro constant for `e` is also provided.
 
   (def make-mod
     (macro extern (T)
-      (if (not (exists-type mcontext T))
+      (if (not (exists-type mc T))
           (return (nullptr DNode))
           0)
       (qq def mod
@@ -70,7 +70,7 @@ A macro constant for `e` is also provided.
 
   (def make-abs
     (macro extern (T)
-      (if (not (exists-type mcontext T))
+      (if (not (exists-type mc T))
           (return (nullptr DNode))
           0)
       (qq def abs
@@ -83,13 +83,13 @@ A macro constant for `e` is also provided.
 
   (def make-div
     (macro intern (T)
-      (if (not (exists-type mcontext T))
+      (if (not (exists-type mc T))
           (return (nullptr DNode))
           0)
       (let ((struct-name (array-of 255 char))
             (sn-node     (p DNode)))
         (sprintf struct-name "div-%s" (@:@ T token-str))
-        (setv sn-node (std.macros.mnfv mcontext struct-name))
+        (setv sn-node (std.macros.mnfv mc struct-name))
         (qq do
           (def (uq sn-node)
             (struct extern ((quot (uq T))
@@ -105,7 +105,7 @@ A macro constant for `e` is also provided.
 
   (def e
     (macro extern (void)
-      (std.macros.mnfv mcontext "2.7182818284590452353602874713526624977572470936999595749669")))
+      (std.macros.mnfv mc "2.7182818284590452353602874713526624977572470936999595749669")))
 
   (def cos
     (fn extern float ((n float))
@@ -220,7 +220,7 @@ A macro constant for `e` is also provided.
 
   (def make-sinh
     (macro extern (T)
-      (if (not (exists-type mcontext T))
+      (if (not (exists-type mc T))
           (return (nullptr DNode))
           0)
       (qq def sinh
@@ -234,7 +234,7 @@ A macro constant for `e` is also provided.
 
   (def make-cosh
     (macro extern (T)
-      (if (not (exists-type mcontext T))
+      (if (not (exists-type mc T))
           (return (nullptr DNode))
           0)
       (qq def cosh
@@ -248,7 +248,7 @@ A macro constant for `e` is also provided.
 
   (def make-tanh
     (macro extern (T)
-      (if (not (exists-type mcontext T))
+      (if (not (exists-type mc T))
           (return (nullptr DNode))
           0)
       (qq def tanh
@@ -260,7 +260,7 @@ A macro constant for `e` is also provided.
 
   (def make-exp
     (macro extern (T)
-      (if (not (exists-type mcontext T))
+      (if (not (exists-type mc T))
           (return (nullptr DNode))
           0)
       (qq def exp

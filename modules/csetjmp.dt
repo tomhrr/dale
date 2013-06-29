@@ -12,7 +12,7 @@ are used.
 (import macros)
 
 (def MJMP_BUF_SIZE
-  (macro intern (void) (std.macros.mnfv mcontext JMP_BUF_SIZE)))
+  (macro intern (void) (std.macros.mnfv mc JMP_BUF_SIZE)))
 
 #|
 @struct jmpbuf

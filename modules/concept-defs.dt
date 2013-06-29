@@ -16,7 +16,7 @@ Basic concept definitions. Copied from C++'s STL, for the most part.
 (def concept-assert
   (macro intern (condition node error-msg)
     (qq if (not (uq condition))
-           (do (report-error mcontext (uq node) (uq error-msg))
+           (do (report-error mc (uq node) (uq error-msg))
                (setv success false)
                false)
            true)))
@@ -40,7 +40,7 @@ Returns true if the argument is a type.
 |#
 (def-concept Type (refines) (T)
   (let ((success \ true))
-    (concept-assert (exists-type mcontext T) T "argument is not a type")
+    (concept-assert (exists-type mc T) T "argument is not a type")
     success))
 
 #|
@@ -51,7 +51,7 @@ Returns true if the argument is a struct type.
 |#
 (def-concept Struct (refines Type) (T)
   (let ((success \ true))
-    (let ((smc \ (struct-member-count mcontext T)))
+    (let ((smc \ (struct-member-count mc T)))
       (concept-assert (>= smc 0) T "argument is not a struct"))
     success))
 
@@ -64,9 +64,9 @@ over pointers to the type.
 |#
 (def-concept Assignable (refines Type) (T)
   (let ((success \ true))
-    (concept-assert (not (is-const mcontext T)) T 
+    (concept-assert (not (is-const mc T)) T 
                     "type is constant, so it is not Assignable")
-    (concept-assert (exists-fn mcontext (qq void swap (p (uq T)) (p (uq T))))
+    (concept-assert (exists-fn mc (qq void swap (p (uq T)) (p (uq T))))
                     T "swap is not defined over pointers to this type")
     success))
 
@@ -82,8 +82,8 @@ what would be better.)
   (let ((success \ true))
     (def buf (var auto (array-of 255 char)))
     (gensym-var buf)
-    (def dnd (var auto (p DNode) (std.macros.mnfv mcontext buf)))
-    (concept-assert (not (has-errors mcontext (qq def (uq dnd) (var auto (uq T)))))
+    (def dnd (var auto (p DNode) (std.macros.mnfv mc buf)))
+    (concept-assert (not (has-errors mc (qq def (uq dnd) (var auto (uq T)))))
                     T "unable to leave variable uninitialised")
     success))
 
@@ -95,11 +95,11 @@ Returns true if `=` and `!=` are implemented over the type.
 |#
 (def-concept EqualityComparable (refines Type) (T)
   (let ((success \ true))
-  (concept-assert (or (exists-fn mcontext (qq bool =  (uq T) (uq T)))
-                      (exists-macro mcontext  (qq = (uq T) (uq T))))
+  (concept-assert (or (exists-fn mc (qq bool =  (uq T) (uq T)))
+                      (exists-macro mc  (qq = (uq T) (uq T))))
                   T "= is not defined over this type")
-  (concept-assert (or (exists-fn mcontext (qq bool != (uq T) (uq T)))
-                      (exists-macro mcontext  (qq != (uq T) (uq T))))
+  (concept-assert (or (exists-fn mc (qq bool != (uq T) (uq T)))
+                      (exists-macro mc  (qq != (uq T) (uq T))))
                   T "!= is not defined over this type")
   success))
 
@@ -111,17 +111,17 @@ Returns true if `<`, `<=`, `>` and `>=` are implemented over the type.
 |#
 (def-concept LessThanComparable (refines Type) (T)
   (let ((success \ true))
-  (concept-assert (or (exists-fn mcontext (qq bool <  (uq T) (uq T)))
-                      (exists-macro mcontext  (qq < (uq T) (uq T))))
+  (concept-assert (or (exists-fn mc (qq bool <  (uq T) (uq T)))
+                      (exists-macro mc  (qq < (uq T) (uq T))))
                   T "< is not defined over this type")
-  (concept-assert (or (exists-fn mcontext (qq bool >  (uq T) (uq T)))
-                      (exists-macro mcontext  (qq > (uq T) (uq T))))
+  (concept-assert (or (exists-fn mc (qq bool >  (uq T) (uq T)))
+                      (exists-macro mc  (qq > (uq T) (uq T))))
                   T "> is not defined over this type")
-  (concept-assert (or (exists-fn mcontext (qq bool <= (uq T) (uq T)))
-                      (exists-macro mcontext  (qq <= (uq T) (uq T))))
+  (concept-assert (or (exists-fn mc (qq bool <= (uq T) (uq T)))
+                      (exists-macro mc  (qq <= (uq T) (uq T))))
                   T "<= is not defined over this type")
-  (concept-assert (or (exists-fn mcontext (qq bool >= (uq T) (uq T)))
-                      (exists-macro mcontext  (qq >= (uq T) (uq T))))
+  (concept-assert (or (exists-fn mc (qq bool >= (uq T) (uq T)))
+                      (exists-macro mc  (qq >= (uq T) (uq T))))
                   T ">= is not defined over this type")
   success))
 
@@ -143,35 +143,35 @@ conditions hold:
 |#
 (def-concept Container (refines Assignable) (T)
   (let ((success \ true))
-  (concept-assert (exists-macro mcontext (qq value-type (p (uq T))))
+  (concept-assert (exists-macro mc (qq value-type (p (uq T))))
                   T "value-type is not defined over this type")
-  (concept-assert (exists-macro mcontext (qq difference-type (p (uq T))))
+  (concept-assert (exists-macro mc (qq difference-type (p (uq T))))
                   T "difference-type is not defined over this type")
-  (concept-assert (exists-macro mcontext (qq size-type (p (uq T))))
+  (concept-assert (exists-macro mc (qq size-type (p (uq T))))
                   T "size-type is not defined over this type")
   (if (not success)
       false
-  (do (concept-assert (not (has-errors mcontext (qq implements 
+  (do (concept-assert (not (has-errors mc (qq implements 
                                            (value-type (nullptr (uq T)))
                                            Assignable)))
                   T "value-type is not Assignable")
-  (concept-assert (exists-type mcontext (qq Iterator (uq T)))
+  (concept-assert (exists-type mc (qq Iterator (uq T)))
                   T "no Iterator type found for container")
-  (concept-assert (exists-fn mcontext (qq (Iterator (uq T)) begin (p (uq T))))
+  (concept-assert (exists-fn mc (qq (Iterator (uq T)) begin (p (uq T))))
                   T "begin not defined over this type")
-  (concept-assert (exists-fn mcontext (qq (Iterator (uq T)) end (p (uq T))))
+  (concept-assert (exists-fn mc (qq (Iterator (uq T)) end (p (uq T))))
                   T "end not defined over this type")
-  (concept-assert (exists-fn mcontext (qq (size-type (nullptr (uq T))) 
+  (concept-assert (exists-fn mc (qq (size-type (nullptr (uq T))) 
                                      size (p (uq T))))
                   T "size not defined over this type")
-  (concept-assert (exists-fn mcontext (qq (size-type (nullptr (uq T))) 
+  (concept-assert (exists-fn mc (qq (size-type (nullptr (uq T))) 
                                      max-size (p (uq T))))
                   T "max-size not defined over this type")
-  (concept-assert (exists-fn mcontext (qq bool empty (p (uq T))))
+  (concept-assert (exists-fn mc (qq bool empty (p (uq T))))
                   T "empty not defined over this type")
-  (concept-assert (exists-fn mcontext (qq void swap (p (uq T)) (p (uq T))))
+  (concept-assert (exists-fn mc (qq void swap (p (uq T)) (p (uq T))))
                   T "swap not defined over this type")
-  (concept-assert (exists-fn mcontext (qq void init (p (uq T))))
+  (concept-assert (exists-fn mc (qq void init (p (uq T))))
                   T "init not defined over this type")
       success))))
 
@@ -191,13 +191,13 @@ Additional requirements:
                                        EqualityComparable
                                        LessThanComparable) (T)
   (let ((success \ true))
-  (concept-assert (not (has-errors mcontext (qq implements
+  (concept-assert (not (has-errors mc (qq implements
                       (Iterator (uq T)) InputIterator)))
                   T "Iterator type is not an InputIterator")
-  (concept-assert (not (has-errors mcontext (qq implements
+  (concept-assert (not (has-errors mc (qq implements
                       (value-type (nullptr (uq T))) EqualityComparable)))
                   T "value-type is not EqualityComparable")
-  (concept-assert (not (has-errors mcontext (qq implements
+  (concept-assert (not (has-errors mc (qq implements
                       (value-type (nullptr (uq T))) LessThanComparable)))
                   T "value-type is not LessThanComparable")
   success))
@@ -217,16 +217,16 @@ Additional requirements:
 |#
 (def-concept ReversibleContainer (refines ForwardContainer) (T)
   (let ((success \ true))
-  (concept-assert (exists-type mcontext 
+  (concept-assert (exists-type mc 
                     (qq ReverseIterator (uq T)))
                   T "no ReverseIterator type found for container")
-  (concept-assert (not (has-errors mcontext (qq implements
+  (concept-assert (not (has-errors mc (qq implements
                       (ReverseIterator (uq T)) InputIterator)))
                   T "Iterator type is not an InputIterator")
-  (concept-assert (exists-fn mcontext 
+  (concept-assert (exists-fn mc 
                     (qq (ReverseIterator (uq T)) rbegin (p (uq T))))
                   T "rbegin not defined over this type")
-  (concept-assert (exists-fn mcontext 
+  (concept-assert (exists-fn mc 
                     (qq (ReverseIterator (uq T)) rend (p (uq T))))
                   T "rend not defined over this type")
   success))
@@ -241,10 +241,10 @@ over the container.
 |#
 (def-concept RandomAccessContainer (refines ReversibleContainer) (T)
   (let ((success \ true))
-  (concept-assert (not (has-errors mcontext (qq implements
+  (concept-assert (not (has-errors mc (qq implements
                       (Iterator (uq T)) RandomAccessIterator)))
                   T "Iterator type is not a RandomAccessIterator")
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq (p (value-type (nullptr (uq T)))) 
                         $ 
                         (p (uq T))
@@ -269,19 +269,19 @@ Additional requirements:
 |#
 (def-concept Sequence (refines ForwardContainer) (T)
   (let ((success \ true))
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq (p (value-type (nullptr (uq T))))
                         front
                         (p (uq T))))
                   T "front not defined over this type")
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq (Iterator (uq T))
                         insert
                         (p (uq T))
                         (Iterator (uq T))
                         (value-type (nullptr (uq T)))))
                   T "insert (single) not defined over this type")
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq (Iterator (uq T))
                         erase
                         (p (uq T))
@@ -290,7 +290,7 @@ Additional requirements:
   ; todo: insert (range), erase (range), resize with default, resize
   ; without default. First two require implicit 'type' concepts. Last
   ; two require some thought about constructors/initialisers.
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq void clear (p (uq T))))
                   T "clear not defined over this type")
   
@@ -309,12 +309,12 @@ Additional requirements:
 |#
 (def-concept FrontInsertionSequence (refines Sequence) (T)
   (let ((success \ true))
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq void push-front
                              (p (uq T))
                              (value-type (nullptr (uq T)))))
                   T "push-front not defined over this type")
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq void pop-front
                              (p (uq T))))
                   T "pop-front not defined over this type")
@@ -333,16 +333,16 @@ Additional requirements:
 |#
 (def-concept BackInsertionSequence (refines Sequence) (T)
   (let ((success \ true))
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq void push-back
                              (p (uq T))
                              (value-type (nullptr (uq T)))))
                   T "push-back not defined over this type")
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq void pop-back
                              (p (uq T))))
                   T "pop-back not defined over this type")
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq (p (value-type (nullptr (uq T))))
                         back
                         (p (uq T))))
@@ -365,21 +365,21 @@ Additional requirements:
                                            DefaultConstructible)
                                      (T)
   (let ((success \ true))
-  (concept-assert (exists-macro mcontext (qq key-type (p (uq T))))
+  (concept-assert (exists-macro mc (qq key-type (p (uq T))))
                   T "key-type is not defined over this type")
-  (concept-assert (exists-fn mcontext (qq bool erase (p (uq T))
+  (concept-assert (exists-fn mc (qq bool erase (p (uq T))
                                            (key-type 
                                              (nullptr (uq T)))))
                   T "erase (key) is not defined over this type")
-  (concept-assert (exists-fn mcontext 
+  (concept-assert (exists-fn mc 
                     (qq bool erase (Iterator (uq T))))
                   T "erase (iterator) is not defined over this type")
-  (concept-assert (exists-fn mcontext 
+  (concept-assert (exists-fn mc 
                     (qq (Iterator (uq T)) 
                         find (p (uq T))
                              (key-type (nullptr (uq T)))))
                   T "find is not defined over this type")
-  (concept-assert (exists-fn mcontext 
+  (concept-assert (exists-fn mc 
                     (qq (size-type (nullptr (uq T)))
                         count (p (uq T))
                               (key-type (nullptr (uq T)))))
@@ -413,12 +413,12 @@ defined.
                          ReversibleContainer) (T)
   (let ((success \ true))
   (concept-assert
-    (exists-fn mcontext (qq (Iterator (uq T))
+    (exists-fn mc (qq (Iterator (uq T))
                        lower-bound (p (uq T))
                                    (key-type (nullptr (uq T)))))
                    T "lower-bound is not defined over this type")
   (concept-assert
-    (exists-fn mcontext (qq (Iterator (uq T))
+    (exists-fn mc (qq (Iterator (uq T))
                        upper-bound (p (uq T))
                                    (key-type (nullptr (uq T)))))
                    T "upper-bound is not defined over this type")
@@ -435,7 +435,7 @@ value-type.
 (def-concept UniqueAssociativeContainer
                 (refines AssociativeContainer) (T)
   (let ((success \ true))
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq (Iterator (uq T))
                         insert
                         (p (uq T))
@@ -457,11 +457,11 @@ be a struct, and it must contain two members named `first` and
         (vt \ (qq value-type (nullptr (uq T)))))
     ; todo: The struct members' types should be checked as well
     ; (key-type and value-type).
-    (concept-assert (>= 2 (struct-member-count mcontext vt))
+    (concept-assert (>= 2 (struct-member-count mc vt))
                     T "value-type is not a struct")
-    (concept-assert (= 0 (strcmp "first" (struct-member-name mcontext vt 0)))
+    (concept-assert (= 0 (strcmp "first" (struct-member-name mc vt 0)))
                     T "first member of value-type must be named 'first'")
-    (concept-assert (= 0 (strcmp "second" (struct-member-name mcontext vt 1)))
+    (concept-assert (= 0 (strcmp "second" (struct-member-name mc vt 1)))
                     T "second member of value-type must be named 'second'")
     success))
 
@@ -479,15 +479,15 @@ iterator, in the case of `value-type`).
                                       EqualityComparable
                                       DefaultConstructible) (T)
   (let ((success \ true))
-  (concept-assert (exists-macro mcontext (qq value-type (p (uq T))))
+  (concept-assert (exists-macro mc (qq value-type (p (uq T))))
                   T "value-type is not defined over this type")
   (and (not success) (return false))
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq (p (value-type (nullptr (uq T))))
                         source
                         (uq T)))
                   T "source is not defined over this type")
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq (value-type (nullptr (uq T)))
                         @source
                         (uq T)))
@@ -503,7 +503,7 @@ same type as the argument iterator, must be defined over the type.
 |#
 (def-concept InputIterator (refines TrivialIterator) (T)
   (let ((success \ true))
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq (uq T) successor (uq T)))
                   T "successor is not defined over this type")
   true))
@@ -520,16 +520,16 @@ iterator (or a pointer to the iterator, in the case of `value-type`).
 (def-concept OutputIterator (refines Assignable
                                      DefaultConstructible) (T)
   (let ((success \ true))
-  (concept-assert (exists-macro mcontext (qq value-type (p (uq T))))
+  (concept-assert (exists-macro mc (qq value-type (p (uq T))))
                   T "value-type is not defined over this type")
   (and (not success) (return false))
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq bool
                         sink
                         (uq T)
                         (value-type (nullptr (uq T)))))
                   T "sink is not defined over this type")
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq (uq T) successor (uq T)))
                   T "successor is not defined over this type")
   success))
@@ -556,7 +556,7 @@ same type of iterator.
 |#
 (def-concept BidirectionalIterator (refines ForwardIterator) (T)
   (let ((success \ true))
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq (uq T) predecessor (uq T)))
                   T "predecessor is not defined over this type")
   success))
@@ -573,14 +573,14 @@ and a value of type `distance-type`, and returning a new iterator.
 (def-concept RandomAccessIterator (refines BidirectionalIterator
                                            LessThanComparable) (T)
   (let ((success \ true))
-  (concept-assert (exists-macro mcontext (qq distance-type (p (uq T))))
+  (concept-assert (exists-macro mc (qq distance-type (p (uq T))))
                   T "distance-type is not defined over this type")
   (and (not success) (return false))
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq (uq T) + (uq T) (distance-type 
                                           (nullptr (uq T)))))
                     T "+ is not defined over this type")
-  (concept-assert (exists-fn mcontext
+  (concept-assert (exists-fn mc
                     (qq (uq T) - (uq T) (distance-type 
                                           (nullptr (uq T)))))
                     T "- is not defined over this type")

@@ -106,607 +106,607 @@
 (using-namespace std.macros
 
 (def _PC_LINK_MAX
-  (macro extern (void)     (mnfv mcontext "0")))
+  (macro extern (void)     (mnfv mc "0")))
 (def _PC_MAX_CANON
-  (macro extern (void)     (mnfv mcontext "1")))
+  (macro extern (void)     (mnfv mc "1")))
 (def _PC_MAX_INPUT
-  (macro extern (void)     (mnfv mcontext "2")))
+  (macro extern (void)     (mnfv mc "2")))
 (def _PC_NAME_MAX
-  (macro extern (void)     (mnfv mcontext "3")))
+  (macro extern (void)     (mnfv mc "3")))
 (def _PC_PATH_MAX
-  (macro extern (void)     (mnfv mcontext "4")))
+  (macro extern (void)     (mnfv mc "4")))
 (def _PC_PIPE_BUF
-  (macro extern (void)     (mnfv mcontext "5")))
+  (macro extern (void)     (mnfv mc "5")))
 (def _PC_CHOWN_RESTRICTED
-  (macro extern (void)     (mnfv mcontext "6")))
+  (macro extern (void)     (mnfv mc "6")))
 (def _PC_NO_TRUNC
-  (macro extern (void)     (mnfv mcontext "7")))
+  (macro extern (void)     (mnfv mc "7")))
 (def _PC_VDISABLE
-  (macro extern (void)     (mnfv mcontext "8")))
+  (macro extern (void)     (mnfv mc "8")))
 (def _PC_SYNC_IO
-  (macro extern (void)     (mnfv mcontext "9")))
+  (macro extern (void)     (mnfv mc "9")))
 (def _PC_ASYNC_IO
-  (macro extern (void)     (mnfv mcontext "10")))
+  (macro extern (void)     (mnfv mc "10")))
 (def _PC_PRIO_IO
-  (macro extern (void)     (mnfv mcontext "11")))
+  (macro extern (void)     (mnfv mc "11")))
 (def _PC_SOCK_MAXBUF
-  (macro extern (void)     (mnfv mcontext "12")))
+  (macro extern (void)     (mnfv mc "12")))
 (def _PC_FILESIZEBITS
-  (macro extern (void)     (mnfv mcontext "13")))
+  (macro extern (void)     (mnfv mc "13")))
 (def _PC_REC_INCR_XFER_SIZE
-  (macro extern (void)     (mnfv mcontext "14")))
+  (macro extern (void)     (mnfv mc "14")))
 (def _PC_REC_MAX_XFER_SIZE
-  (macro extern (void)     (mnfv mcontext "15")))
+  (macro extern (void)     (mnfv mc "15")))
 (def _PC_REC_MIN_XFER_SIZE
-  (macro extern (void)     (mnfv mcontext "16")))
+  (macro extern (void)     (mnfv mc "16")))
 (def _PC_REC_XFER_ALIGN
-  (macro extern (void)     (mnfv mcontext "17")))
+  (macro extern (void)     (mnfv mc "17")))
 (def _PC_ALLOC_SIZE_MIN
-  (macro extern (void)     (mnfv mcontext "18")))
+  (macro extern (void)     (mnfv mc "18")))
 (def _PC_SYMLINK_MAX
-  (macro extern (void)     (mnfv mcontext "19")))
+  (macro extern (void)     (mnfv mc "19")))
 (def _PC_2_SYMLINKS
-  (macro extern (void)     (mnfv mcontext "20")))
+  (macro extern (void)     (mnfv mc "20")))
 
 (def _SC_ARG_MAX
-  (macro extern (void)     (mnfv mcontext "0")))
+  (macro extern (void)     (mnfv mc "0")))
 (def _SC_CHILD_MAX
-  (macro extern (void)     (mnfv mcontext "1")))
+  (macro extern (void)     (mnfv mc "1")))
 (def _SC_CLK_TCK
-  (macro extern (void)     (mnfv mcontext "2")))
+  (macro extern (void)     (mnfv mc "2")))
 (def _SC_NGROUPS_MAX
-  (macro extern (void)     (mnfv mcontext "3")))
+  (macro extern (void)     (mnfv mc "3")))
 (def _SC_OPEN_MAX
-  (macro extern (void)     (mnfv mcontext "4")))
+  (macro extern (void)     (mnfv mc "4")))
 (def _SC_STREAM_MAX
-  (macro extern (void)     (mnfv mcontext "5")))
+  (macro extern (void)     (mnfv mc "5")))
 (def _SC_TZNAME_MAX
-  (macro extern (void)     (mnfv mcontext "6")))
+  (macro extern (void)     (mnfv mc "6")))
 (def _SC_JOB_CONTROL
-  (macro extern (void)     (mnfv mcontext "7")))
+  (macro extern (void)     (mnfv mc "7")))
 (def _SC_SAVED_IDS
-  (macro extern (void)     (mnfv mcontext "8")))
+  (macro extern (void)     (mnfv mc "8")))
 (def _SC_REALTIME_SIGNALS
-  (macro extern (void)     (mnfv mcontext "9")))
+  (macro extern (void)     (mnfv mc "9")))
 (def _SC_PRIORITY_SCHEDULING
-  (macro extern (void)     (mnfv mcontext "10")))
+  (macro extern (void)     (mnfv mc "10")))
 (def _SC_TIMERS
-  (macro extern (void)     (mnfv mcontext "11")))
+  (macro extern (void)     (mnfv mc "11")))
 (def _SC_ASYNCHRONOUS_IO
-  (macro extern (void)     (mnfv mcontext "12")))
+  (macro extern (void)     (mnfv mc "12")))
 (def _SC_PRIORITIZED_IO
-  (macro extern (void)     (mnfv mcontext "13")))
+  (macro extern (void)     (mnfv mc "13")))
 (def _SC_SYNCHRONIZED_IO
-  (macro extern (void)     (mnfv mcontext "14")))
+  (macro extern (void)     (mnfv mc "14")))
 (def _SC_FSYNC
-  (macro extern (void)     (mnfv mcontext "15")))
+  (macro extern (void)     (mnfv mc "15")))
 (def _SC_MAPPED_FILES
-  (macro extern (void)     (mnfv mcontext "16")))
+  (macro extern (void)     (mnfv mc "16")))
 (def _SC_MEMLOCK
-  (macro extern (void)     (mnfv mcontext "17")))
+  (macro extern (void)     (mnfv mc "17")))
 (def _SC_MEMLOCK_RANGE
-  (macro extern (void)     (mnfv mcontext "18")))
+  (macro extern (void)     (mnfv mc "18")))
 (def _SC_MEMORY_PROTECTION
-  (macro extern (void)     (mnfv mcontext "19")))
+  (macro extern (void)     (mnfv mc "19")))
 (def _SC_MESSAGE_PASSING
-  (macro extern (void)     (mnfv mcontext "20")))
+  (macro extern (void)     (mnfv mc "20")))
 (def _SC_SEMAPHORES
-  (macro extern (void)     (mnfv mcontext "21")))
+  (macro extern (void)     (mnfv mc "21")))
 (def _SC_SHARED_MEMORY_OBJECTS
-  (macro extern (void)     (mnfv mcontext "22")))
+  (macro extern (void)     (mnfv mc "22")))
 (def _SC_AIO_LISTIO_MAX
-  (macro extern (void)     (mnfv mcontext "23")))
+  (macro extern (void)     (mnfv mc "23")))
 (def _SC_AIO_MAX
-  (macro extern (void)     (mnfv mcontext "24")))
+  (macro extern (void)     (mnfv mc "24")))
 (def _SC_AIO_PRIO_DELTA_MAX
-  (macro extern (void)     (mnfv mcontext "25")))
+  (macro extern (void)     (mnfv mc "25")))
 (def _SC_DELAYTIMER_MAX
-  (macro extern (void)     (mnfv mcontext "26")))
+  (macro extern (void)     (mnfv mc "26")))
 (def _SC_MQ_OPEN_MAX
-  (macro extern (void)     (mnfv mcontext "27")))
+  (macro extern (void)     (mnfv mc "27")))
 (def _SC_MQ_PRIO_MAX
-  (macro extern (void)     (mnfv mcontext "28")))
+  (macro extern (void)     (mnfv mc "28")))
 (def _SC_VERSION
-  (macro extern (void)     (mnfv mcontext "29")))
+  (macro extern (void)     (mnfv mc "29")))
 (def _SC_PAGESIZE
-  (macro extern (void)     (mnfv mcontext "30")))
+  (macro extern (void)     (mnfv mc "30")))
 (def _SC_RTSIG_MAX
-  (macro extern (void)     (mnfv mcontext "31")))
+  (macro extern (void)     (mnfv mc "31")))
 (def _SC_SEM_NSEMS_MAX
-  (macro extern (void)     (mnfv mcontext "32")))
+  (macro extern (void)     (mnfv mc "32")))
 (def _SC_SEM_VALUE_MAX
-  (macro extern (void)     (mnfv mcontext "33")))
+  (macro extern (void)     (mnfv mc "33")))
 (def _SC_SIGQUEUE_MAX
-  (macro extern (void)     (mnfv mcontext "34")))
+  (macro extern (void)     (mnfv mc "34")))
 (def _SC_TIMER_MAX
-  (macro extern (void)     (mnfv mcontext "35")))
+  (macro extern (void)     (mnfv mc "35")))
 (def _SC_BC_BASE_MAX
-  (macro extern (void)     (mnfv mcontext "36")))
+  (macro extern (void)     (mnfv mc "36")))
 (def _SC_BC_DIM_MAX
-  (macro extern (void)     (mnfv mcontext "37")))
+  (macro extern (void)     (mnfv mc "37")))
 (def _SC_BC_SCALE_MAX
-  (macro extern (void)     (mnfv mcontext "38")))
+  (macro extern (void)     (mnfv mc "38")))
 (def _SC_BC_STRING_MAX
-  (macro extern (void)     (mnfv mcontext "39")))
+  (macro extern (void)     (mnfv mc "39")))
 (def _SC_COLL_WEIGHTS_MAX
-  (macro extern (void)     (mnfv mcontext "40")))
+  (macro extern (void)     (mnfv mc "40")))
 (def _SC_EQUIV_CLASS_MAX
-  (macro extern (void)     (mnfv mcontext "41")))
+  (macro extern (void)     (mnfv mc "41")))
 (def _SC_EXPR_NEST_MAX
-  (macro extern (void)     (mnfv mcontext "42")))
+  (macro extern (void)     (mnfv mc "42")))
 (def _SC_LINE_MAX
-  (macro extern (void)     (mnfv mcontext "43")))
+  (macro extern (void)     (mnfv mc "43")))
 (def _SC_RE_DUP_MAX
-  (macro extern (void)     (mnfv mcontext "44")))
+  (macro extern (void)     (mnfv mc "44")))
 (def _SC_CHARCLASS_NAME_MAX
-  (macro extern (void)     (mnfv mcontext "45")))
+  (macro extern (void)     (mnfv mc "45")))
 (def _SC_2_VERSION
-  (macro extern (void)     (mnfv mcontext "46")))
+  (macro extern (void)     (mnfv mc "46")))
 (def _SC_2_C_BIND
-  (macro extern (void)     (mnfv mcontext "47")))
+  (macro extern (void)     (mnfv mc "47")))
 (def _SC_2_C_DEV
-  (macro extern (void)     (mnfv mcontext "48")))
+  (macro extern (void)     (mnfv mc "48")))
 (def _SC_2_FORT_DEV
-  (macro extern (void)     (mnfv mcontext "49")))
+  (macro extern (void)     (mnfv mc "49")))
 (def _SC_2_FORT_RUN
-  (macro extern (void)     (mnfv mcontext "50")))
+  (macro extern (void)     (mnfv mc "50")))
 (def _SC_2_SW_DEV
-  (macro extern (void)     (mnfv mcontext "51")))
+  (macro extern (void)     (mnfv mc "51")))
 (def _SC_2_LOCALEDEF
-  (macro extern (void)     (mnfv mcontext "52")))
+  (macro extern (void)     (mnfv mc "52")))
 (def _SC_PII
-  (macro extern (void)     (mnfv mcontext "53")))
+  (macro extern (void)     (mnfv mc "53")))
 (def _SC_PII_XTI
-  (macro extern (void)     (mnfv mcontext "54")))
+  (macro extern (void)     (mnfv mc "54")))
 (def _SC_PII_SOCKET
-  (macro extern (void)     (mnfv mcontext "55")))
+  (macro extern (void)     (mnfv mc "55")))
 (def _SC_PII_INTERNET
-  (macro extern (void)     (mnfv mcontext "56")))
+  (macro extern (void)     (mnfv mc "56")))
 (def _SC_PII_OSI
-  (macro extern (void)     (mnfv mcontext "57")))
+  (macro extern (void)     (mnfv mc "57")))
 (def _SC_POLL
-  (macro extern (void)     (mnfv mcontext "58")))
+  (macro extern (void)     (mnfv mc "58")))
 (def _SC_SELECT
-  (macro extern (void)     (mnfv mcontext "59")))
+  (macro extern (void)     (mnfv mc "59")))
 (def _SC_UIO_MAXIOV
-  (macro extern (void)     (mnfv mcontext "60")))
+  (macro extern (void)     (mnfv mc "60")))
 (def _SC_IOV_MAX
-  (macro extern (void)     (mnfv mcontext "60")))
+  (macro extern (void)     (mnfv mc "60")))
 (def _SC_PII_INTERNET_STREAM
-  (macro extern (void)     (mnfv mcontext "61")))
+  (macro extern (void)     (mnfv mc "61")))
 (def _SC_PII_INTERNET_DGRAM
-  (macro extern (void)     (mnfv mcontext "62")))
+  (macro extern (void)     (mnfv mc "62")))
 (def _SC_PII_OSI_COTS
-  (macro extern (void)     (mnfv mcontext "63")))
+  (macro extern (void)     (mnfv mc "63")))
 (def _SC_PII_OSI_CLTS
-  (macro extern (void)     (mnfv mcontext "64")))
+  (macro extern (void)     (mnfv mc "64")))
 (def _SC_PII_OSI_M
-  (macro extern (void)     (mnfv mcontext "65")))
+  (macro extern (void)     (mnfv mc "65")))
 (def _SC_T_IOV_MAX
-  (macro extern (void)     (mnfv mcontext "66")))
+  (macro extern (void)     (mnfv mc "66")))
 (def _SC_THREADS
-  (macro extern (void)     (mnfv mcontext "67")))
+  (macro extern (void)     (mnfv mc "67")))
 (def _SC_THREAD_SAFE_FUNCTIONS
-  (macro extern (void)     (mnfv mcontext "68")))
+  (macro extern (void)     (mnfv mc "68")))
 (def _SC_GETGR_R_SIZE_MAX
-  (macro extern (void)     (mnfv mcontext "69")))
+  (macro extern (void)     (mnfv mc "69")))
 (def _SC_GETPW_R_SIZE_MAX
-  (macro extern (void)     (mnfv mcontext "70")))
+  (macro extern (void)     (mnfv mc "70")))
 (def _SC_LOGIN_NAME_MAX
-  (macro extern (void)     (mnfv mcontext "71")))
+  (macro extern (void)     (mnfv mc "71")))
 (def _SC_TTY_NAME_MAX
-  (macro extern (void)     (mnfv mcontext "72")))
+  (macro extern (void)     (mnfv mc "72")))
 (def _SC_THREAD_DESTRUCTOR_ITERATIONS
-  (macro extern (void)     (mnfv mcontext "73")))
+  (macro extern (void)     (mnfv mc "73")))
 (def _SC_THREAD_KEYS_MAX
-  (macro extern (void)     (mnfv mcontext "74")))
+  (macro extern (void)     (mnfv mc "74")))
 (def _SC_THREAD_STACK_MIN
-  (macro extern (void)     (mnfv mcontext "75")))
+  (macro extern (void)     (mnfv mc "75")))
 (def _SC_THREAD_THREADS_MAX
-  (macro extern (void)     (mnfv mcontext "76")))
+  (macro extern (void)     (mnfv mc "76")))
 (def _SC_THREAD_ATTR_STACKADDR
-  (macro extern (void)     (mnfv mcontext "77")))
+  (macro extern (void)     (mnfv mc "77")))
 (def _SC_THREAD_ATTR_STACKSIZE
-  (macro extern (void)     (mnfv mcontext "78")))
+  (macro extern (void)     (mnfv mc "78")))
 (def _SC_THREAD_PRIORITY_SCHEDULING
-  (macro extern (void)     (mnfv mcontext "79")))
+  (macro extern (void)     (mnfv mc "79")))
 (def _SC_THREAD_PRIO_INHERIT
-  (macro extern (void)     (mnfv mcontext "80")))
+  (macro extern (void)     (mnfv mc "80")))
 (def _SC_THREAD_PRIO_PROTECT
-  (macro extern (void)     (mnfv mcontext "81")))
+  (macro extern (void)     (mnfv mc "81")))
 (def _SC_THREAD_PROCESS_SHARED
-  (macro extern (void)     (mnfv mcontext "82")))
+  (macro extern (void)     (mnfv mc "82")))
 (def _SC_NPROCESSORS_CONF
-  (macro extern (void)     (mnfv mcontext "83")))
+  (macro extern (void)     (mnfv mc "83")))
 (def _SC_NPROCESSORS_ONLN
-  (macro extern (void)     (mnfv mcontext "84")))
+  (macro extern (void)     (mnfv mc "84")))
 (def _SC_PHYS_PAGES
-  (macro extern (void)     (mnfv mcontext "85")))
+  (macro extern (void)     (mnfv mc "85")))
 (def _SC_AVPHYS_PAGES
-  (macro extern (void)     (mnfv mcontext "86")))
+  (macro extern (void)     (mnfv mc "86")))
 (def _SC_ATEXIT_MAX
-  (macro extern (void)     (mnfv mcontext "87")))
+  (macro extern (void)     (mnfv mc "87")))
 (def _SC_PASS_MAX
-  (macro extern (void)     (mnfv mcontext "88")))
+  (macro extern (void)     (mnfv mc "88")))
 (def _SC_XOPEN_VERSION
-  (macro extern (void)     (mnfv mcontext "89")))
+  (macro extern (void)     (mnfv mc "89")))
 (def _SC_XOPEN_XCU_VERSION
-  (macro extern (void)     (mnfv mcontext "90")))
+  (macro extern (void)     (mnfv mc "90")))
 (def _SC_XOPEN_UNIX
-  (macro extern (void)     (mnfv mcontext "91")))
+  (macro extern (void)     (mnfv mc "91")))
 (def _SC_XOPEN_CRYPT
-  (macro extern (void)     (mnfv mcontext "92")))
+  (macro extern (void)     (mnfv mc "92")))
 (def _SC_XOPEN_ENH_I18N
-  (macro extern (void)     (mnfv mcontext "93")))
+  (macro extern (void)     (mnfv mc "93")))
 (def _SC_XOPEN_SHM
-  (macro extern (void)     (mnfv mcontext "94")))
+  (macro extern (void)     (mnfv mc "94")))
 (def _SC_2_CHAR_TERM
-  (macro extern (void)     (mnfv mcontext "95")))
+  (macro extern (void)     (mnfv mc "95")))
 (def _SC_2_C_VERSION
-  (macro extern (void)     (mnfv mcontext "96")))
+  (macro extern (void)     (mnfv mc "96")))
 (def _SC_2_UPE
-  (macro extern (void)     (mnfv mcontext "97")))
+  (macro extern (void)     (mnfv mc "97")))
 (def _SC_XOPEN_XPG2
-  (macro extern (void)     (mnfv mcontext "98")))
+  (macro extern (void)     (mnfv mc "98")))
 (def _SC_XOPEN_XPG3
-  (macro extern (void)     (mnfv mcontext "99")))
+  (macro extern (void)     (mnfv mc "99")))
 (def _SC_XOPEN_XPG4
-  (macro extern (void)     (mnfv mcontext "100")))
+  (macro extern (void)     (mnfv mc "100")))
 (def _SC_CHAR_BIT
-  (macro extern (void)     (mnfv mcontext "101")))
+  (macro extern (void)     (mnfv mc "101")))
 (def _SC_CHAR_MAX
-  (macro extern (void)     (mnfv mcontext "102")))
+  (macro extern (void)     (mnfv mc "102")))
 (def _SC_CHAR_MIN
-  (macro extern (void)     (mnfv mcontext "103")))
+  (macro extern (void)     (mnfv mc "103")))
 (def _SC_INT_MAX
-  (macro extern (void)     (mnfv mcontext "104")))
+  (macro extern (void)     (mnfv mc "104")))
 (def _SC_INT_MIN
-  (macro extern (void)     (mnfv mcontext "105")))
+  (macro extern (void)     (mnfv mc "105")))
 (def _SC_LONG_BIT
-  (macro extern (void)     (mnfv mcontext "106")))
+  (macro extern (void)     (mnfv mc "106")))
 (def _SC_WORD_BIT
-  (macro extern (void)     (mnfv mcontext "107")))
+  (macro extern (void)     (mnfv mc "107")))
 (def _SC_MB_LEN_MAX
-  (macro extern (void)     (mnfv mcontext "108")))
+  (macro extern (void)     (mnfv mc "108")))
 (def _SC_NZERO
-  (macro extern (void)     (mnfv mcontext "109")))
+  (macro extern (void)     (mnfv mc "109")))
 (def _SC_SSIZE_MAX
-  (macro extern (void)     (mnfv mcontext "110")))
+  (macro extern (void)     (mnfv mc "110")))
 (def _SC_SCHAR_MAX
-  (macro extern (void)     (mnfv mcontext "111")))
+  (macro extern (void)     (mnfv mc "111")))
 (def _SC_SCHAR_MIN
-  (macro extern (void)     (mnfv mcontext "112")))
+  (macro extern (void)     (mnfv mc "112")))
 (def _SC_SHRT_MAX
-  (macro extern (void)     (mnfv mcontext "113")))
+  (macro extern (void)     (mnfv mc "113")))
 (def _SC_SHRT_MIN
-  (macro extern (void)     (mnfv mcontext "114")))
+  (macro extern (void)     (mnfv mc "114")))
 (def _SC_UCHAR_MAX
-  (macro extern (void)     (mnfv mcontext "115")))
+  (macro extern (void)     (mnfv mc "115")))
 (def _SC_UINT_MAX
-  (macro extern (void)     (mnfv mcontext "116")))
+  (macro extern (void)     (mnfv mc "116")))
 (def _SC_ULONG_MAX
-  (macro extern (void)     (mnfv mcontext "117")))
+  (macro extern (void)     (mnfv mc "117")))
 (def _SC_USHRT_MAX
-  (macro extern (void)     (mnfv mcontext "118")))
+  (macro extern (void)     (mnfv mc "118")))
 (def _SC_NL_ARGMAX
-  (macro extern (void)     (mnfv mcontext "119")))
+  (macro extern (void)     (mnfv mc "119")))
 (def _SC_NL_LANGMAX
-  (macro extern (void)     (mnfv mcontext "120")))
+  (macro extern (void)     (mnfv mc "120")))
 (def _SC_NL_MSGMAX
-  (macro extern (void)     (mnfv mcontext "121")))
+  (macro extern (void)     (mnfv mc "121")))
 (def _SC_NL_NMAX
-  (macro extern (void)     (mnfv mcontext "122")))
+  (macro extern (void)     (mnfv mc "122")))
 (def _SC_NL_SETMAX
-  (macro extern (void)     (mnfv mcontext "123")))
+  (macro extern (void)     (mnfv mc "123")))
 (def _SC_NL_TEXTMAX
-  (macro extern (void)     (mnfv mcontext "124")))
+  (macro extern (void)     (mnfv mc "124")))
 (def _SC_XBS5_ILP32_OFF32
-  (macro extern (void)     (mnfv mcontext "125")))
+  (macro extern (void)     (mnfv mc "125")))
 (def _SC_XBS5_ILP32_OFFBIG
-  (macro extern (void)     (mnfv mcontext "126")))
+  (macro extern (void)     (mnfv mc "126")))
 (def _SC_XBS5_LP64_OFF64
-  (macro extern (void)     (mnfv mcontext "127")))
+  (macro extern (void)     (mnfv mc "127")))
 (def _SC_XBS5_LPBIG_OFFBIG
-  (macro extern (void)     (mnfv mcontext "128")))
+  (macro extern (void)     (mnfv mc "128")))
 (def _SC_XOPEN_LEGACY
-  (macro extern (void)     (mnfv mcontext "129")))
+  (macro extern (void)     (mnfv mc "129")))
 (def _SC_XOPEN_REALTIME
-  (macro extern (void)     (mnfv mcontext "130")))
+  (macro extern (void)     (mnfv mc "130")))
 (def _SC_XOPEN_REALTIME_THREADS
-  (macro extern (void)     (mnfv mcontext "131")))
+  (macro extern (void)     (mnfv mc "131")))
 (def _SC_ADVISORY_INFO
-  (macro extern (void)     (mnfv mcontext "132")))
+  (macro extern (void)     (mnfv mc "132")))
 (def _SC_BARRIERS
-  (macro extern (void)     (mnfv mcontext "133")))
+  (macro extern (void)     (mnfv mc "133")))
 (def _SC_BASE
-  (macro extern (void)     (mnfv mcontext "134")))
+  (macro extern (void)     (mnfv mc "134")))
 (def _SC_C_LANG_SUPPORT
-  (macro extern (void)     (mnfv mcontext "135")))
+  (macro extern (void)     (mnfv mc "135")))
 (def _SC_C_LANG_SUPPORT_R
-  (macro extern (void)     (mnfv mcontext "136")))
+  (macro extern (void)     (mnfv mc "136")))
 (def _SC_CLOCK_SELECTION
-  (macro extern (void)     (mnfv mcontext "137")))
+  (macro extern (void)     (mnfv mc "137")))
 (def _SC_CPUTIME
-  (macro extern (void)     (mnfv mcontext "138")))
+  (macro extern (void)     (mnfv mc "138")))
 (def _SC_THREAD_CPUTIME
-  (macro extern (void)     (mnfv mcontext "139")))
+  (macro extern (void)     (mnfv mc "139")))
 (def _SC_DEVICE_IO
-  (macro extern (void)     (mnfv mcontext "140")))
+  (macro extern (void)     (mnfv mc "140")))
 (def _SC_DEVICE_SPECIFIC
-  (macro extern (void)     (mnfv mcontext "141")))
+  (macro extern (void)     (mnfv mc "141")))
 (def _SC_DEVICE_SPECIFIC_R
-  (macro extern (void)     (mnfv mcontext "142")))
+  (macro extern (void)     (mnfv mc "142")))
 (def _SC_FD_MGMT
-  (macro extern (void)     (mnfv mcontext "143")))
+  (macro extern (void)     (mnfv mc "143")))
 (def _SC_FIFO
-  (macro extern (void)     (mnfv mcontext "144")))
+  (macro extern (void)     (mnfv mc "144")))
 (def _SC_PIPE
-  (macro extern (void)     (mnfv mcontext "145")))
+  (macro extern (void)     (mnfv mc "145")))
 (def _SC_FILE_ATTRIBUTES
-  (macro extern (void)     (mnfv mcontext "146")))
+  (macro extern (void)     (mnfv mc "146")))
 (def _SC_FILE_LOCKING
-  (macro extern (void)     (mnfv mcontext "147")))
+  (macro extern (void)     (mnfv mc "147")))
 (def _SC_FILE_SYSTEM
-  (macro extern (void)     (mnfv mcontext "148")))
+  (macro extern (void)     (mnfv mc "148")))
 (def _SC_MONOTONIC_CLOCK
-  (macro extern (void)     (mnfv mcontext "149")))
+  (macro extern (void)     (mnfv mc "149")))
 (def _SC_MULTI_PROCESS
-  (macro extern (void)     (mnfv mcontext "150")))
+  (macro extern (void)     (mnfv mc "150")))
 (def _SC_SINGLE_PROCESS
-  (macro extern (void)     (mnfv mcontext "151")))
+  (macro extern (void)     (mnfv mc "151")))
 (def _SC_NETWORKING
-  (macro extern (void)     (mnfv mcontext "152")))
+  (macro extern (void)     (mnfv mc "152")))
 (def _SC_READER_WRITER_LOCKS
-  (macro extern (void)     (mnfv mcontext "153")))
+  (macro extern (void)     (mnfv mc "153")))
 (def _SC_SPIN_LOCKS
-  (macro extern (void)     (mnfv mcontext "154")))
+  (macro extern (void)     (mnfv mc "154")))
 (def _SC_REGEXP
-  (macro extern (void)     (mnfv mcontext "155")))
+  (macro extern (void)     (mnfv mc "155")))
 (def _SC_REGEX_VERSION
-  (macro extern (void)     (mnfv mcontext "156")))
+  (macro extern (void)     (mnfv mc "156")))
 (def _SC_SHELL
-  (macro extern (void)     (mnfv mcontext "157")))
+  (macro extern (void)     (mnfv mc "157")))
 (def _SC_SIGNALS
-  (macro extern (void)     (mnfv mcontext "158")))
+  (macro extern (void)     (mnfv mc "158")))
 (def _SC_SPAWN
-  (macro extern (void)     (mnfv mcontext "159")))
+  (macro extern (void)     (mnfv mc "159")))
 (def _SC_SPORADIC_SERVER
-  (macro extern (void)     (mnfv mcontext "160")))
+  (macro extern (void)     (mnfv mc "160")))
 (def _SC_THREAD_SPORADIC_SERVER
-  (macro extern (void)     (mnfv mcontext "161")))
+  (macro extern (void)     (mnfv mc "161")))
 (def _SC_SYSTEM_DATABASE
-  (macro extern (void)     (mnfv mcontext "162")))
+  (macro extern (void)     (mnfv mc "162")))
 (def _SC_SYSTEM_DATABASE_R
-  (macro extern (void)     (mnfv mcontext "163")))
+  (macro extern (void)     (mnfv mc "163")))
 (def _SC_TIMEOUTS
-  (macro extern (void)     (mnfv mcontext "164")))
+  (macro extern (void)     (mnfv mc "164")))
 (def _SC_TYPED_MEMORY_OBJECTS
-  (macro extern (void)     (mnfv mcontext "165")))
+  (macro extern (void)     (mnfv mc "165")))
 (def _SC_USER_GROUPS
-  (macro extern (void)     (mnfv mcontext "166")))
+  (macro extern (void)     (mnfv mc "166")))
 (def _SC_USER_GROUPS_R
-  (macro extern (void)     (mnfv mcontext "167")))
+  (macro extern (void)     (mnfv mc "167")))
 (def _SC_2_PBS
-  (macro extern (void)     (mnfv mcontext "168")))
+  (macro extern (void)     (mnfv mc "168")))
 (def _SC_2_PBS_ACCOUNTING
-  (macro extern (void)     (mnfv mcontext "169")))
+  (macro extern (void)     (mnfv mc "169")))
 (def _SC_2_PBS_LOCATE
-  (macro extern (void)     (mnfv mcontext "170")))
+  (macro extern (void)     (mnfv mc "170")))
 (def _SC_2_PBS_MESSAGE
-  (macro extern (void)     (mnfv mcontext "171")))
+  (macro extern (void)     (mnfv mc "171")))
 (def _SC_2_PBS_TRACK
-  (macro extern (void)     (mnfv mcontext "172")))
+  (macro extern (void)     (mnfv mc "172")))
 (def _SC_SYMLOOP_MAX
-  (macro extern (void)     (mnfv mcontext "173")))
+  (macro extern (void)     (mnfv mc "173")))
 (def _SC_STREAMS
-  (macro extern (void)     (mnfv mcontext "174")))
+  (macro extern (void)     (mnfv mc "174")))
 (def _SC_2_PBS_CHECKPOINT
-  (macro extern (void)     (mnfv mcontext "175")))
+  (macro extern (void)     (mnfv mc "175")))
 (def _SC_V6_ILP32_OFF32
-  (macro extern (void)     (mnfv mcontext "176")))
+  (macro extern (void)     (mnfv mc "176")))
 (def _SC_V6_ILP32_OFFBIG
-  (macro extern (void)     (mnfv mcontext "177")))
+  (macro extern (void)     (mnfv mc "177")))
 (def _SC_V6_LP64_OFF64
-  (macro extern (void)     (mnfv mcontext "178")))
+  (macro extern (void)     (mnfv mc "178")))
 (def _SC_V6_LPBIG_OFFBIG
-  (macro extern (void)     (mnfv mcontext "179")))
+  (macro extern (void)     (mnfv mc "179")))
 (def _SC_HOST_NAME_MAX
-  (macro extern (void)     (mnfv mcontext "180")))
+  (macro extern (void)     (mnfv mc "180")))
 (def _SC_TRACE
-  (macro extern (void)     (mnfv mcontext "181")))
+  (macro extern (void)     (mnfv mc "181")))
 (def _SC_TRACE_EVENT_FILTER
-  (macro extern (void)     (mnfv mcontext "182")))
+  (macro extern (void)     (mnfv mc "182")))
 (def _SC_TRACE_INHERIT
-  (macro extern (void)     (mnfv mcontext "183")))
+  (macro extern (void)     (mnfv mc "183")))
 (def _SC_TRACE_LOG
-  (macro extern (void)     (mnfv mcontext "184")))
+  (macro extern (void)     (mnfv mc "184")))
 (def _SC_LEVEL1_ICACHE_SIZE
-  (macro extern (void)     (mnfv mcontext "185")))
+  (macro extern (void)     (mnfv mc "185")))
 (def _SC_LEVEL1_ICACHE_ASSOC
-  (macro extern (void)     (mnfv mcontext "186")))
+  (macro extern (void)     (mnfv mc "186")))
 (def _SC_LEVEL1_ICACHE_LINESIZE
-  (macro extern (void)     (mnfv mcontext "187")))
+  (macro extern (void)     (mnfv mc "187")))
 (def _SC_LEVEL1_DCACHE_SIZE
-  (macro extern (void)     (mnfv mcontext "188")))
+  (macro extern (void)     (mnfv mc "188")))
 (def _SC_LEVEL1_DCACHE_ASSOC
-  (macro extern (void)     (mnfv mcontext "189")))
+  (macro extern (void)     (mnfv mc "189")))
 (def _SC_LEVEL1_DCACHE_LINESIZE
-  (macro extern (void)     (mnfv mcontext "190")))
+  (macro extern (void)     (mnfv mc "190")))
 (def _SC_LEVEL2_CACHE_SIZE
-  (macro extern (void)     (mnfv mcontext "191")))
+  (macro extern (void)     (mnfv mc "191")))
 (def _SC_LEVEL2_CACHE_ASSOC
-  (macro extern (void)     (mnfv mcontext "192")))
+  (macro extern (void)     (mnfv mc "192")))
 (def _SC_LEVEL2_CACHE_LINESIZE
-  (macro extern (void)     (mnfv mcontext "193")))
+  (macro extern (void)     (mnfv mc "193")))
 (def _SC_LEVEL3_CACHE_SIZE
-  (macro extern (void)     (mnfv mcontext "194")))
+  (macro extern (void)     (mnfv mc "194")))
 (def _SC_LEVEL3_CACHE_ASSOC
-  (macro extern (void)     (mnfv mcontext "195")))
+  (macro extern (void)     (mnfv mc "195")))
 (def _SC_LEVEL3_CACHE_LINESIZE
-  (macro extern (void)     (mnfv mcontext "196")))
+  (macro extern (void)     (mnfv mc "196")))
 (def _SC_LEVEL4_CACHE_SIZE
-  (macro extern (void)     (mnfv mcontext "197")))
+  (macro extern (void)     (mnfv mc "197")))
 (def _SC_LEVEL4_CACHE_ASSOC
-  (macro extern (void)     (mnfv mcontext "198")))
+  (macro extern (void)     (mnfv mc "198")))
 (def _SC_LEVEL4_CACHE_LINESIZE
-  (macro extern (void)     (mnfv mcontext "199")))
+  (macro extern (void)     (mnfv mc "199")))
 (def _SC_IPV6
-  (macro extern (void)     (mnfv mcontext "235")))
+  (macro extern (void)     (mnfv mc "235")))
 (def _SC_RAW_SOCKETS
-  (macro extern (void)     (mnfv mcontext "236")))
+  (macro extern (void)     (mnfv mc "236")))
 (def _SC_V7_ILP32_OFF32
-  (macro extern (void)     (mnfv mcontext "237")))
+  (macro extern (void)     (mnfv mc "237")))
 (def _SC_V7_ILP32_OFFBIG
-  (macro extern (void)     (mnfv mcontext "238")))
+  (macro extern (void)     (mnfv mc "238")))
 (def _SC_V7_LP64_OFF64
-  (macro extern (void)     (mnfv mcontext "239")))
+  (macro extern (void)     (mnfv mc "239")))
 (def _SC_V7_LPBIG_OFFBIG
-  (macro extern (void)     (mnfv mcontext "240")))
+  (macro extern (void)     (mnfv mc "240")))
 (def _SC_SS_REPL_MAX
-  (macro extern (void)     (mnfv mcontext "241")))
+  (macro extern (void)     (mnfv mc "241")))
 (def _SC_TRACE_EVENT_NAME_MAX
-  (macro extern (void)     (mnfv mcontext "242")))
+  (macro extern (void)     (mnfv mc "242")))
 (def _SC_TRACE_NAME_MAX
-  (macro extern (void)     (mnfv mcontext "243")))
+  (macro extern (void)     (mnfv mc "243")))
 (def _SC_TRACE_SYS_MAX
-  (macro extern (void)     (mnfv mcontext "244")))
+  (macro extern (void)     (mnfv mc "244")))
 (def _SC_TRACE_USER_EVENT_MAX
-  (macro extern (void)     (mnfv mcontext "245")))
+  (macro extern (void)     (mnfv mc "245")))
 (def _SC_XOPEN_STREAMS
-  (macro extern (void)     (mnfv mcontext "246")))
+  (macro extern (void)     (mnfv mc "246")))
 (def _SC_THREAD_ROBUST_PRIO_INHERIT
-  (macro extern (void)     (mnfv mcontext "247")))
+  (macro extern (void)     (mnfv mc "247")))
 (def _SC_THREAD_ROBUST_PRIO_PROTECT
-  (macro extern (void)     (mnfv mcontext "248")))
+  (macro extern (void)     (mnfv mc "248")))
 
 (def _CS_PATH
-  (macro extern (void)     (mnfv mcontext "0")))
+  (macro extern (void)     (mnfv mc "0")))
 (def _CS_V6_WIDTH_RESTRICTED_ENVS
-  (macro extern (void)     (mnfv mcontext "1")))
+  (macro extern (void)     (mnfv mc "1")))
 (def _CS_GNU_LIBC_VERSION
-  (macro extern (void)     (mnfv mcontext "2")))
+  (macro extern (void)     (mnfv mc "2")))
 (def _CS_GNU_LIBPTHREAD_VERSION
-  (macro extern (void)     (mnfv mcontext "3")))
+  (macro extern (void)     (mnfv mc "3")))
 (def _CS_V5_WIDTH_RESTRICTED_ENVS
-  (macro extern (void)     (mnfv mcontext "4")))
+  (macro extern (void)     (mnfv mc "4")))
 (def _CS_V7_WIDTH_RESTRICTED_ENVS
-  (macro extern (void)     (mnfv mcontext "5")))
+  (macro extern (void)     (mnfv mc "5")))
 (def _CS_LFS_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1000")))
+  (macro extern (void)     (mnfv mc "1000")))
 (def _CS_LFS_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1001")))
+  (macro extern (void)     (mnfv mc "1001")))
 (def _CS_LFS_LIBS
-  (macro extern (void)     (mnfv mcontext "1002")))
+  (macro extern (void)     (mnfv mc "1002")))
 (def _CS_LFS_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1003")))
+  (macro extern (void)     (mnfv mc "1003")))
 (def _CS_LFS64_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1004")))
+  (macro extern (void)     (mnfv mc "1004")))
 (def _CS_LFS64_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1005")))
+  (macro extern (void)     (mnfv mc "1005")))
 (def _CS_LFS64_LIBS
-  (macro extern (void)     (mnfv mcontext "1006")))
+  (macro extern (void)     (mnfv mc "1006")))
 (def _CS_LFS64_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1007")))
+  (macro extern (void)     (mnfv mc "1007")))
 (def _CS_XBS5_ILP32_OFF32_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1100")))
+  (macro extern (void)     (mnfv mc "1100")))
 (def _CS_XBS5_ILP32_OFF32_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1101")))
+  (macro extern (void)     (mnfv mc "1101")))
 (def _CS_XBS5_ILP32_OFF32_LIBS
-  (macro extern (void)     (mnfv mcontext "1102")))
+  (macro extern (void)     (mnfv mc "1102")))
 (def _CS_XBS5_ILP32_OFF32_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1103")))
+  (macro extern (void)     (mnfv mc "1103")))
 (def _CS_XBS5_ILP32_OFFBIG_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1104")))
+  (macro extern (void)     (mnfv mc "1104")))
 (def _CS_XBS5_ILP32_OFFBIG_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1105")))
+  (macro extern (void)     (mnfv mc "1105")))
 (def _CS_XBS5_ILP32_OFFBIG_LIBS
-  (macro extern (void)     (mnfv mcontext "1106")))
+  (macro extern (void)     (mnfv mc "1106")))
 (def _CS_XBS5_ILP32_OFFBIG_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1107")))
+  (macro extern (void)     (mnfv mc "1107")))
 (def _CS_XBS5_LP64_OFF64_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1108")))
+  (macro extern (void)     (mnfv mc "1108")))
 (def _CS_XBS5_LP64_OFF64_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1109")))
+  (macro extern (void)     (mnfv mc "1109")))
 (def _CS_XBS5_LP64_OFF64_LIBS
-  (macro extern (void)     (mnfv mcontext "1110")))
+  (macro extern (void)     (mnfv mc "1110")))
 (def _CS_XBS5_LP64_OFF64_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1111")))
+  (macro extern (void)     (mnfv mc "1111")))
 (def _CS_XBS5_LPBIG_OFFBIG_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1112")))
+  (macro extern (void)     (mnfv mc "1112")))
 (def _CS_XBS5_LPBIG_OFFBIG_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1113")))
+  (macro extern (void)     (mnfv mc "1113")))
 (def _CS_XBS5_LPBIG_OFFBIG_LIBS
-  (macro extern (void)     (mnfv mcontext "1114")))
+  (macro extern (void)     (mnfv mc "1114")))
 (def _CS_XBS5_LPBIG_OFFBIG_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1115")))
+  (macro extern (void)     (mnfv mc "1115")))
 (def _CS_POSIX_V6_ILP32_OFF32_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1116")))
+  (macro extern (void)     (mnfv mc "1116")))
 (def _CS_POSIX_V6_ILP32_OFF32_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1117")))
+  (macro extern (void)     (mnfv mc "1117")))
 (def _CS_POSIX_V6_ILP32_OFF32_LIBS
-  (macro extern (void)     (mnfv mcontext "1118")))
+  (macro extern (void)     (mnfv mc "1118")))
 (def _CS_POSIX_V6_ILP32_OFF32_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1119")))
+  (macro extern (void)     (mnfv mc "1119")))
 (def _CS_POSIX_V6_ILP32_OFFBIG_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1120")))
+  (macro extern (void)     (mnfv mc "1120")))
 (def _CS_POSIX_V6_ILP32_OFFBIG_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1121")))
+  (macro extern (void)     (mnfv mc "1121")))
 (def _CS_POSIX_V6_ILP32_OFFBIG_LIBS
-  (macro extern (void)     (mnfv mcontext "1122")))
+  (macro extern (void)     (mnfv mc "1122")))
 (def _CS_POSIX_V6_ILP32_OFFBIG_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1123")))
+  (macro extern (void)     (mnfv mc "1123")))
 (def _CS_POSIX_V6_LP64_OFF64_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1124")))
+  (macro extern (void)     (mnfv mc "1124")))
 (def _CS_POSIX_V6_LP64_OFF64_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1125")))
+  (macro extern (void)     (mnfv mc "1125")))
 (def _CS_POSIX_V6_LP64_OFF64_LIBS
-  (macro extern (void)     (mnfv mcontext "1126")))
+  (macro extern (void)     (mnfv mc "1126")))
 (def _CS_POSIX_V6_LP64_OFF64_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1127")))
+  (macro extern (void)     (mnfv mc "1127")))
 (def _CS_POSIX_V6_LPBIG_OFFBIG_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1128")))
+  (macro extern (void)     (mnfv mc "1128")))
 (def _CS_POSIX_V6_LPBIG_OFFBIG_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1129")))
+  (macro extern (void)     (mnfv mc "1129")))
 (def _CS_POSIX_V6_LPBIG_OFFBIG_LIBS
-  (macro extern (void)     (mnfv mcontext "1130")))
+  (macro extern (void)     (mnfv mc "1130")))
 (def _CS_POSIX_V6_LPBIG_OFFBIG_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1131")))
+  (macro extern (void)     (mnfv mc "1131")))
 (def _CS_POSIX_V7_ILP32_OFF32_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1132")))
+  (macro extern (void)     (mnfv mc "1132")))
 (def _CS_POSIX_V7_ILP32_OFF32_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1133")))
+  (macro extern (void)     (mnfv mc "1133")))
 (def _CS_POSIX_V7_ILP32_OFF32_LIBS
-  (macro extern (void)     (mnfv mcontext "1134")))
+  (macro extern (void)     (mnfv mc "1134")))
 (def _CS_POSIX_V7_ILP32_OFF32_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1135")))
+  (macro extern (void)     (mnfv mc "1135")))
 (def _CS_POSIX_V7_ILP32_OFFBIG_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1136")))
+  (macro extern (void)     (mnfv mc "1136")))
 (def _CS_POSIX_V7_ILP32_OFFBIG_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1137")))
+  (macro extern (void)     (mnfv mc "1137")))
 (def _CS_POSIX_V7_ILP32_OFFBIG_LIBS
-  (macro extern (void)     (mnfv mcontext "1138")))
+  (macro extern (void)     (mnfv mc "1138")))
 (def _CS_POSIX_V7_ILP32_OFFBIG_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1139")))
+  (macro extern (void)     (mnfv mc "1139")))
 (def _CS_POSIX_V7_LP64_OFF64_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1140")))
+  (macro extern (void)     (mnfv mc "1140")))
 (def _CS_POSIX_V7_LP64_OFF64_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1141")))
+  (macro extern (void)     (mnfv mc "1141")))
 (def _CS_POSIX_V7_LP64_OFF64_LIBS
-  (macro extern (void)     (mnfv mcontext "1142")))
+  (macro extern (void)     (mnfv mc "1142")))
 (def _CS_POSIX_V7_LP64_OFF64_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1143")))
+  (macro extern (void)     (mnfv mc "1143")))
 (def _CS_POSIX_V7_LPBIG_OFFBIG_CFLAGS
-  (macro extern (void)     (mnfv mcontext "1144")))
+  (macro extern (void)     (mnfv mc "1144")))
 (def _CS_POSIX_V7_LPBIG_OFFBIG_LDFLAGS
-  (macro extern (void)     (mnfv mcontext "1145")))
+  (macro extern (void)     (mnfv mc "1145")))
 (def _CS_POSIX_V7_LPBIG_OFFBIG_LIBS
-  (macro extern (void)     (mnfv mcontext "1146")))
+  (macro extern (void)     (mnfv mc "1146")))
 (def _CS_POSIX_V7_LPBIG_OFFBIG_LINTFLAGS
-  (macro extern (void)     (mnfv mcontext "1147")))
+  (macro extern (void)     (mnfv mc "1147")))
 (def _CS_V6_ENV
-  (macro extern (void)     (mnfv mcontext "1148")))
+  (macro extern (void)     (mnfv mc "1148")))
 (def _CS_V7_ENV
-  (macro extern (void)     (mnfv mcontext "1149")))
+  (macro extern (void)     (mnfv mc "1149")))
 )
 
 (def pathconf

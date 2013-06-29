@@ -18,7 +18,7 @@ Determine whether the specified function exists. The `frm` argument
 should be a list node comprising the return type, the function name
 and the argument types: e.g. `(bool < int int)`.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The form describing the function.
 |#
 (def exists-fn (fn extern-c bool ((mc  (p MContext))
@@ -30,7 +30,7 @@ and the argument types: e.g. `(bool < int int)`.
 Determine whether the specified variable exists. The `frm` argument
 should be a token node containing the name of the variable.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The token node containing the variable name.
 |#
 (def exists-variable (fn extern-c bool ((mc (p MContext)) (frm (p DNode)))))
@@ -40,7 +40,7 @@ should be a token node containing the name of the variable.
 
 Determine whether the specified type exists.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The form describing the type.
 |#
 (def exists-type (fn extern-c bool ((mc (p MContext)) (frm (p DNode)))))
@@ -55,7 +55,7 @@ macro for its arguments; for example, if a macro `testmacro` takes
 three untyped arguments, then a call to `exists-macro` with a form
 like `(testmacro int bool int)` will return `true`.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The form describing the macro.
 |#
 (def exists-macro (fn extern-c bool ((mc (p MContext)) (frm (p DNode)))))
@@ -66,7 +66,7 @@ like `(testmacro int bool int)` will return `true`.
 Evaluates the form and returns its type. For example, if `frm` is `(+
 1 1)`, the result node will be `int` (single token node).
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The form for which the type should be determined.
 |#
 (def type-of (fn extern-c (p DNode) ((mc (p MContext)) (frm (p DNode)))))
@@ -79,7 +79,7 @@ argument form has the same structure as for `exists-fn`, except that
 there is no return type at the beginning. Returns a null pointer if
 the function doesn't exist.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The form describing the function.
 |#
 (def codomain (fn extern-c (p DNode) ((mc (p MContext)) (frm (p DNode)))))
@@ -91,7 +91,7 @@ Returns the arity of the specified function (the number of parameters
 that it requires). Only works for functions with `extern-c` linkage.
 The `frm` argument should contain only the name of the function.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The token node containing the function name.
 |#
 (def arity (fn extern-c int ((mc (p MContext)) (frm (p DNode)))))
@@ -103,7 +103,7 @@ Returns the type of the specified function's `n`th parameter. Only
 works for functions with `extern-c` linkage. As per `arity`, the `frm`
 argument should contain only the name of the function.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The token node containing the function name.
 @param n        The parameter index (begins from 0).
 |#
@@ -115,7 +115,7 @@ argument should contain only the name of the function.
 
 Returns the number of members present in the specified struct.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param st       The token node containing the struct name.
 |#
 (def struct-member-count (fn extern-c int ((mc (p MContext)) (st (p DNode)))))
@@ -125,7 +125,7 @@ Returns the number of members present in the specified struct.
 
 Returns the type of the specified struct's `n`th member.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param st       The token node containing the struct name.
 @param n        The member index (begins from 0).
 |#
@@ -137,7 +137,7 @@ Returns the type of the specified struct's `n`th member.
 
 Returns the name of the specified struct's `n`th member.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param st       The token node containing the struct name.
 @param n        The member index (begins from 0).
 |#
@@ -151,7 +151,7 @@ Adds an error message to the compiler's internal error buffer. The
 node provided to this function will be used to set the line/column
 numbers and the filename in the error message.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The node that 'caused' the error.
 @param err      The error string.
 |#
@@ -169,7 +169,7 @@ is a struct with a name like `pairii`, but that type is registered
 against the form `(Pair int int)`, so error messages concerning that
 type use the latter form.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param from     The concrete type, as a string.
 @param to       The display name for the type, as a string.
 |#
@@ -183,7 +183,7 @@ Writes the specified type's display string to `buf`. This string is
 either the display name provided by way of `register-type`, or the
 stringification of the provided form.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The type form.
 @param buf      A buffer into which the display string will be written.
 |#
@@ -198,7 +198,7 @@ Writes the specified type's concrete type string to `buf`. For
 example, `(Pair int int)` has a concrete type of `pairii`, so passing
 the former as the `frm` will cause the latter to be written to `buf`.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The concrete type, as a form.
 @param buf      A buffer into which the encoded type name will be written.
 |#
@@ -211,7 +211,7 @@ the former as the `frm` will cause the latter to be written to `buf`.
 Returns a boolean indicating whether the specified type is a character
 type.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The type form.
 |#
 (def is-char-type (fn extern-c bool ((mc  (p MContext))
@@ -223,7 +223,7 @@ type.
 Returns a boolean indicating whether the specified type is an integer
 type (either signed or unsigned).
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The type form.
 |#
 (def is-integer-type (fn extern-c bool ((mc  (p MContext))
@@ -235,7 +235,7 @@ type (either signed or unsigned).
 Returns a boolean indicating whether the specified type is a signed
 integer type.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The type form.
 |#
 (def is-signed-integer-type (fn extern-c bool ((mc  (p MContext))
@@ -247,7 +247,7 @@ integer type.
 Returns a boolean indicating whether the specified type is an unsigned
 integer type.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The type form.
 |#
 (def is-unsigned-integer-type (fn extern-c bool ((mc  (p MContext))
@@ -259,7 +259,7 @@ integer type.
 Returns a boolean indicating whether the specified type is a
 floating-point type.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The type form.
 |#
 (def is-floating-point-type (fn extern-c bool ((mc (p MContext))
@@ -271,7 +271,7 @@ floating-point type.
 Returns a boolean indicating whether the specified type is a
 pointer type.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The type form.
 |#
 (def is-pointer-type (fn extern-c bool ((mc (p MContext)) (frm (p DNode)))))
@@ -282,7 +282,7 @@ pointer type.
 Returns a boolean indicating whether the first type form is a pointer
 to the type represented by the second form.
 
-@param mcontext     An MContext.
+@param mc     An MContext.
 @param ptr-type     The pointer type form.
 @param pte-type     The pointee type form.
 |#
@@ -295,7 +295,7 @@ to the type represented by the second form.
 
 Returns the type to which the type form points.
 
-@param mcontext     An MContext.
+@param mc     An MContext.
 @param ptr-type     The pointer type form.
 |#
 (def pointee-type (fn extern-c (p DNode) 
@@ -307,7 +307,7 @@ Returns the type to which the type form points.
 
 Returns a boolean indicating whether the type is a `const` type.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The type form.
 |#
 (def is-const (fn extern-c bool ((mc (p MContext)) (frm (p DNode)))))
@@ -323,7 +323,7 @@ taken into account. Calling this function initialises an internal list
 containing the names of the functions with the specified parameter
 types, which list is used by `fn-by-args-name`.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      A list of parameter types.
 @param prefix   An optional function name prefix.
 |#
@@ -339,7 +339,7 @@ name of the `n`th function that has those parameters types as its own.
 The call to this function must be preceded, at some point, by a call
 to `fn-by-args-count` that uses the same set of parameter types.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      A list of parameter types.
 @param n        The function list index.
 |#
@@ -353,7 +353,7 @@ to `fn-by-args-count` that uses the same set of parameter types.
 Returns a boolean indicating whether the specified struct type must be
 initialised when it is declared.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param st       The token node containing the struct name.
 |#
 (def must-init (fn extern-c bool ((mc (p MContext)) (st (p DNode)))))
@@ -364,7 +364,7 @@ initialised when it is declared.
 Evaluates the provided form and returns a boolean indicating whether
 any errors were encountered.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The form to be evaluated.
 |#
 (def has-errors (fn extern-c bool ((mc (p MContext)) (frm (p DNode)))))
@@ -374,7 +374,7 @@ any errors were encountered.
 
 Returns a boolean indicating whether the two type forms are equal.
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param type-1   The first type form.
 @param type-2   The second type form.
 |#
@@ -390,7 +390,7 @@ specifier in a printf formatter string, based on the size of the
 provided type. For example, if the argument form is a token node
 containing the string "size", then then returned string will be "z".
 
-@param mcontext An MContext.
+@param mc An MContext.
 @param frm      The type of the printf argument.
 |#
 (def printf-length (fn extern-c (const (p char)) ((mc (p MContext))

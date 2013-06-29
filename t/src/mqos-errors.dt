@@ -10,13 +10,13 @@
     (strncpy buf "list-" (cast 5 size))
     (setf ($ buf 5) #\NULL)
     (strcat buf (@ (:@ frm-name token-str)))
-    (def name-node (var auto (p DNode) (mnfv mcontext buf)))
+    (def name-node (var auto (p DNode) (mnfv mc buf)))
 
-    (if (not (exists-type mcontext name-node))
+    (if (not (exists-type mc name-node))
         (do (def v (var auto (array-of 100 char)))
             (sprintf v "type %s has no corresponding list type" 
                        (@ (:@ frm-name token-str)))
-            (report-error mcontext frm-name v)
+            (report-error mc frm-name v)
             (cast 0 (p DNode)))
         name-node)))
 
@@ -26,7 +26,7 @@
     (strncpy buf "list-" (cast 5 size))
     (setf ($ buf 5) #\NULL)
     (strcat buf (@ (:@ frm-name token-str)))
-    (def name-node (var auto (p DNode) (mnfv mcontext buf)))
+    (def name-node (var auto (p DNode) (mnfv mc buf)))
 
     (bqq do
         

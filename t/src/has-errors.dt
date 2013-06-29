@@ -2,7 +2,7 @@
 
 (def my-has-errors
   (macro intern (N)
-    (std.macros.mnfv mcontext (if (has-errors mcontext N) "true" "false"))))
+    (std.macros.mnfv mc (if (has-errors mc N) "true" "false"))))
 
 (def main
   (fn extern-c int (void)

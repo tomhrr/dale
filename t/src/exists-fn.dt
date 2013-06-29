@@ -4,13 +4,13 @@
 (using-namespace std.macros
 (def testmac
   (macro intern (frm)
-    (if (exists-fn mcontext frm)
+    (if (exists-fn mc frm)
         (do (print frm)
             (printf " The function exists\n")
-            (mnfv mcontext "true"))
+            (mnfv mc "true"))
         (do (print frm)
             (printf " The function does not exist\n")
-            (mnfv mcontext "false")))))
+            (mnfv mc "false")))))
 )
 
 (def myfn

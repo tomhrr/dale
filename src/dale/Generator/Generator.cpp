@@ -3160,7 +3160,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
 
     Element::Type *ptt = new Element::Type(pst);
     Element::Variable *var1 = new Element::Variable(
-        (char*)"mcontext", ptt
+        (char*)"mc", ptt
     );
     var1->linkage = Linkage::Auto;
     mc_args_internal->push_back(var1);

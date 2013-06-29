@@ -3,7 +3,7 @@
 (using-namespace std.macros
 (def my-must-init
   (macro intern (T)
-    (if (must-init mcontext T)
+    (if (must-init mc T)
         (qq printf "must initialise\n")
         (qq printf "not necessary to initialise\n"))))
 )

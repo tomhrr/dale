@@ -3,10 +3,10 @@
 
 (def get-arity
   (macro intern (fn)
-    (let ((n   int (arity mcontext fn))
+    (let ((n   int (arity mc fn))
           (str (array-of 10 char)))
       (sprintf str "%d" n)
-      (std.macros.mnfv mcontext str))))
+      (std.macros.mnfv mc str))))
 
 (def main
   (fn extern-c int (void)

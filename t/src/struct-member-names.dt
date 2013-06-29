@@ -4,11 +4,11 @@
 (using-namespace std.macros
 (def print-struct-names
   (macro intern (fn)
-    (let ((n   int (struct-member-count mcontext fn))
+    (let ((n   int (struct-member-count mc fn))
           (i   int 0))
       (for true (< i n) (incv i)
-        (printf "%s\n" (struct-member-name mcontext fn i))))
-    (mnfv mcontext "0")))
+        (printf "%s\n" (struct-member-name mc fn i))))
+    (mnfv mc "0")))
 )
 
 (namespace bling

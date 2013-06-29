@@ -43,9 +43,9 @@ the concept macro.
 (def Set
   (macro extern (T)
     (let ((typename (array-of 250 char)))
-      (and (not (make-type-string mcontext "set" T typename))
+      (and (not (make-type-string mc "set" T typename))
            (return T))
-      (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
+      (def n (var auto (p DNode) (std.macros.mnfv mc typename)))
       (return n))))
 
 (using-namespace std.macros
@@ -60,7 +60,7 @@ must also implement `LessThanComparable`.
 @param T    The type node.
 |#
 (std.concepts.def-concept-macro Set extern ((T EqualityComparable))
-  (if (has-errors mcontext
+  (if (has-errors mc
                   (qq std.concepts.implements (uq T) LessThanComparable))
       (return (qq std.concepts.implements (uq T) LessThanComparable))
       0)
@@ -70,16 +70,16 @@ must also implement `LessThanComparable`.
         (nodetypename  (array-of 250 char)))
     ; Generate the type names and nodes, and register the main 'set'
     ; type.
-    (and (not (make-type-string mcontext "set" T typename))
+    (and (not (make-type-string mc "set" T typename))
          (return (nullptr DNode)))
-    (and (not (make-type-string mcontext "setnode" T nodetypename))
+    (and (not (make-type-string mc "setnode" T nodetypename))
          (return (nullptr DNode)))
-    (and (not (make-type-display-string mcontext "Set" T etypename))
+    (and (not (make-type-display-string mc "Set" T etypename))
          (return (nullptr DNode)))
 
-    (def typenode     (var auto (p DNode) (std.macros.mnfv mcontext typename)))
-    (def nodetypenode (var auto (p DNode) (std.macros.mnfv mcontext nodetypename)))
-    (register-type mcontext typename etypename)
+    (def typenode     (var auto (p DNode) (std.macros.mnfv mc typename)))
+    (def nodetypenode (var auto (p DNode) (std.macros.mnfv mc nodetypename)))
+    (register-type mc typename etypename)
 
     (qq do
 

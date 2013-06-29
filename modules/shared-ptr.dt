@@ -30,8 +30,8 @@ of the concept macro.
   (macro extern (T)
     (let ((typename   (array-of 255 char))
           (structname (array-of 255 char)))
-      (make-type-string mcontext "sharedptr" T typename)
-      (mnfv mcontext typename))))
+      (make-type-string mc "sharedptr" T typename)
+      (mnfv mc typename))))
 
 (def core-@:@
   (macro extern (sname sfield)
@@ -49,10 +49,10 @@ Expands to a `SharedPtr` definition over the relevant type.
         (structname  (array-of 255 char))
         (snnode      (p DNode)))
 
-    (make-type-string mcontext "sharedptr" T structname)
-    (make-type-display-string mcontext "SharedPtr" T typename)
-    (setv snnode (mnfv mcontext structname))
-    (register-type mcontext structname typename)
+    (make-type-string mc "sharedptr" T structname)
+    (make-type-display-string mc "SharedPtr" T typename)
+    (setv snnode (mnfv mc structname))
+    (register-type mc structname typename)
 
     (qq do
 

@@ -39,9 +39,9 @@ the concept macro.
 (def List
   (macro extern (T)
     (let ((typename (array-of 250 char)))
-      (and (not (make-type-string mcontext "list" T typename))
+      (and (not (make-type-string mc "list" T typename))
            (return T))
-      (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
+      (def n (var auto (p DNode) (std.macros.mnfv mc typename)))
       (return n))))
 
 (using-namespace std.macros
@@ -61,17 +61,17 @@ Expands to a `List` definition over the relevant type.
 
     ; Generate the type names and nodes, and register the main 'list'
     ; type name.
-    (and (not (make-type-string mcontext "list" T typename))
+    (and (not (make-type-string mc "list" T typename))
          (return (nullptr DNode)))
-    (and (not (make-type-string mcontext "listnode" T nodetypename))
+    (and (not (make-type-string mc "listnode" T nodetypename))
          (return (nullptr DNode)))
-    (and (not (make-type-display-string mcontext "List" T etypename))
+    (and (not (make-type-display-string mc "List" T etypename))
          (return (nullptr DNode)))
     
-    (def typenode     (var auto (p DNode) (mnfv mcontext typename)))
-    (def nodetypenode (var auto (p DNode) (mnfv mcontext nodetypename)))
+    (def typenode     (var auto (p DNode) (mnfv mc typename)))
+    (def nodetypenode (var auto (p DNode) (mnfv mc nodetypename)))
     
-    (register-type mcontext typename etypename)
+    (register-type mc typename etypename)
     
     (qq do
 

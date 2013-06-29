@@ -3,10 +3,10 @@
 
 (def get-struct-count
   (macro intern (fn)
-    (let ((n   int (struct-member-count mcontext fn))
+    (let ((n   int (struct-member-count mc fn))
           (str (array-of 10 char)))
       (sprintf str "%d" n)
-      (std.macros.mnfv mcontext str))))
+      (std.macros.mnfv mc str))))
 
 (namespace bling
   (def mys (struct extern((n int) (m int)))))

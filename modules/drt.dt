@@ -39,8 +39,8 @@ implicitly where necessary.
 (def not (fn _extern-weak bool ((a bool)) (if a false true))) 
 (def memcpy (fn extern-c (p void) ((a (p void)) (b (p void)) (c size)))) 
 (def pool-malloc  
-  (fn _extern-weak (p void) ((mcontext (p MContext)) (n size))  
-    (def pool-node (var auto \ (@:@ mcontext pool-node)))
+  (fn _extern-weak (p void) ((mc (p MContext)) (n size))  
+    (def pool-node (var auto \ (@:@ mc pool-node)))
     (def ln (var auto (p PoolNode) (@ (: (@ pool-node) last-node)))) 
     (if (null ln) 
         (do (setf (: (@ pool-node) last-node) pool-node) 
@@ -74,9 +74,9 @@ implicitly where necessary.
     (return)))
 
 (def pool-free 
-  (fn _extern-weak void ((mcontext (p MContext))) 
-    (pool-free_ (@:@ mcontext pool-node))))
+  (fn _extern-weak void ((mc (p MContext))) 
+    (pool-free_ (@:@ mc pool-node))))
 
 (def arg-count
-  (fn _extern-weak int ((mcontext (p MContext)))
-    (@:@ mcontext arg-count)))
+  (fn _extern-weak int ((mc (p MContext)))
+    (@:@ mc arg-count)))

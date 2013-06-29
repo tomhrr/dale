@@ -4,13 +4,13 @@
 (using-namespace std.macros
 (def testmac
   (macro intern (frm)
-    (if (exists-macro mcontext frm)
+    (if (exists-macro mc frm)
         (do (print frm)
             (printf " The macro exists\n")
-            (mnfv mcontext "true"))
+            (mnfv mc "true"))
         (do (print frm)
             (printf " The macro does not exist\n")
-            (mnfv mcontext "false")))))
+            (mnfv mc "false")))))
 
 (def myidentity
   (macro intern (f)

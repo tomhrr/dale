@@ -4,12 +4,12 @@
 (using-namespace std.macros
 (def print-arg-types
   (macro intern (fn)
-    (let ((n int (arity mcontext fn))
+    (let ((n int (arity mc fn))
           (i int 0))
       (for true (< i n) (incv i)
-        (print (input-type mcontext fn i))
+        (print (input-type mc fn i))
         (printf "\n")))
-    (mnfv mcontext "0")))
+    (mnfv mc "0")))
 )
 
 (def main

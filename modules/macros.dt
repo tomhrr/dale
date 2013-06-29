@@ -36,12 +36,12 @@ be used again.
 
 |#
 (def qq (macro extern (frm ...)
-    (def arg-count (var auto \ (arg-count mcontext)))
+    (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 1))
     (def myargcount (var auto int arg-count))
 
     (def nullp (var auto (p DNode) (nullptr DNode)))
-    (def holder (var auto (p DNode) (make-node mcontext)))
+    (def holder (var auto (p DNode) (make-node mc)))
 
     (def arglist (var auto va-list))
     (va-start (cast (# arglist) (p void)))
@@ -65,7 +65,7 @@ be used again.
 
     (label end-loop)
 
-    (def vn (var auto \ (make-gensym-var-node mcontext)))
+    (def vn (var auto \ (make-gensym-var-node mc)))
 
     (def current-firstnode (var auto (p DNode) (bqq @:' (uq vn) list-node)))
     (def current-lastnode  (var auto (p DNode)
@@ -105,7 +105,7 @@ be used again.
                                                        token-str)))
                                     (@:' cn list-node next-node)
                                     (do (setv no-down 1)
-                                        (make-node-maker mcontext 
+                                        (make-node-maker mc 
                                                      (@:' cn 
                                                           list-node 
                                                           next-node)))))
@@ -113,7 +113,7 @@ be used again.
                             (setf (:@ block next-node) (bqq do
                                 (setv firstnode (uq current-firstnode))
                                 (setv newnode 
-                                (std.macros.copy mcontext false (uq tempform)))
+                                (std.macros.copy mc false (uq tempform)))
                                 (std.macros.copy-to firstnode newnode)))
                             (setv block (@:@ block next-node))
                             ;(getchar)
@@ -125,10 +125,10 @@ be used again.
                         (do (setv tempform (@:' cn list-node next-node))
                             (setv no-down 1)
                             (def vn (var auto \ (make-gensym-var-node
-                                                 mcontext)))
+                                                 mc)))
                             (setf (:@ block next-node) (bqq do
                                 (setv firstnode (uq current-firstnode))
-                                (setv newnode (copy mcontext 
+                                (setv newnode (copy mc 
                                                     true (uq tempform)))
                                 (std.macros.copy-to firstnode newnode)
                                 (def (uq vn)
@@ -188,7 +188,7 @@ be used again.
                     (incv upvs-count)
 
                     (setf (:@ current-lastnode next-node)
-                          (mnfv mcontext "list-node"))
+                          (mnfv mc "list-node"))
                     (setv current-lastnode
                           (@:@ current-lastnode next-node))
                     (setv cn (@:@ cn list-node))
@@ -198,7 +198,7 @@ be used again.
                 (do ;(printf "Moving to next node in this list: ") (DNode-print cn) (printf "\n")
                     (setv no-down 0)
                     (setf (:@ current-lastnode next-node)
-                          (mnfv mcontext "next-node"))
+                          (mnfv mc "next-node"))
                     (setv current-lastnode
                           (@:@ current-lastnode next-node))
                     (setv cn (@:@ cn next-node))
@@ -214,7 +214,7 @@ be used again.
                         (if (not (null (@:@ cn next-node)))
                             (do
                                 (setf (:@ current-lastnode next-node)
-                                    (mnfv mcontext "next-node"))
+                                    (mnfv mc "next-node"))
                                 (setv current-lastnode
                                     (@:@ current-lastnode next-node))
                                 (setv cn (@:@ cn next-node))
@@ -227,7 +227,7 @@ be used again.
 
     (label end-loop2)
         (let ((res \ (bqq do (new-scope
-            (def (uq vn) (var auto (p DNode) (std.macros.copy mcontext true
+            (def (uq vn) (var auto (p DNode) (std.macros.copy mc true
             (get-dnodes (uq-nc holder)))))
             (def firstnode (var auto (p DNode)))
             (def trailing  (var auto (p DNode)))
