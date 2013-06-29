@@ -60,7 +60,7 @@ been defined.
       (sprintf fn-name "_concept-%s" (@:@ frm token-str))
       (let ((myn   \ (mnfv mcontext fn-name))
             (frm   \ (qq int (uq myn) void)))
-        (return (exists-fn frm))))))
+        (return (exists-fn mcontext frm))))))
 
 #|
 @macro exists-concept
@@ -107,17 +107,17 @@ constructed by way of `def-concept-macro`.
 (def def-concept
   (macro extern (concept-name-node refinement-list type-arguments ...)
     (if (= 1 (@:@ concept-name-node is-list))
-        (do (report-error concept-name-node
+        (do (report-error mcontext concept-name-node
                           "concept name argument must not be a list")
             (return (nullptr DNode)))
         (nullptr DNode))
     (if (not (= 1 (@:@ refinement-list is-list)))
-        (do (report-error refinement-list
+        (do (report-error mcontext refinement-list
                           "refinement argument must be a list")
             (return (nullptr DNode)))
         (nullptr DNode))
     (if (not (= 1 (@:@ type-arguments is-list)))
-        (do (report-error type-arguments
+        (do (report-error mcontext type-arguments
                           "type argument must be a list")
             (return (nullptr DNode)))
         (nullptr DNode))
@@ -126,7 +126,7 @@ constructed by way of `def-concept-macro`.
     (def types       (var auto \ (@:@ type-arguments  list-node)))
 
     (if (!= 0 (strcmp "refines" (@:@ refinements token-str)))
-        (do (report-error refinements
+        (do (report-error mcontext refinements
                           "refinement list first element must be 'refines'")
             (return (nullptr DNode)))
         (nullptr DNode))
@@ -137,7 +137,7 @@ constructed by way of `def-concept-macro`.
     (while (not (null (@:@ refinements next-node)))
       (setv refinements (@:@ refinements next-node))
       (if (not (exists-concept-fn mcontext refinements))
-          (do (report-error refinements
+          (do (report-error mcontext refinements
                             "refinement concept does not exist")
               (return (nullptr DNode)))
           (do (setf ($ refinement-nodes rn-count) refinements)
@@ -264,7 +264,8 @@ constructed by way of `def-concept-macro`.
                 (def (uq implements-name-node)
                   (fn extern int ((uq (uq function-arg-list)))
                   0)))))
-                (if (exists-fn (std.macros.qq int (uq implements-name-node) 
+                (if (exists-fn mcontext 
+                        (std.macros.qq int (uq implements-name-node) 
                                            (uq (uq myn))))
                     ; todo: a better 'do-nothing-successfully' form
                     ; would be nice (cf. 'do-nothing-unsuccessfully',
@@ -321,7 +322,7 @@ body may (generally, will) add errors if its requirements are not met.
       (sprintf fnname "_impl-of-concept-%s"
                       (@:@ C token-str))
       (let ((fnnode \ (mnfv mcontext fnname)))
-        (return (exists-fn (qq int (uq fnnode) (uq T))))))))
+        (return (exists-fn mcontext (qq int (uq fnnode) (uq T))))))))
 
 #|
 @macro implements
@@ -338,8 +339,8 @@ reports an error about the concept not being implemented.
       (sprintf fnname "_impl-of-concept-%s"
                       (@:@ C token-str))
       (let ((fnnode \ (mnfv mcontext fnname)))
-        (if (not (exists-fn (qq int (uq fnnode) (uq T))))
-            (do (report-error T "concept not implemented")
+        (if (not (exists-fn mcontext (qq int (uq fnnode) (uq T))))
+            (do (report-error mcontext T "concept not implemented")
                 0)
             0)
         (nullptr DNode)))))
@@ -352,10 +353,10 @@ reports an error about the concept not being implemented.
     (let ((cnames  (array-of 255 (p char)))
           (cnamesi \ 0)
           (fnbgn   \ "_impl-of-concept-")
-          (count   \ (fn-by-args-count (qq (uq T)) fnbgn))
+          (count   \ (fn-by-args-count mcontext (qq (uq T)) fnbgn))
           (i int))
       (for (setv i 0) (< i count) (incv i)
-        (let ((fnnm  \ (fn-by-args-name (qq (uq T)) i))
+        (let ((fnnm  \ (fn-by-args-name mcontext (qq (uq T)) i))
               (ncpy \ (pool-malloc' 255 char)))
           (strcpy ncpy (p+ fnnm (strlen fnbgn)))
           (setf ($ cnames cnamesi) ncpy)
@@ -386,7 +387,7 @@ reports an error about the concept not being implemented.
     (sprintf fnname "_refines-%s" Tupper)
     (def refnode (var auto \ (mnfv mcontext fnname)))
     (let ((mine \ (qq int (uq refnode) (uq tnode))))
-      (return (exists-fn mine)))))
+      (return (exists-fn mcontext mine)))))
 
 #|
 @fn add-refinement
@@ -501,23 +502,23 @@ reports an error about the concept not being implemented.
       (while (not (null mt-vl))
         (if tnames
             (do (if (not (= 1 (@:@ mt-vl is-list)))
-                    (do (report-error mt-vl 
+                    (do (report-error mcontext mt-vl 
                             "concept macro types must be concepts")
                         (return false))
                     0)
                 (def myx (var auto \ 
                                 (@:@ (@:@ mt-vl list-node) next-node)))
-                (if (not (type-to-string myx tstr))
-                    (do (report-error myx "unable to convert type to string")
+                (if (not (type-to-string mcontext myx tstr))
+                    (do (report-error mcontext myx "unable to convert type to string")
                         (return false))
                     0))
             (do (if (= 1 (@:@ mt-vl is-list))
-                    (do (report-error mt-vl
+                    (do (report-error mcontext mt-vl
                             "concept macro types must be atoms")
                         (return false))
                     0)
-                (if (not (type-to-string mt-vl tstr))
-                    (do (report-error mt-vl "unable to convert type to string")
+                (if (not (type-to-string mcontext mt-vl tstr))
+                    (do (report-error mcontext mt-vl "unable to convert type to string")
                         (return false))
                     0)))
         (strcat buf "@")
@@ -590,7 +591,7 @@ arguments.
       (setv namenode (mnfv mcontext newname))
       (setv macro-types (@:@ macro-types list-node))
       (let ((macnode \ (qq (uq namenode) (uql macro-types))))
-        (return (exists-macro macnode))))))
+        (return (exists-macro mcontext macnode))))))
 
 #|
 @fn get-candidate
@@ -635,7 +636,7 @@ arguments.
             (if (not (null cnodepre))
                 (setf (:@ cnodepre next-node) cnode)
                 true)
-            (type-to-string cnode cnodestr)
+            (type-to-string mcontext cnode cnodestr)
             (if hasbuf
                 (do (strcat mybuf2 (@:@ cnode token-str))
                     (if (< i (- tcl-count 1))
@@ -646,7 +647,7 @@ arguments.
             (strcat mybuf cnodestr)
             (setv cnodepre cnode))
           (setv myn (mnfv mcontext mybuf))
-          (if (exists-macro (qq (uq myn)
+          (if (exists-macro mcontext (qq (uq myn)
                                 (uql cnodelst)))
               (do 
                   (strcpy macbuf mybuf)
@@ -702,7 +703,7 @@ arguments.
               (sprintf errbuf "multiple instantiations found: (%s), (%s)"
                               thisbuf
                               lastbuf)
-              (report-error errn errbuf)
+              (report-error mcontext errn errbuf)
               (setf is-error 1)
               (return 0))
             (do (setv has-last 1)))
@@ -747,7 +748,7 @@ arguments.
               (sprintf errbuf "multiple instantiations found: (%s), (%s)"
                               thisbuf
                               lastbuf)
-              (report-error errn errbuf)
+              (report-error mcontext errn errbuf)
               (setf is-error 1)
               (return 0))
             (do (setv has-last 1))))
@@ -760,7 +761,7 @@ arguments.
 (def assert-return
   (macro intern (error-cond report-error-node report-error-str)
     (qq if (uq error-cond)
-           (do (report-error (uq report-error-node)
+           (do (report-error mcontext (uq report-error-node)
                              (uq report-error-str))
                (return (nullptr DNode)))
            0)))
@@ -808,7 +809,7 @@ expands into a series of bindings; for example, `Vector`.
                     (assert-return (not (exists-concept-fn mcontext concept))
                                 concept "element is not a concept")
                   (let ((type \ (@:@ concept next-node)))
-                    (assert-return (not (exists-type type))
+                    (assert-return (not (exists-type mcontext type))
                                 type "element is not a type")
                     (assert-return (not (implements-fn mcontext type concept))
                                 type "type does not implement concept")
@@ -817,7 +818,7 @@ expands into a series of bindings; for example, `Vector`.
             (do 
                 ; If the type argument is not actually a type, then
                 ; treat it as being of the Value concept.
-                (if (and (not (exists-type myvl))
+                (if (and (not (exists-type mcontext myvl))
                          (= 0 (@:@ myvl is-list)))
                     (do (setf ($ type-concept-list i)
                           (make-simple-node 
@@ -826,7 +827,7 @@ expands into a series of bindings; for example, `Vector`.
                     (setf ($ type-concept-list i)
                           (get-type-concept-map mcontext myvl)))
                 (if (null (@$ type-concept-list i))
-                    (do (report-error myvl
+                    (do (report-error mcontext myvl
                         "type does not implement any concepts")
                         (return (nullptr DNode)))
                     true)))
@@ -849,7 +850,7 @@ expands into a series of bindings; for example, `Vector`.
       (and (= 1 err)
            (return (nullptr DNode)))
       (and (= 0 res)
-           (do (report-error varargs-list
+           (do (report-error mcontext varargs-list
                              "no applicable concept macro found")
                (return (nullptr DNode))))
       (if (= (@$ macbuf 0) #\NULL)

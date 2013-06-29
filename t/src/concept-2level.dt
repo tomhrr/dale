@@ -3,15 +3,15 @@
 (using-namespace std.macros
 
 (std.concepts.def-concept Addable (refines) (T)
-  (if (exists-fn (qq bool + (uq T) (uq T)))
+  (if (exists-fn mcontext (qq bool + (uq T) (uq T)))
       true
-      (do (report-error T "type does not implement Addable")
+      (do (report-error mcontext T "type does not implement Addable")
           false)))
 
 (std.concepts.def-concept AddableAndSubtractable (refines Addable) (T)
-  (if (exists-fn (qq bool - (uq T) (uq T)))
+  (if (exists-fn mcontext (qq bool - (uq T) (uq T)))
       true
-      (do (report-error T "type does not implement AddableAndSubtractable")
+      (do (report-error mcontext T "type does not implement AddableAndSubtractable")
           false)))
 
 (std.concepts.implement Addable int)

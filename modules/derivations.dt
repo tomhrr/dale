@@ -104,8 +104,8 @@ over the type before calling this macro.
 @param T    The type node.
 |#
 (def-concept-macro != extern ((T Type))
-  (and (not (exists-fn (bqq bool = (uq T) (uq T))))
-       (do (report-error T "type does not implement =")
+  (and (not (exists-fn mcontext (bqq bool = (uq T) (uq T))))
+       (do (report-error mcontext T "type does not implement =")
            (return (nullptr DNode))))
   (qq do
     (def != (fn extern bool ((a (uq T)) (b (uq T)))
@@ -120,8 +120,8 @@ over the type before calling this macro.
 @param T    The type node.
 |#
 (def-concept-macro <= extern ((T Type))
-  (and (not (exists-fn (bqq bool < (uq T) (uq T))))
-       (do (report-error T "type does not implement <")
+  (and (not (exists-fn mcontext (bqq bool < (uq T) (uq T))))
+       (do (report-error mcontext T "type does not implement <")
            (return (nullptr DNode))))
   (qq do
     (def <= (fn extern bool ((a (uq T)) (b (uq T)))
@@ -137,8 +137,8 @@ over the type before calling this macro.
 @param T    The type node.
 |#
 (def-concept-macro > extern ((T Type))
-  (and (not (exists-fn (bqq bool < (uq T) (uq T))))
-       (do (report-error T "type does not implement <")
+  (and (not (exists-fn mcontext (bqq bool < (uq T) (uq T))))
+       (do (report-error mcontext T "type does not implement <")
            (return (nullptr DNode))))
   (qq do
     (def > (fn extern bool ((a (uq T)) (b (uq T)))
@@ -153,8 +153,8 @@ over the type before calling this macro.
 @param T    The type node.
 |#
 (def-concept-macro >= extern ((T Type))
-  (and (not (exists-fn (bqq bool < (uq T) (uq T))))
-       (do (report-error T "type does not implement <")
+  (and (not (exists-fn mcontext (bqq bool < (uq T) (uq T))))
+       (do (report-error mcontext T "type does not implement <")
            (return (nullptr DNode))))
   (qq do
     (def >= (fn extern bool ((a (uq T)) (b (uq T)))
@@ -170,14 +170,14 @@ macro.
 @param T    The struct type node.
 |#
 (def-concept-macro = extern ((T Struct))
-  (let ((n int (struct-member-count T))
+  (let ((n int (struct-member-count mcontext T))
         (i int 0)
         (holder-node  (p DNode) (make-node mcontext))
         (null-node    (p DNode) (cast 0 (p DNode)))
         (current-node (p DNode) null-node))
     
     (and (= n 0)
-         (do (report-error T "struct has no members")
+         (do (report-error mcontext T "struct has no members")
              (return (mnfv mcontext "0"))))
 
     (setf-dsref-mul 
@@ -186,20 +186,20 @@ macro.
                   (next-node null-node))
       
     (for true (< i n) (incv i)
-      (let ((name (p DNode) (mnfv mcontext (struct-member-name T i)))
-            (type (p DNode) (struct-member-type T i)))
+      (let ((name (p DNode) (mnfv mcontext (struct-member-name mcontext T i)))
+            (type (p DNode) (struct-member-type mcontext T i)))
         
-        (and (not (exists-fn (bqq bool = (uq type) (uq type))))
+        (and (not (exists-fn mcontext (bqq bool = (uq type) (uq type))))
              (let ((stc (array-of 255 char))
                    (ts  (array-of 255 char)))
                (setf ($ ts 0) #\NULL)
-               (if (not (type-to-string type ts))
+               (if (not (type-to-string mcontext type ts))
                    (sprintf ts "(unknown type)")
                    0)
                (sprintf stc 
                         "= not defined on struct member (type %s, name %s)" 
                         ts (@:@ name token-str))
-               (report-error T stc)
+               (report-error mcontext T stc)
                (return (mnfv mcontext "0"))))
 
         (let ((part (p DNode) 
@@ -229,14 +229,14 @@ macro.
 @param T    The struct type node.
 |#
 (def-concept-macro < extern ((T Struct))
-  (let ((n int (struct-member-count T))
+  (let ((n int (struct-member-count mcontext T))
         (i int 0)
         (holder-node  (p DNode) (make-node mcontext))
         (null-node    (p DNode) (cast 0 (p DNode)))
         (current-node (p DNode) null-node))
     
     (and (= n 0)
-         (do (report-error T "struct has no members")
+         (do (report-error mcontext T "struct has no members")
              (return (mnfv mcontext "0"))))
 
     (setf-dsref-mul 
@@ -245,20 +245,20 @@ macro.
                   (next-node null-node))
       
     (for true (< i n) (incv i)
-      (let ((name (p DNode) (mnfv mcontext (struct-member-name T i)))
-            (type (p DNode) (struct-member-type T i)))
+      (let ((name (p DNode) (mnfv mcontext (struct-member-name mcontext T i)))
+            (type (p DNode) (struct-member-type mcontext T i)))
         
-        (and (not (exists-fn (bqq bool < (uq type) (uq type))))
+        (and (not (exists-fn mcontext (bqq bool < (uq type) (uq type))))
              (let ((stc (array-of 255 char))
                    (ts  (array-of 255 char)))
                (setf ($ ts 0) #\NULL)
-               (if (not (type-to-string type ts))
+               (if (not (type-to-string mcontext type ts))
                    (sprintf ts "(unknown type)")
                    0)
                (sprintf stc 
                         "< not defined on struct member (type %s, name %s)" 
                         ts (:@ name token-str))
-               (report-error T stc)
+               (report-error mcontext T stc)
                (return (mnfv mcontext "0"))))
 
         (let ((part (p DNode) 
@@ -287,22 +287,22 @@ provided struct type. Any that have already been defined are skipped.
 @param T    The struct type node.
 |#
 (def-concept-macro relations extern ((T Struct))
-  (let ((n=  (p DNode) (if (not (exists-fn (bqq bool = (uq T) (uq T))))
+  (let ((n=  (p DNode) (if (not (exists-fn mcontext (bqq bool = (uq T) (uq T))))
                  (bqq std.concepts.instantiate = (uq T))
                  (mnfv mcontext "true")))
-        (n!= (p DNode) (if (not (exists-fn (bqq bool != (uq T) (uq T))))
+        (n!= (p DNode) (if (not (exists-fn mcontext (bqq bool != (uq T) (uq T))))
                  (bqq std.concepts.instantiate != (uq T))
                  (mnfv mcontext "true")))
-        (n< (p DNode) (if (not (exists-fn (bqq bool < (uq T) (uq T))))
+        (n< (p DNode) (if (not (exists-fn mcontext (bqq bool < (uq T) (uq T))))
                  (bqq std.concepts.instantiate < (uq T))
                  (mnfv mcontext "true")))
-        (n<= (p DNode) (if (not (exists-fn (bqq bool <= (uq T) (uq T))))
+        (n<= (p DNode) (if (not (exists-fn mcontext (bqq bool <= (uq T) (uq T))))
                  (bqq std.concepts.instantiate <= (uq T))
                  (mnfv mcontext "true")))
-        (n> (p DNode) (if (not (exists-fn (bqq bool > (uq T) (uq T))))
+        (n> (p DNode) (if (not (exists-fn mcontext (bqq bool > (uq T) (uq T))))
                  (bqq std.concepts.instantiate > (uq T))
                  (mnfv mcontext "true")))
-        (n>= (p DNode) (if (not (exists-fn (bqq bool >= (uq T) (uq T))))
+        (n>= (p DNode) (if (not (exists-fn mcontext (bqq bool >= (uq T) (uq T))))
                  (bqq std.concepts.instantiate >= (uq T))
                  (mnfv mcontext "true"))))
       (bqq do (uq n=) (uq n!=) (uq n<) (uq n<=) (uq n>) (uq n>=))))

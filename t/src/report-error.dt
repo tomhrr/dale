@@ -4,8 +4,8 @@
 
 (def istype
   (macro intern (f)
-    (if (not (exists-type f))
-        (do (report-error f "this node is not a type")
+    (if (not (exists-type mcontext f))
+        (do (report-error mcontext f "this node is not a type")
             (std.macros.bqq + 0 0))
         (std.macros.bqq + 0 1))))
 

@@ -33,7 +33,7 @@ the concept macro.
 (def Array
   (macro extern (T N)
     (let ((typename (array-of 250 char)))
-      (and (not (make-type-string "array" T N typename))
+      (and (not (make-type-string mcontext "array" T N typename))
            (return (nullptr DNode)))
       (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
       (return n))))
@@ -51,26 +51,27 @@ must also implement `LessThanComparable`.
 @param N    The length of the array.
 |#
 (def-concept-macro Array extern ((T EqualityComparable) (N Value))
-  (if (has-errors (qq std.concepts.implements (uq T) LessThanComparable))
+  (if (has-errors mcontext 
+                  (qq std.concepts.implements (uq T) LessThanComparable))
       (return (qq std.concepts.implements (uq T) LessThanComparable))
       0)
 
   (and (!= 0 (@:@ N is-list))
-       (do (report-error N "second argument must be an atom")
+       (do (report-error mcontext N "second argument must be an atom")
            (return (nullptr DNode))))
 
   (let ((typename       (array-of 250 char))
         (etypename      (array-of 250 char)))
     ; Generate the type names and nodes, and register the main 'array'
     ; type.
-    (and (not (make-type-string "array" T N typename))
+    (and (not (make-type-string mcontext "array" T N typename))
          (return (nullptr DNode)))
-    (and (not (make-type-display-string "Array" T N etypename))
+    (and (not (make-type-display-string mcontext "Array" T N etypename))
          (return (nullptr DNode)))
 
     (def typenode (var auto (p DNode) (mnfv mcontext typename)))
 
-    (register-type typename etypename)
+    (register-type mcontext typename etypename)
 
     (qq do
 

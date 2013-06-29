@@ -34,7 +34,7 @@ the concept macro.
 (def Vector
   (macro extern (T)
     (let ((typename (array-of 250 char)))
-      (and (not (make-type-string "vector" T typename))
+      (and (not (make-type-string mcontext "vector" T typename))
            (return T))
       (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
       (return n))))
@@ -51,7 +51,8 @@ must also implement `LessThanComparable`.
 @param T    The type node.
 |#
 (def-concept-macro Vector extern ((T EqualityComparable))
-  (if (has-errors (qq std.concepts.implements (uq T) LessThanComparable))
+  (if (has-errors mcontext
+                  (qq std.concepts.implements (uq T) LessThanComparable))
       (return (qq std.concepts.implements (uq T) LessThanComparable))
       0)
   
@@ -59,14 +60,14 @@ must also implement `LessThanComparable`.
         (etypename (array-of 250 char)))
     ; Generate the type names and nodes, and register the main 'vector'
     ; type name.
-    (and (not (make-type-string "vector" T typename))
+    (and (not (make-type-string mcontext "vector" T typename))
          (return (nullptr DNode)))
-    (and (not (make-type-display-string "Vector" T etypename))
+    (and (not (make-type-display-string mcontext "Vector" T etypename))
          (return (nullptr DNode)))
 
     (def typenode (var auto (p DNode) (std.macros.mnfv mcontext typename)))
  
-    (register-type typename etypename)
+    (register-type mcontext typename etypename)
 
     (qq do
 

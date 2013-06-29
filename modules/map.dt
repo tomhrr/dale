@@ -41,7 +41,7 @@ the concept macro.
 (def Map
   (macro extern (Tk Tv)
     (let ((typename (array-of 250 char)))
-      (and (not (make-type-string "map" Tk Tv typename))
+      (and (not (make-type-string mcontext "map" Tk Tv typename))
            (return (nullptr DNode)))
       (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
       (return n))))
@@ -59,7 +59,8 @@ must also implement `LessThanComparable`.
 @param Tv     The value type node.
 |#
 (def-concept-macro Map extern ((Tk EqualityComparable) (Tv Type))
-  (if (has-errors (qq std.concepts.implements (uq Tk) LessThanComparable))
+  (if (has-errors mcontext
+                  (qq std.concepts.implements (uq Tk) LessThanComparable))
       (return (qq std.concepts.implements (uq Tk) LessThanComparable))
       0)
  
@@ -68,14 +69,14 @@ must also implement `LessThanComparable`.
         (pairtypename   (array-of 250 char)))
     ; Generate the type names and nodes, and register the main 'map'
     ; type.
-    (and (not (make-type-string "map" Tk Tv typename))
+    (and (not (make-type-string mcontext "map" Tk Tv typename))
          (return (nullptr DNode)))
-    (and (not (make-type-string "mapnode" Tk Tv pairtypename))
+    (and (not (make-type-string mcontext "mapnode" Tk Tv pairtypename))
          (return (nullptr DNode)))
-    (and (not (make-type-display-string "Map" Tk Tv etypename))
+    (and (not (make-type-display-string mcontext "Map" Tk Tv etypename))
          (return (nullptr DNode)))
 
-    (register-type typename etypename)
+    (register-type mcontext typename etypename)
 
     (def typenode     (var auto (p DNode) 
                                 (std.macros.mnfv mcontext typename)))

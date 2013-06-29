@@ -3,7 +3,7 @@
 
 (def var-exists
   (macro extern (frm)
-    (if (exists-variable frm)
+    (if (exists-variable mcontext frm)
         (do (printf "variable exists!\n"))
         (do (printf "variable does not exist\n")))
     (nullptr DNode)))

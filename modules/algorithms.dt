@@ -113,7 +113,8 @@ pretty slow.)
 @param Ti   The iterator type.
 |#
 (def-concept-macro sort extern ((Ti RandomAccessIterator))
-  (if (has-errors (qq std.concepts.implements (uq Ti) OutputIterator))
+  (if (has-errors mcontext 
+                  (qq std.concepts.implements (uq Ti) OutputIterator))
       (return (qq std.concepts.implements (uq Ti) OutputIterator))
       0)
   (qq do
@@ -288,7 +289,7 @@ returned. Otherwise, the second is returned.
 @param T    The type node.
 |#
 (def-concept-macro max extern ((T LessThanComparable))
-  (if (exists-fn (qq (uq T) max (uq T) (uq T)))
+  (if (exists-fn mcontext (qq (uq T) max (uq T) (uq T)))
       (return (nullptr DNode))
       0)
   (qq do
@@ -306,7 +307,7 @@ returned. Otherwise, the second is returned.
 @param T    The type node.
 |#
 (def-concept-macro min extern ((T LessThanComparable))
-  (if (exists-fn (qq (uq T) min (uq T) (uq T)))
+  (if (exists-fn mcontext (qq (uq T) min (uq T) (uq T)))
       (return (nullptr DNode))
       0)
   (qq do

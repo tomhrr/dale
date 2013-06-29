@@ -12,11 +12,11 @@
     (strcat buf (@ (:@ frm-name token-str)))
     (def name-node (var auto (p DNode) (mnfv mcontext buf)))
 
-    (if (not (exists-type name-node))
+    (if (not (exists-type mcontext name-node))
         (do (def v (var auto (array-of 100 char)))
             (sprintf v "type %s has no corresponding list type" 
                        (@ (:@ frm-name token-str)))
-            (report-error frm-name v)
+            (report-error mcontext frm-name v)
             (cast 0 (p DNode)))
         name-node)))
 

@@ -4,10 +4,10 @@
 (using-namespace std.macros
 (def print-struct-names
   (macro intern (fn)
-    (let ((n   int (struct-member-count fn))
+    (let ((n   int (struct-member-count mcontext fn))
           (i   int 0))
       (for true (< i n) (incv i)
-        (printf "%s\n" (struct-member-name fn i))))
+        (printf "%s\n" (struct-member-name mcontext fn i))))
     (mnfv mcontext "0")))
 )
 

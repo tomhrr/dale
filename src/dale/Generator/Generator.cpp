@@ -90,166 +90,201 @@ const char *core_forms_no[32] = {
 std::vector<dale::Element::Function*> global_functions;
 std::vector<llvm::BasicBlock*>        global_blocks;
 
-dale::Generator         *global_generator;
 dale::Element::Function *global_function;
 llvm::BasicBlock        *global_block;
 
 extern "C" {
-    int types_2D_equal(DNode *T1, DNode *T2)
+    int types_2D_equal(MContext *mc, DNode *T1, DNode *T2)
     {
-        return global_generator->typesEqual(T1, T2);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->typesEqual(T1, T2);
     }
 
-    int is_2D_char_2D_type(DNode *dnode)
+    int is_2D_char_2D_type(MContext *mc, DNode *dnode)
     {
-        return global_generator->isCharType(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->isCharType(dnode);
     }
 
-    int is_2D_integer_2D_type(DNode *dnode)
+    int is_2D_integer_2D_type(MContext *mc, DNode *dnode)
     {
-        return global_generator->isIntegerType(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->isIntegerType(dnode);
     }
 
-    int is_2D_signed_2D_integer_2D_type(DNode *dnode)
+    int is_2D_signed_2D_integer_2D_type(MContext *mc, DNode *dnode)
     {
-        return global_generator->isSignedIntegerType(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->isSignedIntegerType(dnode);
     }
 
-    int is_2D_unsigned_2D_integer_2D_type(DNode *dnode)
+    int is_2D_unsigned_2D_integer_2D_type(MContext *mc, DNode *dnode)
     {
-        return global_generator->isUnsignedIntegerType(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->isUnsignedIntegerType(dnode);
     }
 
-    int is_2D_floating_2D_point_2D_type(DNode *dnode)
+    int is_2D_floating_2D_point_2D_type(MContext *mc, DNode *dnode)
     {
-        return global_generator->isFloatingPointType(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->isFloatingPointType(dnode);
     }
 
-    int is_2D_pointer_2D_type(DNode *dnode)
+    int is_2D_pointer_2D_type(MContext *mc, DNode *dnode)
     {
-        return global_generator->isPointerType(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->isPointerType(dnode);
     }
 
-    int is_2D_pointer_2D_to_2D_type(DNode *dnode, DNode *pointee_type)
+    int is_2D_pointer_2D_to_2D_type(MContext *mc, DNode *dnode, 
+                                    DNode *pointee_type)
     {
-        return global_generator->isPointerToType(dnode, pointee_type);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->isPointerToType(dnode, pointee_type);
     }
 
-    DNode *pointee_2D_type(DNode *dnode)
+    DNode *pointee_2D_type(MContext *mc, DNode *dnode)
     {
-        return global_generator->pointeeType(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->pointeeType(dnode);
     }
 
-    bool has_2D_errors(DNode *dnode)
+    bool has_2D_errors(MContext *mc, DNode *dnode)
     {
-        return global_generator->hasErrors(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->hasErrors(dnode);
     }
 
-    bool must_2D_init(DNode *dnode)
+    bool must_2D_init(MContext *mc, DNode *dnode)
     {
-        return global_generator->mustInit(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->mustInit(dnode);
     }
 
-    bool is_2D_const(DNode *dnode)
+    bool is_2D_const(MContext *mc, DNode *dnode)
     {
-        return global_generator->isConst(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->isConst(dnode);
     }
 
-    int fn_2D_by_2D_args_2D_count(DNode *dnode, const char *prefix)
+    int fn_2D_by_2D_args_2D_count(MContext *mc, DNode *dnode, 
+                                  const char *prefix)
     {
-        return global_generator->fnByArgsCount(dnode, prefix);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->fnByArgsCount(dnode, prefix);
     }
 
-    const char* fn_2D_by_2D_args_2D_name(DNode *dnode, int acount)
+    const char* fn_2D_by_2D_args_2D_name(MContext *mc, DNode *dnode, 
+                                         int acount)
     {
-        return global_generator->fnByArgsName(dnode, acount);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->fnByArgsName(dnode, acount);
     }
 
-    bool register_2D_type(const char *buf1, const char *buf2)
+    bool register_2D_type(MContext *mc, const char *buf1, const char *buf2)
     {
         dale::addTypeMapEntry(buf1, buf2);
         return true;
     }
 
-    DNode *type_2D_of(DNode *dnode)
+    DNode *type_2D_of(MContext *mc, DNode *dnode)
     {
-        return global_generator->typeOf(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->typeOf(dnode);
     }
 
-    const char *printf_2D_length(DNode *dnode)
+    const char *printf_2D_length(MContext *mc, DNode *dnode)
     {
-        return global_generator->printfLength(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->printfLength(dnode);
     }
 
-    int type_2D_to_2D_string(DNode *dnode, char *buf)
+    int type_2D_to_2D_string(MContext *mc, DNode *dnode, char *buf)
     {
-        return global_generator->typeToString(dnode, buf);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->typeToString(dnode, buf);
     }
 
-    int type_2D_to_2D_display_2D_string(DNode *dnode, char *buf)
+    int type_2D_to_2D_display_2D_string(MContext *mc, DNode *dnode, char *buf)
     {
-        return global_generator->typeToDisplayString(dnode, buf);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->typeToDisplayString(dnode, buf);
     }
 
-    int report_2D_error(DNode *dnode, char *str)
+    int report_2D_error(MContext *mc, DNode *dnode, char *str)
     {
-        global_generator->reportError(dnode, str);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        g->reportError(dnode, str);
         return 1;
     }
 
-    int exists_2D_fn(DNode *dnode)
+    int exists_2D_fn(MContext *mc, DNode *dnode)
     {
-        return global_generator->existsFunction(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->existsFunction(dnode);
     }
 
-    int exists_2D_type(DNode *dnode)
+    int exists_2D_type(MContext *mc, DNode *dnode)
     {
-        return global_generator->existsType(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->existsType(dnode);
     }
 
-    int exists_2D_macro(DNode *dnode)
+    int exists_2D_macro(MContext *mc, DNode *dnode)
     {
-        return global_generator->existsMacro(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->existsMacro(dnode);
     }
 
-    int exists_2D_macro_2D_exact(DNode *dnode)
+    int exists_2D_macro_2D_exact(MContext *mc, DNode *dnode)
     {
-        return global_generator->existsMacroExact(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->existsMacroExact(dnode);
     }
 
-    int exists_2D_variable(DNode *dnode)
+    int exists_2D_variable(MContext *mc, DNode *dnode)
     {
-        return global_generator->existsVariable(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->existsVariable(dnode);
     }
 
-    DNode *codomain(DNode *dnode)
+    DNode *codomain(MContext *mc, DNode *dnode)
     {
-        return global_generator->codomain(dnode);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->codomain(dnode);
     }
 
-    DNode *input_2D_type(DNode *fn_name, int arg_count)
+    DNode *input_2D_type(MContext *mc, DNode *fn_name, int arg_count)
     {
-        return global_generator->inputType(fn_name, arg_count);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->inputType(fn_name, arg_count);
     }
 
-    DNode *struct_2D_member_2D_type(DNode *struct_name_node, int arg_count)
+    DNode *struct_2D_member_2D_type(MContext *mc, 
+                                    DNode *struct_name_node, int arg_count)
     {
-        return global_generator->structMemberType(struct_name_node, arg_count);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->structMemberType(struct_name_node, arg_count);
     }
 
-    const char *struct_2D_member_2D_name(DNode *struct_name_node, int arg_count)
+    const char *struct_2D_member_2D_name(MContext *mc, 
+                                         DNode *struct_name_node, 
+                                         int arg_count)
     {
-        return global_generator->structMemberName(struct_name_node, arg_count);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->structMemberName(struct_name_node, arg_count);
     }
 
-    int arity(DNode *fn_name)
+    int arity(MContext *mc, DNode *fn_name)
     {
-        return global_generator->arity(fn_name);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->arity(fn_name);
     }
 
-    int struct_2D_member_2D_count(DNode *struct_name_node)
+    int struct_2D_member_2D_count(MContext *mc, DNode *struct_name_node)
     {
-        return global_generator->structMemberCount(struct_name_node);
+        dale::Generator *g = (dale::Generator*) mc->generator;
+        return g->structMemberCount(struct_name_node);
     }
 }
 
@@ -267,124 +302,148 @@ int isValidModuleName(std::string *str)
     return 1;
 }
 
-bool typesEqualExternal(DNode *T1, DNode *T2)
+bool typesEqualExternal(MContext *mc, DNode *T1, DNode *T2)
 {
-    return global_generator->typesEqual(T1, T2);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->typesEqual(T1, T2);
 }
 
-DNode *typeOfExternal(DNode *dnode)
+DNode *typeOfExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->typeOf(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->typeOf(dnode);
 }
 
-const char *printfLengthExternal(DNode *dnode)
+const char *printfLengthExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->printfLength(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->printfLength(dnode);
 }
 
-bool typeToStringExternal(DNode *dnode, char *buf)
+bool typeToStringExternal(MContext *mc, DNode *dnode, char *buf)
 {
-    return global_generator->typeToString(dnode, buf);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->typeToString(dnode, buf);
 }
 
-bool typeToDisplayStringExternal(DNode *dnode, char *buf)
+bool typeToDisplayStringExternal(MContext *mc, DNode *dnode, char *buf)
 {
-    return global_generator->typeToDisplayString(dnode, buf);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->typeToDisplayString(dnode, buf);
 }
 
-bool existsFunctionExternal(DNode *dnode)
+bool existsFunctionExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->existsFunction(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->existsFunction(dnode);
 }
 
-bool hasErrorsExternal(DNode *dnode)
+bool hasErrorsExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->hasErrors(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->hasErrors(dnode);
 }
 
-bool mustInitExternal(DNode *dnode)
+bool mustInitExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->mustInit(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->mustInit(dnode);
 }
 
-bool isConstExternal(DNode *dnode)
+bool isConstExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->isConst(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->isConst(dnode);
 }
 
-int fnByArgsCountExternal(DNode *dnode, const char *prefix)
+int fnByArgsCountExternal(MContext *mc, DNode *dnode, const char *prefix)
 {
-    return global_generator->fnByArgsCount(dnode, prefix);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->fnByArgsCount(dnode, prefix);
 }
 
-const char *fnByArgsNameExternal(DNode *dnode, int acount)
+const char *fnByArgsNameExternal(MContext *mc, DNode *dnode, int acount)
 {
-    return global_generator->fnByArgsName(dnode, acount);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->fnByArgsName(dnode, acount);
 }
 
-bool existsTypeExternal(DNode *dnode)
+bool existsTypeExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->existsType(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->existsType(dnode);
 }
 
-bool existsVariableExternal(DNode *dnode)
+bool existsVariableExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->existsVariable(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->existsVariable(dnode);
 }
 
-bool existsMacroExternal(DNode *dnode)
+bool existsMacroExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->existsMacro(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->existsMacro(dnode);
 }
 
-bool existsMacroExactExternal(DNode *dnode)
+bool existsMacroExactExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->existsMacroExact(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->existsMacroExact(dnode);
 }
 
-void reportErrorExternal(DNode *dnode, char *str)
+void reportErrorExternal(MContext *mc, DNode *dnode, char *str)
 {
-    return global_generator->reportError(dnode, str);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->reportError(dnode, str);
 }
 
-bool isCharTypeExternal(DNode *dnode)
+bool isCharTypeExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->isCharType(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->isCharType(dnode);
 }
 
-bool isIntegerTypeExternal(DNode *dnode)
+bool isIntegerTypeExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->isIntegerType(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->isIntegerType(dnode);
 }
 
-bool isSignedIntegerTypeExternal(DNode *dnode)
+bool isSignedIntegerTypeExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->isSignedIntegerType(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->isSignedIntegerType(dnode);
 }
 
-bool isUnsignedIntegerTypeExternal(DNode *dnode)
+bool isUnsignedIntegerTypeExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->isUnsignedIntegerType(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->isUnsignedIntegerType(dnode);
 }
 
-bool isFloatingPointTypeExternal(DNode *dnode)
+bool isFloatingPointTypeExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->isFloatingPointType(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->isFloatingPointType(dnode);
 }
 
-bool isPointerTypeExternal(DNode *dnode)
+bool isPointerTypeExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->isPointerType(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->isPointerType(dnode);
 }
 
-bool isPointerToTypeExternal(DNode *dnode, DNode *ptype)
+bool isPointerToTypeExternal(MContext *mc, DNode *dnode, DNode *ptype)
 {
-    return global_generator->isPointerToType(dnode, ptype);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->isPointerToType(dnode, ptype);
 }
 
-DNode *pointeeTypeExternal(DNode *dnode)
+DNode *pointeeTypeExternal(MContext *mc, DNode *dnode)
 {
-    return global_generator->pointeeType(dnode);
+    dale::Generator *g = (dale::Generator*) mc->generator;
+    return g->pointeeType(dnode);
 }
 
 void failedDaleToLLVMTypeConversion(Element::Type *type)
@@ -1256,7 +1315,6 @@ int Generator::run(std::vector<const char *> *filenames,
     }
 
     llvm::Module *last_module = NULL;
-    global_generator = this;
     global_function  = NULL;
     global_block     = NULL;
 

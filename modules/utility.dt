@@ -12,19 +12,19 @@ algorithm modules.
 (import concepts)
 (import ctype)
 
-(def tts (fn intern bool ((T (p DNode)) (buf (p char)))
+(def tts (fn intern bool ((mc (p MContext)) (T (p DNode)) (buf (p char)))
   (if (and (= 0 (@:@ T is-list))
            (std.isdigit (@ (@:@ T token-str))))
       (do (sprintf buf "%s" (@:@ T token-str))
           true)
-      (type-to-string T buf))))
+      (type-to-string mc T buf))))
 
-(def ttds (fn intern bool ((T (p DNode)) (buf (p char)))
+(def ttds (fn intern bool ((mc (p MContext)) (T (p DNode)) (buf (p char)))
   (if (and (= 0 (@:@ T is-list))
            (std.isdigit (@ (@:@ T token-str))))
       (do (sprintf buf "%s" (@:@ T token-str))
           true)
-      (type-to-display-string T buf))))
+      (type-to-display-string mc T buf))))
 
 #|
 @fn make-type-string
@@ -34,17 +34,19 @@ node, to the provided buffer. If the type node is a token that begins
 with a digit, then the token's contents are written to the buffer
 instead.
 
+@param mc       An MContext.
 @param prefix   The type string prefix.
 @param T        The type node.
 @param buf      The buffer for the type string.
 |#
 (def make-type-string
-  (fn extern bool ((prefix (const (p char)))
+  (fn extern bool ((mc (p MContext))
+                   (prefix (const (p char)))
                    (T (p DNode))
                    (buf (p char)))
     (let ((tstr1 (array-of 250 char)))
       (setf ($ tstr1 0) #\NULL)
-      (and (not (tts T tstr1))
+      (and (not (tts mc T tstr1))
            (return false))
       (sprintf buf "%s%s" prefix tstr1)
       true)))
@@ -55,13 +57,15 @@ instead.
 As per the earlier implementation, except that it takes two type
 nodes.
 
+@param mc       An MContext.
 @param prefix   The type string prefix.
 @param T1       The first type node.
 @param T2       The second type node.
 @param buf      The buffer for the type string.
 |#
 (def make-type-string
-  (fn extern bool ((prefix (const (p char)))
+  (fn extern bool ((mc (p MContext))
+                   (prefix (const (p char)))
                    (T1 (p DNode))
                    (T2 (p DNode))
                    (buf (p char)))
@@ -69,9 +73,9 @@ nodes.
           (tstr2 (array-of 250 char)))
       (setf ($ tstr1 0) #\NULL)
       (setf ($ tstr2 0) #\NULL)
-      (and (not (tts T1 tstr1))
+      (and (not (tts mc T1 tstr1))
            (return false))
-      (and (not (tts T2 tstr2))
+      (and (not (tts mc T2 tstr2))
            (return false))
       (sprintf buf "%s%s%s" prefix tstr1 tstr2)
       true)))
@@ -82,6 +86,7 @@ nodes.
 As per the earlier implementation, except that it takes three type
 nodes.
 
+@param mc       An MContext.
 @param prefix   The type string prefix.
 @param T1       The first type node.
 @param T2       The second type node.
@@ -89,7 +94,8 @@ nodes.
 @param buf      The buffer for the type string.
 |#
 (def make-type-string
-  (fn extern bool ((prefix (const (p char)))
+  (fn extern bool ((mc (p MContext))
+                   (prefix (const (p char)))
                    (T1 (p DNode))
                    (T2 (p DNode))
                    (T3 (p DNode))
@@ -100,11 +106,11 @@ nodes.
       (setf ($ tstr1 0) #\NULL)
       (setf ($ tstr2 0) #\NULL)
       (setf ($ tstr3 0) #\NULL)
-      (and (not (tts T1 tstr1))
+      (and (not (tts mc T1 tstr1))
            (return false))
-      (and (not (tts T2 tstr2))
+      (and (not (tts mc T2 tstr2))
            (return false))
-      (and (not (tts T3 tstr2))
+      (and (not (tts mc T3 tstr2))
            (return false))
       (sprintf buf "%s%s%s%s" prefix tstr1 tstr2 tstr3)
       true)))
@@ -116,17 +122,19 @@ Similar to `make-type-string`, except that it adds the display
 representation (i.e. the one set by way of `register-type`, if
 applicable) to the buffer, rather than the internal representation.
 
+@param mc       An MContext.
 @param prefix   The type display string prefix.
 @param T        The type node.
 @param buf      The buffer for the type display string.
 |#
 (def make-type-display-string
-  (fn extern bool ((prefix (const (p char)))
+  (fn extern bool ((mc (p MContext))
+                   (prefix (const (p char)))
                    (T (p DNode))
                    (buf (p char)))
     (let ((tstr1 (array-of 250 char)))
       (setf ($ tstr1 0) #\NULL)
-      (and (not (ttds T tstr1))
+      (and (not (ttds mc T tstr1))
            (return false))
       (sprintf buf "(%s %s)" prefix tstr1)
       true)))
@@ -137,13 +145,15 @@ applicable) to the buffer, rather than the internal representation.
 As per the earlier implementation, except that it takes two type
 nodes.
 
+@param mc       An MContext.
 @param prefix   The type display string prefix.
 @param T1       The first type node.
 @param T2       The second type node.
 @param buf      The buffer for the type display string.
 |#
 (def make-type-display-string
-  (fn extern bool ((prefix (const (p char)))
+  (fn extern bool ((mc (p MContext))
+                   (prefix (const (p char)))
                    (T1 (p DNode))
                    (T2 (p DNode))
                    (buf (p char)))
@@ -151,9 +161,9 @@ nodes.
           (tstr2 (array-of 250 char)))
       (setf ($ tstr1 0) #\NULL)
       (setf ($ tstr2 0) #\NULL)
-      (and (not (ttds T1 tstr1))
+      (and (not (ttds mc T1 tstr1))
            (return false))
-      (and (not (ttds T2 tstr2))
+      (and (not (ttds mc T2 tstr2))
            (return false))
       (sprintf buf "(%s %s %s)" prefix tstr1 tstr2)
       true)))
@@ -164,6 +174,7 @@ nodes.
 As per the earlier implementation, except that it takes two type
 nodes.
 
+@param mc       An MContext.
 @param prefix   The type display string prefix.
 @param T1       The first type node.
 @param T2       The second type node.
@@ -171,7 +182,8 @@ nodes.
 @param buf      The buffer for the type display string.
 |#
 (def make-type-display-string
-  (fn extern bool ((prefix (const (p char)))
+  (fn extern bool ((mc (p MContext))
+                   (prefix (const (p char)))
                    (T1 (p DNode))
                    (T2 (p DNode))
                    (T3 (p DNode))
@@ -182,11 +194,11 @@ nodes.
       (setf ($ tstr1 0) #\NULL)
       (setf ($ tstr2 0) #\NULL)
       (setf ($ tstr3 0) #\NULL)
-      (and (not (ttds T1 tstr1))
+      (and (not (ttds mc T1 tstr1))
            (return false))
-      (and (not (ttds T2 tstr2))
+      (and (not (ttds mc T2 tstr2))
            (return false))
-      (and (not (ttds T3 tstr3))
+      (and (not (ttds mc T3 tstr3))
            (return false))
       (sprintf buf "(%s %s %s %s)" prefix tstr1 tstr2 tstr3)
       true)))
@@ -205,7 +217,7 @@ the argument type.
 (def Iterator
   (macro extern (T)
     (let ((typename (array-of 250 char)))
-      (and (not (make-type-string "iterator" T typename))
+      (and (not (make-type-string mcontext "iterator" T typename))
            (return (nullptr DNode)))
       (def n (var auto (p DNode) (mnfv mcontext typename)))
       (return n))))
@@ -221,7 +233,7 @@ the argument type.
 (def ReverseIterator
   (macro extern (T)
     (let ((typename (array-of 250 char)))
-      (and (not (make-type-string "riterator" T typename))
+      (and (not (make-type-string mcontext "riterator" T typename))
            (return (nullptr DNode)))
       (def n (var auto (p DNode) (mnfv mcontext typename)))
       (return n))))
@@ -238,12 +250,12 @@ Expands to a struct definition with two members, named `first` and
 (def-concept-macro Pair extern ((T1 Type) (T2 Type))
   (let ((typename (array-of 250 char))
         (etypename (array-of 250 char)))
-    (and (not (make-type-string "pair" T1 T2 typename))
+    (and (not (make-type-string mcontext "pair" T1 T2 typename))
          (return (nullptr DNode)))
-    (and (not (make-type-display-string "Pair" T1 T2 etypename))
+    (and (not (make-type-display-string mcontext "Pair" T1 T2 etypename))
          (return (nullptr DNode)))
-    (register-type typename etypename)
-    (if (exists-type (qq Pair (uq T1) (uq T2)))
+    (register-type mcontext typename etypename)
+    (if (exists-type mcontext (qq Pair (uq T1) (uq T2)))
         (do (return (nullptr DNode)) 0)
         0)
     (def n (var auto (p DNode) (mnfv mcontext typename)))
@@ -262,7 +274,7 @@ the concept macro.
 (def Pair
   (macro extern (T1 T2)
     (let ((typename (array-of 250 char)))
-      (and (not (make-type-string "pair" T1 T2 typename))
+      (and (not (make-type-string mcontext "pair" T1 T2 typename))
            (return (nullptr DNode)))
       (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
       (return n))))
@@ -280,11 +292,11 @@ Expands to a struct definition with three members, named `first`,
 (def-concept-macro Triple extern ((T1 Type) (T2 Type) (T3 Type))
   (let ((typename  (array-of 250 char))
         (etypename (array-of 250 char)))
-    (and (not (make-type-string "triple" T1 T2 T3 typename))
+    (and (not (make-type-string mcontext "triple" T1 T2 T3 typename))
          (return (nullptr DNode)))
-    (and (not (make-type-display-string "Triple" T1 T2 T3 etypename))
+    (and (not (make-type-display-string mcontext "Triple" T1 T2 T3 etypename))
          (return (nullptr DNode)))
-    (register-type typename etypename)
+    (register-type mcontext typename etypename)
     (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
     (qq def (uq n)
       (struct extern ((first (uq T1)) (second (uq T2)) (third (uq T3)))))))
@@ -302,7 +314,7 @@ the concept macro.
 (def Triple
   (macro extern (T1 T2 T3)
     (let ((typename (array-of 250 char)))
-      (and (not (make-type-string "triple" T1 T2 T3 typename))
+      (and (not (make-type-string mcontext "triple" T1 T2 T3 typename))
            (return (nullptr DNode)))
       (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
       (return n))))

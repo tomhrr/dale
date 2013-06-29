@@ -7,9 +7,9 @@
                  fn1
                  fn2
                  first-arg)
-    (let ((fn1-ret-type (p DNode) (codomain (qq (uq fn1) 
+    (let ((fn1-ret-type (p DNode) (codomain mcontext (qq (uq fn1) 
                                                 (uq first-arg))))
-          (fn2-ret-type (p DNode) (codomain (qq (uq fn2) 
+          (fn2-ret-type (p DNode) (codomain mcontext (qq (uq fn2) 
                                                 (uq fn1-ret-type)))))
       (bqq def (uq new-name)
         (fn extern (uq fn2-ret-type) ((n (uq first-arg)))
