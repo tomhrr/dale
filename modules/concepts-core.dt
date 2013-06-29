@@ -219,7 +219,7 @@ constructed by way of `def-concept-macro`.
                     (bqq namespace bling2))))
         true)
 
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
     (setv arg-count (- arg-count 3))
     (get-varargs-list)
 
@@ -301,7 +301,7 @@ body may (generally, will) add errors if its requirements are not met.
   (macro extern (concept-name-node ...)
     (def concept-name 
       (var auto (p char) (@:@ concept-name-node token-str)))
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
     (setv arg-count (- arg-count 1))
     (get-varargs-list)
     (def macro-name
@@ -546,7 +546,7 @@ arguments.
 |#
 (def def-concept-macro
   (macro extern (macro-name linkage macro-types ...)
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
     (setv arg-count (- arg-count 3))
     (get-varargs-list)
     (let ((newname (array-of 255 char)))
@@ -780,7 +780,7 @@ expands into a series of bindings; for example, `Vector`.
 |#
 (def instantiate
   (macro extern (macro-name ...)
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
     (setv arg-count (- arg-count 1))
     (def pre-arg-count (var auto \ arg-count))
     (get-varargs-list)

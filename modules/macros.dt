@@ -36,7 +36,7 @@ be used again.
 
 |#
 (def qq (macro extern (frm ...)
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
     (setv arg-count (- arg-count 1))
     (def myargcount (var auto int arg-count))
 

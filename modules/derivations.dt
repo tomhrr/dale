@@ -19,7 +19,7 @@ the `swap` function.
 
 (def setf-dsref-mul
   (macro intern (struct-name ...)
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
     (setv arg-count (- arg-count 1))
 
     (def nullp (var auto (p DNode) (cast 0 (p DNode))))

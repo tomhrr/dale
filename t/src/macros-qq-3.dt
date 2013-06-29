@@ -4,7 +4,7 @@
 (using-namespace std.macros
 (def wrap-body
   (macro intern (...)
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
     (def arglist (var auto va-list))
     (va-start (cast (# arglist) (p void)))
     (def arg-array 

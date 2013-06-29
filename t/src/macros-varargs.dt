@@ -9,7 +9,7 @@
     (def my-sum    (var auto int 0))
 
     (va-start (cast (# arglist) (p void)))
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
 
     (label begin-loop)
       (if (= 0 arg-count)

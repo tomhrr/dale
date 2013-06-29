@@ -947,7 +947,7 @@ used again.
 
 |#
 (def bqq (macro extern (frm ...)
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
 
     (setv arg-count (- arg-count 1))
     (def myargcount (var auto int arg-count))
@@ -991,7 +991,7 @@ deducted from `arg-count` prior to it being called.
 |#
 (def get-varargs-array
   (macro extern (void)
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
     (def begin-label
         (var auto (p DNode) (make-gensym-label-node mcontext "beginlabel")))
     (def end-label
@@ -1030,7 +1030,7 @@ together, as per `link-nodes`. A binding for the first node,
 |#
 (def get-varargs-list
   (macro extern (void)
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
     (def begin-label
         (var auto (p DNode) (make-gensym-label-node mcontext "beginlabel")))
     (def end-label

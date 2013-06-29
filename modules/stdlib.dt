@@ -25,7 +25,7 @@ is `(@:@ (@:@ structp member1) member2)`.
 |#
 (def @:'
   (macro extern (structp member ...)
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
     (setv arg-count (- arg-count 2))
     (def myargcount (var auto int arg-count))
 
@@ -144,7 +144,7 @@ for so long as the condition expression evaluates to `true`.
 |#
 (def while
   (macro extern (condition ...)
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
 
     (setv arg-count (- arg-count 1))
     (get-varargs-list)
@@ -231,7 +231,7 @@ expression evaluates to true.
 |#
 (def for
   (macro extern (init-form condition loop-entry ...)
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
     (setv arg-count (- arg-count 3))
     (get-varargs-list)
 
@@ -282,7 +282,7 @@ expands to:
 |#
 (def let
   (macro extern (new-vars ...)
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
     (setv arg-count (- arg-count 1))
     (get-varargs-list)
 
@@ -486,7 +486,7 @@ expands to:
 |#
 (def mfor
   (macro extern (value-name value-list ...)
-    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+    (def arg-count (var auto \ (arg-count mcontext)))
     (setv arg-count (- arg-count 2))
     (get-varargs-list)
     (let ((first-node \ (mnfv mcontext "do"))

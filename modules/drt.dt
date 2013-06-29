@@ -30,7 +30,7 @@ implicitly where necessary.
                   (last-node (p PoolNode)))))
 
 (def MContext
-  (struct extern ((arg-count int)
+  (struct opaque ((arg-count int)
                   (pool-node (p PoolNode))
                   (generator (p void)))))
 
@@ -76,3 +76,7 @@ implicitly where necessary.
 (def pool-free 
   (fn _extern-weak void ((mcontext (p MContext))) 
     (pool-free_ (@:@ mcontext pool-node))))
+
+(def arg-count
+  (fn _extern-weak int ((mcontext (p MContext)))
+    (@:@ mcontext arg-count)))
