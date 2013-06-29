@@ -45,7 +45,7 @@ the concept macro.
     (let ((typename (array-of 250 char)))
       (and (not (make-type-string "set" T typename))
            (return T))
-      (def n (var auto (p DNode) (std.macros.mnfv pool typename)))
+      (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
       (return n))))
 
 (using-namespace std.macros
@@ -76,8 +76,8 @@ must also implement `LessThanComparable`.
     (and (not (make-type-display-string "Set" T etypename))
          (return (nullptr DNode)))
 
-    (def typenode     (var auto (p DNode) (std.macros.mnfv pool typename)))
-    (def nodetypenode (var auto (p DNode) (std.macros.mnfv pool nodetypename)))
+    (def typenode     (var auto (p DNode) (std.macros.mnfv mcontext typename)))
+    (def nodetypenode (var auto (p DNode) (std.macros.mnfv mcontext nodetypename)))
     (register-type typename etypename)
 
     (qq do

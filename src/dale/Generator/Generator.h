@@ -75,6 +75,13 @@ struct PoolNode
 
 int pool_free(PoolNode *pool_node);
 
+struct MContext
+{
+    int      arg_count;
+    PoolNode *pool_node;
+    void     *generator;
+};
+
 namespace dale
 {
 enum Produce {

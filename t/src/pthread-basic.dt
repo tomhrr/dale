@@ -10,7 +10,7 @@
 
 (def pt-count
   (macro intern (void)
-    (std.macros.mnfv pool "100")))
+    (std.macros.mnfv mcontext "100")))
 
 (def main
   (fn extern-c int (void)

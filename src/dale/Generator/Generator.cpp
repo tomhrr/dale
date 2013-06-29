@@ -3094,24 +3094,15 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
 
     bool varargs = false;
 
-    /* An implicit int argument is added to every macro. This
-     * argument (arg-count) is an int containing the number of
-     * arguments that were passed to the macro. (This could be
-     * dropped for non-varargs macros if necessary.) */
-
-    var = new Element::Variable((char*)"arg-count", type_int);
-    var->linkage = Linkage::Auto;
-    mc_args_internal->push_back(var);
-
-    /* An implicit pool argument is also added. */
+    /* An implicit MContext argument is added to every macro. */
 
     Element::Type *pst = new Element::Type();
-    pst->struct_name = new std::string("PoolNode");
+    pst->struct_name = new std::string("MContext");
     pst->namespaces  = new std::vector<std::string>;
 
     Element::Type *ptt = new Element::Type(pst);
     Element::Variable *var1 = new Element::Variable(
-        (char*)"pool", ptt
+        (char*)"mcontext", ptt
     );
     var1->linkage = Linkage::Auto;
     mc_args_internal->push_back(var1);
@@ -3167,10 +3158,9 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
 
     std::vector<llvm::Type*> mc_args;
 
-    /* Convert to llvm args. The first two arguments are converted
-     * as per their actual type. The remaining arguments,
-     * notwithstanding the macro argument's 'actual' type, will
-     * always be (p DNode)s. */
+    /* Convert to llvm args. The MContext argument is converted as per
+     * its actual type. The remaining arguments, notwithstanding the
+     * macro argument's 'actual' type, will always be (p DNode)s. */
 
     std::vector<Element::Variable *>::iterator iter;
     iter = mc_args_internal->begin();
@@ -3183,7 +3173,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
             varargs = true;
             break;
         }
-        if (count <= 1) {
+        if (count == 0) {
             temp = toLLVMType((*iter)->type, NULL, false);
             if (!temp) {
                 failedDaleToLLVMTypeConversion((*iter)->type);
@@ -5994,7 +5984,6 @@ ParseResult *Generator::parseAddressOf(Element::Function *dfn,
                         std::vector<Element::Variable *>::iterator viter;
                         viter = closest_fn->parameter_types->begin();
                         if (closest_fn->is_macro) {
-                            ++viter;
                             ++viter;
                         }
                         while (viter != closest_fn->parameter_types->end()) {
@@ -11181,7 +11170,7 @@ past_sl_parse:
 
     Node* (dale::Generator::* core_mac)(Node *n);
 
-    core_mac = (eq("setv"))   ? &dale::Generator::parseSetv
+    core_mac =   (eq("setv"))   ? &dale::Generator::parseSetv
                : (eq("@$"))     ? &dale::Generator::parseArrayDeref
                : (eq(":@"))     ? &dale::Generator::parseDerefStruct
                : (eq("@:"))     ? &dale::Generator::parseStructDeref
@@ -11383,7 +11372,7 @@ void Generator::setPdnode()
     }
 }
 
-DNode *callmacro(int arg_count, void *mac, DNode **dnodes)
+DNode *callmacro(int arg_count, void *gen, void *mac, DNode **dnodes)
 {
     ffi_type **args =
         (ffi_type **) malloc(arg_count * sizeof(ffi_type *));
@@ -11391,21 +11380,25 @@ DNode *callmacro(int arg_count, void *mac, DNode **dnodes)
         (void **)     malloc(arg_count * sizeof(void *));
     PoolNode *pn =
         (PoolNode *)  malloc(sizeof(PoolNode));
+    MContext *mc =
+        (MContext *)  malloc(sizeof(MContext));
 
     memset(pn, 0, sizeof(PoolNode));
-    args[0] = &ffi_type_sint32;
-    args[1] = &ffi_type_pointer;
+    memset(mc, 0, sizeof(MContext));
+    args[0] = &ffi_type_pointer;
+    vals[0] = (void*) &mc;
 
-    int actual_arg_count = arg_count - 2;
-    vals[0] = (void*) &actual_arg_count;
-    vals[1] = (void*) &pn;
+    int actual_arg_count = arg_count - 1;
+    mc->arg_count = actual_arg_count;
+    mc->pool_node = pn;
+    mc->generator = gen;
 
     int i;
-    for (i = 2; i < arg_count; i++) {
+    for (i = 1; i < arg_count; i++) {
         args[i] = &ffi_type_pointer;
     }
-    for (i = 2; i < arg_count; i++) {
-        vals[i] = (void *) &(dnodes[i - 2]);
+    for (i = 1; i < arg_count; i++) {
+        vals[i] = (void *) &(dnodes[i - 1]);
     }
 
     ffi_cif cif;
@@ -11479,16 +11472,15 @@ Node *Generator::parseMacroCall(Node *n,
     }
 
     /* Used to be -1 for lst->size() here, but isn't anymore,
-     * because of the implicit arg-count variable that is passed
-     * to each macro. (This is also why the args to the errors
-     * have 1 subtracted from them.) */
+     * because of the implicit MContext variable that is passed
+     * to each macro. */
 
     if (mc->isVarArgs()) {
-        if ((lst->size() + 1) < mc->numberOfRequiredArgs()) {
+        if ((lst->size()) < mc->numberOfRequiredArgs()) {
             char buf1[100];
             char buf2[100];
-            sprintf(buf1, "%d", (int) (lst->size() - 1));
-            sprintf(buf2, "%d", (mc->numberOfRequiredArgs() - 2));
+            sprintf(buf1, "%d", (int) (lst->size()));
+            sprintf(buf2, "%d", (mc->numberOfRequiredArgs() - 1));
             Error *e = new Error(
                 ErrorInst::Generator::IncorrectMinimumNumberOfArgs,
                 n,
@@ -11498,11 +11490,11 @@ Node *Generator::parseMacroCall(Node *n,
             return NULL;
         }
     } else {
-        if ((lst->size() + 1) != mc->numberOfRequiredArgs()) {
+        if ((lst->size()) != mc->numberOfRequiredArgs()) {
             char buf1[100];
             char buf2[100];
-            sprintf(buf1, "%d", (int) (lst->size() - 1));
-            sprintf(buf2, "%d", (mc->numberOfRequiredArgs() - 2));
+            sprintf(buf1, "%d", (int) (lst->size()));
+            sprintf(buf2, "%d", (mc->numberOfRequiredArgs() - 1));
             Error *e = new Error(
                 ErrorInst::Generator::IncorrectNumberOfArgs,
                 n,
@@ -11519,8 +11511,7 @@ Node *Generator::parseMacroCall(Node *n,
 
     std::vector<Element::Variable *>::iterator var_iter;
     var_iter = mc->parameter_types->begin();
-    // Skip implicit int arg and the implicit pool arg. */
-    ++var_iter;
+    // Skip implicit MContext arg. */
     ++var_iter;
 
     std::vector<DNode *> dnodes_to_free;
@@ -11569,15 +11560,16 @@ Node *Generator::parseMacroCall(Node *n,
 
     /* Cast it to the correct type. */
 
-    DNode* (*FP)(int arg_count, void *mac_fn, DNode **dnodes) =
-        (DNode* (*)(int, void*, DNode**))callmacro_fptr;
+    DNode* (*FP)(int arg_count, void *gen, void *mac_fn, DNode **dnodes) =
+        (DNode* (*)(int, void*, void*, DNode**))callmacro_fptr;
 
     /* Get the returned dnode. */
 
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    DNode *mc_result_dnode = FP(myargs_count + 2,
+    DNode *mc_result_dnode = FP(myargs_count + 1,
+                                (void *) this,
                                 (char *) actualmacro_fptr,
                                 myargs);
 
@@ -11730,7 +11722,7 @@ Node *Generator::parseOptionalMacroCall(Node *n)
 
     Node* (dale::Generator::* core_mac)(Node *n);
 
-    core_mac = (eq("setv"))   ? &dale::Generator::parseSetv
+    core_mac =   (eq("setv"))   ? &dale::Generator::parseSetv
                : (eq("@$"))     ? &dale::Generator::parseArrayDeref
                : (eq(":@"))     ? &dale::Generator::parseDerefStruct
                : (eq("@:"))     ? &dale::Generator::parseStructDeref
@@ -12353,15 +12345,15 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
              * first (p DNode) argument), then short-circuit, so long
              * as the argument count is ok. */
             std::vector<Element::Variable*>::iterator
-                b = (fn->parameter_types->begin() + 2);
+                b = (fn->parameter_types->begin() + 1);
             if ((b == fn->parameter_types->end())
                     || (*b)->type->isEqualTo(type_pdnode)) {
                 bool use = false;
                 if (fn->isVarArgs()) {
-                    use = ((fn->numberOfRequiredArgs() - 2)
+                    use = ((fn->numberOfRequiredArgs() - 1)
                             <= (lst->size() - 1));
                 } else {
-                    use = ((fn->numberOfRequiredArgs() - 2)
+                    use = ((fn->numberOfRequiredArgs() - 1)
                             == (lst->size() - 1));
                 }
                 if (use) {
@@ -12711,7 +12703,6 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                 viter = closest_fn->parameter_types->begin();
                 if (closest_fn->is_macro) {
                     ++viter;
-                    ++viter;
                 }
                 while (viter != closest_fn->parameter_types->end()) {
                     (*viter)->type->toStringProper(&expected);
@@ -12876,10 +12867,10 @@ int Generator::parseFunctionBody(Element::Function *dfn,
         myvar->index = myvart->index;
         myvar->linkage = Linkage::Auto;
 
-        if (mcount >= 2 && dfn->is_macro) {
-            /* Macro arguments, past the first two, always have a
-             * type of (p DNode), notwithstanding that the type in
-             * the Element::Function can be anything (to support
+        if (mcount >= 1 && dfn->is_macro) {
+            /* Macro arguments, past the first, always have a type of
+             * (p DNode), notwithstanding that the type in the
+             * Element::Function can be anything (to support
              * overloading). */
             std::string mtype;
             myvar->type->toStringProper(&mtype);

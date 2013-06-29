@@ -11,6 +11,7 @@ Variable::Variable()
     has_initialiser = 0;
     index           = 0;
     serialise       = true;
+    linkage         = Linkage::Auto;
 }
 
 Variable::Variable(char *new_name, Element::Type *new_type)
@@ -21,6 +22,7 @@ Variable::Variable(char *new_name, Element::Type *new_type)
     internal_name = new std::string;
     has_initialiser = 0;
     index           = 0;
+    linkage         = Linkage::Auto;
 }
 
 Variable::~Variable()

@@ -7,10 +7,10 @@
     (if (exists-fn frm)
         (do (print frm)
             (printf " The function exists\n")
-            (mnfv pool "true"))
+            (mnfv mcontext "true"))
         (do (print frm)
             (printf " The function does not exist\n")
-            (mnfv pool "false")))))
+            (mnfv mcontext "false")))))
 )
 
 (def myfn

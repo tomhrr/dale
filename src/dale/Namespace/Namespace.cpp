@@ -123,10 +123,9 @@ Namespace::addFunction(const char *name,
                 function_pt_begin = function->parameter_types->begin(),
                 function_pt_end   = function->parameter_types->end();
             if (fn->is_macro) {
-                std::advance(fn_pt_begin, 2);
-            }
-            else {
-                std::advance(function_pt_begin, 2);
+                std::advance(fn_pt_begin, 1);
+            } else {
+                std::advance(function_pt_begin, 1);
             }
             if (dale::stl::isEqualToIter(function_pt_begin,
                                          function_pt_end,
@@ -293,11 +292,10 @@ Namespace::getFunction(const char *name,
         int broke_on_va       = 0;
         int broke_on_failure  = 0;
 
-        /* If this is a macro, then increment the function's
-            * parameter types iterator twice, to account for the
-            * implicit arguments. */
+        /* If this is a macro, then increment the function's parameter
+         * types iterator, to account for the implicit MContext
+         * argument. */
         if ((*fn_iter)->is_macro) {
-            ++fn_arg_type_iter;
             ++fn_arg_type_iter;
         }
 

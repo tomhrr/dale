@@ -3,7 +3,7 @@
 
 (def testmac
   (macro extern (void)
-    (std.macros.mnfv pool "")))
+    (std.macros.mnfv mcontext "")))
 
 (def main
   (fn extern-c int (void)

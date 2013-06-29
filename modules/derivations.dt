@@ -19,6 +19,7 @@ the `swap` function.
 
 (def setf-dsref-mul
   (macro intern (struct-name ...)
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
     (setv arg-count (- arg-count 1))
 
     (def nullp (var auto (p DNode) (cast 0 (p DNode))))
@@ -38,7 +39,7 @@ the `swap` function.
     (def sf-dnode (var auto (p DNode) (cast 0 (p DNode))))
     (def sv-dnode (var auto (p DNode) (cast 0 (p DNode))))
 
-    (def st-dnode (var auto (p DNode) (mnfv pool (@:@ struct-name token-str))))
+    (def st-dnode (var auto (p DNode) (mnfv mcontext (@:@ struct-name token-str))))
 
     (label begin-loop)
     (if (= arg-count 0)
@@ -76,7 +77,7 @@ the `swap` function.
     (va-end (cast (# arglist) (p void)))
 
     ; Create a 'do' node, link it to first-node.
-    (return (link-nodes-list pool 2 (mnfv pool "do") first-node))))
+    (return (link-nodes-list mcontext 2 (mnfv mcontext "do") first-node))))
 
 #|
 @concept-macro swap
@@ -171,13 +172,13 @@ macro.
 (def-concept-macro = extern ((T Struct))
   (let ((n int (struct-member-count T))
         (i int 0)
-        (holder-node  (p DNode) (make-node pool))
+        (holder-node  (p DNode) (make-node mcontext))
         (null-node    (p DNode) (cast 0 (p DNode)))
         (current-node (p DNode) null-node))
     
     (and (= n 0)
          (do (report-error T "struct has no members")
-             (return (mnfv pool "0"))))
+             (return (mnfv mcontext "0"))))
 
     (setf-dsref-mul 
       holder-node (is-list   1)
@@ -185,7 +186,7 @@ macro.
                   (next-node null-node))
       
     (for true (< i n) (incv i)
-      (let ((name (p DNode) (mnfv pool (struct-member-name T i)))
+      (let ((name (p DNode) (mnfv mcontext (struct-member-name T i)))
             (type (p DNode) (struct-member-type T i)))
         
         (and (not (exists-fn (bqq bool = (uq type) (uq type))))
@@ -199,7 +200,7 @@ macro.
                         "= not defined on struct member (type %s, name %s)" 
                         ts (@:@ name token-str))
                (report-error T stc)
-               (return (mnfv pool "0"))))
+               (return (mnfv mcontext "0"))))
 
         (let ((part (p DNode) 
                     (bqq and (= (@ (: a (uq name))) 
@@ -210,7 +211,7 @@ macro.
               (do (setv current-node (get-last-node (@:@ part list-node)))
                   (setf (:@ holder-node list-node) (@:@ part list-node)))))))
 
-    (setf (:@ current-node next-node) (mnfv pool "true"))
+    (setf (:@ current-node next-node) (mnfv mcontext "true"))
 
     (setv holder-node
       (bqq def = (fn extern bool ((a (uq T)) (b (uq T)))
@@ -230,13 +231,13 @@ macro.
 (def-concept-macro < extern ((T Struct))
   (let ((n int (struct-member-count T))
         (i int 0)
-        (holder-node  (p DNode) (make-node pool))
+        (holder-node  (p DNode) (make-node mcontext))
         (null-node    (p DNode) (cast 0 (p DNode)))
         (current-node (p DNode) null-node))
     
     (and (= n 0)
          (do (report-error T "struct has no members")
-             (return (mnfv pool "0"))))
+             (return (mnfv mcontext "0"))))
 
     (setf-dsref-mul 
       holder-node (is-list   1)
@@ -244,7 +245,7 @@ macro.
                   (next-node null-node))
       
     (for true (< i n) (incv i)
-      (let ((name (p DNode) (mnfv pool (struct-member-name T i)))
+      (let ((name (p DNode) (mnfv mcontext (struct-member-name T i)))
             (type (p DNode) (struct-member-type T i)))
         
         (and (not (exists-fn (bqq bool < (uq type) (uq type))))
@@ -258,7 +259,7 @@ macro.
                         "< not defined on struct member (type %s, name %s)" 
                         ts (:@ name token-str))
                (report-error T stc)
-               (return (mnfv pool "0"))))
+               (return (mnfv mcontext "0"))))
 
         (let ((part (p DNode) 
                     (bqq or (< (@ (: a (uq name))) 
@@ -269,7 +270,7 @@ macro.
               (do (setv current-node (get-last-node (@:@ part list-node)))
                   (setf (:@ holder-node list-node) (@:@ part list-node)))))))
 
-    (setf (:@ current-node next-node) (mnfv pool "false"))
+    (setf (:@ current-node next-node) (mnfv mcontext "false"))
 
     (setv holder-node
       (bqq def < (fn extern bool ((a (uq T)) (b (uq T)))
@@ -288,22 +289,22 @@ provided struct type. Any that have already been defined are skipped.
 (def-concept-macro relations extern ((T Struct))
   (let ((n=  (p DNode) (if (not (exists-fn (bqq bool = (uq T) (uq T))))
                  (bqq std.concepts.instantiate = (uq T))
-                 (mnfv pool "true")))
+                 (mnfv mcontext "true")))
         (n!= (p DNode) (if (not (exists-fn (bqq bool != (uq T) (uq T))))
                  (bqq std.concepts.instantiate != (uq T))
-                 (mnfv pool "true")))
+                 (mnfv mcontext "true")))
         (n< (p DNode) (if (not (exists-fn (bqq bool < (uq T) (uq T))))
                  (bqq std.concepts.instantiate < (uq T))
-                 (mnfv pool "true")))
+                 (mnfv mcontext "true")))
         (n<= (p DNode) (if (not (exists-fn (bqq bool <= (uq T) (uq T))))
                  (bqq std.concepts.instantiate <= (uq T))
-                 (mnfv pool "true")))
+                 (mnfv mcontext "true")))
         (n> (p DNode) (if (not (exists-fn (bqq bool > (uq T) (uq T))))
                  (bqq std.concepts.instantiate > (uq T))
-                 (mnfv pool "true")))
+                 (mnfv mcontext "true")))
         (n>= (p DNode) (if (not (exists-fn (bqq bool >= (uq T) (uq T))))
                  (bqq std.concepts.instantiate >= (uq T))
-                 (mnfv pool "true"))))
+                 (mnfv mcontext "true"))))
       (bqq do (uq n=) (uq n!=) (uq n<) (uq n<=) (uq n>) (uq n>=))))
 
 ))

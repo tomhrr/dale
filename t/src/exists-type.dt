@@ -7,10 +7,10 @@
     (if (exists-type frm)
         (do (print frm)
             (printf " The type exists\n")
-            (mnfv pool "true"))
+            (mnfv mcontext "true"))
         (do (print frm)
             (printf " The type does not exist\n")
-            (mnfv pool "false")))))
+            (mnfv mcontext "false")))))
 )
 
 (def main

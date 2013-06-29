@@ -7,10 +7,10 @@
     (if (exists-macro frm)
         (do (print frm)
             (printf " The macro exists\n")
-            (mnfv pool "true"))
+            (mnfv mcontext "true"))
         (do (print frm)
             (printf " The macro does not exist\n")
-            (mnfv pool "false")))))
+            (mnfv mcontext "false")))))
 
 (def myidentity
   (macro intern (f)

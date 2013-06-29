@@ -46,59 +46,59 @@
   (macro extern (void) (std.macros.qq  array-of 8 int64 )))
 
 (def PTHREAD_CREATE_JOINABLE
-  (macro extern (void)     (std.macros.mnfv pool "0")))
+  (macro extern (void)     (std.macros.mnfv mcontext "0")))
 (def PTHREAD_CREATE_DETACHED
-  (macro extern (void)     (std.macros.mnfv pool "1")))
+  (macro extern (void)     (std.macros.mnfv mcontext "1")))
 
 (def PTHREAD_MUTEX_TIMED_NP
-  (macro extern (void)     (std.macros.mnfv pool "0")))
+  (macro extern (void)     (std.macros.mnfv mcontext "0")))
 (def PTHREAD_MUTEX_RECURSIVE_NP
-  (macro extern (void)     (std.macros.mnfv pool "1")))
+  (macro extern (void)     (std.macros.mnfv mcontext "1")))
 (def PTHREAD_MUTEX_ERRORCHECK_NP
-  (macro extern (void)     (std.macros.mnfv pool "2")))
+  (macro extern (void)     (std.macros.mnfv mcontext "2")))
 (def PTHREAD_MUTEX_ADAPTIVE_NP
-  (macro extern (void)     (std.macros.mnfv pool "3")))
+  (macro extern (void)     (std.macros.mnfv mcontext "3")))
 (def PTHREAD_MUTEX_NORMAL
-  (macro extern (void)     (std.macros.mnfv pool "0")))
+  (macro extern (void)     (std.macros.mnfv mcontext "0")))
 (def PTHREAD_MUTEX_RECURSIVE
-  (macro extern (void)     (std.macros.mnfv pool "1")))
+  (macro extern (void)     (std.macros.mnfv mcontext "1")))
 (def PTHREAD_MUTEX_ERRORCHECK
-  (macro extern (void)     (std.macros.mnfv pool "2")))
+  (macro extern (void)     (std.macros.mnfv mcontext "2")))
 (def PTHREAD_MUTEX_DEFAULT
-  (macro extern (void)     (std.macros.mnfv pool "0")))
+  (macro extern (void)     (std.macros.mnfv mcontext "0")))
 
 (def PTHREAD_MUTEX_STALLED
-  (macro extern (void)     (std.macros.mnfv pool "0")))
+  (macro extern (void)     (std.macros.mnfv mcontext "0")))
 (def PTHREAD_MUTEX_STALLED_NP
-  (macro extern (void)     (std.macros.mnfv pool "0")))
+  (macro extern (void)     (std.macros.mnfv mcontext "0")))
 (def PTHREAD_MUTEX_ROBUST
-  (macro extern (void)     (std.macros.mnfv pool "1")))
+  (macro extern (void)     (std.macros.mnfv mcontext "1")))
 (def PTHREAD_MUTEX_ROBUST_NP
-  (macro extern (void)     (std.macros.mnfv pool "1")))
+  (macro extern (void)     (std.macros.mnfv mcontext "1")))
 
 (def PTHREAD_RWLOCK_PREFER_READER_NP
-  (macro extern (void)     (std.macros.mnfv pool "0")))
+  (macro extern (void)     (std.macros.mnfv mcontext "0")))
 (def PTHREAD_RWLOCK_PREFER_WRITER_NP
-  (macro extern (void)     (std.macros.mnfv pool "1")))
+  (macro extern (void)     (std.macros.mnfv mcontext "1")))
 (def PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP
-  (macro extern (void)     (std.macros.mnfv pool "2")))
+  (macro extern (void)     (std.macros.mnfv mcontext "2")))
 (def PTHREAD_RWLOCK_DEFAULT_NP
-  (macro extern (void)     (std.macros.mnfv pool "0")))
+  (macro extern (void)     (std.macros.mnfv mcontext "0")))
 
 (def PTHREAD_INHERIT_SCHED
-  (macro extern (void)     (std.macros.mnfv pool "0")))
+  (macro extern (void)     (std.macros.mnfv mcontext "0")))
 (def PTHREAD_EXPLICIT_SCHED
-  (macro extern (void)     (std.macros.mnfv pool "1")))
+  (macro extern (void)     (std.macros.mnfv mcontext "1")))
 
 (def PTHREAD_SCOPE_SYSTEM
-  (macro extern (void)     (std.macros.mnfv pool "0")))
+  (macro extern (void)     (std.macros.mnfv mcontext "0")))
 (def PTHREAD_SCOPE_PROCESS
-  (macro extern (void)     (std.macros.mnfv pool "1")))
+  (macro extern (void)     (std.macros.mnfv mcontext "1")))
 
 (def PTHREAD_PROCESS_PRIVATE
-  (macro extern (void)     (std.macros.mnfv pool "0")))
+  (macro extern (void)     (std.macros.mnfv mcontext "0")))
 (def PTHREAD_PROCESS_SHARED
-  (macro extern (void)     (std.macros.mnfv pool "1")))
+  (macro extern (void)     (std.macros.mnfv mcontext "1")))
 
 (def _pthread_cleanup_buffer 
   (struct extern (
@@ -109,14 +109,14 @@
 )))
 
 (def PTHREAD_CANCEL_ENABLE
-  (macro extern (void)     (std.macros.mnfv pool "0")))
+  (macro extern (void)     (std.macros.mnfv mcontext "0")))
 (def PTHREAD_CANCEL_DISABLE
-  (macro extern (void)     (std.macros.mnfv pool "1")))
+  (macro extern (void)     (std.macros.mnfv mcontext "1")))
 
 (def PTHREAD_CANCEL_DEFERRED
-  (macro extern (void)     (std.macros.mnfv pool "0")))
+  (macro extern (void)     (std.macros.mnfv mcontext "0")))
 (def PTHREAD_CANCEL_ASYNCHRONOUS
-  (macro extern (void)     (std.macros.mnfv pool "1")))
+  (macro extern (void)     (std.macros.mnfv mcontext "1")))
 
 (def pthread_create
   (fn extern-c int ((__newthread (p pthread_t)) (__attr (p pthread_attr_t)) (__start_routine (p (fn (p void) ((a0 (p void)))))) (__arg (p void)))))
@@ -233,7 +233,7 @@
 
 ; __pthread_unwind_buf_t typedef
 (def __pthread_unwind_buf_t 
-  (macro extern (void) (std.macros.mnfv pool "UnnamedStruct3")))
+  (macro extern (void) (std.macros.mnfv mcontext "UnnamedStruct3")))
 
 (def __pthread_cleanup_frame
   (struct extern (

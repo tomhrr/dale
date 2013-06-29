@@ -10,7 +10,7 @@
     (strncpy buf "list-" (cast 5 size))
     (setf ($ buf 5) #\NULL)
     (strcat buf (@ (:@ frm-name token-str)))
-    (def name-node (var auto (p DNode) (mnfv pool buf)))
+    (def name-node (var auto (p DNode) (mnfv mcontext buf)))
 
     (if (not (exists-type name-node))
         (do (def v (var auto (array-of 100 char)))
@@ -26,7 +26,7 @@
     (strncpy buf "list-" (cast 5 size))
     (setf ($ buf 5) #\NULL)
     (strcat buf (@ (:@ frm-name token-str)))
-    (def name-node (var auto (p DNode) (mnfv pool buf)))
+    (def name-node (var auto (p DNode) (mnfv mcontext buf)))
 
     (bqq do
         

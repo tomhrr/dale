@@ -25,6 +25,7 @@ is `(@:@ (@:@ structp member1) member2)`.
 |#
 (def @:'
   (macro extern (structp member ...)
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
     (setv arg-count (- arg-count 2))
     (def myargcount (var auto int arg-count))
 
@@ -77,7 +78,9 @@ terminate or return a boolean.
   (bqq if (uq condition) true (uq false-case))))
 
 (def break-to-goto
-  (fn (attr cto) intern int ((frm (p DNode)) (pool (p PoolNode)) (data (p void)))
+  (fn (attr cto) intern int ((frm      (p DNode)) 
+                             (mcontext (p MContext)) 
+                             (data     (p void)))
     (def break-label (var auto (p DNode) (cast data (p DNode))))
     (def ln          (var auto (p DNode) (@:@ frm list-node)))
     (def ln-str      (var auto (p char)  (if (not (null ln))
@@ -90,7 +93,7 @@ terminate or return a boolean.
     (if (!= 0 (strcmp ln-str "break"))
         (do (if (= 0 (strcmp ln-str "goto"))
                 (do (if (is-gensym-label (@:@ ln next-node) "breaklabel")
-                        (do (setf (:@ frm list-node) (mnfv pool "goto"))
+                        (do (setf (:@ frm list-node) (mnfv mcontext "goto"))
                             (setf (:@ (@:@ frm list-node) next-node)
                             break-label))
                         (return 0)))
@@ -98,12 +101,14 @@ terminate or return a boolean.
             0)
         0)
 
-    (setf (:@ frm list-node) (mnfv pool "goto"))
+    (setf (:@ frm list-node) (mnfv mcontext "goto"))
     (setf (:@ (@:@ frm list-node) next-node) break-label)
     0))
 
 (def continue-to-goto
-  (fn (attr cto) intern int ((frm (p DNode)) (pool (p PoolNode)) (data (p void)))
+  (fn (attr cto) intern int ((frm (p DNode)) 
+                             (mcontext (p MContext)) 
+                             (data (p void)))
     (def break-label (var auto (p DNode) (cast data (p DNode))))
     (def ln          (var auto (p DNode) (@:@ frm list-node)))
     (def ln-str      (var auto (p char)  (if (not (null ln))
@@ -116,7 +121,7 @@ terminate or return a boolean.
     (if (!= 0 (strcmp ln-str "continue"))
         (do (if (= 0 (strcmp ln-str "goto"))
                 (do (if (is-gensym-label (@:@ ln next-node) "continuelabel")
-                        (do (setf (:@ frm list-node) (mnfv pool "goto"))
+                        (do (setf (:@ frm list-node) (mnfv mcontext "goto"))
                             (setf (:@ (@:@ frm list-node) next-node)
                             break-label))
                         (return 0)))
@@ -124,7 +129,7 @@ terminate or return a boolean.
             0)
         0)
 
-    (setf (:@ frm list-node) (mnfv pool "goto"))
+    (setf (:@ frm list-node) (mnfv mcontext "goto"))
     (setf (:@ (@:@ frm list-node) next-node) break-label)
     0))
 
@@ -139,17 +144,19 @@ for so long as the condition expression evaluates to `true`.
 |#
 (def while
   (macro extern (condition ...)
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+
     (setv arg-count (- arg-count 1))
     (get-varargs-list)
 
     (def begin-label
-        (var auto (p DNode) (make-gensym-label-node pool "continuelabel")))
+        (var auto (p DNode) (make-gensym-label-node mcontext "continuelabel")))
     (def end-label
-        (var auto (p DNode) (make-gensym-label-node pool "breaklabel")))
+        (var auto (p DNode) (make-gensym-label-node mcontext "breaklabel")))
 
-    (walk-nodes varargs-list pool (cast end-label   (p void)) 
+    (walk-nodes varargs-list mcontext (cast end-label   (p void)) 
                 (# break-to-goto))
-    (walk-nodes varargs-list pool (cast begin-label (p void)) 
+    (walk-nodes varargs-list mcontext (cast begin-label (p void)) 
                 (# continue-to-goto))
 
     (bqq do
@@ -224,19 +231,20 @@ expression evaluates to true.
 |#
 (def for
   (macro extern (init-form condition loop-entry ...)
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
     (setv arg-count (- arg-count 3))
     (get-varargs-list)
 
     (def begin-label
-        (var auto (p DNode) (make-gensym-label-node pool)))
+        (var auto (p DNode) (make-gensym-label-node mcontext)))
     (def mid-label
-        (var auto (p DNode) (make-gensym-label-node pool "continuelabel")))
+        (var auto (p DNode) (make-gensym-label-node mcontext "continuelabel")))
     (def end-label
-        (var auto (p DNode) (make-gensym-label-node pool "breaklabel")))
+        (var auto (p DNode) (make-gensym-label-node mcontext "breaklabel")))
 
-    (walk-nodes varargs-list pool (cast end-label (p void)) 
+    (walk-nodes varargs-list mcontext (cast end-label (p void)) 
                 (# break-to-goto))
-    (walk-nodes varargs-list pool (cast mid-label (p void)) 
+    (walk-nodes varargs-list mcontext (cast mid-label (p void)) 
                 (# continue-to-goto))
 
     (def retform (var auto \
@@ -274,6 +282,7 @@ expands to:
 |#
 (def let
   (macro extern (new-vars ...)
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
     (setv arg-count (- arg-count 1))
     (get-varargs-list)
 
@@ -373,7 +382,7 @@ expands to the value.
 (def make-macro-constant
   (macro extern (name value)
     (bqq def (uq name)
-        (macro extern (void) (std.macros.mnfv pool (uq value))))))
+        (macro extern (void) (std.macros.mnfv mcontext (uq value))))))
 
 #|
 @macro long-type
@@ -389,7 +398,7 @@ bindings.
                 (if (= n 8)  "int64"
                 (if (= n 16) "int128"
                              "invalid-long-type")))))
-      (mnfv pool ts))))
+      (mnfv mcontext ts))))
 
 #|
 @macro ulong-type
@@ -405,7 +414,7 @@ C bindings.
                 (if (= n 8)  "uint64"
                 (if (= n 16) "uint128"
                              "invalid-ulong-type")))))
-      (mnfv pool ts))))
+      (mnfv mcontext ts))))
 
 #|
 @macro long-long-type
@@ -420,7 +429,7 @@ C bindings.
           (ts \ (if (= n 8)  "int64"
                 (if (= n 16) "int128"
                              "invalid-long-long-type"))))
-      (mnfv pool ts))))
+      (mnfv mcontext ts))))
 
 #|
 @macro ulong-long-type
@@ -435,16 +444,16 @@ writing C bindings.
           (ts \ (if (= n 8)  "uint64"
                 (if (= n 16) "uint128"
                              "invalid-ulong-long-type"))))
-      (mnfv pool ts))))
+      (mnfv mcontext ts))))
 
 (def mfor-struct
   (struct intern ((placeholder (p DNode))
                   (new-token   (p DNode)))))
 
 (def mfor-helper
-    (fn (attr cto) intern int ((frm  (p DNode))
-                        (pool (p PoolNode))
-                        (data (p void)))
+    (fn (attr cto) intern int ((frm      (p DNode))
+                               (mcontext (p MContext))
+                               (data     (p void)))
         (if (null (@:@ frm token-str))
             (return 0)
             0)
@@ -477,9 +486,10 @@ expands to:
 |#
 (def mfor
   (macro extern (value-name value-list ...)
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
     (setv arg-count (- arg-count 2))
     (get-varargs-list)
-    (let ((first-node \ (mnfv pool "do"))
+    (let ((first-node \ (mnfv mcontext "do"))
           (anchor   \ first-node)
           (body     \ (bqq do (uql varargs-list)))
           (bodycopy (p DNode))
@@ -487,9 +497,9 @@ expands to:
       (setv value-list (@:@ value-list list-node))
       (setf (: ms placeholder) value-name)
       (while (not (null value-list))
-        (setv bodycopy (copy pool true body))
+        (setv bodycopy (copy mcontext true body))
         (setf (: ms new-token) value-list)
-        (walk-nodes bodycopy pool (cast (# ms) (p void)) (# mfor-helper))
+        (walk-nodes bodycopy mcontext (cast (# ms) (p void)) (# mfor-helper))
         (setf (:@ anchor next-node) bodycopy)
         (setv anchor (@:@ anchor next-node))
         (setv value-list (@:@ value-list next-node)))

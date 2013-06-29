@@ -15,7 +15,7 @@ Macro constant for TIME_T.
 
 |#
 (def MTIME_T
-  (macro extern (void) (std.macros.mnfv pool TIME_T)))
+  (macro extern (void) (std.macros.mnfv mcontext TIME_T)))
 
 #|
 @macro MCLOCK_T
@@ -24,7 +24,7 @@ Macro constant for CLOCK_T.
 
 |#
 (def MCLOCK_T
-  (macro extern (void) (std.macros.mnfv pool CLOCK_T)))
+  (macro extern (void) (std.macros.mnfv mcontext CLOCK_T)))
 
 #|
 @struct time

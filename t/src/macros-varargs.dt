@@ -9,6 +9,7 @@
     (def my-sum    (var auto int 0))
 
     (va-start (cast (# arglist) (p void)))
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
 
     (label begin-loop)
       (if (= 0 arg-count)
@@ -23,14 +24,14 @@
       (va-end (cast (# arglist) (p void)))
 
       (def retval (var auto (p DNode)
-                          (cast (pool-malloc pool (sizeof DNode)) (p DNode))))
+                          (cast (pool-malloc mcontext (sizeof DNode)) (p DNode))))
 
       (def nullp  (var auto (p DNode)
-                          (cast (pool-malloc pool (sizeof DNode)) (p DNode))))
+                          (cast (pool-malloc mcontext (sizeof DNode)) (p DNode))))
       
       (setv nullp (cast 0 (p DNode)))
       
-      (def retstr (var auto (p char) (cast (pool-malloc pool (cast
+      (def retstr (var auto (p char) (cast (pool-malloc mcontext (cast
       20 size)) (p char))))
       (sprintf retstr "%d" my-sum)
 

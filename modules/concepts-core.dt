@@ -51,14 +51,14 @@ ones that should be used directly are:
 Determines whether the given concept, as described by the node, has
 been defined.
 
-@param pool     A PoolNode.
+@param mcontext An MContext.
 @param frm      The node containing the concept name.
 |#
 (def exists-concept-fn
-  (fn extern bool ((pool (p PoolNode)) (frm (p DNode)))
+  (fn extern bool ((mcontext (p MContext)) (frm (p DNode)))
     (let ((fn-name (array-of 255 char)))
       (sprintf fn-name "_concept-%s" (@:@ frm token-str))
-      (let ((myn   \ (mnfv pool fn-name))
+      (let ((myn   \ (mnfv mcontext fn-name))
             (frm   \ (qq int (uq myn) void)))
         (return (exists-fn frm))))))
 
@@ -72,7 +72,7 @@ described by the argument node, has been defined.
 |#
 (def exists-concept
   (macro extern (concept-name)
-    (if (exists-concept-fn pool concept-name)
+    (if (exists-concept-fn mcontext concept-name)
         (qq do true)
         (qq do false))))
 
@@ -98,7 +98,7 @@ accept one parameter.
 
 The body of the concept must evaluate to a boolean value indicating
 whether the specified parameters satisfy the concept. Its environment
-is as per a normal macro, so a `pool` is present.
+is as per a normal macro, so an `mcontext` is present.
 
 Concepts, once defined, can be used to 'tag' the parameters to a macro
 constructed by way of `def-concept-macro`.
@@ -136,7 +136,7 @@ constructed by way of `def-concept-macro`.
 
     (while (not (null (@:@ refinements next-node)))
       (setv refinements (@:@ refinements next-node))
-      (if (not (exists-concept-fn pool refinements))
+      (if (not (exists-concept-fn mcontext refinements))
           (do (report-error refinements
                             "refinement concept does not exist")
               (return (nullptr DNode)))
@@ -158,9 +158,9 @@ constructed by way of `def-concept-macro`.
               (fnstr (array-of 255 char))
               (nn (p DNode)))
           (sprintf fnstr "_check-concept-%s" (@:@ myrnode token-str))
-          (setv nn (mnfv pool fnstr))
+          (setv nn (mnfv mcontext fnstr))
           (setf ($ new-rfnodes i)
-                (qq and (not ((uq nn) myn pool))
+                (qq and (not ((uq nn) myn mcontext))
                         (return (nullptr DNode)) )))))
 
     (def ta (var auto \ (@:@ type-arguments list-node)))
@@ -172,9 +172,9 @@ constructed by way of `def-concept-macro`.
               (fnstr (array-of 255 char))
               (nn (p DNode)))
           (sprintf fnstr "_check-concept-%s" (@:@ myrnode token-str))
-          (setv nn (mnfv pool fnstr))
+          (setv nn (mnfv mcontext fnstr))
           (setf ($ new-rfnodes2 i)
-                (qq and (not ((uq nn) (uq ta) pool))
+                (qq and (not ((uq nn) (uq ta) mcontext))
                         (return false) )))))
 
     (def linked-rfnodes (var auto (p DNode)
@@ -206,7 +206,7 @@ constructed by way of `def-concept-macro`.
               (myfnnode (p DNode)))
           (sprintf myfnname "_refines-%s"
                             (@:@ myrnode token-str))
-          (setv myfnnode (mnfv pool myfnname))
+          (setv myfnnode (mnfv mcontext myfnname))
           (setf ($ new-linknodes i)
                 (qq def (uq myfnnode)
                   (fn extern int ((a (uq concept-name-node)))))))))
@@ -219,6 +219,7 @@ constructed by way of `def-concept-macro`.
                     (bqq namespace bling2))))
         true)
 
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
     (setv arg-count (- arg-count 3))
     (get-varargs-list)
 
@@ -226,36 +227,36 @@ constructed by way of `def-concept-macro`.
       (var auto (p char) (pool-malloc' 255 char)))
     (sprintf function-name "_concept-%s" concept-name)
     (def function-name-node
-      (var auto \ (mnfv pool function-name)))
+      (var auto \ (mnfv mcontext function-name)))
 
     (def implements-name
       (var auto (p char) (pool-malloc' 255 char)))
     (sprintf implements-name "_impl-of-concept-%s" concept-name)
     (def implements-name-node
-      (var auto \ (mnfv pool implements-name)))
+      (var auto \ (mnfv mcontext implements-name)))
 
     (def macro-name
       (var auto (p char) (pool-malloc' 255 char)))
     (sprintf macro-name "_impl-concept-%s" concept-name)
     (def macro-name-node
-      (var auto \ (mnfv pool macro-name)))
+      (var auto \ (mnfv mcontext macro-name)))
 
     (def check-fn-name
       (var auto (p char) (pool-malloc' 255 char)))
     (sprintf check-fn-name "_check-concept-%s" concept-name)
     (def check-fn-name-node
-      (var auto \ (mnfv pool check-fn-name)))
+      (var auto \ (mnfv mcontext check-fn-name)))
 
     (let ((mine \ (bqq do
         (def (uq check-fn-name-node)
           (fn (attr cto) extern bool (((uq ta) (p DNode))
-                                          (pool (p PoolNode)))
+                                       (mcontext (p MContext)))
             (uql linked-rfnodes2)
             (uql varargs-list)))
         (def (uq macro-name-node)
           (macro extern (uq type-arguments)
               (def myn
-                (var auto \ (std.macros.copy pool true (uq types))))
+                (var auto \ (std.macros.copy mcontext true (uq types))))
               (def function-arg-list
                 (var auto \ (qq a (uq (uq myn)))))
               (let ((mine2 \ (qq do
@@ -273,7 +274,7 @@ constructed by way of `def-concept-macro`.
                 (do
                     (uql linked-rfnodes)
                     (let ((result bool ((uq check-fn-name-node) 
-                                        (uq ta) pool)))
+                                        (uq ta) mcontext)))
                       (if (not result)
                           (return (nullptr DNode))
                           (do mine2)))))))
@@ -299,26 +300,27 @@ body may (generally, will) add errors if its requirements are not met.
   (macro extern (concept-name-node ...)
     (def concept-name 
       (var auto (p char) (@:@ concept-name-node token-str)))
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
     (setv arg-count (- arg-count 1))
     (get-varargs-list)
     (def macro-name
       (var auto (p char) (pool-malloc' 255 char)))
     (sprintf macro-name "_impl-concept-%s" concept-name)
     (def macro-name-node
-      (var auto \ (mnfv pool macro-name)))
+      (var auto \ (mnfv mcontext macro-name)))
     
     (let ((mine \ (qq do ((uq macro-name-node) (uql varargs-list)))))
       mine)))
 
 #|
-@fn implements
+@fn implements-fn
 |#
-(def implements
-  (fn extern bool ((pool (p PoolNode)) (T (p DNode)) (C (p DNode)))
+(def implements-fn
+  (fn extern bool ((mcontext (p MContext)) (T (p DNode)) (C (p DNode)))
     (let ((fnname (array-of 255 char)))
       (sprintf fnname "_impl-of-concept-%s"
                       (@:@ C token-str))
-      (let ((fnnode \ (mnfv pool fnname)))
+      (let ((fnnode \ (mnfv mcontext fnname)))
         (return (exists-fn (qq int (uq fnnode) (uq T))))))))
 
 #|
@@ -335,7 +337,7 @@ reports an error about the concept not being implemented.
     (let ((fnname (array-of 255 char)))
       (sprintf fnname "_impl-of-concept-%s"
                       (@:@ C token-str))
-      (let ((fnnode \ (mnfv pool fnname)))
+      (let ((fnnode \ (mnfv mcontext fnname)))
         (if (not (exists-fn (qq int (uq fnnode) (uq T))))
             (do (report-error T "concept not implemented")
                 0)
@@ -346,7 +348,7 @@ reports an error about the concept not being implemented.
 @fn get-type-concept-list
 |#
 (def get-type-concept-list
-  (fn extern (p (p char)) ((pool (p PoolNode)) (T (p DNode)))
+  (fn extern (p (p char)) ((mcontext (p MContext)) (T (p DNode)))
     (let ((cnames  (array-of 255 (p char)))
           (cnamesi \ 0)
           (fnbgn   \ "_impl-of-concept-")
@@ -376,13 +378,13 @@ reports an error about the concept not being implemented.
 @fn refines
 |#
 (def refines
-  (fn extern bool ((pool   (p PoolNode))
-                   (Tupper (p char))
-                   (Tlower (p char)))
-    (def tnode   (var auto \ (mnfv pool Tlower)))
+  (fn extern bool ((mcontext (p MContext))
+                   (Tupper   (p char))
+                   (Tlower   (p char)))
+    (def tnode   (var auto \ (mnfv mcontext Tlower)))
     (def fnname  (var auto (array-of 255 char)))
     (sprintf fnname "_refines-%s" Tupper)
-    (def refnode (var auto \ (mnfv pool fnname)))
+    (def refnode (var auto \ (mnfv mcontext fnname)))
     (let ((mine \ (qq int (uq refnode) (uq tnode))))
       (return (exists-fn mine)))))
 
@@ -402,8 +404,8 @@ reports an error about the concept not being implemented.
 @fn make-simple-node
 |#
 (def make-simple-node
-  (fn extern (p concept-node) ((pool (p PoolNode))
-                                   (name (p DNode)))
+  (fn extern (p concept-node) ((mcontext (p MContext))
+                               (name (p DNode)))
     (let ((pcn   \ (pool-malloc' 1 concept-node))
           (mname \ (pool-malloc' 255 char)))
       (sprintf mname "%s" (@:@ name token-str))
@@ -416,9 +418,9 @@ reports an error about the concept not being implemented.
 @fn get-type-concept-map
 |#
 (def get-type-concept-map
-  (fn extern (p concept-node) ((pool (p PoolNode))
-                                   (T    (p DNode)))
-    (def tcl (var auto \ (get-type-concept-list pool T)))
+  (fn extern (p concept-node) ((mcontext (p MContext))
+                               (T    (p DNode)))
+    (def tcl (var auto \ (get-type-concept-list mcontext T)))
     (if (null tcl)
         (return (nullptr concept-node))
         0)
@@ -451,8 +453,8 @@ reports an error about the concept not being implemented.
             (let ((upper-cn (p concept-node) (@$ cns j)))
               (if (!= i j) 
                   (do 
-                  (if (refines pool (@:@ upper-cn name)
-                                    (@:@ current-cn name))
+                  (if (refines mcontext (@:@ upper-cn name)
+                                        (@:@ current-cn name))
                       (do (add-refinement current-cn upper-cn) 0)
                       (do 0)))
                   (do 0)))))))
@@ -473,7 +475,7 @@ reports an error about the concept not being implemented.
           (for true (< j cns-count) (incv j)
             (let ((lower-cn \ (@$ cns j)))
               (if (and (!= i j) 
-                       (refines pool
+                       (refines mcontext
                                         (@:@ current-cn name)
                                         (@:@ lower-cn name)))
                   (do (setv refined 1)
@@ -489,11 +491,11 @@ reports an error about the concept not being implemented.
 @fn get-concept-macro-name
 |#
 (def get-concept-macro-name
-  (fn intern bool ((pool       (p PoolNode))
-                       (macro-name (p DNode))
-                       (mt-vl      (p DNode))
-                       (tnames     bool)
-                       (buf        (p char)))
+  (fn intern bool ((mcontext   (p MContext))
+                   (macro-name (p DNode))
+                   (mt-vl      (p DNode))
+                   (tnames     bool)
+                   (buf        (p char)))
     (let ((tstr (array-of 255 char)))
       (sprintf buf "_%s" (@:@ macro-name token-str))
       (while (not (null mt-vl))
@@ -543,16 +545,17 @@ arguments.
 |#
 (def def-concept-macro
   (macro extern (macro-name linkage macro-types ...)
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
     (setv arg-count (- arg-count 3))
     (get-varargs-list)
     (let ((newname (array-of 255 char)))
-      (if (not (get-concept-macro-name pool macro-name 
+      (if (not (get-concept-macro-name mcontext macro-name 
                                        (@:@ macro-types list-node)
                                        true
                                        newname))
           (return (nullptr DNode))
           0)
-      (def newnamenode (var auto \ (mnfv pool newname)))
+      (def newnamenode (var auto \ (mnfv mcontext newname)))
       (setv macro-types (@:@ macro-types list-node))
       (let ((name-only \ (@:@ macro-types list-node))
             (name-onlyh \ name-only))
@@ -572,19 +575,19 @@ arguments.
 @fn exists-concept-macro
 |#
 (def exists-concept-macro
-  (fn extern bool ((pool        (p PoolNode))
-                       (macro-name  (p DNode)) 
-                       (macro-types (p DNode)))
+  (fn extern bool ((mcontext    (p MContext))
+                   (macro-name  (p DNode)) 
+                   (macro-types (p DNode)))
     (let ((newname  (array-of 255 char))
           (namenode (p DNode)))
-      (if (not (get-concept-macro-name pool 
+      (if (not (get-concept-macro-name mcontext 
                                        macro-name 
                                        (@:@ macro-types list-node)
                                        false
                                        newname))
           (return true)
           0)
-      (setv namenode (mnfv pool newname))
+      (setv namenode (mnfv mcontext newname))
       (setv macro-types (@:@ macro-types list-node))
       (let ((macnode \ (qq (uq namenode) (uql macro-types))))
         (return (exists-macro macnode))))))
@@ -593,7 +596,7 @@ arguments.
 @fn get-candidate
 |#
 (def get-candidate
-  (fn intern int ((pool      (p PoolNode))
+  (fn intern int ((mcontext  (p MContext))
                   (errn      (p DNode))
                   (tcl-list  (p (p concept-node)))
                   (tcl-count int)
@@ -625,7 +628,7 @@ arguments.
               (myn      (p DNode)))
           (sprintf mybuf "_%s" macname)
           (for true (< i tcl-count) (incv i)
-            (setv cnode (mnfv pool (@:@ (@$ tcl-list i) name)))
+            (setv cnode (mnfv mcontext (@:@ (@$ tcl-list i) name)))
             (if (null cnodelst)
                 (setv cnodelst cnode)
                 true)
@@ -642,7 +645,7 @@ arguments.
             (strcat mybuf "@")
             (strcat mybuf cnodestr)
             (setv cnodepre cnode))
-          (setv myn (mnfv pool mybuf))
+          (setv myn (mnfv mcontext mybuf))
           (if (exists-macro (qq (uq myn)
                                 (uql cnodelst)))
               (do 
@@ -675,7 +678,7 @@ arguments.
       ; First: try incrementing arg-cycle. If this succeeds, don't
       ; check for refinements.
         (strcpy lastbuf thisbuf)
-        (setv res (get-candidate pool 
+        (setv res (get-candidate mcontext 
                                  errn
                                  tcl-list
                                  tcl-count
@@ -719,7 +722,7 @@ arguments.
         (setf ($ tcl-list arg-cycle) (@ (p+ (@:@ tcl refinements) i)))
         ; However, if this concept has further refinements, check them
         ; first (by leaving arg-cycle at its current value).
-        (setv res (get-candidate pool 
+        (setv res (get-candidate mcontext 
                                  errn
                                  tcl-list
                                  tcl-count
@@ -776,6 +779,7 @@ expands into a series of bindings; for example, `Vector`.
 |#
 (def instantiate
   (macro extern (macro-name ...)
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
     (setv arg-count (- arg-count 1))
     (def pre-arg-count (var auto \ arg-count))
     (get-varargs-list)
@@ -801,15 +805,15 @@ expands into a series of bindings; for example, `Vector`.
               (let ((concept \ (@:@ first next-node)))
                 (do (assert-return (null (@:@ concept next-node))
                                 concept "expected type as next element")
-                    (assert-return (not (exists-concept-fn pool concept))
+                    (assert-return (not (exists-concept-fn mcontext concept))
                                 concept "element is not a concept")
                   (let ((type \ (@:@ concept next-node)))
                     (assert-return (not (exists-type type))
                                 type "element is not a type")
-                    (assert-return (not (implements pool type concept))
+                    (assert-return (not (implements-fn mcontext type concept))
                                 type "type does not implement concept")
                     (setf ($ type-concept-list i)
-                          (make-simple-node pool concept))))))
+                          (make-simple-node mcontext concept))))))
             (do 
                 ; If the type argument is not actually a type, then
                 ; treat it as being of the Value concept.
@@ -817,10 +821,10 @@ expands into a series of bindings; for example, `Vector`.
                          (= 0 (@:@ myvl is-list)))
                     (do (setf ($ type-concept-list i)
                           (make-simple-node 
-                                pool
-                                (mnfv pool "Value"))))
+                                mcontext
+                                (mnfv mcontext "Value"))))
                     (setf ($ type-concept-list i)
-                          (get-type-concept-map pool myvl)))
+                          (get-type-concept-map mcontext myvl)))
                 (if (null (@$ type-concept-list i))
                     (do (report-error myvl
                         "type does not implement any concepts")
@@ -832,7 +836,7 @@ expands into a series of bindings; for example, `Vector`.
           (err \ 0)
           (res \ 0))
       (setf ($ macbuf 0) #\NULL)
-      (setv res (get-candidate pool
+      (setv res (get-candidate mcontext
                                varargs-list
                                type-concept-list
                                arg-count
@@ -852,6 +856,6 @@ expands into a series of bindings; for example, `Vector`.
           (do (printf "macbuf not set!\n")
               (return (nullptr DNode)))
           0)
-      (let ((macnode \ (mnfv pool macbuf))
+      (let ((macnode \ (mnfv mcontext macbuf))
             (retnode \ (qq do ((uq macnode) (uql varargs-list)))))
         retnode)))))))

@@ -4,11 +4,12 @@
 (using-namespace std.macros
 (def wrap-body
   (macro intern (...)
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
     (def arglist (var auto va-list))
     (va-start (cast (# arglist) (p void)))
     (def arg-array 
         (var auto (p (p DNode))
-                  (cast (pool-malloc pool (* (sizeof (p DNode)) (cast arg-count size))) (p (p DNode)))))
+                  (cast (pool-malloc mcontext (* (sizeof (p DNode)) (cast arg-count size))) (p (p DNode)))))
     (valist-to-dnode-array (cast (# arglist) (p (p void))) arg-count arg-array)
     
     (def fst-node 

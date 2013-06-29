@@ -23,7 +23,7 @@
           (n     \ (fn-by-args-name lst cc))
           (buf   (array-of 255 char)))
       (sprintf buf "\"%s\"" n)
-      (let ((nnode \ (std.macros.mnfv pool buf)))
+      (let ((nnode \ (std.macros.mnfv mcontext buf)))
         (std.macros.qq do (uq nnode))))))
 
 (def main

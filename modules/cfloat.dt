@@ -55,13 +55,13 @@ Provides the following floating-point macro constants:
 
 (def LDBL-MIN
   (macro extern (void)
-    (std.macros.mnfv pool "LDBL_MIN")))
+    (std.macros.mnfv mcontext "LDBL_MIN")))
 (def LDBL-MAX
   (macro extern (void)
-    (std.macros.mnfv pool "LDBL_MAX")))
+    (std.macros.mnfv mcontext "LDBL_MAX")))
 (def LDBL-EPSILON
   (macro extern (void)
-    (std.macros.mnfv pool "LDBL_EPSILON")))
+    (std.macros.mnfv mcontext "LDBL_EPSILON")))
 
 (make-macro-constant LDBL-MAX-EXP  LDBL_MAX_EXP)
 (make-macro-constant LDBL-MIN-EXP  LDBL_MIN_EXP)

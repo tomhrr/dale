@@ -18,13 +18,13 @@ function (not intended for use outside the standard libraries).
 
 Returns a newly-allocated node.
 
-@param pool     A PoolNode.
+@param mcontext An MContext.
 |#
 (def make-node 
-  (fn extern (p DNode) ((pool (p PoolNode)))
+  (fn extern (p DNode) ((mcontext (p MContext)))
     (def dnsize (var auto size (sizeof DNode)))
     (def n (var auto (p DNode) 
-                     (cast (pool-malloc pool dnsize) (p DNode))))
+                     (cast (pool-malloc mcontext dnsize) (p DNode))))
     (memset (cast n (p void)) 0 (sizeof DNode))
     (setf (: (@ n) filename) (nullptr char))
     n))
@@ -32,17 +32,17 @@ Returns a newly-allocated node.
 #|
 @fn copy
 
-@param pool     A PoolNode.
+@param mcontext An MContext.
 @param follow   Whether to include the nodes that follow `form`.
 @param form     The node to copy.
 @return         A copy of `form`.
 |#
 (def copy
-  (fn extern (p DNode) ((pool       (p PoolNode)) 
+  (fn extern (p DNode) ((mcontext   (p MContext)) 
                         (follow     bool)
                         (form       (p DNode)))
     (def nullp    (var auto (p DNode) (cast 0 (p DNode))))
-    (def new-node (var auto (p DNode) (make-node pool)))
+    (def new-node (var auto (p DNode) (make-node mcontext)))
 
     (memcpy (cast new-node (p void))
             (cast form     (p void))
@@ -50,13 +50,13 @@ Returns a newly-allocated node.
 
     (if (= 1 (@:@ form is-list))
         (setf (:@ new-node list-node) 
-              (copy pool true (@:@ form list-node)))
+              (copy mcontext true (@:@ form list-node)))
         true)
         
     (setf (:@ new-node next-node)
           (if follow 
               (if (not (null (@:@ form next-node)))
-                  (do (copy pool true (@:@ form next-node)))
+                  (do (copy mcontext true (@:@ form next-node)))
                   nullp)
               nullp))
 
@@ -69,21 +69,21 @@ As per `copy`, except that if the first node is a token, it will have
 double-quotations marks added at the start and end of it in the copied
 node.
 
-@param pool     A PoolNode.
+@param mcontext An MContext.
 @param form     The node to copy.
 @param follow   Whether to include the nodes that follow `form`.
 @return         A copy of `form`.
 |#
 (def copy-qstr
-  (fn extern (p DNode) ((pool       (p PoolNode)) 
+  (fn extern (p DNode) ((mcontext   (p MContext)) 
                         (form       (p DNode))
                         (follow bool))
     (def nullp    (var auto (p DNode) (cast 0 (p DNode))))
-    (def new-node (var auto (p DNode) (make-node pool)))
+    (def new-node (var auto (p DNode) (make-node mcontext)))
     (def dquote   (var auto char #\"))
     (def len      (var auto size 0))
     (def charbuf  (var auto (p char)  
-        (cast (pool-malloc pool (cast 256 size)) (p char))))
+        (cast (pool-malloc mcontext (cast 256 size)) (p char))))
 
     (if (= 0 (@:@ form is-list))
         (do
@@ -99,13 +99,13 @@ node.
             (setf (:@ new-node next-node)
                 (if follow
                     (if (not (null (@:@ form next-node)))
-                        (do (copy pool true (@:@ form next-node)))
+                        (do (copy mcontext true (@:@ form next-node)))
                         nullp)
                     nullp)))
         (do
             (setf (:@ new-node is-list) 1)
             (setf (:@ new-node list-node) 
-                  (copy pool true (@:@ form list-node)))))
+                  (copy mcontext true (@:@ form list-node)))))
 
     (setf (:@ new-node begin-line) (@:@ form begin-line))
     (setf (:@ new-node begin-column) (@:@ form begin-column))
@@ -119,7 +119,7 @@ node.
     (setf (:@ new-node next-node)
           (if follow
               (if (not (null (@:@ form next-node)))
-                  (do (copy pool true (@:@ form next-node)))
+                  (do (copy mcontext true (@:@ form next-node)))
                   nullp)
               nullp))
 
@@ -228,16 +228,16 @@ an additional argument, which is used to populate the `token-str` of
 the newly-allocated node. This implementation takes a `(p char)`,
 copies it, and sets it in the new node.
 
-@param pool             A PoolNode.
+@param mcontext         An MContext.
 @param token-string     The token string for the new node.
 |#
 (def mnfv
-  (fn extern (p DNode) ((pool (p PoolNode))
+  (fn extern (p DNode) ((mcontext (p MContext))
                         (token-string (p char)))
-    (def d-node (var auto (p DNode) (make-node pool)))
+    (def d-node (var auto (p DNode) (make-node mcontext)))
     (def nullp  (var auto (p DNode) (nullptr DNode)))
     (def charp  (var auto (p char) 
-                   (cast (pool-malloc pool (cast 256 size)) (p char))))
+                   (cast (pool-malloc mcontext (cast 256 size)) (p char))))
     (strncpy charp token-string (cast 256 size))
     (setf (:@ d-node is-list)   0)
     (setf (:@ d-node token-str) charp)
@@ -248,54 +248,54 @@ copies it, and sets it in the new node.
 #|
 @fn mnfv
 
-@param pool     A PoolNode.
+@param mcontext An MContext.
 @param n        An integer.
 |#
 (def mnfv
-  (fn extern (p DNode) ((pool (p PoolNode))
+  (fn extern (p DNode) ((mcontext (p MContext))
                         (n int))
     (def x (var auto (array-of 255 char)))
     (sprintf x "%d" n)
-    (mnfv pool x)))
+    (mnfv mcontext x)))
 
 #|
 @fn mnfv
 
-@param pool     A PoolNode.
+@param mcontext An MContext.
 @param f        A float.
 |#
 (def mnfv
-  (fn extern (p DNode) ((pool (p PoolNode))
+  (fn extern (p DNode) ((mcontext (p MContext))
                         (f float))
     (def x (var auto (array-of 255 char)))
     (sprintf x "%f" f)
-    (mnfv pool x)))
+    (mnfv mcontext x)))
 
 #|
 @fn mnfv
 
-@param pool     A PoolNode.
+@param mcontext An MContext.
 @param d        A double.
 |#
 (def mnfv
-  (fn extern (p DNode) ((pool (p PoolNode))
+  (fn extern (p DNode) ((mcontext (p MContext))
                         (d double))
     (def x (var auto (array-of 255 char)))
     (sprintf x "%f" d)
-    (mnfv pool x)))
+    (mnfv mcontext x)))
 
 #|
 @fn mnfv
 
-@param pool     A PoolNode.
+@param mcontext An MContext.
 @param ld       A long double.
 |#
 (def mnfv
-  (fn extern (p DNode) ((pool (p PoolNode))
+  (fn extern (p DNode) ((mcontext (p MContext))
                         (ld long-double))
     (def x (var auto (array-of 255 char)))
     (sprintf x "%Lf" ld)
-    (mnfv pool x)))
+    (mnfv mcontext x)))
 
 #|
 @fn mnfv-wp
@@ -306,7 +306,7 @@ implemented for `(p char)` values.
 
 |#
 (def mnfv-wp
-  (fn extern (p DNode) ((pool (p PoolNode))
+  (fn extern (p DNode) ((mcontext (p MContext))
                         (token-string (p char))
                         (begin-line int)
                         (begin-column int)
@@ -316,7 +316,7 @@ implemented for `(p char)` values.
                         (macro-begin-column int)
                         (macro-end-line int)
                         (macro-end-column int))
-    (def n (var auto \ (mnfv pool token-string)))
+    (def n (var auto \ (mnfv mcontext token-string)))
     (setf (:@ n begin-line) begin-line)
     (setf (:@ n begin-column) begin-column)
     (setf (:@ n end-line) end-line)
@@ -373,8 +373,8 @@ and returned. This list node points to the first provided node as its
 
 |#
 (def link-nodes-list
-  (fn extern (p DNode) ((pool (p PoolNode)) (argcount int) ...)
-    (def link-node (var auto (p DNode) (make-node pool)))
+  (fn extern (p DNode) ((mcontext (p MContext)) (argcount int) ...)
+    (def link-node (var auto (p DNode) (make-node mcontext)))
     (def nullp  (var auto (p DNode) (cast 0 (p DNode))))
 
     (def very-fst-node (var auto (p DNode)))
@@ -413,7 +413,7 @@ list node.
 
 |#
 (def link-nodes-list-wp
-  (fn extern (p DNode) ((pool (p PoolNode))
+  (fn extern (p DNode) ((mcontext (p MContext))
                         (argcount int)
                         (begin-line int)
                         (begin-column int)
@@ -424,7 +424,7 @@ list node.
                         (macro-end-line int)
                         (macro-end-column int)
                         ...)
-    (def link-node (var auto (p DNode) (make-node pool)))
+    (def link-node (var auto (p DNode) (make-node mcontext)))
     (def nullp  (var auto (p DNode) (cast 0 (p DNode))))
 
     (def very-fst-node (var auto (p DNode)))
@@ -561,16 +561,16 @@ determine what's happening when errors occur in the generated code.
 Generates a new label name, constructs a token node to suit and
 returns that node.
 
-@param pool     A PoolNode.
+@param mcontext An MContext.
 @param prefix   The prefix for the label name.
 |#
 (def make-gensym-label-node
-  (fn extern (p DNode) ((pool (p PoolNode)) (prefix (p char)))
+  (fn extern (p DNode) ((mcontext (p MContext)) (prefix (p char)))
     (def label-name
         (var auto (p char) 
-                  (cast (pool-malloc pool (cast 150 size)) (p char))))
+                  (cast (pool-malloc mcontext (cast 150 size)) (p char))))
     (gensym-label label-name prefix)
-    (mnfv pool label-name)))
+    (mnfv mcontext label-name)))
 
 #|
 @fn make-gensym-label-node
@@ -578,11 +578,11 @@ returns that node.
 As per the previous implementation, except that no prefix is required
 (it is set to the empty string).
 
-@param pool     A PoolNode.
+@param mcontext An MContext.
 |#
 (def make-gensym-label-node
-  (fn extern (p DNode) ((pool (p PoolNode)))
-    (make-gensym-label-node pool "")))
+  (fn extern (p DNode) ((mcontext (p MContext)))
+    (make-gensym-label-node mcontext "")))
 
 #|
 @fn is-gensym-label
@@ -613,14 +613,14 @@ specified prefix.
 Generates a new variable name, constructs a token node to suit and
 returns that node.
 
-@param pool     A PoolNode.
+@param mcontext An MContext.
 |#
 (def make-gensym-var-node
-  (fn extern (p DNode) ((pool (p PoolNode)))
+  (fn extern (p DNode) ((mcontext (p MContext)))
     (def var-name
-        (var auto \ (cast (pool-malloc pool (cast 30 size)) (p char))))
+        (var auto \ (cast (pool-malloc mcontext (cast 30 size)) (p char))))
     (gensym-var var-name)
-    (mnfv pool var-name)))
+    (mnfv mcontext var-name)))
 
 #|
 @fn walk-nodes
@@ -630,23 +630,23 @@ pointer on each node. The provided `data` argument is passed to the
 function pointer on each call.
 
 @param form     The node to walk.
-@param pool     A PoolNode.
+@param mcontext An MContext.
 @param data     Arbitrary data.
 @param fn       The function pointer to call on each node.
 |#
 (def walk-nodes
-  (fn extern bool ((form (p DNode))
-                   (pool (p PoolNode))
-                   (data (p void))
-                   (fn   (p (fn int ((form (p DNode))
-                                     (pool (p PoolNode))
-                                     (data (p void)))))))
+  (fn extern bool ((form     (p DNode))
+                   (mcontext (p MContext))
+                   (data     (p void))
+                   (fn       (p (fn int ((form     (p DNode))
+                                         (mcontext (p MContext))
+                                         (data     (p void)))))))
     (if (not (null (@:@ form list-node)))
-        (walk-nodes (@:@ form list-node) pool data fn)
+        (walk-nodes (@:@ form list-node) mcontext data fn)
         true)
-    (funcall fn form pool data)
+    (funcall fn form mcontext data)
     (if (not (null (@:@ form next-node)))
-        (walk-nodes (@:@ form next-node) pool data fn)
+        (walk-nodes (@:@ form next-node) mcontext data fn)
         true)
     true))
 
@@ -671,19 +671,17 @@ the list.
     (label end-loop)
     (return count)))
 
-
-
 #|
 @fn make-node-maker
 
 Constructs a node that, when evaluated, constructs the provided node.
 For example, if the node is a simple token, then the returned node
-will be `(mnfv pool token-str)`, where `token-str` is the token from
-the provided node.
+will be `(mnfv mcontext token-str)`, where `token-str` is the token
+from the provided node.
 
 |#
 (def make-node-maker
-  (fn extern (p DNode) ((pool (p PoolNode)) (form (p DNode)))
+  (fn extern (p DNode) ((mcontext (p MContext)) (form (p DNode)))
     (def charbuf (var auto (array-of 256 char)))
     (def dquote (var auto char #\"))
     
@@ -700,21 +698,21 @@ the provided node.
           (setf ($ charbuf 
                    (+ (cast 2 size) (strlen (@:@ form token-str))))
                 #\NULL)
-          (link-nodes-list pool 3 
-                           (mnfv pool "std.macros.mnfv") 
-                           (mnfv pool "pool") 
-                           (mnfv pool charbuf)))
+          (link-nodes-list mcontext 3 
+                           (mnfv mcontext "std.macros.mnfv") 
+                           (mnfv mcontext "mcontext") 
+                           (mnfv mcontext charbuf)))
         (do
           (def holder
-            (var auto (p DNode) (make-node pool)))
+            (var auto (p DNode) (make-node mcontext)))
           (setf (:@ holder is-list) 1)
           (setf (:@ holder list-node) (nullptr DNode))
           (setf (:@ holder next-node) (nullptr DNode))
           (def topnode
-            (var auto (p DNode) (mnfv pool "std.macros.link-nodes-list")))
+            (var auto (p DNode) (mnfv mcontext "std.macros.link-nodes-list")))
           (setf (:@ holder list-node) topnode)
           (def poolnode
-            (var auto (p DNode) (mnfv pool "pool")))
+            (var auto (p DNode) (mnfv mcontext "mcontext")))
           (setf (:@ topnode next-node) poolnode)
 
           (def cnode
@@ -729,7 +727,7 @@ the provided node.
           (label end)
 
           (def countnode
-            (var auto (p DNode) (mnfv pool count)))
+            (var auto (p DNode) (mnfv mcontext count)))
           (setf (:@ poolnode next-node) countnode)
 
           (def elnode (var auto (p DNode) countnode))
@@ -738,7 +736,7 @@ the provided node.
           (setv cnode (@:@ form list-node))
 
           (label begin2)
-            (do (setv nextelnode (make-node-maker pool cnode))
+            (do (setv nextelnode (make-node-maker mcontext cnode))
                 (setf (:@ elnode next-node) nextelnode)
                 (setv elnode nextelnode)
                 (if (null (@:@ cnode next-node))
@@ -763,56 +761,56 @@ A helper function for `bqq` (bootstrap-qq).
 
 |#
 (def bqq-helper
-  (fn intern (p DNode) ((frm (p DNode))
-                        (pool (p PoolNode))
+  (fn intern (p DNode) ((frm       (p DNode))
+                        (mcontext  (p MContext))
                         (arg-count int))
     (def nullp (var auto (p DNode) (cast 0 (p DNode))))
 
-    (def holder (var auto (p DNode) (make-node pool)))
+    (def holder (var auto (p DNode) (make-node mcontext)))
     (setf (:@ holder is-list)   1)
     (setf (:@ holder list-node) nullp)
     (setf (:@ holder next-node) nullp)
 
     (def ln-node (var auto (p DNode)
-                    (mnfv pool "std.macros.link-nodes-list-wp")))
+                    (mnfv mcontext "std.macros.link-nodes-list-wp")))
     (setf (:@ holder list-node) ln-node)
 
-    (def pool-node (var auto (p DNode) (mnfv pool "pool")))
+    (def pool-node (var auto (p DNode) (mnfv mcontext "mcontext")))
     (setf (:@ ln-node next-node) pool-node)
 
-    (def count-node (var auto (p DNode) (mnfv pool (itoa arg-count))))
+    (def count-node (var auto (p DNode) (mnfv mcontext (itoa arg-count))))
     (setf (:@ pool-node next-node) count-node)
 
     (def begin-line-node (var auto (p DNode)
-        (mnfv pool (itoa (@:@ (@:@ frm list-node) begin-line)))))
+        (mnfv mcontext (itoa (@:@ (@:@ frm list-node) begin-line)))))
     (setf (:@ count-node next-node) begin-line-node)
 
     (def begin-column-node (var auto (p DNode)
-        (mnfv pool (itoa (@:@ (@:@ frm list-node) begin-column)))))
+        (mnfv mcontext (itoa (@:@ (@:@ frm list-node) begin-column)))))
     (setf (:@ begin-line-node next-node) begin-column-node)
 
     (def end-line-node (var auto (p DNode)
-        (mnfv pool (itoa (@:@ (@:@ frm list-node) end-line)))))
+        (mnfv mcontext (itoa (@:@ (@:@ frm list-node) end-line)))))
     (setf (:@ begin-column-node next-node) end-line-node)
 
     (def end-column-node (var auto (p DNode)
-        (mnfv pool (itoa (@:@ (@:@ frm list-node) end-column)))))
+        (mnfv mcontext (itoa (@:@ (@:@ frm list-node) end-column)))))
     (setf (:@ end-line-node next-node) end-column-node)
 
     (def macro-begin-line-node (var auto (p DNode)
-        (mnfv pool (itoa (@:@ (@:@ frm list-node) macro-begin-line)))))
+        (mnfv mcontext (itoa (@:@ (@:@ frm list-node) macro-begin-line)))))
     (setf (:@ end-column-node next-node) macro-begin-line-node)
 
     (def macro-begin-column-node (var auto (p DNode)
-        (mnfv pool (itoa (@:@ (@:@ frm list-node) macro-begin-column)))))
+        (mnfv mcontext (itoa (@:@ (@:@ frm list-node) macro-begin-column)))))
     (setf (:@ macro-begin-line-node next-node) macro-begin-column-node)
 
     (def macro-end-line-node (var auto (p DNode)
-        (mnfv pool (itoa (@:@ (@:@ frm list-node) macro-end-line)))))
+        (mnfv mcontext (itoa (@:@ (@:@ frm list-node) macro-end-line)))))
     (setf (:@ macro-begin-column-node next-node) macro-end-line-node)
 
     (def macro-end-column-node (var auto (p DNode)
-        (mnfv pool (itoa (@:@ (@:@ frm list-node) macro-end-column)))))
+        (mnfv mcontext (itoa (@:@ (@:@ frm list-node) macro-end-column)))))
     (setf (:@ macro-end-line-node next-node) macro-end-column-node)
 
     (def anchor-node (var auto (p DNode) macro-end-column-node))
@@ -847,18 +845,18 @@ A helper function for `bqq` (bootstrap-qq).
                     (setf ($ charbuf (+ (cast 1 size) (strlen token-str))) dquote)
                     (setf ($ charbuf (+ (cast 2 size) (strlen token-str))) #\NULL)
 
-                    (setv temp-node (link-nodes-list pool 11
-                        (mnfv pool "std.macros.mnfv-wp")
-                        (mnfv pool "pool")
-                        (mnfv pool charbuf)
-                        (mnfv pool (itoa (@:@ va-dnode begin-line)))
-                        (mnfv pool (itoa (@:@ va-dnode begin-column)))
-                        (mnfv pool (itoa (@:@ va-dnode end-line)))
-                        (mnfv pool (itoa (@:@ va-dnode end-column)))
-                        (mnfv pool (itoa (@:@ va-dnode macro-begin-line)))
-                        (mnfv pool (itoa (@:@ va-dnode macro-begin-column)))
-                        (mnfv pool (itoa (@:@ va-dnode macro-end-line)))
-                        (mnfv pool (itoa (@:@ va-dnode macro-end-column)))))
+                    (setv temp-node (link-nodes-list mcontext 11
+                        (mnfv mcontext "std.macros.mnfv-wp")
+                        (mnfv mcontext "mcontext")
+                        (mnfv mcontext charbuf)
+                        (mnfv mcontext (itoa (@:@ va-dnode begin-line)))
+                        (mnfv mcontext (itoa (@:@ va-dnode begin-column)))
+                        (mnfv mcontext (itoa (@:@ va-dnode end-line)))
+                        (mnfv mcontext (itoa (@:@ va-dnode end-column)))
+                        (mnfv mcontext (itoa (@:@ va-dnode macro-begin-line)))
+                        (mnfv mcontext (itoa (@:@ va-dnode macro-begin-column)))
+                        (mnfv mcontext (itoa (@:@ va-dnode macro-end-line)))
+                        (mnfv mcontext (itoa (@:@ va-dnode macro-end-column)))))
                     (setf (:@ anchor-node next-node) temp-node)
                     (setv anchor-node temp-node)
                     0)
@@ -872,8 +870,8 @@ A helper function for `bqq` (bootstrap-qq).
                         (do
                             (setv temp-node
                                 (if (not (null (@:@ (@:@ (@:@ va-dnode list-node) next-node) token-str)))
-                                    (link-nodes-list pool 4 (mnfv pool "std.macros.copy") (mnfv pool "pool") (mnfv pool "false") (mnfv pool (@:@ (@:@ (@:@ va-dnode list-node) next-node) token-str)))
-                                    (link-nodes-list pool 4 (mnfv pool "std.macros.copy") (mnfv pool "pool") (mnfv pool "false") (make-node-maker pool (@:@ (@:@ va-dnode list-node) next-node)))))
+                                    (link-nodes-list mcontext 4 (mnfv mcontext "std.macros.copy") (mnfv mcontext "mcontext") (mnfv mcontext "false") (mnfv mcontext (@:@ (@:@ (@:@ va-dnode list-node) next-node) token-str)))
+                                    (link-nodes-list mcontext 4 (mnfv mcontext "std.macros.copy") (mnfv mcontext "mcontext") (mnfv mcontext "false") (make-node-maker mcontext (@:@ (@:@ va-dnode list-node) next-node)))))
                             (setf (:@ anchor-node next-node) temp-node)
                             (setv anchor-node temp-node) 0)
                     (if (if (= 0 (strcmp (@:@ (@:@ va-dnode list-node) token-str) "uql"))
@@ -884,8 +882,8 @@ A helper function for `bqq` (bootstrap-qq).
                         (do
                             (setv temp-node
                                 (if (not (null (@:@ (@:@ (@:@ va-dnode list-node) next-node) token-str)))
-                                    (link-nodes-list pool 4 (mnfv pool "std.macros.copy") (mnfv pool "pool") (mnfv pool "true") (mnfv pool (@:@ (@:@ (@:@ va-dnode list-node) next-node) token-str)))
-                                    (link-nodes-list pool 4 (mnfv pool "std.macros.copy") (mnfv pool "pool") (mnfv pool "true") (make-node-maker pool (@:@ (@:@ va-dnode list-node) next-node)))))
+                                    (link-nodes-list mcontext 4 (mnfv mcontext "std.macros.copy") (mnfv mcontext "mcontext") (mnfv mcontext "true") (mnfv mcontext (@:@ (@:@ (@:@ va-dnode list-node) next-node) token-str)))
+                                    (link-nodes-list mcontext 4 (mnfv mcontext "std.macros.copy") (mnfv mcontext "mcontext") (mnfv mcontext "true") (make-node-maker mcontext (@:@ (@:@ va-dnode list-node) next-node)))))
                             (setf (:@ anchor-node next-node) temp-node)
                             (setv anchor-node (get-last-node temp-node)
                             ) 0)
@@ -897,8 +895,8 @@ A helper function for `bqq` (bootstrap-qq).
                         (do
                             (setv temp-node
                                 (if (not (null (@:@ (@:@ (@:@ va-dnode list-node) next-node) token-str)))
-                                    (mnfv pool (@:@ (@:@ (@:@ va-dnode list-node) next-node) token-str))
-                                    (make-node-maker pool (@:@ (@:@ va-dnode list-node) next-node))))
+                                    (mnfv mcontext (@:@ (@:@ (@:@ va-dnode list-node) next-node) token-str))
+                                    (make-node-maker mcontext (@:@ (@:@ va-dnode list-node) next-node))))
                             (setf (:@ anchor-node next-node) temp-node)
                             (setv anchor-node temp-node)
                             0)
@@ -910,15 +908,15 @@ A helper function for `bqq` (bootstrap-qq).
                         (do
                             (setv temp-node
                                 (if (not (null (@:@ (@:@ (@:@ va-dnode list-node) next-node) token-str)))
-                                    (mnfv pool (@:@ (@:@ (@:@ va-dnode list-node) next-node) token-str))
-                                    (make-node-maker pool (@:@ (@:@ va-dnode list-node) next-node))))
+                                    (mnfv mcontext (@:@ (@:@ (@:@ va-dnode list-node) next-node) token-str))
+                                    (make-node-maker mcontext (@:@ (@:@ va-dnode list-node) next-node))))
                             (setf (:@ anchor-node next-node) temp-node)
                             (setv anchor-node (get-last-node temp-node))
                             0)
                     (do
                         (setv temp-node
                             (bqq-helper va-dnode
-                                    pool
+                                    mcontext
                                     (list-count va-dnode)))
                         (setf (:@ anchor-node next-node)
                             temp-node)
@@ -926,7 +924,7 @@ A helper function for `bqq` (bootstrap-qq).
                 (do
                     (setv temp-node
                         (bqq-helper va-dnode
-                                pool
+                                mcontext
                                 (list-count va-dnode)))
                     (setf (:@ anchor-node next-node)
                         temp-node)
@@ -949,11 +947,13 @@ used again.
 
 |#
 (def bqq (macro extern (frm ...)
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
+
     (setv arg-count (- arg-count 1))
     (def myargcount (var auto int arg-count))
 
     (def nullp (var auto (p DNode) (nullptr DNode)))
-    (def holder (var auto (p DNode) (make-node pool)))
+    (def holder (var auto (p DNode) (make-node mcontext)))
 
     (def arglist (var auto va-list))
     (va-start (cast (# arglist) (p void)))
@@ -969,7 +969,7 @@ used again.
 
     (label begin-loop)
         (if (= arg-count 0) (goto end-loop) 0)
-
+        
         (setv va-dnode (va-arg (# arglist) (p DNode)))
         (setf (:@ temp-node next-node) va-dnode)
         (setv temp-node va-dnode)
@@ -977,7 +977,8 @@ used again.
         (goto begin-loop)
 
     (label end-loop)
-        (return (bqq-helper holder pool (+ myargcount 1)))))
+        (def x (var auto \ (bqq-helper holder mcontext (+ myargcount 1))))
+        (return x)))
 
 #|
 @macro get-varargs-array
@@ -990,17 +991,18 @@ deducted from `arg-count` prior to it being called.
 |#
 (def get-varargs-array
   (macro extern (void)
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
     (def begin-label
-        (var auto (p DNode) (make-gensym-label-node pool "beginlabel")))
+        (var auto (p DNode) (make-gensym-label-node mcontext "beginlabel")))
     (def end-label
-        (var auto (p DNode) (make-gensym-label-node pool "endlabel")))
+        (var auto (p DNode) (make-gensym-label-node mcontext "endlabel")))
     (bqq do
         (def arg-count-original (var auto int arg-count))
         (def arglist (var auto va-list))
         (va-start (cast (# arglist) (p void)))
         (def arg-array-original
             (var auto (p (p DNode))
-                    (cast (pool-malloc pool 
+                    (cast (pool-malloc mcontext
                                        (* (sizeof (p DNode)) 
                                           (cast arg-count size))) 
                           (p (p DNode)))))
@@ -1028,17 +1030,18 @@ together, as per `link-nodes`. A binding for the first node,
 |#
 (def get-varargs-list
   (macro extern (void)
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
     (def begin-label
-        (var auto (p DNode) (make-gensym-label-node pool "beginlabel")))
+        (var auto (p DNode) (make-gensym-label-node mcontext "beginlabel")))
     (def end-label
-        (var auto (p DNode) (make-gensym-label-node pool "endlabel")))
+        (var auto (p DNode) (make-gensym-label-node mcontext "endlabel")))
     (bqq do
         (def arg-count-original (var auto int arg-count))
         (def arglist (var auto va-list))
         (va-start (cast (# arglist) (p void)))
         (def arg-array-original
             (var auto (p (p DNode))
-                    (cast (pool-malloc pool 
+                    (cast (pool-malloc mcontext 
                                        (* (sizeof (p DNode)) 
                                           (cast arg-count size)))
                           (p (p DNode)))))
@@ -1060,7 +1063,7 @@ together, as per `link-nodes`. A binding for the first node,
                                     arg-array-original))))))
 
 (def pool-malloc' (macro extern (n T)
-  (bqq cast (pool-malloc pool (* (cast (uq n) size) (sizeof (uq T))))
+  (bqq cast (pool-malloc mcontext (* (cast (uq n) size) (sizeof (uq T))))
             (p (uq T)))))
 
 ))

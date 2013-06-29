@@ -8,7 +8,7 @@
           (i   int 0))
       (for true (< i n) (incv i)
         (printf "%s\n" (struct-member-name fn i))))
-    (mnfv pool "0")))
+    (mnfv mcontext "0")))
 )
 
 (namespace bling

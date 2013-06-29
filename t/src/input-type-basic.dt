@@ -9,7 +9,7 @@
       (for true (< i n) (incv i)
         (print (input-type fn i))
         (printf "\n")))
-    (mnfv pool "0")))
+    (mnfv mcontext "0")))
 )
 
 (def main

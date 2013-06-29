@@ -4,6 +4,7 @@
 (using-namespace std.macros
 (def wrap-body
   (macro intern (...)
+    (def arg-count (var auto \ (@:@ mcontext arg-count)))
     (get-varargs-list) 
     (bqq do
         (printf "Wrap function start\n")

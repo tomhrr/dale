@@ -6,7 +6,7 @@
     (let ((n   int (arity fn))
           (str (array-of 10 char)))
       (sprintf str "%d" n)
-      (std.macros.mnfv pool str))))
+      (std.macros.mnfv mcontext str))))
 
 (def main
   (fn extern-c int (void)

@@ -29,12 +29,18 @@ implicitly where necessary.
                   (next-node (p PoolNode)) 
                   (last-node (p PoolNode)))))
 
+(def MContext
+  (struct extern ((arg-count int)
+                  (pool-node (p PoolNode))
+                  (generator (p void)))))
+
 (def malloc (fn extern-c (p void) ((n size)))) 
 (def free (fn extern-c void ((ptr (p void))))) 
 (def not (fn _extern-weak bool ((a bool)) (if a false true))) 
 (def memcpy (fn extern-c (p void) ((a (p void)) (b (p void)) (c size)))) 
 (def pool-malloc  
-  (fn _extern-weak (p void) ((pool-node (p PoolNode)) (n size))  
+  (fn _extern-weak (p void) ((mcontext (p MContext)) (n size))  
+    (def pool-node (var auto \ (@:@ mcontext pool-node)))
     (def ln (var auto (p PoolNode) (@ (: (@ pool-node) last-node)))) 
     (if (null ln) 
         (do (setf (: (@ pool-node) last-node) pool-node) 
@@ -56,13 +62,17 @@ implicitly where necessary.
 
     (return new-pointer)))
 
-(def pool-free 
+(def pool-free_
   (fn _extern-weak void ((pool-node (p PoolNode))) 
     (if (not (null (@ (: (@ pool-node) value)))) 
         (do (free (@:@ pool-node value)) 0) 
         0) 
     (if (not (null (@:@ pool-node next-node))) 
-        (do (pool-free (@:@ pool-node next-node)) 0) 
+        (do (pool-free_ (@:@ pool-node next-node)) 0) 
         0) 
     (free (cast pool-node (p void))) 
     (return)))
+
+(def pool-free 
+  (fn _extern-weak void ((mcontext (p MContext))) 
+    (pool-free_ (@:@ mcontext pool-node))))

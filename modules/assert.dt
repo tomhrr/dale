@@ -77,16 +77,16 @@ subsequent calls to this macro will expand to no-ops.
     (setv last-charp (strchr cond-str #\NULL))
     (setf last-charp #\")
     (setf (p+ last-charp 1) #\NULL)
-    (setv cond-str-node (std.macros.mnfv pool cond-str))
+    (setv cond-str-node (std.macros.mnfv mcontext cond-str))
 
     (sprintf filename-str "%c%s%c" #\" (@:@ condition filename) #\")
-    (setv filename-node (std.macros.mnfv pool filename-str))
+    (setv filename-node (std.macros.mnfv mcontext filename-str))
 
     (sprintf begin-line-str "%d" (@:@ condition begin-line))
-    (setv begin-line-node (std.macros.mnfv pool begin-line-str))
+    (setv begin-line-node (std.macros.mnfv mcontext begin-line-str))
 
     (sprintf begin-column-str "%d" (@:@ condition begin-column))
-    (setv begin-column-node (std.macros.mnfv pool begin-column-str))
+    (setv begin-column-node (std.macros.mnfv mcontext begin-column-str))
 
     (std.macros.qq do
       (if (not (uq condition))

@@ -18,7 +18,7 @@
 (def count-functions
   (macro intern (lst)
     (let ((n     \ (fn-by-args-count lst (nullptr char)))
-          (nnode \ (std.macros.mnfv pool n)))
+          (nnode \ (std.macros.mnfv mcontext n)))
       (std.macros.qq do (uq nnode)))))
 
 (def main

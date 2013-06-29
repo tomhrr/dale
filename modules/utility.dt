@@ -207,7 +207,7 @@ the argument type.
     (let ((typename (array-of 250 char)))
       (and (not (make-type-string "iterator" T typename))
            (return (nullptr DNode)))
-      (def n (var auto (p DNode) (mnfv pool typename)))
+      (def n (var auto (p DNode) (mnfv mcontext typename)))
       (return n))))
 
 #|
@@ -223,7 +223,7 @@ the argument type.
     (let ((typename (array-of 250 char)))
       (and (not (make-type-string "riterator" T typename))
            (return (nullptr DNode)))
-      (def n (var auto (p DNode) (mnfv pool typename)))
+      (def n (var auto (p DNode) (mnfv mcontext typename)))
       (return n))))
 
 #|
@@ -246,7 +246,7 @@ Expands to a struct definition with two members, named `first` and
     (if (exists-type (qq Pair (uq T1) (uq T2)))
         (do (return (nullptr DNode)) 0)
         0)
-    (def n (var auto (p DNode) (mnfv pool typename)))
+    (def n (var auto (p DNode) (mnfv mcontext typename)))
     (qq def (uq n)
       (struct extern ((first (uq T1)) (second (uq T2)))))))
 
@@ -264,7 +264,7 @@ the concept macro.
     (let ((typename (array-of 250 char)))
       (and (not (make-type-string "pair" T1 T2 typename))
            (return (nullptr DNode)))
-      (def n (var auto (p DNode) (std.macros.mnfv pool typename)))
+      (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
       (return n))))
 
 #|
@@ -285,7 +285,7 @@ Expands to a struct definition with three members, named `first`,
     (and (not (make-type-display-string "Triple" T1 T2 T3 etypename))
          (return (nullptr DNode)))
     (register-type typename etypename)
-    (def n (var auto (p DNode) (std.macros.mnfv pool typename)))
+    (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
     (qq def (uq n)
       (struct extern ((first (uq T1)) (second (uq T2)) (third (uq T3)))))))
 
@@ -304,6 +304,6 @@ the concept macro.
     (let ((typename (array-of 250 char)))
       (and (not (make-type-string "triple" T1 T2 T3 typename))
            (return (nullptr DNode)))
-      (def n (var auto (p DNode) (std.macros.mnfv pool typename)))
+      (def n (var auto (p DNode) (std.macros.mnfv mcontext typename)))
       (return n))))
 ))
