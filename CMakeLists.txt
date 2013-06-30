@@ -140,6 +140,7 @@ include_directories ("${PROJECT_BINARY_DIR}")
 # Compile the compiler.
 
 add_executable (dalec src/dale/dalec.cpp
+                      src/dale/Introspection/Introspection.cpp
                       src/dale/Operation/Cast/Cast.cpp
                       src/dale/BasicTypes/BasicTypes.cpp
                       src/dale/Generator/Generator.cpp
