@@ -743,7 +743,7 @@ static int mc_count   = 0;
 static int mcpn_count = 0;
 static int globmarker = 0;
 
-void Generator::removeFluff(void)
+void Generator::removeMacroTemporaries(void)
 {
     /* Remove macro calls using mc_count. */
 
@@ -847,15 +847,6 @@ void *myLFC(const std::string &name)
     }
 
     return NULL;
-}
-
-void Generator::removeMacrosAndCTOFunctions(Context *myctx,
-        int reget_pointers)
-{
-    if (reget_pointers) {
-        myctx->regetPointers(mod);
-    }
-    myctx->eraseLLVMMacrosAndCTOFunctions();
 }
 
 int Generator::run(std::vector<const char *> *filenames,
@@ -1052,7 +1043,7 @@ int Generator::run(std::vector<const char *> *filenames,
             erep->flush();
         } while (1);
 
-        removeFluff();
+        removeMacroTemporaries();
 
         if (remove_macros) {
             ctx->eraseLLVMMacros();
@@ -1253,8 +1244,8 @@ int Generator::run(std::vector<const char *> *filenames,
 
         /* Remove all of the macros from the module, and then
          * repeat what happened above. */
-
-        removeMacrosAndCTOFunctions(ctx, 1);
+        ctx->regetPointers(mod);
+        ctx->eraseLLVMMacrosAndCTOFunctions();
 
         /* Write the bitcode to this path. */
         bc_path.erase((bc_path.size() - 3), 3);
@@ -1398,12 +1389,15 @@ int Generator::run(std::vector<const char *> *filenames,
             rgp = 0;
         }
 
-        /* Previously, removeMacrosAndCTOFunctions was only run when a
-         * module was created, because that was the only time a
+        /* Previously, eraseLLVMMacrosAndCTOFunctions was only run
+         * when a module was created, because that was the only time a
          * function could be CTO. It can be CTO at any time now. (The
          * removeMacros part of the call is unnecessary, but shouldn't
          * cause any problems.) */
-        removeMacrosAndCTOFunctions(ctx, rgp);
+        if (rgp) {
+            ctx->regetPointers(mod);
+        }
+        ctx->eraseLLVMMacrosAndCTOFunctions();
 
         llvm::formatted_raw_ostream *temp_fro
         = new llvm::formatted_raw_ostream(temp,

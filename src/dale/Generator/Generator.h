@@ -322,7 +322,7 @@ private:
 
     Node *parseOptionalMacroCall(Node *n);
 
-    void removeFluff(void);
+    void removeMacroTemporaries(void);
 
     void deleteDNode(DNode *dnode);
 
@@ -482,7 +482,6 @@ private:
     Node *parseDerefStruct(Node *n);
     Node *parseDerefStructDeref(Node *n);
 
-    void removeMacrosAndCTOFunctions(Context *myctx, int reget_pointers);
     int addVariable(const char *name,
                     Element::Type *type,
                     llvm::Constant *init,
