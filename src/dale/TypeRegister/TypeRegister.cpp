@@ -86,6 +86,35 @@ TypeRegister::getArrayType(Element::Type *type, size_t size)
 }
 
 Element::Type*
+TypeRegister::getBitfieldType(Element::Type *type, size_t size)
+{
+    std::map<Element::Type*, std::map<size_t, Element::Type*> >::iterator
+        b = bitfield_types.find(type), e = bitfield_types.end();
+    if (b != e) {
+        std::map<size_t, Element::Type*>::iterator
+            ab = b->second.find(size), ae = b->second.end();
+        if (ab != ae) {
+            return ab->second;
+        } else {
+            Element::Type *bitfield_type = type->makeCopy();
+            bitfield_type->bitfield_size = size;
+            b->second.insert(
+                std::pair<size_t, Element::Type*>(size, bitfield_type)
+            );
+            return bitfield_type;
+        }
+    }
+
+    bitfield_types.insert(
+        std::pair<Element::Type*, std::map<size_t, Element::Type*> >(
+            type, std::map<size_t, Element::Type*>()
+        )
+    );
+    return getBitfieldType(type, size);
+}
+
+
+Element::Type*
 TypeRegister::getConstType(Element::Type *type)
 {
     std::map<Element::Type*, Element::Type*>::iterator

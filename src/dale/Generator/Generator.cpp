@@ -13251,9 +13251,7 @@ Element::Type *Generator::parseType(Node *top,
         if (size == -1) {
             return NULL;
         }
-        bf_type = bf_type->makeCopy();
-        bf_type->bitfield_size = size;
-        return bf_type;
+        return tr->getBitfieldType(bf_type, size);
     }
 
     if (!strcmp(t->str_value.c_str(), "const")) {
