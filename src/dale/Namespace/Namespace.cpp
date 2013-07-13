@@ -36,7 +36,7 @@ Namespace::Namespace(ErrorReporter *er,
                 e = names.rend();
                 b != e;
                 ++b) {
-            sprintf(num, "%lu", b->length());
+            sprintf(num, "%zu", b->length());
             symbol_prefix.append(num)
                          .append(*b);
         }
@@ -1140,7 +1140,7 @@ Namespace::print(void)
             e = functions.end();
             b != e;
             ++b) {
-        fprintf(stderr, "Function: %s (%lu)\n", 
+        fprintf(stderr, "Function: %s (%zu)\n", 
                         b->first.c_str(),
                         b->second->size());
     }
