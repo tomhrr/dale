@@ -55,4 +55,33 @@ TypeRegister::getPointerType(Element::Type *type)
     return pointer_type;
 }
 
+Element::Type*
+TypeRegister::getArrayType(Element::Type *type, size_t size)
+{
+    std::map<Element::Type*, std::map<size_t, Element::Type*> >::iterator
+        b = array_types.find(type), e = array_types.end();
+    if (b != e) {
+        std::map<size_t, Element::Type*>::iterator
+            ab = b->second.find(size), ae = b->second.end();
+        if (ab != ae) {
+            return ab->second;
+        } else {
+            Element::Type *array_type = new Element::Type();
+            array_type->is_array = 1;
+            array_type->array_type = type;
+            array_type->array_size = size;
+            b->second.insert(
+                std::pair<size_t, Element::Type*>(size, array_type)
+            );
+            return array_type;
+        }
+    }
+
+    array_types.insert(
+        std::pair<Element::Type*, std::map<size_t, Element::Type*> >(
+            type, std::map<size_t, Element::Type*>()
+        )
+    );
+    return getArrayType(type, size);
+}
 }

@@ -22,8 +22,10 @@ class TypeRegister
 private:
     /*! An array containing instances of all the basic types. */
     Element::Type *basic_types[BASIC_TYPE_COUNT];
-    /*! A map from types to pointer types. */
+    /*! A map from type to pointer type. */
     std::map<Element::Type*, Element::Type*> pointer_types;
+    /*! A map from type, to size, to array type. */
+    std::map<Element::Type*, std::map<size_t, Element::Type*> > array_types;
 
 public:
     /*! The standard constructor. Initialises the basic types. */
@@ -36,6 +38,10 @@ public:
     /*! Return an instance of a pointer to a type.
      *  @param type The pointee type object. */
     Element::Type *getPointerType(Element::Type *type);
+    /*! Return an instance of an array type.
+     *  @param type The array element type.
+     *  @param size The size of the array. */
+    Element::Type *getArrayType(Element::Type *type, size_t size);
 };
 }
 

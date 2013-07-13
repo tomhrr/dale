@@ -3702,10 +3702,7 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
         std::string varname2;
         getUnusedVarname(&varname2);
 
-        Element::Type *archar = new Element::Type();
-        archar->is_array = 1;
-        archar->array_type = type_char;
-        archar->array_size = *size;
+        Element::Type *archar = tr->getArrayType(type_char, *size);
 
         if (mod->getGlobalVariable(llvm::StringRef(varname2.c_str()))) {
             fprintf(stderr, "Internal error: "
@@ -4138,7 +4135,7 @@ llvm::Constant *Generator::parseLiteral1(Element::Type *type,
     }
 
     int underlying_type =
-        (!type->base_type && type->points_to) ? type->points_to->base_type
+          (!type->base_type && type->points_to) ? type->points_to->base_type
         : (type->is_array)                      ? type->array_type->base_type
         : 0;
 
@@ -6554,10 +6551,7 @@ ParseResult *Generator::parseArrayOf(Element::Function *dfn,
         return NULL;
     }
 
-    Element::Type *arrtype = new Element::Type();
-    arrtype->array_size = size;
-    arrtype->array_type = type;
-    arrtype->is_array   = 1;
+    Element::Type *arrtype = tr->getArrayType(type, size);
 
     int size2;
     ParseResult *arr =
@@ -10331,18 +10325,12 @@ tryvar:
 
             /* Add the variable to the module */
 
-            Element::Type *temp = new Element::Type();
-            temp->is_array = 1;
-            temp->array_type = type_char->makeCopy();
-
             int size = 0;
-
-            llvm::Constant *init = parseLiteral1(temp, n, &size);
+            llvm::Constant *init = parseLiteral1(type_pchar, n, &size);
             if (!init) {
                 return NULL;
             }
-
-            temp->array_size = size;
+            Element::Type *temp = tr->getArrayType(type_char, size);
 
             llvm::Type *llvm_type =
                 toLLVMType(temp, NULL, false);
@@ -13332,10 +13320,7 @@ Element::Type *Generator::parseType(Node *top,
             return NULL;
         }
 
-        Element::Type *type = new Element::Type();
-        type->is_array   = 1;
-        type->array_size = size;
-        type->array_type = array_type;
+        Element::Type *type = tr->getArrayType(array_type, size);
 
         return type;
     }
@@ -13925,10 +13910,9 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
             std::string varname2;
             getUnusedVarname(&varname2);
 
-            Element::Type *archar = new Element::Type();
-            archar->is_array = 1;
-            archar->array_type = type_char;
-            archar->array_size = t->str_value.size() + 1;
+            Element::Type *archar = 
+                tr->getArrayType(type_char,
+                                 t->str_value.size() + 1);
 
             svar2 =
                 llvm::cast<llvm::GlobalVariable>(
