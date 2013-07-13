@@ -291,8 +291,8 @@ makeEnumFunction(Context *ctx,
                             store_ptr1);
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, ctx->toLLVMType(new Element::Type(type),
-                                           NULL, false)
+                store_ptr1, ctx->toLLVMType(ctx->tr->getPointerType(type),
+                                            NULL, false)
             );
         llvm::Value *newint =
             builder.CreateLoad(sp);
@@ -391,8 +391,8 @@ addSignedInt(Context *ctx,
         builder.CreateRet(res);
     }
 
-    Element::Type *type_bool = new Element::Type(Type::Bool);
-    Element::Type *type_int = new Element::Type(Type::Int);
+    Element::Type *type_bool = ctx->tr->getBasicType(Type::Bool);
+    Element::Type *type_int  = ctx->tr->getBasicType(Type::Int);
 
     makeFunction(ctx, mod, once_tag, "=",  
                  &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, type);
@@ -469,7 +469,7 @@ addFloatingPoint(Context *ctx,
     makeFunction(ctx, mod, once_tag, "-",  &llvm::IRBuilder<>::CreateFSub, type, type);
     makeFunction(ctx, mod, once_tag, "/",  &llvm::IRBuilder<>::CreateFDiv, type, type);
     makeFunction(ctx, mod, once_tag, "*",  &llvm::IRBuilder<>::CreateFMul, type, type);
-    Element::Type *type_bool = new Element::Type(Type::Bool);
+    Element::Type *type_bool = ctx->tr->getBasicType(Type::Bool);
     makeFunction(ctx, mod, once_tag, "=",  &llvm::IRBuilder<>::CreateFCmpOEQ, type_bool, type);
     makeFunction(ctx, mod, once_tag, "!=", &llvm::IRBuilder<>::CreateFCmpONE, type_bool, type);
     makeFunction(ctx, mod, once_tag, "<",  &llvm::IRBuilder<>::CreateFCmpOLT, type_bool, type);
@@ -565,8 +565,8 @@ addUnsignedInt(Context *ctx,
                            );
         builder.CreateRet(res);
     }
-    Element::Type *type_bool = new Element::Type(Type::Bool);
-    Element::Type *type_int = new Element::Type(Type::Int);
+    Element::Type *type_bool = ctx->tr->getBasicType(Type::Bool);
+    Element::Type *type_int  = ctx->tr->getBasicType(Type::Int);
     makeFunction(ctx, mod, once_tag, "=",  &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, type);
     makeFunction(ctx, mod, once_tag, "!=", &llvm::IRBuilder<>::CreateICmpNE,  type_bool, type);
     makeFunction(ctx, mod, once_tag, "<",  &llvm::IRBuilder<>::CreateICmpULT, type_bool, type);
@@ -728,8 +728,8 @@ addEnum(Context *ctx,
 
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, ctx->toLLVMType(new Element::Type(enum_type),
-                                           NULL, false)
+                store_ptr1, ctx->toLLVMType(ctx->tr->getPointerType(enum_type),
+                                            NULL, false)
             );
         llvm::Value *newint =
             builder.CreateLoad(sp);
@@ -791,8 +791,8 @@ addEnum(Context *ctx,
 
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, ctx->toLLVMType(new Element::Type(enum_type),
-                                           NULL, false)
+                store_ptr1, ctx->toLLVMType(ctx->tr->getPointerType(enum_type),
+                                            NULL, false)
             );
         llvm::Value *newint =
             builder.CreateLoad(sp);
@@ -854,8 +854,8 @@ addEnum(Context *ctx,
 
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, ctx->toLLVMType(new Element::Type(enum_type),
-                                           NULL, false)
+                store_ptr1, ctx->toLLVMType(ctx->tr->getPointerType(enum_type),
+                                            NULL, false)
             );
         llvm::Value *newint =
             builder.CreateLoad(sp);
@@ -918,21 +918,21 @@ addEnum(Context *ctx,
 
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, ctx->toLLVMType(new Element::Type(enum_type),
-                                           NULL, false)
+                store_ptr1, ctx->toLLVMType(ctx->tr->getPointerType(enum_type),
+                                            NULL, false)
             );
         llvm::Value *newint =
             builder.CreateLoad(sp);
         builder.CreateRet(newint);
     }
-    Element::Type *type_bool = new Element::Type(Type::Bool);
+    Element::Type *type_bool = ctx->tr->getBasicType(Type::Bool);
     makeEnumFunction(ctx, mod, once_tag, "=",  &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, "!=", &llvm::IRBuilder<>::CreateICmpNE,  type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, "<",  &llvm::IRBuilder<>::CreateICmpULT, type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, "<=", &llvm::IRBuilder<>::CreateICmpULE, type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, ">",  &llvm::IRBuilder<>::CreateICmpUGT, type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, ">=", &llvm::IRBuilder<>::CreateICmpUGE, type_bool, enum_type, flinkage);
-    Element::Type *type_int = new Element::Type(Type::Int);
+    Element::Type *type_int = ctx->tr->getBasicType(Type::Int);
     {
         Element::Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "<<", enum_type, enum_type, type_int);
@@ -981,8 +981,8 @@ addEnum(Context *ctx,
 
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, ctx->toLLVMType(new Element::Type(enum_type),
-                                           NULL, false)
+                store_ptr1, ctx->toLLVMType(ctx->tr->getPointerType(enum_type),
+                                            NULL, false)
             );
         llvm::Value *newint =
             builder.CreateLoad(sp);
@@ -1037,8 +1037,8 @@ addEnum(Context *ctx,
 
         llvm::Value *sp =
             builder.CreateBitCast(
-                store_ptr1, ctx->toLLVMType(new Element::Type(enum_type),
-                                           NULL, false)
+                store_ptr1, ctx->toLLVMType(ctx->tr->getPointerType(enum_type),
+                                            NULL, false)
             );
         llvm::Value *newint =
             builder.CreateLoad(sp);

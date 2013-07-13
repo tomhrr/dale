@@ -952,7 +952,7 @@ int Generator::run(std::vector<const char *> *filenames,
         const char *filename = (*iter);
         erep->current_filename = filename;
 
-        ctx  = new Context(erep, nt);
+        ctx  = new Context(erep, nt, tr);
         FILE *new_fp = fopen(filename, "r");
         if (!new_fp) {
             perror("Unable to open file");
@@ -1911,7 +1911,7 @@ int Generator::addDaleModule(Node *n,
         .append(so_suffix);
     }
 
-    Context *mynewcontext = new Context(erep, nt);
+    Context *mynewcontext = new Context(erep, nt, tr);
 
     int fd = fileno(test);
     struct stat buf;
@@ -2309,7 +2309,7 @@ void Generator::parseInclude(Node *top)
 
     prsr = newParser(include_file, filename_buf.c_str());
     Context *old_ctx = ctx;
-    ctx = new Context(erep, nt);
+    ctx = new Context(erep, nt, tr);
     ctx->merge(old_ctx);
 
     std::string module_name("MyModule");
@@ -3983,7 +3983,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
     builder.CreateStore(ret, reta2);
 
     std::vector<Element::Type *> call_arg_types;
-    Element::Type *ptype = new Element::Type(type);
+    Element::Type *ptype = tr->getPointerType(type);
     stl::push_back2(&call_arg_types, ptype, ptype);
 
     std::vector<llvm::Value *> call_args2;
@@ -4002,7 +4002,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
     ParseResult *temp_pr =
         doCast(block,
                reta,
-               new Element::Type(type),
+               tr->getPointerType(type),
                type_pchar,
                top);
     if (!temp_pr) {
@@ -5557,7 +5557,7 @@ ParseResult *Generator::parseAddressOf(Element::Function *dfn,
         if (var) {
             return new ParseResult(
                        block,
-                       new Element::Type(var->type->makeCopy()),
+                       tr->getPointerType(var->type),
                        var->value
                    );
         }
@@ -5706,7 +5706,7 @@ ParseResult *Generator::parseAddressOf(Element::Function *dfn,
 
             return new ParseResult(
                        block,
-                       new Element::Type(type),
+                       tr->getPointerType(type),
                        llvm::cast<llvm::Value>(fn->llvm_function)
                    );
         } else {
@@ -6354,7 +6354,7 @@ ParseResult *Generator::parseNullPtr(Element::Function *dfn,
         return NULL;
     }
     /* Create a pointer to the provided type. */
-    Element::Type *ptype = new Element::Type(type);
+    Element::Type *ptype = tr->getPointerType(type);
 
     llvm::IRBuilder<> builder(block);
     llvm::Type *llvm_ptype =
@@ -9274,7 +9274,7 @@ ParseResult *Generator::parseSref(Element::Function *dfn,
         llvm::Value *store =
             builder.CreateAlloca(llvm_type);
         builder.CreateStore(pr_struct->value, store);
-        pr_struct->type = new Element::Type(pr_struct->type);
+        pr_struct->type = tr->getPointerType(pr_struct->type);
         pr_struct->value = store;
     }
 
@@ -9369,7 +9369,7 @@ ParseResult *Generator::parseSref(Element::Function *dfn,
      * regardless of getAddress (it is as if getAddress was always
      * enabled). */
 
-    pr->type = new Element::Type(eltype);
+    pr->type = tr->getPointerType(eltype);
     pr->value = res;
 
     if (hasRelevantDestructor(pr_struct)) {
@@ -9870,8 +9870,8 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         }
 
         std::vector<Element::Type *> call_arg_types;
-        call_arg_types.push_back(new Element::Type(type));
-        call_arg_types.push_back(new Element::Type(type));
+        call_arg_types.push_back(tr->getPointerType(type));
+        call_arg_types.push_back(tr->getPointerType(type));
         Element::Function *or_setf =
             ctx->getFunction("setf-copy", &call_arg_types,
                              NULL, 0);
@@ -10020,8 +10020,8 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         llvm::IRBuilder<> builder2(p->block);
 
         std::vector<Element::Type *> call_arg_types;
-        call_arg_types.push_back(new Element::Type(type));
-        call_arg_types.push_back(new Element::Type(type));
+        call_arg_types.push_back(tr->getPointerType(type));
+        call_arg_types.push_back(tr->getPointerType(type));
         Element::Function *or_setf =
             ctx->getFunction("setf-copy", &call_arg_types,
                              NULL, 0);
@@ -10038,7 +10038,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
                 llvm::ArrayRef<llvm::Value*>(call_args2));
         } else {
             call_arg_types.clear();
-            call_arg_types.push_back(new Element::Type(type));
+            call_arg_types.push_back(tr->getPointerType(type));
             call_arg_types.push_back(p->type);
             Element::Function *or_setf2 =
                 ctx->getFunction("setf-copy", &call_arg_types,
@@ -10161,7 +10161,7 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
                     mySizeToRealSize(wanted_type->getIntegerSize());
                 return new ParseResult(
                            block,
-                           new Element::Type(wanted_type->base_type),
+                           tr->getBasicType(wanted_type->base_type),
                            getConstantInt(
                                llvm::IntegerType::get(
                                    llvm::getGlobalContext(),
@@ -10297,7 +10297,7 @@ tryvar:
             if (getAddress) {
                 return new ParseResult(
                            block,
-                           new Element::Type(var->type->makeCopy()),
+                           tr->getPointerType(var->type),
                            var->value
                        );
             } else {
@@ -10480,7 +10480,7 @@ tryvar:
 
         ParseResult *p = new ParseResult(
             block,
-            new Element::Type(fntype),
+            tr->getPointerType(fntype),
             llvm::cast<llvm::Value>(myanonfn->llvm_function)
         );
 
@@ -11623,7 +11623,7 @@ ParseResult *Generator::parseEnumLiteral(llvm::BasicBlock *block,
     if (getAddress) {
         ParseResult *p = new ParseResult;
 
-        p->type  = new Element::Type(myenumtype);
+        p->type  = tr->getPointerType(myenumtype);
         p->block = block;
         p->value = sp;
 
@@ -11756,7 +11756,7 @@ ParseResult *Generator::parseArrayLiteral(Element::Function *dfn,
 
     if (getAddress) {
         temptemp->type =
-            new Element::Type(array_type->makeCopy());
+            tr->getPointerType(array_type);
     } else {
         /* Add a load instruction */
         llvm::Value *pvalue =
@@ -11901,7 +11901,7 @@ ParseResult *Generator::parseStructLiteral(Element::Function *dfn,
     if (getAddress) {
         ParseResult *p = new ParseResult;
 
-        p->type  = new Element::Type(structtype->makeCopy());
+        p->type  = tr->getPointerType(structtype);
         p->block = block;
         p->value = sp;
 
@@ -11912,7 +11912,7 @@ ParseResult *Generator::parseStructLiteral(Element::Function *dfn,
 
         ParseResult *p = new ParseResult;
 
-        p->type  = structtype->makeCopy();
+        p->type  = structtype;
         p->block = block;
         p->value = final_value;
 
@@ -12099,7 +12099,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                     newptr,
                     llvm::ArrayRef<llvm::Value*>(two_zero_indices));
             call_arg_types.push_back(
-                new Element::Type(p->type->array_type->makeCopy())
+                tr->getPointerType(p->type->array_type)
             );
             call_args.push_back(p_to_array);
         } else {
@@ -13353,7 +13353,7 @@ Element::Type *Generator::parseType(Node *top,
             return NULL;
         }
 
-        return new Element::Type(points_to_type);
+        return tr->getPointerType(points_to_type);
     }
 
     if (!strcmp(t->str_value.c_str(), "fn")) {

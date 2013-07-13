@@ -10,6 +10,7 @@
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../Node/Node.h"
 #include "../NativeTypes/NativeTypes.h"
+#include "../TypeRegister/TypeRegister.h"
 #include "../STLUtils/STLUtils.h"
 
 #include <vector>
@@ -44,6 +45,8 @@ public:
     /*! The native types for the context. Used primarily for type
      *  conversion. */
     NativeTypes *nt;
+    /*! The type register for the context. */
+    TypeRegister *tr;
     /*! The error reporter for this context. */
     ErrorReporter *er;
     /*! The node for the root namespace. */
@@ -64,7 +67,8 @@ public:
      *  @param er The error reporter.
      *  @param nt The native types. */
     Context(ErrorReporter *er,
-            NativeTypes *nt);
+            NativeTypes *nt,
+            TypeRegister *tr);
     ~Context(void);
  
     /*! Get the currently-active namespace. */

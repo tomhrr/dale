@@ -6,15 +6,21 @@ namespace dale
 {
 Context::Context(void)
 {
+    this->nt = NULL;
+    this->er = NULL;
+    this->tr = NULL;
+
     /* For serialisation use only. Native types and an error reporter
      * must be set post-deserialisation. */
 }
 
 Context::Context(ErrorReporter *er,
-                 NativeTypes *nt)
+                 NativeTypes *nt,
+                 TypeRegister *tr)
 {
     this->nt = nt;
     this->er = er;
+    this->tr = tr;
 
     Namespace *root = new Namespace(er, ".", NULL, 0);
     namespaces = new NSNode();
@@ -148,26 +154,9 @@ Context::activateAnonymousNamespace(void)
 bool
 Context::deactivateAnonymousNamespace(void)
 {
-    /*
-    NSNode *current_nsnode = active_ns_nodes.back();
-    if (current_nsnode->ns->name.compare("_")) {
-        Error *e = new Error(
-            ErrorInst::Generator::NamespaceNotInScope,
-            nullNode(),
-            "_"
-        );
-        er->addError(e);
-        return false;
-    }
-    */
-
     active_ns_nodes.pop_back();
     used_ns_nodes.pop_back();
     
-    //deleteNamespace/acurrent_nsnode);
-
-    //active_ns_nodes.back()->children.erase("_");
-
     return true;
 }
 
@@ -880,10 +869,6 @@ Context::rebuildVariables(llvm::Module *mod, NSNode *nsnode)
 
     Namespace *ns = nsnode->ns;
 
-//    std::map<std::string,
-  //      Element::Variable *>::iterator viter =
-    //        newctx->variables.begin();
-
     for (std::map<std::string, Element::Variable *>::iterator
             b = ns->variables.begin(),
             e = ns->variables.end();
@@ -899,13 +884,7 @@ Context::rebuildVariables(llvm::Module *mod, NSNode *nsnode)
          * pointer needs to be updated after module linkage. */
         if (var->internal_name
                 && var->internal_name->size() > 0) {
-            Element::Type *pptype = 
-                new Element::Type(var->type->makeCopy());
-            if (!pptype) {
-                fprintf(stderr, "Unable to get pointer type.\n");
-                abort();
-            }
-
+            Element::Type *pptype = tr->getPointerType(var->type);
             llvm::Type *tt = toLLVMType(pptype, NULL, true, true);
             if (!tt) {
                 fprintf(stderr, "Unable to perform type conversion.\n");
