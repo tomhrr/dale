@@ -198,7 +198,8 @@ Generator::Generator()
     llvm::InitializeNativeTarget();
     llvm::InitializeAllAsmPrinters();
 
-    nt                 = new NativeTypes();
+    nt = new NativeTypes();
+    tr = new TypeRegister();
 
     included_inodes    = new std::multiset<ino_t>;
     included_once_tags = new std::set<std::string>;
@@ -212,29 +213,29 @@ Generator::Generator()
     parsers         = new std::vector<Parser *>;
     contexts        = new std::vector<Context *>;
 
-    type_bool        = new Element::Type(Type::Bool);
-    type_void        = new Element::Type(Type::Void);
-    type_varargs     = new Element::Type(Type::VarArgs);
-    type_int         = new Element::Type(Type::Int);
-    type_intptr      = new Element::Type(Type::IntPtr);
-    type_size        = new Element::Type(Type::Size);
-    type_ptrdiff     = new Element::Type(Type::PtrDiff);
-    type_uint        = new Element::Type(Type::UInt);
-    type_char        = new Element::Type(Type::Char);
-    type_float       = new Element::Type(Type::Float);
-    type_double      = new Element::Type(Type::Double);
-    type_longdouble  = new Element::Type(Type::LongDouble);
+    type_bool        = tr->getBasicType(Type::Bool);
+    type_void        = tr->getBasicType(Type::Void);
+    type_varargs     = tr->getBasicType(Type::VarArgs);
+    type_int         = tr->getBasicType(Type::Int);
+    type_intptr      = tr->getBasicType(Type::IntPtr);
+    type_size        = tr->getBasicType(Type::Size);
+    type_ptrdiff     = tr->getBasicType(Type::PtrDiff);
+    type_uint        = tr->getBasicType(Type::UInt);
+    type_char        = tr->getBasicType(Type::Char);
+    type_float       = tr->getBasicType(Type::Float);
+    type_double      = tr->getBasicType(Type::Double);
+    type_longdouble  = tr->getBasicType(Type::LongDouble);
 
-    type_int8    = new Element::Type(Type::Int8);
-    type_uint8   = new Element::Type(Type::UInt8);
-    type_int16   = new Element::Type(Type::Int16);
-    type_uint16  = new Element::Type(Type::UInt16);
-    type_int32   = new Element::Type(Type::Int32);
-    type_uint32  = new Element::Type(Type::UInt32);
-    type_int64   = new Element::Type(Type::Int64);
-    type_uint64  = new Element::Type(Type::UInt64);
-    type_int128  = new Element::Type(Type::Int128);
-    type_uint128 = new Element::Type(Type::UInt128);
+    type_int8    = tr->getBasicType(Type::Int8);
+    type_uint8   = tr->getBasicType(Type::UInt8);
+    type_int16   = tr->getBasicType(Type::Int16);
+    type_uint16  = tr->getBasicType(Type::UInt16);
+    type_int32   = tr->getBasicType(Type::Int32);
+    type_uint32  = tr->getBasicType(Type::UInt32);
+    type_int64   = tr->getBasicType(Type::Int64);
+    type_uint64  = tr->getBasicType(Type::UInt64);
+    type_int128  = tr->getBasicType(Type::Int128);
+    type_uint128 = tr->getBasicType(Type::UInt128);
 
     type_pchar  = new Element::Type(new Element::Type(Type::Char));
 
@@ -7649,7 +7650,7 @@ const char *Generator::fnByArgsName(DNode *dnode, int acount)
     }
 
     std::vector<std::string> *fn_by_args_list = b->second;
-    if (acount > (fn_by_args_list->size() - 1)) {
+    if (((unsigned) acount) > (fn_by_args_list->size() - 1)) {
         return NULL;
     }
 

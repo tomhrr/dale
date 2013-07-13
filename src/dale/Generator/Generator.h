@@ -28,6 +28,7 @@
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../Element/Enum/Enum.h"
 #include "../BasicTypes/BasicTypes.h"
+#include "../TypeRegister/TypeRegister.h"
 
 #include "llvm/LLVMContext.h"
 #include "llvm/Module.h"
@@ -96,6 +97,7 @@ class Generator
 {
 private:
     NativeTypes           *nt;
+    TypeRegister          *tr;
     Parser                *prsr;
     Context               *ctx;
     ErrorReporter         *erep;

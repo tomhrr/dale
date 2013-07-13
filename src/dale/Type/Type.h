@@ -1,6 +1,8 @@
 #ifndef DALE_TYPE
 #define DALE_TYPE
 
+#define BASIC_TYPE_COUNT 23
+
 namespace dale
 {
 namespace Type

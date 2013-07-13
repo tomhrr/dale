@@ -164,6 +164,7 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Element/Variable/Variable.cpp
                       src/dale/Element/Struct/Struct.cpp
                       src/dale/NativeTypes/NativeTypes.cpp
+                      src/dale/TypeRegister/TypeRegister.cpp
                       src/dale/Element/Label/Label.cpp)
 set_target_properties (dalec PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS} -I.")
 set_target_properties (dalec PROPERTIES LINK_FLAGS "${DALEC_LINK_FLAGS} ${LLVM_LINK_FLAGS}")
