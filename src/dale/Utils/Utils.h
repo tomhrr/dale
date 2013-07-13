@@ -4,6 +4,8 @@
 #include <climits>
 #include <cerrno>
 #include <sys/stat.h>
+#include <vector>
+#include <string>
 
 namespace dale
 {
@@ -14,6 +16,8 @@ int files_are_equivalent(const char *filename1,
                          const char *filename2);
 ino_t get_inode(const char *filename1);
 ino_t get_inode(int fildes);
+
+void splitString(std::string *str, std::vector<std::string> *lst, char c);
 }
 
 #endif

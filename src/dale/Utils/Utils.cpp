@@ -130,4 +130,21 @@ ino_t get_inode(int fildes)
 
     return f1.st_ino;
 }
+
+void 
+splitString(std::string *str, std::vector<std::string> *lst, char c)
+{
+    int index = 0;
+    int len = str->length();
+
+    while (index < len) {
+        int found = str->find(c, index);
+        if (found == -1) {
+            found = str->length();
+        }
+        std::string temp(str->substr(index, found - index));
+        lst->push_back(temp);
+        index = found + 1;
+    }
+}
 }

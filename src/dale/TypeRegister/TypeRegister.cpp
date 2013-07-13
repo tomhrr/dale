@@ -1,5 +1,7 @@
 #include "TypeRegister.h"
 
+#include "../Utils/Utils.h"
+
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
@@ -113,7 +115,6 @@ TypeRegister::getBitfieldType(Element::Type *type, size_t size)
     return getBitfieldType(type, size);
 }
 
-
 Element::Type*
 TypeRegister::getConstType(Element::Type *type)
 {
@@ -129,5 +130,28 @@ TypeRegister::getConstType(Element::Type *type)
         std::pair<Element::Type*, Element::Type*>(type, const_type)
     );
     return const_type;
+}
+
+Element::Type*
+TypeRegister::getStructType(std::string name)
+{
+    std::map<std::string, Element::Type*>::iterator
+        b = struct_types.find(name), e = struct_types.end();
+    if (b != e) {
+        return b->second;
+    }
+
+    std::vector<std::string> name_parts;
+    splitString(&name, &name_parts, '.');
+    Element::Type *struct_type = new Element::Type(); 
+    struct_type->struct_name = new std::string(name_parts.back());
+    name_parts.pop_back();
+
+    struct_type->namespaces = new std::vector<std::string>(name_parts);
+
+    struct_types.insert(
+        std::pair<std::string, Element::Type*>(name, struct_type)
+    );
+    return struct_type;
 }
 }

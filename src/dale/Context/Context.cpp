@@ -1,6 +1,7 @@
 #include "Context.h"
 
 #include "llvm/LinkAllVMCore.h"
+#include "../Utils/Utils.h"
 
 namespace dale
 {
@@ -158,23 +159,6 @@ Context::deactivateAnonymousNamespace(void)
     used_ns_nodes.pop_back();
     
     return true;
-}
-
-void splitString(std::string *str, 
-                 std::vector<std::string> *lst, 
-                 char c)
-{
-    int index = 0;
-    int len = str->length();
-
-    while (index < len) {
-        int found = str->find(c, index);
-        if (found == -1) {
-            found = str->length();
-        }
-        lst->push_back(str->substr(index, found - index));
-        index = found + 1;
-    }
 }
 
 NSNode *
@@ -639,6 +623,47 @@ Context::setNamespacesForStruct(const char *name,
         Element::Struct *st = (*rb)->ns->getStruct(name);
         if (st) {
             (*rb)->ns->setNamespaces(namespaces);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool
+Context::setFullyQualifiedStructName(const char *name,
+                                     std::string *fqsn)
+{
+    if (strchr(name, '.')) {
+        Namespace *ns = getNamespace(name, true);
+        if (!ns) {
+            return false;
+        }
+        const char *st_name = strrchr(name, '.') + 1;
+        if (!ns->getStruct(st_name)) {
+            return false;
+        }
+        fqsn->append(name);
+        return true;
+    }
+
+    for (std::vector<NSNode *>::reverse_iterator
+            rb = used_ns_nodes.rbegin(),
+            re = used_ns_nodes.rend();
+            rb != re;
+            ++rb) {
+        Element::Struct *st = (*rb)->ns->getStruct(name);
+        if (st) {
+            std::vector<std::string> nss;
+            (*rb)->ns->setNamespaces(&nss);
+            for (std::vector<std::string>::iterator
+                    b = nss.begin(), e = nss.end();
+                    b != e;
+                    ++b) {
+                fqsn->append((*b));
+                fqsn->append(".");
+            }
+            fqsn->append(name);
             return true;
         }
     }

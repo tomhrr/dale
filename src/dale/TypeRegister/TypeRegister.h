@@ -30,6 +30,8 @@ private:
     std::map<Element::Type*, std::map<size_t, Element::Type*> > array_types;
     /*! A map from type, to size, to bitfield type. */
     std::map<Element::Type*, std::map<size_t, Element::Type*> > bitfield_types;
+    /*! A map from fully-qualified struct name to struct type. */
+    std::map<std::string, Element::Type*> struct_types;
 
 public:
     /*! The standard constructor. Initialises the basic types. */
@@ -53,6 +55,9 @@ public:
      *  @param type The underlying integer type.
      *  @param size The size of the bitfield. */
     Element::Type *getBitfieldType(Element::Type *type, size_t size);
+    /*! Return an instance of a struct type.
+     *  @param name The fully-qualified name of the struct. */
+    Element::Type *getStructType(std::string name);
 };
 }
 

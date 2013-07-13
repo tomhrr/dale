@@ -2767,11 +2767,9 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
 
     /* An implicit MContext argument is added to every macro. */
 
-    Element::Type *pst = new Element::Type();
-    pst->struct_name = new std::string("MContext");
-    pst->namespaces  = new std::vector<std::string>;
+    Element::Type *pst = tr->getStructType("MContext");
+    Element::Type *ptt = tr->getPointerType(pst);
 
-    Element::Type *ptt = new Element::Type(pst);
     Element::Variable *var1 = new Element::Variable(
         (char*)"mc", ptt
     );
@@ -11003,10 +11001,8 @@ past_sl_parse:
 void Generator::setPdnode()
 {
     if (!type_dnode) {
-        Element::Type *st = new Element::Type();
-        st->struct_name = new std::string("DNode");
-        st->namespaces  = new std::vector<std::string>;
-        Element::Type *tt = new Element::Type(st);
+        Element::Type *st = tr->getStructType("DNode");
+        Element::Type *tt = tr->getPointerType(st);
 
         llvm::Type *dnode =
             toLLVMType(st, NULL, false);
@@ -13118,22 +13114,14 @@ Element::Type *Generator::parseType(Node *top,
         Element::Struct *temp_struct;
 
         if ((temp_struct = ctx->getStruct(typs))) {
-            /* Got a struct type - return it. */
-            Element::Type *ttt = new Element::Type();
-
-            /* Only use the last component of the struct name. */
-            std::vector<std::string> name_parts;
-            std::string temp(typs);
-            mysplitString(&temp, &name_parts, '.');
-            ttt->struct_name = new std::string(name_parts.back());
-
-            std::vector<std::string> *new_namespaces =
-                new std::vector<std::string>;
-
-            ctx->setNamespacesForStruct(typs, new_namespaces);
-            ttt->namespaces = new_namespaces;
-
-            return ttt;
+            std::string fqsn;
+            bool b = ctx->setFullyQualifiedStructName(typs, &fqsn);
+            if (!b) {
+                fprintf(stderr, "Internal error: unable to set struct "
+                                "name (%s).\n", typs);
+                abort();
+            }
+            return tr->getStructType(fqsn);
         }
 
         Error *err = new Error(

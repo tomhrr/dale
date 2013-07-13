@@ -142,6 +142,8 @@ public:
                                 std::vector<std::string> *namespaces);
     bool setNamespacesForEnum(const char *name,
                               std::vector<std::string> *namespaces);
+    bool setFullyQualifiedStructName(const char *name,
+                                     std::string *fqsn);
 
     bool merge(Context *other);
 
