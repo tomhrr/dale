@@ -65,6 +65,9 @@ public:
      *  by the caller after this function has been executed.
      *  @param type The type. */
     Element::Type *getType(Element::Type *type);
+
+    /*! Dump debugging information to stderr. */
+    void dump(void);
 };
 }
 

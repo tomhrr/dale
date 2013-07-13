@@ -183,8 +183,20 @@ TypeRegister::getType(Element::Type *type)
         size_t bitfield_size = type->bitfield_size;
         type->bitfield_size = 0;
         final = getBitfieldType(getType(type), bitfield_size);
+    } else if (type->base_type) {
+        final = getBasicType(type->base_type);
     }
 
     return (final) ? final : type->makeCopy();
+}
+
+void
+TypeRegister::dump(void)
+{
+    fprintf(stderr, "Pointer type count: %d\n", pointer_types.size());
+    fprintf(stderr, "Const type count:   %d\n", const_types.size());
+    fprintf(stderr, "Array type count:   %d\n", array_types.size());
+    fprintf(stderr, "BF type count:      %d\n", bitfield_types.size());
+    fprintf(stderr, "Struct type count:  %d\n", struct_types.size());
 }
 }

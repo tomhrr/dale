@@ -1439,6 +1439,10 @@ int Generator::run(std::vector<const char *> *filenames,
         temp_fro->flush();
         temp.flush();
     }
+ 
+    if (DALE_DEBUG) {
+        tr->dump();
+    }
 
     return 1;
 }
@@ -2816,7 +2820,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
                 break;
             }
             var = new Element::Variable();
-            var->type = r_type->makeCopy();
+            var->type = r_type;
             var->linkage = Linkage::Auto;
             var->name = new std::string((*node_iter)->token->str_value);
             past_first = 1;
@@ -6805,7 +6809,7 @@ ParseResult *Generator::copyWithSetfIfApplicable(
     ParseResult *x = new ParseResult();
     pr->copyTo(x);
     x->block = pr->block;
-    x->type = pr->type->makeCopy();
+    x->type = pr->type;
     x->value = result;
     x->freshly_copied = 1;
     return x;
@@ -9825,7 +9829,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
                                );
         Element::Variable *var2 = new Element::Variable();
         var2->name->append(name);
-        var2->type = type->makeCopy();
+        var2->type = type;
         var2->value = new_ptr;
         var2->linkage = Linkage::Auto;
         int avres = ctx->ns()->addVariable(name, var2);
@@ -10304,8 +10308,7 @@ tryvar:
 
                     return new ParseResult(
                                block,
-                               new
-                               Element::Type(var->type->array_type->makeCopy()),
+                               tr->getPointerType(var->type->array_type),
                                p_to_array
                            );
                 }
@@ -10313,7 +10316,7 @@ tryvar:
                 /* Return the dereferenced variable. */
                 return new ParseResult(
                            block,
-                           var->type->makeCopy(),
+                           var->type,
                            llvm::cast<llvm::Value>(
                                builder.CreateLoad(var->value)
                            )
@@ -10963,7 +10966,7 @@ past_sl_parse:
                     );
 
                 ParseResult *supertemp = new ParseResult;
-                supertemp->type  = apply->makeCopy();
+                supertemp->type  = apply;
                 supertemp->block = block;
                 supertemp->value = res;
 
@@ -11735,7 +11738,7 @@ ParseResult *Generator::parseArrayLiteral(Element::Function *dfn,
     ParseResult *temptemp = new ParseResult();
 
     temptemp->block = block;
-    temptemp->type  = array_type->makeCopy();
+    temptemp->type  = array_type;
     temptemp->value = llvm_array;
 
     if (getAddress) {
@@ -11965,7 +11968,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
     if (!strcmp(name, "setf")) {
         /* Add a bool argument and type to the front of the
          * function call. */
-        call_arg_types.push_back(type_bool->makeCopy());
+        call_arg_types.push_back(type_bool);
         call_args.push_back(llvm_bool_false);
     }
 
@@ -12458,7 +12461,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
 
     ParseResult *p = new ParseResult;
 
-    p->type  = fn->return_type->makeCopy();
+    p->type  = fn->return_type;
     p->block = block;
     p->value = call_res;
 
@@ -12513,7 +12516,7 @@ int Generator::parseFunctionBody(Element::Function *dfn,
         int avres;
         Element::Variable *myvart = (*fn_args_iter);
         Element::Variable *myvar = new Element::Variable();
-        myvar->type          = myvart->type->makeCopy();
+        myvar->type          = myvart->type;
         myvar->name          = myvart->name;
         myvar->internal_name = myvart->internal_name;
         myvar->value         = myvart->value;
@@ -13263,7 +13266,7 @@ Element::Type *Generator::parseType(Node *top,
 
         Element::Type *const_type =
             parseType((*lst)[1], allow_anon_structs,
-                      allow_bitfields)->makeCopy();
+                      allow_bitfields);
 
         if (const_type == NULL) {
             return NULL;
