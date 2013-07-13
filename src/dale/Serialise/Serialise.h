@@ -227,54 +227,57 @@ char *deserialise(TypeRegister *tr, char *in, Element::Type **t)
         abort();
     }
 
-    Element::Type *temp = new Element::Type();
-    *t = temp;
+    Element::Type temp;
 
-    in = deserialise(tr, in, &(temp->base_type));
-    in = deserialise(tr, in, &(temp->is_array));
-    in = deserialise(tr, in, &(temp->array_size));
-    in = deserialise(tr, in, &(temp->bitfield_size));
-    in = deserialise(tr, in, &(temp->is_const));
+    in = deserialise(tr, in, &(temp.base_type));
+    in = deserialise(tr, in, &(temp.is_array));
+    in = deserialise(tr, in, &(temp.array_size));
+    in = deserialise(tr, in, &(temp.bitfield_size));
+    in = deserialise(tr, in, &(temp.is_const));
     int is_present;
     in = deserialise(tr, in, &is_present);
     if (is_present) {
         Element::Type *at;
         in = deserialise(tr, in, &at);
-        temp->array_type = at;
+        temp.array_type = at;
     }
-    in = deserialise(tr, in, &(temp->is_function));
+    in = deserialise(tr, in, &(temp.is_function));
     in = deserialise(tr, in, &is_present);
     if (is_present) {
         std::string *sn = new std::string();
         in = deserialise(tr, in, sn);
-        temp->struct_name = sn;
+        temp.struct_name = sn;
     }
     in = deserialise(tr, in, &is_present);
     if (is_present) {
         std::vector<std::string> *ns =
             new std::vector<std::string>();
         in = deserialise(tr, in, ns);
-        temp->namespaces = ns;
+        temp.namespaces = ns;
     }
     in = deserialise(tr, in, &is_present);
     if (is_present) {
         Element::Type *pt;
         in = deserialise(tr, in, &pt);
-        temp->points_to = pt;
+        temp.points_to = pt;
     }
     in = deserialise(tr, in, &is_present);
     if (is_present) {
         Element::Type *rt;
         in = deserialise(tr, in, &rt);
-        temp->return_type = rt;
+        temp.return_type = rt;
     }
     in = deserialise(tr, in, &is_present);
     if (is_present) {
         std::vector<Element::Type*> *vt =
             new std::vector<Element::Type*>();
         in = deserialise_type_vector(tr, in, vt);
-        temp->parameter_types = vt;
+        temp.parameter_types = vt;
     }
+
+    Element::Type *final = tr->getType(&temp);
+    *t = final;
+
     return in;
 }
 

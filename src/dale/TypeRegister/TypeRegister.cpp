@@ -158,7 +158,33 @@ TypeRegister::getStructType(std::string name)
 Element::Type*
 TypeRegister::getType(Element::Type *type)
 {
-    return type->makeCopy();
-}
+    Element::Type *final = NULL;
 
+    if (type->is_const) {
+        type->is_const = 0;
+        final = getConstType(getType(type));
+    } else if (type->is_array) {
+        final = getArrayType(getType(type->array_type), type->array_size);
+    } else if (type->points_to) {
+        final = getPointerType(getType(type->points_to));
+    } else if (type->struct_name) {
+        std::string name;
+        for (std::vector<std::string>::iterator
+                b = type->namespaces->begin(),
+                e = type->namespaces->end();
+                b != e;
+                ++b) {
+            name.append((*b));
+            name.append(".");
+        }
+        name.append(*(type->struct_name));
+        final = getStructType(name);
+    } else if (type->bitfield_size) {
+        size_t bitfield_size = type->bitfield_size;
+        type->bitfield_size = 0;
+        final = getBitfieldType(getType(type), bitfield_size);
+    }
+
+    return (final) ? final : type->makeCopy();
+}
 }
