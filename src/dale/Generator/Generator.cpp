@@ -237,7 +237,7 @@ Generator::Generator()
     type_int128  = tr->getBasicType(Type::Int128);
     type_uint128 = tr->getBasicType(Type::UInt128);
 
-    type_pchar  = new Element::Type(new Element::Type(Type::Char));
+    type_pchar  = tr->getPointerType(type_char);
 
     llvm_bool_true =
         llvm::ConstantInt::get(

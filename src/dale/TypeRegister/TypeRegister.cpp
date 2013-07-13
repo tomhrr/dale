@@ -39,4 +39,20 @@ TypeRegister::getBasicType(int type)
     return basic_types[type];
 }
 
+Element::Type*
+TypeRegister::getPointerType(Element::Type *type)
+{
+    std::map<Element::Type*, Element::Type*>::iterator
+        b = pointer_types.find(type), e = pointer_types.end();
+    if (b != e) {
+        return b->second;
+    }
+
+    Element::Type *pointer_type = new Element::Type(type);
+    pointer_types.insert(
+        std::pair<Element::Type*, Element::Type*>(type, pointer_type)
+    );
+    return pointer_type;
+}
+
 }

@@ -4,6 +4,8 @@
 #include "../Type/Type.h"
 #include "../Element/Type/Type.h"
 
+#include <map>
+
 namespace dale
 {
 
@@ -20,6 +22,8 @@ class TypeRegister
 private:
     /*! An array containing instances of all the basic types. */
     Element::Type *basic_types[BASIC_TYPE_COUNT];
+    /*! A map from types to pointer types. */
+    std::map<Element::Type*, Element::Type*> pointer_types;
 
 public:
     /*! The standard constructor. Initialises the basic types. */
@@ -29,6 +33,9 @@ public:
     /*! Return an instance of a basic type.
      *  @param type The basic type enum (see dale::Type). */
     Element::Type *getBasicType(int type);
+    /*! Return an instance of a pointer to a type.
+     *  @param type The pointee type object. */
+    Element::Type *getPointerType(Element::Type *type);
 };
 }
 
