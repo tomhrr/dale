@@ -9342,10 +9342,10 @@ ParseResult *Generator::parseSref(Element::Function *dfn,
         return NULL;
     }
 
-    Element::Type *eltype =
-        structp->indexToType(index)->makeCopy();
-
-    eltype->is_const = is_const;
+    Element::Type *eltype = structp->indexToType(index);
+    if (is_const) {
+        eltype = tr->getConstType(eltype);
+    }
 
     std::vector<llvm::Value *> indices;
     stl::push_back2(&indices, llvm_native_zero,
@@ -13283,9 +13283,7 @@ Element::Type *Generator::parseType(Node *top,
             return NULL;
         }
 
-        const_type->is_const = 1;
-
-        return const_type;
+        return tr->getConstType(const_type);
     }
 
     if (!strcmp(t->str_value.c_str(), "array-of")) {

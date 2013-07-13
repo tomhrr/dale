@@ -84,4 +84,21 @@ TypeRegister::getArrayType(Element::Type *type, size_t size)
     );
     return getArrayType(type, size);
 }
+
+Element::Type*
+TypeRegister::getConstType(Element::Type *type)
+{
+    std::map<Element::Type*, Element::Type*>::iterator
+        b = const_types.find(type), e = const_types.end();
+    if (b != e) {
+        return b->second;
+    }
+
+    Element::Type *const_type = type->makeCopy();
+    const_type->is_const = 1;
+    const_types.insert(
+        std::pair<Element::Type*, Element::Type*>(type, const_type)
+    );
+    return const_type;
+}
 }
