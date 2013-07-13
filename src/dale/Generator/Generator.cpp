@@ -1926,15 +1926,15 @@ int Generator::addDaleModule(Node *n,
         abort();
     }
 
-    data = deserialise(data, mynewcontext);
+    data = deserialise(tr, data, mynewcontext);
     std::set<std::string> temponcetags;
-    data = deserialise(data, &temponcetags);
+    data = deserialise(tr, data, &temponcetags);
     std::set<std::string> tempmodules;
-    data = deserialise(data, &tempmodules);
+    data = deserialise(tr, data, &tempmodules);
     int my_cto;
-    data = deserialise(data, &my_cto);
+    data = deserialise(tr, data, &my_cto);
     std::map<std::string, std::string> new_typemap;
-    data = deserialise(data, &new_typemap);
+    data = deserialise(tr, data, &new_typemap);
     for (std::map<std::string, std::string>::iterator
             b = new_typemap.begin(),
             e = new_typemap.end();

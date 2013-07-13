@@ -154,4 +154,11 @@ TypeRegister::getStructType(std::string name)
     );
     return struct_type;
 }
+
+Element::Type*
+TypeRegister::getType(Element::Type *type)
+{
+    return type->makeCopy();
+}
+
 }

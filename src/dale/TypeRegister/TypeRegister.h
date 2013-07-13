@@ -58,6 +58,13 @@ public:
     /*! Return an instance of a struct type.
      *  @param name The fully-qualified name of the struct. */
     Element::Type *getStructType(std::string name);
+
+    /*! Takes a type, and returns a previously-generated type object,
+     *  if possible. Otherwise, stores the type in the appropriate
+     *  place and returns it. The argument type continues to be owned
+     *  by the caller after this function has been executed.
+     *  @param type The type. */
+    Element::Type *getType(Element::Type *type);
 };
 }
 

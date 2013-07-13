@@ -8,6 +8,7 @@
 #include "../Element/Variable/Variable.h"
 #include "../Context/Context.h"
 #include "../Namespace/Namespace.h"
+#include "../TypeRegister/TypeRegister.h"
 
 namespace dale
 {
@@ -15,19 +16,19 @@ template<typename T>
 void serialise(FILE *out, std::vector<T> *x);
 
 template<typename T>
-char *deserialise(char *in, std::vector<T> *x);
+char *deserialise(TypeRegister *tr, char *in, std::vector<T> *x);
 
 template<typename T>
 void serialise(FILE *out, std::vector<T> **x);
 
 template<typename T>
-char *deserialise(char *in, std::vector<T> **x);
+char *deserialise(TypeRegister *tr, char *in, std::vector<T> **x);
 
 template<typename T1, typename T2>
 void serialise(FILE *out, std::map<T1, T2> *x);
 
 template<typename T1, typename T2>
-char *deserialise(char *in, std::map<T1, T2> *x);
+char *deserialise(TypeRegister *tr, char *in, std::map<T1, T2> *x);
 
 void xfwrite(const void *a, size_t b, size_t c, FILE *d)
 {
@@ -48,7 +49,7 @@ void serialise(FILE *out, int64_t *a)
     serialise(out, *a);
 }
 
-char *deserialise(char *in, int64_t *a)
+char *deserialise(TypeRegister *tr, char *in, int64_t *a)
 {
     *a = *(int64_t*) in;
     return in + sizeof(int64_t);
@@ -64,7 +65,7 @@ void serialise(FILE *out, char *a)
     serialise(out, *a);
 }
 
-char *deserialise(char *in, char *a)
+char *deserialise(TypeRegister *tr, char *in, char *a)
 {
     *a = *in;
     return in + 1;
@@ -88,7 +89,7 @@ void serialise(FILE *out, int *a)
     serialise(out, *a);
 }
 
-char *deserialise(char *in, int *a)
+char *deserialise(TypeRegister *tr, char *in, int *a)
 {
     uint8_t aa;
     aa = *(uint8_t*) in;
@@ -107,7 +108,7 @@ void serialise(FILE *out, size_t *s)
     serialise(out, *s);
 }
 
-char *deserialise(char *in, size_t *s)
+char *deserialise(TypeRegister *tr, char *in, size_t *s)
 {
     uint16_t ss;
     ss = *(uint16_t*) in;
@@ -127,10 +128,10 @@ void serialise(FILE *out, std::string *x)
     xfwrite(x->c_str(), sizeof(char), x->length(), out);
 }
 
-char *deserialise(char *in, std::string *x)
+char *deserialise(TypeRegister *tr, char *in, std::string *x)
 {
     size_t s;
-    in = deserialise(in, &s);
+    in = deserialise(tr, in, &s);
     x->reserve(s);
     char temp[256];
     strncpy(temp, in, s);
@@ -206,12 +207,12 @@ void serialise(FILE *out, Element::Type *t)
     }
 }
 
-char *deserialise(char *in, Element::Type *t)
+char *deserialise(TypeRegister *tr, char *in, Element::Type *t)
 {
     char c;
-    in = deserialise(in, &c);
+    in = deserialise(tr, in, &c);
     if (c == 'S') {
-        in = deserialise(in, &(t->base_type));
+        in = deserialise(tr, in, &(t->base_type));
         t->is_array = 0;
         t->array_size = 0;
         t->array_type = NULL;
@@ -230,59 +231,59 @@ char *deserialise(char *in, Element::Type *t)
         abort();
     }
 
-    in = deserialise(in, &(t->base_type));
-    in = deserialise(in, &(t->is_array));
-    in = deserialise(in, &(t->array_size));
-    in = deserialise(in, &(t->bitfield_size));
-    in = deserialise(in, &(t->is_const));
+    in = deserialise(tr, in, &(t->base_type));
+    in = deserialise(tr, in, &(t->is_array));
+    in = deserialise(tr, in, &(t->array_size));
+    in = deserialise(tr, in, &(t->bitfield_size));
+    in = deserialise(tr, in, &(t->is_const));
     int is_present;
-    in = deserialise(in, &is_present);
+    in = deserialise(tr, in, &is_present);
     if (is_present) {
         Element::Type *at = new Element::Type();
-        in = deserialise(in, at);
+        in = deserialise(tr, in, at);
         t->array_type = at;
     }
-    in = deserialise(in, &(t->is_function));
-    in = deserialise(in, &is_present);
+    in = deserialise(tr, in, &(t->is_function));
+    in = deserialise(tr, in, &is_present);
     if (is_present) {
         std::string *sn = new std::string();
-        in = deserialise(in, sn);
+        in = deserialise(tr, in, sn);
         t->struct_name = sn;
     }
-    in = deserialise(in, &is_present);
+    in = deserialise(tr, in, &is_present);
     if (is_present) {
         std::vector<std::string> *ns =
             new std::vector<std::string>();
-        in = deserialise(in, ns);
+        in = deserialise(tr, in, ns);
         t->namespaces = ns;
     }
-    in = deserialise(in, &is_present);
+    in = deserialise(tr, in, &is_present);
     if (is_present) {
         Element::Type *pt = new Element::Type();
-        in = deserialise(in, pt);
+        in = deserialise(tr, in, pt);
         t->points_to = pt;
     }
-    in = deserialise(in, &is_present);
+    in = deserialise(tr, in, &is_present);
     if (is_present) {
         Element::Type *rt = new Element::Type();
-        in = deserialise(in, rt);
+        in = deserialise(tr, in, rt);
         t->return_type = rt;
     }
-    in = deserialise(in, &is_present);
+    in = deserialise(tr, in, &is_present);
     if (is_present) {
         std::vector<Element::Type*> *vt =
             new std::vector<Element::Type*>();
-        in = deserialise(in, vt);
+        in = deserialise(tr, in, vt);
         t->parameter_types = vt;
     }
     return in;
 }
 
-char *deserialise(char *in, Element::Type **t)
+char *deserialise(TypeRegister *tr, char *in, Element::Type **t)
 {
     Element::Type *mnt = new Element::Type();
     *t = mnt;
-    return deserialise(in, mnt);
+    return deserialise(tr, in, mnt);
 }
 
 void serialise(FILE *out, Element::Variable *v)
@@ -304,40 +305,40 @@ void serialise(FILE *out, Element::Variable **v)
     serialise(out, *v);
 }
 
-char *deserialise(char *in, Element::Variable *v)
+char *deserialise(TypeRegister *tr, char *in, Element::Variable *v)
 {
     Element::Type *vt = new Element::Type();
-    in = deserialise(in, vt);
+    in = deserialise(tr, in, vt);
     v->type = vt;
 
     std::string *name = new std::string();
-    in = deserialise(in, name);
+    in = deserialise(tr, in, name);
     v->name = name;
 
-    in = deserialise(in, &(v->linkage));
+    in = deserialise(tr, in, &(v->linkage));
 
     int is_present;
-    in = deserialise(in, &is_present);
+    in = deserialise(tr, in, &is_present);
     if (!is_present) {
         v->internal_name = NULL;
     } else {
         std::string *vname = new std::string();
-        in = deserialise(in, vname);
+        in = deserialise(tr, in, vname);
         v->internal_name = vname;
     }
-    in = deserialise(in, &(v->once_tag));
+    in = deserialise(tr, in, &(v->once_tag));
 
     v->value = NULL;
 
     return in;
 }
 
-char *deserialise(char *in, Element::Variable **v)
+char *deserialise(TypeRegister *tr, char *in, Element::Variable **v)
 {
     Element::Variable *vv = new Element::Variable();
     vv->serialise = false;
     *v = vv;
-    return deserialise(in, vv);
+    return deserialise(tr, in, vv);
 }
 
 void serialise(FILE *out, Element::Function *fn)
@@ -359,39 +360,39 @@ void serialise(FILE *out, Element::Function **fn)
     serialise(out, *fn);
 }
 
-char *deserialise(char *in, Element::Function *fn)
+char *deserialise(TypeRegister *tr, char *in, Element::Function *fn)
 {
     Element::Type *rt = new Element::Type();
-    in = deserialise(in, rt);
+    in = deserialise(tr, in, rt);
     fn->return_type = rt;
 
     std::vector<Element::Variable *> *params =
         new std::vector<Element::Variable *>;
-    in = deserialise(in, params);
+    in = deserialise(tr, in, params);
     fn->parameter_types = params;
 
     fn->llvm_function = NULL;
 
-    in = deserialise(in, &(fn->is_macro));
+    in = deserialise(tr, in, &(fn->is_macro));
 
     std::string *name = new std::string();
-    in = deserialise(in, name);
+    in = deserialise(tr, in, name);
     fn->internal_name = name;
 
-    in = deserialise(in, &(fn->always_inline));
-    in = deserialise(in, &(fn->once_tag));
-    in = deserialise(in, &(fn->cto));
-    in = deserialise(in, &(fn->linkage));
+    in = deserialise(tr, in, &(fn->always_inline));
+    in = deserialise(tr, in, &(fn->once_tag));
+    in = deserialise(tr, in, &(fn->cto));
+    in = deserialise(tr, in, &(fn->linkage));
 
     return in;
 }
 
-char *deserialise(char *in, Element::Function **fn)
+char *deserialise(TypeRegister *tr, char *in, Element::Function **fn)
 {
     Element::Function *ff = new Element::Function();
     ff->serialise = false;
     *fn = ff;
-    return deserialise(in, ff);
+    return deserialise(tr, in, ff);
 }
 
 void serialise(FILE *out, Element::Struct *st)
@@ -412,34 +413,34 @@ void serialise(FILE *out, Element::Struct **st)
     serialise(out, *st);
 }
 
-char *deserialise(char *in, Element::Struct *st)
+char *deserialise(TypeRegister *tr, char *in, Element::Struct *st)
 {
     st->type = NULL;
-    in = deserialise(in, &(st->is_opaque));
+    in = deserialise(tr, in, &(st->is_opaque));
     std::vector<Element::Type *> *et =
         new std::vector<Element::Type *>;
-    in = deserialise(in, et);
+    in = deserialise(tr, in, et);
     st->element_types = et;
     std::map<std::string, int> *nn =
         new std::map<std::string, int>;
-    in = deserialise(in, nn);
+    in = deserialise(tr, in, nn);
     st->names_to_numbers = nn;
     std::string *intname = new std::string();
-    in = deserialise(in, intname);
+    in = deserialise(tr, in, intname);
     st->internal_name = intname;
-    in = deserialise(in, &(st->once_tag));
-    in = deserialise(in, &(st->linkage));
-    in = deserialise(in, &(st->must_init));
+    in = deserialise(tr, in, &(st->once_tag));
+    in = deserialise(tr, in, &(st->linkage));
+    in = deserialise(tr, in, &(st->must_init));
 
     return in;
 }
 
-char *deserialise(char *in, Element::Struct **st)
+char *deserialise(TypeRegister *tr, char *in, Element::Struct **st)
 {
     Element::Struct *stt = new Element::Struct();
     stt->serialise = false;
     *st = stt;
-    return deserialise(in, stt);
+    return deserialise(tr, in, stt);
 }
 
 void serialise(FILE *out, Element::Enum *en)
@@ -457,26 +458,26 @@ void serialise(FILE *out, Element::Enum **en)
     serialise(out, *en);
 }
 
-char *deserialise(char *in, Element::Enum *en)
+char *deserialise(TypeRegister *tr, char *in, Element::Enum *en)
 {
     en->type = NULL;
-    in = deserialise(in, &(en->last_index));
+    in = deserialise(tr, in, &(en->last_index));
     std::map<std::string, int64_t> *nn =
         new std::map<std::string, int64_t>;
-    in = deserialise(in, nn);
+    in = deserialise(tr, in, nn);
     en->names_to_numbers = nn;
-    in = deserialise(in, &(en->once_tag));
-    in = deserialise(in, &(en->linkage));
+    in = deserialise(tr, in, &(en->once_tag));
+    in = deserialise(tr, in, &(en->linkage));
 
     return in;
 }
 
-char *deserialise(char *in, Element::Enum **en)
+char *deserialise(TypeRegister *tr, char *in, Element::Enum **en)
 {
     Element::Enum *enn = new Element::Enum();
     enn->serialise = false;
     *en = enn;
-    return deserialise(in, enn);
+    return deserialise(tr, in, enn);
 }
 
 void serialise(FILE *out, Namespace *ns)
@@ -495,35 +496,35 @@ void serialise(FILE *out, Namespace **ns)
     serialise(out, *ns);
 }
 
-char *deserialise(char *in, Namespace *ns)
+char *deserialise(TypeRegister *tr, char *in, Namespace *ns)
 {
     std::map<std::string, std::vector<Element::Function *>*> *fns =
         new std::map<std::string, std::vector<Element::Function
     *>*>;
-    in = deserialise(in, fns);
+    in = deserialise(tr, in, fns);
     ns->functions = *fns;
 
     std::map<std::string, Element::Variable *> *vars =
         new std::map<std::string, Element::Variable*>;
-    in = deserialise(in, vars);
+    in = deserialise(tr, in, vars);
     ns->variables = *vars;
 
     std::map<std::string, Element::Struct *> *sts =
         new std::map<std::string, Element::Struct *>;
-    in = deserialise(in, sts);
+    in = deserialise(tr, in, sts);
     ns->structs = *sts;
 
     std::map<std::string, Element::Enum *> *ens =
         new std::map<std::string, Element::Enum *>;
-    in = deserialise(in, ens);
+    in = deserialise(tr, in, ens);
     ns->enums = *ens;
 
     std::string name;
-    in = deserialise(in, &name);
+    in = deserialise(tr, in, &name);
     ns->name = name;
 
     std::string symbol_prefix;
-    in = deserialise(in, &symbol_prefix);
+    in = deserialise(tr, in, &symbol_prefix);
     ns->symbol_prefix = symbol_prefix;
 
     if (ns->symbol_prefix.size()) {
@@ -548,25 +549,25 @@ void serialise(FILE *out, NSNode **nsnode)
     return;
 }
 
-char *deserialise(char *in, NSNode *nsnode)
+char *deserialise(TypeRegister *tr, char *in, NSNode *nsnode)
 {
     Namespace *ns = new Namespace();
-    in = deserialise(in, ns);
+    in = deserialise(tr, in, ns);
     nsnode->ns = ns;
 
     std::map<std::string, NSNode *> *children = new
         std::map<std::string, NSNode *>;
-    in = deserialise(in, children);
+    in = deserialise(tr, in, children);
     nsnode->children = *children;
 
     return in;
 }
 
-char *deserialise(char *in, NSNode **nsnode)
+char *deserialise(TypeRegister *tr, char *in, NSNode **nsnode)
 {
     NSNode *nsn = new NSNode();
     *nsnode = nsn;
-    return deserialise(in, nsn);
+    return deserialise(tr, in, nsn);
 }
 
 void serialise(FILE *out, Context *ctx)
@@ -581,20 +582,20 @@ void serialise(FILE *out, Context **ctx)
     serialise(out, *ctx);
 }
 
-char *deserialise(char *in, Context *ctx)
+char *deserialise(TypeRegister *tr, char *in, Context *ctx)
 {
     NSNode *nsnode = new NSNode();
-    in = deserialise(in, nsnode);
+    in = deserialise(tr, in, nsnode);
     ctx->namespaces = nsnode;
 
     return in;
 }
 
-char *deserialise(char *in, Context **ctx)
+char *deserialise(TypeRegister *tr, char *in, Context **ctx)
 {
     Context *mc = new Context();
     *ctx = mc;
-    return deserialise(in, mc);
+    return deserialise(tr, in, mc);
 }
 
 template<typename T>
@@ -614,25 +615,25 @@ void serialise(FILE *out, std::vector<T> **x)
 }
 
 template<typename T>
-char *deserialise(char *in, std::vector<T> *x)
+char *deserialise(TypeRegister *tr, char *in, std::vector<T> *x)
 {
     size_t s;
-    in = deserialise(in, &s);
+    in = deserialise(tr, in, &s);
     x->reserve(s);
     for (size_t i = 0; i < s; i++) {
         T item;
-        in = deserialise(in, &item);
+        in = deserialise(tr, in, &item);
         x->push_back(item);
     }
     return in;
 }
 
 template<typename T>
-char *deserialise(char *in, std::vector<T> **x)
+char *deserialise(TypeRegister *tr, char *in, std::vector<T> **x)
 {
     std::vector<T> *b = new std::vector<T>;
     *x = b;
-    return deserialise(in, b);
+    return deserialise(tr, in, b);
 }
 
 template<typename T>
@@ -649,24 +650,24 @@ void serialise(FILE *out, std::set<T> *x)
 }
 
 template<typename T>
-char *deserialise(char *in, std::set<T> *x)
+char *deserialise(TypeRegister *tr, char *in, std::set<T> *x)
 {
     size_t s;
-    in = deserialise(in, &s);
+    in = deserialise(tr, in, &s);
     for (size_t i = 0; i < s; i++) {
         T item;
-        in = deserialise(in, &item);
+        in = deserialise(tr, in, &item);
         x->insert(item);
     }
     return in;
 }
 
 template<typename T>
-char *deserialise(char *in, std::set<T> **x)
+char *deserialise(TypeRegister *tr, char *in, std::set<T> **x)
 {
     std::set<T> *b = new std::set<T>;
     *x = b;
-    return deserialise(in, b);
+    return deserialise(tr, in, b);
 }
 
 template<typename T>
@@ -689,15 +690,15 @@ void serialise(FILE *out, std::map<T1, T2> *x)
 }
 
 template<typename T1, typename T2>
-char *deserialise(char *in, std::map<T1, T2> *x)
+char *deserialise(TypeRegister *tr, char *in, std::map<T1, T2> *x)
 {
     size_t s;
-    in = deserialise(in, &s);
+    in = deserialise(tr, in, &s);
     for (size_t i = 0; i < s; i++) {
         T1 key;
-        in = deserialise(in, &key);
+        in = deserialise(tr, in, &key);
         T2 value;
-        in = deserialise(in, &value);
+        in = deserialise(tr, in, &value);
         x->insert(std::pair<T1, T2>(key, value));
     }
     return in;
