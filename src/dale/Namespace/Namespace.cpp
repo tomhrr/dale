@@ -9,6 +9,7 @@ Namespace::Namespace(void)
 {
     this->parent_namespace = NULL;
     this->er = NULL;
+    this->lv_index = 0;
 }
 
 Namespace::Namespace(ErrorReporter *er,
@@ -793,22 +794,22 @@ Namespace::regetStructPointers(llvm::Module *mod)
             b != e;
             ++b) {
         Element::Struct *st = b->second;
-        if (!st->internal_name) {
+        if (!st->internal_name.compare("")) {
             continue;
         }
         std::string type_name;
         type_name.append("struct_")
-                 .append(*(st->internal_name));
+                 .append(st->internal_name);
 
         llvm::StructType *llvm_st = mod->getTypeByName(type_name);
         if (!llvm_st) {
             type_name.clear();
-            type_name.append(*(st->internal_name));
+            type_name.append(st->internal_name);
             llvm_st = mod->getTypeByName(type_name);
         }
         if (!llvm_st) {
             fprintf(stderr, "Could not get type for struct %s.\n",
-                    st->internal_name->c_str());
+                    st->internal_name.c_str());
             abort();
         }
         st->type = llvm_st;
@@ -828,7 +829,7 @@ Namespace::regetVariablePointers(llvm::Module *mod)
         Element::Variable *var = b->second;
         /* internal_name is only set when the variable's value pointer
          * needs to be updated on merge.  */
-        std::string *in = var->internal_name;
+        std::string *in = &(var->internal_name);
         if (!(in && in->size())) {
             continue;
         }
@@ -927,12 +928,12 @@ Namespace::eraseOnceVariables(std::set<std::string> *once_tags,
             b != e;
             ++b) {
         Element::Variable *var = b->second;
-        if (!var->internal_name) {
+        if (!(var->internal_name.compare(""))) {
             continue;
         }
         if (once_tags->find(var->once_tag) != once_tags->end()) {
             llvm::GlobalVariable *var_to_remove =
-                mod->getGlobalVariable(var->internal_name->c_str());
+                mod->getGlobalVariable(var->internal_name.c_str());
             if (var_to_remove) {
                 var_to_remove->setInitializer(NULL);
                 var->value = llvm::cast<llvm::Value>(var_to_remove);

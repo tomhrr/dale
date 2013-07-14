@@ -29,9 +29,9 @@ class Struct
 public:
     llvm::StructType *type;
     int is_opaque;
-    std::string *internal_name;
-    std::vector<Element::Type *> *element_types;
-    std::map<std::string, int> *names_to_numbers;
+    std::string internal_name;
+    std::vector<Element::Type *> element_types;
+    std::map<std::string, int> names_to_numbers;
     std::string once_tag;
     int linkage;
     int must_init;

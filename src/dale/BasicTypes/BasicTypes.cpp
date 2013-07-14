@@ -79,7 +79,7 @@ addSimpleUnaryFunction(Context *ctx,
     while (iter != new_args_ctx->end()) {
         llvm::Value *temp = largs;
         ++largs;
-        temp->setName((*iter)->name->c_str());
+        temp->setName((*iter)->name.c_str());
         (*iter)->value = temp;
         ++iter;
     }
@@ -172,7 +172,7 @@ addSimpleBinaryFunction(Context *ctx,
     while (iter != new_args_ctx->end()) {
         llvm::Value *temp = largs;
         ++largs;
-        temp->setName((*iter)->name->c_str());
+        temp->setName((*iter)->name.c_str());
         (*iter)->value = temp;
         ++iter;
     }

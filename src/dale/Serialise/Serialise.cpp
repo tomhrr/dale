@@ -253,13 +253,13 @@ char *deserialise(TypeRegister *tr, char *in, Element::Type **t)
 void serialise(FILE *out, Element::Variable *v)
 {
     serialise(out, v->type);
-    serialise(out, v->name);
+    serialise(out, &(v->name));
     serialise(out, v->linkage);
-    if (!v->internal_name) {
+    if (!(v->internal_name.compare(""))) {
         serialise(out, 0);
     } else {
         serialise(out, 1);
-        serialise(out, v->internal_name);
+        serialise(out, &(v->internal_name));
     }
     serialise(out, v->once_tag);
 }
@@ -275,20 +275,14 @@ char *deserialise(TypeRegister *tr, char *in, Element::Variable *v)
     in = deserialise(tr, in, &vt);
     v->type = vt;
 
-    std::string *name = new std::string();
-    in = deserialise(tr, in, name);
-    v->name = name;
+    in = deserialise(tr, in, &(v->name));
 
     in = deserialise(tr, in, &(v->linkage));
 
     int is_present;
     in = deserialise(tr, in, &is_present);
-    if (!is_present) {
-        v->internal_name = NULL;
-    } else {
-        std::string *vname = new std::string();
-        in = deserialise(tr, in, vname);
-        v->internal_name = vname;
+    if (is_present) {
+        in = deserialise(tr, in, &(v->internal_name));
     }
     in = deserialise(tr, in, &(v->once_tag));
 
@@ -362,9 +356,9 @@ char *deserialise(TypeRegister *tr, char *in, Element::Function **fn)
 void serialise(FILE *out, Element::Struct *st)
 {
     serialise(out, &(st->is_opaque));
-    serialise(out, st->element_types);
-    serialise(out, st->names_to_numbers);
-    serialise(out, st->internal_name);
+    serialise(out, &(st->element_types));
+    serialise(out, &(st->names_to_numbers));
+    serialise(out, &(st->internal_name));
     serialise(out, st->once_tag);
     serialise(out, st->linkage);
     serialise(out, st->must_init);
@@ -381,17 +375,9 @@ char *deserialise(TypeRegister *tr, char *in, Element::Struct *st)
 {
     st->type = NULL;
     in = deserialise(tr, in, &(st->is_opaque));
-    std::vector<Element::Type *> *et =
-        new std::vector<Element::Type *>;
-    in = deserialise(tr, in, et);
-    st->element_types = et;
-    std::map<std::string, int> *nn =
-        new std::map<std::string, int>;
-    in = deserialise(tr, in, nn);
-    st->names_to_numbers = nn;
-    std::string *intname = new std::string();
-    in = deserialise(tr, in, intname);
-    st->internal_name = intname;
+    in = deserialise(tr, in, &(st->element_types));
+    in = deserialise(tr, in, &(st->names_to_numbers));
+    in = deserialise(tr, in, &(st->internal_name));
     in = deserialise(tr, in, &(st->once_tag));
     in = deserialise(tr, in, &(st->linkage));
     in = deserialise(tr, in, &(st->must_init));

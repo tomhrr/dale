@@ -385,9 +385,9 @@ int Generator::addVariable(const char *name,
                            bool ignore_if_present)
 {
     Element::Variable *var = new Element::Variable();
-    var->name->append(name);
+    var->name.append(name);
     var->type = type;
-    var->internal_name->append(name);
+    var->internal_name.append(name);
     var->linkage = Linkage::Extern;
     int avres = ctx->ns()->addVariable(name, var);
     if (!avres) {
@@ -2494,7 +2494,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
     std::string name3;
     ctx->ns()->nameToSymbol(name, &name3);
     name2.append(name3);
-    enum_str->internal_name->append(name2);
+    enum_str->internal_name.append(name2);
 
     llvm_new_struct->setName(name2.c_str());
     if (llvm_new_struct->getName() != llvm::StringRef(name2)) {
@@ -2648,7 +2648,6 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
                 }
                 var = new Element::Variable();
                 var->type = type_varargs;
-                var->name = new std::string("");
                 var->linkage = Linkage::Auto;
                 mc_args_internal->push_back(var);
                 break;
@@ -2656,7 +2655,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
             var = new Element::Variable();
             var->type = r_type;
             var->linkage = Linkage::Auto;
-            var->name = new std::string((*node_iter)->token->str_value);
+            var->name.append((*node_iter)->token->str_value);
             past_first = 1;
             mc_args_internal->push_back(var);
             ++node_iter;
@@ -2766,7 +2765,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
 
         llvm::Value *temp = largs;
         ++largs;
-        temp->setName((*iter)->name->c_str());
+        temp->setName((*iter)->name.c_str());
         (*iter)->value = temp;
         ++iter;
     }
@@ -2867,8 +2866,7 @@ int Generator::addOpaqueStruct(const char *name, Node *top,
     new_struct->type = sty;
     new_struct->is_opaque = 1;
     new_struct->linkage = linkage;
-    new_struct->internal_name->clear();
-    new_struct->internal_name->append(name2.c_str());
+    new_struct->internal_name.append(name2.c_str());
     new_struct->once_tag = current_once_tag;
 
     if (!ctx->ns()->addStruct(name, new_struct)) {
@@ -3127,15 +3125,15 @@ void Generator::parseStructDefinition(const char *name, Node *top)
      * some previously defined structure and has a
      * self-reference). */
 
-    new_struct->internal_name->clear();
-    new_struct->internal_name->append(name2.c_str());
+    new_struct->internal_name.clear();
+    new_struct->internal_name.append(name2.c_str());
 
     new_struct->linkage = linkage;
 
     iter = elements_internal->begin();
 
     while (iter != elements_internal->end()) {
-        new_struct->addElement((*iter)->name->c_str(),
+        new_struct->addElement((*iter)->name.c_str(),
                                (*iter)->type);
         delete (*iter);
         ++iter;
@@ -3248,9 +3246,9 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
     /* Add the variable to the context. */
 
     Element::Variable *var2 = new Element::Variable();
-    var2->name->append(name);
+    var2->name.append(name);
     var2->type = r_type;
-    var2->internal_name->append(new_name);
+    var2->internal_name.append(new_name);
     var2->once_tag = current_once_tag;
     var2->linkage = linkage;
     int avres = ctx->ns()->addVariable(name, var2);
@@ -3459,14 +3457,14 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
         }
 
         std::vector<Element::Type *>::iterator begin =
-            str->element_types->begin();
+            str->element_types.begin();
 
         int i = 0;
         int last_el_size = -1;
         int last_offset = -1;
         int incr = 0;
 
-        while (begin != str->element_types->end()) {
+        while (begin != str->element_types.end()) {
             Element::Type *current = (*begin);
             size_t el_size =
                 getSizeofTypeImmediate(current);
@@ -4403,7 +4401,7 @@ void Generator::parseFunction(const char *name, Node *n,
             e = fn_args_internal->end();
             b != e;
             ++b) {
-        ctx->ns()->addVariable((*b)->name->c_str(), (*b));
+        ctx->ns()->addVariable((*b)->name.c_str(), (*b));
     }
 
     Element::Type *r_type = parseType((*lst)[return_type_index], false,
@@ -4552,7 +4550,7 @@ void Generator::parseFunction(const char *name, Node *n,
 
         llvm::Value *temp = largs;
         ++largs;
-        temp->setName((*iter)->name->c_str());
+        temp->setName((*iter)->name.c_str());
         (*iter)->value = temp;
         ++iter;
     }
@@ -6692,7 +6690,7 @@ int Generator::scopeClose(Element::Function *dfn,
             if (!((*b)->value->getType()->isPointerTy())) {
                 fprintf(stderr,
                         "Variable value is not a pointer! (%s)\n",
-                        (*b)->name->c_str());
+                        (*b)->name.c_str());
             }
 
             std::vector<llvm::Value *> call_args;
@@ -7605,7 +7603,7 @@ int Generator::structMemberCount(DNode *struct_name_node)
     if (!st) {
         return -1;
     }
-    return st->element_types->size();
+    return st->element_types.size();
 }
 
 DNode *Generator::structMemberType(DNode *struct_name_node, int arg_count)
@@ -7621,12 +7619,12 @@ DNode *Generator::structMemberType(DNode *struct_name_node, int arg_count)
     if (!st) {
         return NULL;
     }
-    if ((int) st->element_types->size() < arg_count) {
+    if ((int) st->element_types.size() < arg_count) {
         return NULL;
     }
     return
         IntNodeToDNode(
-            st->element_types->at(arg_count)->toNode()
+            st->element_types.at(arg_count)->toNode()
         );
 }
 
@@ -7643,7 +7641,7 @@ const char *Generator::structMemberName(DNode *struct_name_node, int arg_count)
     if (!st) {
         return NULL;
     }
-    if ((int) st->element_types->size() < arg_count) {
+    if ((int) st->element_types.size() < arg_count) {
         return NULL;
     }
     return st->indexToName(arg_count);
@@ -9662,7 +9660,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
                                    builder.CreateAlloca(et)
                                );
         Element::Variable *var2 = new Element::Variable();
-        var2->name->append(name);
+        var2->name.append(name);
         var2->type = type;
         var2->value = new_ptr;
         var2->linkage = Linkage::Auto;
@@ -9777,7 +9775,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
                                    builder.CreateAlloca(et)
                                );
         Element::Variable *var2 = new Element::Variable();
-        var2->name->append(name);
+        var2->name.append(name);
         var2->type = type;
         var2->value = new_ptr;
         var2->linkage = linkage;
@@ -10198,8 +10196,8 @@ tryvar:
             var->setConstant(true);
 
             Element::Variable *var2 = new Element::Variable();
-            var2->name->append(varname.c_str());
-            var2->internal_name->append(varname);
+            var2->name.append(varname.c_str());
+            var2->internal_name.append(varname);
             var2->type = temp;
             var2->value = llvm::cast<llvm::Value>(var);
             var2->linkage = Linkage::Intern;
@@ -11377,11 +11375,11 @@ ParseResult *Generator::parseEnumLiteral(llvm::BasicBlock *block,
                           llvm::ArrayRef<llvm::Value*>(two_zero_indices));
 
     llvm::Type *llvm_type =
-        toLLVMType(myenumstructtype->element_types->at(0),
+        toLLVMType(myenumstructtype->element_types.at(0),
                        NULL, false);
     if (!llvm_type) {
         failedDaleToLLVMTypeConversion(
-            myenumstructtype->element_types->at(0)
+            myenumstructtype->element_types.at(0)
         );
         return NULL;
     }
@@ -12318,13 +12316,13 @@ int Generator::parseFunctionBody(Element::Function *dfn,
             myvar->type = type_pdnode;
         }
         avres = ctx->ns()->addVariable(
-                    myvar->name->c_str(), myvar
+                    myvar->name.c_str(), myvar
                 );
         if (!avres) {
             Error *e = new Error(
                 ErrorInst::Generator::RedefinitionOfVariable,
                 n,
-                myvar->name->c_str()
+                myvar->name.c_str()
             );
             erep->addError(e);
             return 0;
@@ -12766,8 +12764,8 @@ void Generator::parseArgument(Element::Variable *var, Node *top,
         return;
     }
 
-    var->name->clear();
-    var->name->append(tname->str_value.c_str());
+    var->name.clear();
+    var->name.append(tname->str_value.c_str());
 
     /* parseType returns a newly allocated type - it is assumed
      * that Element::Variable has not initialised its type and

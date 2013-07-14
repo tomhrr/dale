@@ -99,7 +99,7 @@ ParseResult *execute(Context *ctx,
 
         Element::Struct *mystruct =
             ctx->getStruct(from_type->struct_name->c_str());
-        Element::Type *temp_to_type = mystruct->element_types->at(0);
+        Element::Type *temp_to_type = mystruct->element_types.at(0);
 
         // Store the struct.
         llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
@@ -142,7 +142,7 @@ ParseResult *execute(Context *ctx,
                && (ctx->getEnum(struct_name->c_str()))) {
 
         Element::Struct *mystruct = ctx->getStruct(to_type->struct_name->c_str());
-        Element::Type *to_type_temp = mystruct->element_types->at(0);
+        Element::Type *to_type_temp = mystruct->element_types.at(0);
 
         ParseResult *temptemp = execute(ctx, mod, block,
                                        value,

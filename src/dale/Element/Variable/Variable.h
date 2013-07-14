@@ -24,8 +24,8 @@ class Variable
 {
 public:
     Element::Type *type;
-    std::string   *name;
-    std::string   *internal_name;
+    std::string   name;
+    std::string   internal_name;
     llvm::Value   *value;
     /* For a variable with one of the extern linkages,
      * this indicates whether space has been set aside for

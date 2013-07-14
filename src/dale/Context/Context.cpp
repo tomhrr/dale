@@ -907,8 +907,7 @@ Context::rebuildVariables(llvm::Module *mod, NSNode *nsnode)
         Element::Variable *var = b->second;
         /* internal_name is only set when the variable's value
          * pointer needs to be updated after module linkage. */
-        if (var->internal_name
-                && var->internal_name->size() > 0) {
+        if (var->internal_name.size() > 0) {
             Element::Type *pptype = tr->getPointerType(var->type);
             llvm::Type *tt = toLLVMType(pptype, NULL, true, true);
             if (!tt) {
@@ -926,14 +925,14 @@ Context::rebuildVariables(llvm::Module *mod, NSNode *nsnode)
             var->value =
                 llvm::cast<llvm::Value>(
                     mod->getOrInsertGlobal(
-                        var->internal_name->c_str(),
+                        var->internal_name.c_str(),
                         elt
                     )
                 );
             if (!var->value) {
                 fprintf(stderr, "Internal error: unable to re-get "
                         "global variable ('%s').\n",
-                        var->internal_name->c_str());
+                        var->internal_name.c_str());
                 abort();
             }
         } else {
@@ -953,8 +952,7 @@ Context::rebuildVariables(llvm::Module *mod, NSNode *nsnode)
                 fprintf(stderr, "Internal error: unable to re-get "
                         "global variable ('%s', '%s').\n",
                         (*b).first.c_str(),
-                        var->internal_name
-                        ->c_str());
+                        var->internal_name.c_str());
                 abort();
             }
         }
@@ -1191,7 +1189,7 @@ Context::toLLVMType(Element::Type *type,
                           type->namespaces);
             if (structp) {
                 if (((structp->linkage == StructLinkage::Opaque)
-                        || (structp->element_types->size() == 0))
+                        || (structp->element_types.size() == 0))
                         && !externally_defined) {
                     Error *e = new Error(
                         ErrorInst::Generator::CannotInstantiateOpaqueStruct,
@@ -1370,11 +1368,12 @@ deleteAnonymousNamespaces_(NSNode *nsnode)
     for (std::map<std::string, NSNode *>::iterator
             b = nsnode->children.begin(),
             e = nsnode->children.end();
-            b != e;
-            ++b) {
+            b != e;) {
         deleteAnonymousNamespaces_(b->second);
         if (b->first.find("anon") == 0) {
-            nsnode->children.erase(b);
+            nsnode->children.erase(b++);
+        } else {
+            ++b;
         }
     }
 
