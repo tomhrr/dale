@@ -49,6 +49,7 @@
 #include "../Serialise/Serialise.h"
 #include "../NativeTypes/NativeTypes.h"
 #include "../ContextSavePoint/ContextSavePoint.h"
+#include "../Module/Writer/Writer.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -1164,173 +1165,10 @@ int Generator::run(std::vector<const char *> *filenames,
     }
 
     if (module_name.size() > 0) {
-        /* If module_name starts with '/', or was set in code,
-         * then treat it as fully qualified; otherwise, put the
-         * module files into DALE_MODULE_PATH. */
-        std::string module_prefix;
-        if ((module_name[0] == '/')
-                || (module_name[0] == '.')
-                || set_module_name) {
-            module_prefix.append(module_name);
-        } else {
-            module_prefix.append(DALE_MODULE_PATH)
-            .append("/")
-            .append(module_name);
-        }
-        std::string bc_path(module_prefix);
-        std::string asm_path(module_prefix);
-        std::string lib_path(module_prefix);
-
-        /* Write the bitcode to this path. */
-        bc_path.append(".bc");
-        FILE *bc = fopen(bc_path.c_str(), "w");
-        if (!bc) {
-            perror("Cannot create module bitcode file");
-            return 0;
-        }
-        llvm::raw_fd_ostream temp(fileno(bc), false);
-        if (DALE_DEBUG) {
-            mod->dump();
-        }
-        if (debug) {
-            llvm::verifyModule(*mod);
-        }
-        PM.run(*mod);
-        llvm::WriteBitcodeToFile(mod, temp);
-        temp.flush();
-        fflush(bc);
-        fclose(bc);
-
-        /* Compile the bitcode into a shared object in the same
-         * path. */
-
-        asm_path.append(".s");
-        std::string cmd;
-        cmd.append(LLVM_BIN_DIR "/llc -relocation-model=pic ")
-        .append(bc_path)
-        .append(" -o ")
-        .append(asm_path);
-
-        int res = system(cmd.c_str());
-        if (res) {
-            fprintf(stderr, "Internal error: unable to assemble "
-                    "bitcode.\n");
-            abort();
-        }
-
-        lib_path.append(".so");
-        cmd.clear();
-        cmd.append("cc -shared ")
-        .append(asm_path)
-        .append(" -o ")
-        .append(lib_path);
-
-        res = system(cmd.c_str());
-        if (res) {
-            fprintf(stderr, "Internal error: unable to make "
-                    "library.\n");
-            abort();
-        }
-
-        res = remove(asm_path.c_str());
-        if (res) {
-            fprintf(stderr, "%d: Internal error: unable to remove "
-                    "temporary assembly file (%s).\n",
-                    getpid(),
-                    asm_path.c_str());
-            perror("Error");
-            abort();
-        }
-
-        /* Remove all of the macros from the module, and then
-         * repeat what happened above. */
-        ctx->regetPointers(mod);
-        ctx->eraseLLVMMacrosAndCTOFunctions();
-
-        /* Write the bitcode to this path. */
-        bc_path.erase((bc_path.size() - 3), 3);
-        bc_path.append("-nomacros.bc");
-        bc = fopen(bc_path.c_str(), "w");
-        if (!bc) {
-            perror("Cannot create module no-macros bitcode file");
-            return 0;
-        }
-        llvm::raw_fd_ostream temp2(fileno(bc), false);
-        if (DALE_DEBUG) {
-            mod->dump();
-        }
-        if (debug) {
-            llvm::verifyModule(*mod);
-        }
-        PM.run(*mod);
-        llvm::WriteBitcodeToFile(mod, temp2);
-        temp2.flush();
-        fflush(bc);
-        fclose(bc);
-
-        /* Compile the bitcode into a shared object in the same
-         * path. */
-
-        asm_path.erase((asm_path.size() - 2), 2);
-        asm_path.append("-nomacros.s");
-        cmd.clear();
-        cmd.append(LLVM_BIN_DIR "/llc -relocation-model=pic ")
-        .append(bc_path)
-        .append(" -o ")
-        .append(asm_path);
-
-        res = system(cmd.c_str());
-        if (res) {
-            fprintf(stderr, "Internal error: unable to assemble "
-                    "no-macros bitcode.\n");
-            abort();
-        }
-
-        lib_path.erase((lib_path.size() - 3), 3);
-        lib_path.append("-nomacros.so");
-        cmd.clear();
-        cmd.append("cc -shared ")
-        .append(asm_path)
-        .append(" -o ")
-        .append(lib_path);
-
-        res = system(cmd.c_str());
-        if (res) {
-            fprintf(stderr, "Internal error: unable to make "
-                    "library.\n");
-            abort();
-        }
-
-        res = remove(asm_path.c_str());
-        if (res) {
-            fprintf(stderr, "Internal error: unable to remove "
-                    "temporary assembly file.\n");
-            abort();
-        }
-
-        /* Dump the context into module_path. */
-        ctx->removeDeserialised();
-        module_prefix.append(".dtm");
-        FILE *mod_data = fopen(module_prefix.c_str(), "w");
-        if (!mod_data) {
-            perror("Cannot create module file");
-            return 0;
-        }
-        serialise(mod_data, ctx);
-
-        /* Add the included 'once' tags to the dtm. */
-        serialise(mod_data, included_once_tags);
-        /* Add the included module names to the dtm. */
-        serialise(mod_data, included_modules);
-        /* Add the cto flag to the dtm. */
-        serialise(mod_data, cto);
-        /* Add the typemap (ugh). */
-        serialise(mod_data, &dale_typemap);
-
-        fflush(mod_data);
-        fclose(mod_data);
-
-
+        Module::Writer mw(module_name, ctx, mod, &PM,
+                          included_once_tags, included_modules,
+                          cto);
+        mw.run();
     } else {
         int rgp = 1;
         std::string err;

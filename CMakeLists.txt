@@ -143,6 +143,8 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Introspection/Introspection.cpp
                       src/dale/Operation/Cast/Cast.cpp
                       src/dale/BasicTypes/BasicTypes.cpp
+                      src/dale/Module/Writer/Writer.cpp
+                      src/dale/Serialise/Serialise.cpp
                       src/dale/Generator/Generator.cpp
                       src/dale/Linkage/Linkage.cpp
                       src/dale/Namespace/Namespace.cpp
