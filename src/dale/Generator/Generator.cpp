@@ -149,6 +149,7 @@ Element::Type *type_uint128;
 
 Element::Type *type_dnode = NULL;
 Element::Type *type_pdnode = NULL;
+void (*pool_free_fptr)(MContext *) = NULL;
 llvm::Type *llvm_type_dnode = NULL;
 llvm::Type *llvm_type_pdnode = NULL;
 
@@ -982,6 +983,7 @@ int Generator::run(std::vector<const char *> *filenames,
                 std::vector<const char*> import_forms;
                 addDaleModule(nullNode(), "drt", &import_forms);
                 setPdnode();
+                setPoolfree();
             }
         }
         int error_count = 0;
@@ -10862,7 +10864,19 @@ void Generator::setPdnode()
     }
 }
 
-DNode *callmacro(int arg_count, void *gen, void *mac, DNode **dnodes)
+void Generator::setPoolfree()
+{
+    if (!pool_free_fptr) {
+        pool_free_fptr =
+            (void (*)(MContext *mcp))
+                ee->getPointerToFunction(
+                    ctx->getFunction("pool-free", NULL, 0)->llvm_function
+                );
+    }
+}
+
+DNode *callmacro(int arg_count, void *gen, void *mac, DNode **dnodes,
+                 MContext **mc_ptr)
 {
     ffi_type **args =
         (ffi_type **) malloc(arg_count * sizeof(ffi_type *));
@@ -10872,6 +10886,7 @@ DNode *callmacro(int arg_count, void *gen, void *mac, DNode **dnodes)
         (PoolNode *)  malloc(sizeof(PoolNode));
     MContext *mc =
         (MContext *)  malloc(sizeof(MContext));
+    *mc_ptr = mc;
 
     memset(pn, 0, sizeof(PoolNode));
     memset(mc, 0, sizeof(MContext));
@@ -11050,18 +11065,21 @@ Node *Generator::parseMacroCall(Node *n,
 
     /* Cast it to the correct type. */
 
-    DNode* (*FP)(int arg_count, void *gen, void *mac_fn, DNode **dnodes) =
-        (DNode* (*)(int, void*, void*, DNode**))callmacro_fptr;
+    DNode* (*FP)(int arg_count, void *gen, void *mac_fn, DNode
+    **dnodes, MContext **mcp) =
+        (DNode* (*)(int, void*, void*, DNode**, MContext**))callmacro_fptr;
 
     /* Get the returned dnode. */
 
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
+    MContext *mcontext;
     DNode *mc_result_dnode = FP(myargs_count + 1,
                                 (void *) this,
                                 (char *) actualmacro_fptr,
-                                myargs);
+                                myargs,
+                                &mcontext);
 
     struct timeval tv2;
     gettimeofday(&tv2, NULL);
@@ -11070,81 +11088,14 @@ Node *Generator::parseMacroCall(Node *n,
 
     Node *mc_result_node =
         (mc_result_dnode) ? DNodeToIntNode(mc_result_dnode)
-        : NULL;
+                          : NULL;
 
     struct timeval tv3;
     gettimeofday(&tv3, NULL);
 
-    /* Free the pool node (begin). todo: doesn't work, currently. */
+    /* Free the pool node. */
 
-    /*
-    {
-        std::vector<llvm::Type*> cup_mc_args;
-
-        Element::Type *cup_r_type = new Element::Type(Type::Void);
-
-        llvm::FunctionType *cup_ft =
-            getFunctionType(
-                toLLVMType(cup_r_type, NULL, true),
-                cup_mc_args,
-                false
-            );
-
-        delete cup_r_type;
-
-        std::string cup_fn_name("_dale_TempMacroExecution");
-        char buf[5] = "";
-        sprintf(buf, "%d", mc_count++);
-        cup_fn_name.append(buf);
-
-        llvm::Constant *cup_fnc =
-            mod->getOrInsertFunction(
-                cup_fn_name.c_str(),
-                cup_ft
-            );
-
-        llvm::Function *cup_fn = llvm::dyn_cast<llvm::Function>(cup_fnc);
-
-        cup_fn->setCallingConv(llvm::CallingConv::C);
-        cup_fn->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
-
-        llvm::BasicBlock *cup_block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                     "entry", cup_fn);
-        llvm::IRBuilder<> cup_builder(cup_block);
-
-        llvm::Value *res555 =
-            llvm::cast<llvm::Value>(
-                cup_builder.CreateLoad(llvm::dyn_cast<llvm::Value>(
-                    mc_result_dnode
-                ))
-            );
-
-        cup_builder.CreateCall(
-            ctx->getFunction("pool-free", NULL, 0)->llvm_function,
-            res555
-        );
-
-        cup_builder.CreateRetVoid();
-
-        void *cup_fptr = ee->getPointerToFunction(cup_fn);
-
-        void (*CUP_FP)(void) = (void (*)(void))cup_fptr;
-
-        CUP_FP();
-
-        std::vector<DNode *>::iterator diter =
-            dnodes_to_free.begin();
-
-        while (diter != dnodes_to_free.end()) {
-            // todo: this does not work at the moment, unfortunately
-            //deleteDNode((*diter));
-            ++diter;
-        }
-    }
-    */
-
-    /* Free the pool node (end). */
+    pool_free_fptr(mcontext);
 
     /* Add the macro position information to the nodes. */
 

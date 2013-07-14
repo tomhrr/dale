@@ -563,6 +563,7 @@ public:
         ParseResult *pr);
 
     void setPdnode();
+    void setPoolfree();
 
     int scopeClose(Element::Function *dfn,
                    llvm::BasicBlock *block,
