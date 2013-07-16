@@ -83,20 +83,18 @@ Node::~Node(void)
     /* It is assumed that nodes take ownership of their respective
      * lists/tokens. */
 
-    /*
-            if (is_token) {
-                delete token;
-            } else if (is_list) {
-                // Iterate over the list, delete each node in turn.
-                std::vector<Node *>::iterator iter = list->begin();
+    if (is_token) {
+        delete token;
+    } else if (is_list) {
+        // Iterate over the list, delete each node in turn.
+        std::vector<Node *>::iterator iter = list->begin();
 
-                while (iter != list->end()) {
-                    delete (*iter);
-                    ++iter;
-                }
-                delete list;
-            }
-            */
+        while (iter != list->end()) {
+            delete (*iter);
+            ++iter;
+        }
+        delete list;
+    }
 }
 
 void Node::print(void)

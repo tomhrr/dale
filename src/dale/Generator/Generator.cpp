@@ -1006,7 +1006,6 @@ int Generator::run(std::vector<const char *> *filenames,
 
             /* EOF. */
             if (!top->is_token && !top->is_list) {
-                delete top;
                 /* Check for remaining modules/parsers/contexts. */
                 if (!modules->empty()) {
                     linker = linkers->back();
@@ -1024,6 +1023,7 @@ int Generator::run(std::vector<const char *> *filenames,
                     mod = modules->back();
                     modules->pop_back();
 
+                    delete prsr;
                     prsr = parsers->back();
                     parsers->pop_back();
 
@@ -1068,17 +1068,12 @@ int Generator::run(std::vector<const char *> *filenames,
 
         ++iter;
 
-        /*
-        todo: unable to delete the top-level nodes, probably parts
-        are being removed at other times.
-
         for (std::vector<Node *>::iterator b = nodes.begin(),
                                            e = nodes.end();
                 b != e;
                 ++b) {
             delete (*b);
         }
-        */
     }
 
     llvm::Triple GTheTriple(last_module->getTargetTriple());
@@ -1349,7 +1344,6 @@ int Generator::parseTopLevel(Node *top)
     }
 
     if (!top->is_token && !top->is_list) {
-        delete top;
         /* Check for remaining modules/parsers/contexts. */
         if (!modules->empty()) {
             std::string link_error;
@@ -1367,6 +1361,7 @@ int Generator::parseTopLevel(Node *top)
             mod = modules->back();
             modules->pop_back();
 
+            delete prsr;
             prsr = parsers->back();
             parsers->pop_back();
 
@@ -1386,7 +1381,6 @@ int Generator::parseTopLevel(Node *top)
             ErrorInst::Generator::OnlyListsAtTopLevel, top
         );
         erep->addError(e);
-        delete top;
         return 0;
     }
 
@@ -1397,7 +1391,6 @@ int Generator::parseTopLevel(Node *top)
             ErrorInst::Generator::NoEmptyLists, top
         );
         erep->addError(e);
-        delete top;
         return 0;
     }
 
@@ -1409,7 +1402,6 @@ int Generator::parseTopLevel(Node *top)
             n
         );
         erep->addError(e);
-        delete top;
         return 0;
     }
 
@@ -1420,7 +1412,6 @@ int Generator::parseTopLevel(Node *top)
             ErrorInst::Generator::FirstListElementMustBeSymbol, n
         );
         erep->addError(e);
-        delete top;
         return 0;
     }
 
@@ -1431,7 +1422,6 @@ int Generator::parseTopLevel(Node *top)
                 n
             );
             erep->addError(e);
-            delete top;
             return 0;
         }
 
@@ -1446,43 +1436,24 @@ int Generator::parseTopLevel(Node *top)
             ++node_iter;
         }
 
-        delete(top->list->at(0));
-        top->list->clear();
-        delete(top);
-
         return 1;
     } else if (!t->str_value.compare("def")) {
         parseDefine(top);
-        delete top;
         return 1;
     } else if (!t->str_value.compare("namespace")) {
         parseNamespace(top);
-
-        delete(top->list->at(0));
-        delete(top->list->at(1));
-        top->list->clear();
-        delete(top);
-
         return 1;
     } else if (!t->str_value.compare("using-namespace")) {
         parseUsingNamespaceTopLevel(top);
-
-        delete(top->list->at(0));
-        top->list->clear();
-        delete(top);
-
         return 1;
     } else if (!t->str_value.compare("include")) {
         parseInclude(top);
-        delete top;
         return 1;
     } else if (!t->str_value.compare("module")) {
         parseModuleName(top);
-        delete top;
         return 1;
     } else if (!t->str_value.compare("import")) {
         parseImport(top);
-        delete top;
         return 1;
     } else if (!t->str_value.compare("once")) {
         if (!assertArgNums("once", top, 1, 1)) {
@@ -1500,8 +1471,6 @@ int Generator::parseTopLevel(Node *top)
         const char *once_name = n->token->str_value.c_str();
         std::string once_tag(once_name);
 
-        delete top;
-
         if (included_once_tags->find(once_tag) !=
                 included_once_tags->end()) {
             if (parsers->size() == 0) {
@@ -1512,6 +1481,7 @@ int Generator::parseTopLevel(Node *top)
                 erep->addError(e);
                 return 0;
             }
+            delete prsr;
             prsr = parsers->back();
             parsers->pop_back();
             ctx = contexts->back();
@@ -1532,7 +1502,6 @@ int Generator::parseTopLevel(Node *top)
             return 0;
         }
         if (newtop != top) {
-            delete top;
             return parseTopLevel(newtop);
         }
         Error *e = new Error(
@@ -1541,7 +1510,6 @@ int Generator::parseTopLevel(Node *top)
             t->str_value.c_str()
         );
         erep->addError(e);
-        delete top;
         return 0;
     }
 }

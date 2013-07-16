@@ -14,6 +14,7 @@ Parser::Parser(Lexer *new_lxr, ErrorReporter *new_erep,
 
 Parser::~Parser()
 {
+    delete lxr;
     free((void*) filename);
 }
 
