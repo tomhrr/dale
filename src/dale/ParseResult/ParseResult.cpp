@@ -27,17 +27,6 @@ ParseResult::ParseResult(
 
 ParseResult::~ParseResult()
 {
-    /* It is assumed that only type is owned by this object (i.e.
-     * that block and value get cleaned up elsewhere). */
-    //delete type;
-    /*
-    std::string type_str;
-    type->toStringProper(&type_str);
-    fprintf(stderr, "ParseResult destruction: "
-                    "name: %s, type: %s\n",
-                    type_str.c_str(),
-                    value->getName().str().c_str());
-    */
 }
 
 int ParseResult::copyTo(ParseResult *x)

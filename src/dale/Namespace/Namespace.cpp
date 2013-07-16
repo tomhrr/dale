@@ -60,6 +60,7 @@ Namespace::~Namespace(void)
         stl::deleteElements(b->second);
         delete b->second;
     }
+    functions.clear();
 }
 
 bool

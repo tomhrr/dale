@@ -3827,6 +3827,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
     }
     block = temp_pr->block;
     llvm::Value *retaa = temp_pr->value;
+    delete temp_pr;
 
     typedef struct temp_t {
         char c[256];
@@ -3857,6 +3858,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
     }
     llvm::Value *store = storeor->value;
     builder.SetInsertPoint(storeor->block);
+    delete storeor;
     Element::Function *memcpy = ctx->getFunction("memcpy", NULL,
                                 NULL, 0);
     if (!memcpy) {
@@ -5061,6 +5063,7 @@ ParseResult *Generator::parseReturn(Element::Function *dfn,
         p2->do_not_destruct       = 1;
         p2->do_not_copy_with_setf = 1;
         p2->treat_as_terminator   = 1;
+        delete p;
         return p2;
     }
 }
@@ -6574,22 +6577,16 @@ ParseResult *Generator::copyWithSetfIfApplicable(
      * recursion - it would be better for the author to do all of
      * this manually, rather than complicating things. */
     if (dfn->is_setf_fn) {
-        ParseResult *mine = new ParseResult();
-        pr->copyTo(mine);
-        return mine;
+        return pr;
     }
     if (pr->do_not_copy_with_setf) {
-        ParseResult *mine = new ParseResult();
-        pr->copyTo(mine);
-        return mine;
+        return pr;
     }
     /* If the parseresult has already been copied, then don't copy
      * it again (pointless). todo: if you are having copy etc.
      * problems, this is likely to be the issue. */
     if (pr->freshly_copied) {
-        ParseResult *mine = new ParseResult();
-        pr->copyTo(mine);
-        return mine;
+        return pr;
     }
     std::vector<Element::Type *> types;
     Element::Type *copy_type = tr->getPointerType(pr->type);
@@ -6598,9 +6595,7 @@ ParseResult *Generator::copyWithSetfIfApplicable(
     Element::Function *over_setf =
         ctx->getFunction("setf-copy", &types, NULL, 0);
     if (!over_setf) {
-        ParseResult *mine = new ParseResult();
-        pr->copyTo(mine);
-        return mine;
+        return pr;
     }
     llvm::IRBuilder<> builder(pr->block);
     llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
@@ -6628,6 +6623,7 @@ ParseResult *Generator::copyWithSetfIfApplicable(
     x->type = pr->type;
     x->value = result;
     x->freshly_copied = 1;
+    delete pr;
     return x;
 }
 
@@ -9903,7 +9899,6 @@ ParseResult *Generator::parseFunctionBodyInstr(Element::Function *dfn,
         copyWithSetfIfApplicable(
             dfn, x
         );
-    delete x;
 
     return y;
 }
