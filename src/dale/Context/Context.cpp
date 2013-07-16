@@ -23,7 +23,7 @@ Context::Context(ErrorReporter *er,
     this->er = er;
     this->tr = tr;
 
-    Namespace *root = new Namespace(er, ".", NULL, 0);
+    Namespace *root = new Namespace(er, tr, ".", NULL, 0);
     namespaces = new NSNode();
     namespaces->ns = root;
 
@@ -94,7 +94,7 @@ Context::activateNamespace(const char *name)
         return true;
     }
 
-    Namespace *new_ns = new Namespace(er, name, 
+    Namespace *new_ns = new Namespace(er, tr, name, 
                                       current_nsnode->ns,
                                       (current_nsnode->ns->lv_index + 1));
     NSNode *new_namespaces = new NSNode();

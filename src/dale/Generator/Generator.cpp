@@ -284,14 +284,10 @@ Generator::~Generator()
 {
     delete ctx;
     delete prsr;
+    delete tr;
     delete included_inodes;
     delete included_once_tags;
     delete included_modules;
-
-    delete type_void;
-    delete type_char;
-    delete type_pchar;
-    delete type_int;
 
     dale::stl::deleteElements(parsers);
     dale::stl::deleteElements(contexts);
@@ -1759,6 +1755,7 @@ int Generator::addDaleModule(Node *n,
     }
     int size = buf.st_size;
     char *data = (char*) malloc(size);
+    char *original_data = data;
     if (fread(data, 1, size, test) != (size_t) size) {
         fprintf(stderr, "Unable to read module file.\n");
         abort();
@@ -1782,6 +1779,7 @@ int Generator::addDaleModule(Node *n,
         std::string y = (*b).second;
         addTypeMapEntry(x.c_str(), y.c_str());
     }
+    free(original_data);
 
     std::string module_path(tmn2);
     std::string module_path_nomacros(tmn2);
@@ -2264,26 +2262,14 @@ void Generator::parseDefine(Node *top)
     if (!subt->str_value.compare("fn")) {
         parseFunction(name->str_value.c_str(), n, NULL,
                       Linkage::Null, 0);
-
     } else if (!subt->str_value.compare("var")) {
         parseGlobalVariable(name->str_value.c_str(), n);
-
     } else if (!subt->str_value.compare("struct")) {
         parseStructDefinition(name->str_value.c_str(), n);
-
     } else if (!subt->str_value.compare("macro")) {
-
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-
         parseMacroDefinition(name->str_value.c_str(), n);
-
-        struct timeval tv2;
-        gettimeofday(&tv2, NULL);
-
     } else if (!subt->str_value.compare("enum")) {
         parseEnumDefinition(name->str_value.c_str(), n);
-
     } else {
         Error *e = new Error(
             ErrorInst::Generator::IncorrectArgType,
@@ -6416,8 +6402,7 @@ bool Generator::hasRelevantDestructor(ParseResult *pr)
         return false;
     }
     std::vector<Element::Type *> types;
-    Element::Type pprtype(pr->type);
-    types.push_back(&pprtype);
+    types.push_back(tr->getPointerType(pr->type));
     Element::Function *fn = ctx->getFunction("destroy", &types,
                             NULL, 0);
     if (!fn) {
@@ -6550,8 +6535,7 @@ ParseResult *Generator::destructIfApplicable(ParseResult *pr,
     }
 
     std::vector<Element::Type *> types;
-    Element::Type pprtype(pr->type);
-    types.push_back(&pprtype);
+    types.push_back(tr->getPointerType(pr->type));
     Element::Function *fn = ctx->getFunction("destroy", &types,
                             NULL, 0);
     if (!fn) {
@@ -6608,9 +6592,9 @@ ParseResult *Generator::copyWithSetfIfApplicable(
         return mine;
     }
     std::vector<Element::Type *> types;
-    Element::Type copy_type(pr->type);
-    types.push_back(&copy_type);
-    types.push_back(&copy_type);
+    Element::Type *copy_type = tr->getPointerType(pr->type);
+    types.push_back(copy_type);
+    types.push_back(copy_type);
     Element::Function *over_setf =
         ctx->getFunction("setf-copy", &types, NULL, 0);
     if (!over_setf) {
@@ -6680,8 +6664,8 @@ int Generator::scopeClose(Element::Function *dfn,
             destructIfApplicable(&mnew, NULL);
         } else {
             types.clear();
-            Element::Type pbtype((*b)->type);
-            types.push_back(&pbtype);
+            Element::Type *pbtype = tr->getPointerType((*b)->type);
+            types.push_back(pbtype);
             Element::Function *fn = ctx->getFunction("destroy",
                                     &types, NULL, 0);
             if (!fn) {
@@ -10916,6 +10900,9 @@ DNode *callmacro(int arg_count, void *gen, void *mac, DNode **dnodes,
 
     DNode *ret_node = NULL;
     ffi_call(&cif, (void (*)(void)) mac, (void *) &ret_node, vals);
+    free(args);
+    free(vals);
+
     return ret_node;
 }
 
@@ -10926,9 +10913,6 @@ Node *Generator::parseMacroCall(Node *n,
     if (DALE_DEBUG) {
         fprintf(stderr, "Calling macro '%s'\n", name);
     }
-
-    struct timeval tvs;
-    gettimeofday(&tvs, NULL);
 
     assert(n->list && "must receive a list!");
 
@@ -11055,12 +11039,6 @@ Node *Generator::parseMacroCall(Node *n,
     void *actualmacro_fptr =
         ee->getPointerToFunction(mc->llvm_function);
 
-    struct timeval tvgf;
-    gettimeofday(&tvgf, NULL);
-
-    struct timeval tvgf2;
-    gettimeofday(&tvgf2, NULL);
-
     /* Cast it to the correct type. */
 
     DNode* (*FP)(int arg_count, void *gen, void *mac_fn, DNode
@@ -11069,9 +11047,6 @@ Node *Generator::parseMacroCall(Node *n,
 
     /* Get the returned dnode. */
 
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
     MContext *mcontext;
     DNode *mc_result_dnode = FP(myargs_count + 1,
                                 (void *) this,
@@ -11079,21 +11054,16 @@ Node *Generator::parseMacroCall(Node *n,
                                 myargs,
                                 &mcontext);
 
-    struct timeval tv2;
-    gettimeofday(&tv2, NULL);
-
     /* Convert it to an int node. */
 
     Node *mc_result_node =
         (mc_result_dnode) ? DNodeToIntNode(mc_result_dnode)
                           : NULL;
 
-    struct timeval tv3;
-    gettimeofday(&tv3, NULL);
-
     /* Free the pool node. */
 
     pool_free_fptr(mcontext);
+    free(mcontext);
 
     /* Add the macro position information to the nodes. */
 
@@ -11102,9 +11072,6 @@ Node *Generator::parseMacroCall(Node *n,
     }
 
     /* Finished - return the macro result node. */
-
-    struct timeval tve;
-    gettimeofday(&tve, NULL);
 
     return mc_result_node;
 }

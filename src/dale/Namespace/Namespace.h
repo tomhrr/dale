@@ -9,6 +9,7 @@
 #include "../Linkage/Linkage.h"
 #include "../Node/Node.h"
 #include "../NativeTypes/NativeTypes.h"
+#include "../TypeRegister/TypeRegister.h"
 #include "../STLUtils/STLUtils.h"
 
 #include <vector>
@@ -55,6 +56,8 @@ public:
 
     /*! The error reporter for this namespace. */
     ErrorReporter *er;
+    /*! The type register for this namespace. */
+    TypeRegister *tr;
     /*! The current label-variable index. This value is assigned to new
      *  labels and values when they are added to the namespace. */
     int lv_index;
@@ -83,6 +86,7 @@ public:
      *  @param parent_namespace The parent namespace object. May be NULL.
      *  @param lv_index The initial label-variable index for this namespace. */
     Namespace(ErrorReporter *er,
+              TypeRegister *tr,
               std::string name,
               Namespace *parent_namespace,
               int lv_index);

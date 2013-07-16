@@ -114,11 +114,11 @@ ParseResult *execute(Context *ctx,
                               llvm::ArrayRef<llvm::Value*>(two_zero_indices));
 
         // Bitcast the pointer to an int pointer of the right size.
-        Element::Type ptemp_to_type(temp_to_type);
+        Element::Type *ptemp_to_type = ctx->tr->getPointerType(temp_to_type);
         llvm::Value *intptr =
             builder.CreateBitCast(
-                one, ctx->toLLVMType(&ptemp_to_type,
-                                    NULL, false)
+                one, ctx->toLLVMType(ptemp_to_type,
+                                     NULL, false)
             );
 
         // Load that value.
@@ -161,11 +161,11 @@ ParseResult *execute(Context *ctx,
                             new_ptr1);
 
         // Bitcast the int pointer to a struct pointer.
-        Element::Type pto_type(to_type);
+        Element::Type *pto_type = ctx->tr->getPointerType(to_type);
         llvm::Value *sp =
             builder.CreateBitCast(
-                new_ptr1, ctx->toLLVMType(&pto_type,
-                                         NULL, false)
+                new_ptr1, ctx->toLLVMType(pto_type,
+                                          NULL, false)
             );
 
         // Load that value.
@@ -180,10 +180,10 @@ ParseResult *execute(Context *ctx,
                                     builder.CreateAlloca(llvm_from_type)
                                 );
         builder.CreateStore(value, new_ptr1);
-        Element::Type pto_type(to_type);
+        Element::Type *pto_type = ctx->tr->getPointerType(to_type);
         llvm::Value *sp =
             builder.CreateBitCast(
-                new_ptr1, ctx->toLLVMType(&pto_type, NULL, false)
+                new_ptr1, ctx->toLLVMType(pto_type, NULL, false)
             );
         llvm::Value *newint =
             builder.CreateLoad(sp);

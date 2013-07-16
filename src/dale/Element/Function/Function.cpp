@@ -47,6 +47,10 @@ Function::~Function()
     delete internal_name;
     delete defgotos;
     delete labels;
+    if (parameter_types) {
+        stl::deleteElements(parameter_types);
+        delete parameter_types;
+    }
 }
 
 Element::Label *Function::getLabel(const char *str)

@@ -149,6 +149,15 @@ Type::Type(Element::Type *new_points_to,
 
 Type::~Type()
 {
+    if (struct_name) {
+        delete struct_name;
+    }
+    if (namespaces) {
+        delete namespaces;
+    }
+    if (parameter_types) {
+        delete parameter_types;
+    }
 }
 
 /* pretty horrid, will tidy up later - linkage is not taken

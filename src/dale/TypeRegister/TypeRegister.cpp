@@ -1,6 +1,7 @@
 #include "TypeRegister.h"
 
 #include "../Utils/Utils.h"
+#include "../STLUtils/STLUtils.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -8,7 +9,7 @@
 
 namespace dale
 {
-TypeRegister::TypeRegister()
+TypeRegister::TypeRegister(void)
 {
     basic_types[Type::Bool]       = new Element::Type(Type::Bool);
     basic_types[Type::Void]       = new Element::Type(Type::Void);
@@ -33,6 +34,19 @@ TypeRegister::TypeRegister()
     basic_types[Type::UInt64]     = new Element::Type(Type::UInt64);
     basic_types[Type::Int128]     = new Element::Type(Type::Int128);
     basic_types[Type::UInt128]    = new Element::Type(Type::UInt128);
+}
+
+TypeRegister::~TypeRegister(void)
+{
+    for (int i = 1; i < 23; i++) {
+        delete basic_types[i];
+    }
+
+    stl::deleteMapElements(&pointer_types);
+    stl::deleteMapElements(&const_types);
+    stl::deleteMapElements(&struct_types);
+    stl::deleteNestedMapElements(&array_types);
+    stl::deleteNestedMapElements(&bitfield_types);
 }
 
 Element::Type*

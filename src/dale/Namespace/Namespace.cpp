@@ -2,6 +2,7 @@
 
 #include "llvm/LinkAllVMCore.h"
 #include "../NativeTypes/NativeTypes.h"
+#include "../STLUtils/STLUtils.h"
 
 namespace dale
 {
@@ -9,15 +10,18 @@ Namespace::Namespace(void)
 {
     this->parent_namespace = NULL;
     this->er = NULL;
+    this->tr = NULL;
     this->lv_index = 0;
 }
 
 Namespace::Namespace(ErrorReporter *er,
+                     TypeRegister *tr,
                      std::string name,
                      Namespace *pns,
                      int lv_index)
 {
     this->er = er;
+    this->tr = tr;
     this->name = name;
     this->parent_namespace = pns;
     this->lv_index = lv_index;
@@ -48,7 +52,14 @@ Namespace::Namespace(ErrorReporter *er,
 
 Namespace::~Namespace(void)
 {
-    /* Delete each Element::Function vector in the functions map. */ 
+    for (std::map<std::string, std::vector<Element::Function*>*>::iterator 
+            b = functions.begin(),
+            e = functions.end();
+            b != e;
+            ++b) {
+        stl::deleteElements(b->second);
+        delete b->second;
+    }
 }
 
 bool
@@ -395,12 +406,8 @@ Namespace::getFunction(const char *name,
     std::vector<Element::Type *>::reverse_iterator rarg_type_iter;
     rarg_type_iter = types->rbegin();
 
-    Element::Type dnode_struct;
-    std::string dn("DNode");
-    dnode_struct.struct_name = &dn;
-    std::vector<std::string> namespaces;
-    dnode_struct.namespaces = &namespaces;
-    Element::Type r_type(&dnode_struct);
+    Element::Type *dnode = tr->getStructType("DNode");
+    Element::Type *r_type = tr->getPointerType(dnode);
 
     while (rarg_type_iter != types->rend()) {
         Element::Type *temp = *rarg_type_iter;
@@ -421,7 +428,7 @@ Namespace::getFunction(const char *name,
     }
 
     Element::Type *old_type = (*rarg_type_iter);
-    (*rarg_type_iter) = &r_type;
+    (*rarg_type_iter) = r_type;
     Element::Function *temp = getFunction(
                                     name,
                                     types,

@@ -448,38 +448,21 @@ void serialise(FILE *out, Namespace **ns)
 
 char *deserialise(TypeRegister *tr, char *in, Namespace *ns)
 {
-    std::map<std::string, std::vector<Element::Function *>*> *fns =
-        new std::map<std::string, std::vector<Element::Function
-    *>*>;
-    in = deserialise(tr, in, fns);
-    ns->functions = *fns;
-
-    std::map<std::string, Element::Variable *> *vars =
-        new std::map<std::string, Element::Variable*>;
-    in = deserialise(tr, in, vars);
-    ns->variables = *vars;
-
-    std::map<std::string, Element::Struct *> *sts =
-        new std::map<std::string, Element::Struct *>;
-    in = deserialise(tr, in, sts);
-    ns->structs = *sts;
-
-    std::map<std::string, Element::Enum *> *ens =
-        new std::map<std::string, Element::Enum *>;
-    in = deserialise(tr, in, ens);
-    ns->enums = *ens;
+    in = deserialise(tr, in, &(ns->functions));
+    in = deserialise(tr, in, &(ns->variables));
+    in = deserialise(tr, in, &(ns->structs));
+    in = deserialise(tr, in, &(ns->enums));
 
     std::string name;
     in = deserialise(tr, in, &name);
     ns->name = name;
-
-    std::string symbol_prefix;
-    in = deserialise(tr, in, &symbol_prefix);
-    ns->symbol_prefix = symbol_prefix;
+    
+    in = deserialise(tr, in, &(ns->symbol_prefix));
 
     if (ns->symbol_prefix.size()) {
         ns->has_symbol_prefix = true;
     }
+    ns->tr = tr;
 
     return in;
 }

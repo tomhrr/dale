@@ -16,6 +16,26 @@ void deleteElements(T *container)
 }
 
 template <typename T>
+void deleteMapElements(T *container)
+{
+    for (typename T::iterator it = container->begin(),
+            et = container->end();
+            it != et; ++it) {
+        delete it->second;
+    }
+}
+
+template <typename T>
+void deleteNestedMapElements(T *container)
+{
+    for (typename T::iterator it = container->begin(),
+            et = container->end();
+            it != et; ++it) {
+        deleteMapElements(&(it->second));
+    }
+}
+
+template <typename T>
 bool isEqualTo(T *container1, T *container2)
 {
     if (container1->size() != container2->size()) {
