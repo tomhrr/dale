@@ -4,6 +4,9 @@ namespace dale
 {
 ParseResult::ParseResult()
 {
+    block = NULL;
+    type = NULL;
+    value = NULL;
     treat_as_terminator = 0;
     do_not_destruct = 0;
     do_not_copy_with_setf = 0;

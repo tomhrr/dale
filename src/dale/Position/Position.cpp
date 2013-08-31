@@ -4,6 +4,8 @@ namespace dale
 {
 Position::Position()
 {
+    line_number = 0;
+    column_number = 0;
 }
 
 Position::Position(int new_line_number, int new_column_number)

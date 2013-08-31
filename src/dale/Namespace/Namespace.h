@@ -47,6 +47,8 @@ public:
     std::map<std::string, Element::Struct *> structs;
     /*! A map from enum name to enum. */
     std::map<std::string, Element::Enum *> enums;
+    /*! The functions in order of addition. */
+    std::vector<Element::Function *> functions_ordered;
     /*! The variable names in order of addition. */
     std::vector<std::string> variables_ordered;
     /*! The struct names in order of addition. */

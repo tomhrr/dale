@@ -17,14 +17,15 @@ namespace Operation
 {
 namespace Cast
 {
-ParseResult *execute(Context *ctx,
-                     llvm::Module *mod,
-                     llvm::BasicBlock *block,
-                     llvm::Value *value,
-                     Element::Type *from_type,
-                     Element::Type *to_type,
-                     Node *n,
-                     bool implicit = false);
+bool execute(Context *ctx,
+            llvm::Module *mod,
+            llvm::BasicBlock *block,
+            llvm::Value *value,
+            Element::Type *from_type,
+            Element::Type *to_type,
+            Node *n,
+            bool implicit,
+            ParseResult *pr);
 }
 }
 }

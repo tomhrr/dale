@@ -304,6 +304,14 @@ Generator::~Generator()
     delete dtm_nm_modules;
 }
 
+void setPr(ParseResult *pr, llvm::BasicBlock *block, Element::Type *type,
+           llvm::Value *value)
+{
+    pr->block = block;
+    pr->type  = type;
+    pr->value = value;
+}
+
 llvm::Module *loadModule(std::string *path)
 {
     const llvm::sys::Path sys_path(*path);
@@ -3784,18 +3792,18 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
         builder.CreateStore(ret, reta);
     }
 
-    ParseResult *temp_pr =
+    ParseResult temp_pr;
+    bool res =
         doCast(block,
                reta,
                tr->getPointerType(type),
                type_pchar,
-               top);
-    if (!temp_pr) {
-        return NULL;
+               top, 0, &temp_pr);
+    if (!res) {
+        return false;
     }
-    block = temp_pr->block;
-    llvm::Value *retaa = temp_pr->value;
-    delete temp_pr;
+    block = temp_pr.block;
+    llvm::Value *retaa = temp_pr.value;
 
     typedef struct temp_t {
         char c[256];
@@ -3814,19 +3822,19 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
             ),
             buf6
         );
-    ParseResult *storeor =
+    ParseResult storeor;
+    res =
         doCast(block,
                v,
                type_intptr,
                type_pchar,
-               top
+               top, 0, &storeor
               );
-    if (!storeor) {
-        return NULL;
+    if (!res) {
+        return false;
     }
-    llvm::Value *store = storeor->value;
-    builder.SetInsertPoint(storeor->block);
-    delete storeor;
+    llvm::Value *store = storeor.value;
+    builder.SetInsertPoint(storeor.block);
     Element::Function *memcpy = ctx->getFunction("memcpy", NULL,
                                 NULL, 0);
     if (!memcpy) {
@@ -4957,44 +4965,44 @@ int Generator::assertTypeEquality(const char *form_name,
  * is just feral given that each ParseResult adds a ret
  * instruction, but something else is adding extra bits to the end
  * and it's the easiest way to get things to work again. */
-ParseResult *Generator::parseReturn(Element::Function *dfn,
-                                    llvm::BasicBlock *block,
-                                    Node *n,
-                                    bool getAddress,
-                                    bool prefixed_with_core)
+bool Generator::parseReturn(Element::Function *dfn,
+                            llvm::BasicBlock *block,
+                            Node *n,
+                            bool getAddress,
+                            bool prefixed_with_core,
+                            ParseResult *pr)
 {
     assert(n->list && "parseReturn must receive a list!");
 
     symlist *lst = n->list;
 
     if (!assertArgNums("return", n, 0, 1)) {
-        return NULL;
+        return false;
     }
     if (lst->size() == 1) {
         llvm::IRBuilder<> builder(block);
         scopeClose(dfn, block, NULL);
         builder.CreateRetVoid();
-        ParseResult *p = new ParseResult(
-            block,
-            type_int,
-            llvm_native_zero
-        );
-        p->do_not_destruct       = 1;
-        p->do_not_copy_with_setf = 1;
-        p->treat_as_terminator   = 1;
-        return p;
+        setPr(pr, block, type_int, llvm_native_zero);
+        pr->do_not_destruct       = 1;
+        pr->do_not_copy_with_setf = 1;
+        pr->treat_as_terminator   = 1;
+        return true;
     }
 
-    ParseResult *p = parseFunctionBodyInstr(
-                         dfn, block, (*lst)[1], getAddress, NULL
-                     );
-    if (!p) {
-        return NULL;
+    ParseResult p;
+    bool res =
+        parseFunctionBodyInstr(
+            dfn, block, (*lst)[1], getAddress, NULL, &p
+        );
+    if (!res) {
+        return false;
     }
-    if (!assertTypeEquality("return", n, p->type, dfn->return_type)) {
-        return NULL;
+    if (!assertTypeEquality("return", n, p.type, dfn->return_type)) {
+        return false;
     }
-    llvm::IRBuilder<> builder(p->block);
+    block = p.block;
+    llvm::IRBuilder<> builder(block);
     /* Both branches here create a ParseResult with an integer
      * value but a type that is the same as the return type of the
      * function. This is purposeful - the type is so that if other
@@ -5005,89 +5013,82 @@ ParseResult *Generator::parseReturn(Element::Function *dfn,
      * last part isn't correct - see e.g. the call to CreateCondBr
      * in parseIf. So, return the proper value in the second
      * branch.) */
-    if (p->type->base_type == Type::Void) {
+    if (p.type->base_type == Type::Void) {
         scopeClose(dfn, block, NULL);
         builder.SetInsertPoint(block);
         builder.CreateRetVoid();
-        ParseResult *p2 = new ParseResult(
-            block,
-            dfn->return_type,
-            llvm_native_zero
-        );
-        p2->do_not_destruct       = 1;
-        p2->do_not_copy_with_setf = 1;
-        p2->treat_as_terminator   = 1;
-        delete p;
-        return p2;
+        setPr(pr, block, dfn->return_type, llvm_native_zero);
+        pr->do_not_destruct       = 1;
+        pr->do_not_copy_with_setf = 1;
+        pr->treat_as_terminator   = 1;
+        return true;
     } else {
         scopeClose(dfn, block, NULL);
         builder.SetInsertPoint(block);
-        builder.CreateRet(p->value);
-        ParseResult *p2 = new ParseResult(
-            block,
-            dfn->return_type,
-            p->value
-        );
-        p2->do_not_destruct       = 1;
-        p2->do_not_copy_with_setf = 1;
-        p2->treat_as_terminator   = 1;
-        delete p;
-        return p2;
+        builder.CreateRet(p.value);
+        setPr(pr, block, dfn->return_type, p.value);
+        pr->do_not_destruct       = 1;
+        pr->do_not_copy_with_setf = 1;
+        pr->treat_as_terminator   = 1;
+        return true;
     }
 }
 
-ParseResult *Generator::parseSetf(Element::Function *dfn,
-                                  llvm::BasicBlock *block,
-                                  Node *n,
-                                  bool getAddress,
-                                  bool prefixed_with_core)
+bool Generator::parseSetf(Element::Function *dfn,
+                            llvm::BasicBlock *block,
+                            Node *n,
+                            bool getAddress,
+                            bool prefixed_with_core,
+                            ParseResult *pr)
 {
     assert(n->list && "parseSetf must receive a list!");
 
     symlist *lst = n->list;
 
     if (!assertArgNums("setf", n, 2, 2)) {
-        return NULL;
+        return false;
     }
 
     /* Used to use getAddress for the first argument, but now setf
      * always takes a pointer as its first argument, to facilitate
      * overloading etc. */
 
-    ParseResult *pr_variable =
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL);
+    ParseResult pr_variable;
+    bool res =
+        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL,
+                               &pr_variable);
 
-    if (!pr_variable) {
-        return NULL;
+    if (!res) {
+        return false;
     }
 
     /* Make sure that the first argument is a pointer. */
 
-    if (!pr_variable->type->points_to) {
+    if (!pr_variable.type->points_to) {
         Error *e = new Error(
             ErrorInst::Generator::IncorrectArgType,
             (*lst)[1],
             "setf", "a pointer", "1", "a value"
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     /* Can't modify const variables. */
 
-    if (pr_variable->type->points_to->is_const) {
+    if (pr_variable.type->points_to->is_const) {
         Error *e = new Error(
             ErrorInst::Generator::CannotModifyConstVariable,
             n
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     Node *val_node = (*lst)[2];
     val_node = parseOptionalMacroCall(val_node);
     if (!val_node) {
-        return NULL;
+        return false;
     }
 
     /* Previously: 'if pr_value is a variable, use the value
@@ -5100,20 +5101,20 @@ ParseResult *Generator::parseSetf(Element::Function *dfn,
      * this will now cause additional copies, which is
      * unfortunate; there is probably a way to make it better. */
 
-    ParseResult *pr_value;
-    llvm::IRBuilder<> builder(pr_variable->block);
-    pr_value =
+    llvm::IRBuilder<> builder(pr_variable.block);
+    ParseResult pr_value;
+    res =
         parseFunctionBodyInstr(
-            dfn, pr_variable->block, val_node, false,
-            pr_variable->type->points_to
+            dfn, pr_variable.block, val_node, false,
+            pr_variable.type->points_to,
+            &pr_value
         );
-    //}
 
-    if (!pr_value) {
+    if (!res) {
         return NULL;
     }
 
-    builder.SetInsertPoint(pr_value->block);
+    builder.SetInsertPoint(pr_value.block);
 
     /* If overridden setf exists, and pr_value is a value of the
      * pointee type of pr_variable, then call overridden setf
@@ -5121,10 +5122,10 @@ ParseResult *Generator::parseSetf(Element::Function *dfn,
      * place. */
 
     if (!prefixed_with_core
-            && pr_value->type->isEqualTo(pr_variable->type->points_to)) {
+            && pr_value.type->isEqualTo(pr_variable.type->points_to)) {
         std::vector<Element::Type *> types;
-        types.push_back(pr_variable->type);
-        types.push_back(pr_variable->type);
+        types.push_back(pr_variable.type);
+        types.push_back(pr_variable.type);
         Element::Function *over_setf =
             ctx->getFunction("setf-assign", &types, NULL, 0);
         if (!over_setf) {
@@ -5132,28 +5133,30 @@ ParseResult *Generator::parseSetf(Element::Function *dfn,
         }
         llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
                                     builder.CreateAlloca(
-                                        toLLVMType(pr_value->type, NULL, false)
+                                        toLLVMType(pr_value.type, NULL, false)
                                     )
                                 );
-        builder.CreateStore(pr_value->value, new_ptr2);
+        builder.CreateStore(pr_value.value, new_ptr2);
         std::vector<llvm::Value *> call_args;
-        call_args.push_back(pr_variable->value);
+        call_args.push_back(pr_variable.value);
         call_args.push_back(new_ptr2);
         llvm::Value *ret =
             builder.CreateCall(over_setf->llvm_function,
                                llvm::ArrayRef<llvm::Value*>(call_args));
 
-        ParseResult *pn = new ParseResult;
-        pn->block = pr_value->block;
-
-        destructIfApplicable(pr_variable, &builder);
-        delete pr_variable;
-        destructIfApplicable(pr_value,    &builder);
-        delete pr_value;
-
-        pn->type = type_bool;
-        pn->value = ret;
-        return pn;
+        ParseResult temp;
+        pr_variable.block = pr_value.block; 
+        bool mres = destructIfApplicable(&pr_variable, &builder, &temp);
+        if (!mres) {
+            return false;
+        }
+        pr_value.block = temp.block;
+        mres = destructIfApplicable(&pr_value, &builder, &temp);
+        if (!mres) {
+            return false;
+        }
+        setPr(pr, temp.block, type_bool, ret);
+        return true;
     }
 
 cont1:
@@ -5163,121 +5166,129 @@ cont1:
 
     if (!prefixed_with_core) {
         std::vector<Element::Type *> types;
-        types.push_back(pr_variable->type);
-        types.push_back(pr_value->type);
+        types.push_back(pr_variable.type);
+        types.push_back(pr_value.type);
         Element::Function *over_setf =
             ctx->getFunction("setf-assign", &types, NULL, 0);
         if (!over_setf) {
             goto cont2;
         }
         std::vector<llvm::Value *> call_args;
-        call_args.push_back(pr_variable->value);
-        call_args.push_back(pr_value->value);
+        call_args.push_back(pr_variable.value);
+        call_args.push_back(pr_value.value);
         llvm::Value *ret =
             builder.CreateCall(over_setf->llvm_function,
                                llvm::ArrayRef<llvm::Value*>(call_args));
 
-        ParseResult *pn = new ParseResult;
-        pn->block = pr_value->block;
+        ParseResult temp;
+        pr_variable.block = pr_value.block;
+        bool mres = destructIfApplicable(&pr_variable, &builder, &temp);
+        if (!mres) {
+            return false;
+        }
+        pr_value.block = temp.block;
+        mres = destructIfApplicable(&pr_value, &builder, &temp);
+        if (!mres) {
+            return false;
+        }
 
-        destructIfApplicable(pr_variable, &builder);
-        delete pr_variable;
-        destructIfApplicable(pr_value,    &builder);
-        delete pr_value;
-
-        pn->type = type_bool;
-        pn->value = ret;
-        return pn;
+        setPr(pr, temp.block, type_bool, ret);
+        return true;
     }
 
 cont2:
 
-    if (pr_value->type->isEqualTo(pr_variable->type->points_to)) {
-        builder.CreateStore(pr_value->value, pr_variable->value);
+    if (pr_value.type->isEqualTo(pr_variable.type->points_to)) {
+        builder.CreateStore(pr_value.value, pr_variable.value);
 
-        ParseResult *pn = new ParseResult;
-        pn->block = pr_value->block;
+        ParseResult temp;
+        pr_variable.block = pr_value.block;
+        bool mres = destructIfApplicable(&pr_variable, &builder, &temp);
+        if (!mres) {
+            return false;
+        }
+        pr_value.block = temp.block;
+        mres = destructIfApplicable(&pr_value, &builder, &temp);
+        if (!mres) {
+            return false;
+        }
 
-        destructIfApplicable(pr_variable, &builder);
-        delete pr_variable;
-        destructIfApplicable(pr_value,    &builder);
-        delete pr_value;
-
-        pn->type = type_bool;
-        pn->value = llvm_bool_true;
-        pn->do_not_copy_with_setf = 1;
-        return pn;
+        setPr(pr, temp.block, type_bool, llvm_bool_true);
+        pr->do_not_copy_with_setf = 1;
+        return true;
     }
 
     /* todo: it would be good to also show the setf-assign
      * candidates here, if applicable. */
     assertTypeEquality("setf", (*lst)[2],
-                       pr_value->type,
-                       pr_variable->type->points_to);
+                       pr_value.type,
+                       pr_variable.type->points_to);
 
-    return NULL;
+    return false;
 }
 
-ParseResult *Generator::parseDereference(Element::Function *dfn,
+bool Generator::parseDereference(Element::Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
         bool getAddress,
-        bool prefixed_with_core)
+        bool prefixed_with_core,
+        ParseResult *pr)
 {
     assert(n->list && "parseDereference must receive a list!");
 
     symlist *lst = n->list;
 
     if (!assertArgNums("@", n, 1, 1)) {
-        return NULL;
+        return false;
     }
 
-    ParseResult *p =
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL);
+    ParseResult p;
+    bool res =
+        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL,
+                               &p);
 
-    if (!p) {
-        return NULL;
+    if (!res) {
+        return false;
     }
 
     /* It should be a pointer. */
 
-    if (!(p->type->points_to)) {
+    if (!(p.type->points_to)) {
         std::string temp;
-        p->type->toStringProper(&temp);
+        p.type->toStringProper(&temp);
         Error *e = new Error(
             ErrorInst::Generator::CannotDereferenceNonPointer,
             n,
             temp.c_str()
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
-    if (p->type->points_to->base_type == Type::Void) {
+    if (p.type->points_to->base_type == Type::Void) {
         Error *e = new Error(
             ErrorInst::Generator::CannotDereferenceVoidPointer,
             n
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     /* If getAddress is false (the usual case), append a load
      * instruction, otherwise just return the value. */
 
-    ParseResult *pn = new ParseResult;
-    pn->block = p->block;
+    setPr(pr, p.block, NULL, NULL);
 
     if (!getAddress) {
-        llvm::IRBuilder<> builder(p->block);
+        llvm::IRBuilder<> builder(p.block);
         llvm::Value *res =
-            llvm::cast<llvm::Value>(builder.CreateLoad(p->value));
+            llvm::cast<llvm::Value>(builder.CreateLoad(p.value));
 
-        pn->type  = p->type->points_to;
-        pn->value = res;
+        pr->type  = p.type->points_to;
+        pr->value = res;
     } else {
-        pn->type  = p->type;
-        pn->value = p->value;
+        pr->type  = p.type;
+        pr->value = p.value;
     }
 
     /* If this isn't here, then an overloaded setf that calls @
@@ -5285,54 +5296,51 @@ ParseResult *Generator::parseDereference(Element::Function *dfn,
      * work, because even (core @ x) will return a pointee to x,
      * which will be copied to the caller of this function. */
     if (prefixed_with_core) {
-        pn->do_not_copy_with_setf = 1;
+        pr->do_not_copy_with_setf = 1;
     }
 
-    if (hasRelevantDestructor(p)) {
-        ParseResult *temp =
-            destructIfApplicable(p, NULL);
-        pn->block = temp->block;
+    if (hasRelevantDestructor(&p)) {
+        ParseResult temp;
+        bool res = destructIfApplicable(&p, NULL, &temp);
+        if (!res) {
+            return false;
+        }
+        pr->block = temp.block;
     }
 
-    delete p;
-
-    return pn;
+    return true;
 }
 
-ParseResult *Generator::parseGetDNodes(Element::Function *dfn,
+bool Generator::parseGetDNodes(Element::Function *dfn,
                                        llvm::BasicBlock *block,
                                        Node *n,
                                        bool getAddress,
-                                       bool prefixed_with_core)
+                                       bool prefixed_with_core,
+                                       ParseResult *pr)
 {
-    /* int node to static node */
-
     if (!assertArgNums("get-dnodes", n, 1, 1)) {
-        return NULL;
+        return false; 
     }
 
     llvm::Value *v = IntNodeToStaticDNode(n->list->at(1), NULL);
 
     llvm::IRBuilder<> builder(block);
 
-    ParseResult *pn = new ParseResult;
-    pn->block = block;
-    pn->type  = type_pdnode;
-    pn->value = v;
-
-    return pn;
+    setPr(pr, block, type_pdnode, v);
+    return true;
 }
 
-ParseResult *Generator::parseAddressOf(Element::Function *dfn,
+bool Generator::parseAddressOf(Element::Function *dfn,
                                        llvm::BasicBlock *block,
                                        Node *n,
                                        bool getAddress,
-                                       bool prefixed_with_core)
+                                       bool prefixed_with_core,
+                                       ParseResult *pr)
 {
     assert(n->list && "parseAddressOf must receive a list!");
 
     if (!assertArgNums("#", n, 1, -1)) {
-        return NULL;
+        return false;
     }
     symlist *lst = n->list;
 
@@ -5343,11 +5351,10 @@ ParseResult *Generator::parseAddressOf(Element::Function *dfn,
         Element::Variable *var =
             ctx->getVariable(nn->token->str_value.c_str());
         if (var) {
-            return new ParseResult(
-                       block,
-                       tr->getPointerType(var->type),
-                       var->value
-                   );
+            setPr(pr, block,
+                  tr->getPointerType(var->type),
+                  var->value);
+            return true;
         }
     }
 
@@ -5357,14 +5364,15 @@ ParseResult *Generator::parseAddressOf(Element::Function *dfn,
      * there's no corresponding copy with setf (or an overloaded
      * setf). (todo: this comment does not appear to be correct.) */
 
-    ParseResult *pr = parseFunctionBodyInstr(
-                          dfn, block, (*lst)[1], true, NULL
-                      );
+    bool res =
+        parseFunctionBodyInstr(
+            dfn, block, (*lst)[1], true, NULL, pr
+        );
 
     int diff = erep->getErrorTypeCount(ErrorType::Error)
                - error_count;
 
-    if (!pr) {
+    if (!res) {
         std::vector<Error*> errors;
         while (diff--) {
             errors.push_back(erep->popLastError());
@@ -5491,10 +5499,7 @@ ParseResult *Generator::parseAddressOf(Element::Function *dfn,
             }
 
             type->parameter_types = parameter_types;
-
-            return new ParseResult(
-                       block,
-                       tr->getPointerType(type),
+            setPr(pr, block, tr->getPointerType(type),
                        llvm::cast<llvm::Value>(fn->llvm_function)
                    );
         } else {
@@ -5504,7 +5509,7 @@ ParseResult *Generator::parseAddressOf(Element::Function *dfn,
                     ++b) {
                 erep->addError((*b));
             }
-            return NULL;
+            return false;
         }
     }
 
@@ -5518,32 +5523,33 @@ ParseResult *Generator::parseAddressOf(Element::Function *dfn,
             (*lst)[1]
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
-    return pr;
+    return true;
 }
 
-ParseResult *Generator::parseGoto(Element::Function *dfn,
-                                  llvm::BasicBlock *block,
-                                  Node *n,
-                                  bool getAddress,
-                                  bool prefixed_with_core)
+bool Generator::parseGoto(Element::Function *dfn,
+                          llvm::BasicBlock *block,
+                          Node *n,
+                          bool getAddress,
+                          bool prefixed_with_core,
+                          ParseResult *pr)
 {
     assert(n->list && "parseGoto must receive a list!");
 
     if (!assertArgNums("goto", n, 1, 1)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
     Node *lname = (*lst)[1];
 
     if (!assertArgIsAtom("goto", lname, "1")) {
-        return NULL;
+        return false;
     }
     if (!assertAtomIsSymbol("goto", lname, "1")) {
-        return NULL;
+        return false;
     }
 
     Token *t = lname->token;
@@ -5606,9 +5612,9 @@ ParseResult *Generator::parseGoto(Element::Function *dfn,
             if (hasRelevantDestructor(&myp)) {
                 llvm::Value *myv = builder.CreateLoad(v->value);
                 myp.value = myv;
-                ParseResult *temp =
-                    destructIfApplicable(&myp, NULL);
-                myp.block = temp->block;
+                ParseResult temp;
+                destructIfApplicable(&myp, NULL, &temp);
+                myp.block = temp.block;
             }
         }
         block = myp.block;
@@ -5617,47 +5623,45 @@ ParseResult *Generator::parseGoto(Element::Function *dfn,
         builder.CreateBr(to_block);
     }
 
-    ParseResult *p = new ParseResult(
-        block,
-        type_int,
-        llvm_native_zero
-    );
+    setPr(pr, block, type_int, llvm_native_zero);
+
     /* Ugh. If setf was defined for ints, the caller of this
      * function would copy the returned zero. This meant that the
      * branch instruction was no longer the final instruction in
      * the block. This meant that parseIf (amongst other things)
      * did not treat this as terminating. Fun stuff. */
-    p->do_not_copy_with_setf = 1;
+    pr->do_not_copy_with_setf = 1;
 
     if (!mylabel) {
-        p->treat_as_terminator = 1;
+        pr->treat_as_terminator = 1;
     }
     /* todo: hopefully temporary. */
-    p->treat_as_terminator = 1;
+    pr->treat_as_terminator = 1;
 
-    return p;
+    return true;
 }
 
-ParseResult *Generator::parseLabel(Element::Function *dfn,
+bool Generator::parseLabel(Element::Function *dfn,
                                    llvm::BasicBlock *block,
                                    Node *n,
                                    bool getAddress,
-                                   bool prefixed_with_core)
+                                   bool prefixed_with_core,
+                                   ParseResult *pr)
 {
     assert(n->list && "parseLabel must receive a list!");
 
     if (!assertArgNums("label", n, 1, 1)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
     Node *lname = (*lst)[1];
 
     if (!assertArgIsAtom("label", lname, "1")) {
-        return NULL;
+        return false;
     }
     if (!assertAtomIsSymbol("label", lname, "1")) {
-        return NULL;
+        return false;
     }
     Token *t = lname->token;
 
@@ -5668,8 +5672,8 @@ ParseResult *Generator::parseLabel(Element::Function *dfn,
                                  t->str_value.c_str(),
                                  block->getParent());
 
-    /* If the last instruction in the existing block is not a
-     * terminator, create a branch to this label. */
+    /* If the existing block does not terminate, create a branch to
+     * this label. */
 
     if (block->size() == 0
             || !(block->back().isTerminator())) {
@@ -5694,11 +5698,8 @@ ParseResult *Generator::parseLabel(Element::Function *dfn,
     my_label->index = index;
     dfn->addLabel(t->str_value.c_str(), my_label);
 
-    return new ParseResult(
-               new_block,
-               type_int,
-               llvm_native_zero
-           );
+    setPr(pr, new_block, type_int, llvm_native_zero);
+    return true;
 }
 
 int Generator::assertIsPointerType(const char *form_name,
@@ -5761,253 +5762,281 @@ int Generator::assertIsIntegerType(const char *form_name,
     return 0;
 }
 
-ParseResult *Generator::parsePtrEquals(Element::Function *dfn,
+bool Generator::parsePtrEquals(Element::Function *dfn,
                                        llvm::BasicBlock *block,
                                        Node *n,
                                        bool getAddress,
-                                       bool prefixed_with_core)
+                                       bool prefixed_with_core,
+                                       ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("p=", n, 2, 2)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
 
-    ParseResult *p = parseFunctionBodyInstr(
-                         dfn, block, (*lst)[1], getAddress, NULL
+    ParseResult p1;
+    bool mres = parseFunctionBodyInstr(
+                         dfn, block, (*lst)[1], getAddress, NULL, &p1
                      );
-    if (!p) {
-        return NULL;
+    if (!mres) {
+        return false;
     }
-    if (!assertIsPointerType("p=", n, p->type, "1")) {
-        return NULL;
+    if (!assertIsPointerType("p=", n, p1.type, "1")) {
+        return false;
     }
 
-    ParseResult *p2 = parseFunctionBodyInstr(
-                          dfn, p->block, (*lst)[2], getAddress, NULL
+    ParseResult p2;
+    mres = parseFunctionBodyInstr(
+                          dfn, p1.block, (*lst)[2], getAddress, NULL,
+                          &p2
                       );
-    if (!p2) {
-        return NULL;
+    if (!mres) {
+        return false;
     }
-    if (!assertIsPointerType("p=", n, p2->type, "2")) {
-        return NULL;
+    if (!assertIsPointerType("p=", n, p2.type, "2")) {
+        return false;
     }
 
-    llvm::IRBuilder<> builder(p2->block);
+    llvm::IRBuilder<> builder(p2.block);
     llvm::Value *res = llvm::cast<llvm::Value>(
-                           builder.CreateICmpEQ(p->value, p2->value)
+                           builder.CreateICmpEQ(p1.value, p2.value)
                        );
 
-    ParseResult *pn = new ParseResult(
-        p2->block,
-        type_bool,
-        res
-    );
+    setPr(pr, p2.block, type_bool, res);
 
-    p->block = p2->block;
-    if (hasRelevantDestructor(p)) {
-        ParseResult *temp =
-            destructIfApplicable(p, NULL);
-        p2->block = temp->block;
+    p1.block = p2.block;
+    ParseResult ret;
+    ret.block = p2.block;
+    if (hasRelevantDestructor(&p1)) {
+        destructIfApplicable(&p1, NULL, &ret);
+        p2.block = ret.block;
     }
-    delete p;
-    if (hasRelevantDestructor(p2)) {
-        ParseResult *temp =
-            destructIfApplicable(p2, NULL);
-        pn->block = temp->block;
+    if (hasRelevantDestructor(&p2)) {
+        destructIfApplicable(&p2, NULL, &ret);
     }
-    delete p2;
+    pr->block = ret.block;
 
-    return pn;
+    return true;
 }
 
-ParseResult *Generator::parsePtrAdd(Element::Function *dfn,
-                                    llvm::BasicBlock *block,
+bool Generator::parsePtrAdd(Element::Function *dfn,
+                               llvm::BasicBlock *block,
                                     Node *n,
                                     bool getAddress,
-                                    bool prefixed_with_core)
+                                    bool prefixed_with_core,
+                                    ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("p+", n, 2, 2)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
 
-    ParseResult *p = parseFunctionBodyInstr(
-                         dfn, block, (*lst)[1], getAddress, NULL
+    ParseResult ptr;
+    bool mres = parseFunctionBodyInstr(
+                         dfn, block, (*lst)[1], getAddress, NULL, &ptr
                      );
-    if (!p) {
+    if (!mres) {
+        return false;
+    }
+    if (!assertIsPointerType("p+", (*lst)[1], ptr.type, "1")) {
+        return false;
+    }
+
+    ParseResult val;
+    mres = parseFunctionBodyInstr(
+                 dfn, ptr.block, (*lst)[2], getAddress, NULL, &val
+          );
+    if (!mres) {
         return NULL;
     }
-    if (!assertIsPointerType("p+", (*lst)[1], p->type, "1")) {
+    if (!assertIsPointerOrIntegerType("p+", (*lst)[2], val.type, "2")) {
         return NULL;
     }
 
-    ParseResult *p2 = parseFunctionBodyInstr(
-                          dfn, p->block, (*lst)[2], getAddress, NULL
-                      );
-    if (!p2) {
-        return NULL;
-    }
-    if (!assertIsPointerOrIntegerType("p+", (*lst)[2], p2->type, "2")) {
-        return NULL;
-    }
-
-    // get sizeof the first type
-
-    ParseResult *temp2 = NULL;
     llvm::BasicBlock *mynextb;
+    ParseResult temp2;
 
-    if (p2->type->isIntegerType()) {
-        ParseResult *temp  = getSizeofType(p2->block, p->type->points_to);
-        temp2 = doCast(temp->block, temp->value, temp->type,
-                       type_intptr, (*lst)[2]);
-        mynextb = temp2->block;
+    if (val.type->isIntegerType()) {
+        ParseResult size;
+        mres = getSizeofType(val.block, ptr.type->points_to, &size);
+        if (!mres) {
+            return false;
+        }
+        mres = doCast(size.block, size.value, size.type,
+                     type_intptr, (*lst)[2], 0, &temp2);
+        if (!mres) {
+            return false;
+        }
+        mynextb = temp2.block;
     } else {
-        mynextb = p2->block;
+        mynextb = val.block;
     }
 
-    ParseResult *cast1 = doCast(mynextb, p->value, p->type,
-                                type_intptr, (*lst)[1]);
-    ParseResult *cast2 = doCast(cast1->block, p2->value, p2->type,
-                                type_intptr, (*lst)[2]);
+    ParseResult cast1;
+    ParseResult cast2;
+    mres = doCast(mynextb, ptr.value, ptr.type,
+                 type_intptr, (*lst)[1], 0, &cast1);
+    if (!mres) {
+        return false;
+    }
+    mres = doCast(cast1.block, val.value, val.type,
+                 type_intptr, (*lst)[2], 0, &cast2);
+    if (!mres) {
+        return false;
+    }
 
     llvm::Value *res;
 
     {
-        llvm::IRBuilder<> builder(cast2->block);
+        llvm::IRBuilder<> builder(cast2.block);
 
-        if (p2->type->isIntegerType()) {
+        if (val.type->isIntegerType()) {
             res = llvm::cast<llvm::Value>(
-                      builder.CreateAdd(cast1->value,
+                      builder.CreateAdd(cast1.value,
                                         builder.CreateMul(
-                                            temp2->value, cast2->value))
+                                            temp2.value, cast2.value))
                   );
         } else {
             res = llvm::cast<llvm::Value>(
-                      builder.CreateAdd(cast1->value, cast2->value)
+                      builder.CreateAdd(cast1.value, cast2.value)
                   );
         }
     }
 
-    ParseResult *final_res = doCast(cast2->block, res,
-                                    type_intptr, p->type, n);
+    ParseResult final_res;
+    doCast(cast2.block, res, type_intptr, ptr.type, n, 0, &final_res);
 
-    p->block = final_res->block;
-    if (hasRelevantDestructor(p)) {
-        ParseResult *temp =
-            destructIfApplicable(p, NULL);
-        p2->block = temp->block;
+    ptr.block = final_res.block;
+    ParseResult temp;
+    if (hasRelevantDestructor(&ptr)) {
+        destructIfApplicable(&ptr, NULL, &temp);
+        val.block = temp.block;
     }
-    delete p;
-    if (hasRelevantDestructor(p2)) {
-        ParseResult *temp =
-            destructIfApplicable(p2, NULL);
-        final_res->block = temp->block;
+    if (hasRelevantDestructor(&val)) {
+        destructIfApplicable(&val, NULL, &temp);
+        final_res.block = temp.block;
     }
-    delete p2;
+    setPr(pr, final_res.block, final_res.type, final_res.value);
 
-    return final_res;
+    return true;
 }
 
-ParseResult *Generator::parsePtrSubtract(Element::Function *dfn,
-        llvm::BasicBlock *block,
-        Node *n,
-        bool getAddress,
-        bool prefixed_with_core)
+bool Generator::parsePtrSubtract(Element::Function *dfn,
+                               llvm::BasicBlock *block,
+                                    Node *n,
+                                    bool getAddress,
+                                    bool prefixed_with_core,
+                                    ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("p-", n, 2, 2)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
 
-    ParseResult *p = parseFunctionBodyInstr(
-                         dfn, block, (*lst)[1], getAddress, NULL
+    ParseResult ptr;
+    bool res = parseFunctionBodyInstr(
+                         dfn, block, (*lst)[1], getAddress, NULL, &ptr
                      );
-    if (!p) {
+    if (!res) {
+        return false;
+    }
+    if (!assertIsPointerType("p-", (*lst)[1], ptr.type, "1")) {
+        return false;
+    }
+
+    ParseResult val;
+    res = parseFunctionBodyInstr(
+                 dfn, ptr.block, (*lst)[2], getAddress, NULL, &val
+          );
+    if (!res) {
         return NULL;
     }
-    if (!assertIsPointerType("p-", (*lst)[1], p->type, "1")) {
+    if (!assertIsPointerOrIntegerType("p-", (*lst)[2], val.type, "2")) {
         return NULL;
     }
 
-    ParseResult *p2 = parseFunctionBodyInstr(
-                          dfn, p->block, (*lst)[2], getAddress, NULL
-                      );
-    if (!p2) {
-        return NULL;
-    }
-    if (!assertIsPointerOrIntegerType("p-", (*lst)[2], p2->type, "2")) {
-        return NULL;
-    }
-
-    ParseResult *temp2 = NULL;
     llvm::BasicBlock *mynextb;
+    ParseResult temp2;
 
-    if (p2->type->isIntegerType()) {
-        ParseResult *temp  = getSizeofType(p2->block, p->type->points_to);
-        temp2 = doCast(temp->block, temp->value, temp->type,
-                       type_intptr, (*lst)[1]);
-        mynextb = temp2->block;
+    if (val.type->isIntegerType()) {
+        ParseResult size;
+        res = getSizeofType(val.block, ptr.type->points_to, &size);
+        if (!res) {
+            return false;
+        }
+        res = doCast(size.block, size.value, size.type,
+                     type_intptr, (*lst)[2], 0, &temp2);
+        if (!res) {
+            return false;
+        }
+        mynextb = temp2.block;
     } else {
-        mynextb = p2->block;
+        mynextb = val.block;
     }
 
-    ParseResult *cast1 = doCast(mynextb, p->value, p->type,
-                                type_intptr, (*lst)[1]);
-    ParseResult *cast2 = doCast(cast1->block, p2->value, p2->type,
-                                type_intptr, (*lst)[2]);
+    ParseResult cast1;
+    ParseResult cast2;
+    res = doCast(mynextb, ptr.value, ptr.type,
+                 type_intptr, (*lst)[1], 0, &cast1);
+    if (!res) {
+        return false;
+    }
+    res = doCast(cast1.block, val.value, val.type,
+                 type_intptr, (*lst)[2], 0, &cast2);
+    if (!res) {
+        return false;
+    }
 
-    llvm::Value *res;
+    llvm::Value *vres;
 
     {
-        llvm::IRBuilder<> builder(cast2->block);
+        llvm::IRBuilder<> builder(cast2.block);
 
-        if (p2->type->isIntegerType()) {
-            res = llvm::cast<llvm::Value>(
-                      builder.CreateSub(cast1->value,
+        if (val.type->isIntegerType()) {
+            vres = llvm::cast<llvm::Value>(
+                      builder.CreateSub(cast1.value,
                                         builder.CreateMul(
-                                            temp2->value, cast2->value))
+                                            temp2.value, cast2.value))
                   );
         } else {
-            res = llvm::cast<llvm::Value>(
-                      builder.CreateSub(cast1->value, cast2->value)
+            vres = llvm::cast<llvm::Value>(
+                      builder.CreateSub(cast1.value, cast2.value)
                   );
         }
     }
 
-    ParseResult *final_res = doCast(cast2->block, res,
-                                    type_intptr, p->type, n);
+    ParseResult final_res;
+    doCast(cast2.block, vres, type_intptr, ptr.type, n, 0, &final_res);
 
-    p->block = final_res->block;
-    if (hasRelevantDestructor(p)) {
-        ParseResult *temp =
-            destructIfApplicable(p, NULL);
-        p2->block = temp->block;
+    ParseResult temp;
+    if (hasRelevantDestructor(&ptr)) {
+        res = destructIfApplicable(&ptr, NULL, &temp);
+        val.block = temp.block;
     }
-    delete p;
-    if (hasRelevantDestructor(p2)) {
-        ParseResult *temp =
-            destructIfApplicable(p2, NULL);
-        final_res->block = temp->block;
+    if (hasRelevantDestructor(&val)) {
+        res = destructIfApplicable(&val, NULL, &temp);
+        final_res.block = temp.block;
     }
-    delete p2;
+    setPr(pr, final_res.block, final_res.type, final_res.value);
 
-    return final_res;
+    return true;
 }
 
-ParseResult *Generator::parsePtrLessThan(Element::Function *dfn,
+bool Generator::parsePtrLessThan(Element::Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
         bool getAddress,
-        bool prefixed_with_core)
+        bool prefixed_with_core,
+        ParseResult *pr)
 {
     if (!assertArgNums("p<", n, 2, 2)) {
         return NULL;
@@ -6015,59 +6044,55 @@ ParseResult *Generator::parsePtrLessThan(Element::Function *dfn,
 
     symlist *lst = n->list;
 
-    ParseResult *p = parseFunctionBodyInstr(
-                         dfn, block, (*lst)[1], getAddress, NULL
-                     );
-    if (!p) {
-        return NULL;
+    ParseResult p;
+    bool res = parseFunctionBodyInstr(
+                    dfn, block, (*lst)[1], getAddress, NULL, &p
+               );
+    if (!res) {
+        return false;
     }
-    if (!assertIsPointerType("p<", (*lst)[1], p->type, "1")) {
-        return NULL;
-    }
-
-    ParseResult *p2 = parseFunctionBodyInstr(
-                          dfn, p->block, (*lst)[2], getAddress, NULL
-                      );
-    if (!p2) {
-        return NULL;
-    }
-    if (!assertIsPointerType("p<", (*lst)[2], p2->type, "2")) {
-        return NULL;
+    if (!assertIsPointerType("p<", (*lst)[1], p.type, "1")) {
+        return false;
     }
 
-    llvm::IRBuilder<> builder(p2->block);
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           builder.CreateICmpULT(p->value, p2->value)
+    ParseResult p2;
+    res = parseFunctionBodyInstr(
+               dfn, p.block, (*lst)[2], getAddress, NULL, &p2
+          );
+    if (!res) {
+        return false;
+    }
+    if (!assertIsPointerType("p<", (*lst)[2], p2.type, "2")) {
+        return false;
+    }
+
+    llvm::IRBuilder<> builder(p2.block);
+    llvm::Value *vres = llvm::cast<llvm::Value>(
+                           builder.CreateICmpULT(p.value, p2.value)
                        );
 
-    ParseResult *pn = new ParseResult(
-        p2->block,
-        type_bool,
-        res
-    );
+    setPr(pr, p2.block, type_bool, vres);
 
-    p->block = p2->block;
-    if (hasRelevantDestructor(p)) {
-        ParseResult *temp =
-            destructIfApplicable(p, NULL);
-        p2->block = temp->block;
+    p.block = p2.block;
+    ParseResult temp;
+    if (hasRelevantDestructor(&p)) {
+        destructIfApplicable(&p, NULL, &temp);
+        p2.block = temp.block;
     }
-    delete p;
-    if (hasRelevantDestructor(p2)) {
-        ParseResult *temp =
-            destructIfApplicable(p2, NULL);
-        pn->block = temp->block;
+    if (hasRelevantDestructor(&p2)) {
+        destructIfApplicable(&p2, NULL, &temp);
+        pr->block = temp.block;
     }
-    delete p2;
 
-    return pn;
+    return true;
 }
 
-ParseResult *Generator::parsePtrMoreThan(Element::Function *dfn,
+bool Generator::parsePtrMoreThan(Element::Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
         bool getAddress,
-        bool prefixed_with_core)
+        bool prefixed_with_core,
+        ParseResult *pr)
 {
     if (!assertArgNums("p>", n, 2, 2)) {
         return NULL;
@@ -6075,71 +6100,67 @@ ParseResult *Generator::parsePtrMoreThan(Element::Function *dfn,
 
     symlist *lst = n->list;
 
-    ParseResult *p = parseFunctionBodyInstr(
-                         dfn, block, (*lst)[1], getAddress, NULL
-                     );
-    if (!p) {
-        return NULL;
+    ParseResult p;
+    bool res = parseFunctionBodyInstr(
+                    dfn, block, (*lst)[1], getAddress, NULL, &p
+               );
+    if (!res) {
+        return false;
     }
-    if (!assertIsPointerType("p>", (*lst)[1], p->type, "1")) {
-        return NULL;
-    }
-
-    ParseResult *p2 = parseFunctionBodyInstr(
-                          dfn, p->block, (*lst)[2], getAddress, NULL
-                      );
-    if (!p2) {
-        return NULL;
-    }
-    if (!assertIsPointerType("p>", (*lst)[2], p2->type, "2")) {
-        return NULL;
+    if (!assertIsPointerType("p>", (*lst)[1], p.type, "1")) {
+        return false;
     }
 
-    llvm::IRBuilder<> builder(p2->block);
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           builder.CreateICmpUGT(p->value, p2->value)
+    ParseResult p2;
+    res = parseFunctionBodyInstr(
+               dfn, p.block, (*lst)[2], getAddress, NULL, &p2
+          );
+    if (!res) {
+        return false;
+    }
+    if (!assertIsPointerType("p>", (*lst)[2], p2.type, "2")) {
+        return false;
+    }
+
+    llvm::IRBuilder<> builder(p2.block);
+    llvm::Value *vres = llvm::cast<llvm::Value>(
+                           builder.CreateICmpUGT(p.value, p2.value)
                        );
 
-    ParseResult *pn = new ParseResult(
-        p2->block,
-        type_bool,
-        res
-    );
+    setPr(pr, p2.block, type_bool, vres);
 
-    p->block = p2->block;
-    if (hasRelevantDestructor(p)) {
-        ParseResult *temp =
-            destructIfApplicable(p, NULL);
-        p2->block = temp->block;
+    p.block = p2.block;
+    ParseResult temp;
+    if (hasRelevantDestructor(&p)) {
+        destructIfApplicable(&p, NULL, &temp);
+        p2.block = temp.block;
     }
-    delete p;
-    if (hasRelevantDestructor(p2)) {
-        ParseResult *temp =
-            destructIfApplicable(p2, NULL);
-        pn->block = temp->block;
+    if (hasRelevantDestructor(&p2)) {
+        destructIfApplicable(&p2, NULL, &temp);
+        pr->block = temp.block;
     }
-    delete p2;
 
-    return pn;
+    return true;
 }
 
-ParseResult *Generator::parseNullPtr(Element::Function *dfn,
-                                     llvm::BasicBlock *block,
-                                     Node *n,
-                                     bool getAddress,
-                                     bool prefixed_with_core)
+bool Generator::parseNullPtr(Element::Function *dfn,
+                             llvm::BasicBlock *block,
+                             Node *n,
+                             bool getAddress,
+                             bool prefixed_with_core,
+                             ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("nullptr", n, 1, 1)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
 
     Element::Type *type = parseType((*lst)[1], false, false);
     if (!type) {
-        return NULL;
+        return false;
     }
     /* Create a pointer to the provided type. */
     Element::Type *ptype = tr->getPointerType(type);
@@ -6149,7 +6170,7 @@ ParseResult *Generator::parseNullPtr(Element::Function *dfn,
         toLLVMType(ptype, NULL, false);
     if (!llvm_ptype) {
         failedDaleToLLVMTypeConversion(ptype);
-        return NULL;
+        return false;
     }
 
     llvm::Value *res =
@@ -6162,26 +6183,22 @@ ParseResult *Generator::parseNullPtr(Element::Function *dfn,
         );
 
     builder.CreateStore(val, res);
+    setPr(pr, block, ptype, val);
 
-    ParseResult *pn = new ParseResult(
-        block,
-        ptype,
-        val
-    );
-
-    return pn;
+    return true;
 }
 
-ParseResult *Generator::parseNull(Element::Function *dfn,
-                                  llvm::BasicBlock *block,
-                                  Node *n,
-                                  bool getAddress,
-                                  bool prefixed_with_core)
+bool Generator::parseNull(Element::Function *dfn,
+                          llvm::BasicBlock *block,
+                          Node *n,
+                          bool getAddress,
+                          bool prefixed_with_core,
+                          ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("null", n, 1, 1)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
@@ -6194,7 +6211,7 @@ ParseResult *Generator::parseNull(Element::Function *dfn,
     if (arg->is_list) {
         arg = parseOptionalMacroCall(arg);
         if (!arg) {
-            return NULL;
+            return false;
         }
         if (arg->is_list) {
             Node *first = arg->list->at(0);
@@ -6206,75 +6223,73 @@ ParseResult *Generator::parseNull(Element::Function *dfn,
                         arg
                     );
                     erep->addError(e);
-                    return NULL;
+                    return false;
                 }
             }
         }
     }
 
-    ParseResult *pr_value =
-        parseFunctionBodyInstr(dfn, block, arg, false, NULL);
+    ParseResult pr_value;
+    bool res = parseFunctionBodyInstr(dfn, block, arg, false, NULL, &pr_value);
 
-    if (!pr_value) {
-        return NULL;
+    if (!res) {
+        return false;
     }
-    if (!assertIsPointerType("null", arg, pr_value->type, "1")) {
-        return NULL;
+    if (!assertIsPointerType("null", arg, pr_value.type, "1")) {
+        return false;
     }
 
-    llvm::IRBuilder<> builder(pr_value->block);
-    llvm::Value *res =
-        builder.CreatePtrToInt(pr_value->value, nt->getNativeIntType());
+    llvm::IRBuilder<> builder(pr_value.block);
+    llvm::Value *vres =
+        builder.CreatePtrToInt(pr_value.value, nt->getNativeIntType());
 
     llvm::Value *icmpres = llvm::cast<llvm::Value>(
-                               builder.CreateICmpEQ(res,
+                               builder.CreateICmpEQ(vres,
                                        llvm_native_zero)
                            );
-
-    ParseResult *pn = new ParseResult(
-        pr_value->block,
-        type_bool,
-        icmpres
-    );
-
-    if (hasRelevantDestructor(pr_value)) {
-        ParseResult *temp =
-            destructIfApplicable(pr_value, NULL);
-        pn->block = temp->block;
+    
+    setPr(pr, pr_value.block, type_bool, icmpres);
+    if (hasRelevantDestructor(&pr_value)) {
+        ParseResult temp;
+        bool res = destructIfApplicable(&pr_value, NULL, &temp);
+        if (!res) { 
+            return false;
+        }
+        pr->block = temp.block;
     }
-    delete pr_value;
 
-    return pn;
+    return true;
 }
 
-ParseResult *Generator::parseUsingNamespace(Element::Function *dfn,
-        llvm::BasicBlock *block,
-        Node *n,
-        bool getAddress,
-        bool prefixed_with_core)
+bool Generator::parseUsingNamespace(Element::Function *dfn,
+                                    llvm::BasicBlock *block,
+                                    Node *n,
+                                    bool getAddress,
+                                    bool prefixed_with_core,
+                                    ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("using-namespace", n, 1, -1)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
     Node *n2 = (*lst)[1];
     n2 = parseOptionalMacroCall(n2);
     if (!n2) {
-        return NULL;
+        return false;
     }
     if (!assertArgIsAtom("using-namespace", n2, "1")) {
-        return NULL;
+        return false;
     }
     if (!assertAtomIsSymbol("using-namespace", n2, "1")) {
-        return NULL;
+        return false;
     }
 
     Token *t = n2->token;
 
-    int res = ctx->useNamespace(t->str_value.c_str());
+    bool res = ctx->useNamespace(t->str_value.c_str());
     if (!res) {
         Error *e = new Error(
             ErrorInst::Generator::NamespaceNotInScope,
@@ -6282,7 +6297,7 @@ ParseResult *Generator::parseUsingNamespace(Element::Function *dfn,
             t->str_value.c_str()
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     std::vector<Node *>::iterator node_iter;
@@ -6290,62 +6305,56 @@ ParseResult *Generator::parseUsingNamespace(Element::Function *dfn,
     ++node_iter;
     ++node_iter;
 
-    ParseResult *pr_value = NULL;
-
+    pr->block = block;
     while (node_iter != lst->end()) {
-        pr_value = parseFunctionBodyInstr(
-                       dfn, block, (*node_iter), getAddress, NULL
+        bool res = parseFunctionBodyInstr(
+                       dfn, pr->block, (*node_iter), getAddress, NULL, pr
                    );
-        if (!pr_value) {
-            return NULL;
+        if (!res) {
+            return false;
         }
-        block = pr_value->block;
         ++node_iter;
-
-        if (node_iter != lst->end()) {
-            delete pr_value;
-        }
     }
 
     ctx->unuseNamespace();
-    //ctx->unuseNamespace(t->str_value.c_str());
 
-    return pr_value;
+    return true;
 }
 
-ParseResult *Generator::parseArrayOf(Element::Function *dfn,
-                                     llvm::BasicBlock *block,
-                                     Node *n,
-                                     bool getAddress,
-                                     bool prefixed_with_core)
+bool Generator::parseArrayOf(Element::Function *dfn,
+                            llvm::BasicBlock *block,
+                            Node *n,
+                            bool getAddress,
+                            bool prefixed_with_core,
+                            ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     symlist *lst = n->list;
 
     if (!assertArgNums("array-of", n, 3, -1)) {
-        return NULL;
+        return false;
     }
 
     Node *newnum = parseOptionalMacroCall((*lst)[1]);
     if (!newnum) {
-        return NULL;
+        return false;
     }
 
     int size = parseInteger(newnum);
     if (size == -1) {
-        return NULL;
+        return false;
     }
 
     Element::Type *type = parseType((*lst)[2], false, false);
     if (!type) {
-        return NULL;
+        return false;
     }
 
     Element::Type *arrtype = tr->getArrayType(type, size);
 
     int size2;
-    ParseResult *arr =
+    bool res = 
         parseArrayLiteral(
             dfn,
             block,
@@ -6353,18 +6362,11 @@ ParseResult *Generator::parseArrayOf(Element::Function *dfn,
             "array literal",
             arrtype,
             getAddress,
-            &size2
+            &size2,
+            pr
         );
 
-    if (!arr) {
-        return NULL;
-    }
-
-    if ((size == 0) && size2) {
-        arrtype->array_size = size2;
-    }
-
-    return arr;
+    return res;
 }
 
 bool Generator::hasRelevantDestructor(ParseResult *pr)
@@ -6382,12 +6384,14 @@ bool Generator::hasRelevantDestructor(ParseResult *pr)
     return true;
 }
 
-ParseResult *Generator::destructIfApplicable(ParseResult *pr,
-        llvm::IRBuilder<>
-        *builder)
+bool Generator::destructIfApplicable(ParseResult *pr,
+        llvm::IRBuilder<> *builder,
+        ParseResult *pr_ret)
 {
+    pr->copyTo(pr_ret);
+
     if (pr->do_not_destruct) {
-        return pr;
+        return true;
     }
 
     if (DALE_DEBUG) {
@@ -6400,6 +6404,11 @@ ParseResult *Generator::destructIfApplicable(ParseResult *pr,
         } else {
             fprintf(stderr, "%s\n", mytype.c_str());
         }
+    }
+
+    if (!pr->type) {
+        fprintf(stderr, "No type in destruct call.\n");
+        abort();
     }
 
     /* If it's an array with a known size, call this function for
@@ -6419,14 +6428,24 @@ ParseResult *Generator::destructIfApplicable(ParseResult *pr,
                 fprintf(stderr, "Parseresult has no value (in "
                         "destructIfApplicable).");
             }
-            return pr;
+            return true;
         }
         if (!(pr->value->getType())) {
             if (DALE_DEBUG) {
                 fprintf(stderr, "Parseresult value has no type (in "
                         "destructIfApplicable).");
             }
-            return pr;
+            return true;
+        }
+
+        std::vector<Element::Type *> types;
+        if (!mine->is_array) {
+            types.push_back(tr->getPointerType(mine));
+            Element::Function *fn = ctx->getFunction("destroy", &types,
+                                    NULL, 0);
+            if (!fn) {
+                return true;
+            }
         }
 
         /* Hmph: array literals are stored in the variable table as
@@ -6466,7 +6485,7 @@ ParseResult *Generator::destructIfApplicable(ParseResult *pr,
                                     i
                                 )
                             ));
-            ParseResult *mnew;
+            ParseResult mnew;
 
             if (builder) {
                 llvm::Value *res = builder->Insert(
@@ -6481,7 +6500,7 @@ ParseResult *Generator::destructIfApplicable(ParseResult *pr,
                 } else {
                     temp.value = res;
                 }
-                mnew = destructIfApplicable(&temp, builder);
+                destructIfApplicable(&temp, builder, &mnew);
             }
             else {
                 llvm::IRBuilder<> builder(mbl);
@@ -6497,12 +6516,12 @@ ParseResult *Generator::destructIfApplicable(ParseResult *pr,
                 } else {
                     temp.value = res;
                 }
-                mnew = destructIfApplicable(&temp, &builder);
+                destructIfApplicable(&temp, &builder, &mnew);
             }
-            mbl = mnew->block;
+            mbl = mnew.block;
         }
-        pr->block = mbl;
-        return pr;
+        pr_ret->block = mbl;
+        return true;
     }
 
     std::vector<Element::Type *> types;
@@ -6510,7 +6529,7 @@ ParseResult *Generator::destructIfApplicable(ParseResult *pr,
     Element::Function *fn = ctx->getFunction("destroy", &types,
                             NULL, 0);
     if (!fn) {
-        return pr;
+        return true;
     }
     int destroy_builder = 0;
     if (!builder) {
@@ -6530,12 +6549,13 @@ ParseResult *Generator::destructIfApplicable(ParseResult *pr,
     if (destroy_builder) {
         delete builder;
     }
-    return pr;
+    return true;
 }
 
-ParseResult *Generator::copyWithSetfIfApplicable(
+bool Generator::copyWithSetfIfApplicable(
     Element::Function *dfn,
-    ParseResult *pr
+    ParseResult *pr,
+    ParseResult *pr_res
 ) {
     /* If this is a setf function, then don't copy, even if it can
      * be done. This is because, if the setf function is (e.g.)
@@ -6544,17 +6564,18 @@ ParseResult *Generator::copyWithSetfIfApplicable(
      * this to the same function only, but you could have mutual
      * recursion - it would be better for the author to do all of
      * this manually, rather than complicating things. */
+    pr->copyTo(pr_res);
     if (dfn->is_setf_fn) {
-        return pr;
+        return true;
     }
     if (pr->do_not_copy_with_setf) {
-        return pr;
+        return true;
     }
     /* If the parseresult has already been copied, then don't copy
      * it again (pointless). todo: if you are having copy etc.
      * problems, this is likely to be the issue. */
     if (pr->freshly_copied) {
-        return pr;
+        return true;
     }
     std::vector<Element::Type *> types;
     Element::Type *copy_type = tr->getPointerType(pr->type);
@@ -6563,7 +6584,7 @@ ParseResult *Generator::copyWithSetfIfApplicable(
     Element::Function *over_setf =
         ctx->getFunction("setf-copy", &types, NULL, 0);
     if (!over_setf) {
-        return pr;
+        return true;
     }
     llvm::IRBuilder<> builder(pr->block);
     llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
@@ -6585,19 +6606,15 @@ ParseResult *Generator::copyWithSetfIfApplicable(
         llvm::ArrayRef<llvm::Value*>(call_args));
     llvm::Value *result = builder.CreateLoad(new_ptr1);
 
-    ParseResult *x = new ParseResult();
-    pr->copyTo(x);
-    x->block = pr->block;
-    x->type = pr->type;
-    x->value = result;
-    x->freshly_copied = 1;
-    delete pr;
-    return x;
+    setPr(pr_res, pr->block, pr->type, result);
+    pr_res->freshly_copied = 1;
+
+    return true;
 }
 
 /* todo: this does part of the work of destructIfApplicable. It
  * should call that function instead. */
-int Generator::scopeClose(Element::Function *dfn,
+bool Generator::scopeClose(Element::Function *dfn,
                           llvm::BasicBlock *block,
                           llvm::Value *no_destruct)
 {
@@ -6625,7 +6642,8 @@ int Generator::scopeClose(Element::Function *dfn,
             mnew.type = (*b)->type;
             mnew.value = (*b)->value;
             mnew.block = block;
-            destructIfApplicable(&mnew, NULL);
+            ParseResult temp;
+            destructIfApplicable(&mnew, NULL, &temp);
         } else {
             types.clear();
             Element::Type *pbtype = tr->getPointerType((*b)->type);
@@ -6635,10 +6653,12 @@ int Generator::scopeClose(Element::Function *dfn,
             if (!fn) {
                 continue;
             }
+
             if (!((*b)->value->getType()->isPointerTy())) {
                 fprintf(stderr,
                         "Variable value is not a pointer! (%s)\n",
                         (*b)->name.c_str());
+                abort();
             }
 
             std::vector<llvm::Value *> call_args;
@@ -6650,14 +6670,15 @@ int Generator::scopeClose(Element::Function *dfn,
         }
     }
 
-    return 1;
+    return true;
 }
 
-ParseResult *Generator::parseNewScope(Element::Function *dfn,
+bool Generator::parseNewScope(Element::Function *dfn,
                                       llvm::BasicBlock *block,
                                       Node *n,
                                       bool getAddress,
-                                      bool prefixed_with_core)
+                                      bool prefixed_with_core,
+                                      ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
@@ -6670,27 +6691,36 @@ ParseResult *Generator::parseNewScope(Element::Function *dfn,
     node_iter = lst->begin();
     ++node_iter;
 
-    ParseResult *pr_value = NULL;
-
+    pr->block = block;
+    bool success = true;
     while (node_iter != lst->end()) {
-        pr_value = parseFunctionBodyInstr(
-                       dfn, block, (*node_iter), getAddress, NULL
+        ParseResult local_pr;
+        bool res = parseFunctionBodyInstr(
+                       dfn, pr->block, (*node_iter), getAddress, NULL, 
+                       &local_pr
                    );
         ++node_iter;
-        if (!pr_value) {
+        if (!res) {
+            success = false;
             continue;
         }
-        block = pr_value->block;
-
+       
         if (node_iter != lst->end()) {
-            delete pr_value;
+            ParseResult pr_value;
+            bool res = destructIfApplicable(&local_pr, NULL, &pr_value);
+            if (!res) {
+                return false;
+            }
+            pr->block = pr_value.block;
+        } else {
+            local_pr.copyTo(pr);
         }
     }
 
     scopeClose(dfn, block, NULL);
     ctx->deactivateNamespace(anon_name.c_str());
 
-    return pr_value;
+    return success;
 }
 
 bool Generator::typeToString(DNode *dnode, char *buf)
@@ -7000,15 +7030,15 @@ DNode *Generator::pointeeType(DNode *dnode)
 
 /* todo - pushing here to prevent destruction, so as not to ruin
  * mynode - there has to be a better way of dealing with this
- * problem. */
-std::vector<ParseResult*> grargh;
-std::vector<Node *> grargh2;
+ * problem. (todo 2: comment doesn't make sense.) */
+std::vector<ParseResult*> g_parse_results;
+std::vector<Node *> g_nodes;
 
 DNode *Generator::typeOf(DNode *dnode)
 {
     Node *n = DNodeToIntNode(dnode);
 
-    grargh2.push_back(n);
+    g_nodes.push_back(n);
 
     if (!global_function) {
         fprintf(stderr, "No global function defined (typeOf).\n");
@@ -7019,20 +7049,22 @@ DNode *Generator::typeOf(DNode *dnode)
         abort();
     }
 
-    ParseResult *p =
+    ParseResult *p = new ParseResult();
+    bool res =
         parseFunctionBodyInstr(
             global_function,
             global_block,
             n,
             false,
-            NULL
+            NULL,
+            p
         );
 
-    if (!p) {
+    if (!res) {
         return NULL;
     }
 
-    grargh.push_back(p);
+    g_parse_results.push_back(p);
 
     DNode *mynode = IntNodeToDNode(p->type->toNode());
     return mynode;
@@ -7228,6 +7260,8 @@ bool Generator::hasErrors(DNode *dnode)
         made_temp = 1;
     }
 
+    ParseResult temp;
+
     /* POMC may succeed, but the underlying macro may return a
      * null DNode pointer. This is not necessarily an error. */
     n = parseOptionalMacroCall(n);
@@ -7237,7 +7271,8 @@ bool Generator::hasErrors(DNode *dnode)
             global_block,
             n,
             false,
-            NULL
+            NULL,
+            &temp
         );
     }
 
@@ -7771,16 +7806,17 @@ bool Generator::existsMacroExact(DNode *dnode)
     return true;
 }
 
-ParseResult *Generator::parseDo(Element::Function *dfn,
-                                llvm::BasicBlock *block,
-                                Node *n,
-                                bool getAddress,
-                                bool prefixed_with_core)
+bool Generator::parseDo(Element::Function *dfn,
+                        llvm::BasicBlock *block,
+                        Node *n,
+                        bool getAddress,
+                        bool prefixed_with_core,
+                        ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("do", n, 1, -1)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
@@ -7788,30 +7824,38 @@ ParseResult *Generator::parseDo(Element::Function *dfn,
     node_iter = lst->begin();
     ++node_iter;
 
-    ParseResult *pr_value = NULL;
-
+    pr->block = block;
     while (node_iter != lst->end()) {
-        pr_value = parseFunctionBodyInstr(
-                       dfn, block, (*node_iter), getAddress, NULL
+        ParseResult local_pr;
+        bool res = parseFunctionBodyInstr(
+                       dfn, pr->block, (*node_iter), getAddress, NULL,
+                       &local_pr
                    );
-        if (!pr_value) {
-            return NULL;
+        if (!res) {
+            return false;
         }
-        block = pr_value->block;
         ++node_iter;
 
         if (node_iter != lst->end()) {
-            destructIfApplicable(pr_value, NULL);
-            delete pr_value;
+            ParseResult pr_value;
+            bool res = destructIfApplicable(&local_pr, NULL, &pr_value);
+            if (!res) {
+                return false;
+            }
+            pr->block = pr_value.block;
+            pr_value.copyTo(pr);
+        } else {
+            local_pr.copyTo(pr);
         }
     }
 
-    return pr_value;
+    return true;
 }
 
 int mystructs = 0;
-ParseResult *Generator::getAlignmentofType(llvm::BasicBlock *block,
-        Element::Type *type)
+bool Generator::getAlignmentofType(llvm::BasicBlock *block,
+        Element::Type *type,
+        ParseResult *pr)
 {
     std::vector<llvm::Type*> elements_llvm;
     elements_llvm.push_back(toLLVMType(type_char, NULL, false));
@@ -7820,7 +7864,7 @@ ParseResult *Generator::getAlignmentofType(llvm::BasicBlock *block,
         toLLVMType(type, NULL, false);
     if (!llvm_type) {
         failedDaleToLLVMTypeConversion(type);
-        return NULL;
+        return false;
     }
     elements_llvm.push_back(llvm_type);
 
@@ -7858,17 +7902,15 @@ ParseResult *Generator::getAlignmentofType(llvm::BasicBlock *block,
     llvm::Value *res2 =
         builder.CreatePtrToInt(res, nt->getNativeSizeType());
 
-    return new ParseResult(
-               block,
-               type_size,
-               res2
-           );
+    setPr(pr, block, type_size, res2);
+    return true;
 }
 
-ParseResult *Generator::getOffsetofType(llvm::BasicBlock *block,
-                                        Element::Type *type,
-                                        const char *field_name,
-                                        int index)
+bool Generator::getOffsetofType(llvm::BasicBlock *block,
+                                Element::Type *type,
+                                const char *field_name,
+                                int index,
+                                ParseResult *pr)
 {
     llvm::IRBuilder<> builder(block);
 
@@ -7876,7 +7918,7 @@ ParseResult *Generator::getOffsetofType(llvm::BasicBlock *block,
         toLLVMType(type, NULL, false);
     if (!llvm_type) {
         failedDaleToLLVMTypeConversion(type);
-        return NULL;
+        return false;
     }
 
     llvm::PointerType *lpt =
@@ -7917,15 +7959,13 @@ ParseResult *Generator::getOffsetofType(llvm::BasicBlock *block,
     llvm::Value *res2 =
         builder.CreatePtrToInt(res, nt->getNativeSizeType());
 
-    return new ParseResult(
-               block,
-               type_size,
-               res2
-           );
+    setPr(pr, block, type_size, res2);
+    return true;
 }
 
-ParseResult *Generator::getSizeofType(llvm::BasicBlock *block,
-                                      Element::Type *type)
+bool Generator::getSizeofType(llvm::BasicBlock *block,
+                              Element::Type *type,
+                              ParseResult *pr)
 {
     llvm::IRBuilder<> builder(block);
 
@@ -7933,7 +7973,7 @@ ParseResult *Generator::getSizeofType(llvm::BasicBlock *block,
         toLLVMType(type, NULL, false);
     if (!llvm_type) {
         failedDaleToLLVMTypeConversion(type);
-        return NULL;
+        return false;
     }
 
     llvm::PointerType *lpt =
@@ -7948,11 +7988,8 @@ ParseResult *Generator::getSizeofType(llvm::BasicBlock *block,
     llvm::Value *res2 =
         builder.CreatePtrToInt(res, nt->getNativeSizeType());
 
-    return new ParseResult(
-               block,
-               type_size,
-               res2
-           );
+    setPr(pr, block, type_size, res2);
+    return true;
 }
 
 size_t Generator::getOffsetofTypeImmediate(Element::Type *type,
@@ -8003,14 +8040,14 @@ size_t Generator::getOffsetofTypeImmediate(Element::Type *type,
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);
-    ParseResult *mine =
-        getOffsetofType(block, type, field_name, index);
-    if (!mine) {
+    ParseResult mine;
+    bool mres = getOffsetofType(block, type, field_name, index, &mine);
+    if (!mres) {
         return 0;
     }
 
     llvm::IRBuilder<> builder(block);
-    builder.CreateRet(mine->value);
+    builder.CreateRet(mine.value);
 
     void* fptr =
         ee->getPointerToFunction(fn);
@@ -8076,14 +8113,14 @@ size_t Generator::getSizeofTypeImmediate(Element::Type *type)
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);
-    ParseResult *mine =
-        getSizeofType(block, type);
-    if (!mine) {
+    ParseResult mine;
+    bool mres = getSizeofType(block, type, &mine);
+    if (!mres) {
         return 0;
     }
 
     llvm::IRBuilder<> builder(block);
-    builder.CreateRet(mine->value);
+    builder.CreateRet(mine.value);
 
     void* fptr =
         ee->getPointerToFunction(fn);
@@ -8103,16 +8140,17 @@ size_t Generator::getSizeofTypeImmediate(Element::Type *type)
     return res;
 }
 
-ParseResult *Generator::parseOffsetof(Element::Function *dfn,
+bool Generator::parseOffsetof(Element::Function *dfn,
                                       llvm::BasicBlock *block,
                                       Node *n,
                                       bool getAddress,
-                                      bool prefixed_with_core)
+                                      bool prefixed_with_core,
+                                      ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("offsetof", n, 2, 2)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
@@ -8122,14 +8160,14 @@ ParseResult *Generator::parseOffsetof(Element::Function *dfn,
     Node *struct_name = (*lst)[1];
     struct_name = parseOptionalMacroCall(struct_name);
     if (!struct_name) {
-        return NULL;
+        return false;
     }
 
     Element::Type *mytype = parseType(struct_name,
                                       false,
                                       false);
     if (!mytype) {
-        return NULL;
+        return false;
     }
 
     if (!mytype->struct_name) {
@@ -8138,7 +8176,7 @@ ParseResult *Generator::parseOffsetof(Element::Function *dfn,
             "struct", "offsetof", "not a struct"
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     Element::Struct *str =
@@ -8154,20 +8192,23 @@ ParseResult *Generator::parseOffsetof(Element::Function *dfn,
 
     /* Second argument is struct field. */
 
-    return getOffsetofType(block, mytype,
-                           (*lst)[2]->token->str_value.c_str(), -1);
+    bool res = getOffsetofType(block, mytype,
+                           (*lst)[2]->token->str_value.c_str(), -1,
+                           pr);
+    return res;
 }
 
-ParseResult *Generator::parseAlignmentof(Element::Function *dfn,
+bool Generator::parseAlignmentof(Element::Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
         bool getAddress,
-        bool prefixed_with_core)
+        bool prefixed_with_core,
+        ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("alignmentof", n, 1, 1)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
@@ -8175,27 +8216,29 @@ ParseResult *Generator::parseAlignmentof(Element::Function *dfn,
     Node *mytype = (*lst)[1];
     mytype = parseOptionalMacroCall(mytype);
     if (!mytype) {
-        return NULL;
+        return false;
     }
     Element::Type *type = parseType(mytype, false,
                                     false);
     if (!type) {
-        return NULL;
+        return false;
     }
 
-    return getAlignmentofType(block, type);
+    bool res = getAlignmentofType(block, type, pr);
+    return res;
 }
 
-ParseResult *Generator::parseSizeof(Element::Function *dfn,
+bool Generator::parseSizeof(Element::Function *dfn,
                                     llvm::BasicBlock *block,
                                     Node *n,
                                     bool getAddress,
-                                    bool prefixed_with_core)
+                                    bool prefixed_with_core,
+                                    ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("sizeof", n, 1, -1)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
@@ -8205,7 +8248,7 @@ ParseResult *Generator::parseSizeof(Element::Function *dfn,
     Node *thing = (*lst)[1];
     thing = parseOptionalMacroCall(thing);
     if (!thing) {
-        return NULL;
+        return false;
     }
 
     Element::Type *type = parseType((*lst)[1], false, false);
@@ -8215,50 +8258,54 @@ ParseResult *Generator::parseSizeof(Element::Function *dfn,
 
         int error_count = erep->getErrorTypeCount(ErrorType::Error);
 
-        ParseResult *expr_res =
+        ParseResult expr_res;
+        bool res = 
             parseFunctionBodyInstr(
-                dfn, block, (*lst)[1], true, NULL
+                dfn, block, (*lst)[1], true, NULL, &expr_res
             );
 
-        if (!expr_res) {
+        if (!res) {
             popErrors(error_count);
 
-            expr_res =
+            bool res =
                 parseFunctionBodyInstr(
-                    dfn, block, (*lst)[1], false, NULL
+                    dfn, block, (*lst)[1], false, NULL, &expr_res
                 );
-            if (!expr_res) {
-                return NULL;
+            if (!res) {
+                return false;
             }
-            type  = expr_res->type;
-            block = expr_res->block;
+            type  = expr_res.type;
+            block = expr_res.block;
 
-            if (hasRelevantDestructor(expr_res)) {
-                ParseResult *temp =
-                    destructIfApplicable(expr_res, NULL);
-                block = temp->block;
+            if (hasRelevantDestructor(&expr_res)) {
+                ParseResult temp;
+                bool res = destructIfApplicable(&expr_res, NULL, &temp);
+                if (!res) {
+                    return false;
+                }
+                block = temp.block;
             }
-            delete expr_res;
-
         } else {
             type =
-                (expr_res->type->points_to)
-                ? expr_res->type->points_to
-                : expr_res->type;
-            block = expr_res->block;
-
-            if (hasRelevantDestructor(expr_res)) {
-                ParseResult *temp =
-                    destructIfApplicable(expr_res, NULL);
-                block = temp->block;
+                (expr_res.type->points_to)
+                ? expr_res.type->points_to
+                : expr_res.type;
+            block = expr_res.block;
+            if (hasRelevantDestructor(&expr_res)) {
+                ParseResult temp;
+                bool res = destructIfApplicable(&expr_res, NULL, &temp);
+                if (!res) {
+                    return false;
+                }
+                block = temp.block;
             }
-            delete expr_res;
         }
     }
 
-    ParseResult *so = getSizeofType(block, type);
+    
+    bool res = getSizeofType(block, type, pr);
 
-    return so;
+    return res;
 }
 
 bool isFunctionPointerVarArgs(Element::Type *fn_ptr)
@@ -8287,13 +8334,14 @@ int fnPtrNumberOfRequiredArgs(Element::Type *fn_ptr)
     return num_of_args;
 }
 
-ParseResult *Generator::parseFuncallInternal(
+bool Generator::parseFuncallInternal(
     Element::Function *dfn,
     Node *n,
     bool getAddress,
     ParseResult *fn_ptr,
     int skip,
-    std::vector<llvm::Value*> *extra_call_args
+    std::vector<llvm::Value*> *extra_call_args,
+    ParseResult *pr
 ) {
     assert(n->list && "must receive a list!");
 
@@ -8324,7 +8372,7 @@ ParseResult *Generator::parseFuncallInternal(
                 "function pointer call", buf1, buf2
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
     } else {
         if (count != num_required_args) {
@@ -8339,7 +8387,7 @@ ParseResult *Generator::parseFuncallInternal(
                 "function pointer call", buf1, buf2
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
     }
 
@@ -8367,22 +8415,22 @@ ParseResult *Generator::parseFuncallInternal(
         ++param_iter;
     }
     while (symlist_iter != lst->end()) {
-        ParseResult *p =
-            parseFunctionBodyInstr(
-                dfn, block, (*symlist_iter), getAddress, NULL
-            );
-        if (!p) {
-            return NULL;
+        ParseResult p;
+        bool res = parseFunctionBodyInstr(
+            dfn, block, (*symlist_iter), getAddress, NULL, &p
+        );
+        if (!res) {
+            return false;
         }
 
-        block = p->block;
+        block = p.block;
 
         if ((param_iter != fn_ptr->type->points_to->parameter_types->end())
-                && (!(p->type->isEqualTo((*param_iter))))
+                && (!(p.type->isEqualTo((*param_iter))))
                 && ((*param_iter)->base_type != Type::VarArgs)) {
 
-            llvm::Value *new_val = coerceValue(p->value,
-                                               p->type,
+            llvm::Value *new_val = coerceValue(p.value,
+                                               p.type,
                                                (*param_iter),
                                                block);
 
@@ -8390,7 +8438,7 @@ ParseResult *Generator::parseFuncallInternal(
                 std::string twant;
                 std::string tgot;
                 (*param_iter)->toStringProper(&twant);
-                p->type->toStringProper(&tgot);
+                p.type->toStringProper(&tgot);
                 char buf[100];
                 sprintf(buf, "%d", arg_count);
 
@@ -8401,13 +8449,12 @@ ParseResult *Generator::parseFuncallInternal(
                     twant.c_str(), buf, tgot.c_str()
                 );
                 erep->addError(e);
-                delete p;
                 return NULL;
             } else {
                 call_args.push_back(new_val);
             }
         } else {
-            call_args.push_back(p->value);
+            call_args.push_back(p.value);
         }
 
         ++symlist_iter;
@@ -8422,8 +8469,6 @@ ParseResult *Generator::parseFuncallInternal(
                 }
             }
         }
-
-        delete p;
     }
 
     llvm::IRBuilder<> builder(block);
@@ -8431,88 +8476,94 @@ ParseResult *Generator::parseFuncallInternal(
     llvm::Value *call_res =
         builder.CreateCall(fn, llvm::ArrayRef<llvm::Value*>(call_args));
 
-    ParseResult *p = new ParseResult;
+    setPr(pr, block, fn_ptr->type->points_to->return_type, call_res);
 
-    p->type  = fn_ptr->type->points_to->return_type;
-    p->block = block;
-    p->value = call_res;
-
-    fn_ptr->block = p->block;
+    fn_ptr->block = pr->block;
     if (hasRelevantDestructor(fn_ptr)) {
-        ParseResult *temp2 =
-            destructIfApplicable(fn_ptr, NULL);
-        p->block = temp2->block;
+        ParseResult temp;
+        bool res = destructIfApplicable(fn_ptr, NULL, &temp);
+        if (!res) {
+            return false;
+        }
+        pr->block = temp.block;
     }
 
-    return p;
+    return true;
 }
 
-ParseResult *Generator::parseFuncall(Element::Function *dfn,
+bool Generator::parseFuncall(Element::Function *dfn,
                                      llvm::BasicBlock *block,
                                      Node *n,
                                      bool getAddress,
-                                     bool prefixed_with_core)
+                                     bool prefixed_with_core,
+                                     ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     /* (funcall <pointer-to-function> <arg1> <arg2> ...) */
 
     if (!assertArgNums("funcall", n, 1, -1)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
 
-    ParseResult *fn_ptr =
+    ParseResult fn_ptr;
+    bool res =
         parseFunctionBodyInstr(
-            dfn, block, (*lst)[1], getAddress, NULL
+            dfn, block, (*lst)[1], getAddress, NULL, &fn_ptr
         );
-    if (!fn_ptr) {
-        return NULL;
+    if (!res) {
+        return false;
     }
 
-    if (!fn_ptr->type->points_to
-            || !fn_ptr->type->points_to->is_function) {
+    if (!fn_ptr.type->points_to
+            || !fn_ptr.type->points_to->is_function) {
         std::string temp;
-        fn_ptr->type->toStringProper(&temp);
+        fn_ptr.type->toStringProper(&temp);
         Error *e = new Error(
             ErrorInst::Generator::IncorrectArgType,
             ((*lst)[1]),
             "funcall", "fn pointer", "1", temp.c_str()
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
-    return parseFuncallInternal(
+    res = parseFuncallInternal(
                dfn,
                n,
                getAddress,
-               fn_ptr,
+               &fn_ptr,
                2,
-               NULL
+               NULL,
+               pr
            );
+    return res;
 }
 
-ParseResult *Generator::parseVaStart(Element::Function *dfn,
+bool Generator::parseVaStart(Element::Function *dfn,
                                      llvm::BasicBlock *block,
                                      Node *n,
                                      bool getAddress,
-                                     bool prefixed_with_core)
+                                     bool prefixed_with_core,
+                                     ParseResult *pr)
 {
     if (!assertArgNums("va-start", n, 1, 1)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
 
-    ParseResult *pr_valist =
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL);
-    if (!pr_valist) {
-        return NULL;
+    ParseResult pr_valist;
+    bool res =
+        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL,
+                               &pr_valist);
+    if (!res) {
+        return false;
     }
 
-    llvm::IRBuilder<> builder(pr_valist->block);
+    llvm::IRBuilder<> builder(pr_valist.block);
     llvm::Function *va_start =
         mod->getFunction(llvm::StringRef("llvm.va_start"));
     if (!va_start) {
@@ -8521,43 +8572,46 @@ ParseResult *Generator::parseVaStart(Element::Function *dfn,
     }
 
     std::vector<llvm::Value*> call_args;
-    ParseResult *to_pchar = doCast(pr_valist->block,
-                                   pr_valist->value,
-                                   pr_valist->type,
-                                   type_pchar,
-                                   n);
-    call_args.push_back(to_pchar->value);
+    ParseResult to_pchar;
+    res = doCast(pr_valist.block,
+                pr_valist.value,
+                pr_valist.type,
+                type_pchar,
+                n, 0, &to_pchar);
+    if (!res) {
+        return false;
+    }
+    call_args.push_back(to_pchar.value);
     builder.CreateCall(va_start,
                        llvm::ArrayRef<llvm::Value*>(call_args)); 
-        
-    ParseResult *pn = new ParseResult(
-        to_pchar->block,
-        type_void,
-        NULL
-    );
-    
-    return pn;
+
+    setPr(pr, to_pchar.block, type_void, NULL);
+
+    return true;
 }
 
-ParseResult *Generator::parseVaEnd(Element::Function *dfn,
+bool Generator::parseVaEnd(Element::Function *dfn,
                                      llvm::BasicBlock *block,
                                      Node *n,
                                      bool getAddress,
-                                     bool prefixed_with_core)
+                                     bool prefixed_with_core,
+                                     ParseResult *pr)
 {
     if (!assertArgNums("va-end", n, 1, 1)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
 
-    ParseResult *pr_valist =
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL);
-    if (!pr_valist) {
-        return NULL;
+    ParseResult pr_valist;
+    bool res =
+        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL,
+                               &pr_valist);
+    if (!res) {
+        return false;
     }
 
-    llvm::IRBuilder<> builder(pr_valist->block);
+    llvm::IRBuilder<> builder(pr_valist.block);
     llvm::Function *va_end =
         mod->getFunction(llvm::StringRef("llvm.va_end"));
     if (!va_end) {
@@ -8566,44 +8620,45 @@ ParseResult *Generator::parseVaEnd(Element::Function *dfn,
     }
 
     std::vector<llvm::Value*> call_args;
-    ParseResult *to_pchar = doCast(pr_valist->block,
-                                   pr_valist->value,
-                                   pr_valist->type,
-                                   type_pchar,
-                                   n);
-    call_args.push_back(to_pchar->value);
+    ParseResult to_pchar;
+    res = doCast(pr_valist.block,
+                 pr_valist.value,
+                 pr_valist.type,
+                 type_pchar,
+                 n, 0, &to_pchar);
+    if (!res) {
+        return false;
+    }
+    call_args.push_back(to_pchar.value);
     builder.CreateCall(va_end,
                        llvm::ArrayRef<llvm::Value*>(call_args)); 
-        
-    ParseResult *pn = new ParseResult(
-        to_pchar->block,
-        type_void,
-        NULL
-    );
-    
-    return pn;
+
+    setPr(pr, to_pchar.block, type_void, NULL);
+    return true;
 }
 
-ParseResult *Generator::parseVaArg(Element::Function *dfn,
-                                   llvm::BasicBlock *block,
-                                   Node *n,
-                                   bool getAddress,
-                                   bool prefixed_with_core)
+bool Generator::parseVaArg(Element::Function *dfn,
+                            llvm::BasicBlock *block,
+                            Node *n,
+                            bool getAddress,
+                            bool prefixed_with_core,
+                            ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("va-arg", n, 2, 2)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
 
     /* Get the arglist. */
 
-    ParseResult *pr_arglist =
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL);
-    if (!pr_arglist) {
-        return NULL;
+    ParseResult pr_arglist;
+    bool res = parseFunctionBodyInstr(dfn, block, (*lst)[1], false,
+                                      NULL, &pr_arglist);
+    if (!res) {
+        return false;
     }
 
     /* Get the type to which it is being cast. */
@@ -8611,10 +8666,10 @@ ParseResult *Generator::parseVaArg(Element::Function *dfn,
     Element::Type *type = parseType((*lst)[2], false, false);
 
     if (!type) {
-        return NULL;
+        return false;
     }
 
-    llvm::IRBuilder<> builder(pr_arglist->block);
+    llvm::IRBuilder<> builder(pr_arglist.block);
 
     /* The va_arg intrinsic is not implemented for x86-64, which
      * is why it's done here.
@@ -8740,7 +8795,7 @@ ParseResult *Generator::parseVaArg(Element::Function *dfn,
 
         llvm::Value *pvlstr = llvm::cast<llvm::Value>(
                                   builder.CreateBitCast(
-                                      pr_arglist->value,
+                                      pr_arglist.value,
                                       llvm::PointerType::getUnqual(
                                           ctx->getStruct("va-list")->type
                                       )
@@ -8878,7 +8933,7 @@ ParseResult *Generator::parseVaArg(Element::Function *dfn,
 
         llvm::BasicBlock *done_block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                     "done", dfn->llvm_function);
+                                     "va_done", dfn->llvm_function);
 
         builder_then.CreateBr(done_block);
         builder_else.CreateBr(done_block);
@@ -8891,65 +8946,58 @@ ParseResult *Generator::parseVaArg(Element::Function *dfn,
         pn->addIncoming(then_value, then_block);
         pn->addIncoming(else_value, else_block);
 
-        ParseResult *p = new ParseResult;
+        setPr(pr, done_block, type, llvm::cast<llvm::Value>(pn));
 
-        p->block = done_block;
-        p->type  = type;
-        p->value = llvm::cast<llvm::Value>(pn);
-
-        return p;
+        return true;
 
     } else {
         llvm::Value *res =
-            builder.CreateVAArg(pr_arglist->value, llvm_type);
+            builder.CreateVAArg(pr_arglist.value, llvm_type);
+        setPr(pr, pr_arglist.block, type, res);
 
-        ParseResult *pn = new ParseResult(
-            pr_arglist->block,
-            type,
-            res
-        );
-
-        delete pr_arglist;
-
-        return pn;
+        return true;
     }
 }
 
 /* If 'implicit' is set to 1, then int->ptr and ptr->int
  * conversions are disallowed. */
-ParseResult *Generator::doCast(llvm::BasicBlock *block,
+bool Generator::doCast(llvm::BasicBlock *block,
                                llvm::Value *value,
                                Element::Type *from_type,
                                Element::Type *to_type,
                                Node *n,
-                               int implicit)
+                               int implicit,
+                               ParseResult *pr)
 {
     return Operation::Cast::execute(ctx, mod, block,
                                     value, from_type, to_type,
-                                    n, implicit);
+                                    n, implicit, pr);
 }
 
-ParseResult *Generator::parseCast(Element::Function *dfn,
+bool Generator::parseCast(Element::Function *dfn,
                                   llvm::BasicBlock *block,
                                   Node *n,
                                   bool getAddress,
-                                  bool prefixed_with_core)
+                                  bool prefixed_with_core,
+                                  ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     symlist *lst = n->list;
 
     if (!assertArgNums("cast", n, 2, 2)) {
-        return NULL;
+        return false;
     }
 
     /* Get the value that is being cast. */
 
-    ParseResult *pr_value =
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL);
+    ParseResult pr_value;
+    bool res = 
+        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL,
+                               &pr_value);
 
-    if (!pr_value) {
-        return NULL;
+    if (!res) {
+        return false;
     }
 
     /* Get the type to which it is being cast. (It is allowable to
@@ -8958,47 +9006,52 @@ ParseResult *Generator::parseCast(Element::Function *dfn,
 
     Element::Type *type = parseType((*lst)[2], false, true);
     if (!type) {
-        return NULL;
+        return false;
     }
 
     /* If the type of the value and the target type are the same,
      * return the original value. */
 
-    if (pr_value->type->isEqualTo(type)) {
-        return pr_value;
+    if (pr_value.type->isEqualTo(type)) {
+        pr_value.copyTo(pr);
+        return true;
     }
 
-    ParseResult *temp = doCast(pr_value->block,
-                               pr_value->value,
-                               pr_value->type,
-                               type,
-                               n);
-    if (!temp) {
-        return NULL;
+    ParseResult temp;
+    res = doCast(pr_value.block,
+                pr_value.value,
+                pr_value.type,
+                type,
+                n,
+                0,
+                &temp);
+    if (!res) {
+        return false;
     }
-    pr_value->block = temp->block;
-    if (hasRelevantDestructor(pr_value)) {
-        ParseResult *temp2 =
-            destructIfApplicable(pr_value, NULL);
-        temp->block = temp2->block;
+    pr_value.block = temp.block;
+    if (hasRelevantDestructor(&pr_value)) {
+        ParseResult temp2;
+        res = destructIfApplicable(&pr_value, NULL, &temp2);
+        temp.block = temp2.block;
     }
-    delete pr_value;
 
-    return temp;
+    setPr(pr, temp.block, temp.type, temp.value);
+    return true;
 }
 
-ParseResult *Generator::parseSref(Element::Function *dfn,
-                                  llvm::BasicBlock *block,
-                                  Node *n,
-                                  bool getAddress,
-                                  bool prefixed_with_core)
+bool Generator::parseSref(Element::Function *dfn,
+                            llvm::BasicBlock *block,
+                            Node *n,
+                            bool getAddress,
+                            bool prefixed_with_core,
+                            ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     symlist *lst = n->list;
 
     if (!assertArgNums(":", n, 2, 2)) {
-        return NULL;
+        return false;
     }
 
     getAddress = true;
@@ -9006,10 +9059,12 @@ ParseResult *Generator::parseSref(Element::Function *dfn,
     int original_error_count =
         erep->getErrorTypeCount(ErrorType::Error);
 
-    ParseResult *pr_struct =
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], getAddress, NULL);
+    ParseResult pr_struct;
+    bool res = 
+        parseFunctionBodyInstr(dfn, block, (*lst)[1], getAddress,
+                               NULL, &pr_struct);
 
-    if (!pr_struct) {
+    if (!res) {
         /* If the error message is 'cannot take address of
          * non-lvalue', make getAddress false and go from there. */
         if (erep->getErrorTypeCount(ErrorType::Error) ==
@@ -9017,21 +9072,21 @@ ParseResult *Generator::parseSref(Element::Function *dfn,
             Error *e = erep->popLastError();
             if (e->instance ==
                     ErrorInst::Generator::CannotTakeAddressOfNonLvalue) {
-                pr_struct =
+                res =
                     parseFunctionBodyInstr(
-                        dfn, block, (*lst)[1], false, NULL
+                        dfn, block, (*lst)[1], false, NULL, &pr_struct
                     );
-                if (!pr_struct) {
+                if (!res) {
                     erep->addError(e);
-                    return NULL;
+                    return false;
                 }
                 getAddress = false;
             } else {
                 erep->addError(e);
-                return NULL;
+                return false;
             }
         } else {
-            return NULL;
+            return false;
         }
     }
 
@@ -9040,75 +9095,75 @@ ParseResult *Generator::parseSref(Element::Function *dfn,
      * work. */
 
     if (!getAddress) {
-        llvm::IRBuilder<> builder(pr_struct->block);
+        llvm::IRBuilder<> builder(pr_struct.block);
         llvm::Type *llvm_type =
-            toLLVMType(pr_struct->type, NULL, false);
+            toLLVMType(pr_struct.type, NULL, false);
         if (!llvm_type) {
-            failedDaleToLLVMTypeConversion(pr_struct->type);
-            return NULL;
+            failedDaleToLLVMTypeConversion(pr_struct.type);
+            return false;
         }
         llvm::Value *store =
             builder.CreateAlloca(llvm_type);
-        builder.CreateStore(pr_struct->value, store);
-        pr_struct->type = tr->getPointerType(pr_struct->type);
-        pr_struct->value = store;
+        builder.CreateStore(pr_struct.value, store);
+        pr_struct.type = tr->getPointerType(pr_struct.type);
+        pr_struct.value = store;
     }
 
     /* Able to assume points_to here, because getAddress was set
      * to true in the preceding pfbi call. */
 
-    int is_const = pr_struct->type->points_to->is_const;
+    int is_const = pr_struct.type->points_to->is_const;
 
-    if (pr_struct->type->points_to->struct_name == NULL) {
+    if (pr_struct.type->points_to->struct_name == NULL) {
         std::string temp;
-        pr_struct->type->points_to->toStringProper(&temp);
+        pr_struct.type->points_to->toStringProper(&temp);
         Error *e = new Error(
             ErrorInst::Generator::IncorrectArgType,
             ((*lst)[1]),
             ":", "a struct", "1", temp.c_str()
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
-    if (ctx->getEnum(pr_struct->type->points_to->struct_name->c_str())) {
+    if (ctx->getEnum(pr_struct.type->points_to->struct_name->c_str())) {
         Error *e = new Error(
             ErrorInst::Generator::IncorrectArgType,
             ((*lst)[1]),
             ":", "a struct", "1", "an enum"
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     Node *ref = (*lst)[2];
     ref = parseOptionalMacroCall(ref);
     if (!ref) {
-        return NULL;
+        return false;
     }
     if (!assertArgIsAtom(":", ref, "2")) {
-        return NULL;
+        return false;
     }
     if (!assertAtomIsSymbol(":", ref, "2")) {
-        return NULL;
+        return false;
     }
 
     Token *t = ref->token;
 
     Element::Struct *structp =
         ctx->getStruct(
-            pr_struct->type->points_to->struct_name->c_str(),
-            pr_struct->type->points_to->namespaces
+            pr_struct.type->points_to->struct_name->c_str(),
+            pr_struct.type->points_to->namespaces
         );
 
     if (!structp) {
         Error *e = new Error(
             ErrorInst::Generator::NotInScope,
             ((*lst)[1]),
-            pr_struct->type->points_to->struct_name->c_str()
+            pr_struct.type->points_to->struct_name->c_str()
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     int index = structp->nameToIndex(t->str_value.c_str());
@@ -9118,10 +9173,10 @@ ParseResult *Generator::parseSref(Element::Function *dfn,
             ErrorInst::Generator::FieldDoesNotExistInStruct,
             ((*lst)[2]),
             t->str_value.c_str(),
-            pr_struct->type->points_to->struct_name->c_str()
+            pr_struct.type->points_to->struct_name->c_str()
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     Element::Type *eltype = structp->indexToType(index);
@@ -9133,99 +9188,102 @@ ParseResult *Generator::parseSref(Element::Function *dfn,
     stl::push_back2(&indices, llvm_native_zero,
                     getNativeInt(index));
 
-    llvm::IRBuilder<> builder(pr_struct->block);
-    llvm::Value *res =
-        builder.CreateGEP(pr_struct->value,
+    llvm::IRBuilder<> builder(pr_struct.block);
+    llvm::Value *vres =
+        builder.CreateGEP(pr_struct.value,
                           llvm::ArrayRef<llvm::Value*>(indices));
-
-    ParseResult *pr = new ParseResult;
-    pr->block = pr_struct->block;
 
     /* This has changed - sref will always return a pointer,
      * regardless of getAddress (it is as if getAddress was always
      * enabled). */
 
-    pr->type = tr->getPointerType(eltype);
-    pr->value = res;
+    setPr(pr, pr_struct.block, tr->getPointerType(eltype), vres);
 
-    if (hasRelevantDestructor(pr_struct)) {
-        ParseResult *temp =
-            destructIfApplicable(pr_struct, NULL);
-        pr->block = temp->block;
+    if (hasRelevantDestructor(&pr_struct)) {
+        ParseResult temp;
+        bool res = destructIfApplicable(&pr_struct, NULL, &temp);
+        if (!res) {
+            return false;
+        }
+        pr->block = temp.block;
     }
-    delete pr_struct;
 
-    return pr;
+    return true;
 }
 
-ParseResult *Generator::parseAref(Element::Function *dfn,
-                                  llvm::BasicBlock *block,
-                                  Node *n,
-                                  bool getAddress,
-                                  bool prefixed_with_core)
+bool Generator::parseAref(Element::Function *dfn,
+                          llvm::BasicBlock *block,
+                          Node *n,
+                          bool getAddress,
+                          bool prefixed_with_core,
+                          ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("$", n, 2, 2)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
-    ParseResult *pr_array =
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], true, NULL);
-    if (!pr_array) {
-        return NULL;
+    ParseResult pr_array;
+    bool res = parseFunctionBodyInstr(dfn, block, (*lst)[1], true,
+                                      NULL, &pr_array);
+    if (!res) {
+        return false;
     }
 
-    if (!(pr_array->type->points_to)) {
+    if (!(pr_array.type->points_to)) {
         std::string temp;
-        pr_array->type->toStringProper(&temp);
+        pr_array.type->toStringProper(&temp);
         Error *e = new Error(
             ErrorInst::Generator::IncorrectArgType,
             ((*lst)[1]),
             "$", "a pointer or array", "1", temp.c_str()
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
-    ParseResult *pr_index =
-        parseFunctionBodyInstr(dfn, pr_array->block, (*lst)[2], false, NULL);
-    if (!pr_index) {
-        return NULL;
+    ParseResult pr_index;
+    res = 
+        parseFunctionBodyInstr(dfn, pr_array.block, (*lst)[2], false,
+                               NULL, &pr_index);
+    if (!res) {
+        return false;
     }
 
     /* Attempt to cast pr_index to a size type, if it is not such
      * a type already. */
 
-    if (pr_index->type->base_type != Type::Size) {
-        ParseResult *newt =
-            doCast(pr_index->block, pr_index->value, pr_index->type,
-                   type_size, (*lst)[2], IMPLICIT);
-        if (!newt) {
+    if (pr_index.type->base_type != Type::Size) {
+        ParseResult newt;
+        bool res = 
+            doCast(pr_index.block, pr_index.value, pr_index.type,
+                   type_size, (*lst)[2], IMPLICIT, &newt);
+        if (!res) {
             std::string temp;
-            pr_index->type->toStringProper(&temp);
+            pr_index.type->toStringProper(&temp);
             Error *e = new Error(
                 ErrorInst::Generator::IncorrectArgType,
                 ((*lst)[2]),
                 "$", "int", "2", temp.c_str()
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
-        pr_index = newt;
+        newt.copyTo(&pr_index);
     }
 
-    llvm::IRBuilder<> builder(pr_index->block);
+    llvm::IRBuilder<> builder(pr_index.block);
 
     llvm::Value *proper_ptr;
-    llvm::Value *res;
+    llvm::Value *vres;
 
-    if (pr_array->type->points_to->points_to) {
-        proper_ptr = builder.CreateLoad(pr_array->value);
+    if (pr_array.type->points_to->points_to) {
+        proper_ptr = builder.CreateLoad(pr_array.value);
         std::vector<llvm::Value *> indices;
-        indices.push_back(llvm::cast<llvm::Value>(pr_index->value));
-        res = builder.Insert(
+        indices.push_back(llvm::cast<llvm::Value>(pr_index.value));
+        vres = builder.Insert(
                   llvm::GetElementPtrInst::Create(
                       proper_ptr,
                       llvm::ArrayRef<llvm::Value*>(indices)
@@ -9235,83 +9293,89 @@ ParseResult *Generator::parseAref(Element::Function *dfn,
     } else {
         std::vector<llvm::Value *> indices;
         stl::push_back2(&indices, llvm_native_zero,
-                        llvm::cast<llvm::Value>(pr_index->value));
-        res = builder.Insert(
+                        llvm::cast<llvm::Value>(pr_index.value));
+        vres = builder.Insert(
                   llvm::GetElementPtrInst::Create(
-                      pr_array->value,
+                      pr_array.value,
                       llvm::ArrayRef<llvm::Value*>(indices)
                   ),
                   "asdf"
               );
     }
 
-    ParseResult *pr = new ParseResult;
-    pr->block = pr_index->block;
+    pr->block = pr_index.block;
 
     /* pr_array returns a pointer - that's what you want to
      * return, here. */
-    if (pr_array->type->is_array) {
-        pr->type = new
-        Element::Type(pr_array->type->array_type);
+    if (pr_array.type->is_array) {
+        pr->type = tr->getPointerType(pr_array.type->array_type);
     } else {
-        if (pr_array->type->points_to->points_to) {
-            pr->type = pr_array->type->points_to;
-        } else if (pr_array->type->points_to->array_type) {
-            pr->type = new
-            Element::Type(pr_array->type->points_to->array_type);
+        if (pr_array.type->points_to->points_to) {
+            pr->type = pr_array.type->points_to;
+        } else if (pr_array.type->points_to->array_type) {
+            pr->type = tr->getPointerType(
+                pr_array.type->points_to->array_type
+            );
         } else {
             std::string typestr;
-            pr_array->type->toStringProper(&typestr);
+            pr_array.type->toStringProper(&typestr);
             Error *e = new Error(
                 ErrorInst::Generator::CanOnlyIndexIntoPointersAndArrays,
                 n,
                 typestr.c_str()
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
     }
-    pr->value = res;
+    pr->value = vres;
 
-    if (hasRelevantDestructor(pr_array)) {
-        pr_array->block = pr_index->block;
-        ParseResult *temp =
-            destructIfApplicable(pr_array, NULL);
-        pr_index->block = temp->block;
+    if (hasRelevantDestructor(&pr_array)) {
+        pr_array.block = pr_index.block;
+        ParseResult temp;
+        bool res = destructIfApplicable(&pr_array, NULL, &temp);
+        if (!res) {
+            return false;
+        }
+        pr_index.block = temp.block;
     }
-    delete pr_array;
 
-    if (hasRelevantDestructor(pr_index)) {
-        ParseResult *temp =
-            destructIfApplicable(pr_index, NULL);
-        pr->block = temp->block;
+    if (hasRelevantDestructor(&pr_index)) {
+        ParseResult temp;
+        bool res = destructIfApplicable(&pr_index, NULL, &temp);
+        if (!res) {
+            return false;
+        }
+        pr->block = temp.block;
     }
-    delete pr_index;
 
-    return pr;
+    return true;
 }
 
-ParseResult *Generator::parseIf(Element::Function *dfn,
-                                llvm::BasicBlock *block,
-                                Node *n,
-                                bool getAddress,
-                                bool prefixed_with_core)
+bool Generator::parseIf(Element::Function *dfn,
+                        llvm::BasicBlock *block,
+                        Node *n,
+                        bool getAddress,
+                        bool prefixed_with_core,
+                        ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("if", n, 3, 3)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
 
-    ParseResult *pr =
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], getAddress, NULL);
-    if (!pr) {
-        return NULL;
+    ParseResult pr_cond;
+    bool res =
+        parseFunctionBodyInstr(dfn, block, (*lst)[1], getAddress,
+                               NULL, &pr_cond);
+    if (!res) {
+        return false;
     }
 
-    if (pr->type->base_type != Type::Bool) {
+    if (pr_cond.type->base_type != Type::Bool) {
         std::string temp;
         pr->type->toStringProper(&temp);
         Error *e = new Error(
@@ -9320,10 +9384,10 @@ ParseResult *Generator::parseIf(Element::Function *dfn,
             "if", "bool", "1", temp.c_str()
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
-    llvm::IRBuilder<> builder4(pr->block);
+    llvm::IRBuilder<> builder4(pr_cond.block);
 
     llvm::BasicBlock *then_block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(),
@@ -9332,51 +9396,61 @@ ParseResult *Generator::parseIf(Element::Function *dfn,
         llvm::BasicBlock::Create(llvm::getGlobalContext(),
                                  "else", dfn->llvm_function);
 
-    builder4.CreateCondBr(pr->value, then_block, else_block);
+    builder4.CreateCondBr(pr_cond.value, then_block, else_block);
 
-    if (hasRelevantDestructor(pr)) {
-        destructIfApplicable(pr, &builder4);
+    if (hasRelevantDestructor(&pr_cond)) {
+        ParseResult temp;
+        bool res = destructIfApplicable(&pr_cond, &builder4, &temp);
+        if (!res) {
+            return false;
+        }
     }
 
     ctx->activateAnonymousNamespace();
-    ParseResult *pr_then =
-        parseFunctionBodyInstr(dfn, then_block, (*lst)[2], getAddress, NULL);
+    ParseResult pr_then;
+    res =
+        parseFunctionBodyInstr(dfn, then_block, (*lst)[2], getAddress,
+                               NULL, &pr_then);
     scopeClose(dfn, then_block, NULL);
     ctx->deactivateAnonymousNamespace();
+    if (!res) {
+        return false;
+    }
 
     ctx->activateAnonymousNamespace();
-    ParseResult *pr_else =
-        parseFunctionBodyInstr(dfn, else_block, (*lst)[3], getAddress, NULL);
+    ParseResult pr_else;
+    res =
+        parseFunctionBodyInstr(dfn, else_block, (*lst)[3], getAddress,
+                               NULL, &pr_else);
     scopeClose(dfn, else_block, NULL);
     ctx->deactivateAnonymousNamespace();
-
-    if ((!pr_then) || (!pr_else)) {
-        return NULL;
+    if (!res) {
+        return false;
     }
 
     /* If the last instruction in both of these blocks is already
      * a terminating instruction, or the parseResult said treat as
      * terminator, don't add a done block and don't add a phi
      * node. */
-
+    
     llvm::Instruction *then_instr =
-        (pr_then->block->size() > 0)
-        ? &(pr_then->block->back())
+        (pr_then.block->size() > 0)
+        ? &(pr_then.block->back())
         : NULL;
 
     llvm::Instruction *else_instr =
-        (pr_else->block->size() > 0)
-        ? &(pr_else->block->back())
+        (pr_else.block->size() > 0)
+        ? &(pr_else.block->back())
         : NULL;
 
-    int then_terminates =
+    int then_terminates = 
         (then_instr && then_instr->isTerminator())
-        || pr_then->treat_as_terminator;
+        || pr_then.treat_as_terminator;
 
-    int else_terminates =
+    int else_terminates = 
         (else_instr && else_instr->isTerminator())
-        || pr_else->treat_as_terminator;
-    
+        || pr_else.treat_as_terminator;
+ 
     if (then_terminates && else_terminates) {
         /* Nothing else to do here - note that this block should
          * not be used - if this is an if that returns a value,
@@ -9384,10 +9458,15 @@ ParseResult *Generator::parseIf(Element::Function *dfn,
          * down the bottom), but if it's terminating, then that's not
          * the case. */
 
-        delete pr_then;
-        delete pr_else;
-
-        return pr;
+        /* todo: this used to return pr_cond, which can't have been
+         * right, but creating a new block may lead to other problems.
+         * yep - because if this is used, there are problems, since it
+         * has no predecessors. Let alone that it really should not be
+         * used. */
+        //fprintf(stderr, "Then and else terminate, returning cond\n");
+        pr_cond.copyTo(pr);
+        //pr->treat_as_terminator = 1;
+        return true;
     }
 
     /* If the last instruction in one of these blocks is a terminator
@@ -9398,111 +9477,101 @@ ParseResult *Generator::parseIf(Element::Function *dfn,
     if (then_terminates && !else_terminates) {
         llvm::BasicBlock *done_block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                     "done", dfn->llvm_function);
+                                     "done_then_no_else", dfn->llvm_function);
 
-        llvm::IRBuilder<> builder2(pr_else->block);
+        llvm::IRBuilder<> builder2(pr_else.block);
         builder2.CreateBr(done_block);
 
-        ParseResult *p = new ParseResult;
-
-        p->block = done_block;
-        p->type  = pr_else->type;
-        p->value = llvm::cast<llvm::Value>(pr_else->value);
-
-        return p;
+        setPr(pr, done_block, pr_else.type,
+              llvm::cast<llvm::Value>(pr_else.value));
+        return true;
     }
 
     if (else_terminates && !then_terminates) {
         llvm::BasicBlock *done_block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                     "done", dfn->llvm_function);
+                                     "done_else_no_then", dfn->llvm_function);
 
-        llvm::IRBuilder<> builder2(pr_then->block);
+        llvm::IRBuilder<> builder2(pr_then.block);
         builder2.CreateBr(done_block);
 
-        ParseResult *p = new ParseResult;
-
-        p->block = done_block;
-        p->type  = pr_then->type;
-        p->value = llvm::cast<llvm::Value>(pr_then->value);
-
-        return p;
+        setPr(pr, done_block, pr_then.type,
+              llvm::cast<llvm::Value>(pr_then.value));
+        return true;
     }
 
     /* If neither branch terminates, then the values of both
      * branches must be of the same type. */
 
-    if (!pr_then->type->isEqualTo(pr_else->type)) {
+    if (!pr_then.type->isEqualTo(pr_else.type)) {
         std::string sthen;
         std::string selse;
-        pr_then->type->toStringProper(&sthen);
-        pr_else->type->toStringProper(&selse);
+        pr_then.type->toStringProper(&sthen);
+        pr_else.type->toStringProper(&selse);
         Error *e = new Error(
             ErrorInst::Generator::IfBranchesHaveDifferentTypes,
             n,
             sthen.c_str(), selse.c_str()
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     llvm::BasicBlock *done_block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                 "done", dfn->llvm_function);
+                                 "done_phi", dfn->llvm_function);
 
-    llvm::IRBuilder<> builder(pr_then->block);
+    llvm::IRBuilder<> builder(pr_then.block);
     builder.CreateBr(done_block);
-    llvm::IRBuilder<> builder2(pr_else->block);
+    llvm::IRBuilder<> builder2(pr_else.block);
     builder2.CreateBr(done_block);
 
     llvm::IRBuilder<> builder3(done_block);
 
     llvm::Type *llvm_then_type =
-        toLLVMType(pr_then->type, NULL, false);
+        toLLVMType(pr_then.type, NULL, false);
     if (!llvm_then_type) {
-        failedDaleToLLVMTypeConversion(pr_then->type);
-        return NULL;
+        failedDaleToLLVMTypeConversion(pr_then.type);
+        return false;
     }
     llvm::PHINode *pn =
         builder3.CreatePHI(llvm_then_type, 0);
 
-    pn->addIncoming(pr_then->value, pr_then->block);
-    pn->addIncoming(pr_else->value, pr_else->block);
+    pn->addIncoming(pr_then.value, pr_then.block);
+    pn->addIncoming(pr_else.value, pr_else.block);
 
-    ParseResult *p = new ParseResult;
-
-    p->block = done_block;
-    p->type  = pr_then->type;
-    p->value = llvm::cast<llvm::Value>(pn);
+    setPr(pr, done_block, pr_then.type,
+          llvm::cast<llvm::Value>(pn));
 
     /* There's no need to re-copy the value here, since it's
      * coming straight out of then or else. */
-    p->freshly_copied = 1;
+    pr->freshly_copied = 1;
 
-    return p;
+    return true;
 }
 
-ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
+bool Generator::parseInFunctionDefine(Element::Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
         bool getAddress,
         bool
-        prefixed_with_core)
+        prefixed_with_core,
+        ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
     if (!assertArgNums("def", n, 2, 2)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
     Node *nname = (*lst)[1];
 
     if (!assertArgIsAtom("def", nname, "1")) {
-        return NULL;
+        return false;
     }
     if (!assertAtomIsSymbol("def", nname, "1")) {
-        return NULL;
+        return false;
     }
 
     Token *t = nname->token;
@@ -9512,7 +9581,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
     Node *ndef = (*lst)[2];
 
     if (!assertArgIsList("def", ndef, "2")) {
-        return NULL;
+        return false;
     }
 
     Node *nvar = NULL;
@@ -9528,18 +9597,15 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
                 ndef
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
     }
 
     if (!(nvar->token->str_value.compare("struct"))) {
         parseStructDefinition(name, ndef);
-        ParseResult *new_pr = new ParseResult(
-            block,
-            type_int,
-            llvm::ConstantInt::get(nt->getNativeIntType(), 0)
-        );
-        return new_pr;
+        setPr(pr, block, type_int,
+              llvm::ConstantInt::get(nt->getNativeIntType(), 0));
+        return true;
     }
 
     symlist *newlist = ndef->list;
@@ -9549,7 +9615,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
 
     int linkage = parseLinkage((*newlist)[1]);
     if (!linkage) {
-        return NULL;
+        return false;
     }
 
     if ((linkage != Linkage::Auto)
@@ -9560,20 +9626,17 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
             ndef
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     /* Check if the type is a single token string equal to "\". If
      * it is, then the type is implied based on the result of
      * parsing the later expression. */
 
-    ParseResult *retpr = new ParseResult(
-        block,
-        type_int,
-        llvm::ConstantInt::get(nt->getNativeIntType(), 0)
-    );
-    retpr->do_not_destruct       = 1;
-    retpr->do_not_copy_with_setf = 1;
+    setPr(pr, block, type_int, 
+          llvm::ConstantInt::get(nt->getNativeIntType(), 0));
+    pr->do_not_destruct       = 1;
+    pr->do_not_copy_with_setf = 1;
 
     Element::Type *type;
 
@@ -9585,23 +9648,25 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
                 ndef
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
 
-        ParseResult *p = parseFunctionBodyInstr(
-                             dfn, block, (*newlist)[3], getAddress, NULL
-                         );
-        if (!p) {
-            return NULL;
+        ParseResult p;
+        bool res =
+            parseFunctionBodyInstr(
+                dfn, block, (*newlist)[3], getAddress, NULL, &p
+            );
+        if (!res) {
+            return false;
         }
-        type  = p->type;
-        block = p->block;
+        type  = p.type;
+        block = p.block;
 
         llvm::IRBuilder<> builder(block);
         llvm::Type *et = toLLVMType(type, (*newlist)[2], false);
         if (!et) {
             failedDaleToLLVMTypeConversion(type);
-            return NULL;
+            return false;
         }
 
         llvm::Value *new_ptr = llvm::cast<llvm::Value>(
@@ -9621,7 +9686,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
                 name
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
 
         /* If the constant int 0 is returned, and this isn't an
@@ -9633,15 +9698,15 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
 
         if (!(type->isIntegerType()) && (type->base_type != Type::Bool)) {
             if (llvm::ConstantInt *temp =
-                        llvm::dyn_cast<llvm::ConstantInt>(p->value)) {
+                        llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
                 if (temp->getValue().getLimitedValue() == 0) {
-                    retpr->block = p->block;
-                    return retpr;
+                    pr->block = p.block;
+                    return true;
                 }
             }
         }
 
-        if (!assertTypeEquality("def", n, p->type, type, 1)) {
+        if (!assertTypeEquality("def", n, p.type, type, 1)) {
             return NULL;
         }
 
@@ -9651,43 +9716,48 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         Element::Function *or_setf =
             ctx->getFunction("setf-copy", &call_arg_types,
                              NULL, 0);
-        if (or_setf && type->isEqualTo(p->type)) {
+        if (or_setf && type->isEqualTo(p.type)) {
             std::vector<llvm::Value *> call_args2;
             call_args2.push_back(new_ptr);
-            llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                        builder.CreateAlloca(toLLVMType(type, NULL, false))
-                                    );
-            builder.CreateStore(p->value, new_ptr2);
+            llvm::Value *new_ptr2 = 
+                llvm::cast<llvm::Value>(
+                    builder.CreateAlloca(toLLVMType(type, NULL, false))
+                );
+            builder.CreateStore(p.value, new_ptr2);
             call_args2.push_back(new_ptr2);
             builder.CreateCall(
                 or_setf->llvm_function,
                 llvm::ArrayRef<llvm::Value*>(call_args2));
         } else {
             call_arg_types.pop_back();
-            call_arg_types.push_back(p->type);
+            call_arg_types.push_back(p.type);
             Element::Function *or_setf2 =
                 ctx->getFunction("setf-copy", &call_arg_types,
                                  NULL, 0);
             if (or_setf2) {
                 std::vector<llvm::Value *> call_args2;
                 call_args2.push_back(new_ptr);
-                call_args2.push_back(p->value);
+                call_args2.push_back(p.value);
                 builder.CreateCall(
                     or_setf->llvm_function,
                     llvm::ArrayRef<llvm::Value*>(call_args2));
             } else {
-                builder.CreateStore(p->value, new_ptr);
+                builder.CreateStore(p.value, new_ptr);
             }
         }
-        destructIfApplicable(p, NULL);
+        ParseResult temp;
+        bool mres = destructIfApplicable(&p, NULL, &temp);
+        if (!mres) {
+            return false;
+        }
 
-        retpr->block = p->block;
-        return retpr;
+        pr->block = temp.block;
+        return true;
     } else {
         /* Parse the type. */
         type = parseType((*newlist)[2], false, false);
         if (!type) {
-            return NULL;
+            return false;
         }
         /* If it's a struct, check if it's must-init. */
         if (type->struct_name) {
@@ -9702,7 +9772,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
                     ndef
                 );
                 erep->addError(e);
-                return NULL;
+                return false;
             }
         }
 
@@ -9714,9 +9784,8 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         llvm::IRBuilder<> builder(block);
         llvm::Type *et = toLLVMType(type, (*newlist)[2], false);
         if (!et) {
-            fprintf(stderr, "Failed conversion\n");
             failedDaleToLLVMTypeConversion(type);
-            return NULL;
+            return false;
         }
 
         llvm::Value *new_ptr = llvm::cast<llvm::Value>(
@@ -9735,7 +9804,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
                 name
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
 
         if (newlist->size() == 3) {
@@ -9745,26 +9814,25 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
                     ndef
                 );
                 erep->addError(e);
-                return NULL;
+                return false;
             }
 
             /* Finished - no value for this define. If the type is
              * const, though, it's an error. */
 
-            ParseResult *new_pr = new ParseResult(
-                block,
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(), 0)
-            );
+            setPr(pr, block, type_int,
+                  llvm::ConstantInt::get(nt->getNativeIntType(), 0));
 
-            return new_pr;
+            return true;
         }
 
-        ParseResult *p = parseFunctionBodyInstr(
-                             dfn, block, (*newlist)[3], getAddress, type
-                         );
-        if (!p) {
-            return NULL;
+        ParseResult p;
+        bool res = 
+            parseFunctionBodyInstr(
+                dfn, block, (*newlist)[3], getAddress, type, &p
+            );
+        if (!res) {
+            return false;
         }
 
         /* If the constant int 0 is returned, and this isn't an
@@ -9776,16 +9844,18 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
 
         if (!(type->isIntegerType()) && (type->base_type != Type::Bool)) {
             if (llvm::ConstantInt *temp =
-                        llvm::dyn_cast<llvm::ConstantInt>(p->value)) {
+                        llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
                 if (temp->getValue().getLimitedValue() == 0) {
-                    retpr->block = p->block;
-                    return retpr;
+                    pr->block = p.block;
+                    return true;
                 }
             }
         }
 
         /* Handle arrays that were given a length of 0. */
         if (is_zero_sized) {
+            type = p.type;
+            var2->type = type;
             et = toLLVMType(type, (*newlist)[2], false);
             new_ptr = llvm::cast<llvm::Value>(
                           builder.CreateAlloca(et)
@@ -9793,7 +9863,7 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
             var2->value = new_ptr;
         }
 
-        llvm::IRBuilder<> builder2(p->block);
+        llvm::IRBuilder<> builder2(p.block);
 
         std::vector<Element::Type *> call_arg_types;
         call_arg_types.push_back(tr->getPointerType(type));
@@ -9801,13 +9871,14 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         Element::Function *or_setf =
             ctx->getFunction("setf-copy", &call_arg_types,
                              NULL, 0);
-        if (or_setf && type->isEqualTo(p->type)) {
+        if (or_setf && type->isEqualTo(p.type)) {
             std::vector<llvm::Value *> call_args2;
             call_args2.push_back(new_ptr);
-            llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                        builder2.CreateAlloca(toLLVMType(type, NULL, false))
-                                    );
-            builder2.CreateStore(p->value, new_ptr2);
+            llvm::Value *new_ptr2 = 
+                llvm::cast<llvm::Value>(
+                    builder2.CreateAlloca(toLLVMType(type, NULL, false))
+                );
+            builder2.CreateStore(p.value, new_ptr2);
             call_args2.push_back(new_ptr2);
             builder2.CreateCall(
                 or_setf->llvm_function,
@@ -9815,28 +9886,32 @@ ParseResult *Generator::parseInFunctionDefine(Element::Function *dfn,
         } else {
             call_arg_types.clear();
             call_arg_types.push_back(tr->getPointerType(type));
-            call_arg_types.push_back(p->type);
+            call_arg_types.push_back(p.type);
             Element::Function *or_setf2 =
                 ctx->getFunction("setf-copy", &call_arg_types,
                                  NULL, 0);
             if (or_setf2) {
                 std::vector<llvm::Value *> call_args2;
                 call_args2.push_back(new_ptr);
-                call_args2.push_back(p->value);
+                call_args2.push_back(p.value);
                 builder2.CreateCall(
                     or_setf2->llvm_function,
                     llvm::ArrayRef<llvm::Value*>(call_args2));
             } else {
-                if (!assertTypeEquality("def", n, p->type, type, 1)) {
-                    return NULL;
+                if (!assertTypeEquality("def", n, p.type, type, 1)) {
+                    return false;
                 }
-                builder2.CreateStore(p->value, new_ptr);
+                builder2.CreateStore(p.value, new_ptr);
             }
         }
-        destructIfApplicable(p, NULL);
+        ParseResult temp;
+        bool mres = destructIfApplicable(&p, NULL, &temp);
+        if (!mres) {
+            return false;
+        }
 
-        retpr->block = p->block;
-        return retpr;
+        pr->block = temp.block;
+        return true;
     }
 }
 
@@ -9847,36 +9922,38 @@ int Generator::mySizeToRealSize(int n)
 
 static int anoncount = 0;
 
-ParseResult *Generator::parseFunctionBodyInstr(Element::Function *dfn,
+bool Generator::parseFunctionBodyInstr(Element::Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
         bool getAddress,
-        Element::Type *wanted_type)
+        Element::Type *wanted_type,
+        ParseResult *pr)
 {
-    ParseResult *x =
+    bool res =
         parseFunctionBodyInstrInternal(dfn, block, n,
-                                       getAddress, wanted_type);
+                                       getAddress, wanted_type,
+                                       pr);
 
-    if (!x) {
-        return x;
+    if (!res) {
+        return false;
     }
     if (dfn->is_setf_fn) {
-        return x;
+        return true;
     }
-    ParseResult *y =
-        copyWithSetfIfApplicable(
-            dfn, x
-        );
+    /* todo: if there's never a use case for a separate
+     * parseresult, then fix this function accordingly. */
+    copyWithSetfIfApplicable(dfn, pr, pr);
 
-    return y;
+    return true;
 }
 
-ParseResult *Generator::parseFunctionBodyInstrInternal(
+bool Generator::parseFunctionBodyInstrInternal(
     Element::Function *dfn,
     llvm::BasicBlock *block,
     Node *n,
     bool getAddress,
-    Element::Type *wanted_type)
+    Element::Type *wanted_type,
+    ParseResult *pr)
 {
     if (DALE_DEBUG) {
         printf("Called parseFunctionBodyInstruction: ");
@@ -9915,18 +9992,18 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
              * literal, so in that case just continue onwards
              * (token could be a var name). */
 
-            ParseResult *mypr2 =
+            bool res =
                 parseEnumLiteral(block, n,
                                  myenum2,
                                  wanted_type,
                                  myenumstruct2,
-                                 getAddress);
+                                 getAddress,
+                                 pr);
 
-            if (mypr2) {
-                return mypr2;
+            if (res) {
+                return res;
             } else {
                 popErrors(original_error_count);
-                // yuk.
                 goto tryvar;
             }
         } else if (t->type == TokenType::Int) {
@@ -9934,7 +10011,7 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
                     && wanted_type->isIntegerType()) {
                 int mysize =
                     mySizeToRealSize(wanted_type->getIntegerSize());
-                return new ParseResult(
+                setPr(pr,
                            block,
                            tr->getBasicType(wanted_type->base_type),
                            getConstantInt(
@@ -9945,8 +10022,9 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
                                t->str_value.c_str()
                            )
                        );
+                return true;
             } else {
-                return new ParseResult(
+                setPr(pr,
                            block,
                            type_int,
                            getConstantInt(
@@ -9954,11 +10032,12 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
                                t->str_value.c_str()
                            )
                        );
+                return true;
             }
         } else if (t->type == TokenType::FloatingPoint) {
             if (wanted_type
                     && wanted_type->base_type == Type::Float) {
-                return new ParseResult(
+                setPr(pr,
                            block,
                            type_float,
                            llvm::ConstantFP::get(
@@ -9966,9 +10045,10 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
                                llvm::StringRef(t->str_value.c_str())
                            )
                        );
+                return true;
             } else if (wanted_type
                        && wanted_type->base_type == Type::Double) {
-                return new ParseResult(
+                setPr(pr, 
                            block,
                            type_double,
                            llvm::ConstantFP::get(
@@ -9976,9 +10056,10 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
                                llvm::StringRef(t->str_value.c_str())
                            )
                        );
+                return true;
             } else if (wanted_type
                        && wanted_type->base_type == Type::LongDouble) {
-                return new ParseResult(
+                setPr(pr, 
                            block,
                            type_longdouble,
                            llvm::ConstantFP::get(
@@ -9986,8 +10067,9 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
                                llvm::StringRef(t->str_value.c_str())
                            )
                        );
+                return true;
             } else {
-                return new ParseResult(
+                setPr(pr, 
                            block,
                            type_float,
                            llvm::ConstantFP::get(
@@ -9995,6 +10077,7 @@ ParseResult *Generator::parseFunctionBodyInstrInternal(
                                llvm::StringRef(t->str_value.c_str())
                            )
                        );
+                return true;
             }
         } else if (t->type == TokenType::String) {
 tryvar:
@@ -10003,7 +10086,7 @@ tryvar:
             int is_false = !t->str_value.compare("false");
 
             if (is_true || is_false) {
-                return new ParseResult(
+                setPr(pr, 
                            block,
                            type_bool,
                            llvm::ConstantInt::get(
@@ -10011,6 +10094,7 @@ tryvar:
                                is_true
                            )
                        );
+                return true;
             }
 
             /* Special case - characters. */
@@ -10041,16 +10125,17 @@ tryvar:
                             temp
                         );
                         erep->addError(e);
-                        return NULL;
+                        return false;
                     }
                     c = t->str_value.at(2);
                 }
 
-                return new ParseResult(
+                setPr(pr,
                            block,
                            type_char,
                            llvm::ConstantInt::get(nt->getNativeCharType(), c)
                        );
+                return true;
             }
 
             /* Plain string - has to be variable. */
@@ -10064,17 +10149,18 @@ tryvar:
                     t->str_value.c_str()
                 );
                 erep->addError(e);
-                return NULL;
+                return false;
             }
 
             llvm::IRBuilder<> builder(block);
 
             if (getAddress) {
-                return new ParseResult(
+                setPr(pr,
                            block,
                            tr->getPointerType(var->type),
                            var->value
                        );
+                return true;
             } else {
                 if (var->type->is_array) {
                     /* If the variable is an array, return a pointer of
@@ -10085,21 +10171,23 @@ tryvar:
                             llvm::ArrayRef<llvm::Value*>(two_zero_indices)
                         );
 
-                    return new ParseResult(
+                    setPr(pr,
                                block,
                                tr->getPointerType(var->type->array_type),
                                p_to_array
                            );
+                    return true;
                 }
 
                 /* Return the dereferenced variable. */
-                return new ParseResult(
+                setPr(pr, 
                            block,
                            var->type,
                            llvm::cast<llvm::Value>(
                                builder.CreateLoad(var->value)
                            )
                        );
+                return true;
             }
         } else if (t->type == TokenType::StringLiteral) {
 
@@ -10108,7 +10196,7 @@ tryvar:
             int size = 0;
             llvm::Constant *init = parseLiteral1(type_pchar, n, &size);
             if (!init) {
-                return NULL;
+                return false;
             }
             Element::Type *temp = tr->getArrayType(type_char, size);
 
@@ -10116,7 +10204,7 @@ tryvar:
                 toLLVMType(temp, NULL, false);
             if (!llvm_type) {
                 failedDaleToLLVMTypeConversion(temp);
-                return NULL;
+                return false;
             }
 
             /* Have to check for existing variables with this
@@ -10157,7 +10245,7 @@ tryvar:
                     varname.c_str()
                 );
                 erep->addError(e);
-                return NULL;
+                return false;
             }
 
             llvm::IRBuilder<> builder(block);
@@ -10167,18 +10255,19 @@ tryvar:
                     llvm::cast<llvm::Value>(var2->value),
                     llvm::ArrayRef<llvm::Value*>(two_zero_indices));
 
-            return new ParseResult(
+            setPr(pr, 
                        block,
                        type_pchar,
                        charpointer
                    );
+            return true;
         } else {
             Error *e = new Error(
                 ErrorInst::Generator::UnableToParseForm,
                 n
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
     }
 
@@ -10190,7 +10279,7 @@ tryvar:
             n
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     Node *first = (*lst)[0];
@@ -10198,7 +10287,7 @@ tryvar:
     if (!first->is_token) {
         first = parseOptionalMacroCall(first);
         if (!first) {
-            return NULL;
+            return false;
         }
     }
 
@@ -10225,7 +10314,7 @@ tryvar:
         if (diff) {
             ctx->active_ns_nodes = active_ns_nodes;
             ctx->used_ns_nodes = used_ns_nodes;
-            return NULL;
+            return false;
         }
 
         Element::Type *fntype = new Element::Type();
@@ -10246,7 +10335,7 @@ tryvar:
 
         fntype->parameter_types = parameter_types;
 
-        ParseResult *p = new ParseResult(
+        setPr(pr,
             block,
             tr->getPointerType(fntype),
             llvm::cast<llvm::Value>(myanonfn->llvm_function)
@@ -10265,7 +10354,7 @@ tryvar:
         ctx->active_ns_nodes = active_ns_nodes;
         ctx->used_ns_nodes = used_ns_nodes;
 
-        return p;
+        return true;
     }
 
     /* If wanted_type is present and is a struct, then use
@@ -10286,13 +10375,14 @@ tryvar:
             abort();
         }
 
-        ParseResult *mypr =
+        bool res =
             parseStructLiteral(dfn, block, n,
                                wanted_type->struct_name->c_str(),
                                str,
                                wanted_type,
-                               getAddress);
-        return mypr;
+                               getAddress,
+                               pr);
+        return res;
     }
 
     if (!first->is_token) {
@@ -10301,7 +10391,7 @@ tryvar:
             n
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     Token *t = first->token;
@@ -10312,7 +10402,7 @@ tryvar:
             n
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     /* If the first element matches an enum name, then make an
@@ -10349,16 +10439,17 @@ tryvar:
         int original_error_count =
             erep->getErrorTypeCount(ErrorType::Error);
 
-        ParseResult *mypr = parseEnumLiteral(block, (*lst)[1],
+        bool res = parseEnumLiteral(block, (*lst)[1],
                                              myenum,
                                              myenumtype,
                                              myenumstruct,
-                                             getAddress);
-        if (!mypr) {
+                                             getAddress,
+                                             pr);
+        if (!res) {
             popErrors(original_error_count);
             goto past_en_parse;
         }
-        return mypr;
+        return true;
     }
 past_en_parse:
 
@@ -10397,17 +10488,17 @@ past_en_parse:
         int original_error_count =
             erep->getErrorTypeCount(ErrorType::Error);
 
-        ParseResult *mypr = parseStructLiteral(dfn, block, (*lst)[1],
+        bool res = parseStructLiteral(dfn, block, (*lst)[1],
                                                "asdf",
                                                str,
                                                structtype,
-                                               getAddress);
-        if (!mypr) {
+                                               getAddress,
+                                               pr);
+        if (!res) {
             popErrors(original_error_count);
-
             goto past_sl_parse;
         }
-        return mypr;
+        return true;
     }
 past_sl_parse:
 
@@ -10419,17 +10510,16 @@ past_sl_parse:
             && (!strcmp(t->str_value.c_str(), "array"))) {
         /* go to parseArrayLiteral */
         int size;
-        ParseResult *mypr = parseArrayLiteral(
+        bool res = parseArrayLiteral(
                                 dfn, block, n,
                                 "array literal",
                                 wanted_type,
                                 getAddress,
-                                &size
+                                &size,
+                                pr
                             );
-        return mypr;
+        return res;
     }
-
-    ParseResult *pr = NULL;
 
     /* Check that a macro/function exists with the relevant name.
        This can be checked by passing NULL in place of the types.
@@ -10465,12 +10555,12 @@ past_sl_parse:
             *macro_to_call = NULL;
 
             nesting += 4;
-            pr = parseFunctionCall(dfn, block, n,
+            bool res = parseFunctionCall(dfn, block, n,
                                    t->str_value.c_str(), getAddress,
-                                   false, macro_to_call);
+                                   false, macro_to_call, pr);
             nesting -= 4;
-            if (pr) {
-                return pr;
+            if (res) {
+                return true;
             }
 
             if (*macro_to_call) {
@@ -10478,39 +10568,35 @@ past_sl_parse:
                     parseMacroCall(n, t->str_value.c_str(),
                                    *macro_to_call);
                 if (!mac_node) {
-                    return NULL;
+                    return false;
                 }
-                pr =
+                bool res =
                     parseFunctionBodyInstr(
-                        dfn, block, mac_node, getAddress, wanted_type
+                        dfn, block, mac_node, getAddress, wanted_type, pr
                     );
 
                 delete mac_node;
 
-                if (!pr) {
-                    return NULL;
-                } else {
-                    return pr;
-                }
+                return res;
             }
 
             int error_count2 =
                 erep->getErrorTypeCount(ErrorType::Error);
 
             if (error_count2 != (error_count + 1)) {
-                return NULL;
+                return false;
             }
             backup_error = erep->popLastError();
             if (backup_error->getType() != ErrorType::Error) {
                 erep->addError(backup_error);
-                return NULL;
+                return false;
             }
             if ((backup_error->instance !=
                     ErrorInst::Generator::OverloadedFunctionOrMacroNotInScope)
                     && (backup_error->instance !=
                         ErrorInst::Generator::OverloadedFunctionOrMacroNotInScopeWithClosest)) {
                 erep->addError(backup_error);
-                return NULL;
+                return false;
             }
         }
     }
@@ -10527,7 +10613,7 @@ past_sl_parse:
         if (!first->is_token) {
             first = parseOptionalMacroCall(first);
             if (!first) {
-                return NULL;
+                return false;
             }
         }
         if (!first->is_token) {
@@ -10536,7 +10622,7 @@ past_sl_parse:
                 n
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
 
         t = first->token;
@@ -10546,21 +10632,22 @@ past_sl_parse:
                 n
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
     }
 
     /* Core forms (at least at this point). */
 
-    ParseResult* (dale::Generator::* core_fn)(
+    bool (dale::Generator::* core_fn)(
         Element::Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
         bool getAddress,
-        bool prefixed_with_core);
+        bool prefixed_with_core,
+        ParseResult *pr);
 
     core_fn =
-        (eq("goto"))    ? &dale::Generator::parseGoto
+          (eq("goto"))    ? &dale::Generator::parseGoto
         : (eq("label"))   ? &dale::Generator::parseLabel
         : (eq("return"))  ? &dale::Generator::parseReturn
         : (eq("setf"))    ? &dale::Generator::parseSetf
@@ -10597,12 +10684,8 @@ past_sl_parse:
         : NULL;
 
     if (core_fn) {
-        ParseResult *pr = ((this)->*(core_fn))(dfn, block, n,
-                                               getAddress, prefixed_with_core);
-        if (!pr) {
-            return NULL;
-        }
-        return pr;
+        return ((this)->*(core_fn))(dfn, block, n,
+                                    getAddress, prefixed_with_core, pr);
     }
 
     /* Not core form - look for core macro. */
@@ -10617,14 +10700,13 @@ past_sl_parse:
                : NULL;
 
     if (core_mac) {
-        /* Going to assume similarly here, re the error
-         * messages. */
+        /* Going to assume similarly here, re the error messages. */
         Node *new_node = ((this)->*(core_mac))(n);
         if (!new_node) {
-            return NULL;
+            return false;
         }
         return parseFunctionBodyInstr(dfn, block, new_node,
-                                      getAddress, wanted_type);
+                                      getAddress, wanted_type, pr);
     }
 
     /* Not core form/macro, nor function. If the string token is
@@ -10637,24 +10719,23 @@ past_sl_parse:
      * this if backup_error is set. */
 
     if (!(t->str_value.compare("destroy"))) {
-        ParseResult *dtemp = new ParseResult;
-        dtemp->type  = type_void;
-        dtemp->block = block;
-        dtemp->value = NULL;
-        return dtemp;
+        setPr(pr, block, type_void, NULL);
+        return true;
     }
 
     if (backup_error) {
         erep->addError(backup_error);
-        return NULL;
+        return false;
     }
 
     int last_error_count =
         erep->getErrorTypeCount(ErrorType::Error);
-    ParseResult *try_fnp = parseFunctionBodyInstr(
-                               dfn, block, (*lst)[0], getAddress, wanted_type
+    ParseResult try_fnp;
+    bool res = parseFunctionBodyInstr(
+                               dfn, block, (*lst)[0], getAddress,
+                               wanted_type, &try_fnp
                            );
-    if (!try_fnp) {
+    if (!res) {
         /* If this fails, and there is one extra error, and the
          * error is 'variable not in scope', then change it to
          * 'not in scope' (it could be intended as either a
@@ -10669,36 +10750,38 @@ past_sl_parse:
             }
             erep->addError(e);
         }
-        return NULL;
+        return false;
     }
-    block = try_fnp->block;
-    if (try_fnp && try_fnp->type->points_to
-            && try_fnp->type->points_to->is_function) {
+    block = try_fnp.block;
+    if (try_fnp.type->points_to
+            && try_fnp.type->points_to->is_function) {
         Token *funcall_str_tok = new Token(TokenType::String, 0,0,0,0);
         funcall_str_tok->str_value.clear();
         funcall_str_tok->str_value.append("funcall");
         Node *funcall_str_node = new Node(funcall_str_tok);
         funcall_str_node->filename = erep->current_filename;
         lst->insert(lst->begin(), funcall_str_node);
-        ParseResult *funcall_pr =
+        bool res =
             parseFuncall(dfn,
                          block,
                          n,
                          getAddress,
-                         false);
-        return funcall_pr;
+                         false,
+                         pr);
+        return res;
     }
-    try_fnp = parseFunctionBodyInstr(
-                  dfn, try_fnp->block, (*lst)[0], true, wanted_type
+    res = parseFunctionBodyInstr(
+                  dfn, try_fnp.block, (*lst)[0], true, wanted_type,
+                  &try_fnp
               );
-    if (!try_fnp) {
-        return NULL;
+    if (!res) {
+        return false;
     }
-    if (try_fnp && try_fnp->type->points_to
-            && try_fnp->type->points_to->struct_name) {
+    if (try_fnp.type->points_to
+            && try_fnp.type->points_to->struct_name) {
         /* Struct must implement 'apply' to be considered a
          * function object. */
-        Element::Type *try_fnp_inner_type = try_fnp->type->points_to;
+        Element::Type *try_fnp_inner_type = try_fnp.type->points_to;
         Element::Struct *mystruct =
             ctx->getStruct(
                 try_fnp_inner_type->struct_name->c_str(),
@@ -10719,16 +10802,16 @@ past_sl_parse:
                         (*lst)[0]
                     );
                     erep->addError(e);
-                    return NULL;
+                    return false;
                 }
                 if (!(applyfn->parameter_types->at(0)->isEqualTo(
-                            try_fnp->type))) {
+                            try_fnp.type))) {
                     Error *e = new Error(
                         ErrorInst::Generator::ApplyMustTakePointerToStructAsFirstArgument,
                         (*lst)[0]
                     );
                     erep->addError(e);
-                    return NULL;
+                    return false;
                 }
                 /* Get the function pointer value. */
                 std::vector<llvm::Value *> indices;
@@ -10740,32 +10823,31 @@ past_sl_parse:
                 llvm::IRBuilder<> builder(block);
                 llvm::Value *res =
                     builder.CreateGEP(
-                        try_fnp->value,
+                        try_fnp.value,
                         llvm::ArrayRef<llvm::Value*>(indices)
                     );
 
-                ParseResult *supertemp = new ParseResult;
-                supertemp->type  = apply;
-                supertemp->block = block;
-                supertemp->value = res;
-
+                ParseResult supertemp;
+                supertemp.type  = apply;
+                supertemp.block = block;
                 llvm::Value *pvalue =
                     llvm::cast<llvm::Value>(builder.CreateLoad(res));
-                supertemp->value = pvalue;
+                supertemp.value = pvalue;
 
                 /* So a pointer to the struct is your first
                  * argument. Skip 1 element of the list when
                  * passing off (e.g. (adder 1)). */
 
                 std::vector<llvm::Value*> extra_args;
-                extra_args.push_back(try_fnp->value);
+                extra_args.push_back(try_fnp.value);
                 return parseFuncallInternal(
                            dfn,
                            n,
                            getAddress,
-                           supertemp,
+                           &supertemp,
                            1,
-                           &extra_args
+                           &extra_args,
+                           pr
                        );
             }
         }
@@ -10777,7 +10859,7 @@ past_sl_parse:
         t->str_value.c_str()
     );
     erep->addError(e);
-    return NULL;
+    return false;
 }
 
 void Generator::setPdnode()
@@ -10862,7 +10944,9 @@ DNode *callmacro(int arg_count, void *gen, void *mac, DNode **dnodes,
     }
 
     DNode *ret_node = NULL;
+    //fprintf(stderr, "Ret node 1: %p\n", ret_node);
     ffi_call(&cif, (void (*)(void)) mac, (void *) &ret_node, vals);
+    //fprintf(stderr, "Ret node 2: %p\n", ret_node);
     free(args);
     free(vals);
 
@@ -11019,6 +11103,7 @@ Node *Generator::parseMacroCall(Node *n,
 
     /* Convert it to an int node. */
 
+    //fprintf(stderr, "MC result dnode: %s: %p\n", name, mc_result_dnode);
     Node *mc_result_node =
         (mc_result_dnode) ? DNodeToIntNode(mc_result_dnode)
                           : NULL;
@@ -11203,12 +11288,14 @@ Node *Generator::parseOptionalMacroCall(Node *n)
             e = lst->end();
             b != e;
             ++b) {
-        ParseResult *mine =
-            parseFunctionBodyInstr(dfn, block, *b, false, NULL);
-        if (mine) {
+        ParseResult mine;
+        bool res =
+            parseFunctionBodyInstr(dfn, block, *b, false, NULL,
+                                   &mine);
+        if (res) {
             /* Add the type. */
-            types.push_back(mine->type);
-            block = mine->block;
+            types.push_back(mine.type);
+            block = mine.block;
         }
         else {
             /* Add a (p DNode) to types. */
@@ -11266,13 +11353,14 @@ Node *Generator::parseOptionalMacroCall(Node *n)
     }
 }
 
-ParseResult *Generator::parseEnumLiteral(llvm::BasicBlock *block,
+bool Generator::parseEnumLiteral(llvm::BasicBlock *block,
         Node *n,
         Element::Enum *myenum,
         Element::Type *myenumtype,
         Element::Struct
         *myenumstructtype,
-        bool getAddress)
+        bool getAddress,
+        ParseResult *pr)
 {
     if (!n->is_token) {
         Error *e = new Error(
@@ -11280,7 +11368,7 @@ ParseResult *Generator::parseEnumLiteral(llvm::BasicBlock *block,
             "atom", "enum literal", "list"
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     int num = myenum->nameToNumber(n->token->str_value.c_str());
@@ -11291,7 +11379,7 @@ ParseResult *Generator::parseEnumLiteral(llvm::BasicBlock *block,
             n->token->str_value.c_str()
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     llvm::IRBuilder<> builder(block);
@@ -11311,7 +11399,7 @@ ParseResult *Generator::parseEnumLiteral(llvm::BasicBlock *block,
         failedDaleToLLVMTypeConversion(
             myenumstructtype->element_types.at(0)
         );
-        return NULL;
+        return false;
     }
 
     builder.CreateStore(llvm::ConstantInt::get(
@@ -11319,34 +11407,25 @@ ParseResult *Generator::parseEnumLiteral(llvm::BasicBlock *block,
                         res);
 
     if (getAddress) {
-        ParseResult *p = new ParseResult;
-
-        p->type  = tr->getPointerType(myenumtype);
-        p->block = block;
-        p->value = sp;
-
-        return p;
+        setPr(pr, block, tr->getPointerType(myenumtype), sp);
+        return true;
     } else {
         llvm::Value *final_value =
             builder.CreateLoad(sp);
 
-        ParseResult *p = new ParseResult;
-
-        p->type  = myenumtype;
-        p->block = block;
-        p->value = final_value;
-
-        return p;
+        setPr(pr, block, myenumtype, final_value);
+        return true;
     }
 }
 
-ParseResult *Generator::parseArrayLiteral(Element::Function *dfn,
+bool Generator::parseArrayLiteral(Element::Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
         const char *name,
         Element::Type *array_type,
         bool getAddress,
-        int *size)
+        int *size,
+        ParseResult *pr)
 {
     if (DALE_DEBUG) {
         fprintf(stderr, "Parsing array literal (%s).\n", name);
@@ -11360,7 +11439,7 @@ ParseResult *Generator::parseArrayLiteral(Element::Function *dfn,
             "list", "array initialisers", "atom"
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     symlist *lst = array_list->list;
@@ -11371,17 +11450,19 @@ ParseResult *Generator::parseArrayLiteral(Element::Function *dfn,
     std::vector<ParseResult *> elements;
 
     while (iter != lst->end()) {
-        ParseResult *el =
+        ParseResult *el = new ParseResult();
+        bool res =
             parseFunctionBodyInstr(
                 dfn,
                 block,
                 (*iter),
                 false,
-                array_type->array_type
+                array_type->array_type,
+                el
             );
 
-        if (!el) {
-            return NULL;
+        if (!res) {
+            return false;
         }
         if (!el->type->isEqualTo(array_type->array_type)) {
             std::string exptype;
@@ -11395,7 +11476,7 @@ ParseResult *Generator::parseArrayLiteral(Element::Function *dfn,
                 exptype.c_str(), gottype.c_str()
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
         elements.push_back(el);
         block = el->block;
@@ -11415,7 +11496,7 @@ ParseResult *Generator::parseArrayLiteral(Element::Function *dfn,
     }
 
     *size = (int) elements.size();
-    array_type->array_size = *size;
+    array_type = tr->getArrayType(array_type->array_type, *size);
 
     llvm::Type *llvm_array_type =
         toLLVMType(array_type, n, false);
@@ -11444,36 +11525,31 @@ ParseResult *Generator::parseArrayLiteral(Element::Function *dfn,
         builder.CreateStore(elements[i]->value, res);
 
         indices.pop_back();
+        delete elements[i];
     }
 
-    ParseResult *temptemp = new ParseResult();
-
-    temptemp->block = block;
-    temptemp->type  = array_type;
-    temptemp->value = llvm_array;
+    setPr(pr, block, array_type, llvm_array);
 
     if (getAddress) {
-        temptemp->type =
-            tr->getPointerType(array_type);
+        pr->type = tr->getPointerType(array_type);
     } else {
         /* Add a load instruction */
         llvm::Value *pvalue =
             llvm::cast<llvm::Value>(builder.CreateLoad(llvm_array));
-
-        temptemp->value = pvalue;
+        pr->value = pvalue;
     }
 
-    return temptemp;
+    return true;
 }
 
-
-ParseResult *Generator::parseStructLiteral(Element::Function *dfn,
+bool Generator::parseStructLiteral(Element::Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
         const char *struct_name,
         Element::Struct *str,
         Element::Type *structtype,
-        bool getAddress)
+        bool getAddress,
+        ParseResult *pr)
 {
     Node *struct_list = n;
 
@@ -11483,7 +11559,7 @@ ParseResult *Generator::parseStructLiteral(Element::Function *dfn,
             "list", "struct initialisers", "atom"
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     symlist *slst = struct_list->list;
@@ -11504,7 +11580,7 @@ ParseResult *Generator::parseStructLiteral(Element::Function *dfn,
                 "list", "struct initialiser", "atom"
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
         symlist *sellst = sel->list;
         if (sellst->size() != 2) {
@@ -11513,7 +11589,7 @@ ParseResult *Generator::parseStructLiteral(Element::Function *dfn,
                 "list", "struct initialiser", "atom"
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
         Node *name      = (*sellst)[0];
         Node *namevalue = (*sellst)[1];
@@ -11524,7 +11600,7 @@ ParseResult *Generator::parseStructLiteral(Element::Function *dfn,
                 "atom", "struct field name", "list"
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
 
         Element::Type *nametype =
@@ -11537,7 +11613,7 @@ ParseResult *Generator::parseStructLiteral(Element::Function *dfn,
                 struct_name
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
 
         int index = str->nameToIndex(name->token->str_value.c_str());
@@ -11550,82 +11626,74 @@ ParseResult *Generator::parseStructLiteral(Element::Function *dfn,
             builder.CreateGEP(sp,
                               llvm::ArrayRef<llvm::Value*>(indices));
 
-        ParseResult *newvalue =
-            parseFunctionBodyInstr(dfn, block, namevalue, false, NULL);
+        ParseResult newvalue;
+        bool mres = 
+            parseFunctionBodyInstr(dfn, block, namevalue, false, NULL,
+                                   &newvalue);
 
-        if (!newvalue) {
-            return NULL;
+        if (!mres) {
+            return false;
         }
-        if (!newvalue->type->isEqualTo(nametype)) {
+        if (!newvalue.type->isEqualTo(nametype)) {
             if ((nametype->isIntegerType()
-                    && newvalue->type->isIntegerType())
+                    && newvalue.type->isIntegerType())
                     || (nametype->isFloatingPointType()
-                        && newvalue->type->isFloatingPointType())) {
-                ParseResult *casttemp =
-                    doCast(newvalue->block,
-                           newvalue->value,
-                           newvalue->type,
+                        && newvalue.type->isFloatingPointType())) {
+                ParseResult casttemp;
+                bool res =
+                    doCast(newvalue.block,
+                           newvalue.value,
+                           newvalue.type,
                            nametype,
-                           sel
+                           sel,
+                           0,
+                           &casttemp
                           );
-                if (!casttemp) {
-                    return NULL;
+                if (!res) {
+                    return false;
                 }
-                newvalue = casttemp;
+                casttemp.copyTo(&newvalue);
             } else {
                 std::string expstr;
                 std::string gotstr;
                 nametype->toStringProper(&expstr);
-                newvalue->type->toStringProper(&gotstr);
+                newvalue.type->toStringProper(&gotstr);
                 Error *e = new Error(
                     ErrorInst::Generator::IncorrectType,
                     name,
                     expstr.c_str(), gotstr.c_str()
                 );
                 erep->addError(e);
-                return NULL;
+                return false;
             }
         }
 
-        block = newvalue->block;
+        block = newvalue.block;
         builder.SetInsertPoint(block);
 
-        builder.CreateStore(newvalue->value,
+        builder.CreateStore(newvalue.value,
                             res);
 
         ++siter;
     }
 
     if (getAddress) {
-        ParseResult *p = new ParseResult;
-
-        p->type  = tr->getPointerType(structtype);
-        p->block = block;
-        p->value = sp;
-
-        return p;
+        setPr(pr, block, tr->getPointerType(structtype), sp);
     } else {
-        llvm::Value *final_value =
-            builder.CreateLoad(sp);
-
-        ParseResult *p = new ParseResult;
-
-        p->type  = structtype;
-        p->block = block;
-        p->value = final_value;
-
-        return p;
+        llvm::Value *final_value = builder.CreateLoad(sp);
+        setPr(pr, block, structtype, final_value);
     }
+    return true;
 }
 
-ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
+bool Generator::parseFunctionCall(Element::Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
         const char *name,
         bool getAddress,
         bool prefixed_with_core,
-        Element::Function
-        **macro_to_call)
+        Element::Function **macro_to_call,
+        ParseResult *pr)
 {
     if (DALE_DEBUG) {
         fprintf(stderr, "Calling '%s'\n", name);
@@ -11639,7 +11707,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
             n
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     symlist *lst = n->list;
@@ -11652,7 +11720,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
             nfn_name
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     Token *t = nfn_name->token;
@@ -11663,7 +11731,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
             nfn_name
         );
         erep->addError(e);
-        return NULL;
+        return false;
     }
 
     /* Put all of the arguments into a list. */
@@ -11753,14 +11821,16 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
         int error_count =
             erep->getErrorTypeCount(ErrorType::Error);
 
-        ParseResult *p =
+        ParseResult p;
+        bool res = 
             parseFunctionBodyInstr(dfn, block, (*symlist_iter),
-                                   getAddress, NULL);
+                                   getAddress, NULL,
+                                   &p);
 
         int diff = erep->getErrorTypeCount(ErrorType::Error)
                    - error_count;
 
-        if (!p || diff) {
+        if (!res || diff) {
             /* May be a macro call (could be an unparseable
              * argument). Pop and store errors for the time being
              * and treat this argument as a (p DNode). */
@@ -11779,30 +11849,30 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
             continue;
         }
 
-        block = p->block;
-        if (p->type->is_array) {
+        block = p.block;
+        if (p.type->is_array) {
             llvm::IRBuilder<> builder(block);
             llvm::Type *llvm_type =
-                toLLVMType(p->type, NULL, false);
+                toLLVMType(p.type, NULL, false);
             if (!llvm_type) {
-                failedDaleToLLVMTypeConversion(p->type);
-                return NULL;
+                failedDaleToLLVMTypeConversion(p.type);
+                return false;
             }
             llvm::Value *newptr =
                 builder.CreateAlloca(llvm_type);
-            builder.CreateStore(p->value, newptr);
+            builder.CreateStore(p.value, newptr);
 
             llvm::Value *p_to_array =
                 builder.CreateGEP(
                     newptr,
                     llvm::ArrayRef<llvm::Value*>(two_zero_indices));
             call_arg_types.push_back(
-                tr->getPointerType(p->type->array_type)
+                tr->getPointerType(p.type->array_type)
             );
             call_args.push_back(p_to_array);
         } else {
-            call_args.push_back(p->value);
-            call_arg_types.push_back(p->type);
+            call_args.push_back(p.value);
+            call_arg_types.push_back(p.type);
         }
 
         ++symlist_iter;
@@ -11867,7 +11937,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
         delete csp;
 
         *macro_to_call = fn;
-        return NULL;
+        return false;
     }
     delete csp;
 
@@ -11884,7 +11954,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                 ++b) {
             erep->addError(*b);
         }
-        return NULL;
+        return false;
     }
 
     if (!fn) {
@@ -11902,7 +11972,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                     ++b) {
                 erep->addError(*b);
             }
-            return NULL;
+            return false;
         }
 
         if (ctx->existsExternCFunction(t->str_value.c_str())) {
@@ -11961,7 +12031,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                     expected_args.c_str()
                 );
                 erep->addError(e);
-                return NULL;
+                return false;
             }
             if (!fn->isVarArgs()
                     && call_args.size() != fn->numberOfRequiredArgs()) {
@@ -11973,7 +12043,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                     expected_args.c_str()
                 );
                 erep->addError(e);
-                return NULL;
+                return false;
             }
 
             while (miter != myarg_types->end()
@@ -11997,7 +12067,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                         expected_args.c_str()
                     );
                     erep->addError(e);
-                    return NULL;
+                    return false;
                 }
                 if (!(*caiter)->isIntegerType()
                         and (*caiter)->base_type != Type::Bool) {
@@ -12009,17 +12079,18 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                         expected_args.c_str()
                     );
                     erep->addError(e);
-                    return NULL;
+                    return false;
                 }
 
-                ParseResult *mytemp =
-                    doCast(block,
+                ParseResult mytemp;
+                bool res = doCast(block,
                            (*citer),
                            (*caiter),
                            (*miter)->type,
                            n,
-                           IMPLICIT);
-                if (!mytemp) {
+                           IMPLICIT,
+                           &mytemp);
+                if (!res) {
                     Error *e = new Error(
                         ErrorInst::Generator::FunctionNotInScope,
                         n,
@@ -12028,11 +12099,11 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                         expected_args.c_str()
                     );
                     erep->addError(e);
-                    return NULL;
+                    return false;
                 }
-                block = mytemp->block;
-                call_args_newer.push_back(mytemp->value);
-                call_arg_types_newer.push_back(mytemp->type);
+                block = mytemp.block;
+                call_args_newer.push_back(mytemp.value);
+                call_arg_types_newer.push_back(mytemp.type);
 
                 ++miter;
                 ++citer;
@@ -12047,11 +12118,8 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
              * generic code whether a particular value can be
              * destroyed or not. */
             if (!t->str_value.compare("destroy")) {
-                ParseResult *dtemp = new ParseResult;
-                dtemp->type  = type_void;
-                dtemp->block = block;
-                dtemp->value = NULL;
-                return dtemp;
+                setPr(pr, block, type_void, NULL);
+                return true;
             }
 
             std::vector<Element::Type *>::iterator titer =
@@ -12088,7 +12156,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                     expected.c_str()
                 );
                 erep->addError(e);
-                return NULL;
+                return false;
             } else {
                 Error *e = new Error(
                     ErrorInst::Generator::OverloadedFunctionOrMacroNotInScope,
@@ -12096,7 +12164,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                     t->str_value.c_str(), args.c_str()
                 );
                 erep->addError(e);
-                return NULL;
+                return false;
             }
         } else {
             Error *e = new Error(
@@ -12105,7 +12173,7 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                 t->str_value.c_str()
             );
             erep->addError(e);
-            return NULL;
+            return false;
         }
     }
 
@@ -12170,20 +12238,16 @@ ParseResult *Generator::parseFunctionCall(Element::Function *dfn,
                                 fn->llvm_function,
                                 llvm::ArrayRef<llvm::Value*>(call_args));
 
-    ParseResult *p = new ParseResult;
-
-    p->type  = fn->return_type;
-    p->block = block;
-    p->value = call_res;
+    setPr(pr, block, fn->return_type, call_res);
 
     /* If the return type of the function is one that should be
      * copied with an overridden setf, that will occur in the
      * function, so prevent the value from being re-copied here
      * (because no corresponding destructor call will occur). */
 
-    p->do_not_copy_with_setf = 1;
+    pr->do_not_copy_with_setf = 1;
 
-    return p;
+    return true;
 }
 
 /* The node given here is the whole function node - so the actual
@@ -12282,8 +12346,6 @@ int Generator::parseFunctionBody(Element::Function *dfn,
         ++mcount;
     }
 
-    ParseResult *p;
-
     std::vector<Node *>::iterator iter;
     iter = lst->begin();
 
@@ -12307,20 +12369,22 @@ int Generator::parseFunctionBody(Element::Function *dfn,
         if ((count + 1) == size) {
             wanted_type = dfn->return_type;
         }
-
-        p = parseFunctionBodyInstr(dfn, next, (*iter), false, wanted_type);
-        if (!p) {
+        ParseResult p;
+        bool res =
+            parseFunctionBodyInstr(dfn, next, (*iter), false,
+            wanted_type, &p);
+        if (!res) {
             /* Add an option to stop on first error, which would
              * break here. */
         } else {
-            next = p->block;
+            next = p.block;
             if ((count + 1) == size) {
                 /* Set the value of the last instruction for possible
                  * implicit return later on. */
-                last_value = p->value;
+                last_value = p.value;
                 /* Set the last type so as to ensure that the final
                  * return value is valid. */
-                last_type = p->type;
+                last_type = p.type;
                 Token *x = new Token(
                     0,
                     (*iter)->getBeginPos()->getLineNumber(),
@@ -12331,7 +12395,12 @@ int Generator::parseFunctionBody(Element::Function *dfn,
                 last_position = new Node(x);
                 last_position->filename = (*iter)->filename;
             } else {
-                destructIfApplicable(p, NULL);
+                ParseResult temp;
+                bool res = destructIfApplicable(&p, NULL, &temp);
+                if (!res) {
+                    return 0;
+                }
+                next = temp.block;
             }
         }
         ++iter;
@@ -12492,12 +12561,14 @@ int Generator::parseFunctionBody(Element::Function *dfn,
                     vb != ve;
                     ++vb) {
                 Element::Variable *v = (*vb);
-                ParseResult *pr_variable = new ParseResult(
-                    NULL,
-                    v->type,
-                    v->value
-                );
-                destructIfApplicable(pr_variable, &builder);
+                ParseResult pr_variable;
+                ParseResult temp;
+                setPr(&pr_variable, NULL, v->type, v->value);
+                bool res = destructIfApplicable(&pr_variable, &builder,
+                                                &temp);
+                if (!res) {
+                    return 0;
+                }
             }
 
             builder.CreateBr(b);
@@ -12547,16 +12618,27 @@ int Generator::parseFunctionBody(Element::Function *dfn,
                     if (dfn->return_type->base_type == Type::Void) {
                         scopeClose(dfn, i, NULL);
                         builder.CreateRetVoid();
+                        //fprintf(stderr, "%s: Implicit return in block:\n",
+                          //      dfn->internal_name->c_str());
+                        //i->dump();
+                        //fprintf(stderr, "\n");
                     } else {
-                        ParseResult *x = new ParseResult(
-                            i, last_type, last_value
-                        );
-                        scopeClose(dfn, x->block, NULL);
-                        builder.CreateRet(x->value);
+                        ParseResult x;
+                        setPr(&x, i, last_type, last_value);
+                        scopeClose(dfn, x.block, NULL);
+                        builder.CreateRet(x.value);
+                        //fprintf(stderr, "%s: Implicit return in block:\n",
+                        //        dfn->internal_name->c_str());
+                        //i->dump();
+                        //fprintf(stderr, "\n");
                     }
                 } else {
                     scopeClose(dfn, i, NULL);
                     builder.CreateRetVoid();
+                    //fprintf(stderr, "%s: Implicit return in block:\n",
+                      //      dfn->internal_name->c_str());
+                    //i->dump();
+                    //fprintf(stderr, "\n");
                 }
             } else {
                 /* Get the next block and create a branch to it. */
@@ -12572,33 +12654,38 @@ int Generator::parseFunctionBody(Element::Function *dfn,
      * instructions that occur after the first terminating
      * instruction. */
 
+    //fprintf(stderr, "Removing trailing instructions\n");
     for (llvm::Function::iterator i = fn->begin(), e = fn->end();
             i != e; ++i) {
-        int hit_terminator = 0;
-        int jj = 0;
         llvm::BasicBlock::iterator bi;
         llvm::BasicBlock::iterator be;
 
         for (bi = i->begin(), be = i->end(); bi != be; ++bi) {
-            ++hit_terminator;
             if ((*bi).isTerminator()) {
-                while (1) {
-                    bi = i->begin();
-                    be = i->end();
-                    jj = hit_terminator;
-                    while (jj--) {
-                        ++bi;
-                    }
-                    if (bi != be) {
-                        (*bi).eraseFromParent();
-                    } else {
-                        break;
-                    }
+                ++bi;
+                if (bi == be) {
+                    break;
                 }
+     //           fprintf(stderr, "Block with trailing instructions\n");
+       //         i->dump();
+         //       fprintf(stderr, "\n");
+                int count = 0;
+                while (bi != be) {
+                    count++;
+                    ++bi;
+                }
+                while (count--) {
+                    i->getInstList().pop_back();
+                }
+           //     fprintf(stderr, "Block without trailing instructions\n");
+             //   i->dump();
+               // fprintf(stderr, "\n");
                 break;
             }
         }
     }
+    //fprintf(stderr, "Finished removing trailing instructions\n");
+
 
 finish:
 

@@ -171,103 +171,107 @@ private:
     llvm::Constant *parseLiteral(Element::Type *type, Node *n, int *size);
     llvm::Constant *parseLiteral1(Element::Type *type, Node *n, int *size);
 
-    ParseResult *parseReturn(Element::Function *dfn, llvm::BasicBlock *block,
+    bool parseReturn(Element::Function *dfn, llvm::BasicBlock *block,
                              Node *n, bool getAddress, bool
-                             prefixed_with_core);
-    ParseResult *parseFunctionBodyInstrInternal(Element::Function *dfn,
+                             prefixed_with_core, ParseResult *pr);
+    bool parseFunctionBodyInstrInternal(Element::Function *dfn,
             llvm::BasicBlock *block,
             Node *n,
             bool getAddress,
-            Element::Type *wanted_type);
-    ParseResult *parseFunctionBodyInstr(Element::Function *dfn,
+            Element::Type *wanted_type, ParseResult *pr);
+    bool parseFunctionBodyInstr(Element::Function *dfn,
                                         llvm::BasicBlock *block,
                                         Node *n,
                                         bool getAddress,
-                                        Element::Type *wanted_type);
+                                        Element::Type *wanted_type,
+                                        ParseResult *pr);
 
-    ParseResult *parseSetf(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
+    bool parseSetf(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
                            bool getAddress, bool
-                           prefixed_with_core);
-    ParseResult *parseDereference(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
+                           prefixed_with_core, ParseResult *pr);
+    bool parseDereference(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
                                   bool getAddress, bool
-                                  prefixed_with_core);
-    ParseResult *parseSubtract(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
+                                  prefixed_with_core, ParseResult *pr);
+    bool parseSubtract(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
                                bool getAddress, bool
-                               prefixed_with_core);
-    ParseResult *parseAddressOf(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
+                               prefixed_with_core, ParseResult *pr);
+    bool parseAddressOf(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
                                 bool getAddress, bool
-                                prefixed_with_core);
-    ParseResult *parseLabel(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
+                                prefixed_with_core, ParseResult *pr);
+    bool parseLabel(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
                             bool getAddress, bool
-                            prefixed_with_core);
-    ParseResult *parseGoto(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
+                            prefixed_with_core, ParseResult *pr);
+    bool parseGoto(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
                            bool getAddress, bool
-                           prefixed_with_core);
-    ParseResult *parseIf(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
+                           prefixed_with_core, ParseResult *pr);
+    bool parseIf(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
                          bool getAddress, bool
-                         prefixed_with_core);
-    ParseResult *parseInFunctionDefine(Element::Function *dfn,
+                         prefixed_with_core, ParseResult *pr);
+    bool parseInFunctionDefine(Element::Function *dfn,
                                        llvm::BasicBlock
                                        *block, Node *n, bool
                                        getAddress, bool
-                                       prefixed_with_core);
-    ParseResult *parseFunctionCall(Element::Function *dfn,
+                                       prefixed_with_core, ParseResult
+                                       *pr);
+    bool parseFunctionCall(Element::Function *dfn,
                                    llvm::BasicBlock *block, Node *n, const char* fn_name,
                                    bool getAddress, bool
                                    prefixed_with_core,
                                    Element::Function
-                                   **macro_to_call);
-    ParseResult *parseSref(Element::Function *dfn,
+                                   **macro_to_call, ParseResult *pr);
+    bool parseSref(Element::Function *dfn,
                            llvm::BasicBlock *block, Node *n,
                            bool getAddress, bool
-                           prefixed_with_core);
-    ParseResult *parseAref(Element::Function *dfn,
+                           prefixed_with_core, ParseResult *pr);
+    bool parseAref(Element::Function *dfn,
                            llvm::BasicBlock *block, Node *n,
                            bool getAddress, bool
-                           prefixed_with_core);
-    ParseResult *parseNull(Element::Function *dfn,
+                           prefixed_with_core, ParseResult *pr);
+    bool parseNull(Element::Function *dfn,
                            llvm::BasicBlock *block, Node *n,
                            bool getAddress, bool
-                           prefixed_with_core);
+                           prefixed_with_core, ParseResult *pr);
 
-    ParseResult *parseDo(Element::Function *dfn,
+    bool parseDo(Element::Function *dfn,
                          llvm::BasicBlock *block,
                          Node *n,
                          bool getAddress, bool
-                         prefixed_with_core);
+                         prefixed_with_core, ParseResult *pr);
 
-    ParseResult *parseFuncall(Element::Function *dfn,
+    bool parseFuncall(Element::Function *dfn,
                               llvm::BasicBlock *block,
                               Node *n,
                               bool getAddress, bool
-                              prefixed_with_core);
-    ParseResult *parseCast(Element::Function *dfn,
+                              prefixed_with_core, ParseResult *pr);
+    bool parseCast(Element::Function *dfn,
                            llvm::BasicBlock *block,
                            Node *n,
                            bool getAddress, bool
-                           prefixed_with_core);
+                           prefixed_with_core, ParseResult *pr);
 
-    ParseResult *parsePtrEquals(Element::Function *dfn,
+    bool parsePtrEquals(Element::Function *dfn,
                                 llvm::BasicBlock *block, Node *n, bool getAddress, bool
-                                prefixed_with_core);
-    ParseResult *parsePtrAdd(Element::Function *dfn,
+                                prefixed_with_core, ParseResult *pr);
+    bool parsePtrAdd(Element::Function *dfn,
                              llvm::BasicBlock *block, Node *n, bool getAddress, bool
-                             prefixed_with_core);
-    ParseResult *parsePtrSubtract(Element::Function *dfn,
+                             prefixed_with_core, ParseResult *pr);
+    bool parsePtrSubtract(Element::Function *dfn,
                                   llvm::BasicBlock *block, Node *n, bool getAddress, bool
-                                  prefixed_with_core);
-    ParseResult *parsePtrLessThan(Element::Function *dfn,
+                                  prefixed_with_core, ParseResult *pr);
+    bool parsePtrLessThan(Element::Function *dfn,
                                   llvm::BasicBlock *block, Node *n, bool getAddress, bool
-                                  prefixed_with_core);
-    ParseResult *parsePtrLessThanOrEqualTo(Element::Function
+                                  prefixed_with_core, ParseResult *pr);
+    bool parsePtrLessThanOrEqualTo(Element::Function
                                            *dfn, llvm::BasicBlock *block, Node *n, bool getAddress,
-                                           bool prefixed_with_core);
-    ParseResult *parsePtrMoreThan(Element::Function *dfn,
+                                           bool prefixed_with_core,
+                                           ParseResult *pr);
+    bool parsePtrMoreThan(Element::Function *dfn,
                                   llvm::BasicBlock *block, Node *n, bool getAddress, bool
-                                  prefixed_with_core);
-    ParseResult *parsePtrMoreThanOrEqualTo(Element::Function
+                                  prefixed_with_core, ParseResult *pr);
+    bool parsePtrMoreThanOrEqualTo(Element::Function
                                            *dfn, llvm::BasicBlock *block, Node *n, bool getAddress,
-                                           bool prefixed_with_core);
+                                           bool prefixed_with_core,
+                                           ParseResult *pr);
 
 
     Node *parseMacroCall(
@@ -278,40 +282,41 @@ private:
     void parseNamespace(Node *top);
     void parseUsingNamespaceTopLevel(Node *top);
 
-    ParseResult *parseVaStart(Element::Function *dfn,
+    bool parseVaStart(Element::Function *dfn,
                               llvm::BasicBlock *block,
                               Node *n,
                               bool getAddress, bool
-                              prefixed_with_core);
-    ParseResult *parseVaEnd(Element::Function *dfn,
+                              prefixed_with_core, ParseResult *pr);
+    bool parseVaEnd(Element::Function *dfn,
                             llvm::BasicBlock *block,
                             Node *n,
                             bool getAddress, bool
-                            prefixed_with_core);
-    ParseResult *parseVaArg(Element::Function *dfn,
+                            prefixed_with_core, ParseResult *pr);
+    bool parseVaArg(Element::Function *dfn,
                             llvm::BasicBlock *block,
                             Node *n,
                             bool getAddress, bool
-                            prefixed_with_core);
+                            prefixed_with_core, ParseResult *pr);
 
 
-    ParseResult *parseSizeof(Element::Function *dfn,
+    bool parseSizeof(Element::Function *dfn,
                              llvm::BasicBlock *block,
                              Node *n,
                              bool getAddress, bool
-                             prefixed_with_core);
+                             prefixed_with_core, ParseResult *pr);
 
 
-    ParseResult *parseUsingNamespace(Element::Function *dfn,
+    bool parseUsingNamespace(Element::Function *dfn,
                                      llvm::BasicBlock *block,
                                      Node *n,
                                      bool getAddress, bool
-                                     prefixed_with_core);
-    ParseResult *parseNewScope(Element::Function *dfn,
+                                     prefixed_with_core, ParseResult
+                                     *pr);
+    bool parseNewScope(Element::Function *dfn,
                                llvm::BasicBlock *block,
                                Node *n,
                                bool getAddress, bool
-                               prefixed_with_core);
+                               prefixed_with_core, ParseResult *pr);
 
     void regetPointersForFVDM(Context *newctx);
     void regetPointersForDM(Context *newctx);
@@ -328,18 +333,19 @@ private:
 
     Parser *newParser(FILE *new_fp, const char *filename);
 
-    ParseResult *doCast(llvm::BasicBlock *block,
+    bool doCast(llvm::BasicBlock *block,
                         llvm::Value *value,
                         Element::Type *from_type,
                         Element::Type *to_type,
                         Node *n,
-                        int implicit = 0);
+                        int implicit, ParseResult *pr);
 
-    ParseResult *getAlignmentofType(llvm::BasicBlock *block,
-                                    Element::Type *type);
+    bool getAlignmentofType(llvm::BasicBlock *block,
+                                    Element::Type *type, ParseResult
+                                    *pr);
 
-    ParseResult *getSizeofType(llvm::BasicBlock *block,
-                               Element::Type *type);
+    bool getSizeofType(llvm::BasicBlock *block,
+                               Element::Type *type, ParseResult *pr);
     int assertArgNums(const char *form_name,
                       Node *n,
                       int min_args,
@@ -384,28 +390,28 @@ private:
     void popErrors(int original_count);
     bool parseExistsMacro(DNode *dnode);
 
-    ParseResult *parseArrayLiteral(Element::Function *dfn,
+    bool parseArrayLiteral(Element::Function *dfn,
                                    llvm::BasicBlock *block,
                                    Node *n,
                                    const char *name,
                                    Element::Type *array_type,
                                    bool getAddress,
-                                   int *size);
+                                   int *size, ParseResult *pr);
 
-    ParseResult *parseStructLiteral(Element::Function *dfn,
+    bool parseStructLiteral(Element::Function *dfn,
                                     llvm::BasicBlock *block,
                                     Node *n,
                                     const char *name,
                                     Element::Struct *str,
                                     Element::Type *structtype,
-                                    bool getAddress);
+                                    bool getAddress, ParseResult *pr);
 
     void reportErrorExternal(DNode *dnode, char *str);
 
     Node *WrapNode(Node *n);
     void addMacroPosition(Node *n, Node *mac_node);
 
-    ParseResult *parseEnumLiteral(
+    bool parseEnumLiteral(
         llvm::BasicBlock *block,
         Node *n,
         Element::Enum *myenum,
@@ -413,20 +419,20 @@ private:
         *myenumtype,
         Element::Struct
         *myenumstructtype,
-        bool getAddress);
+        bool getAddress, ParseResult *pr);
 
-    ParseResult *parseGetDNodes(Element::Function *dfn,
+    bool parseGetDNodes(Element::Function *dfn,
                                 llvm::BasicBlock *block,
                                 Node *n,
                                 bool getAddress, bool
-                                prefixed_with_core);
+                                prefixed_with_core, ParseResult *pr);
 
 
-    ParseResult *parseNullPtr(Element::Function *dfn,
+    bool parseNullPtr(Element::Function *dfn,
                               llvm::BasicBlock *block,
                               Node *n,
                               bool getAddress, bool
-                              prefixed_with_core);
+                              prefixed_with_core, ParseResult *pr);
 
 
 
@@ -445,17 +451,17 @@ private:
     int parseStructLinkage(Node *n);
     int parseEnumLinkage(Node *n);
 
-    ParseResult *getOffsetofType(llvm::BasicBlock *block,
+    bool getOffsetofType(llvm::BasicBlock *block,
                                  Element::Type *type,
                                  const char *field_name,
-                                 int index);
+                                 int index, ParseResult *pr);
 
     llvm::Value *IntNodeToStaticDNode(Node *node, llvm::Value *next_node);
-    ParseResult *parseOffsetof(Element::Function *dfn,
+    bool parseOffsetof(Element::Function *dfn,
                                llvm::BasicBlock *block,
                                Node *n,
                                bool getAddress, bool
-                               prefixed_with_core);
+                               prefixed_with_core, ParseResult *pr);
 
     size_t getOffsetofTypeImmediate(Element::Type *type,
                                     const char *field_name, int index);
@@ -466,17 +472,17 @@ private:
                                         *type, int *size);
 
 
-    ParseResult *parseAlignmentof(Element::Function *dfn,
+    bool parseAlignmentof(Element::Function *dfn,
                                   llvm::BasicBlock *block,
                                   Node *n,
                                   bool getAddress, bool
-                                  prefixed_with_core);
+                                  prefixed_with_core, ParseResult *pr);
 
-    ParseResult *parseArrayOf(Element::Function *dfn,
+    bool parseArrayOf(Element::Function *dfn,
                               llvm::BasicBlock *block,
                               Node *n,
                               bool getAddress, bool
-                              prefixed_with_core);
+                              prefixed_with_core, ParseResult *pr);
     Node *parseArrayDeref(Node *n);
     Node *parseStructDeref(Node *n);
     Node *parseDerefStruct(Node *n);
@@ -487,14 +493,14 @@ private:
                     llvm::Constant *init,
                     bool ignore_if_present = false);
 
-    ParseResult *parseFuncallInternal(
+    bool parseFuncallInternal(
         Element::Function *dfn,
         Node *n,
         bool getAddress,
         ParseResult *fn_ptr,
         int skip,
         std::vector<llvm::Value*> *extra_call_args
-    );
+    , ParseResult *pr);
 
 public:
     int addIncludePath(char *filename);
@@ -557,15 +563,15 @@ public:
                                         *buf);
     int arity(DNode *fn_name);
 
-    ParseResult *destructIfApplicable(ParseResult *pr, llvm::IRBuilder<> *builder);
-    ParseResult *copyWithSetfIfApplicable(
+    bool destructIfApplicable(ParseResult *pr, llvm::IRBuilder<> *builder, ParseResult *pr2);
+    bool copyWithSetfIfApplicable(
         Element::Function *dfn,
-        ParseResult *pr);
+        ParseResult *pr, ParseResult *pr2);
 
     void setPdnode();
     void setPoolfree();
 
-    int scopeClose(Element::Function *dfn,
+    bool scopeClose(Element::Function *dfn,
                    llvm::BasicBlock *block,
                    llvm::Value *no_destruct);
     int is_2D_char_2D_type(DNode *dnode);
@@ -589,6 +595,6 @@ public:
     int prefunction_ctx_index;
     bool hasRelevantDestructor(ParseResult *pr);
 };
-};
+}
 
 #endif

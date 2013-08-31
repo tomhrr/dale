@@ -1,2 +1,1 @@
 ./t/error-src/for-loop.dt:6:25: error: variable not in scope: 'asdf' (see macro at 6:5)
-./t/error-src/for-loop.dt:5:3: error: label not in scope: '_dale_internal_label_breaklabel_2'

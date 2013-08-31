@@ -112,6 +112,7 @@ Namespace::addFunction(const char *name,
             )
         );
 
+        functions_ordered.push_back(function);
         return true;
     }
 
@@ -121,10 +122,13 @@ Namespace::addFunction(const char *name,
         if (fn->is_macro == function->is_macro) {
             int is_equal = function->isEqualTo(fn); 
             if (fn == function) {
+                functions_ordered.push_back(function);
                 return true;
             } else if (is_equal && (fn->isDeclaration())) {
                 iter->second->erase(fn_iter);
+                fn_iter = iter->second->begin();
             } else if (is_equal && (!fn->isDeclaration())) {
+                functions_ordered.push_back(function);
                 return true;
             } else {
                 ++fn_iter;
@@ -159,6 +163,7 @@ Namespace::addFunction(const char *name,
     }
 
     iter->second->push_back(function);
+    functions_ordered.push_back(function);
 
     return true;
 }
@@ -600,29 +605,24 @@ Namespace::functionNameToSymbol(const char *name,
 void
 Namespace::eraseLLVMMacros(void)
 {
-    std::map<std::string, std::vector<Element::Function *>* >::iterator 
-        b, e;
-    std::vector<Element::Function *>::iterator fn_b, fn_e;
+    std::vector<Element::Function *>::reverse_iterator fn_b, fn_e;
 
     std::set<llvm::Function *> erased;
 
-    for (b = functions.begin(), e = functions.end(); b != e; ++b) {
-        for (fn_b = b->second->begin(), fn_e = b->second->end();
-                fn_b != fn_e;
-                ++fn_b) {
-            Element::Function *fn = (*fn_b);
-            if (!fn->is_macro) {
-                continue;
-            }
-            if (!fn->llvm_function) {
-                continue;
-            }
-            llvm::Function *lfn = fn->llvm_function;
-            fn->llvm_function = NULL;
-            if (erased.find(lfn) == erased.end()) {
-                erased.insert(lfn);
-                lfn->eraseFromParent();
-            }
+    for (fn_b = functions_ordered.rbegin(), 
+            fn_e = functions_ordered.rend(); fn_b != fn_e; ++fn_b) {
+        Element::Function *fn = (*fn_b);
+        if (!fn->is_macro) {
+            continue;
+        }
+        if (!fn->llvm_function) {
+            continue;
+        }
+        llvm::Function *lfn = fn->llvm_function;
+        fn->llvm_function = NULL;
+        if (erased.find(lfn) == erased.end()) {
+            erased.insert(lfn);
+            lfn->eraseFromParent();
         }
     }
 
@@ -632,24 +632,25 @@ Namespace::eraseLLVMMacros(void)
 void
 Namespace::eraseLLVMMacrosAndCTOFunctions(void)
 {
-    std::map<std::string, std::vector<Element::Function *>* >::iterator 
-        b, e;
-    std::vector<Element::Function *>::iterator fn_b, fn_e;
+    std::vector<Element::Function *>::reverse_iterator fn_b, fn_e;
 
-    for (b = functions.begin(), e = functions.end(); b != e; ++b) {
-        for (fn_b = b->second->begin(), fn_e = b->second->end();
-                fn_b != fn_e;
-                ++fn_b) {
-            Element::Function *fn = (*fn_b);
-            if (!fn->is_macro && !fn->cto) {
-                continue;
-            }
-            if (!fn->llvm_function) {
-                continue;
-            }
-            llvm::Module *m = fn->llvm_function->getParent();
+    std::set<llvm::Function *> erased;
+
+    for (fn_b = functions_ordered.rbegin(), 
+            fn_e = functions_ordered.rend(); fn_b != fn_e; ++fn_b) {
+        Element::Function *fn = (*fn_b);
+        if (!fn->is_macro && !fn->cto) {
+            continue;
+        }
+        if (!fn->llvm_function) {
+            continue;
+        }
+        llvm::Function *lfn = fn->llvm_function;
+        if (erased.find(lfn) == erased.end()) {
+            erased.insert(lfn);
+            llvm::Module *m = lfn->getParent();
             if (m->getFunction(llvm::StringRef(fn->internal_name->c_str()))) {
-                fn->llvm_function->eraseFromParent();
+                lfn->eraseFromParent();
             }
         }
     }

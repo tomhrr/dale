@@ -419,14 +419,15 @@ addSignedInt(Context *ctx,
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
                                      fn->llvm_function);
 
-        ParseResult *temp =
-            Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, type_int, type, NULL);
+        ParseResult temp;
+        Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, 
+                                 type_int, type, NULL, false, &temp);
 
-        llvm::IRBuilder<> builder(temp->block);
+        llvm::IRBuilder<> builder(temp.block);
         llvm::Twine bling;
         llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateShl((*iter)->value, temp->value,
-                                       bling)
+                               builder.CreateShl((*iter)->value, temp.value,
+                                                 bling)
                            );
         builder.CreateRet(res);
     }
@@ -442,14 +443,15 @@ addSignedInt(Context *ctx,
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
                                      fn->llvm_function);
 
-        ParseResult *temp =
-            Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, type_int, type, NULL);
+        ParseResult temp;
+        Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, 
+                                 type_int, type, NULL, false, &temp);
 
-        llvm::IRBuilder<> builder(temp->block);
+        llvm::IRBuilder<> builder(temp.block);
         llvm::Twine bling;
         llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateLShr((*iter)->value, temp->value,
-                                       bling)
+                               builder.CreateLShr((*iter)->value,
+                                                  temp.value, bling)
                            );
         builder.CreateRet(res);
     }
@@ -584,14 +586,15 @@ addUnsignedInt(Context *ctx,
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
                                      fn->llvm_function);
 
-        ParseResult *temp =
-            Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, type_int, type, NULL);
+        ParseResult temp;
+        Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, 
+                                 type_int, type, NULL, false, &temp);
 
-        llvm::IRBuilder<> builder(temp->block);
+        llvm::IRBuilder<> builder(temp.block);
         llvm::Twine bling;
         llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateShl((*iter)->value, temp->value,
-                                       bling)
+                               builder.CreateShl((*iter)->value, temp.value,
+                                                 bling)
                            );
         builder.CreateRet(res);
     }
@@ -606,14 +609,15 @@ addUnsignedInt(Context *ctx,
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
                                      fn->llvm_function);
 
-        ParseResult *temp =
-            Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, type_int, type, NULL);
+        ParseResult temp;
+        Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, 
+                                 type_int, type, NULL, false, &temp);
 
-        llvm::IRBuilder<> builder(temp->block);
+        llvm::IRBuilder<> builder(temp.block);
         llvm::Twine bling;
         llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateLShr((*iter)->value, temp->value,
-                                       bling)
+                               builder.CreateLShr((*iter)->value, 
+                                                  temp.value, bling)
                            );
         builder.CreateRet(res);
     }
@@ -964,14 +968,14 @@ addEnum(Context *ctx,
                                   ))
             );
 
-        ParseResult *temp =
-            Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, 
-                                     type_int, enum_int_type, NULL);
-        builder.SetInsertPoint(temp->block);
+        ParseResult temp;
+        Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, 
+                                 type_int, enum_int_type, NULL, false, &temp);
+        builder.SetInsertPoint(temp.block);
 
         llvm::Twine bling;
         llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateShl(one, temp->value, bling)
+                               builder.CreateShl(one, temp.value, bling)
                            );
         llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
                                       builder.CreateAlloca(llvm_enum_int_type)
@@ -1020,14 +1024,14 @@ addEnum(Context *ctx,
                                   ))
             );
 
-        ParseResult *temp =
-            Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, 
-                                     type_int, enum_int_type, NULL);
-        builder.SetInsertPoint(temp->block);
+        ParseResult temp;
+        Operation::Cast::execute(ctx, mod, block, (*(iter + 1))->value, 
+                                 type_int, enum_int_type, NULL, false, &temp);
+        builder.SetInsertPoint(temp.block);
 
         llvm::Twine bling;
         llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateLShr(one, temp->value, bling)
+                               builder.CreateLShr(one, temp.value, bling)
                            );
         llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
                                       builder.CreateAlloca(llvm_enum_int_type)

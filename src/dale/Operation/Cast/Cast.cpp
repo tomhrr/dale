@@ -6,17 +6,18 @@ namespace Operation
 {
 namespace Cast
 {
-ParseResult *execute(Context *ctx,
+bool execute(Context *ctx,
                      llvm::Module *mod,
                      llvm::BasicBlock *block,
                      llvm::Value *value,
                      Element::Type *from_type,
                      Element::Type *to_type,
                      Node *n,
-                     bool implicit)
+                     bool implicit,
+                     ParseResult *pr)
 {
     llvm::IRBuilder<> builder(block);
-    llvm::Value *res;
+    llvm::Value *res = NULL;
     std::string *struct_name;
 
     std::vector<llvm::Value *> two_zero_indices;
@@ -28,12 +29,12 @@ ParseResult *execute(Context *ctx,
     llvm::Type *llvm_from_type =
         ctx->toLLVMType(from_type, NULL, false);
     if (!llvm_from_type) {
-        return NULL;
+        return false;
     }
     llvm::Type *llvm_to_type =
         ctx->toLLVMType(to_type, NULL, false);
     if (!llvm_to_type) {
-        return NULL;
+        return false;
     }
 
     if (from_type->isFloatingPointType()
@@ -127,16 +128,20 @@ ParseResult *execute(Context *ctx,
 
         // Cast that value to a value of the right type.
 
-        ParseResult *temptemp = execute(ctx, mod, block,
-                                       newint,
-                                       temp_to_type,
-                                       to_type,
-                                       n,
-                                       implicit);
+        ParseResult temp;
+        bool mres = execute(ctx, mod, block,
+                            newint,
+                            temp_to_type,
+                            to_type,
+                            n,
+                            implicit,
+                            &temp);
+        if (!mres) {
+            return false;
+        }
 
-        block = temptemp->block;
-        res   = temptemp->value;
-
+        block = temp.block;
+        res   = temp.value;
     } else if ((struct_name = to_type->struct_name)
                && (from_type->isIntegerType())
                && (ctx->getEnum(struct_name->c_str()))) {
@@ -144,14 +149,18 @@ ParseResult *execute(Context *ctx,
         Element::Struct *mystruct = ctx->getStruct(to_type->struct_name->c_str());
         Element::Type *to_type_temp = mystruct->element_types.at(0);
 
-        ParseResult *temptemp = execute(ctx, mod, block,
-                                       value,
-                                       from_type,
-                                       to_type_temp,
-                                       n,
-                                       implicit);
-        block = temptemp->block;
-        value = temptemp->value;
+        ParseResult temp;
+        bool mres = execute(ctx, mod, block,
+                            value,
+                            from_type,
+                            to_type_temp,
+                            n,
+                            implicit, &temp);
+        if (!mres) {
+            return false;
+        }
+        block = temp.block;
+        value = temp.value;
 
         // Store the integer.
         llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
@@ -201,16 +210,14 @@ ParseResult *execute(Context *ctx,
             fts.c_str(), tts.c_str()
         );
         ctx->er->addError(e);
-        return NULL;
+        return false;
     }
 
-    ParseResult *pn = new ParseResult(
-        block,
-        to_type,
-        res
-    );
+    pr->block = block;
+    pr->type = to_type;
+    pr->value = res;
 
-    return pn;
+    return true;
 }
 }
 }

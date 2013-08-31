@@ -1363,13 +1363,19 @@ deleteAnonymousNamespaces_(NSNode *nsnode)
 {
     if (nsnode->ns->name.find("anon") == 0) {
         delete nsnode->ns;
+        nsnode->ns = NULL;
     }
 
-    for (std::map<std::string, NSNode *>::iterator
-            b = nsnode->children.begin(),
-            e = nsnode->children.end();
-            b != e;) {
+    std::map<std::string, NSNode *>::iterator
+        b = nsnode->children.begin(),
+        e = nsnode->children.end();
+    while (b != nsnode->children.end()) {
         deleteAnonymousNamespaces_(b->second);
+        ++b;
+    }
+
+    b = nsnode->children.begin();
+    while (b != nsnode->children.end()) {
         if (b->first.find("anon") == 0) {
             nsnode->children.erase(b++);
         } else {
