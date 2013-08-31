@@ -12618,27 +12618,15 @@ int Generator::parseFunctionBody(Element::Function *dfn,
                     if (dfn->return_type->base_type == Type::Void) {
                         scopeClose(dfn, i, NULL);
                         builder.CreateRetVoid();
-                        //fprintf(stderr, "%s: Implicit return in block:\n",
-                          //      dfn->internal_name->c_str());
-                        //i->dump();
-                        //fprintf(stderr, "\n");
                     } else {
                         ParseResult x;
                         setPr(&x, i, last_type, last_value);
                         scopeClose(dfn, x.block, NULL);
                         builder.CreateRet(x.value);
-                        //fprintf(stderr, "%s: Implicit return in block:\n",
-                        //        dfn->internal_name->c_str());
-                        //i->dump();
-                        //fprintf(stderr, "\n");
                     }
                 } else {
                     scopeClose(dfn, i, NULL);
                     builder.CreateRetVoid();
-                    //fprintf(stderr, "%s: Implicit return in block:\n",
-                      //      dfn->internal_name->c_str());
-                    //i->dump();
-                    //fprintf(stderr, "\n");
                 }
             } else {
                 /* Get the next block and create a branch to it. */
@@ -12654,7 +12642,6 @@ int Generator::parseFunctionBody(Element::Function *dfn,
      * instructions that occur after the first terminating
      * instruction. */
 
-    //fprintf(stderr, "Removing trailing instructions\n");
     for (llvm::Function::iterator i = fn->begin(), e = fn->end();
             i != e; ++i) {
         llvm::BasicBlock::iterator bi;
@@ -12666,9 +12653,6 @@ int Generator::parseFunctionBody(Element::Function *dfn,
                 if (bi == be) {
                     break;
                 }
-     //           fprintf(stderr, "Block with trailing instructions\n");
-       //         i->dump();
-         //       fprintf(stderr, "\n");
                 int count = 0;
                 while (bi != be) {
                     count++;
@@ -12677,14 +12661,10 @@ int Generator::parseFunctionBody(Element::Function *dfn,
                 while (count--) {
                     i->getInstList().pop_back();
                 }
-           //     fprintf(stderr, "Block without trailing instructions\n");
-             //   i->dump();
-               // fprintf(stderr, "\n");
                 break;
             }
         }
     }
-    //fprintf(stderr, "Finished removing trailing instructions\n");
 
 
 finish:
