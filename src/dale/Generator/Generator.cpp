@@ -53,6 +53,7 @@
 #include "../Form/Goto/Goto.h"
 #include "../Form/If/If.h"
 #include "../Form/Label/Label.h"
+#include "../Form/Return/Return.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -4962,79 +4963,6 @@ int Generator::assertTypeEquality(const char *form_name,
     );
     erep->addError(e);
     return 0;
-}
-
-/* There are a number of 'treat_as_terminator' calls here, which
- * is just feral given that each ParseResult adds a ret
- * instruction, but something else is adding extra bits to the end
- * and it's the easiest way to get things to work again. */
-bool Generator::parseReturn(Element::Function *dfn,
-                            llvm::BasicBlock *block,
-                            Node *n,
-                            bool getAddress,
-                            bool prefixed_with_core,
-                            ParseResult *pr)
-{
-    assert(n->list && "parseReturn must receive a list!");
-
-    symlist *lst = n->list;
-
-    if (!assertArgNums("return", n, 0, 1)) {
-        return false;
-    }
-    if (lst->size() == 1) {
-        llvm::IRBuilder<> builder(block);
-        scopeClose(dfn, block, NULL);
-        builder.CreateRetVoid();
-        setPr(pr, block, type_int, llvm_native_zero);
-        pr->do_not_destruct       = 1;
-        pr->do_not_copy_with_setf = 1;
-        pr->treat_as_terminator   = 1;
-        return true;
-    }
-
-    ParseResult p;
-    bool res =
-        parseFunctionBodyInstr(
-            dfn, block, (*lst)[1], getAddress, NULL, &p
-        );
-    if (!res) {
-        return false;
-    }
-    if (!assertTypeEquality("return", n, p.type, dfn->return_type)) {
-        return false;
-    }
-    block = p.block;
-    llvm::IRBuilder<> builder(block);
-    /* Both branches here create a ParseResult with an integer
-     * value but a type that is the same as the return type of the
-     * function. This is purposeful - the type is so that if other
-     * instructions occur between here and the conclusion of the
-     * function (for whatever reason), the last value continues to
-     * have the correct type, and in any event the value from a
-     * parseReturn parse result should never be used. (Woops, this
-     * last part isn't correct - see e.g. the call to CreateCondBr
-     * in parseIf. So, return the proper value in the second
-     * branch.) */
-    if (p.type->base_type == Type::Void) {
-        scopeClose(dfn, block, NULL);
-        builder.SetInsertPoint(block);
-        builder.CreateRetVoid();
-        setPr(pr, block, dfn->return_type, llvm_native_zero);
-        pr->do_not_destruct       = 1;
-        pr->do_not_copy_with_setf = 1;
-        pr->treat_as_terminator   = 1;
-        return true;
-    } else {
-        scopeClose(dfn, block, NULL);
-        builder.SetInsertPoint(block);
-        builder.CreateRet(p.value);
-        setPr(pr, block, dfn->return_type, p.value);
-        pr->do_not_destruct       = 1;
-        pr->do_not_copy_with_setf = 1;
-        pr->treat_as_terminator   = 1;
-        return true;
-    }
 }
 
 bool Generator::parseSetf(Element::Function *dfn,
@@ -10290,6 +10218,7 @@ past_sl_parse:
         (eq("goto"))    ? &dale::Form::Goto::execute
       : (eq("if"))      ? &dale::Form::If::execute
       : (eq("label"))   ? &dale::Form::Label::execute
+      : (eq("return"))  ? &dale::Form::Return::execute
                         : NULL;
     
     if (core_fn2) {
@@ -10298,9 +10227,7 @@ past_sl_parse:
     }
        
     core_fn =
-          (eq("return"))  ? &dale::Generator::parseReturn
-        : (eq("setf"))    ? &dale::Generator::parseSetf
-
+          (eq("setf"))    ? &dale::Generator::parseSetf
         : (eq("@"))       ? &dale::Generator::parseDereference
         : (eq(":"))       ? &dale::Generator::parseSref
         : (eq("#"))       ? &dale::Generator::parseAddressOf
