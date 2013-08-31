@@ -43,4 +43,12 @@ int ParseResult::copyTo(ParseResult *x)
     x->freshly_copied = freshly_copied;
     return 1;
 }
+
+void ParseResult::set(llvm::BasicBlock *new_block,
+                      Element::Type *new_type,
+                      llvm::Value *new_value) {
+    block = new_block;
+    type  = new_type;
+    value = new_value;
+}
 }

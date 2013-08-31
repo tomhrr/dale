@@ -33,6 +33,9 @@ public:
     ~ParseResult();
 
     int copyTo(ParseResult *x);
+    void set(llvm::BasicBlock *new_block,
+            Element::Type *new_type,
+            llvm::Value *new_value);
 };
 }
 

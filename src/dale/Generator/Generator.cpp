@@ -50,6 +50,7 @@
 #include "../NativeTypes/NativeTypes.h"
 #include "../ContextSavePoint/ContextSavePoint.h"
 #include "../Module/Writer/Writer.h"
+#include "../Form/Goto/Goto.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -5529,118 +5530,6 @@ bool Generator::parseAddressOf(Element::Function *dfn,
     return true;
 }
 
-bool Generator::parseGoto(Element::Function *dfn,
-                          llvm::BasicBlock *block,
-                          Node *n,
-                          bool getAddress,
-                          bool prefixed_with_core,
-                          ParseResult *pr)
-{
-    assert(n->list && "parseGoto must receive a list!");
-
-    if (!assertArgNums("goto", n, 1, 1)) {
-        return false;
-    }
-
-    symlist *lst = n->list;
-    Node *lname = (*lst)[1];
-
-    if (!assertArgIsAtom("goto", lname, "1")) {
-        return false;
-    }
-    if (!assertAtomIsSymbol("goto", lname, "1")) {
-        return false;
-    }
-
-    Token *t = lname->token;
-
-    Element::Label *mylabel = dfn->getLabel(t->str_value.c_str());
-
-    if (!mylabel) {
-        /* Block does not exist - add to defgotos. Also add a
-         * no-op instruction to the block, so that parseLabel does
-         * not add an implicit branch from the previous block to
-         * the new block (which it does if the previous block does
-         * not end with a terminator, which it won't in this case
-         * because the goto is deferred). */
-
-        std::string *name = new std::string;
-        name->append(t->str_value.c_str());
-
-        DeferredGoto *dg = new DeferredGoto;
-        dg->label_name = name;
-        dg->ns = ctx->ns();
-        dg->index = ctx->ns()->lv_index;
-        dg->block_marker = block;
-        Node *myn = new Node();
-        n->copyTo(myn);
-        dg->node = myn;
-
-        if (block->size() == 0) {
-            dg->marker         = NULL;
-        } else {
-            llvm::Instruction *tinstr = &(block->back());
-            dg->marker = tinstr;
-        }
-
-        dfn->defgotos->push_back(dg);
-
-        llvm::IRBuilder<> builder(block);
-        builder.CreateBitCast(
-            llvm_native_zero,
-            nt->getNativeIntType()
-        );
-    } else {
-        /* Get all the variables that exist within the current
-         * scope and have an index greater than the label's index.
-         * Add a destructIfApplicable call for each of these
-         * variables. */
-        std::vector<Element::Variable *> myvars;
-        ctx->ns()->getVarsAfterIndex(mylabel->index, &myvars);
-        ParseResult myp;
-        myp.block = block;
-        for (std::vector<Element::Variable *>::iterator
-                b = myvars.begin(),
-                e = myvars.end();
-                b != e;
-                ++b) {
-            Element::Variable *v = (*b);
-            myp.type  = v->type;
-            llvm::IRBuilder<> builder(myp.block);
-            /* hasRelevantDestructor does not depend on value
-             * being set. */
-            if (hasRelevantDestructor(&myp)) {
-                llvm::Value *myv = builder.CreateLoad(v->value);
-                myp.value = myv;
-                ParseResult temp;
-                destructIfApplicable(&myp, NULL, &temp);
-                myp.block = temp.block;
-            }
-        }
-        block = myp.block;
-        llvm::IRBuilder<> builder(block);
-        llvm::BasicBlock *to_block = mylabel->block;
-        builder.CreateBr(to_block);
-    }
-
-    setPr(pr, block, type_int, llvm_native_zero);
-
-    /* Ugh. If setf was defined for ints, the caller of this
-     * function would copy the returned zero. This meant that the
-     * branch instruction was no longer the final instruction in
-     * the block. This meant that parseIf (amongst other things)
-     * did not treat this as terminating. Fun stuff. */
-    pr->do_not_copy_with_setf = 1;
-
-    if (!mylabel) {
-        pr->treat_as_terminator = 1;
-    }
-    /* todo: hopefully temporary. */
-    pr->treat_as_terminator = 1;
-
-    return true;
-}
-
 bool Generator::parseLabel(Element::Function *dfn,
                                    llvm::BasicBlock *block,
                                    Node *n,
@@ -9463,9 +9352,7 @@ bool Generator::parseIf(Element::Function *dfn,
          * yep - because if this is used, there are problems, since it
          * has no predecessors. Let alone that it really should not be
          * used. */
-        //fprintf(stderr, "Then and else terminate, returning cond\n");
         pr_cond.copyTo(pr);
-        //pr->treat_as_terminator = 1;
         return true;
     }
 
@@ -10638,6 +10525,14 @@ past_sl_parse:
 
     /* Core forms (at least at this point). */
 
+    bool (* core_fn2)(Generator *gen,
+                      Element::Function *fn,
+                      llvm::BasicBlock *block,
+                      Node *node,
+                      bool get_address,
+                      bool prefixed_with_core,
+                      ParseResult *pr);
+
     bool (dale::Generator::* core_fn)(
         Element::Function *dfn,
         llvm::BasicBlock *block,
@@ -10646,9 +10541,17 @@ past_sl_parse:
         bool prefixed_with_core,
         ParseResult *pr);
 
+    core_fn2 =
+        (eq("goto"))    ? &dale::Form::Goto::execute
+                        : NULL;
+    
+    if (core_fn2) {
+        return core_fn2(this, dfn, block, n,
+                        getAddress, prefixed_with_core, pr);
+    }
+       
     core_fn =
-          (eq("goto"))    ? &dale::Generator::parseGoto
-        : (eq("label"))   ? &dale::Generator::parseLabel
+          (eq("label"))   ? &dale::Generator::parseLabel
         : (eq("return"))  ? &dale::Generator::parseReturn
         : (eq("setf"))    ? &dale::Generator::parseSetf
 

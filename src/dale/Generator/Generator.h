@@ -99,7 +99,6 @@ private:
     NativeTypes           *nt;
     TypeRegister          *tr;
     Parser                *prsr;
-    Context               *ctx;
     ErrorReporter         *erep;
     llvm::Module          *mod;
 
@@ -201,9 +200,6 @@ private:
     bool parseLabel(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
                             bool getAddress, bool
                             prefixed_with_core, ParseResult *pr);
-    bool parseGoto(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
-                           bool getAddress, bool
-                           prefixed_with_core, ParseResult *pr);
     bool parseIf(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
                          bool getAddress, bool
                          prefixed_with_core, ParseResult *pr);
@@ -346,44 +342,7 @@ private:
 
     bool getSizeofType(llvm::BasicBlock *block,
                                Element::Type *type, ParseResult *pr);
-    int assertArgNums(const char *form_name,
-                      Node *n,
-                      int min_args,
-                      int max_args);
-    int assertArgIsList(const char *form_name,
-                        Node *n,
-                        const char *arg_number);
-    int assertArgIsAtom(const char *form_name,
-                        Node *n,
-                        const char *arg_number);
 
-    int assertTypeEquality(const char *form_name,
-                           Node *n,
-                           Element::Type *got,
-                           Element::Type *expected,
-                           int ignore_arg_constness = 0);
-
-
-    int assertAtomIsSymbol(const char *form_name,
-                           Node *n,
-                           const char *arg_number);
-    int assertAtomIsStringLiteral(const char *form_name,
-                                  Node *n,
-                                  const char *arg_number);
-
-    int assertIsPointerType(const char *form_name,
-                            Node *n,
-                            Element::Type *type,
-                            const char *arg_number);
-
-    int assertIsPointerOrIntegerType(const char *form_name,
-                                     Node *n,
-                                     Element::Type *type,
-                                     const char *arg_number);
-    int assertIsIntegerType(const char *form_name,
-                            Node *n,
-                            Element::Type *type,
-                            const char *arg_number);
 
     int addOpaqueStruct(const char *name, Node *top,
                         int linkage, int must_init);
@@ -563,7 +522,6 @@ public:
                                         *buf);
     int arity(DNode *fn_name);
 
-    bool destructIfApplicable(ParseResult *pr, llvm::IRBuilder<> *builder, ParseResult *pr2);
     bool copyWithSetfIfApplicable(
         Element::Function *dfn,
         ParseResult *pr, ParseResult *pr2);
@@ -594,6 +552,47 @@ public:
     DNode *pointeeType(DNode *dnode);
     int prefunction_ctx_index;
     bool hasRelevantDestructor(ParseResult *pr);
+    bool destructIfApplicable(ParseResult *pr, llvm::IRBuilder<> *builder, ParseResult *pr2);
+    int assertArgNums(const char *form_name,
+                      Node *n,
+                      int min_args,
+                      int max_args);
+    int assertArgIsList(const char *form_name,
+                        Node *n,
+                        const char *arg_number);
+    int assertArgIsAtom(const char *form_name,
+                        Node *n,
+                        const char *arg_number);
+
+    int assertTypeEquality(const char *form_name,
+                           Node *n,
+                           Element::Type *got,
+                           Element::Type *expected,
+                           int ignore_arg_constness = 0);
+
+
+    int assertAtomIsSymbol(const char *form_name,
+                           Node *n,
+                           const char *arg_number);
+    int assertAtomIsStringLiteral(const char *form_name,
+                                  Node *n,
+                                  const char *arg_number);
+
+    int assertIsPointerType(const char *form_name,
+                            Node *n,
+                            Element::Type *type,
+                            const char *arg_number);
+
+    int assertIsPointerOrIntegerType(const char *form_name,
+                                     Node *n,
+                                     Element::Type *type,
+                                     const char *arg_number);
+    int assertIsIntegerType(const char *form_name,
+                            Node *n,
+                            Element::Type *type,
+                            const char *arg_number);
+    Context               *ctx;
+
 };
 }
 
