@@ -51,6 +51,8 @@
 #include "../ContextSavePoint/ContextSavePoint.h"
 #include "../Module/Writer/Writer.h"
 #include "../Form/Goto/Goto.h"
+#include "../Form/If/If.h"
+#include "../Form/Label/Label.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -5530,67 +5532,6 @@ bool Generator::parseAddressOf(Element::Function *dfn,
     return true;
 }
 
-bool Generator::parseLabel(Element::Function *dfn,
-                                   llvm::BasicBlock *block,
-                                   Node *n,
-                                   bool getAddress,
-                                   bool prefixed_with_core,
-                                   ParseResult *pr)
-{
-    assert(n->list && "parseLabel must receive a list!");
-
-    if (!assertArgNums("label", n, 1, 1)) {
-        return false;
-    }
-
-    symlist *lst = n->list;
-    Node *lname = (*lst)[1];
-
-    if (!assertArgIsAtom("label", lname, "1")) {
-        return false;
-    }
-    if (!assertAtomIsSymbol("label", lname, "1")) {
-        return false;
-    }
-    Token *t = lname->token;
-
-    /* Create a block with this name. */
-
-    llvm::BasicBlock *new_block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                 t->str_value.c_str(),
-                                 block->getParent());
-
-    /* If the existing block does not terminate, create a branch to
-     * this label. */
-
-    if (block->size() == 0
-            || !(block->back().isTerminator())) {
-        llvm::IRBuilder<> builder(block);
-        builder.CreateBr(new_block);
-    }
-
-    if (dfn->getLabel(t->str_value.c_str())) {
-        Error *e = new Error(
-            ErrorInst::Generator::RedeclarationOfLabel,
-            n,
-            t->str_value.c_str()
-        );
-        erep->addError(e);
-        return NULL;
-    }
-
-    int index = ctx->ns()->lv_index++;
-    Element::Label *my_label = new Element::Label();
-    my_label->block = new_block;
-    my_label->ns = ctx->ns();
-    my_label->index = index;
-    dfn->addLabel(t->str_value.c_str(), my_label);
-
-    setPr(pr, new_block, type_int, llvm_native_zero);
-    return true;
-}
-
 int Generator::assertIsPointerType(const char *form_name,
                                    Node *n,
                                    Element::Type *type,
@@ -9241,202 +9182,6 @@ bool Generator::parseAref(Element::Function *dfn,
     return true;
 }
 
-bool Generator::parseIf(Element::Function *dfn,
-                        llvm::BasicBlock *block,
-                        Node *n,
-                        bool getAddress,
-                        bool prefixed_with_core,
-                        ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    if (!assertArgNums("if", n, 3, 3)) {
-        return false;
-    }
-
-    symlist *lst = n->list;
-
-    ParseResult pr_cond;
-    bool res =
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], getAddress,
-                               NULL, &pr_cond);
-    if (!res) {
-        return false;
-    }
-
-    if (pr_cond.type->base_type != Type::Bool) {
-        std::string temp;
-        pr->type->toStringProper(&temp);
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            ((*lst)[1]),
-            "if", "bool", "1", temp.c_str()
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    llvm::IRBuilder<> builder4(pr_cond.block);
-
-    llvm::BasicBlock *then_block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                 "then", dfn->llvm_function);
-    llvm::BasicBlock *else_block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                 "else", dfn->llvm_function);
-
-    builder4.CreateCondBr(pr_cond.value, then_block, else_block);
-
-    if (hasRelevantDestructor(&pr_cond)) {
-        ParseResult temp;
-        bool res = destructIfApplicable(&pr_cond, &builder4, &temp);
-        if (!res) {
-            return false;
-        }
-    }
-
-    ctx->activateAnonymousNamespace();
-    ParseResult pr_then;
-    res =
-        parseFunctionBodyInstr(dfn, then_block, (*lst)[2], getAddress,
-                               NULL, &pr_then);
-    scopeClose(dfn, then_block, NULL);
-    ctx->deactivateAnonymousNamespace();
-    if (!res) {
-        return false;
-    }
-
-    ctx->activateAnonymousNamespace();
-    ParseResult pr_else;
-    res =
-        parseFunctionBodyInstr(dfn, else_block, (*lst)[3], getAddress,
-                               NULL, &pr_else);
-    scopeClose(dfn, else_block, NULL);
-    ctx->deactivateAnonymousNamespace();
-    if (!res) {
-        return false;
-    }
-
-    /* If the last instruction in both of these blocks is already
-     * a terminating instruction, or the parseResult said treat as
-     * terminator, don't add a done block and don't add a phi
-     * node. */
-    
-    llvm::Instruction *then_instr =
-        (pr_then.block->size() > 0)
-        ? &(pr_then.block->back())
-        : NULL;
-
-    llvm::Instruction *else_instr =
-        (pr_else.block->size() > 0)
-        ? &(pr_else.block->back())
-        : NULL;
-
-    int then_terminates = 
-        (then_instr && then_instr->isTerminator())
-        || pr_then.treat_as_terminator;
-
-    int else_terminates = 
-        (else_instr && else_instr->isTerminator())
-        || pr_else.treat_as_terminator;
- 
-    if (then_terminates && else_terminates) {
-        /* Nothing else to do here - note that this block should
-         * not be used - if this is an if that returns a value,
-         * then the correct block gets returned (the done block
-         * down the bottom), but if it's terminating, then that's not
-         * the case. */
-
-        /* todo: this used to return pr_cond, which can't have been
-         * right, but creating a new block may lead to other problems.
-         * yep - because if this is used, there are problems, since it
-         * has no predecessors. Let alone that it really should not be
-         * used. */
-        pr_cond.copyTo(pr);
-        return true;
-    }
-
-    /* If the last instruction in one of these blocks is a terminator
-     * or should be treated as such, a phi node is unnecessary. The
-     * result of the if statement will be the last value from the
-     * non-terminating block. */
-
-    if (then_terminates && !else_terminates) {
-        llvm::BasicBlock *done_block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                     "done_then_no_else", dfn->llvm_function);
-
-        llvm::IRBuilder<> builder2(pr_else.block);
-        builder2.CreateBr(done_block);
-
-        setPr(pr, done_block, pr_else.type,
-              llvm::cast<llvm::Value>(pr_else.value));
-        return true;
-    }
-
-    if (else_terminates && !then_terminates) {
-        llvm::BasicBlock *done_block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                     "done_else_no_then", dfn->llvm_function);
-
-        llvm::IRBuilder<> builder2(pr_then.block);
-        builder2.CreateBr(done_block);
-
-        setPr(pr, done_block, pr_then.type,
-              llvm::cast<llvm::Value>(pr_then.value));
-        return true;
-    }
-
-    /* If neither branch terminates, then the values of both
-     * branches must be of the same type. */
-
-    if (!pr_then.type->isEqualTo(pr_else.type)) {
-        std::string sthen;
-        std::string selse;
-        pr_then.type->toStringProper(&sthen);
-        pr_else.type->toStringProper(&selse);
-        Error *e = new Error(
-            ErrorInst::Generator::IfBranchesHaveDifferentTypes,
-            n,
-            sthen.c_str(), selse.c_str()
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    llvm::BasicBlock *done_block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                 "done_phi", dfn->llvm_function);
-
-    llvm::IRBuilder<> builder(pr_then.block);
-    builder.CreateBr(done_block);
-    llvm::IRBuilder<> builder2(pr_else.block);
-    builder2.CreateBr(done_block);
-
-    llvm::IRBuilder<> builder3(done_block);
-
-    llvm::Type *llvm_then_type =
-        toLLVMType(pr_then.type, NULL, false);
-    if (!llvm_then_type) {
-        failedDaleToLLVMTypeConversion(pr_then.type);
-        return false;
-    }
-    llvm::PHINode *pn =
-        builder3.CreatePHI(llvm_then_type, 0);
-
-    pn->addIncoming(pr_then.value, pr_then.block);
-    pn->addIncoming(pr_else.value, pr_else.block);
-
-    setPr(pr, done_block, pr_then.type,
-          llvm::cast<llvm::Value>(pn));
-
-    /* There's no need to re-copy the value here, since it's
-     * coming straight out of then or else. */
-    pr->freshly_copied = 1;
-
-    return true;
-}
-
 bool Generator::parseInFunctionDefine(Element::Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
@@ -10543,6 +10288,8 @@ past_sl_parse:
 
     core_fn2 =
         (eq("goto"))    ? &dale::Form::Goto::execute
+      : (eq("if"))      ? &dale::Form::If::execute
+      : (eq("label"))   ? &dale::Form::Label::execute
                         : NULL;
     
     if (core_fn2) {
@@ -10551,8 +10298,7 @@ past_sl_parse:
     }
        
     core_fn =
-          (eq("label"))   ? &dale::Generator::parseLabel
-        : (eq("return"))  ? &dale::Generator::parseReturn
+          (eq("return"))  ? &dale::Generator::parseReturn
         : (eq("setf"))    ? &dale::Generator::parseSetf
 
         : (eq("@"))       ? &dale::Generator::parseDereference
@@ -10569,7 +10315,6 @@ past_sl_parse:
         : (eq("p>"))      ? &dale::Generator::parsePtrMoreThan
 
         : (eq("def"))     ? &dale::Generator::parseInFunctionDefine
-        : (eq("if"))      ? &dale::Generator::parseIf
         : (eq("null"))    ? &dale::Generator::parseNull
         : (eq("nullptr")) ? &dale::Generator::parseNullPtr
         : (eq("do"))      ? &dale::Generator::parseDo

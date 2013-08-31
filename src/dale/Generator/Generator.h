@@ -178,12 +178,6 @@ private:
             Node *n,
             bool getAddress,
             Element::Type *wanted_type, ParseResult *pr);
-    bool parseFunctionBodyInstr(Element::Function *dfn,
-                                        llvm::BasicBlock *block,
-                                        Node *n,
-                                        bool getAddress,
-                                        Element::Type *wanted_type,
-                                        ParseResult *pr);
 
     bool parseSetf(Element::Function *dfn, llvm::BasicBlock *block, Node *n,
                            bool getAddress, bool
@@ -592,6 +586,12 @@ public:
                             Element::Type *type,
                             const char *arg_number);
     Context               *ctx;
+    bool parseFunctionBodyInstr(Element::Function *dfn,
+                                        llvm::BasicBlock *block,
+                                        Node *n,
+                                        bool getAddress,
+                                        Element::Type *wanted_type,
+                                        ParseResult *pr);
 
 };
 }
