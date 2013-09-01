@@ -330,8 +330,6 @@ private:
                                     Element::Type *type, ParseResult
                                     *pr);
 
-    bool getSizeofType(llvm::BasicBlock *block,
-                               Element::Type *type, ParseResult *pr);
 
 
     int addOpaqueStruct(const char *name, Node *top,
@@ -592,6 +590,8 @@ public:
     Element::Type *parseType(Node *top, bool
                              allow_anon_structs,
                              bool allow_bitfields);
+    bool getSizeofType(llvm::BasicBlock *block,
+                               Element::Type *type, ParseResult *pr);
 
 };
 }

@@ -176,6 +176,11 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/Sref/Sref.cpp
                       src/dale/Form/AddressOf/AddressOf.cpp
                       src/dale/Form/Aref/Aref.cpp
+                      src/dale/Form/PtrEquals/PtrEquals.cpp
+                      src/dale/Form/PtrAdd/PtrAdd.cpp
+                      src/dale/Form/PtrSubtract/PtrSubtract.cpp
+                      src/dale/Form/PtrLessThan/PtrLessThan.cpp
+                      src/dale/Form/PtrGreaterThan/PtrGreaterThan.cpp
                       src/dale/Element/Label/Label.cpp)
 set_target_properties (dalec PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS} -I.")
 set_target_properties (dalec PROPERTIES LINK_FLAGS "${DALEC_LINK_FLAGS} ${LLVM_LINK_FLAGS}")
