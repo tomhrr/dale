@@ -56,6 +56,7 @@
 #include "../Form/Return/Return.h"
 #include "../Form/Setf/Setf.h"
 #include "../Form/Dereference/Dereference.h"
+#include "../Form/Sref/Sref.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -8522,178 +8523,6 @@ bool Generator::parseCast(Element::Function *dfn,
     return true;
 }
 
-bool Generator::parseSref(Element::Function *dfn,
-                            llvm::BasicBlock *block,
-                            Node *n,
-                            bool getAddress,
-                            bool prefixed_with_core,
-                            ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    symlist *lst = n->list;
-
-    if (!assertArgNums(":", n, 2, 2)) {
-        return false;
-    }
-
-    getAddress = true;
-
-    int original_error_count =
-        erep->getErrorTypeCount(ErrorType::Error);
-
-    ParseResult pr_struct;
-    bool res = 
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], getAddress,
-                               NULL, &pr_struct);
-
-    if (!res) {
-        /* If the error message is 'cannot take address of
-         * non-lvalue', make getAddress false and go from there. */
-        if (erep->getErrorTypeCount(ErrorType::Error) ==
-                original_error_count + 1) {
-            Error *e = erep->popLastError();
-            if (e->instance ==
-                    ErrorInst::Generator::CannotTakeAddressOfNonLvalue) {
-                res =
-                    parseFunctionBodyInstr(
-                        dfn, block, (*lst)[1], false, NULL, &pr_struct
-                    );
-                if (!res) {
-                    erep->addError(e);
-                    return false;
-                }
-                getAddress = false;
-            } else {
-                erep->addError(e);
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-
-    /* If getAddress is false, allocate space for the struct and
-     * modify pr_struct so that the rest of the code continues to
-     * work. */
-
-    if (!getAddress) {
-        llvm::IRBuilder<> builder(pr_struct.block);
-        llvm::Type *llvm_type =
-            toLLVMType(pr_struct.type, NULL, false);
-        if (!llvm_type) {
-            failedDaleToLLVMTypeConversion(pr_struct.type);
-            return false;
-        }
-        llvm::Value *store =
-            builder.CreateAlloca(llvm_type);
-        builder.CreateStore(pr_struct.value, store);
-        pr_struct.type = tr->getPointerType(pr_struct.type);
-        pr_struct.value = store;
-    }
-
-    /* Able to assume points_to here, because getAddress was set
-     * to true in the preceding pfbi call. */
-
-    int is_const = pr_struct.type->points_to->is_const;
-
-    if (pr_struct.type->points_to->struct_name == NULL) {
-        std::string temp;
-        pr_struct.type->points_to->toStringProper(&temp);
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            ((*lst)[1]),
-            ":", "a struct", "1", temp.c_str()
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    if (ctx->getEnum(pr_struct.type->points_to->struct_name->c_str())) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            ((*lst)[1]),
-            ":", "a struct", "1", "an enum"
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    Node *ref = (*lst)[2];
-    ref = parseOptionalMacroCall(ref);
-    if (!ref) {
-        return false;
-    }
-    if (!assertArgIsAtom(":", ref, "2")) {
-        return false;
-    }
-    if (!assertAtomIsSymbol(":", ref, "2")) {
-        return false;
-    }
-
-    Token *t = ref->token;
-
-    Element::Struct *structp =
-        ctx->getStruct(
-            pr_struct.type->points_to->struct_name->c_str(),
-            pr_struct.type->points_to->namespaces
-        );
-
-    if (!structp) {
-        Error *e = new Error(
-            ErrorInst::Generator::NotInScope,
-            ((*lst)[1]),
-            pr_struct.type->points_to->struct_name->c_str()
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    int index = structp->nameToIndex(t->str_value.c_str());
-
-    if (index == -1) {
-        Error *e = new Error(
-            ErrorInst::Generator::FieldDoesNotExistInStruct,
-            ((*lst)[2]),
-            t->str_value.c_str(),
-            pr_struct.type->points_to->struct_name->c_str()
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    Element::Type *eltype = structp->indexToType(index);
-    if (is_const) {
-        eltype = tr->getConstType(eltype);
-    }
-
-    std::vector<llvm::Value *> indices;
-    stl::push_back2(&indices, llvm_native_zero,
-                    getNativeInt(index));
-
-    llvm::IRBuilder<> builder(pr_struct.block);
-    llvm::Value *vres =
-        builder.CreateGEP(pr_struct.value,
-                          llvm::ArrayRef<llvm::Value*>(indices));
-
-    /* This has changed - sref will always return a pointer,
-     * regardless of getAddress (it is as if getAddress was always
-     * enabled). */
-
-    setPr(pr, pr_struct.block, tr->getPointerType(eltype), vres);
-
-    if (hasRelevantDestructor(&pr_struct)) {
-        ParseResult temp;
-        bool res = destructIfApplicable(&pr_struct, NULL, &temp);
-        if (!res) {
-            return false;
-        }
-        pr->block = temp.block;
-    }
-
-    return true;
-}
-
 bool Generator::parseAref(Element::Function *dfn,
                           llvm::BasicBlock *block,
                           Node *n,
@@ -9946,6 +9775,7 @@ past_sl_parse:
       : (eq("return"))  ? &dale::Form::Return::execute
       : (eq("setf"))    ? &dale::Form::Setf::execute
       : (eq("@"))       ? &dale::Form::Dereference::execute
+      : (eq(":"))       ? &dale::Form::Sref::execute
                         : NULL;
     
     if (core_fn2) {
@@ -9954,8 +9784,7 @@ past_sl_parse:
     }
        
     core_fn =
-          (eq(":"))       ? &dale::Generator::parseSref
-        : (eq("#"))       ? &dale::Generator::parseAddressOf
+          (eq("#"))       ? &dale::Generator::parseAddressOf
         : (eq("$"))       ? &dale::Generator::parseAref
 
         : (eq("get-dnodes")) ? &dale::Generator::parseGetDNodes
