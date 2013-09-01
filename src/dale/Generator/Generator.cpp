@@ -55,6 +55,7 @@
 #include "../Form/Label/Label.h"
 #include "../Form/Return/Return.h"
 #include "../Form/Setf/Setf.h"
+#include "../Form/Dereference/Dereference.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -4964,90 +4965,6 @@ int Generator::assertTypeEquality(const char *form_name,
     );
     erep->addError(e);
     return 0;
-}
-
-bool Generator::parseDereference(Element::Function *dfn,
-        llvm::BasicBlock *block,
-        Node *n,
-        bool getAddress,
-        bool prefixed_with_core,
-        ParseResult *pr)
-{
-    assert(n->list && "parseDereference must receive a list!");
-
-    symlist *lst = n->list;
-
-    if (!assertArgNums("@", n, 1, 1)) {
-        return false;
-    }
-
-    ParseResult p;
-    bool res =
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL,
-                               &p);
-
-    if (!res) {
-        return false;
-    }
-
-    /* It should be a pointer. */
-
-    if (!(p.type->points_to)) {
-        std::string temp;
-        p.type->toStringProper(&temp);
-        Error *e = new Error(
-            ErrorInst::Generator::CannotDereferenceNonPointer,
-            n,
-            temp.c_str()
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    if (p.type->points_to->base_type == Type::Void) {
-        Error *e = new Error(
-            ErrorInst::Generator::CannotDereferenceVoidPointer,
-            n
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    /* If getAddress is false (the usual case), append a load
-     * instruction, otherwise just return the value. */
-
-    setPr(pr, p.block, NULL, NULL);
-
-    if (!getAddress) {
-        llvm::IRBuilder<> builder(p.block);
-        llvm::Value *res =
-            llvm::cast<llvm::Value>(builder.CreateLoad(p.value));
-
-        pr->type  = p.type->points_to;
-        pr->value = res;
-    } else {
-        pr->type  = p.type;
-        pr->value = p.value;
-    }
-
-    /* If this isn't here, then an overloaded setf that calls @
-     * on the pointer to the underlying value will not be able to
-     * work, because even (core @ x) will return a pointee to x,
-     * which will be copied to the caller of this function. */
-    if (prefixed_with_core) {
-        pr->do_not_copy_with_setf = 1;
-    }
-
-    if (hasRelevantDestructor(&p)) {
-        ParseResult temp;
-        bool res = destructIfApplicable(&p, NULL, &temp);
-        if (!res) {
-            return false;
-        }
-        pr->block = temp.block;
-    }
-
-    return true;
 }
 
 bool Generator::parseGetDNodes(Element::Function *dfn,
@@ -10028,6 +9945,7 @@ past_sl_parse:
       : (eq("label"))   ? &dale::Form::Label::execute
       : (eq("return"))  ? &dale::Form::Return::execute
       : (eq("setf"))    ? &dale::Form::Setf::execute
+      : (eq("@"))       ? &dale::Form::Dereference::execute
                         : NULL;
     
     if (core_fn2) {
@@ -10036,8 +9954,7 @@ past_sl_parse:
     }
        
     core_fn =
-          (eq("@"))       ? &dale::Generator::parseDereference
-        : (eq(":"))       ? &dale::Generator::parseSref
+          (eq(":"))       ? &dale::Generator::parseSref
         : (eq("#"))       ? &dale::Generator::parseAddressOf
         : (eq("$"))       ? &dale::Generator::parseAref
 
