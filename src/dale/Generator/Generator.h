@@ -315,7 +315,6 @@ private:
 
     Node *typeToIntNode(Element::Type *type);
 
-    Node *parseOptionalMacroCall(Node *n);
 
     void removeMacroTemporaries(void);
 
@@ -592,6 +591,7 @@ public:
                                         bool getAddress,
                                         Element::Type *wanted_type,
                                         ParseResult *pr);
+    Node *parseOptionalMacroCall(Node *n);
 
 };
 }

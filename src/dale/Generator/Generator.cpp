@@ -54,6 +54,7 @@
 #include "../Form/If/If.h"
 #include "../Form/Label/Label.h"
 #include "../Form/Return/Return.h"
+#include "../Form/Setf/Setf.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -4963,199 +4964,6 @@ int Generator::assertTypeEquality(const char *form_name,
     );
     erep->addError(e);
     return 0;
-}
-
-bool Generator::parseSetf(Element::Function *dfn,
-                            llvm::BasicBlock *block,
-                            Node *n,
-                            bool getAddress,
-                            bool prefixed_with_core,
-                            ParseResult *pr)
-{
-    assert(n->list && "parseSetf must receive a list!");
-
-    symlist *lst = n->list;
-
-    if (!assertArgNums("setf", n, 2, 2)) {
-        return false;
-    }
-
-    /* Used to use getAddress for the first argument, but now setf
-     * always takes a pointer as its first argument, to facilitate
-     * overloading etc. */
-
-    ParseResult pr_variable;
-    bool res =
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL,
-                               &pr_variable);
-
-    if (!res) {
-        return false;
-    }
-
-    /* Make sure that the first argument is a pointer. */
-
-    if (!pr_variable.type->points_to) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            (*lst)[1],
-            "setf", "a pointer", "1", "a value"
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    /* Can't modify const variables. */
-
-    if (pr_variable.type->points_to->is_const) {
-        Error *e = new Error(
-            ErrorInst::Generator::CannotModifyConstVariable,
-            n
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    Node *val_node = (*lst)[2];
-    val_node = parseOptionalMacroCall(val_node);
-    if (!val_node) {
-        return false;
-    }
-
-    /* Previously: 'if pr_value is a variable, use the value
-     * directly, rather than calling PFBI and getting a copy'.
-     * That only worked because there was a branch further down
-     * that accepted two pointers-to-type as the arguments to this
-     * form, and set the destination to be the value of the
-     * source, directly. That form of call is no longer supported,
-     * because it was extremely error-prone and unintuitive. So
-     * this will now cause additional copies, which is
-     * unfortunate; there is probably a way to make it better. */
-
-    llvm::IRBuilder<> builder(pr_variable.block);
-    ParseResult pr_value;
-    res =
-        parseFunctionBodyInstr(
-            dfn, pr_variable.block, val_node, false,
-            pr_variable.type->points_to,
-            &pr_value
-        );
-
-    if (!res) {
-        return NULL;
-    }
-
-    builder.SetInsertPoint(pr_value.block);
-
-    /* If overridden setf exists, and pr_value is a value of the
-     * pointee type of pr_variable, then call overridden setf
-     * after allocating memory for pr_value and copying it into
-     * place. */
-
-    if (!prefixed_with_core
-            && pr_value.type->isEqualTo(pr_variable.type->points_to)) {
-        std::vector<Element::Type *> types;
-        types.push_back(pr_variable.type);
-        types.push_back(pr_variable.type);
-        Element::Function *over_setf =
-            ctx->getFunction("setf-assign", &types, NULL, 0);
-        if (!over_setf) {
-            goto cont1;
-        }
-        llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(
-                                        toLLVMType(pr_value.type, NULL, false)
-                                    )
-                                );
-        builder.CreateStore(pr_value.value, new_ptr2);
-        std::vector<llvm::Value *> call_args;
-        call_args.push_back(pr_variable.value);
-        call_args.push_back(new_ptr2);
-        llvm::Value *ret =
-            builder.CreateCall(over_setf->llvm_function,
-                               llvm::ArrayRef<llvm::Value*>(call_args));
-
-        ParseResult temp;
-        pr_variable.block = pr_value.block; 
-        bool mres = destructIfApplicable(&pr_variable, &builder, &temp);
-        if (!mres) {
-            return false;
-        }
-        pr_value.block = temp.block;
-        mres = destructIfApplicable(&pr_value, &builder, &temp);
-        if (!mres) {
-            return false;
-        }
-        setPr(pr, temp.block, type_bool, ret);
-        return true;
-    }
-
-cont1:
-
-    /* If an appropriate setf definition exists, which matches
-     * the arguments exactly, then use it. */
-
-    if (!prefixed_with_core) {
-        std::vector<Element::Type *> types;
-        types.push_back(pr_variable.type);
-        types.push_back(pr_value.type);
-        Element::Function *over_setf =
-            ctx->getFunction("setf-assign", &types, NULL, 0);
-        if (!over_setf) {
-            goto cont2;
-        }
-        std::vector<llvm::Value *> call_args;
-        call_args.push_back(pr_variable.value);
-        call_args.push_back(pr_value.value);
-        llvm::Value *ret =
-            builder.CreateCall(over_setf->llvm_function,
-                               llvm::ArrayRef<llvm::Value*>(call_args));
-
-        ParseResult temp;
-        pr_variable.block = pr_value.block;
-        bool mres = destructIfApplicable(&pr_variable, &builder, &temp);
-        if (!mres) {
-            return false;
-        }
-        pr_value.block = temp.block;
-        mres = destructIfApplicable(&pr_value, &builder, &temp);
-        if (!mres) {
-            return false;
-        }
-
-        setPr(pr, temp.block, type_bool, ret);
-        return true;
-    }
-
-cont2:
-
-    if (pr_value.type->isEqualTo(pr_variable.type->points_to)) {
-        builder.CreateStore(pr_value.value, pr_variable.value);
-
-        ParseResult temp;
-        pr_variable.block = pr_value.block;
-        bool mres = destructIfApplicable(&pr_variable, &builder, &temp);
-        if (!mres) {
-            return false;
-        }
-        pr_value.block = temp.block;
-        mres = destructIfApplicable(&pr_value, &builder, &temp);
-        if (!mres) {
-            return false;
-        }
-
-        setPr(pr, temp.block, type_bool, llvm_bool_true);
-        pr->do_not_copy_with_setf = 1;
-        return true;
-    }
-
-    /* todo: it would be good to also show the setf-assign
-     * candidates here, if applicable. */
-    assertTypeEquality("setf", (*lst)[2],
-                       pr_value.type,
-                       pr_variable.type->points_to);
-
-    return false;
 }
 
 bool Generator::parseDereference(Element::Function *dfn,
@@ -10219,6 +10027,7 @@ past_sl_parse:
       : (eq("if"))      ? &dale::Form::If::execute
       : (eq("label"))   ? &dale::Form::Label::execute
       : (eq("return"))  ? &dale::Form::Return::execute
+      : (eq("setf"))    ? &dale::Form::Setf::execute
                         : NULL;
     
     if (core_fn2) {
@@ -10227,8 +10036,7 @@ past_sl_parse:
     }
        
     core_fn =
-          (eq("setf"))    ? &dale::Generator::parseSetf
-        : (eq("@"))       ? &dale::Generator::parseDereference
+          (eq("@"))       ? &dale::Generator::parseDereference
         : (eq(":"))       ? &dale::Generator::parseSref
         : (eq("#"))       ? &dale::Generator::parseAddressOf
         : (eq("$"))       ? &dale::Generator::parseAref
