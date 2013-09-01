@@ -4,33 +4,36 @@
 #include <cstring>
 #include <cstdio>
 
+#define BITS(T) (CHAR_BIT * sizeof(T))
+
 namespace dale
 {
 NativeTypes::NativeTypes()
 {
     llvm::LLVMContext &lc = llvm::getGlobalContext();
 
-    native_char_type =
-        llvm::IntegerType::get(lc, CHAR_BIT);
-    native_int_type = native_uint_type =
-                          llvm::IntegerType::get(lc, CHAR_BIT * sizeof(int));
-    native_intptr_type =
-        llvm::IntegerType::get(lc, CHAR_BIT * sizeof(char *));
-    native_ptrdiff_type =
-        llvm::IntegerType::get(lc, CHAR_BIT * sizeof(ptrdiff_t));
-    native_size_type =
-        llvm::IntegerType::get(lc, CHAR_BIT * sizeof(size_t)),
-        native_float_type =
-            llvm::Type::getFloatTy(lc);
-    native_double_type =
-        llvm::Type::getDoubleTy(lc);
-    native_longdouble_type =
-        llvm::Type::getX86_FP80Ty(lc);
+    llvm::Type *native_bool_type =
+        llvm::IntegerType::get(lc, 1);
+    native_char_type    = llvm::IntegerType::get(lc, BITS(char));
+    native_int_type     = 
+    native_uint_type    = llvm::IntegerType::get(lc, BITS(int));
+    native_intptr_type  = llvm::IntegerType::get(lc, BITS(char *));
+    native_ptrdiff_type = llvm::IntegerType::get(lc, BITS(ptrdiff_t));
+    native_size_type    = llvm::IntegerType::get(lc, BITS(size_t)),
+    
+    native_float_type      = llvm::Type::getFloatTy(lc);
+    native_double_type     = llvm::Type::getDoubleTy(lc);
+    native_longdouble_type = llvm::Type::getX86_FP80Ty(lc);
 
     native_ptr_size     = CHAR_BIT * sizeof(char *);
     native_int_size     = CHAR_BIT * sizeof(int);
     native_size_size    = CHAR_BIT * sizeof(size_t);
     native_ptrdiff_size = CHAR_BIT * sizeof(ptrdiff_t);
+
+    llvm_false = llvm::ConstantInt::get(native_bool_type, 0);
+    llvm_true  = llvm::ConstantInt::get(native_bool_type, 1);
+    llvm_zero  = llvm::ConstantInt::get(native_int_type,  0);
+    llvm_one   = llvm::ConstantInt::get(native_int_type,  1);
 }
 
 llvm::IntegerType *NativeTypes::getNativeIntType(void)
@@ -96,6 +99,26 @@ int NativeTypes::getNativePtrDiffSize(void)
 int NativeTypes::getNativeSizeSize(void)
 {
     return native_size_size;
+}
+
+llvm::Value *NativeTypes::getLLVMTrue(void)
+{
+    return llvm_true;
+}
+
+llvm::Value *NativeTypes::getLLVMFalse(void)
+{
+    return llvm_false;
+}
+
+llvm::Value *NativeTypes::getLLVMZero(void)
+{
+    return llvm_zero;
+}
+
+llvm::Value *NativeTypes::getLLVMOne(void)
+{
+    return llvm_one;
 }
 
 int NativeTypes::internalSizeToRealSize(int n)

@@ -21,6 +21,10 @@ private:
     int native_int_size;
     int native_size_size;
     int native_ptrdiff_size;
+    llvm::Value *llvm_true;
+    llvm::Value *llvm_false;
+    llvm::Value *llvm_zero;
+    llvm::Value *llvm_one;
 public:
     NativeTypes();
     llvm::IntegerType *getNativeIntType(void);
@@ -37,6 +41,10 @@ public:
     int getNativeSizeSize(void);
     int getNativePtrDiffSize(void);
     int internalSizeToRealSize(int size);
+    llvm::Value *getLLVMTrue(void);
+    llvm::Value *getLLVMFalse(void);
+    llvm::Value *getLLVMZero(void);
+    llvm::Value *getLLVMOne(void);
 };
 }
 

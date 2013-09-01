@@ -18,7 +18,6 @@ namespace Operation
 namespace Cast
 {
 bool execute(Context *ctx,
-            llvm::Module *mod,
             llvm::BasicBlock *block,
             llvm::Value *value,
             Element::Type *from_type,

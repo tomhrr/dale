@@ -58,6 +58,7 @@
 #include "../Form/Dereference/Dereference.h"
 #include "../Form/Sref/Sref.h"
 #include "../Form/AddressOf/AddressOf.h"
+#include "../Form/Aref/Aref.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -161,12 +162,6 @@ void (*pool_free_fptr)(MContext *) = NULL;
 llvm::Type *llvm_type_dnode = NULL;
 llvm::Type *llvm_type_pdnode = NULL;
 
-llvm::Value *llvm_bool_true  = NULL;
-llvm::Value *llvm_bool_false = NULL;
-
-llvm::Value *llvm_native_zero = NULL;
-llvm::Value *llvm_native_one  = NULL;
-
 int nesting = 0;
 int g_no_acd;
 int g_nodrt;
@@ -249,22 +244,9 @@ Generator::Generator()
 
     type_pchar  = tr->getPointerType(type_char);
 
-    llvm_bool_true =
-        llvm::ConstantInt::get(
-            llvm::IntegerType::get(llvm::getGlobalContext(), 1), 1
-        );
-    llvm_bool_false =
-        llvm::ConstantInt::get(
-            llvm::IntegerType::get(llvm::getGlobalContext(), 1), 0
-        );
-    llvm_native_zero =
-        llvm::ConstantInt::get(nt->getNativeIntType(), 0);
-    llvm_native_one =
-        llvm::ConstantInt::get(nt->getNativeIntType(), 1);
-
     two_zero_indices.clear();
     stl::push_back2(&two_zero_indices,
-                    llvm_native_zero, llvm_native_zero);
+                    nt->getLLVMZero(), nt->getLLVMZero());
 
     /* On OS X, SYSTEM_PROCESSOR is i386 even when the underlying
      * processor is x86-64, hence the extra check here. */
@@ -3527,8 +3509,8 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
         svar2->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
         llvm::Value *temps[2];
-        temps[0] = llvm_native_zero;
-        temps[1] = llvm_native_zero;
+        temps[0] = nt->getLLVMZero();
+        temps[1] = nt->getLLVMZero();
 
         llvm::Constant *pce =
             llvm::ConstantExpr::getGetElementPtr(
@@ -5464,7 +5446,7 @@ bool Generator::parseNullPtr(Element::Function *dfn,
 
     llvm::Value *val =
         builder.CreateIntToPtr(
-            llvm_native_zero,
+            nt->getLLVMZero(),
             llvm_ptype
         );
 
@@ -5531,7 +5513,7 @@ bool Generator::parseNull(Element::Function *dfn,
 
     llvm::Value *icmpres = llvm::cast<llvm::Value>(
                                builder.CreateICmpEQ(vres,
-                                       llvm_native_zero)
+                                       nt->getLLVMZero())
                            );
     
     setPr(pr, pr_value.block, type_bool, icmpres);
@@ -5764,7 +5746,7 @@ bool Generator::destructIfApplicable(ParseResult *pr,
             temp.block = mbl;
             std::vector<llvm::Value *> indices;
             stl::push_back2(&indices,
-                            llvm_native_zero,
+                            nt->getLLVMZero(),
                             llvm::cast<llvm::Value>(
                                 llvm::ConstantInt::get(
                                     nt->getNativeIntType(),
@@ -7234,7 +7216,7 @@ bool Generator::getOffsetofType(llvm::BasicBlock *block,
     }
 
     std::vector<llvm::Value *> indices;
-    stl::push_back2(&indices,  llvm_native_zero,
+    stl::push_back2(&indices,  nt->getLLVMZero(),
                     getNativeInt(myindex));
 
     llvm::Value *res =
@@ -8089,17 +8071,17 @@ bool Generator::parseVaArg(Element::Function *dfn,
                               );
 
         std::vector<llvm::Value *> indices_gp_offset;
-        stl::push_back2(&indices_gp_offset, llvm_native_zero,
-                        llvm_native_zero);
+        stl::push_back2(&indices_gp_offset, nt->getLLVMZero(),
+                        nt->getLLVMZero());
 
         std::vector<llvm::Value *> indices_overflow_arg_area;
         stl::push_back2(&indices_overflow_arg_area,
-                        llvm_native_zero,
+                        nt->getLLVMZero(),
                         getNativeInt(2));
 
         std::vector<llvm::Value *> indices_reg_save_area;
         stl::push_back2(&indices_reg_save_area,
-                        llvm_native_zero,
+                        nt->getLLVMZero(),
                         getNativeInt(3));
 
         llvm::Value *ptr_gpo =
@@ -8255,7 +8237,7 @@ bool Generator::doCast(llvm::BasicBlock *block,
                                int implicit,
                                ParseResult *pr)
 {
-    return Operation::Cast::execute(ctx, mod, block,
+    return Operation::Cast::execute(ctx, block,
                                     value, from_type, to_type,
                                     n, implicit, pr);
 }
@@ -8322,147 +8304,6 @@ bool Generator::parseCast(Element::Function *dfn,
     }
 
     setPr(pr, temp.block, temp.type, temp.value);
-    return true;
-}
-
-bool Generator::parseAref(Element::Function *dfn,
-                          llvm::BasicBlock *block,
-                          Node *n,
-                          bool getAddress,
-                          bool prefixed_with_core,
-                          ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    if (!assertArgNums("$", n, 2, 2)) {
-        return false;
-    }
-
-    symlist *lst = n->list;
-    ParseResult pr_array;
-    bool res = parseFunctionBodyInstr(dfn, block, (*lst)[1], true,
-                                      NULL, &pr_array);
-    if (!res) {
-        return false;
-    }
-
-    if (!(pr_array.type->points_to)) {
-        std::string temp;
-        pr_array.type->toStringProper(&temp);
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            ((*lst)[1]),
-            "$", "a pointer or array", "1", temp.c_str()
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    ParseResult pr_index;
-    res = 
-        parseFunctionBodyInstr(dfn, pr_array.block, (*lst)[2], false,
-                               NULL, &pr_index);
-    if (!res) {
-        return false;
-    }
-
-    /* Attempt to cast pr_index to a size type, if it is not such
-     * a type already. */
-
-    if (pr_index.type->base_type != Type::Size) {
-        ParseResult newt;
-        bool res = 
-            doCast(pr_index.block, pr_index.value, pr_index.type,
-                   type_size, (*lst)[2], IMPLICIT, &newt);
-        if (!res) {
-            std::string temp;
-            pr_index.type->toStringProper(&temp);
-            Error *e = new Error(
-                ErrorInst::Generator::IncorrectArgType,
-                ((*lst)[2]),
-                "$", "int", "2", temp.c_str()
-            );
-            erep->addError(e);
-            return false;
-        }
-        newt.copyTo(&pr_index);
-    }
-
-    llvm::IRBuilder<> builder(pr_index.block);
-
-    llvm::Value *proper_ptr;
-    llvm::Value *vres;
-
-    if (pr_array.type->points_to->points_to) {
-        proper_ptr = builder.CreateLoad(pr_array.value);
-        std::vector<llvm::Value *> indices;
-        indices.push_back(llvm::cast<llvm::Value>(pr_index.value));
-        vres = builder.Insert(
-                  llvm::GetElementPtrInst::Create(
-                      proper_ptr,
-                      llvm::ArrayRef<llvm::Value*>(indices)
-                  ),
-                  "asdf"
-              );
-    } else {
-        std::vector<llvm::Value *> indices;
-        stl::push_back2(&indices, llvm_native_zero,
-                        llvm::cast<llvm::Value>(pr_index.value));
-        vres = builder.Insert(
-                  llvm::GetElementPtrInst::Create(
-                      pr_array.value,
-                      llvm::ArrayRef<llvm::Value*>(indices)
-                  ),
-                  "asdf"
-              );
-    }
-
-    pr->block = pr_index.block;
-
-    /* pr_array returns a pointer - that's what you want to
-     * return, here. */
-    if (pr_array.type->is_array) {
-        pr->type = tr->getPointerType(pr_array.type->array_type);
-    } else {
-        if (pr_array.type->points_to->points_to) {
-            pr->type = pr_array.type->points_to;
-        } else if (pr_array.type->points_to->array_type) {
-            pr->type = tr->getPointerType(
-                pr_array.type->points_to->array_type
-            );
-        } else {
-            std::string typestr;
-            pr_array.type->toStringProper(&typestr);
-            Error *e = new Error(
-                ErrorInst::Generator::CanOnlyIndexIntoPointersAndArrays,
-                n,
-                typestr.c_str()
-            );
-            erep->addError(e);
-            return false;
-        }
-    }
-    pr->value = vres;
-
-    if (hasRelevantDestructor(&pr_array)) {
-        pr_array.block = pr_index.block;
-        ParseResult temp;
-        bool res = destructIfApplicable(&pr_array, NULL, &temp);
-        if (!res) {
-            return false;
-        }
-        pr_index.block = temp.block;
-    }
-
-    if (hasRelevantDestructor(&pr_index)) {
-        ParseResult temp;
-        bool res = destructIfApplicable(&pr_index, NULL, &temp);
-        if (!res) {
-            return false;
-        }
-        pr->block = temp.block;
-    }
-
     return true;
 }
 
@@ -9579,6 +9420,7 @@ past_sl_parse:
       : (eq("@"))       ? &dale::Form::Dereference::execute
       : (eq(":"))       ? &dale::Form::Sref::execute
       : (eq("#"))       ? &dale::Form::AddressOf::execute
+      : (eq("$"))       ? &dale::Form::Aref::execute
                         : NULL;
     
     if (core_fn2) {
@@ -9587,9 +9429,7 @@ past_sl_parse:
     }
        
     core_fn =
-          (eq("$"))       ? &dale::Generator::parseAref
-
-        : (eq("get-dnodes")) ? &dale::Generator::parseGetDNodes
+          (eq("get-dnodes")) ? &dale::Generator::parseGetDNodes
 
         : (eq("p="))      ? &dale::Generator::parsePtrEquals
         : (eq("p+"))      ? &dale::Generator::parsePtrAdd
@@ -9747,7 +9587,7 @@ past_sl_parse:
                 /* Get the function pointer value. */
                 std::vector<llvm::Value *> indices;
                 stl::push_back2(&indices,
-                                llvm_native_zero,
+                                nt->getLLVMZero(),
                                 getNativeInt(
                                     mystruct->nameToIndex("apply")));
 
@@ -10440,7 +10280,7 @@ bool Generator::parseArrayLiteral(Element::Function *dfn,
 
     llvm::Value *llvm_array = builder.CreateAlloca(llvm_array_type);
     std::vector<llvm::Value *> indices;
-    indices.push_back(llvm_native_zero);
+    indices.push_back(nt->getLLVMZero());
 
     for (int i = 0; i < (int) elements.size(); ++i) {
         indices.push_back(llvm::ConstantInt::get(nt->getNativeIntType(), i));
@@ -10550,7 +10390,7 @@ bool Generator::parseStructLiteral(Element::Function *dfn,
         int index = str->nameToIndex(name->token->str_value.c_str());
 
         std::vector<llvm::Value *> indices;
-        stl::push_back2(&indices, llvm_native_zero,
+        stl::push_back2(&indices, nt->getLLVMZero(),
                         getNativeInt(index));
 
         llvm::Value *res =
@@ -10679,7 +10519,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
         /* Add a bool argument and type to the front of the
          * function call. */
         call_arg_types.push_back(type_bool);
-        call_args.push_back(llvm_bool_false);
+        call_args.push_back(nt->getLLVMFalse());
     }
 
     symlist_iter = lst->begin();
