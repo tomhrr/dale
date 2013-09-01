@@ -100,7 +100,6 @@ private:
     TypeRegister          *tr;
     Parser                *prsr;
     ErrorReporter         *erep;
-    llvm::Module          *mod;
 
     std::vector<llvm::Module *> *modules;
     std::map<std::string, llvm::Module*> *dtm_modules;
@@ -517,9 +516,6 @@ public:
     void setPdnode();
     void setPoolfree();
 
-    bool scopeClose(Element::Function *dfn,
-                   llvm::BasicBlock *block,
-                   llvm::Value *no_destruct);
     int is_2D_char_2D_type(DNode *dnode);
     int is_2D_integer_2D_type(DNode *dnode);
     int is_2D_signed_2D_integer_2D_type(DNode *dnode);
@@ -539,6 +535,10 @@ public:
     bool typesEqual(DNode *T1, DNode *T2);
     DNode *pointeeType(DNode *dnode);
     int prefunction_ctx_index;
+   
+    bool scopeClose(Element::Function *dfn,
+                   llvm::BasicBlock *block,
+                   llvm::Value *no_destruct);
     bool hasRelevantDestructor(ParseResult *pr);
     bool destructIfApplicable(ParseResult *pr, llvm::IRBuilder<> *builder, ParseResult *pr2);
     int assertArgNums(const char *form_name,
@@ -592,6 +592,8 @@ public:
                              bool allow_bitfields);
     bool getSizeofType(llvm::BasicBlock *block,
                                Element::Type *type, ParseResult *pr);
+    llvm::Module          *mod;
+    bool is_x86_64;
 
 };
 }
