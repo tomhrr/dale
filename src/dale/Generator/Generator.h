@@ -155,9 +155,6 @@ private:
     void parseStructDefinition(const char *name, Node *n);
     void parseMacroDefinition(const char *name, Node *n);
     void parseEnumDefinition(const char *name, Node *n);
-    Element::Type *parseType(Node *top, bool
-                             allow_anon_structs,
-                             bool allow_bitfields);
     int parseFunctionBody(Element::Function *dfn,
                           llvm::Function *fn, Node *n, int skip, int is_anonymous);
     llvm::Type *toLLVMType(Element::Type *type, Node *n, bool allow_non_first_class, bool externally_defined = false);
@@ -592,6 +589,9 @@ public:
                                         Element::Type *wanted_type,
                                         ParseResult *pr);
     Node *parseOptionalMacroCall(Node *n);
+    Element::Type *parseType(Node *top, bool
+                             allow_anon_structs,
+                             bool allow_bitfields);
 
 };
 }
