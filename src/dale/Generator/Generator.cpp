@@ -67,6 +67,7 @@
 #include "../Form/VaStart/VaStart.h"
 #include "../Form/VaEnd/VaEnd.h"
 #include "../Form/VaArg/VaArg.h"
+#include "../Form/Null/Null.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -5082,79 +5083,6 @@ bool Generator::parseNullPtr(Element::Function *dfn,
     return true;
 }
 
-bool Generator::parseNull(Element::Function *dfn,
-                          llvm::BasicBlock *block,
-                          Node *n,
-                          bool getAddress,
-                          bool prefixed_with_core,
-                          ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    if (!assertArgNums("null", n, 1, 1)) {
-        return false;
-    }
-
-    symlist *lst = n->list;
-
-    /* Take the second value, parseMacroCall, see if it's a list,
-     * if it is a list and the form is : or $, then show an error
-     * about that value never being null. */
-
-    Node *arg = (*lst)[1];
-    if (arg->is_list) {
-        arg = parseOptionalMacroCall(arg);
-        if (!arg) {
-            return false;
-        }
-        if (arg->is_list) {
-            Node *first = arg->list->at(0);
-            if (first->is_token) {
-                const char *v = first->token->str_value.c_str();
-                if ((!strcmp(v, ":")) || (!strcmp(v, "$"))) {
-                    Error *e = new Error(
-                        ErrorInst::Generator::ValueWillNeverBeNull,
-                        arg
-                    );
-                    erep->addError(e);
-                    return false;
-                }
-            }
-        }
-    }
-
-    ParseResult pr_value;
-    bool res = parseFunctionBodyInstr(dfn, block, arg, false, NULL, &pr_value);
-
-    if (!res) {
-        return false;
-    }
-    if (!assertIsPointerType("null", arg, pr_value.type, "1")) {
-        return false;
-    }
-
-    llvm::IRBuilder<> builder(pr_value.block);
-    llvm::Value *vres =
-        builder.CreatePtrToInt(pr_value.value, nt->getNativeIntType());
-
-    llvm::Value *icmpres = llvm::cast<llvm::Value>(
-                               builder.CreateICmpEQ(vres,
-                                       nt->getLLVMZero())
-                           );
-    
-    setPr(pr, pr_value.block, type_bool, icmpres);
-    if (hasRelevantDestructor(&pr_value)) {
-        ParseResult temp;
-        bool res = destructIfApplicable(&pr_value, NULL, &temp);
-        if (!res) { 
-            return false;
-        }
-        pr->block = temp.block;
-    }
-
-    return true;
-}
-
 bool Generator::parseUsingNamespace(Element::Function *dfn,
                                     llvm::BasicBlock *block,
                                     Node *n,
@@ -8638,6 +8566,7 @@ past_sl_parse:
       : (eq("va-arg"))   ? &dale::Form::VaArg::execute
       : (eq("va-start")) ? &dale::Form::VaStart::execute
       : (eq("va-end"))   ? &dale::Form::VaEnd::execute
+      : (eq("null"))     ? &dale::Form::Null::execute
                          : NULL;
  
     if (core_fn2) {
@@ -8648,7 +8577,6 @@ past_sl_parse:
     core_fn =
           (eq("get-dnodes")) ? &dale::Generator::parseGetDNodes
         : (eq("def"))     ? &dale::Generator::parseInFunctionDefine
-        : (eq("null"))    ? &dale::Generator::parseNull
         : (eq("nullptr")) ? &dale::Generator::parseNullPtr
         : (eq("do"))      ? &dale::Generator::parseDo
         : (eq("cast"))    ? &dale::Generator::parseCast
