@@ -147,11 +147,9 @@ private:
     void parseArgument(Element::Variable *var, Node *n,
                        bool allow_anon_structs,
                        bool allow_bitfields);
-    int parseLinkage(Node *n);
     int parseInteger(Node *n);
     int getUnusedVarname(std::string *mystr);
     void parseGlobalVariable(const char *name, Node *n);
-    void parseStructDefinition(const char *name, Node *n);
     void parseMacroDefinition(const char *name, Node *n);
     void parseEnumDefinition(const char *name, Node *n);
     int parseFunctionBody(Element::Function *dfn,
@@ -595,7 +593,8 @@ public:
     bool is_x86_64;
     llvm::Value *IntNodeToStaticDNode(Node *node, llvm::Value *next_node);
     Element::Type *type_pdnode;
-
+    void parseStructDefinition(const char *name, Node *n);
+    int parseLinkage(Node *n);
 };
 }
 
