@@ -68,6 +68,7 @@
 #include "../Form/VaEnd/VaEnd.h"
 #include "../Form/VaArg/VaArg.h"
 #include "../Form/Null/Null.h"
+#include "../Form/GetDNodes/GetDNodes.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -166,7 +167,6 @@ Element::Type *type_int128;
 Element::Type *type_uint128;
 
 Element::Type *type_dnode = NULL;
-Element::Type *type_pdnode = NULL;
 void (*pool_free_fptr)(MContext *) = NULL;
 llvm::Type *llvm_type_dnode = NULL;
 llvm::Type *llvm_type_pdnode = NULL;
@@ -4959,25 +4959,6 @@ int Generator::assertTypeEquality(const char *form_name,
     return 0;
 }
 
-bool Generator::parseGetDNodes(Element::Function *dfn,
-                                       llvm::BasicBlock *block,
-                                       Node *n,
-                                       bool getAddress,
-                                       bool prefixed_with_core,
-                                       ParseResult *pr)
-{
-    if (!assertArgNums("get-dnodes", n, 1, 1)) {
-        return false; 
-    }
-
-    llvm::Value *v = IntNodeToStaticDNode(n->list->at(1), NULL);
-
-    llvm::IRBuilder<> builder(block);
-
-    setPr(pr, block, type_pdnode, v);
-    return true;
-}
-
 int Generator::assertIsPointerType(const char *form_name,
                                    Node *n,
                                    Element::Type *type,
@@ -8549,25 +8530,26 @@ past_sl_parse:
         ParseResult *pr);
 
     core_fn2 =
-        (eq("goto"))     ? &dale::Form::Goto::execute
-      : (eq("if"))       ? &dale::Form::If::execute
-      : (eq("label"))    ? &dale::Form::Label::execute
-      : (eq("return"))   ? &dale::Form::Return::execute
-      : (eq("setf"))     ? &dale::Form::Setf::execute
-      : (eq("@"))        ? &dale::Form::Dereference::execute
-      : (eq(":"))        ? &dale::Form::Sref::execute
-      : (eq("#"))        ? &dale::Form::AddressOf::execute
-      : (eq("$"))        ? &dale::Form::Aref::execute
-      : (eq("p="))       ? &dale::Form::PtrEquals::execute
-      : (eq("p+"))       ? &dale::Form::PtrAdd::execute
-      : (eq("p-"))       ? &dale::Form::PtrSubtract::execute
-      : (eq("p<"))       ? &dale::Form::PtrLessThan::execute
-      : (eq("p>"))       ? &dale::Form::PtrGreaterThan::execute
-      : (eq("va-arg"))   ? &dale::Form::VaArg::execute
-      : (eq("va-start")) ? &dale::Form::VaStart::execute
-      : (eq("va-end"))   ? &dale::Form::VaEnd::execute
-      : (eq("null"))     ? &dale::Form::Null::execute
-                         : NULL;
+        (eq("goto"))       ? &dale::Form::Goto::execute
+      : (eq("if"))         ? &dale::Form::If::execute
+      : (eq("label"))      ? &dale::Form::Label::execute
+      : (eq("return"))     ? &dale::Form::Return::execute
+      : (eq("setf"))       ? &dale::Form::Setf::execute
+      : (eq("@"))          ? &dale::Form::Dereference::execute
+      : (eq(":"))          ? &dale::Form::Sref::execute
+      : (eq("#"))          ? &dale::Form::AddressOf::execute
+      : (eq("$"))          ? &dale::Form::Aref::execute
+      : (eq("p="))         ? &dale::Form::PtrEquals::execute
+      : (eq("p+"))         ? &dale::Form::PtrAdd::execute
+      : (eq("p-"))         ? &dale::Form::PtrSubtract::execute
+      : (eq("p<"))         ? &dale::Form::PtrLessThan::execute
+      : (eq("p>"))         ? &dale::Form::PtrGreaterThan::execute
+      : (eq("va-arg"))     ? &dale::Form::VaArg::execute
+      : (eq("va-start"))   ? &dale::Form::VaStart::execute
+      : (eq("va-end"))     ? &dale::Form::VaEnd::execute
+      : (eq("null"))       ? &dale::Form::Null::execute
+      : (eq("get-dnodes")) ? &dale::Form::GetDNodes::execute
+                           : NULL;
  
     if (core_fn2) {
         return core_fn2(this, dfn, block, n,
@@ -8575,8 +8557,7 @@ past_sl_parse:
     }
        
     core_fn =
-          (eq("get-dnodes")) ? &dale::Generator::parseGetDNodes
-        : (eq("def"))     ? &dale::Generator::parseInFunctionDefine
+          (eq("def"))     ? &dale::Generator::parseInFunctionDefine
         : (eq("nullptr")) ? &dale::Generator::parseNullPtr
         : (eq("do"))      ? &dale::Generator::parseDo
         : (eq("cast"))    ? &dale::Generator::parseCast

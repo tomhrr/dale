@@ -402,7 +402,6 @@ private:
                                  const char *field_name,
                                  int index, ParseResult *pr);
 
-    llvm::Value *IntNodeToStaticDNode(Node *node, llvm::Value *next_node);
     bool parseOffsetof(Element::Function *dfn,
                                llvm::BasicBlock *block,
                                Node *n,
@@ -594,6 +593,8 @@ public:
                                Element::Type *type, ParseResult *pr);
     llvm::Module          *mod;
     bool is_x86_64;
+    llvm::Value *IntNodeToStaticDNode(Node *node, llvm::Value *next_node);
+    Element::Type *type_pdnode;
 
 };
 }
