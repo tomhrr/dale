@@ -93,4 +93,12 @@ Error *ErrorReporter::popLastError(void)
     errors->pop_back();
     return last_error;
 }
+
+void ErrorReporter::popErrors(int original_count)
+{
+    int diff = getErrorTypeCount(ErrorType::Error) - original_count;
+    while (diff--) {
+        popLastError();
+    }
+}
 }

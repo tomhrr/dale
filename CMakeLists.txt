@@ -187,6 +187,16 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/Null/Null.cpp
                       src/dale/Form/GetDNodes/GetDNodes.cpp
                       src/dale/Form/Def/Def.cpp
+                      src/dale/Form/NullPtr/NullPtr.cpp
+                      src/dale/Form/Do/Do.cpp
+                      src/dale/Form/Cast/Cast.cpp
+                      src/dale/Form/Sizeof/Sizeof.cpp
+                      src/dale/Form/Offsetof/Offsetof.cpp
+                      src/dale/Form/Alignmentof/Alignmentof.cpp
+                      src/dale/Form/Funcall/Funcall.cpp
+                      src/dale/Form/UsingNamespace/UsingNamespace.cpp
+                      src/dale/Form/NewScope/NewScope.cpp
+                      src/dale/Form/ArrayOf/ArrayOf.cpp
                       src/dale/Element/Label/Label.cpp)
 set_target_properties (dalec PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS} -I.")
 set_target_properties (dalec PROPERTIES LINK_FLAGS "${DALEC_LINK_FLAGS} ${LLVM_LINK_FLAGS}")

@@ -21,6 +21,7 @@ public:
     int getErrorTypeCount(int error_type);
     int getErrorCount(void);
     Error *popLastError(void);
+    void popErrors(int original_count);
     void flush(void);
 };
 }

@@ -70,6 +70,16 @@
 #include "../Form/Null/Null.h"
 #include "../Form/GetDNodes/GetDNodes.h"
 #include "../Form/Def/Def.h"
+#include "../Form/NullPtr/NullPtr.h"
+#include "../Form/Do/Do.h"
+#include "../Form/Cast/Cast.h"
+#include "../Form/Sizeof/Sizeof.h"
+#include "../Form/Offsetof/Offsetof.h"
+#include "../Form/Alignmentof/Alignmentof.h"
+#include "../Form/Funcall/Funcall.h"
+#include "../Form/UsingNamespace/UsingNamespace.h"
+#include "../Form/NewScope/NewScope.h"
+#include "../Form/ArrayOf/ArrayOf.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -5020,159 +5030,6 @@ int Generator::assertIsIntegerType(const char *form_name,
     return 0;
 }
 
-bool Generator::parseNullPtr(Element::Function *dfn,
-                             llvm::BasicBlock *block,
-                             Node *n,
-                             bool getAddress,
-                             bool prefixed_with_core,
-                             ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    if (!assertArgNums("nullptr", n, 1, 1)) {
-        return false;
-    }
-
-    symlist *lst = n->list;
-
-    Element::Type *type = parseType((*lst)[1], false, false);
-    if (!type) {
-        return false;
-    }
-    /* Create a pointer to the provided type. */
-    Element::Type *ptype = tr->getPointerType(type);
-
-    llvm::IRBuilder<> builder(block);
-    llvm::Type *llvm_ptype =
-        toLLVMType(ptype, NULL, false);
-    if (!llvm_ptype) {
-        failedDaleToLLVMTypeConversion(ptype);
-        return false;
-    }
-
-    llvm::Value *res =
-        builder.CreateAlloca(llvm_ptype);
-
-    llvm::Value *val =
-        builder.CreateIntToPtr(
-            nt->getLLVMZero(),
-            llvm_ptype
-        );
-
-    builder.CreateStore(val, res);
-    setPr(pr, block, ptype, val);
-
-    return true;
-}
-
-bool Generator::parseUsingNamespace(Element::Function *dfn,
-                                    llvm::BasicBlock *block,
-                                    Node *n,
-                                    bool getAddress,
-                                    bool prefixed_with_core,
-                                    ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    if (!assertArgNums("using-namespace", n, 1, -1)) {
-        return false;
-    }
-
-    symlist *lst = n->list;
-    Node *n2 = (*lst)[1];
-    n2 = parseOptionalMacroCall(n2);
-    if (!n2) {
-        return false;
-    }
-    if (!assertArgIsAtom("using-namespace", n2, "1")) {
-        return false;
-    }
-    if (!assertAtomIsSymbol("using-namespace", n2, "1")) {
-        return false;
-    }
-
-    Token *t = n2->token;
-
-    bool res = ctx->useNamespace(t->str_value.c_str());
-    if (!res) {
-        Error *e = new Error(
-            ErrorInst::Generator::NamespaceNotInScope,
-            n,
-            t->str_value.c_str()
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    std::vector<Node *>::iterator node_iter;
-    node_iter = lst->begin();
-    ++node_iter;
-    ++node_iter;
-
-    pr->block = block;
-    while (node_iter != lst->end()) {
-        bool res = parseFunctionBodyInstr(
-                       dfn, pr->block, (*node_iter), getAddress, NULL, pr
-                   );
-        if (!res) {
-            return false;
-        }
-        ++node_iter;
-    }
-
-    ctx->unuseNamespace();
-
-    return true;
-}
-
-bool Generator::parseArrayOf(Element::Function *dfn,
-                            llvm::BasicBlock *block,
-                            Node *n,
-                            bool getAddress,
-                            bool prefixed_with_core,
-                            ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    symlist *lst = n->list;
-
-    if (!assertArgNums("array-of", n, 3, -1)) {
-        return false;
-    }
-
-    Node *newnum = parseOptionalMacroCall((*lst)[1]);
-    if (!newnum) {
-        return false;
-    }
-
-    int size = parseInteger(newnum);
-    if (size == -1) {
-        return false;
-    }
-
-    Element::Type *type = parseType((*lst)[2], false, false);
-    if (!type) {
-        return false;
-    }
-
-    Element::Type *arrtype = tr->getArrayType(type, size);
-
-    int size2;
-    bool res = 
-        parseArrayLiteral(
-            dfn,
-            block,
-            ((*lst)[3]),
-            "array literal",
-            arrtype,
-            getAddress,
-            &size2,
-            pr
-        );
-
-    return res;
-}
-
 bool Generator::hasRelevantDestructor(ParseResult *pr)
 {
     if (pr->do_not_destruct) {
@@ -5477,56 +5334,6 @@ bool Generator::scopeClose(Element::Function *dfn,
     return true;
 }
 
-bool Generator::parseNewScope(Element::Function *dfn,
-                                      llvm::BasicBlock *block,
-                                      Node *n,
-                                      bool getAddress,
-                                      bool prefixed_with_core,
-                                      ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    symlist *lst = n->list;
-
-    ctx->activateAnonymousNamespace();
-    std::string anon_name = ctx->ns()->name;
-
-    std::vector<Node *>::iterator node_iter;
-    node_iter = lst->begin();
-    ++node_iter;
-
-    pr->block = block;
-    bool success = true;
-    while (node_iter != lst->end()) {
-        ParseResult local_pr;
-        bool res = parseFunctionBodyInstr(
-                       dfn, pr->block, (*node_iter), getAddress, NULL, 
-                       &local_pr
-                   );
-        ++node_iter;
-        if (!res) {
-            success = false;
-            continue;
-        }
-       
-        if (node_iter != lst->end()) {
-            ParseResult pr_value;
-            bool res = destructIfApplicable(&local_pr, NULL, &pr_value);
-            if (!res) {
-                return false;
-            }
-            pr->block = pr_value.block;
-        } else {
-            local_pr.copyTo(pr);
-        }
-    }
-
-    scopeClose(dfn, block, NULL);
-    ctx->deactivateNamespace(anon_name.c_str());
-
-    return success;
-}
-
 bool Generator::typeToString(DNode *dnode, char *buf)
 {
     Node *n = WrapNode(DNodeToIntNode(dnode));
@@ -5569,16 +5376,6 @@ bool Generator::typeToDisplayString(DNode *dnode, char *buf)
     return true;
 }
 
-void Generator::popErrors(int original_count)
-{
-    int diff = erep->getErrorTypeCount(ErrorType::Error)
-               - original_count;
-
-    while (diff--) {
-        erep->popLastError();
-    }
-}
-
 bool Generator::existsType(DNode *dnode)
 {
     Node *n = WrapNode(DNodeToIntNode(dnode));
@@ -5595,7 +5392,7 @@ bool Generator::existsType(DNode *dnode)
 
     Element::Type *type = parseType((*lst)[0], false,
                                     false);
-    popErrors(error_count);
+    erep->popErrors(error_count);
 
     return !!type;
 }
@@ -5636,7 +5433,7 @@ bool Generator::existsVariable(DNode *dnode)
     Element::Variable *thevar =
         ctx->getVariable(n->token->str_value.c_str());
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
     return ((thevar) ? true : false);
 }
 
@@ -5669,7 +5466,7 @@ bool Generator::isIntegerType(DNode *dnode)
 
     Element::Type *thetype = parseType(n, false, false);
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
     if (!thetype) {
         return false;
     }
@@ -5696,7 +5493,7 @@ bool Generator::typesEqual(DNode *T1, DNode *T2)
     Element::Type *thetype  = parseType(n,  false, false);
     Element::Type *thetype2 = parseType(n2, false, false);
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
     if (!thetype || !thetype2) {
         return false;
     }
@@ -5716,7 +5513,7 @@ bool Generator::isSignedIntegerType(DNode *dnode)
 
     Element::Type *thetype = parseType(n, false, false);
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
     if (!thetype) {
         return false;
     }
@@ -5736,7 +5533,7 @@ bool Generator::isUnsignedIntegerType(DNode *dnode)
 
     Element::Type *thetype = parseType(n, false, false);
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
     if (!thetype) {
         return false;
     }
@@ -5757,7 +5554,7 @@ bool Generator::isFloatingPointType(DNode *dnode)
 
     Element::Type *thetype = parseType(n, false, false);
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
     if (!thetype) {
         return false;
     }
@@ -5777,7 +5574,7 @@ bool Generator::isPointerType(DNode *dnode)
 
     Element::Type *thetype = parseType(n, false, false);
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
     if (!thetype) {
         return false;
     }
@@ -5804,7 +5601,7 @@ bool Generator::isPointerToType(DNode *dnode, DNode *pointee_type)
     Element::Type *thetype  = parseType(n,  false, false);
     Element::Type *thetype2 = parseType(n2, false, false);
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
     if (!thetype || !thetype2) {
         return false;
     }
@@ -5824,7 +5621,7 @@ DNode *Generator::pointeeType(DNode *dnode)
 
     Element::Type *thetype = parseType(n, false, false);
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
     if (!thetype) {
         return false;
     }
@@ -6021,7 +5818,7 @@ void Generator::removeTemporaryGlobalFunction(
 )
 {
     if (error_count >= 0) {
-        popErrors(error_count);
+        erep->popErrors(error_count);
     }
 
     ctx->deactivateAnonymousNamespace();
@@ -6090,7 +5887,7 @@ bool Generator::hasErrors(DNode *dnode)
     bool has_errors =
         ((new_error_count - original_error_count) != 0);
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
     return has_errors;
 }
 
@@ -6103,7 +5900,7 @@ bool Generator::mustInit(DNode *dnode)
 
     Element::Type *ptype = parseType(n, false, false);
     if (!ptype) {
-        popErrors(original_error_count);
+        erep->popErrors(original_error_count);
         return 0;
     }
 
@@ -6130,7 +5927,7 @@ bool Generator::isConst(DNode *dnode)
 
     Element::Type *ptype = parseType(n, false, false);
     if (!ptype) {
-        popErrors(original_error_count);
+        erep->popErrors(original_error_count);
         return 0;
     }
 
@@ -6171,7 +5968,7 @@ int Generator::fnByArgsCount(DNode *dnode, const char *prefix)
         Element::Type *ptype = parseType((*iter), false,
                                          false);
         if (!ptype) {
-            popErrors(original_error_count);
+            erep->popErrors(original_error_count);
             return 0;
         }
         ptype->toStringProper(&map_key);
@@ -6249,7 +6046,7 @@ const char *Generator::fnByArgsName(DNode *dnode, int acount)
         Element::Type *ptype = parseType((*iter), false,
                                          false);
         if (!ptype) {
-            popErrors(original_error_count);
+            erep->popErrors(original_error_count);
             return 0;
         }
         ptype->toStringProper(&map_key);
@@ -6298,7 +6095,7 @@ bool Generator::existsFunction(DNode *dnode)
     Element::Type *ret_type = parseType(nret_type, false,
                                         false);
     if (!ret_type) {
-        popErrors(original_error_count);
+        erep->popErrors(original_error_count);
         return false;
     }
 
@@ -6309,7 +6106,7 @@ bool Generator::existsFunction(DNode *dnode)
         Element::Type *ptype = parseType((*iter), false,
                                          false);
         if (!ptype) {
-            popErrors(original_error_count);
+            erep->popErrors(original_error_count);
             return false;
         }
         if (ptype->base_type == Type::Void) {
@@ -6326,7 +6123,7 @@ bool Generator::existsFunction(DNode *dnode)
                          NULL,
                          0);
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
     return (thefn && !thefn->is_macro);
 }
 
@@ -6462,7 +6259,7 @@ DNode *Generator::codomain(DNode *dnode)
         Element::Type *ptype = parseType((*iter), false,
                                          false);
         if (!ptype) {
-            popErrors(original_error_count);
+            erep->popErrors(original_error_count);
             return NULL;
         }
         if (ptype->base_type == Type::Void) {
@@ -6479,7 +6276,7 @@ DNode *Generator::codomain(DNode *dnode)
                          NULL,
                          0);
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
     if (thefn && !thefn->is_macro) {
         DNode *dn =
             IntNodeToDNode(
@@ -6520,7 +6317,7 @@ bool Generator::existsMacro(DNode *dnode)
         Element::Type *ptype = parseType((*iter), false,
                                          false);
         if (!ptype) {
-            popErrors(original_error_count);
+            erep->popErrors(original_error_count);
             return false;
         }
         if (ptype->base_type == Type::Void) {
@@ -6537,7 +6334,7 @@ bool Generator::existsMacro(DNode *dnode)
                          NULL,
                          1);
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
     return (thefn && thefn->is_macro);
 }
 
@@ -6571,7 +6368,7 @@ bool Generator::existsMacroExact(DNode *dnode)
         Element::Type *ptype = parseType((*iter), false,
                                          false);
         if (!ptype) {
-            popErrors(original_error_count);
+            erep->popErrors(original_error_count);
             return false;
         }
         if (ptype->base_type == Type::Void) {
@@ -6588,7 +6385,7 @@ bool Generator::existsMacroExact(DNode *dnode)
                          NULL,
                          1);
 
-    popErrors(original_error_count);
+    erep->popErrors(original_error_count);
 
     if (!thefn || !(thefn->is_macro)) {
         return false;
@@ -6605,52 +6402,6 @@ bool Generator::existsMacroExact(DNode *dnode)
 
     if (!dale::stl::isEqualTo(&types, &parameter_types)) {
         return false;
-    }
-
-    return true;
-}
-
-bool Generator::parseDo(Element::Function *dfn,
-                        llvm::BasicBlock *block,
-                        Node *n,
-                        bool getAddress,
-                        bool prefixed_with_core,
-                        ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    if (!assertArgNums("do", n, 1, -1)) {
-        return false;
-    }
-
-    symlist *lst = n->list;
-    std::vector<Node *>::iterator node_iter;
-    node_iter = lst->begin();
-    ++node_iter;
-
-    pr->block = block;
-    while (node_iter != lst->end()) {
-        ParseResult local_pr;
-        bool res = parseFunctionBodyInstr(
-                       dfn, pr->block, (*node_iter), getAddress, NULL,
-                       &local_pr
-                   );
-        if (!res) {
-            return false;
-        }
-        ++node_iter;
-
-        if (node_iter != lst->end()) {
-            ParseResult pr_value;
-            bool res = destructIfApplicable(&local_pr, NULL, &pr_value);
-            if (!res) {
-                return false;
-            }
-            pr->block = pr_value.block;
-            pr_value.copyTo(pr);
-        } else {
-            local_pr.copyTo(pr);
-        }
     }
 
     return true;
@@ -6944,174 +6695,6 @@ size_t Generator::getSizeofTypeImmediate(Element::Type *type)
     return res;
 }
 
-bool Generator::parseOffsetof(Element::Function *dfn,
-                                      llvm::BasicBlock *block,
-                                      Node *n,
-                                      bool getAddress,
-                                      bool prefixed_with_core,
-                                      ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    if (!assertArgNums("offsetof", n, 2, 2)) {
-        return false;
-    }
-
-    symlist *lst = n->list;
-
-    /* First argument must be a struct name. */
-
-    Node *struct_name = (*lst)[1];
-    struct_name = parseOptionalMacroCall(struct_name);
-    if (!struct_name) {
-        return false;
-    }
-
-    Element::Type *mytype = parseType(struct_name,
-                                      false,
-                                      false);
-    if (!mytype) {
-        return false;
-    }
-
-    if (!mytype->struct_name) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement, n,
-            "struct", "offsetof", "not a struct"
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    Element::Struct *str =
-        ctx->getStruct(
-            mytype->struct_name->c_str(),
-            mytype->namespaces
-        );
-
-    if (!str) {
-        fprintf(stderr, "Internal error: invalid struct name.\n");
-        abort();
-    }
-
-    /* Second argument is struct field. */
-
-    bool res = getOffsetofType(block, mytype,
-                           (*lst)[2]->token->str_value.c_str(), -1,
-                           pr);
-    return res;
-}
-
-bool Generator::parseAlignmentof(Element::Function *dfn,
-        llvm::BasicBlock *block,
-        Node *n,
-        bool getAddress,
-        bool prefixed_with_core,
-        ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    if (!assertArgNums("alignmentof", n, 1, 1)) {
-        return false;
-    }
-
-    symlist *lst = n->list;
-
-    Node *mytype = (*lst)[1];
-    mytype = parseOptionalMacroCall(mytype);
-    if (!mytype) {
-        return false;
-    }
-    Element::Type *type = parseType(mytype, false,
-                                    false);
-    if (!type) {
-        return false;
-    }
-
-    bool res = getAlignmentofType(block, type, pr);
-    return res;
-}
-
-bool Generator::parseSizeof(Element::Function *dfn,
-                                    llvm::BasicBlock *block,
-                                    Node *n,
-                                    bool getAddress,
-                                    bool prefixed_with_core,
-                                    ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    if (!assertArgNums("sizeof", n, 1, -1)) {
-        return false;
-    }
-
-    symlist *lst = n->list;
-
-    /* Get the type to which it is being cast. */
-
-    Node *thing = (*lst)[1];
-    thing = parseOptionalMacroCall(thing);
-    if (!thing) {
-        return false;
-    }
-
-    Element::Type *type = parseType((*lst)[1], false, false);
-
-    if (!type) {
-        erep->popLastError();
-
-        int error_count = erep->getErrorTypeCount(ErrorType::Error);
-
-        ParseResult expr_res;
-        bool res = 
-            parseFunctionBodyInstr(
-                dfn, block, (*lst)[1], true, NULL, &expr_res
-            );
-
-        if (!res) {
-            popErrors(error_count);
-
-            bool res =
-                parseFunctionBodyInstr(
-                    dfn, block, (*lst)[1], false, NULL, &expr_res
-                );
-            if (!res) {
-                return false;
-            }
-            type  = expr_res.type;
-            block = expr_res.block;
-
-            if (hasRelevantDestructor(&expr_res)) {
-                ParseResult temp;
-                bool res = destructIfApplicable(&expr_res, NULL, &temp);
-                if (!res) {
-                    return false;
-                }
-                block = temp.block;
-            }
-        } else {
-            type =
-                (expr_res.type->points_to)
-                ? expr_res.type->points_to
-                : expr_res.type;
-            block = expr_res.block;
-            if (hasRelevantDestructor(&expr_res)) {
-                ParseResult temp;
-                bool res = destructIfApplicable(&expr_res, NULL, &temp);
-                if (!res) {
-                    return false;
-                }
-                block = temp.block;
-            }
-        }
-    }
-
-    
-    bool res = getSizeofType(block, type, pr);
-
-    return res;
-}
-
 bool isFunctionPointerVarArgs(Element::Type *fn_ptr)
 {
     if (fn_ptr->points_to->parameter_types->size() == 0) {
@@ -7295,57 +6878,6 @@ bool Generator::parseFuncallInternal(
     return true;
 }
 
-bool Generator::parseFuncall(Element::Function *dfn,
-                                     llvm::BasicBlock *block,
-                                     Node *n,
-                                     bool getAddress,
-                                     bool prefixed_with_core,
-                                     ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    /* (funcall <pointer-to-function> <arg1> <arg2> ...) */
-
-    if (!assertArgNums("funcall", n, 1, -1)) {
-        return false;
-    }
-
-    symlist *lst = n->list;
-
-    ParseResult fn_ptr;
-    bool res =
-        parseFunctionBodyInstr(
-            dfn, block, (*lst)[1], getAddress, NULL, &fn_ptr
-        );
-    if (!res) {
-        return false;
-    }
-
-    if (!fn_ptr.type->points_to
-            || !fn_ptr.type->points_to->is_function) {
-        std::string temp;
-        fn_ptr.type->toStringProper(&temp);
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            ((*lst)[1]),
-            "funcall", "fn pointer", "1", temp.c_str()
-        );
-        erep->addError(e);
-        return false;
-    }
-
-    res = parseFuncallInternal(
-               dfn,
-               n,
-               getAddress,
-               &fn_ptr,
-               2,
-               NULL,
-               pr
-           );
-    return res;
-}
-
 /* If 'implicit' is set to 1, then int->ptr and ptr->int
  * conversions are disallowed. */
 bool Generator::doCast(llvm::BasicBlock *block,
@@ -7359,71 +6891,6 @@ bool Generator::doCast(llvm::BasicBlock *block,
     return Operation::Cast::execute(ctx, block,
                                     value, from_type, to_type,
                                     n, implicit, pr);
-}
-
-bool Generator::parseCast(Element::Function *dfn,
-                                  llvm::BasicBlock *block,
-                                  Node *n,
-                                  bool getAddress,
-                                  bool prefixed_with_core,
-                                  ParseResult *pr)
-{
-    assert(n->list && "must receive a list!");
-
-    symlist *lst = n->list;
-
-    if (!assertArgNums("cast", n, 2, 2)) {
-        return false;
-    }
-
-    /* Get the value that is being cast. */
-
-    ParseResult pr_value;
-    bool res = 
-        parseFunctionBodyInstr(dfn, block, (*lst)[1], false, NULL,
-                               &pr_value);
-
-    if (!res) {
-        return false;
-    }
-
-    /* Get the type to which it is being cast. (It is allowable to
-     * cast to a bitfield type, because there's no other way to
-     * set a bitfield value.) */
-
-    Element::Type *type = parseType((*lst)[2], false, true);
-    if (!type) {
-        return false;
-    }
-
-    /* If the type of the value and the target type are the same,
-     * return the original value. */
-
-    if (pr_value.type->isEqualTo(type)) {
-        pr_value.copyTo(pr);
-        return true;
-    }
-
-    ParseResult temp;
-    res = doCast(pr_value.block,
-                pr_value.value,
-                pr_value.type,
-                type,
-                n,
-                0,
-                &temp);
-    if (!res) {
-        return false;
-    }
-    pr_value.block = temp.block;
-    if (hasRelevantDestructor(&pr_value)) {
-        ParseResult temp2;
-        res = destructIfApplicable(&pr_value, NULL, &temp2);
-        temp.block = temp2.block;
-    }
-
-    setPr(pr, temp.block, temp.type, temp.value);
-    return true;
 }
 
 int Generator::mySizeToRealSize(int n)
@@ -7514,7 +6981,7 @@ bool Generator::parseFunctionBodyInstrInternal(
             if (res) {
                 return res;
             } else {
-                popErrors(original_error_count);
+                erep->popErrors(original_error_count);
                 goto tryvar;
             }
         } else if (t->type == TokenType::Int) {
@@ -7957,7 +7424,7 @@ tryvar:
                                              getAddress,
                                              pr);
         if (!res) {
-            popErrors(original_error_count);
+            erep->popErrors(original_error_count);
             goto past_en_parse;
         }
         return true;
@@ -8006,7 +7473,7 @@ past_en_parse:
                                                getAddress,
                                                pr);
         if (!res) {
-            popErrors(original_error_count);
+            erep->popErrors(original_error_count);
             goto past_sl_parse;
         }
         return true;
@@ -8149,68 +7616,52 @@ past_sl_parse:
 
     /* Core forms (at least at this point). */
 
-    bool (* core_fn2)(Generator *gen,
-                      Element::Function *fn,
-                      llvm::BasicBlock *block,
-                      Node *node,
-                      bool get_address,
-                      bool prefixed_with_core,
-                      ParseResult *pr);
+    bool (* core_fn)(Generator *gen,
+                     Element::Function *fn,
+                     llvm::BasicBlock *block,
+                     Node *node,
+                     bool get_address,
+                     bool prefixed_with_core,
+                     ParseResult *pr);
 
-    bool (dale::Generator::* core_fn)(
-        Element::Function *dfn,
-        llvm::BasicBlock *block,
-        Node *n,
-        bool getAddress,
-        bool prefixed_with_core,
-        ParseResult *pr);
-
-    core_fn2 =
-        (eq("goto"))       ? &dale::Form::Goto::execute
-      : (eq("if"))         ? &dale::Form::If::execute
-      : (eq("label"))      ? &dale::Form::Label::execute
-      : (eq("return"))     ? &dale::Form::Return::execute
-      : (eq("setf"))       ? &dale::Form::Setf::execute
-      : (eq("@"))          ? &dale::Form::Dereference::execute
-      : (eq(":"))          ? &dale::Form::Sref::execute
-      : (eq("#"))          ? &dale::Form::AddressOf::execute
-      : (eq("$"))          ? &dale::Form::Aref::execute
-      : (eq("p="))         ? &dale::Form::PtrEquals::execute
-      : (eq("p+"))         ? &dale::Form::PtrAdd::execute
-      : (eq("p-"))         ? &dale::Form::PtrSubtract::execute
-      : (eq("p<"))         ? &dale::Form::PtrLessThan::execute
-      : (eq("p>"))         ? &dale::Form::PtrGreaterThan::execute
-      : (eq("va-arg"))     ? &dale::Form::VaArg::execute
-      : (eq("va-start"))   ? &dale::Form::VaStart::execute
-      : (eq("va-end"))     ? &dale::Form::VaEnd::execute
-      : (eq("null"))       ? &dale::Form::Null::execute
-      : (eq("get-dnodes")) ? &dale::Form::GetDNodes::execute
-      : (eq("def"))        ? &dale::Form::Def::execute
-                           : NULL;
+    core_fn =
+          (eq("goto"))            ? &dale::Form::Goto::execute
+        : (eq("if"))              ? &dale::Form::If::execute
+        : (eq("label"))           ? &dale::Form::Label::execute
+        : (eq("return"))          ? &dale::Form::Return::execute
+        : (eq("setf"))            ? &dale::Form::Setf::execute
+        : (eq("@"))               ? &dale::Form::Dereference::execute
+        : (eq(":"))               ? &dale::Form::Sref::execute
+        : (eq("#"))               ? &dale::Form::AddressOf::execute
+        : (eq("$"))               ? &dale::Form::Aref::execute
+        : (eq("p="))              ? &dale::Form::PtrEquals::execute
+        : (eq("p+"))              ? &dale::Form::PtrAdd::execute
+        : (eq("p-"))              ? &dale::Form::PtrSubtract::execute
+        : (eq("p<"))              ? &dale::Form::PtrLessThan::execute
+        : (eq("p>"))              ? &dale::Form::PtrGreaterThan::execute
+        : (eq("va-arg"))          ? &dale::Form::VaArg::execute
+        : (eq("va-start"))        ? &dale::Form::VaStart::execute
+        : (eq("va-end"))          ? &dale::Form::VaEnd::execute
+        : (eq("null"))            ? &dale::Form::Null::execute
+        : (eq("get-dnodes"))      ? &dale::Form::GetDNodes::execute
+        : (eq("def"))             ? &dale::Form::Def::execute
+        : (eq("nullptr"))         ? &dale::Form::NullPtr::execute
+        : (eq("do"))              ? &dale::Form::Do::execute
+        : (eq("cast"))            ? &dale::Form::Cast::execute
+        : (eq("sizeof"))          ? &dale::Form::Sizeof::execute
+        : (eq("offsetof"))        ? &dale::Form::Offsetof::execute
+        : (eq("alignmentof"))     ? &dale::Form::Alignmentof::execute
+        : (eq("funcall"))         ? &dale::Form::Funcall::execute
+        : (eq("using-namespace")) ? &dale::Form::UsingNamespace::execute
+        : (eq("new-scope"))       ? &dale::Form::NewScope::execute
+        : (eq("array-of"))        ? &dale::Form::ArrayOf::execute
+                                  : NULL;
  
-    if (core_fn2) {
-        return core_fn2(this, dfn, block, n,
-                        getAddress, prefixed_with_core, pr);
+    if (core_fn) {
+        return core_fn(this, dfn, block, n,
+                       getAddress, prefixed_with_core, pr);
     }
        
-    core_fn =
-          (eq("nullptr")) ? &dale::Generator::parseNullPtr
-        : (eq("do"))      ? &dale::Generator::parseDo
-        : (eq("cast"))    ? &dale::Generator::parseCast
-        : (eq("sizeof"))  ? &dale::Generator::parseSizeof
-        : (eq("offsetof")) ? &dale::Generator::parseOffsetof
-        : (eq("alignmentof"))  ? &dale::Generator::parseAlignmentof
-        : (eq("funcall"))  ? &dale::Generator::parseFuncall
-        : (eq("using-namespace")) ? &dale::Generator::parseUsingNamespace
-        : (eq("new-scope")) ?   &dale::Generator::parseNewScope
-        : (eq("array-of")) ? &dale::Generator::parseArrayOf
-        : NULL;
-
-    if (core_fn) {
-        return ((this)->*(core_fn))(dfn, block, n,
-                                    getAddress, prefixed_with_core, pr);
-    }
-
     /* Not core form - look for core macro. */
 
     Node* (dale::Generator::* core_mac)(Node *n);
@@ -8285,7 +7736,9 @@ past_sl_parse:
         funcall_str_node->filename = erep->current_filename;
         lst->insert(lst->begin(), funcall_str_node);
         bool res =
-            parseFuncall(dfn,
+            Form::Funcall::execute(
+                         this,
+                         dfn,
                          block,
                          n,
                          getAddress,
@@ -8825,7 +8278,7 @@ Node *Generator::parseOptionalMacroCall(Node *n)
             types.push_back(type_pdnode);
         }
     }
-    popErrors(error_count);
+    erep->popErrors(error_count);
 
     ctx->deactivateAnonymousNamespace();
 
