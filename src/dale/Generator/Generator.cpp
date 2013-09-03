@@ -156,11 +156,6 @@ int isValidModuleName(std::string *str)
     return 1;
 }
 
-void failedDaleToLLVMTypeConversion(Element::Type *type)
-{
-    /* Currently a no-op: this may change in the future. */
-}
-
 /* These should be treated as const, except by the code that
  * initialises everything (i.e. once this is actually processing
  * code, these shouldn't change). */
@@ -428,7 +423,6 @@ int Generator::addVariable(const char *name,
     llvm::Type *rdttype =
         toLLVMType(type, NULL, false, false);
     if (!rdttype) {
-        failedDaleToLLVMTypeConversion(type);
         return 0;
     }
 
@@ -2329,7 +2323,6 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
     llvm::Type *d_enumtype =
         toLLVMType(enumtype, NULL, false);
     if (!d_enumtype) {
-        failedDaleToLLVMTypeConversion(enumtype);
         return;
     }
 
@@ -2667,13 +2660,11 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
         if (count == 0) {
             temp = toLLVMType((*iter)->type, NULL, false);
             if (!temp) {
-                failedDaleToLLVMTypeConversion((*iter)->type);
                 return;
             }
         } else {
             temp = toLLVMType(r_type, NULL, false);
             if (!temp) {
-                failedDaleToLLVMTypeConversion(r_type);
                 return;
             }
         }
@@ -2684,7 +2675,6 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
 
     temp = toLLVMType(r_type, NULL, false);
     if (!temp) {
-        failedDaleToLLVMTypeConversion(r_type);
         return;
     }
 
@@ -3047,7 +3037,6 @@ void Generator::parseStructDefinition(const char *name, Node *top)
     while (iter != elements_internal->end()) {
         temp = toLLVMType((*iter)->type, NULL, false);
         if (!temp) {
-            failedDaleToLLVMTypeConversion((*iter)->type);
             return;
         }
         elements_llvm.push_back(temp);
@@ -3257,7 +3246,6 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
         toLLVMType(r_type, top, false,
                        (has_extern_linkage && !has_initialiser));
     if (!rdttype) {
-        failedDaleToLLVMTypeConversion(r_type);
         return;
     }
 
@@ -3490,7 +3478,6 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
         llvm::Type *llvm_type =
             toLLVMType(type, NULL, false);
         if (!llvm_type) {
-            failedDaleToLLVMTypeConversion(type);
             return NULL;
         }
 
@@ -3574,7 +3561,6 @@ a:
         llvm::Type *llvm_type =
             toLLVMType(type, NULL, false);
         if (!llvm_type) {
-            failedDaleToLLVMTypeConversion(type);
             return NULL;
         }
         llvm::Constant *pce =
@@ -3694,7 +3680,6 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
     llvm::Type *llvm_return_type =
         toLLVMType(type, top, false);
     if (!llvm_return_type) {
-        failedDaleToLLVMTypeConversion(type);
         return NULL;
     }
 
@@ -4368,7 +4353,6 @@ void Generator::parseFunction(const char *name, Node *n,
         }
         temp = toLLVMType((*iter)->type, NULL, false);
         if (!temp) {
-            failedDaleToLLVMTypeConversion((*iter)->type);
             return;
         }
         fn_args.push_back(temp);
@@ -4414,7 +4398,6 @@ void Generator::parseFunction(const char *name, Node *n,
     llvm::Type *llvm_r_type =
         toLLVMType(r_type, NULL, true);
     if (!llvm_r_type) {
-        failedDaleToLLVMTypeConversion(r_type);
         return;
     }
 
@@ -5746,7 +5729,6 @@ int Generator::makeTemporaryGlobalFunction(
     llvm::Type *llvm_return_type =
         toLLVMType(type_int, NULL, false);
     if (!llvm_return_type) {
-        failedDaleToLLVMTypeConversion(type_int);
         return 0;
     }
 
@@ -6432,7 +6414,6 @@ bool Generator::getAlignmentofType(llvm::BasicBlock *block,
     llvm::Type *llvm_type =
         toLLVMType(type, NULL, false);
     if (!llvm_type) {
-        failedDaleToLLVMTypeConversion(type);
         return false;
     }
     elements_llvm.push_back(llvm_type);
@@ -6486,7 +6467,6 @@ bool Generator::getOffsetofType(llvm::BasicBlock *block,
     llvm::Type *llvm_type =
         toLLVMType(type, NULL, false);
     if (!llvm_type) {
-        failedDaleToLLVMTypeConversion(type);
         return false;
     }
 
@@ -6541,7 +6521,6 @@ bool Generator::getSizeofType(llvm::BasicBlock *block,
     llvm::Type *llvm_type =
         toLLVMType(type, NULL, false);
     if (!llvm_type) {
-        failedDaleToLLVMTypeConversion(type);
         return false;
     }
 
@@ -6568,7 +6547,6 @@ size_t Generator::getOffsetofTypeImmediate(Element::Type *type,
     llvm::Type *llvm_return_type =
         toLLVMType(type_size, NULL, false);
     if (!llvm_return_type) {
-        failedDaleToLLVMTypeConversion(type_size);
         return 0;
     }
 
@@ -6641,7 +6619,6 @@ size_t Generator::getSizeofTypeImmediate(Element::Type *type)
     llvm::Type *llvm_return_type =
         toLLVMType(type_size, NULL, false);
     if (!llvm_return_type) {
-        failedDaleToLLVMTypeConversion(type_size);
         return 0;
     }
 
@@ -7195,7 +7172,6 @@ tryvar:
             llvm::Type *llvm_type =
                 toLLVMType(temp, NULL, false);
             if (!llvm_type) {
-                failedDaleToLLVMTypeConversion(temp);
                 return false;
             }
 
@@ -8193,7 +8169,6 @@ Node *Generator::parseOptionalMacroCall(Node *n)
     llvm::Type *llvm_return_type =
         toLLVMType(type_int, NULL, false);
     if (!llvm_return_type) {
-        failedDaleToLLVMTypeConversion(type_int);
         return NULL;
     }
 
@@ -8386,9 +8361,6 @@ bool Generator::parseEnumLiteral(llvm::BasicBlock *block,
         toLLVMType(myenumstructtype->element_types.at(0),
                        NULL, false);
     if (!llvm_type) {
-        failedDaleToLLVMTypeConversion(
-            myenumstructtype->element_types.at(0)
-        );
         return false;
     }
 
@@ -8491,7 +8463,6 @@ bool Generator::parseArrayLiteral(Element::Function *dfn,
     llvm::Type *llvm_array_type =
         toLLVMType(array_type, n, false);
     if (!llvm_array_type) {
-        failedDaleToLLVMTypeConversion(array_type);
         return NULL;
     }
 
@@ -8845,7 +8816,6 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
             llvm::Type *llvm_type =
                 toLLVMType(p.type, NULL, false);
             if (!llvm_type) {
-                failedDaleToLLVMTypeConversion(p.type);
                 return false;
             }
             llvm::Value *newptr =
@@ -9320,7 +9290,6 @@ int Generator::parseFunctionBody(Element::Function *dfn,
                            NULL,
                            false);
         if (!llvm_type) {
-            failedDaleToLLVMTypeConversion(myvar->type);
             return 0;
         }
 
