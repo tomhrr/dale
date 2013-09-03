@@ -1,5 +1,7 @@
 #include "Introspection.h"
 
+#include "../Element/Type/Type.h"
+
 extern "C" {
     int types_2D_equal(MContext *mc, DNode *T1, DNode *T2)
     {

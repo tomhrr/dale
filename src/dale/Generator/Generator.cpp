@@ -1,36 +1,41 @@
 #include "Generator.h"
 #include "Config.h"
 
-#if LLVM_VERSION_MAJOR >= 3
-#include "llvm/Support/DynamicLibrary.h"
-#include "llvm/Support/Host.h"
-#include "llvm/Support/Signals.h"
-#include "llvm/Support/system_error.h"
-#elif LLVM_VERSION_MAJOR < 2
-#error "LLVM >= 2.8 is required."
-#elif LLVM_VERSION_MINOR < 8
-#error "LLVM >= 2.8 is required."
-#elif LLVM_VERSION_MINOR == 8
-#include "llvm/System/DynamicLibrary.h"
-#include "llvm/System/Host.h"
-#include "llvm/System/Signals.h"
-#else
-#include "llvm/Support/DynamicLibrary.h"
-#include "llvm/Support/Host.h"
-#include "llvm/Support/Signals.h"
-#include "llvm/Support/system_error.h"
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
+#include <cerrno>
+#include <sys/stat.h>
+
+#if LLVM_VERSION_MAJOR < 3
+#error "LLVM >= 3.0 is required."
 #endif
 
+#include "llvm/Support/DynamicLibrary.h"
+#include "llvm/Support/Host.h"
+#include "llvm/Support/Signals.h"
+#include "llvm/Support/system_error.h"
+#include "llvm/LLVMContext.h"
+#include "llvm/Module.h"
+#include "llvm/LinkAllPasses.h"
+#include "llvm/Linker.h"
+#include "llvm/Function.h"
+#include "llvm/CallingConv.h"
+#include "llvm/Assembly/PrintModulePass.h"
+#include "llvm/Support/IRBuilder.h"
+#include "llvm/Support/TypeBuilder.h"
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/ExecutionEngine/JIT.h"
+#include "llvm/ExecutionEngine/Interpreter.h"
+#include "llvm/ValueSymbolTable.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/PassManager.h"
 #include "llvm/Analysis/Passes.h"
 #include "llvm/Analysis/Verifier.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
-
-#include <iostream>
-#include <sys/time.h>
-#include <unistd.h>
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ADT/Triple.h"
@@ -45,6 +50,12 @@
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Transforms/Utils/Cloning.h"
+
+#include "../BasicTypes/BasicTypes.h"
+#include "../Utils/Utils.h"
+#include "../Linkage/Linkage.h"
+#include "../Type/Type.h"
+#include "../Lexer/Lexer.h"
 #include "../STLUtils/STLUtils.h"
 #include "../Serialise/Serialise.h"
 #include "../NativeTypes/NativeTypes.h"
@@ -80,8 +91,11 @@
 #include "../Form/UsingNamespace/UsingNamespace.h"
 #include "../Form/NewScope/NewScope.h"
 #include "../Form/ArrayOf/ArrayOf.h"
+
+#include <iostream>
+#include <sys/time.h>
+#include <unistd.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <setjmp.h>
 #include <float.h>

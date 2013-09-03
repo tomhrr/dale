@@ -1,22 +1,13 @@
 #ifndef DALE_GENERATOR
 #define DALE_GENERATOR
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <cassert>
-#include <cerrno>
 #include <vector>
 #include <set>
 #include <map>
 #include <string>
-#include <sys/stat.h>
 
 #include "../Element/Label/Label.h"
-#include "../Lexer/Lexer.h"
 #include "../Context/Context.h"
-#include "../Type/Type.h"
-#include "../Linkage/Linkage.h"
 #include "../Element/Function/Function.h"
 #include "../Element/Variable/Variable.h"
 #include "../Element/Type/Type.h"
@@ -24,31 +15,14 @@
 #include "../ParseResult/ParseResult.h"
 #include "../Parser/Parser.h"
 #include "../Node/Node.h"
-#include "../Utils/Utils.h"
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../Element/Enum/Enum.h"
-#include "../BasicTypes/BasicTypes.h"
 #include "../TypeRegister/TypeRegister.h"
 
-#include "llvm/LLVMContext.h"
-#include "llvm/Module.h"
-#include "llvm/LinkAllPasses.h"
-#include "llvm/Linker.h"
-#include "llvm/Function.h"
-#include "llvm/PassManager.h"
-#include "llvm/CallingConv.h"
-#include "llvm/Analysis/Verifier.h"
-#include "llvm/Assembly/PrintModulePass.h"
-#include "llvm/Support/IRBuilder.h"
-#include "llvm/Support/TypeBuilder.h"
-#include "llvm/Support/raw_ostream.h"
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/ExecutionEngine/JIT.h"
-#include "llvm/ExecutionEngine/Interpreter.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Target/TargetData.h"
-#include "llvm/ValueSymbolTable.h"
-#include "llvm/ADT/StringRef.h"
+namespace llvm {
+    class Linker;
+    class Module;
+}
 
 struct DNode
 {

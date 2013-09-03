@@ -2,6 +2,7 @@
 #include "../../Node/Node.h"
 #include "../../ParseResult/ParseResult.h"
 #include "../../Element/Function/Function.h"
+#include "../../Operation/Cast/Cast.h"
 #include "llvm/Function.h"
 
 namespace dale
