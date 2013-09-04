@@ -59,12 +59,10 @@ bool execute(Generator *gen,
 
     builder4.CreateCondBr(pr_cond.value, then_block, else_block);
 
-    if (gen->hasRelevantDestructor(&pr_cond)) {
-        ParseResult temp;
-        bool res = gen->destructIfApplicable(&pr_cond, &builder4, &temp);
-        if (!res) {
-            return false;
-        }
+    ParseResult temp;
+    res = gen->destructIfApplicable(&pr_cond, &builder4, &temp);
+    if (!res) {
+        return false;
     }
 
     ctx->activateAnonymousNamespace();

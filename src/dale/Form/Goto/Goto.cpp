@@ -93,13 +93,11 @@ bool execute(Generator *gen,
             llvm::IRBuilder<> builder(myp.block);
             /* hasRelevantDestructor does not depend on value
              * being set. */
-            if (gen->hasRelevantDestructor(&myp)) {
-                llvm::Value *myv = builder.CreateLoad(v->value);
-                myp.value = myv;
-                ParseResult temp;
-                gen->destructIfApplicable(&myp, NULL, &temp);
-                myp.block = temp.block;
-            }
+            llvm::Value *myv = builder.CreateLoad(v->value);
+            myp.value = myv;
+            ParseResult temp;
+            gen->destructIfApplicable(&myp, NULL, &temp);
+            myp.block = temp.block;
         }
         block = myp.block;
         llvm::IRBuilder<> builder(block);

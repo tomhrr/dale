@@ -70,11 +70,9 @@ bool execute(Generator *gen,
         return false;
     }
     pr_value.block = temp.block;
-    if (gen->hasRelevantDestructor(&pr_value)) {
-        ParseResult temp2;
-        res = gen->destructIfApplicable(&pr_value, NULL, &temp2);
-        temp.block = temp2.block;
-    }
+    ParseResult temp2;
+    res = gen->destructIfApplicable(&pr_value, NULL, &temp2);
+    temp.block = temp2.block;
 
     pr->set(temp.block, temp.type, temp.value);
     return true;

@@ -75,14 +75,12 @@ bool execute(Generator *gen,
                            );
 
     pr->set(pr_value.block, ctx->tr->getBasicType(Type::Bool), icmpres);
-    if (gen->hasRelevantDestructor(&pr_value)) {
-        ParseResult temp;
-        bool res = gen->destructIfApplicable(&pr_value, NULL, &temp);
-        if (!res) {
-            return false;
-        }
-        pr->block = temp.block;
+    ParseResult temp;
+    res = gen->destructIfApplicable(&pr_value, NULL, &temp);
+    if (!res) {
+        return false;
     }
+    pr->block = temp.block;
 
     return true;
 }

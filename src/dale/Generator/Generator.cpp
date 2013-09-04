@@ -4804,21 +4804,6 @@ Node *Generator::parseSetv(Node *n)
     return n;
 }
 
-bool Generator::hasRelevantDestructor(ParseResult *pr)
-{
-    if (pr->do_not_destruct) {
-        return false;
-    }
-    std::vector<Element::Type *> types;
-    types.push_back(tr->getPointerType(pr->type));
-    Element::Function *fn = ctx->getFunction("destroy", &types,
-                            NULL, 0);
-    if (!fn) {
-        return false;
-    }
-    return true;
-}
-
 bool Generator::destructIfApplicable(ParseResult *pr,
         llvm::IRBuilder<> *builder,
         ParseResult *pr_ret)

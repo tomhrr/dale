@@ -173,14 +173,12 @@ bool execute(Generator *gen,
 
     pr->set(pr_struct.block, ctx->tr->getPointerType(eltype), vres);
 
-    if (gen->hasRelevantDestructor(&pr_struct)) {
-        ParseResult temp;
-        bool res = gen->destructIfApplicable(&pr_struct, NULL, &temp);
-        if (!res) {
-            return false;
-        }
-        pr->block = temp.block;
+    ParseResult temp;
+    res = gen->destructIfApplicable(&pr_struct, NULL, &temp);
+    if (!res) {
+        return false;
     }
+    pr->block = temp.block;
 
     return true;
 }

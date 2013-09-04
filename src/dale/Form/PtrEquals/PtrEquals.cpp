@@ -61,13 +61,9 @@ bool execute(Generator *gen,
     p1.block = p2.block;
     ParseResult ret;
     ret.block = p2.block;
-    if (gen->hasRelevantDestructor(&p1)) {
-        gen->destructIfApplicable(&p1, NULL, &ret);
-        p2.block = ret.block;
-    }
-    if (gen->hasRelevantDestructor(&p2)) {
-        gen->destructIfApplicable(&p2, NULL, &ret);
-    }
+    gen->destructIfApplicable(&p1, NULL, &ret);
+    p2.block = ret.block;
+    gen->destructIfApplicable(&p2, NULL, &ret);
     pr->block = ret.block;
 
     return true;

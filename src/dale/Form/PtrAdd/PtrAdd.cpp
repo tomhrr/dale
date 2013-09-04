@@ -110,14 +110,10 @@ bool execute(Generator *gen,
 
     ptr.block = final_res.block;
     ParseResult temp;
-    if (gen->hasRelevantDestructor(&ptr)) {
-        gen->destructIfApplicable(&ptr, NULL, &temp);
-        val.block = temp.block;
-    }
-    if (gen->hasRelevantDestructor(&val)) {
-        gen->destructIfApplicable(&val, NULL, &temp);
-        final_res.block = temp.block;
-    }
+    gen->destructIfApplicable(&ptr, NULL, &temp);
+    val.block = temp.block;
+    gen->destructIfApplicable(&val, NULL, &temp);
+    final_res.block = temp.block;
     pr->set(final_res.block, final_res.type, final_res.value);
 
     return true;

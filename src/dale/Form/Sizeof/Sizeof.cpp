@@ -62,28 +62,24 @@ bool execute(Generator *gen,
             type  = expr_res.type;
             block = expr_res.block;
 
-            if (gen->hasRelevantDestructor(&expr_res)) {
-                ParseResult temp;
-                bool res = gen->destructIfApplicable(&expr_res, NULL, &temp);
-                if (!res) {
-                    return false;
-                }
-                block = temp.block;
+            ParseResult temp;
+            res = gen->destructIfApplicable(&expr_res, NULL, &temp);
+            if (!res) {
+                return false;
             }
+            block = temp.block;
         } else {
             type =
                 (expr_res.type->points_to)
                 ? expr_res.type->points_to
                 : expr_res.type;
             block = expr_res.block;
-            if (gen->hasRelevantDestructor(&expr_res)) {
-                ParseResult temp;
-                bool res = gen->destructIfApplicable(&expr_res, NULL, &temp);
-                if (!res) {
-                    return false;
-                }
-                block = temp.block;
+            ParseResult temp;
+            bool res = gen->destructIfApplicable(&expr_res, NULL, &temp);
+            if (!res) {
+                return false;
             }
+            block = temp.block;
         }
     }
 

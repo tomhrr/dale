@@ -85,14 +85,12 @@ bool execute(Generator *gen,
         pr->do_not_copy_with_setf = 1;
     }
 
-    if (gen->hasRelevantDestructor(&p)) {
-        ParseResult temp;
-        bool res = gen->destructIfApplicable(&p, NULL, &temp);
-        if (!res) {
-            return false;
-        }
-        pr->block = temp.block;
+    ParseResult temp;
+    res = gen->destructIfApplicable(&p, NULL, &temp);
+    if (!res) {
+        return false;
     }
+    pr->block = temp.block;
 
     return true;
 }

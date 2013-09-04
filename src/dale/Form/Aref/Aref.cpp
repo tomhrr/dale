@@ -141,24 +141,19 @@ bool execute(Generator *gen,
     }
     pr->value = vres;
 
-    if (gen->hasRelevantDestructor(&pr_array)) {
-        pr_array.block = pr_index.block;
-        ParseResult temp;
-        bool res = gen->destructIfApplicable(&pr_array, NULL, &temp);
-        if (!res) {
-            return false;
-        }
-        pr_index.block = temp.block;
+    pr_array.block = pr_index.block;
+    ParseResult temp;
+    res = gen->destructIfApplicable(&pr_array, NULL, &temp);
+    if (!res) {
+        return false;
     }
+    pr_index.block = temp.block;
 
-    if (gen->hasRelevantDestructor(&pr_index)) {
-        ParseResult temp;
-        bool res = gen->destructIfApplicable(&pr_index, NULL, &temp);
-        if (!res) {
-            return false;
-        }
-        pr->block = temp.block;
+    res = gen->destructIfApplicable(&pr_index, NULL, &temp);
+    if (!res) {
+        return false;
     }
+    pr->block = temp.block;
 
     return true;
 }
