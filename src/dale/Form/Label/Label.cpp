@@ -22,17 +22,17 @@ bool execute(Generator *gen,
 
     assert(node->list && "parseLabel must receive a list!");
 
-    if (!gen->assertArgNums("label", node, 1, 1)) {
+    if (!ctx->er->assertArgNums("label", node, 1, 1)) {
         return false;
     }
 
     symlist *lst = node->list;
     Node *lname = (*lst)[1];
 
-    if (!gen->assertArgIsAtom("label", lname, "1")) {
+    if (!ctx->er->assertArgIsAtom("label", lname, "1")) {
         return false;
     }
-    if (!gen->assertAtomIsSymbol("label", lname, "1")) {
+    if (!ctx->er->assertAtomIsSymbol("label", lname, "1")) {
         return false;
     }
     Token *t = lname->token;

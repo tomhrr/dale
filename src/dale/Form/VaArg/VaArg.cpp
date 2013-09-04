@@ -22,7 +22,7 @@ bool execute(Generator *gen,
 
     assert(node->list && "must receive a list!");
 
-    if (!gen->assertArgNums("va-arg", node, 2, 2)) {
+    if (!ctx->er->assertArgNums("va-arg", node, 2, 2)) {
         return false;
     }
 

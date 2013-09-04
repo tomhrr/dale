@@ -23,17 +23,17 @@ bool execute(Generator *gen,
 
     assert(node->list && "must receive a list!");
 
-    if (!gen->assertArgNums("def", node, 2, 2)) {
+    if (!ctx->er->assertArgNums("def", node, 2, 2)) {
         return false;
     }
 
     symlist *lst = node->list;
     Node *nname = (*lst)[1];
 
-    if (!gen->assertArgIsAtom("def", nname, "1")) {
+    if (!ctx->er->assertArgIsAtom("def", nname, "1")) {
         return false;
     }
-    if (!gen->assertAtomIsSymbol("def", nname, "1")) {
+    if (!ctx->er->assertAtomIsSymbol("def", nname, "1")) {
         return false;
     }
 
@@ -43,7 +43,7 @@ bool execute(Generator *gen,
 
     Node *ndef = (*lst)[2];
 
-    if (!gen->assertArgIsList("def", ndef, "2")) {
+    if (!ctx->er->assertArgIsList("def", ndef, "2")) {
         return false;
     }
 
@@ -168,7 +168,7 @@ bool execute(Generator *gen,
             }
         }
 
-        if (!gen->assertTypeEquality("def", node, p.type, type, 1)) {
+        if (!ctx->er->assertTypeEquality("def", node, p.type, type, 1)) {
             return NULL;
         }
 
@@ -362,7 +362,7 @@ bool execute(Generator *gen,
                     or_setf2->llvm_function,
                     llvm::ArrayRef<llvm::Value*>(call_args2));
             } else {
-                if (!gen->assertTypeEquality("def", node, p.type, type, 1)) {
+                if (!ctx->er->assertTypeEquality("def", node, p.type, type, 1)) {
                     return false;
                 }
                 builder2.CreateStore(p.value, new_ptr);

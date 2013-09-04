@@ -22,7 +22,7 @@ bool execute(Generator *gen,
 
     assert(node->list && "must receive a list!");
 
-    if (!gen->assertArgNums("null", node, 1, 1)) {
+    if (!ctx->er->assertArgNums("null", node, 1, 1)) {
         return false;
     }
 
@@ -61,7 +61,7 @@ bool execute(Generator *gen,
     if (!res) {
         return false;
     }
-    if (!gen->assertIsPointerType("null", arg, pr_value.type, "1")) {
+    if (!ctx->er->assertIsPointerType("null", arg, pr_value.type, "1")) {
         return false;
     }
 

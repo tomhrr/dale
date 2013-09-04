@@ -24,7 +24,7 @@ bool execute(Generator *gen,
 
     symlist *lst = node->list;
 
-    if (!gen->assertArgNums(":", node, 2, 2)) {
+    if (!ctx->er->assertArgNums(":", node, 2, 2)) {
         return false;
     }
 
@@ -114,10 +114,10 @@ bool execute(Generator *gen,
     if (!ref) {
         return false;
     }
-    if (!gen->assertArgIsAtom(":", ref, "2")) {
+    if (!ctx->er->assertArgIsAtom(":", ref, "2")) {
         return false;
     }
-    if (!gen->assertAtomIsSymbol(":", ref, "2")) {
+    if (!ctx->er->assertAtomIsSymbol(":", ref, "2")) {
         return false;
     }
 

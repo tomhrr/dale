@@ -22,7 +22,7 @@ bool execute(Generator *gen,
 
     Context *ctx = gen->ctx;
 
-    if (!gen->assertArgNums("if", node, 3, 3)) {
+    if (!ctx->er->assertArgNums("if", node, 3, 3)) {
         return false;
     }
 

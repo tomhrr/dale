@@ -20,7 +20,7 @@ bool execute(Generator *gen,
 {
     Context *ctx = gen->ctx; 
 
-    if (!gen->assertArgNums("p>", node, 2, 2)) {
+    if (!ctx->er->assertArgNums("p>", node, 2, 2)) {
         return NULL;
     }
 
@@ -33,7 +33,7 @@ bool execute(Generator *gen,
     if (!res) {
         return false;
     }
-    if (!gen->assertIsPointerType("p>", (*lst)[1], p.type, "1")) {
+    if (!ctx->er->assertIsPointerType("p>", (*lst)[1], p.type, "1")) {
         return false;
     }
 
@@ -44,7 +44,7 @@ bool execute(Generator *gen,
     if (!res) {
         return false;
     }
-    if (!gen->assertIsPointerType("p>", (*lst)[2], p2.type, "2")) {
+    if (!ctx->er->assertIsPointerType("p>", (*lst)[2], p2.type, "2")) {
         return false;
     }
 

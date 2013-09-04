@@ -19,8 +19,9 @@ bool execute(Generator *gen,
              ParseResult *pr)
 {
     assert(node->list && "must receive a list!");
+    Context *ctx = gen->ctx;
 
-    if (!gen->assertArgNums("do", node, 1, -1)) {
+    if (!ctx->er->assertArgNums("do", node, 1, -1)) {
         return false;
     }
 

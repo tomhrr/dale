@@ -22,7 +22,7 @@ bool execute(Generator *gen,
 
     assert(node->list && "must receive a list!");
 
-    if (!gen->assertArgNums("p=", node, 2, 2)) {
+    if (!ctx->er->assertArgNums("p=", node, 2, 2)) {
         return false;
     }
 
@@ -35,7 +35,7 @@ bool execute(Generator *gen,
     if (!mres) {
         return false;
     }
-    if (!gen->assertIsPointerType("p=", node, p1.type, "1")) {
+    if (!ctx->er->assertIsPointerType("p=", node, p1.type, "1")) {
         return false;
     }
 
@@ -47,7 +47,7 @@ bool execute(Generator *gen,
     if (!mres) {
         return false;
     }
-    if (!gen->assertIsPointerType("p=", node, p2.type, "2")) {
+    if (!ctx->er->assertIsPointerType("p=", node, p2.type, "2")) {
         return false;
     }
 

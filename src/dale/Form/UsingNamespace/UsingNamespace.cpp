@@ -22,7 +22,7 @@ bool execute(Generator *gen,
 
     assert(node->list && "must receive a list!");
 
-    if (!gen->assertArgNums("using-namespace", node, 1, -1)) {
+    if (!ctx->er->assertArgNums("using-namespace", node, 1, -1)) {
         return false;
     }
 
@@ -32,10 +32,10 @@ bool execute(Generator *gen,
     if (!n2) {
         return false;
     }
-    if (!gen->assertArgIsAtom("using-namespace", n2, "1")) {
+    if (!ctx->er->assertArgIsAtom("using-namespace", n2, "1")) {
         return false;
     }
-    if (!gen->assertAtomIsSymbol("using-namespace", n2, "1")) {
+    if (!ctx->er->assertAtomIsSymbol("using-namespace", n2, "1")) {
         return false;
     }
 

@@ -20,7 +20,9 @@ bool execute(Generator *gen,
 {
     assert(node->list && "must receive a list!");
 
-    if (!gen->assertArgNums("alignmentof", node, 1, 1)) {
+    Context *ctx = gen->ctx;
+
+    if (!ctx->er->assertArgNums("alignmentof", node, 1, 1)) {
         return false;
     }
 

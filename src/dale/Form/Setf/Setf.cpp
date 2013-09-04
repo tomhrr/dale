@@ -24,7 +24,7 @@ bool execute(Generator *gen,
 
     symlist *lst = node->list;
 
-    if (!gen->assertArgNums("setf", node, 2, 2)) {
+    if (!ctx->er->assertArgNums("setf", node, 2, 2)) {
         return false;
     }
 
@@ -204,9 +204,10 @@ cont2:
 
     /* todo: it would be good to also show the setf-assign
      * candidates here, if applicable. */
-    gen->assertTypeEquality("setf", (*lst)[2],
+    ctx->er->assertTypeEquality("setf", (*lst)[2],
                             pr_value.type,
-                            pr_variable.type->points_to);
+                            pr_variable.type->points_to,
+                            false);
 
     return false;
 }

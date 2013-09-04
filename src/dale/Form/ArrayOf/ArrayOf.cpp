@@ -24,7 +24,7 @@ bool execute(Generator *gen,
 
     symlist *lst = node->list;
 
-    if (!gen->assertArgNums("array-of", node, 3, -1)) {
+    if (!ctx->er->assertArgNums("array-of", node, 3, -1)) {
         return false;
     }
 

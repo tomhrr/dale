@@ -1481,7 +1481,7 @@ int Generator::parseTopLevel(Node *top)
         parseImport(top);
         return 1;
     } else if (!t->str_value.compare("once")) {
-        if (!assertArgNums("once", top, 1, 1)) {
+        if (!ctx->er->assertArgNums("once", top, 1, 1)) {
             return 1;
         }
         symlist *lst = top->list;
@@ -1490,7 +1490,7 @@ int Generator::parseTopLevel(Node *top)
         if (!n) {
             return 1;
         }
-        if (!assertArgIsAtom("once", n, "1")) {
+        if (!ctx->er->assertArgIsAtom("once", n, "1")) {
             return 1;
         }
         const char *once_name = n->token->str_value.c_str();
@@ -1543,7 +1543,7 @@ void Generator::parseUsingNamespaceTopLevel(Node *top)
 {
     assert(top->list && "parseUsingNamespace must receive a list!");
 
-    if (!assertArgNums("using-namespace", top, 1, -1)) {
+    if (!ctx->er->assertArgNums("using-namespace", top, 1, -1)) {
         return;
     }
 
@@ -1553,10 +1553,10 @@ void Generator::parseUsingNamespaceTopLevel(Node *top)
     if (!n) {
         return;
     }
-    if (!assertArgIsAtom("using-namespace", n, "1")) {
+    if (!ctx->er->assertArgIsAtom("using-namespace", n, "1")) {
         return;
     }
-    if (!assertAtomIsSymbol("using-namespace", n, "1")) {
+    if (!ctx->er->assertAtomIsSymbol("using-namespace", n, "1")) {
         return;
     }
 
@@ -1597,7 +1597,7 @@ void Generator::parseNamespace(Node *top)
 {
     assert(top->list && "parseNamespace must receive a list!");
 
-    if (!assertArgNums("namespace", top, 1, -1)) {
+    if (!ctx->er->assertArgNums("namespace", top, 1, -1)) {
         return;
     }
 
@@ -1607,10 +1607,10 @@ void Generator::parseNamespace(Node *top)
     if (!n) {
         return;
     }
-    if (!assertArgIsAtom("namespace", n, "1")) {
+    if (!ctx->er->assertArgIsAtom("namespace", n, "1")) {
         return;
     }
-    if (!assertAtomIsSymbol("namespace", n, "1")) {
+    if (!ctx->er->assertAtomIsSymbol("namespace", n, "1")) {
         return;
     }
 
@@ -1922,7 +1922,7 @@ void Generator::parseModuleName(Node *top)
 
     assert(top->list && "parseModuleName must receive a list!");
 
-    if (!assertArgNums("module", top, 1, 2)) {
+    if (!ctx->er->assertArgNums("module", top, 1, 2)) {
         return;
     }
 
@@ -1932,7 +1932,7 @@ void Generator::parseModuleName(Node *top)
     if (!n) {
         return;
     }
-    if (!assertArgIsAtom("module", n, "1")) {
+    if (!ctx->er->assertArgIsAtom("module", n, "1")) {
         return;
     }
 
@@ -1954,7 +1954,7 @@ void Generator::parseModuleName(Node *top)
         if (!n) {
             return;
         }
-        if (!assertArgIsList("module", n, "2")) {
+        if (!ctx->er->assertArgIsList("module", n, "2")) {
             return;
         }
         if (!(n->list->at(0)->is_token)
@@ -2008,7 +2008,7 @@ void Generator::parseImport(Node *top)
 {
     assert(top->list && "parseImport must receive a list!");
 
-    if (!assertArgNums("import", top, 1, 2)) {
+    if (!ctx->er->assertArgNums("import", top, 1, 2)) {
         return;
     }
 
@@ -2018,7 +2018,7 @@ void Generator::parseImport(Node *top)
     if (!n) {
         return;
     }
-    if (!assertArgIsAtom("import", n, "1")) {
+    if (!ctx->er->assertArgIsAtom("import", n, "1")) {
         return;
     }
 
@@ -2027,7 +2027,7 @@ void Generator::parseImport(Node *top)
     std::vector<const char *> import_forms;
     if (lst->size() == 3) {
         n = (*lst)[2];
-        if (!assertArgIsList("import", n, "2")) {
+        if (!ctx->er->assertArgIsList("import", n, "2")) {
             return;
         }
         symlist *formlst = n->list;
@@ -2035,7 +2035,7 @@ void Generator::parseImport(Node *top)
                 e = formlst->end();
                 b != e;
                 ++b) {
-            if (!assertArgIsAtom("import", (*b), "2")) {
+            if (!ctx->er->assertArgIsAtom("import", (*b), "2")) {
                 return;
             }
             import_forms.push_back((*b)->token->str_value.c_str());
@@ -2060,7 +2060,7 @@ void Generator::parseInclude(Node *top)
 {
     assert(top->list && "parseInclude must receive a list!");
 
-    if (!assertArgNums("include", top, 1, 1)) {
+    if (!ctx->er->assertArgNums("include", top, 1, 1)) {
         return;
     }
 
@@ -2070,10 +2070,10 @@ void Generator::parseInclude(Node *top)
     if (!n) {
         return;
     }
-    if (!assertArgIsAtom("include", n, "1")) {
+    if (!ctx->er->assertArgIsAtom("include", n, "1")) {
         return;
     }
-    if (!assertAtomIsStringLiteral("include", n, "1")) {
+    if (!ctx->er->assertAtomIsStringLiteral("include", n, "1")) {
         return;
     }
 
@@ -2895,7 +2895,7 @@ void Generator::parseStructDefinition(const char *name, Node *top)
     assert(top->list && "parseStructDefinition must receive a list!");
     anonstructcount++;
 
-    if (!assertArgNums("struct", top, 1, 3)) {
+    if (!ctx->er->assertArgNums("struct", top, 1, 3)) {
         return;
     }
 
@@ -4618,148 +4618,11 @@ void Generator::parseFunction(const char *name, Node *n,
     return;
 }
 
-/* This always assumes that n is a list.
-   If max_args is -1, then max_args is not checked. */
-int Generator::assertArgNums(const char *form_name,
-                             Node *n,
-                             int min_args,
-                             int max_args)
-{
-    symlist *lst = n->list;
-
-    char buf1[100];
-    char buf2[100];
-
-    if (!lst) {
-        fprintf(stderr,
-                "Internal error: no list to assert arg nums.\n");
-        return 0;
-    }
-
-    int num_args = (int) lst->size() - 1;
-
-    if (min_args == max_args) {
-        if (num_args == min_args) {
-            return 1;
-        } else {
-            Error *e = new Error(
-                ErrorInst::Generator::IncorrectNumberOfArgs,
-                n,
-                form_name
-            );
-            sprintf(buf1, "%d", min_args);
-            sprintf(buf2, "%d", num_args);
-            e->addArgString(buf1);
-            e->addArgString(buf2);
-            erep->addError(e);
-            return 0;
-        }
-    }
-
-    if (num_args < min_args) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectMinimumNumberOfArgs,
-            n,
-            form_name
-        );
-        sprintf(buf1, "%d", min_args);
-        sprintf(buf2, "%d", num_args);
-        e->addArgString(buf1);
-        e->addArgString(buf2);
-        erep->addError(e);
-        return 0;
-    }
-
-    if ((max_args != -1) && (num_args > max_args)) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectMaximumNumberOfArgs,
-            n,
-            form_name
-        );
-        sprintf(buf1, "%d", max_args);
-        sprintf(buf2, "%d", num_args);
-        e->addArgString(buf1);
-        e->addArgString(buf2);
-        erep->addError(e);
-        return 0;
-    }
-
-    return 1;
-}
-
-int Generator::assertArgIsAtom(const char *form_name,
-                               Node *n,
-                               const char *arg_number)
-{
-    if (n->is_token) {
-        return 1;
-    }
-
-    Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
-        n,
-        form_name, "an atom", arg_number, "a list"
-    );
-    erep->addError(e);
-    return 0;
-}
-
-int Generator::assertArgIsList(const char *form_name,
-                               Node *n,
-                               const char *arg_number)
-{
-    if (n->is_list) {
-        return 1;
-    }
-
-    Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
-        n,
-        form_name, "a list", arg_number, "a symbol"
-    );
-    erep->addError(e);
-    return 0;
-}
-
-int Generator::assertAtomIsSymbol(const char *form_name,
-                                  Node *n,
-                                  const char *arg_number)
-{
-    if (n->token && (n->token->type == TokenType::String)) {
-        return 1;
-    }
-
-    Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
-        n,
-        form_name, "a symbol", arg_number, n->token->tokenType()
-    );
-    erep->addError(e);
-    return 0;
-}
-
-int Generator::assertAtomIsStringLiteral(const char *form_name,
-        Node *n,
-        const char *arg_number)
-{
-    if (n->token && (n->token->type == TokenType::StringLiteral)) {
-        return 1;
-    }
-
-    Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
-        n,
-        form_name, "a string literal", arg_number, n->token->tokenType()
-    );
-    erep->addError(e);
-    return 0;
-}
-
 Node *Generator::parseDerefStructDeref(Node *n)
 {
     assert(n->list && "parseDerefStructDeref must receive a list!");
 
-    if (!assertArgNums("@:@", n, 2, 2)) {
+    if (!ctx->er->assertArgNums("@:@", n, 2, 2)) {
         return NULL;
     }
 
@@ -4809,7 +4672,7 @@ Node *Generator::parseDerefStruct(Node *n)
 {
     assert(n->list && "parseDerefStruct must receive a list!");
 
-    if (!assertArgNums(":@", n, 2, 2)) {
+    if (!ctx->er->assertArgNums(":@", n, 2, 2)) {
         return NULL;
     }
 
@@ -4841,7 +4704,7 @@ Node *Generator::parseStructDeref(Node *n)
 {
     assert(n->list && "parseStructDeref must receive a list!");
 
-    if (!assertArgNums("@:", n, 2, 2)) {
+    if (!ctx->er->assertArgNums("@:", n, 2, 2)) {
         return NULL;
     }
 
@@ -4875,7 +4738,7 @@ Node *Generator::parseArrayDeref(Node *n)
 {
     assert(n->list && "parseArrayDeref must receive a list!");
 
-    if (!assertArgNums("@$", n, 2, 2)) {
+    if (!ctx->er->assertArgNums("@$", n, 2, 2)) {
         return NULL;
     }
 
@@ -4909,14 +4772,14 @@ Node *Generator::parseSetv(Node *n)
 {
     assert(n->list && "parseSetv must receive a list!");
 
-    if (!assertArgNums("setv", n, 2, 2)) {
+    if (!ctx->er->assertArgNums("setv", n, 2, 2)) {
         return NULL;
     }
 
     symlist *lst = n->list;
     Node *varn = (*lst)[1];
 
-    if (!assertArgIsAtom("setv", varn, "1")) {
+    if (!ctx->er->assertArgIsAtom("setv", varn, "1")) {
         return NULL;
     }
 
@@ -4939,92 +4802,6 @@ Node *Generator::parseSetv(Node *n)
 
     // Return the original node.
     return n;
-}
-
-int Generator::assertTypeEquality(const char *form_name,
-                                  Node *n,
-                                  Element::Type *got,
-                                  Element::Type *expected,
-                                  int ignore_arg_constness)
-{
-    if (got->isEqualTo(expected, ignore_arg_constness)) {
-        return 1;
-    }
-
-    std::string got_str;
-    std::string exp_str;
-    got->toStringProper(&got_str);
-    expected->toStringProper(&exp_str);
-
-    Error *e = new Error(
-        ((!strcmp(form_name, "return"))
-         ? ErrorInst::Generator::IncorrectReturnType
-         : ErrorInst::Generator::IncorrectType),
-        n,
-        exp_str.c_str(), got_str.c_str()
-    );
-    erep->addError(e);
-    return 0;
-}
-
-int Generator::assertIsPointerType(const char *form_name,
-                                   Node *n,
-                                   Element::Type *type,
-                                   const char *arg_number)
-{
-    if (type->points_to) {
-        return 1;
-    }
-
-    std::string temp;
-    type->toStringProper(&temp);
-    Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
-        n,
-        form_name, "a pointer", arg_number, temp.c_str()
-    );
-    erep->addError(e);
-    return 0;
-}
-
-int Generator::assertIsPointerOrIntegerType(const char *form_name,
-        Node *n,
-        Element::Type *type,
-        const char *arg_number)
-{
-    if (type->points_to || type->isIntegerType()) {
-        return 1;
-    }
-
-    std::string temp;
-    type->toStringProper(&temp);
-    Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
-        n,
-        form_name, "a pointer or integer", arg_number, temp.c_str()
-    );
-    erep->addError(e);
-    return 0;
-}
-
-int Generator::assertIsIntegerType(const char *form_name,
-                                   Node *n,
-                                   Element::Type *type,
-                                   const char *arg_number)
-{
-    if (type->base_type == Type::Int) {
-        return 1;
-    }
-
-    std::string temp;
-    type->toStringProper(&temp);
-    Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
-        n,
-        form_name, "int", arg_number, temp.c_str()
-    );
-    erep->addError(e);
-    return 0;
 }
 
 bool Generator::hasRelevantDestructor(ParseResult *pr)
@@ -5378,7 +5155,7 @@ bool Generator::existsType(DNode *dnode)
     Node *n = WrapNode(DNodeToIntNode(dnode));
     assert(n->list && "must receive a list!");
 
-    if (!assertArgNums("exists-type", n, 0, 0)) {
+    if (!ctx->er->assertArgNums("exists-type", n, 0, 0)) {
         printf("wrong arg count! (existsType)\n");
         return false;
     }
@@ -5945,7 +5722,7 @@ int Generator::fnByArgsCount(DNode *dnode, const char *prefix)
 
     assert(n->list && "must receive a list!");
 
-    if (!assertArgNums("fn-by-args-count", n, 0, -1)) {
+    if (!ctx->er->assertArgNums("fn-by-args-count", n, 0, -1)) {
         return 0;
     }
 
@@ -6026,7 +5803,7 @@ const char *Generator::fnByArgsName(DNode *dnode, int acount)
 
     assert(n->list && "must receive a list!");
 
-    if (!assertArgNums("fn-by-args-name", n, 0, -1)) {
+    if (!ctx->er->assertArgNums("fn-by-args-name", n, 0, -1)) {
         return 0;
     }
 
@@ -6071,7 +5848,7 @@ bool Generator::existsFunction(DNode *dnode)
 
     assert(n->list && "must receive a list!");
 
-    if (!assertArgNums("exists-fn", n, 1, -1)) {
+    if (!ctx->er->assertArgNums("exists-fn", n, 1, -1)) {
         return false;
     }
 
@@ -6233,7 +6010,7 @@ DNode *Generator::codomain(DNode *dnode)
 
     assert(n->list && "must receive a list!");
 
-    if (!assertArgNums("codomain", n, 0, -1)) {
+    if (!ctx->er->assertArgNums("codomain", n, 0, -1)) {
         return NULL;
     }
 
@@ -6291,7 +6068,7 @@ bool Generator::existsMacro(DNode *dnode)
 
     assert(n->list && "must receive a list!");
 
-    if (!assertArgNums("exists-macro", n, 0, -1)) {
+    if (!ctx->er->assertArgNums("exists-macro", n, 0, -1)) {
         return false;
     }
 
@@ -6342,7 +6119,7 @@ bool Generator::existsMacroExact(DNode *dnode)
 
     assert(n->list && "must receive a list!");
 
-    if (!assertArgNums("exists-macro-exact", n, 1, -1)) {
+    if (!ctx->er->assertArgNums("exists-macro-exact", n, 1, -1)) {
         return false;
     }
 
@@ -6857,14 +6634,12 @@ bool Generator::parseFuncallInternal(
     setPr(pr, block, fn_ptr->type->points_to->return_type, call_res);
 
     fn_ptr->block = pr->block;
-    if (hasRelevantDestructor(fn_ptr)) {
-        ParseResult temp;
-        bool res = destructIfApplicable(fn_ptr, NULL, &temp);
-        if (!res) {
-            return false;
-        }
-        pr->block = temp.block;
+    ParseResult temp;
+    bool res = destructIfApplicable(fn_ptr, NULL, &temp);
+    if (!res) {
+        return false;
     }
+    pr->block = temp.block;
 
     return true;
 }
@@ -10050,7 +9825,7 @@ Element::Type *Generator::parseType(Node *top,
     }
 
     if (!strcmp(t->str_value.c_str(), "p")) {
-        if (!assertArgNums("p", top, 1, 1)) {
+        if (!ctx->er->assertArgNums("p", top, 1, 1)) {
             return NULL;
         }
 
@@ -10066,7 +9841,7 @@ Element::Type *Generator::parseType(Node *top,
     }
 
     if (!strcmp(t->str_value.c_str(), "fn")) {
-        if (!assertArgNums("fn", top, 2, 2)) {
+        if (!ctx->er->assertArgNums("fn", top, 2, 2)) {
             return NULL;
         }
 

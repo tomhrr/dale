@@ -25,7 +25,7 @@ bool execute(Generator *gen,
 
     symlist *lst = node->list;
 
-    if (!gen->assertArgNums("cast", node, 2, 2)) {
+    if (!ctx->er->assertArgNums("cast", node, 2, 2)) {
         return false;
     }
 

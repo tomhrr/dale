@@ -22,7 +22,7 @@ bool execute(Generator *gen,
 
     assert(node->list && "parseAddressOf must receive a list!");
 
-    if (!gen->assertArgNums("#", node, 1, -1)) {
+    if (!ctx->er->assertArgNums("#", node, 1, -1)) {
         return false;
     }
     symlist *lst = node->list;

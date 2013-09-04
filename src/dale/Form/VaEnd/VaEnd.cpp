@@ -21,7 +21,7 @@ bool execute(Generator *gen,
 {
     Context *ctx = gen->ctx;
 
-    if (!gen->assertArgNums("va-start", node, 1, 1)) {
+    if (!ctx->er->assertArgNums("va-start", node, 1, 1)) {
         return false;
     }
 

@@ -18,7 +18,9 @@ bool execute(Generator *gen,
              bool prefixed_with_core,
              ParseResult *pr)
 {
-    if (!gen->assertArgNums("get-dnodes", node, 1, 1)) {
+    Context *ctx = gen->ctx;
+
+    if (!ctx->er->assertArgNums("get-dnodes", node, 1, 1)) {
         return false;
     }
 

@@ -22,7 +22,7 @@ bool execute(Generator *gen,
 
     assert(node->list && "must receive a list!");
 
-    if (!gen->assertArgNums("sizeof", node, 1, -1)) {
+    if (!ctx->er->assertArgNums("sizeof", node, 1, -1)) {
         return false;
     }
 

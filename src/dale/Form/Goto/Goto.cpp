@@ -18,26 +18,27 @@ bool execute(Generator *gen,
              bool prefixed_with_core,
              ParseResult *pr)
 {
+    Context *ctx = gen->ctx;
+
     assert(n->list && "parseGoto must receive a list!");
 
-    if (!gen->assertArgNums("goto", node, 1, 1)) {
+    if (!ctx->er->assertArgNums("goto", node, 1, 1)) {
         return false;
     }
 
     symlist *lst = node->list;
     Node *lname = (*lst)[1];
 
-    if (!gen->assertArgIsAtom("goto", lname, "1")) {
+    if (!ctx->er->assertArgIsAtom("goto", lname, "1")) {
         return false;
     }
-    if (!gen->assertAtomIsSymbol("goto", lname, "1")) {
+    if (!ctx->er->assertAtomIsSymbol("goto", lname, "1")) {
         return false;
     }
 
     Token *t = lname->token;
 
     Element::Label *mylabel = fn->getLabel(t->str_value.c_str());
-    Context *ctx = gen->ctx;
 
     if (!mylabel) {
         /* Block does not exist - add to defgotos. Also add a

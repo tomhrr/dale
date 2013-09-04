@@ -24,7 +24,7 @@ bool execute(Generator *gen,
 
     symlist *lst = node->list;
 
-    if (!gen->assertArgNums("return", node, 0, 1)) {
+    if (!ctx->er->assertArgNums("return", node, 0, 1)) {
         return false;
     }
     if (lst->size() == 1) {
@@ -47,7 +47,8 @@ bool execute(Generator *gen,
     if (!res) {
         return false;
     }
-    if (!gen->assertTypeEquality("return", node, p.type, fn->return_type)) {
+    if (!ctx->er->assertTypeEquality("return", node, p.type,
+                                     fn->return_type, false)) {
         return false;
     }
     block = p.block;

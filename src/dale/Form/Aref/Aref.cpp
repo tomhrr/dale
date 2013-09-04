@@ -23,7 +23,7 @@ bool execute(Generator *gen,
 
     assert(node->list && "must receive a list!");
 
-    if (!gen->assertArgNums("$", node, 2, 2)) {
+    if (!ctx->er->assertArgNums("$", node, 2, 2)) {
         return false;
     }
 

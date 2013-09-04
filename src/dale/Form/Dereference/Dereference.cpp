@@ -24,7 +24,7 @@ bool execute(Generator *gen,
 
     symlist *lst = node->list;
 
-    if (!gen->assertArgNums("@", node, 1, 1)) {
+    if (!ctx->er->assertArgNums("@", node, 1, 1)) {
         return false;
     }
 

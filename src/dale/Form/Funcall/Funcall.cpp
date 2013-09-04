@@ -24,7 +24,7 @@ bool execute(Generator *gen,
 
     /* (funcall <pointer-to-function> <arg1> <arg2> ...) */
 
-    if (!gen->assertArgNums("funcall", node, 1, -1)) {
+    if (!ctx->er->assertArgNums("funcall", node, 1, -1)) {
         return false;
     }
 

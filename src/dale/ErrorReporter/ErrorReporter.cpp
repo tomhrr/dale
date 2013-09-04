@@ -6,6 +6,8 @@
 
 namespace dale
 {
+typedef std::vector<Node*> symlist;
+
 ErrorReporter::ErrorReporter(const char *new_current_filename)
 {
     current_filename = new_current_filename;
@@ -100,5 +102,228 @@ void ErrorReporter::popErrors(int original_count)
     while (diff--) {
         popLastError();
     }
+}
+
+bool ErrorReporter::assertIsIntegerType(const char *form_name,
+                                        Node *n,
+                                        Element::Type *type,
+                                        const char *arg_number)
+{
+    if (type->base_type == Type::Int) {
+        return true;
+    }
+
+    std::string temp;
+    type->toStringProper(&temp);
+    Error *e = new Error(
+        ErrorInst::Generator::IncorrectArgType,
+        n,
+        form_name, "int", arg_number, temp.c_str()
+    );
+    addError(e);
+    return false;
+}
+
+bool ErrorReporter::assertIsPointerOrIntegerType(const char *form_name,
+                                                 Node *n,
+                                                 Element::Type *type,
+                                                 const char *arg_number)
+{
+    if (type->points_to || type->isIntegerType()) {
+        return true;
+    }
+
+    std::string temp;
+    type->toStringProper(&temp);
+    Error *e = new Error(
+        ErrorInst::Generator::IncorrectArgType,
+        n,
+        form_name, "a pointer or integer", arg_number, temp.c_str()
+    );
+    addError(e);
+    return false;
+}
+
+bool ErrorReporter::assertIsPointerType(const char *form_name,
+                                        Node *n,
+                                        Element::Type *type,
+                                        const char *arg_number)
+{
+    if (type->points_to) {
+        return true;
+    }
+
+    std::string temp;
+    type->toStringProper(&temp);
+    Error *e = new Error(
+        ErrorInst::Generator::IncorrectArgType,
+        n,
+        form_name, "a pointer", arg_number, temp.c_str()
+    );
+    addError(e);
+    return false;
+}
+
+bool ErrorReporter::assertTypeEquality(const char *form_name,
+                                       Node *n,
+                                       Element::Type *got,
+                                       Element::Type *expected,
+                                       int ignore_arg_constness)
+{
+    if (got->isEqualTo(expected, ignore_arg_constness)) {
+        return true;
+    }
+
+    std::string got_str;
+    std::string exp_str;
+    got->toStringProper(&got_str);
+    expected->toStringProper(&exp_str);
+
+    Error *e = new Error(
+        ((!strcmp(form_name, "return"))
+         ? ErrorInst::Generator::IncorrectReturnType
+         : ErrorInst::Generator::IncorrectType),
+        n,
+        exp_str.c_str(), got_str.c_str()
+    );
+    addError(e);
+    return false;
+}
+
+bool ErrorReporter::assertAtomIsStringLiteral(const char *form_name,
+                                              Node *n,
+                                              const char *arg_number)
+{
+    if (n->token && (n->token->type == TokenType::StringLiteral)) {
+        return true;
+    }
+
+    Error *e = new Error(
+        ErrorInst::Generator::IncorrectArgType,
+        n,
+        form_name, "a string literal", arg_number, n->token->tokenType()
+    );
+    addError(e);
+    return false;
+}
+
+/* This always assumes that n is a list.
+   If max_args is -1, then max_args is not checked. */
+bool ErrorReporter::assertArgNums(const char *form_name,
+                                  Node *n,
+                                  int min_args,
+                                  int max_args)
+{
+    symlist *lst = n->list;
+
+    char buf1[100];
+    char buf2[100];
+
+    if (!lst) {
+        fprintf(stderr,
+                "Internal error: no list to assert arg nums.\n");
+        abort();
+    }
+
+    int num_args = (int) lst->size() - 1;
+
+    if (min_args == max_args) {
+        if (num_args == min_args) {
+            return 1;
+        } else {
+            Error *e = new Error(
+                ErrorInst::Generator::IncorrectNumberOfArgs,
+                n,
+                form_name
+            );
+            sprintf(buf1, "%d", min_args);
+            sprintf(buf2, "%d", num_args);
+            e->addArgString(buf1);
+            e->addArgString(buf2);
+            addError(e);
+            return false;
+        }
+    }
+
+    if (num_args < min_args) {
+        Error *e = new Error(
+            ErrorInst::Generator::IncorrectMinimumNumberOfArgs,
+            n,
+            form_name
+        );
+        sprintf(buf1, "%d", min_args);
+        sprintf(buf2, "%d", num_args);
+        e->addArgString(buf1);
+        e->addArgString(buf2);
+        addError(e);
+        return false;
+    }
+
+    if ((max_args != -1) && (num_args > max_args)) {
+        Error *e = new Error(
+            ErrorInst::Generator::IncorrectMaximumNumberOfArgs,
+            n,
+            form_name
+        );
+        sprintf(buf1, "%d", max_args);
+        sprintf(buf2, "%d", num_args);
+        e->addArgString(buf1);
+        e->addArgString(buf2);
+        addError(e);
+        return false;
+    }
+
+    return true;
+}
+
+bool ErrorReporter::assertArgIsAtom(const char *form_name,
+                                    Node *n,
+                                    const char *arg_number)
+{
+    if (n->is_token) {
+        return true;
+    }
+
+    Error *e = new Error(
+        ErrorInst::Generator::IncorrectArgType,
+        n,
+        form_name, "an atom", arg_number, "a list"
+    );
+    addError(e);
+    return false;
+}
+
+bool ErrorReporter::assertArgIsList(const char *form_name,
+                                    Node *n,
+                                    const char *arg_number)
+{
+    if (n->is_list) {
+        return true;
+    }
+
+    Error *e = new Error(
+        ErrorInst::Generator::IncorrectArgType,
+        n,
+        form_name, "a list", arg_number, "a symbol"
+    );
+    addError(e);
+    return false;
+}
+
+bool ErrorReporter::assertAtomIsSymbol(const char *form_name,
+                                       Node *n,
+                                       const char *arg_number)
+{
+    if (n->token && (n->token->type == TokenType::String)) {
+        return true;
+    }
+
+    Error *e = new Error(
+        ErrorInst::Generator::IncorrectArgType,
+        n,
+        form_name, "a symbol", arg_number, n->token->tokenType()
+    );
+    addError(e);
+    return false;
 }
 }
