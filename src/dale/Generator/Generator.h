@@ -335,7 +335,8 @@ public:
     bool scopeClose(Element::Function *dfn,
                    llvm::BasicBlock *block,
                    llvm::Value *no_destruct);
-    bool destructIfApplicable(ParseResult *pr, llvm::IRBuilder<> *builder, ParseResult *pr2);
+    bool destructIfApplicable(ParseResult *pr, llvm::IRBuilder<> *builder, 
+                              ParseResult *pr2, bool value_is_ptr = false);
     Context               *ctx;
     bool parseFunctionBodyInstr(Element::Function *dfn,
                                         llvm::BasicBlock *block,

@@ -4806,7 +4806,8 @@ Node *Generator::parseSetv(Node *n)
 
 bool Generator::destructIfApplicable(ParseResult *pr,
         llvm::IRBuilder<> *builder,
-        ParseResult *pr_ret)
+        ParseResult *pr_ret,
+        bool value_is_ptr)
 {
     pr->copyTo(pr_ret);
 
@@ -4957,11 +4958,16 @@ bool Generator::destructIfApplicable(ParseResult *pr,
         builder = new llvm::IRBuilder<>(pr->block);
     }
     std::vector<llvm::Value *> call_args;
-    llvm::Value *new_ptr2 = 
-        llvm::cast<llvm::Value>(
+    llvm::Value *new_ptr2;
+    if (value_is_ptr) {
+        new_ptr2 = pr->value;
+    } else {
+        new_ptr2 = llvm::cast<llvm::Value>(
             builder->CreateAlloca(toLLVMType(pr->type, NULL, false))
         );
-    builder->CreateStore(pr->value, new_ptr2);
+        builder->CreateStore(pr->value, new_ptr2);
+    }
+
     call_args.push_back(new_ptr2);
     builder->CreateCall(
         fn->llvm_function,
@@ -5032,21 +5038,16 @@ bool Generator::copyWithSetfIfApplicable(
     return true;
 }
 
-/* todo: this does part of the work of destructIfApplicable. It
- * should call that function instead. */
 bool Generator::scopeClose(Element::Function *dfn,
                           llvm::BasicBlock *block,
                           llvm::Value *no_destruct)
 {
-    /* Get variables in the current scope. */
     std::vector<Element::Variable *> stack_vars;
     ctx->ns()->getVariables(&stack_vars);
+    
+    ParseResult mnew;
+    mnew.block = block;
 
-    /* For each variable, look for an associated destructor.
-     * (todo: cache the results here so you don't call getFunction
-     * unnecessarily.) */
-    llvm::IRBuilder<> builder(block);
-    std::vector<Element::Type *> types;
     for (std::vector<Element::Variable *>::iterator
             b = stack_vars.begin(),
             e = stack_vars.end();
@@ -5056,38 +5057,9 @@ bool Generator::scopeClose(Element::Function *dfn,
         if (no_destruct && ((*b)->value == no_destruct)) {
             continue;
         }
-        /* If it's an array type, destruct it normally. */
-        if ((*b)->type->array_type && (*b)->type->array_size) {
-            ParseResult mnew;
-            mnew.type = (*b)->type;
-            mnew.value = (*b)->value;
-            mnew.block = block;
-            ParseResult temp;
-            destructIfApplicable(&mnew, NULL, &temp);
-        } else {
-            types.clear();
-            Element::Type *pbtype = tr->getPointerType((*b)->type);
-            types.push_back(pbtype);
-            Element::Function *fn = ctx->getFunction("destroy",
-                                    &types, NULL, 0);
-            if (!fn) {
-                continue;
-            }
-
-            if (!((*b)->value->getType()->isPointerTy())) {
-                fprintf(stderr,
-                        "Variable value is not a pointer! (%s)\n",
-                        (*b)->name.c_str());
-                abort();
-            }
-
-            std::vector<llvm::Value *> call_args;
-            // Destroy takes a pointer now, instead of a value.
-            call_args.push_back((*b)->value);
-            builder.CreateCall(
-                fn->llvm_function,
-                llvm::ArrayRef<llvm::Value*>(call_args));
-        }
+        mnew.type = (*b)->type;
+        mnew.value = (*b)->value;
+        destructIfApplicable(&mnew, NULL, &mnew, true);
     }
 
     return true;
