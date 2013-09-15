@@ -1,93 +1,410 @@
 #include "Introspection.h"
-
 #include "../Element/Type/Type.h"
+#include "../Generator/Generator.h"
+
+using namespace dale;
+
+std::vector<ParseResult*> g_parse_results;
+std::vector<Node *> g_nodes;
 
 extern "C" {
-    int types_2D_equal(MContext *mc, DNode *T1, DNode *T2)
+    Node *WrapNode(Node *n)
     {
-        dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->typesEqual(T1, T2);
+        std::vector<Node *> *nodes = new std::vector<Node *>;
+        nodes->push_back(n);
+        Node *holder = new Node(nodes);
+        return holder;
     }
 
-    int is_2D_char_2D_type(MContext *mc, DNode *dnode)
+    bool types_2D_equal(MContext *mc, DNode *T1, DNode *T2)
     {
-        dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->isCharType(dnode);
+        Generator *g = (dale::Generator*) mc->generator;
+        Node *n = g->DNodeToIntNode(T1);
+        n = g->parseOptionalMacroCall(n);
+        if (!n) {
+            return false;
+        }
+
+        Node *n2 = g->DNodeToIntNode(T2);
+        n2 = g->parseOptionalMacroCall(n2);
+        if (!n2) {
+            return false;
+        }
+
+        int original_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        Element::Type *thetype  = g->parseType(n,  false, false);
+        Element::Type *thetype2 = g->parseType(n2, false, false);
+
+        g->ctx->er->popErrors(original_error_count);
+        if (!thetype || !thetype2) {
+            return 0;
+        }
+        return (thetype->isEqualTo(thetype2));
     }
 
-    int is_2D_integer_2D_type(MContext *mc, DNode *dnode)
+    bool is_2D_char_2D_type(MContext *mc, DNode *dnode)
     {
-        dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->isIntegerType(dnode);
+        Generator *g = (dale::Generator*) mc->generator;
+        Node *n = g->DNodeToIntNode(dnode);
+        n = g->parseOptionalMacroCall(n);
+        if (!n) {
+            return false;
+        }
+        if (!n->token) {
+            return false;
+        }
+        if (n->token->str_value.compare("char")) {
+            return false;
+        }
+        return true;
     }
 
-    int is_2D_signed_2D_integer_2D_type(MContext *mc, DNode *dnode)
+    static bool get_type(MContext *mc, DNode *dnode, Element::Type **type)
     {
-        dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->isSignedIntegerType(dnode);
+        Generator *g = (dale::Generator*) mc->generator;
+        Node *n = g->DNodeToIntNode(dnode);
+        n = g->parseOptionalMacroCall(n);
+        if (!n) {
+            return false;
+        }
+
+        int original_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        *type = g->parseType(n, false, false);
+
+        g->ctx->er->popErrors(original_error_count);
+        if (!*type) {
+            return false;
+        }
+
+        return true;
     }
 
-    int is_2D_unsigned_2D_integer_2D_type(MContext *mc, DNode *dnode)
+    bool is_2D_integer_2D_type(MContext *mc, DNode *dnode)
     {
-        dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->isUnsignedIntegerType(dnode);
+        Element::Type *type;
+        bool res = get_type(mc, dnode, &type);
+        if (!res) {
+            return false;
+        }
+        return type->isIntegerType();
     }
 
-    int is_2D_floating_2D_point_2D_type(MContext *mc, DNode *dnode)
+    bool is_2D_signed_2D_integer_2D_type(MContext *mc, DNode *dnode)
     {
-        dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->isFloatingPointType(dnode);
+        Element::Type *type;
+        bool res = get_type(mc, dnode, &type);
+        if (!res) {
+            return false;
+        }
+        return type->isSignedIntegerType();
     }
 
-    int is_2D_pointer_2D_type(MContext *mc, DNode *dnode)
+    bool is_2D_unsigned_2D_integer_2D_type(MContext *mc, DNode *dnode)
     {
-        dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->isPointerType(dnode);
+        Element::Type *type;
+        bool res = get_type(mc, dnode, &type);
+        if (!res) {
+            return false;
+        }
+        return (type->isIntegerType() && !(type->isSignedIntegerType()));
     }
 
-    int is_2D_pointer_2D_to_2D_type(MContext *mc, DNode *dnode,
-                                    DNode *pointee_type)
+    bool is_2D_floating_2D_point_2D_type(MContext *mc, DNode *dnode)
     {
-        dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->isPointerToType(dnode, pointee_type);
+        Element::Type *type;
+        bool res = get_type(mc, dnode, &type);
+        if (!res) {
+            return false;
+        }
+        return type->isFloatingPointType();
+    }
+
+    bool is_2D_pointer_2D_type(MContext *mc, DNode *dnode)
+    {
+        Element::Type *type;
+        bool res = get_type(mc, dnode, &type);
+        if (!res) {
+            return false;
+        }
+        return (type->points_to ? true : false);
+    }
+
+    bool is_2D_pointer_2D_to_2D_type(MContext *mc, DNode *dnode,
+                                     DNode *pointee_type)
+    {
+        Generator *g = (dale::Generator*) mc->generator;
+        Node *n = g->DNodeToIntNode(dnode);
+        n = g->parseOptionalMacroCall(n);
+        if (!n) {
+            return false;
+        }
+
+        Node *n2 = g->DNodeToIntNode(pointee_type);
+        n2 = g->parseOptionalMacroCall(n2);
+        if (!n2) {
+            return false;
+        }
+
+        int original_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        Element::Type *thetype  = g->parseType(n,  false, false);
+        Element::Type *thetype2 = g->parseType(n2, false, false);
+
+        g->ctx->er->popErrors(original_error_count);
+        if (!thetype || !thetype2) {
+            return false;
+        }
+        return (thetype->points_to->isEqualTo(thetype2));
     }
 
     DNode *pointee_2D_type(MContext *mc, DNode *dnode)
     {
-        dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->pointeeType(dnode);
+        Generator *g = (dale::Generator*) mc->generator;
+        Element::Type *type;
+        bool res = get_type(mc, dnode, &type);
+        if (!res) {
+            return false;
+        }
+        if (!type->points_to) {
+            return false;
+        }
+        return g->IntNodeToDNode(type->points_to->toNode());
     }
 
     bool has_2D_errors(MContext *mc, DNode *dnode)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->hasErrors(dnode);
+
+        Node *n = g->DNodeToIntNode(dnode);
+
+        assert(n->list && "must receive a list!");
+
+        int original_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        int made_temp = 0;
+        std::vector<DeferredGoto*> dgs;
+        std::map<std::string, Element::Label*> mls;
+        if (!g->global_function) {
+            g->makeTemporaryGlobalFunction(&dgs, &mls);
+            made_temp = 1;
+        }
+
+        ParseResult temp;
+
+        /* POMC may succeed, but the underlying macro may return a
+         * null DNode pointer. This is not necessarily an error. */
+        n = g->parseOptionalMacroCall(n);
+        if (n) {
+            g->parseFunctionBodyInstr(
+                g->global_function,
+                g->global_block,
+                n,
+                false,
+                NULL,
+                &temp
+            );
+        }
+
+        if (made_temp) {
+            g->removeTemporaryGlobalFunction(-1, &dgs, &mls);
+        }
+
+        int new_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        bool has_errors =
+            ((new_error_count - original_error_count) != 0);
+
+        g->ctx->er->popErrors(original_error_count);
+        return has_errors;
     }
 
     bool must_2D_init(MContext *mc, DNode *dnode)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->mustInit(dnode);
+        Node *n = g->DNodeToIntNode(dnode);
+
+        int original_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        Element::Type *ptype = g->parseType(n, false, false);
+        if (!ptype) {
+            g->ctx->er->popErrors(original_error_count);
+            return false;
+        }
+
+        if (ptype->is_const) {
+            return true;
+        }
+        if (ptype->struct_name) {
+            Element::Struct *structp =
+                g->ctx->getStruct(
+                    ptype->struct_name->c_str(),
+                    ptype->namespaces
+                );
+            return !!(structp->must_init);
+        }
+        return false;
     }
 
     bool is_2D_const(MContext *mc, DNode *dnode)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->isConst(dnode);
+
+        Node *n = g->DNodeToIntNode(dnode);
+
+        int original_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        Element::Type *ptype = g->parseType(n, false, false);
+        if (!ptype) {
+            g->ctx->er->popErrors(original_error_count);
+            return false;
+        }
+
+        if (ptype->is_const) {
+            return true;
+        }
+
+        return false;
     }
 
     int fn_2D_by_2D_args_2D_count(MContext *mc, DNode *dnode,
-                                  const char *prefix)
+                                   const char *prefix)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->fnByArgsCount(dnode, prefix);
+
+        Node *n = g->DNodeToIntNode(dnode);
+
+        assert(n->list && "must receive a list!");
+
+        if (!g->ctx->er->assertArgNums("fn-by-args-count", n, 0, -1)) {
+            return 0;
+        }
+
+        int original_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        symlist *lst = n->list;
+
+        std::vector<Node *>::iterator iter = lst->begin();
+        int c = 0;
+
+        std::string map_key;
+        std::vector<Element::Type *> parameter_types;
+        while (iter != lst->end()) {
+            Element::Type *ptype = g->parseType((*iter), false,
+                                                false);
+            if (!ptype) {
+                g->ctx->er->popErrors(original_error_count);
+                return 0;
+            }
+            ptype->toStringProper(&map_key);
+            parameter_types.push_back(ptype);
+            ++iter;
+            ++c;
+        }
+
+        std::map<std::string, std::vector<std::string>*>::iterator
+            b = g->fn_by_args.find(map_key),
+            e = g->fn_by_args.end();
+        if (b != e) {
+            std::vector<std::string>* fn_by_args_list = b->second;
+            delete fn_by_args_list;
+            g->fn_by_args.erase(b);
+        }
+
+        /* For each function that exists, see if it has an instance
+         * for the provided parameter types. */
+
+        std::set<std::string> function_names;
+        bool has_prefix = prefix;
+        if (!prefix) {
+            prefix = "";
+        }
+        std::string ss_prefix(prefix);
+        g->ctx->getFunctionNames(&function_names, 
+                                 (has_prefix ? &ss_prefix : NULL));
+        std::vector<std::string> *fn_by_args_list =
+            new std::vector<std::string>;
+
+        for (std::set<std::string>::iterator
+                b = function_names.begin(),
+                e = function_names.end();
+                b != e;
+                ++b) {
+            Element::Function *thefn =
+                g->ctx->getFunction(b->c_str(),
+                                    &parameter_types,
+                                    NULL,
+                                    0);
+            if (thefn && (!(thefn->is_macro))) {
+                fn_by_args_list->push_back((*b));
+            }
+        }
+
+        g->fn_by_args.insert(
+            std::pair<std::string, std::vector<std::string>*>(
+                map_key,
+                fn_by_args_list
+            )
+        );
+
+        return (int) fn_by_args_list->size();
     }
 
     const char* fn_2D_by_2D_args_2D_name(MContext *mc, DNode *dnode,
                                          int acount)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->fnByArgsName(dnode, acount);
+
+        Node *n = g->DNodeToIntNode(dnode);
+
+        assert(n->list && "must receive a list!");
+
+        if (!g->ctx->er->assertArgNums("fn-by-args-name", n, 0, -1)) {
+            return NULL;
+        }
+
+        int original_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        symlist *lst = n->list;
+
+        std::vector<Node *>::iterator iter = lst->begin();
+
+        std::string map_key;
+        while (iter != lst->end()) {
+            Element::Type *ptype = g->parseType((*iter), false,
+                                                false);
+            if (!ptype) {
+                g->ctx->er->popErrors(original_error_count);
+                return NULL;
+            }
+            ptype->toStringProper(&map_key);
+            ++iter;
+        }
+
+        std::map<std::string, std::vector<std::string>*>::iterator
+            b = g->fn_by_args.find(map_key),
+            e = g->fn_by_args.end();
+
+        if (b == e) {
+            return NULL;
+        }
+
+        std::vector<std::string> *fn_by_args_list = b->second;
+        if (((unsigned) acount) > (fn_by_args_list->size() - 1)) {
+            return NULL;
+        }
+
+        return fn_by_args_list->at(acount).c_str();
     }
 
     bool register_2D_type(MContext *mc, const char *buf1, const char *buf2)
@@ -99,81 +416,489 @@ extern "C" {
     DNode *type_2D_of(MContext *mc, DNode *dnode)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->typeOf(dnode);
+
+        Node *n = g->DNodeToIntNode(dnode);
+
+        g_nodes.push_back(n);
+
+        if (!g->global_function) {
+            fprintf(stderr, "No global function set.\n");
+            abort();
+        }
+        if (!g->global_block) {
+            fprintf(stderr, "No global block set.\n");
+            abort();
+        }
+
+        ParseResult *p = new ParseResult();
+        bool res =
+            g->parseFunctionBodyInstr(
+                g->global_function,
+                g->global_block,
+                n,
+                false,
+                NULL,
+                p
+            );
+
+        if (!res) {
+            return NULL;
+        }
+
+        g_parse_results.push_back(p);
+
+        DNode *mynode = g->IntNodeToDNode(p->type->toNode());
+        return mynode;
     }
 
     const char *printf_2D_length(MContext *mc, DNode *dnode)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->printfLength(dnode);
+
+        Node *n = g->DNodeToIntNode(dnode);
+        if (!n->is_token) {
+            return "";
+        }
+        std::string *str = &(n->token->str_value);
+
+        if (!(str->compare("char"))) {
+            return "hh";
+        }
+        if (!(str->compare("size"))) {
+            return "z";
+        }
+        if (!(str->compare("ptrdiff"))) {
+            return "t";
+        }
+        if (!(str->compare("long-double"))) {
+            return "L";
+        }
+        /* The type token now should be an int or uint, followed by a
+         * number. Confirm that this is so, get the number, divide it
+         * by four and return the appropriate length character. */
+        if (!(str->find("int"))) {
+            str->erase(str->begin(), str->begin() + 3);
+        } else if (!(str->find("uint"))) {
+            str->erase(str->begin(), str->begin() + 4);
+        } else {
+            return "";
+        }
+
+        unsigned long addnum =
+            strtoul(str->c_str(), NULL, DECIMAL_RADIX);
+
+        if (STRTOUL_FAILED(addnum, str->c_str(), NULL)) {
+            return "";
+        }
+        addnum /= 8;
+
+        if (addnum == sizeof(short)) {
+            return "h";
+        }
+        if (addnum == sizeof(long)) {
+            return "l";
+        }
+        if (addnum >= sizeof(long long)) {
+            return "ll";
+        }
+        return "";
     }
 
-    int type_2D_to_2D_string(MContext *mc, DNode *dnode, char *buf)
+    bool type_2D_to_2D_string(MContext *mc, DNode *dnode, char *buf)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->typeToString(dnode, buf);
+
+        Node *n = WrapNode(g->DNodeToIntNode(dnode));
+
+        Element::Type *type = g->parseType((*(n->list))[0], false,
+                                           false);
+        if (!type) {
+            return false;
+        }
+
+        std::string temp;
+        type->toEncStr(&temp);
+        if (temp.size() > 255) {
+            fprintf(stderr, "Internal error: encoded type "
+                    "string is too long (>255 "
+                    "characters): %s.\n",
+                    temp.c_str());
+        }
+        std::copy(temp.begin(), temp.end(), buf);
+        buf[temp.size()] = '\0';
+
+        return true;
     }
 
-    int type_2D_to_2D_display_2D_string(MContext *mc, DNode *dnode, char *buf)
+    bool type_2D_to_2D_display_2D_string(MContext *mc, DNode *dnode, char *buf)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->typeToDisplayString(dnode, buf);
+
+        Node *n = WrapNode(g->DNodeToIntNode(dnode));
+
+        Element::Type *type = g->parseType((*(n->list))[0], false,
+                                           false);
+        if (!type) {
+            return false;
+        }
+
+        std::string temp;
+        type->toStringProper(&temp);
+        std::copy(temp.begin(), temp.end(), buf);
+        buf[temp.size()] = '\0';
+
+        return true;
     }
 
-    int report_2D_error(MContext *mc, DNode *dnode, char *str)
+    void report_2D_error(MContext *mc, DNode *dnode, char *str)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        g->reportError(dnode, str);
-        return 1;
+
+        Node *n = g->DNodeToIntNode(dnode);
+
+        Error *e = new Error(
+            ErrorInst::Generator::ExternalError, n, str
+        );
+        g->ctx->er->addError(e);
+        return;
     }
 
-    int exists_2D_fn(MContext *mc, DNode *dnode)
+    bool exists_2D_fn(MContext *mc, DNode *dnode)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->existsFunction(dnode);
+
+        Node *n = g->DNodeToIntNode(dnode);
+
+        assert(n->list && "must receive a list!");
+
+        if (!g->ctx->er->assertArgNums("exists-fn", n, 1, -1)) {
+            return false;
+        }
+
+        symlist *lst = n->list;
+
+        Node *nret_type = (*lst)[0];
+        Node *nfn_name  = (*lst)[1];
+
+        std::vector<Node *>::iterator iter = lst->begin();
+        ++iter;
+        ++iter;
+
+        int original_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        Element::Type *ret_type = g->parseType(nret_type, false,
+                                               false);
+        if (!ret_type) {
+            g->ctx->er->popErrors(original_error_count);
+            return false;
+        }
+
+        int c = 0;
+
+        std::vector<Element::Type *> parameter_types;
+        while (iter != lst->end()) {
+            Element::Type *ptype = g->parseType((*iter), false,
+                                                false);
+            if (!ptype) {
+                g->ctx->er->popErrors(original_error_count);
+                return false;
+            }
+            if (ptype->base_type == Type::Void) {
+                break;
+            }
+            parameter_types.push_back(ptype);
+            ++iter;
+            ++c;
+        }
+
+        Element::Function *thefn =
+            g->ctx->getFunction(nfn_name->token->str_value.c_str(),
+                                &parameter_types,
+                                NULL,
+                                0);
+
+        g->ctx->er->popErrors(original_error_count);
+        return (thefn && !thefn->is_macro);
     }
 
-    int exists_2D_type(MContext *mc, DNode *dnode)
+    bool exists_2D_type(MContext *mc, DNode *dnode)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->existsType(dnode);
+
+        Node *n = WrapNode(g->DNodeToIntNode(dnode));
+        assert(n->list && "must receive a list!");
+
+        if (!g->ctx->er->assertArgNums("exists-type", n, 0, 0)) {
+            printf("wrong arg count! (existsType)\n");
+            return false;
+        }
+
+        symlist *lst = n->list;
+
+        int error_count = g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        Element::Type *type = g->parseType((*lst)[0], false,
+                                           false);
+        g->ctx->er->popErrors(error_count);
+
+        return !!type;
     }
 
-    int exists_2D_macro(MContext *mc, DNode *dnode)
+    /* Exact means exact, as in, this includes the implicit starting
+     * arguments. You probably want existsMacro. */
+    bool exists_2D_macro(MContext *mc, DNode *dnode)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->existsMacro(dnode);
+
+        Node *n = g->DNodeToIntNode(dnode);
+
+        assert(n->list && "must receive a list!");
+
+        if (!g->ctx->er->assertArgNums("exists-macro", n, 0, -1)) {
+            return false;
+        }
+
+        symlist *lst = n->list;
+
+        Node *nfn_name  = (*lst)[0];
+
+        std::vector<Node *>::iterator iter = lst->begin();
+        ++iter;
+
+        int original_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        int c = 0;
+
+        std::vector<Element::Type *> parameter_types;
+        while (iter != lst->end()) {
+            Element::Type *ptype = g->parseType((*iter), false,
+                                                false);
+            if (!ptype) {
+                g->ctx->er->popErrors(original_error_count);
+                return false;
+            }
+            if (ptype->base_type == Type::Void) {
+                break;
+            }
+            parameter_types.push_back(ptype);
+            ++iter;
+            ++c;
+        }
+
+        Element::Function *thefn =
+            g->ctx->getFunction(nfn_name->token->str_value.c_str(),
+                                &parameter_types,
+                                NULL,
+                                1);
+
+        g->ctx->er->popErrors(original_error_count);
+        return (thefn && thefn->is_macro);
     }
 
-    int exists_2D_macro_2D_exact(MContext *mc, DNode *dnode)
+    bool exists_2D_macro_2D_exact(MContext *mc, DNode *dnode)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->existsMacroExact(dnode);
+
+        Node *n = g->DNodeToIntNode(dnode);
+
+        assert(n->list && "must receive a list!");
+
+        if (!g->ctx->er->assertArgNums("exists-macro-exact", n, 1, -1)) {
+            return false;
+        }
+
+        symlist *lst = n->list;
+
+        Node *nfn_name  = (*lst)[0];
+
+        std::vector<Node *>::iterator iter = lst->begin();
+        ++iter;
+
+        int original_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        int c = 0;
+
+        std::vector<Element::Type *> parameter_types;
+        while (iter != lst->end()) {
+            Element::Type *ptype = g->parseType((*iter), false,
+                                                false);
+            if (!ptype) {
+                g->ctx->er->popErrors(original_error_count);
+                return false;
+            }
+            if (ptype->base_type == Type::Void) {
+                break;
+            }
+            parameter_types.push_back(ptype);
+            ++iter;
+            ++c;
+        }
+
+        Element::Function *thefn =
+            g->ctx->getFunction(nfn_name->token->str_value.c_str(),
+                                &parameter_types,
+                                NULL,
+                                1);
+
+        g->ctx->er->popErrors(original_error_count);
+
+        if (!thefn || !(thefn->is_macro)) {
+            return false;
+        }
+
+        std::vector<Element::Type *> types;
+        for (std::vector<Element::Variable *>::iterator
+                b = thefn->parameter_types->begin(),
+                e = thefn->parameter_types->end();
+                b != e;
+                ++b) {
+            types.push_back((*b)->type);
+        }
+
+        if (!dale::stl::isEqualTo(&types, &parameter_types)) {
+            return false;
+        }
+
+        return true;
     }
 
-    int exists_2D_variable(MContext *mc, DNode *dnode)
+    bool exists_2D_variable(MContext *mc, DNode *dnode)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->existsVariable(dnode);
+
+        Node *n = g->DNodeToIntNode(dnode);
+        n = g->parseOptionalMacroCall(n);
+        if (!n) {
+            return false;
+        }
+        if (!n->token) {
+            return false;
+        }
+
+        int original_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        Element::Variable *thevar =
+            g->ctx->getVariable(n->token->str_value.c_str());
+
+        g->ctx->er->popErrors(original_error_count);
+        return ((thevar) ? true : false);
     }
 
     DNode *codomain(MContext *mc, DNode *dnode)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->codomain(dnode);
+
+        Node *n = g->DNodeToIntNode(dnode);
+
+        assert(n->list && "must receive a list!");
+
+        if (!g->ctx->er->assertArgNums("codomain", n, 0, -1)) {
+            return NULL;
+        }
+
+        symlist *lst = n->list;
+
+        Node *nfn_name  = (*lst)[0];
+
+        std::vector<Node *>::iterator iter = lst->begin();
+        ++iter;
+
+        int original_error_count =
+            g->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+        int c = 0;
+
+        std::vector<Element::Type *> parameter_types;
+        while (iter != lst->end()) {
+            Element::Type *ptype = g->parseType((*iter), false,
+                                                false);
+            if (!ptype) {
+                g->ctx->er->popErrors(original_error_count);
+                return NULL;
+            }
+            if (ptype->base_type == Type::Void) {
+                break;
+            }
+            parameter_types.push_back(ptype);
+            ++iter;
+            ++c;
+        }
+
+        Element::Function *thefn =
+            g->ctx->getFunction(nfn_name->token->str_value.c_str(),
+                                &parameter_types,
+                                NULL,
+                                0);
+
+        g->ctx->er->popErrors(original_error_count);
+        if (thefn && !thefn->is_macro) {
+            DNode *dn =
+                g->IntNodeToDNode(
+                    thefn->return_type->toNode()
+                );
+            return dn;
+        }
+        else {
+            return NULL;
+        } 
     }
 
-    DNode *input_2D_type(MContext *mc, DNode *fn_name, int arg_count)
+    DNode *input_2D_type(MContext *mc, DNode *fn_name_nd, int arg_count)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->inputType(fn_name, arg_count);
+
+        Node *fn_node = g->DNodeToIntNode(fn_name_nd);
+        fn_node = g->parseOptionalMacroCall(fn_node);
+        if (!fn_node) {
+            return NULL;
+        }
+        const char *fn_name = fn_node->token->str_value.c_str();
+
+        Element::Function *fn = g->ctx->getFunction(fn_name, NULL,
+                                                    NULL, 0);
+        if (!fn) {
+            return NULL;
+        }
+        if (fn->linkage != Linkage::Extern_C) {
+            return NULL;
+        }
+        if ((int) (fn->parameter_types->size() - 1) < arg_count) {
+            return NULL;
+        }
+
+        return
+            g->IntNodeToDNode(
+                fn->parameter_types->at(arg_count)->type->toNode()
+            );
     }
 
     DNode *struct_2D_member_2D_type(MContext *mc,
                                     DNode *struct_name_node, int arg_count)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->structMemberType(struct_name_node, arg_count);
+
+        Node *s_node = g->DNodeToIntNode(struct_name_node);
+        s_node = g->parseOptionalMacroCall(s_node);
+        if (!s_node || !s_node->token) {
+            return NULL;
+        }
+        const char *struct_name = s_node->token->str_value.c_str();
+
+        Element::Struct *st = g->ctx->getStruct(struct_name);
+        if (!st) {
+            return NULL;
+        }
+        if ((int) st->element_types.size() < arg_count) {
+            return NULL;
+        }
+        return
+            g->IntNodeToDNode(
+                st->element_types.at(arg_count)->toNode()
+            );
     }
 
     const char *struct_2D_member_2D_name(MContext *mc,
@@ -181,19 +906,62 @@ extern "C" {
                                          int arg_count)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->structMemberName(struct_name_node, arg_count);
+
+        Node *s_node = g->DNodeToIntNode(struct_name_node);
+        s_node = g->parseOptionalMacroCall(s_node);
+        if (!s_node || !s_node->token) {
+            return NULL;
+        }
+        const char *struct_name = s_node->token->str_value.c_str();
+
+        Element::Struct *st = g->ctx->getStruct(struct_name);
+        if (!st) {
+            return NULL;
+        }
+        if ((int) st->element_types.size() < arg_count) {
+            return NULL;
+        }
+        return st->indexToName(arg_count);
     }
 
-    int arity(MContext *mc, DNode *fn_name)
+    int arity(MContext *mc, DNode *fn_name_nd)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->arity(fn_name);
+
+        Node *fn_node = g->DNodeToIntNode(fn_name_nd);
+        fn_node = g->parseOptionalMacroCall(fn_node);
+        if (!fn_node) {
+            return -1;
+        }
+        const char *fn_name = fn_node->token->str_value.c_str();
+
+        Element::Function *fn = g->ctx->getFunction(fn_name, NULL, NULL,
+                                                    0);
+        if (!fn) {
+            return -1;
+        }
+        if (fn->linkage != Linkage::Extern_C) {
+            return -1;
+        }
+        return fn->numberOfRequiredArgs();
     }
 
     int struct_2D_member_2D_count(MContext *mc, DNode *struct_name_node)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
-        return g->structMemberCount(struct_name_node);
+
+        Node *s_node = g->DNodeToIntNode(struct_name_node);
+        s_node = g->parseOptionalMacroCall(s_node);
+        if (!s_node || !s_node->token) {
+            return -1;
+        }
+        const char *struct_name = s_node->token->str_value.c_str();
+
+        Element::Struct *st = g->ctx->getStruct(struct_name);
+        if (!st) {
+            return -1;
+        }
+        return st->element_types.size();
     }
 
     void *find_introspection_function(const char *name)

@@ -19,6 +19,12 @@
 #include "../Element/Enum/Enum.h"
 #include "../TypeRegister/TypeRegister.h"
 
+#define DECIMAL_RADIX 10
+
+#define STRTOUL_FAILED(ret, str, end) \
+    (((((ret) == ULONG_MAX || ((ret) == 0)) && (errno == ERANGE)) \
+        || (((ret) == 0) && ((str) == (end)))))
+
 namespace llvm {
     class Linker;
     class Module;
@@ -275,35 +281,6 @@ public:
             int noalways);
     bool addLib(const char *lib_path, int add_to_so_paths,
                 int add_nm_to_so_paths);
-    bool existsFunction(DNode *dnode);
-    bool hasErrors(DNode *dnode);
-    bool mustInit(DNode *dnode);
-    bool isConst(DNode *dnode);
-    int fnByArgsCount(DNode *dnode, const char *prefix);
-    const char* fnByArgsName(DNode *dnode, int acount);
-    DNode *typeOf(DNode *dnode);
-    const char *printfLength(DNode *dnode);
-    bool existsVariable(DNode *dnode);
-    bool existsType(DNode *dnode);
-    bool existsMacro(DNode *dnode);
-    bool existsMacroExact(DNode *dnode);
-    bool typeToString(DNode *dnode, char *buf);
-    void reportError(DNode *dnode, char *str);
-    DNode *codomain(DNode *dnode);
-    int structMemberCount(DNode *struct_name_node);
-    int struct_2D_member_2D_count(DNode *struct_name_node);
-    DNode *input_2D_type(DNode *fn_name, int arg_count);
-    DNode *inputType(DNode *fn_name_nd, int arg_count);
-    DNode *structMemberType(DNode *struct_name_node,
-                            int arg_count);
-    DNode *struct_2D_member_2D_type(DNode *struct_name_node,
-                                    int arg_count);
-    const char *structMemberName(DNode *struct_name_node, int arg_count);
-    const char *struct_2D_member_2D_name(DNode *struct_name_node, int arg_count);
-    bool typeToDisplayString(DNode *dnode, char *buf);
-    int type_2D_to_2D_display_2D_string(DNode *dnode, char
-                                        *buf);
-    int arity(DNode *fn_name);
 
     bool copyWithSetfIfApplicable(
         Element::Function *dfn,
@@ -312,24 +289,6 @@ public:
     void setPdnode();
     void setPoolfree();
 
-    int is_2D_char_2D_type(DNode *dnode);
-    int is_2D_integer_2D_type(DNode *dnode);
-    int is_2D_signed_2D_integer_2D_type(DNode *dnode);
-    int is_2D_unsigned_2D_integer_2D_type(DNode *dnode);
-    int is_2D_floating_2D_point_2D_type(DNode *dnode);
-    int is_2D_pointer_2D_type(DNode *dnode);
-    int is_2D_pointer_2D_to_2D_type(DNode *dnode, DNode *pointee_type);
-    int types_2D_equal(DNode *T1, DNode *T2);
-    DNode *pointee_2D_type(DNode *dnode);
-    bool isCharType(DNode *dnode);
-    bool isIntegerType(DNode *dnode);
-    bool isSignedIntegerType(DNode *dnode);
-    bool isUnsignedIntegerType(DNode *dnode);
-    bool isFloatingPointType(DNode *dnode);
-    bool isPointerType(DNode *dnode);
-    bool isPointerToType(DNode *dnode, DNode *pointee_type);
-    bool typesEqual(DNode *T1, DNode *T2);
-    DNode *pointeeType(DNode *dnode);
     int prefunction_ctx_index;
    
     bool scopeClose(Element::Function *dfn,
@@ -381,6 +340,17 @@ public:
                                     *pr);
 
     int parseInteger(Node *n);
+
+    std::vector<dale::Element::Function*> global_functions;
+    std::vector<llvm::BasicBlock*>        global_blocks;
+
+    dale::Element::Function *global_function;
+    llvm::BasicBlock        *global_block;
+
+    /* Function name lists will be stored here by fnByArgsCount, keyed on
+     * the stringification of of the parameter types. This map will, in
+     * turn, be used by fnByArgsName. */
+    std::map<std::string, std::vector<std::string>*> fn_by_args;
 };
 }
 
