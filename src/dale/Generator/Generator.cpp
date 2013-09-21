@@ -430,37 +430,6 @@ int Generator::addVariable(const char *name,
 static int added_common_declarations = 0;
 
 void
-Generator::addVoidPointerType(void)
-{
-    /* (def _vp (struct extern ((p char)))) */
-
-    Token *mychar = new Token(TokenType::String,0,0,0,0);
-    mychar->str_value.append("char");
-    Token *myp = new Token(TokenType::String,0,0,0,0);
-    myp->str_value.append("p");
-
-    std::vector<Node*> *pp = new std::vector<Node*>;
-    stl::push_back2(pp, new Node(myp),
-                    new Node(mychar));
-
-    std::vector<Node*> *pp2 = new std::vector<Node*>;
-    pp2->push_back(new Node(pp));
-
-    Token *mys = new Token(TokenType::String,0,0,0,0);
-    mys->str_value.append("struct");
-    Token *mye = new Token(TokenType::String,0,0,0,0);
-    mye->str_value.append("extern");
-
-    std::vector<Node*> *pp3 = new std::vector<Node*>;
-    stl::push_back3(pp3, new Node(mys),
-                    new Node(mye),
-                    new Node(pp2));
-
-    parseStructDefinition("_vp", new Node(pp3));
-    erep->flush();
-}
-
-void
 Generator::addVarargsFunctions(void)
 {
     std::vector<llvm::Type*> va_start_args;
@@ -498,8 +467,6 @@ Generator::addVarargsFunctions(void)
 
 void Generator::addCommonDeclarations(void)
 {
-    addVoidPointerType();
-
     BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int);
     BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_char);
     BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint);

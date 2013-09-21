@@ -9,6 +9,8 @@ implicitly where necessary.
 |#
 (module drt)
 
+(def _vp (struct extern ((p char))))
+
 (def DNode 
   (struct extern ((is-list int) 
                   (token-str (p char)) 
