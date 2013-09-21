@@ -92,6 +92,7 @@
 #include "../Form/NewScope/NewScope.h"
 #include "../Form/ArrayOf/ArrayOf.h"
 #include "../Unit/Unit.h"
+#include "../CommonDecl/CommonDecl.h"
 
 #include <iostream>
 #include <sys/time.h>
@@ -370,114 +371,11 @@ llvm::ConstantInt *Generator::getConstantInt(
                                   radix);
 }
 
-int Generator::addVariable(const char *name,
-                           Element::Type *type,
-                           llvm::Constant *init,
-                           bool ignore_if_present)
-{
-    Element::Variable *var = new Element::Variable();
-    var->name.append(name);
-    var->type = type;
-    var->internal_name.append(name);
-    var->linkage = Linkage::Extern;
-    int avres = ctx->ns()->addVariable(name, var);
-    if (!avres) {
-        if (ignore_if_present) {
-            return 1;
-        }
-        fprintf(stderr, "Unable to add %s.\n", name);
-        abort();
-    }
-
-    llvm::Type *rdttype =
-        toLLVMType(type, NULL, false, false);
-    if (!rdttype) {
-        return 0;
-    }
-
-    llvm::GlobalVariable *lvar =
-        llvm::cast<llvm::GlobalVariable>(
-            mod->getOrInsertGlobal(name,
-                                   rdttype)
-        );
-
-    lvar->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_Weak));
-    lvar->setInitializer(init);
-    var->value = lvar;
-
-    return 1;
-}
-
 static int added_common_declarations = 0;
-
-void
-Generator::addVarargsFunctions(void)
-{
-    std::vector<llvm::Type*> va_start_args;
-    va_start_args.push_back(toLLVMType(type_pchar, NULL, false));
-
-    llvm::FunctionType *va_start_ft =
-        getFunctionType(
-            toLLVMType(type_void, NULL, true),
-            va_start_args,
-            false
-        );
-
-    llvm::Function *va_start_fn =
-        llvm::cast<llvm::Function>(
-            mod->getOrInsertFunction(
-                "llvm.va_start",
-                va_start_ft
-            )
-        );
-
-    va_start_fn->setCallingConv(llvm::CallingConv::C);
-
-    llvm::Function *va_end_fn =
-        llvm::cast<llvm::Function>(
-            mod->getOrInsertFunction(
-                "llvm.va_end",
-                va_start_ft
-            )
-        );
-
-    va_end_fn->setCallingConv(llvm::CallingConv::C);
-
-    return;
-}
 
 void Generator::addCommonDeclarations(void)
 {
-    BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int);
-    BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_char);
-    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint);
-    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_intptr);
-    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_ptrdiff);
-    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_size);
-
-    BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int8);
-    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint8);
-    BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int16);
-    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint16);
-    BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int32);
-    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint32);
-    BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int64);
-    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint64);
-
-    /* i128 (actually any integer type with a size of more than 64
-     * bits) does not work properly in some respects on x86-32
-     * (see http://llvm.org/bugs/show_bug.cgi?id=2660). Rather
-     * than allowing the hobbled support to be had, disable it
-     * completely. */
-
-    if (is_x86_64) {
-        BasicTypes::addSignedInt(ctx, mod, &current_once_tag, type_int128);
-        BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, type_uint128);
-    }
-
-    BasicTypes::addFloatingPoint(ctx, mod, &current_once_tag, type_float);
-    BasicTypes::addFloatingPoint(ctx, mod, &current_once_tag, type_double);
-    BasicTypes::addFloatingPoint(ctx, mod, &current_once_tag, type_longdouble);
+    CommonDecl::addBasicTypes(unit_stack->top(), is_x86_64);
 
     /* The basic math functions and the varargs functions are
      * added to every module, but the structs are not, because
@@ -489,211 +387,8 @@ void Generator::addCommonDeclarations(void)
     }
     added_common_declarations = 1;
 
-    if (is_x86_64) {
-        prsr->lxr->pushText(
-            "(def va-list "
-              "(struct extern ((a uint32) "
-                              "(b uint32) "
-                              "(c (p char)) "
-                              "(d (p char)))))"
-        );
-    } else {
-        prsr->lxr->pushText(
-            "(def va-list "
-              "(struct extern ((a uint32))))"
-        );
-    }
-
-    /* Add jmp_buf size constant. */
-
-    addVariable("JMP_BUF_SIZE",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       sizeof(jmp_buf)));
-
-    /* Sizeof fpos_t. */
-
-    addVariable("FPOS_T",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       sizeof(fpos_t)));
-
-    /* Sizeof time_t. */
-
-    addVariable("TIME_T",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       sizeof(time_t)));
-
-    /* Sizeof clock_t. */
-
-    addVariable("CLOCK_T",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       sizeof(clock_t)));
-
-    /* Sizeof long. */
-
-    addVariable("SIZEOF_LONG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       sizeof(long)));
-
-    /* Sizeof long long. */
-
-    addVariable("SIZEOF_LONG_LONG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       sizeof(long long)));
-
-    /* Add float.h constants. */
-
-    addVariable("FLT_RADIX",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FLT_RADIX));
-    addVariable("FLT_MANT_DIG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FLT_MANT_DIG));
-    addVariable("FLT_DIG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FLT_DIG));
-    addVariable("FLT_EPSILON",
-                type_float,
-                llvm::ConstantFP::get(llvm::Type::getFloatTy(llvm::getGlobalContext()),
-                                      FLT_EPSILON));
-    addVariable("FLT_ROUNDS",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FLT_ROUNDS));
-    addVariable("FLT_MIN_EXP",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FLT_MIN_EXP));
-    addVariable("FLT_MAX_EXP",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FLT_MAX_EXP));
-    addVariable("FLT_MIN",
-                type_float,
-                llvm::ConstantFP::get(llvm::Type::getFloatTy(llvm::getGlobalContext()),
-                                      FLT_MIN));
-    addVariable("FLT_MAX",
-                type_float,
-                llvm::ConstantFP::get(llvm::Type::getFloatTy(llvm::getGlobalContext()),
-                                      FLT_MAX));
-
-    addVariable("DBL_MANT_DIG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       DBL_MANT_DIG));
-    addVariable("DBL_DIG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       DBL_DIG));
-    addVariable("DBL_EPSILON",
-                type_double,
-                llvm::ConstantFP::get(llvm::Type::getDoubleTy(llvm::getGlobalContext()),
-                                      DBL_EPSILON));
-    addVariable("DBL_MIN_EXP",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       DBL_MIN_EXP));
-    addVariable("DBL_MAX_EXP",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       DBL_MAX_EXP));
-    addVariable("DBL_MIN",
-                type_double,
-                llvm::ConstantFP::get(llvm::Type::getDoubleTy(llvm::getGlobalContext()),
-                                      DBL_MIN));
-    addVariable("DBL_MAX",
-                type_double,
-                llvm::ConstantFP::get(llvm::Type::getDoubleTy(llvm::getGlobalContext()),
-                                      DBL_MAX));
-
-    addVariable("LDBL_MANT_DIG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       LDBL_MANT_DIG));
-    addVariable("LDBL_DIG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       LDBL_DIG));
-    addVariable("LDBL_EPSILON",
-                type_longdouble,
-                llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(llvm::getGlobalContext()),
-                                      LDBL_EPSILON));
-    addVariable("LDBL_MIN_EXP",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       LDBL_MIN_EXP));
-    addVariable("LDBL_MAX_EXP",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       LDBL_MAX_EXP));
-    addVariable("LDBL_MIN",
-                type_longdouble,
-                llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(llvm::getGlobalContext()),
-                                      LDBL_MIN));
-    addVariable("LDBL_MAX",
-                type_longdouble,
-                llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(llvm::getGlobalContext()),
-                                      LDBL_MAX));
-
-    /* Add floating-point infinity constants for float, double and
-     * long-double. */
-
-    addVariable("HUGE_VAL",
-                type_double,
-                llvm::ConstantFP::getInfinity(
-                    llvm::Type::getDoubleTy(llvm::getGlobalContext())
-                ));
-
-    addVariable("HUGE_VALF",
-                type_float,
-                llvm::ConstantFP::getInfinity(
-                    llvm::Type::getFloatTy(llvm::getGlobalContext())
-                ));
-
-    addVariable("HUGE_VALL",
-                type_longdouble,
-                llvm::ConstantFP::getInfinity(
-                    llvm::Type::getX86_FP80Ty(llvm::getGlobalContext())
-                ));
-
-    /* Other misc. constants. */
-
-    addVariable("L_tmpnam",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       L_tmpnam));
-    addVariable("TMP_MAX",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       TMP_MAX));
-    addVariable("FILENAME_MAX",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FILENAME_MAX));
-    addVariable("FOPEN_MAX",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FOPEN_MAX));
-    addVariable("RAND_MAX",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       RAND_MAX));
-    addVariable("EXIT_FAILURE",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       EXIT_FAILURE));
-    addVariable("EXIT_SUCCESS",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       EXIT_SUCCESS));
+    CommonDecl::addVarargsTypes(unit_stack->top(), is_x86_64);
+    CommonDecl::addStandardVariables(unit_stack->top());
 
     return;
 }
@@ -927,7 +622,7 @@ int Generator::run(std::vector<const char *> *filenames,
         }
 
         ee->InstallLazyFunctionCreator(myLFC);
-        addVarargsFunctions();
+        CommonDecl::addVarargsFunctions(unit);
 
         if (!no_acd) {
             if (nodrt) {
@@ -2033,7 +1728,7 @@ void Generator::parseInclude(Node *top)
     current_once_tag.clear();
 
     ee->addModule(mod);
-    addVarargsFunctions();
+    CommonDecl::addVarargsFunctions(unit);
 
     if (!g_no_acd) {
         if (g_nodrt) {
