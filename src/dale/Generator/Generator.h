@@ -18,6 +18,7 @@
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../Element/Enum/Enum.h"
 #include "../TypeRegister/TypeRegister.h"
+#include "../UnitStack/UnitStack.h"
 
 #define DECIMAL_RADIX 10
 
@@ -81,12 +82,10 @@ private:
     Parser                *prsr;
     ErrorReporter         *erep;
 
-    std::vector<llvm::Module *> *modules;
+    UnitStack *unit_stack;
+
     std::map<std::string, llvm::Module*> *dtm_modules;
     std::map<std::string, std::string>   *dtm_nm_modules;
-    std::vector<Parser *>       *parsers;
-    std::vector<Context *>      *contexts;
-    std::vector<llvm::Linker *> *linkers;
 
     llvm::ExecutionEngine *ee;
     llvm::Linker          *linker;

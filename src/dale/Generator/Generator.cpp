@@ -91,6 +91,7 @@
 #include "../Form/UsingNamespace/UsingNamespace.h"
 #include "../Form/NewScope/NewScope.h"
 #include "../Form/ArrayOf/ArrayOf.h"
+#include "../Unit/Unit.h"
 
 #include <iostream>
 #include <sys/time.h>
@@ -227,12 +228,8 @@ Generator::Generator()
     included_modules   = new std::set<std::string>;
     set_module_name    = 0;
 
-    modules         = new std::vector<llvm::Module *>;
     dtm_modules     = new std::map<std::string, llvm::Module*>;
     dtm_nm_modules  = new std::map<std::string, std::string>;
-    linkers         = new std::vector<llvm::Linker *>;
-    parsers         = new std::vector<Parser *>;
-    contexts        = new std::vector<Context *>;
 
     type_bool        = tr->getBasicType(Type::Bool);
     type_void        = tr->getBasicType(Type::Void);
@@ -295,17 +292,9 @@ Generator::~Generator()
     delete included_once_tags;
     delete included_modules;
 
-    dale::stl::deleteElements(parsers);
-    dale::stl::deleteElements(contexts);
-    dale::stl::deleteElements(modules);
-
-    delete parsers;
-    delete linkers;
-    delete contexts;
     delete core_forms;
     delete core_forms_no_override;
     delete cto_modules;
-    delete modules;
     delete dtm_modules;
     delete dtm_nm_modules;
 }
@@ -358,14 +347,6 @@ int Generator::addModulePath(char *filename)
 {
     mod_paths[mod_path_count++] = filename;
     return 1;
-}
-
-Parser *Generator::newParser(FILE *new_fp, const char *filename)
-{
-    std::vector<Token *> *ungot_tokens = new std::vector<Token *>;
-    Lexer *lxr = new Lexer(new_fp, ungot_tokens, 1, 1);
-
-    return new Parser(lxr, erep, filename);
 }
 
 llvm::ConstantInt *Generator::getNativeInt(int n)
@@ -919,19 +900,15 @@ int Generator::run(std::vector<const char *> *filenames,
 
     while (iter != filenames->end()) {
         const char *filename = (*iter);
-        erep->current_filename = filename;
+        
+        Unit *unit = new Unit(filename, erep, nt, tr);
+        unit_stack = new UnitStack(unit);
 
-        ctx  = new Context(erep, nt, tr);
-        FILE *new_fp = fopen(filename, "r");
-        if (!new_fp) {
-            perror("Unable to open file");
-            return 0;
-        }
-
-        prsr = newParser(new_fp, filename);
-
-        mod = new llvm::Module(filename, llvm::getGlobalContext());
-        linker = new llvm::Linker(filename, mod, false);
+        ctx    = unit->ctx;
+        mod    = unit->module;
+        linker = unit->linker;
+        prsr   = unit->parser;
+        current_once_tag.clear();
 
         llvm::Triple TheTriple(mod->getTargetTriple());
         if (TheTriple.getTriple().empty()) {
@@ -986,36 +963,16 @@ int Generator::run(std::vector<const char *> *filenames,
 
             /* EOF. */
             if (!top->is_token && !top->is_list) {
-                /* Check for remaining modules/parsers/contexts. */
-                if (!modules->empty()) {
-                    linker = linkers->back();
-                    current_once_tag.clear();
-                    linkers->pop_back();
-
-                    std::string link_error;
-                    if (linker->LinkInModule(mod, &link_error)) {
-                        fprintf(stderr,
-                                "Internal error: cannot link modules: "
-                                "%s\n", link_error.c_str());
-                        abort();
-                    }
-
-                    mod = modules->back();
-                    modules->pop_back();
-
-                    delete prsr;
-                    prsr = parsers->back();
-                    parsers->pop_back();
-
-                    contexts->back()->merge(ctx);
-                    ctx = contexts->back();
-                    contexts->pop_back();
-
-                    ctx->regetPointers(mod);
-
+                unit_stack->pop();
+                if (!unit_stack->empty()) {
+                    Unit *unit = unit_stack->top();
+                    ctx    = unit->ctx;
+                    mod    = unit->module;
+                    linker = unit->linker;
+                    prsr   = unit->parser;
+                    current_once_tag = unit->once_tag;
                     continue;
                 }
-
                 break;
             }
             parseTopLevel(top);
@@ -1324,35 +1281,17 @@ int Generator::parseTopLevel(Node *top)
     }
 
     if (!top->is_token && !top->is_list) {
-        /* Check for remaining modules/parsers/contexts. */
-        if (!modules->empty()) {
-            std::string link_error;
-            linker = linkers->back();
+        unit_stack->pop();
+        if (!unit_stack->empty()) {
+            Unit *unit = unit_stack->top();
+            ctx    = unit->ctx;
+            mod    = unit->module;
+            linker = unit->linker;
+            prsr   = unit->parser;
             current_once_tag.clear();
-            linkers->pop_back();
-
-            if (linker->LinkInModule(mod, &link_error)) {
-                fprintf(stderr,
-                        "Internal error: cannot link modules: "
-                        "%s\n", link_error.c_str());
-                abort();
-            }
-
-            mod = modules->back();
-            modules->pop_back();
-
-            delete prsr;
-            prsr = parsers->back();
-            parsers->pop_back();
-
-            contexts->back()->merge(ctx);
-            ctx = contexts->back();
-            contexts->pop_back();
-            ctx->regetPointers(mod);
-
+            current_once_tag = unit->once_tag;
             return 1;
         }
-
         return 0;
     }
 
@@ -1453,7 +1392,7 @@ int Generator::parseTopLevel(Node *top)
 
         if (included_once_tags->find(once_tag) !=
                 included_once_tags->end()) {
-            if (parsers->size() == 0) {
+            if (unit_stack->size() == 1) {
                 Error *e = new Error(
                     ErrorInst::Generator::CannotOnceTheLastOpenFile,
                     n
@@ -1461,19 +1400,18 @@ int Generator::parseTopLevel(Node *top)
                 erep->addError(e);
                 return 0;
             }
-            delete prsr;
-            prsr = parsers->back();
-            parsers->pop_back();
-            ctx = contexts->back();
-            contexts->pop_back();
-            mod = modules->back();
-            modules->pop_back();
-            linker = linkers->back();
-            linkers->pop_back();
+            unit_stack->pop();
+            Unit *unit = unit_stack->top();
+            ctx    = unit->ctx;
+            mod    = unit->module;
+            linker = unit->linker;
+            prsr   = unit->parser;
             current_once_tag.clear();
+            current_once_tag = unit->once_tag;
         }
         included_once_tags->insert(once_tag);
         current_once_tag = once_tag;
+        unit_stack->top()->setOnceTag(once_tag);
 
         return 1;
     } else {
@@ -2086,23 +2024,13 @@ void Generator::parseInclude(Node *top)
      * stacks, create new parser/module/context for the new file.
      * */
 
-    modules->push_back(mod);
-    parsers->push_back(prsr);
-    contexts->push_back(ctx);
-    linkers->push_back(linker);
-
-    prsr = newParser(include_file, filename_buf.c_str());
-    Context *old_ctx = ctx;
-    ctx = new Context(erep, nt, tr);
-    ctx->merge(old_ctx);
-
-    std::string module_name("MyModule");
-    char buf[256];
-    sprintf(buf, "%d", ++module_number);
-    module_name.append(buf);
-
-    mod = new llvm::Module(module_name.c_str(), llvm::getGlobalContext());
-    linker = new llvm::Linker(module_name.c_str(), mod, false);
+    Unit *unit = new Unit(filename_buf.c_str(), erep, nt, tr);
+    unit_stack->push(unit);
+    ctx    = unit->ctx;
+    mod    = unit->module;
+    linker = unit->linker;
+    prsr   = unit->parser;
+    current_once_tag.clear();
 
     ee->addModule(mod);
     addVarargsFunctions();

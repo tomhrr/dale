@@ -341,6 +341,9 @@ const char *Error::getPrintfString(void)
     case ErrorInst::Lexer::InvalidFloatingPointNumber:
         ret = "invalid floating point number";
         break;
+    case ErrorInst::Generator::CannotOnceTheLastOpenFile:
+        ret = "'once' cannot be used in the last open file";
+        break;
     case ErrorInst::Generator::OnlyListsAtTopLevel:
         ret = "top level elements must be lists";
         break;
