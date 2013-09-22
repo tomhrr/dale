@@ -45,6 +45,9 @@ public:
     llvm::Value *getLLVMFalse(void);
     llvm::Value *getLLVMZero(void);
     llvm::Value *getLLVMOne(void);
+    llvm::ConstantInt *getNativeInt(int n);
+    llvm::ConstantInt *getConstantInt(llvm::IntegerType *type,
+                                      const char *numstr);
 };
 }
 

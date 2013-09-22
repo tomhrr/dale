@@ -63,8 +63,7 @@ executeByIndex(Context *ctx,
 
     std::vector<llvm::Value *> indices;
     stl::push_back2(&indices,  ctx->nt->getLLVMZero(),
-                    llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 
-                                           index));
+                               ctx->nt->getNativeInt(index));
                     
     llvm::Value *res =
         builder.CreateGEP(

@@ -32,7 +32,7 @@ bool execute(Generator *gen,
         gen->scopeClose(fn, block, NULL);
         builder.CreateRetVoid();
         pr->set(block, ctx->tr->getBasicType(Type::Int),
-                llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
+                ctx->nt->getNativeInt(0));
         pr->do_not_destruct       = 1;
         pr->do_not_copy_with_setf = 1;
         pr->treat_as_terminator   = 1;
@@ -68,7 +68,7 @@ bool execute(Generator *gen,
         builder.SetInsertPoint(block);
         builder.CreateRetVoid();
         pr->set(block, fn->return_type, 
-                llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
+                ctx->nt->getNativeInt(0));
         pr->do_not_destruct       = 1;
         pr->do_not_copy_with_setf = 1;
         pr->treat_as_terminator   = 1;

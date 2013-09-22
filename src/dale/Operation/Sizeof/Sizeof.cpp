@@ -26,7 +26,7 @@ execute(Context *ctx,
     llvm::Value *res =
         builder.CreateGEP(
             llvm::ConstantPointerNull::get(lpt),
-            llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 1)
+            ctx->nt->getNativeInt(1)
         );
 
     llvm::Value *res2 =

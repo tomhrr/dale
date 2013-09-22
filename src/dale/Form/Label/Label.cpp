@@ -71,7 +71,7 @@ bool execute(Generator *gen,
     fn->addLabel(t->str_value.c_str(), my_label);
     
     pr->set(new_block, ctx->tr->getBasicType(Type::Int),
-            llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
+            ctx->nt->getNativeInt(0));
 
     return true;
 }

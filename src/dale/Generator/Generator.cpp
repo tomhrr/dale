@@ -352,27 +352,6 @@ int Generator::addModulePath(char *filename)
     return 1;
 }
 
-llvm::ConstantInt *Generator::getNativeInt(int n)
-{
-    return llvm::ConstantInt::get(nt->getNativeIntType(), n);
-}
-
-llvm::ConstantInt *Generator::getConstantInt(
-    llvm::IntegerType *type,
-    const char *numstr
-) {
-    int len = strlen(numstr);
-    int radix = 10;
-    if ((len >= 3) && (numstr[0] == '0') && (numstr[1] == 'x')) {
-        numstr += 2;
-        radix = 16;
-    }
-
-    return llvm::ConstantInt::get(type,
-                                  llvm::StringRef(numstr),
-                                  radix);
-}
-
 static int added_common_declarations = 0;
 
 void Generator::addCommonDeclarations(void)
@@ -2004,8 +1983,8 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
             }
 
             llvm::ConstantInt *c =
-                getConstantInt(llvm::cast<llvm::IntegerType>(d_enumtype),
-                               num->token->str_value.c_str());
+                nt->getConstantInt(llvm::cast<llvm::IntegerType>(d_enumtype),
+                                   num->token->str_value.c_str());
             int index = (int) c->getLimitedValue();
             int res =
                 enm->addElement(tn->token->str_value.c_str(),
@@ -2870,10 +2849,10 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
                 var->setInitializer(const_values_init);
             } else if (r_type->isIntegerType()) {
                 var->setInitializer(
-                    getConstantInt(
+                    nt->getConstantInt(
                         llvm::IntegerType::get(
                             llvm::getGlobalContext(),
-                            mySizeToRealSize(
+                            nt->internalSizeToRealSize(
                                 r_type->getIntegerSize()
                             )
                         ),
@@ -2926,7 +2905,7 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
         } bling;
         bling.nvalue = 0;
         int pr_size =
-            mySizeToRealSize(type->getIntegerSize());
+            nt->internalSizeToRealSize(type->getIntegerSize());
         int i;
         if (pr_size == 128) {
             uint64_t nvalues[2];
@@ -3403,7 +3382,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
     sprintf(buf6, "%lld", (long long int) &thing);
 
     llvm::Value *v =
-        getConstantInt(
+        nt->getConstantInt(
             llvm::IntegerType::get(
                 llvm::getGlobalContext(),
                 sizeof(char*) * 8
@@ -3440,7 +3419,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
     memcpy_args.push_back(store);
     memcpy_args.push_back(retaa);
     memcpy_args.push_back(
-        getConstantInt(llvm::IntegerType::get(llvm::getGlobalContext(),
+        nt->getConstantInt(llvm::IntegerType::get(llvm::getGlobalContext(),
                        32), buf5));
     builder.CreateCall(memcpy->llvm_function,
                        llvm::ArrayRef<llvm::Value*>(memcpy_args)
@@ -3508,8 +3487,8 @@ llvm::Constant *Generator::parseLiteral1(Element::Type *type,
         }
 
         llvm::Constant *myconstint =
-            getConstantInt(nt->getNativeIntType(),
-                           t->str_value.c_str());
+            nt->getConstantInt(nt->getNativeIntType(),
+                               t->str_value.c_str());
 
         llvm::Value *myconstvalue =
             llvm::cast<llvm::Value>(myconstint);
@@ -4962,11 +4941,6 @@ bool Generator::doCast(llvm::BasicBlock *block,
                                     n, implicit, pr);
 }
 
-int Generator::mySizeToRealSize(int n)
-{
-    return nt->internalSizeToRealSize(n);
-}
-
 static int anoncount = 0;
 
 bool Generator::parseFunctionBodyInstr(Element::Function *dfn,
@@ -5057,11 +5031,11 @@ bool Generator::parseFunctionBodyInstrInternal(
             if (wanted_type
                     && wanted_type->isIntegerType()) {
                 int mysize =
-                    mySizeToRealSize(wanted_type->getIntegerSize());
+                    nt->internalSizeToRealSize(wanted_type->getIntegerSize());
                 setPr(pr,
                            block,
                            tr->getBasicType(wanted_type->base_type),
-                           getConstantInt(
+                           nt->getConstantInt(
                                llvm::IntegerType::get(
                                    llvm::getGlobalContext(),
                                    mysize
@@ -5074,7 +5048,7 @@ bool Generator::parseFunctionBodyInstrInternal(
                 setPr(pr,
                            block,
                            type_int,
-                           getConstantInt(
+                           nt->getConstantInt(
                                nt->getNativeIntType(),
                                t->str_value.c_str()
                            )
@@ -5861,7 +5835,7 @@ past_sl_parse:
                 std::vector<llvm::Value *> indices;
                 stl::push_back2(&indices,
                                 nt->getLLVMZero(),
-                                getNativeInt(
+                                nt->getNativeInt(
                                     mystruct->nameToIndex("apply")));
 
                 llvm::IRBuilder<> builder(block);
@@ -6551,7 +6525,7 @@ bool Generator::parseArrayLiteral(Element::Function *dfn,
     indices.push_back(nt->getLLVMZero());
 
     for (int i = 0; i < (int) elements.size(); ++i) {
-        indices.push_back(llvm::ConstantInt::get(nt->getNativeIntType(), i));
+        indices.push_back(nt->getNativeInt(i));
 
         llvm::Value *res = builder.Insert(
                                llvm::GetElementPtrInst::Create(
@@ -6659,7 +6633,7 @@ bool Generator::parseStructLiteral(Element::Function *dfn,
 
         std::vector<llvm::Value *> indices;
         stl::push_back2(&indices, nt->getLLVMZero(),
-                        getNativeInt(index));
+                        nt->getNativeInt(index));
 
         llvm::Value *res =
             builder.CreateGEP(sp,
@@ -7245,7 +7219,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
                     type_double;
             } else if ((*call_arg_types_iter)->isIntegerType()) {
                 int real_size =
-                    mySizeToRealSize(
+                    nt->internalSizeToRealSize(
                         (*call_arg_types_iter)->getIntegerSize()
                     );
 
@@ -8655,10 +8629,7 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
 
     std::vector<llvm::Constant *> constants;
     llvm::Constant *first =
-        llvm::cast<llvm::Constant>(
-            llvm::ConstantInt::get(nt->getNativeIntType(),
-                                   node->is_list)
-        );
+        llvm::cast<llvm::Constant>(nt->getNativeInt(node->is_list));
     constants.push_back(first);
 
     if (!node->is_list) {
@@ -8717,8 +8688,8 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
         }
 
         llvm::Value *temps[2];
-        temps[0] = llvm::ConstantInt::get(nt->getNativeIntType(), 0);
-        temps[1] = llvm::ConstantInt::get(nt->getNativeIntType(), 0);
+        temps[0] = nt->getNativeInt(0);
+        temps[1] = nt->getNativeInt(0);
 
         llvm::Constant *pce =
             llvm::ConstantExpr::getGetElementPtr(
@@ -8789,50 +8760,42 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
 
     constants.push_back(
         llvm::cast<llvm::Constant>(
-            llvm::ConstantInt::get(nt->getNativeIntType(),
-                                   node->getBeginPos()->line_number)
+            nt->getNativeInt(node->getBeginPos()->line_number)
         )
     );
     constants.push_back(
         llvm::cast<llvm::Constant>(
-            llvm::ConstantInt::get(nt->getNativeIntType(),
-                                   node->getBeginPos()->column_number)
+            nt->getNativeInt(node->getBeginPos()->column_number)
         )
     );
     constants.push_back(
         llvm::cast<llvm::Constant>(
-            llvm::ConstantInt::get(nt->getNativeIntType(),
-                                   node->getEndPos()->line_number)
+            nt->getNativeInt(node->getEndPos()->line_number)
         )
     );
     constants.push_back(
         llvm::cast<llvm::Constant>(
-            llvm::ConstantInt::get(nt->getNativeIntType(),
-                                   node->getEndPos()->column_number)
+            nt->getNativeInt(node->getEndPos()->column_number)
         )
     );
     constants.push_back(
         llvm::cast<llvm::Constant>(
-            llvm::ConstantInt::get(nt->getNativeIntType(),
-                                   node->macro_begin.line_number)
+            nt->getNativeInt(node->macro_begin.line_number)
         )
     );
     constants.push_back(
         llvm::cast<llvm::Constant>(
-            llvm::ConstantInt::get(nt->getNativeIntType(),
-                                   node->macro_begin.column_number)
+            nt->getNativeInt(node->macro_begin.column_number)
         )
     );
     constants.push_back(
         llvm::cast<llvm::Constant>(
-            llvm::ConstantInt::get(nt->getNativeIntType(),
-                                   node->macro_end.line_number)
+            nt->getNativeInt(node->macro_end.line_number)
         )
     );
     constants.push_back(
         llvm::cast<llvm::Constant>(
-            llvm::ConstantInt::get(nt->getNativeIntType(),
-                                   node->macro_end.column_number)
+            nt->getNativeInt(node->macro_end.column_number)
         )
     );
     constants.push_back(

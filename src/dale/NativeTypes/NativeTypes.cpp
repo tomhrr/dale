@@ -121,6 +121,26 @@ llvm::Value *NativeTypes::getLLVMOne(void)
     return llvm_one;
 }
 
+llvm::ConstantInt *NativeTypes::getNativeInt(int n)
+{
+    return llvm::ConstantInt::get(native_int_type, n);
+}
+
+llvm::ConstantInt *NativeTypes::getConstantInt(llvm::IntegerType *type,
+                                               const char *numstr) 
+{
+    int len = strlen(numstr);
+    int radix = 10;
+    if ((len >= 3) && (numstr[0] == '0') && (numstr[1] == 'x')) {
+        numstr += 2;
+        radix = 16;
+    }
+
+    return llvm::ConstantInt::get(type,
+                                  llvm::StringRef(numstr),
+                                  radix);
+}
+
 int NativeTypes::internalSizeToRealSize(int n)
 {
     if (n > 1000) {

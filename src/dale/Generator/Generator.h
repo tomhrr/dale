@@ -215,15 +215,6 @@ private:
 
     bool typeToStringExternal(DNode *dnode, char *buf);
 
-    llvm::ConstantInt *getNativeInt(int n);
-
-    llvm::ConstantInt *getConstantInt(
-        llvm::IntegerType *type,
-        const char *numstr
-    );
-
-    int mySizeToRealSize(int n);
-
     int parseStructLinkage(Node *n);
     int parseEnumLinkage(Node *n);
 

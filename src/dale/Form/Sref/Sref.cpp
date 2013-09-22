@@ -158,9 +158,8 @@ bool execute(Generator *gen,
     }
 
     std::vector<llvm::Value *> indices;
-    stl::push_back2(&indices, 
-                    llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0),
-                    llvm::ConstantInt::get(ctx->nt->getNativeIntType(), index));
+    stl::push_back2(&indices, ctx->nt->getNativeInt(0),
+                              ctx->nt->getNativeInt(index));
 
     llvm::IRBuilder<> builder(pr_struct.block);
     llvm::Value *vres =

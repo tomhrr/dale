@@ -184,12 +184,12 @@ bool execute(Generator *gen,
         std::vector<llvm::Value *> indices_overflow_arg_area;
         stl::push_back2(&indices_overflow_arg_area,
                         ctx->nt->getLLVMZero(),
-                llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 2));
+                        ctx->nt->getNativeInt(2));
 
         std::vector<llvm::Value *> indices_reg_save_area;
         stl::push_back2(&indices_reg_save_area,
                         ctx->nt->getLLVMZero(),
-                llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 3));
+                        ctx->nt->getNativeInt(3));
 
         llvm::Value *ptr_gpo =
             builder.CreateGEP(pvlstr,
@@ -299,8 +299,7 @@ bool execute(Generator *gen,
 
         builder_else.CreateStore(
             builder_else.CreateAdd(gpo,
-                                   llvm::ConstantInt::get(ctx->nt->getNativeIntType(),
-                                           8)),
+                                   ctx->nt->getNativeInt(8)),
             ptr_gpo
         );
 

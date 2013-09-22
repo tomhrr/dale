@@ -4,9 +4,11 @@
 #include <setjmp.h>
 #include <float.h>
 
-#define BT_SI(t) BasicTypes::addSignedInt(ctx, mod, &current_once_tag, t);
-#define BT_UI(t) BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, t);
-#define BT_FP(t) BasicTypes::addFloatingPoint(ctx, mod, &current_once_tag, t);
+#define BT_SI(t)  BasicTypes::addSignedInt(ctx, mod, &current_once_tag, t);
+#define BT_UI(t)  BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, t);
+#define BT_FP(t)  BasicTypes::addFloatingPoint(ctx, mod, &current_once_tag, t);
+
+#define AV_INT(n, v) addVariable(unit, n, type_int, nt->getNativeInt(v));
 
 namespace dale
 {
@@ -170,147 +172,82 @@ addStandardVariables(Unit *unit)
     Element::Type *type_double     = ctx->tr->getBasicType(Type::Double);
     Element::Type *type_longdouble = ctx->tr->getBasicType(Type::LongDouble);
 
-    /* Add jmp_buf size constant. */
+    AV_INT("JMP_BUF_SIZE",     sizeof (jmp_buf));
+    AV_INT("FPOS_T",           sizeof (fpos_t));
+    AV_INT("TIME_T",           sizeof (time_t));
+    AV_INT("CLOCK_T",          sizeof (clock_t));
+    AV_INT("SIZEOF_LONG",      sizeof (long));
+    AV_INT("SIZEOF_LONG_LONG", sizeof (long long));
 
-    addVariable(unit, "JMP_BUF_SIZE",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       sizeof(jmp_buf)));
+    AV_INT("FLT_RADIX",     FLT_RADIX);
+    AV_INT("FLT_MANT_DIG",  FLT_MANT_DIG);
+    AV_INT("FLT_DIG",       FLT_DIG);
+    AV_INT("FLT_ROUNDS",    FLT_ROUNDS);
+    AV_INT("FLT_MIN_EXP",   FLT_MIN_EXP);
+    AV_INT("FLT_MAX_EXP",   FLT_MAX_EXP);
+    AV_INT("LDBL_MANT_DIG", LDBL_MANT_DIG);
+    AV_INT("LDBL_DIG",      LDBL_DIG);
+    AV_INT("DBL_MANT_DIG",  DBL_MANT_DIG);
+    AV_INT("DBL_DIG",       DBL_DIG);
+    AV_INT("DBL_MIN_EXP",   DBL_MIN_EXP);
+    AV_INT("DBL_MAX_EXP",   DBL_MAX_EXP);
+    AV_INT("LDBL_MIN_EXP",  LDBL_MIN_EXP);
+    AV_INT("LDBL_MAX_EXP",  LDBL_MAX_EXP);
+    AV_INT("L_tmpnam",      L_tmpnam);
+    AV_INT("TMP_MAX",       TMP_MAX);
+    AV_INT("FILENAME_MAX",  FILENAME_MAX);
+    AV_INT("FOPEN_MAX",     FOPEN_MAX);
+    AV_INT("RAND_MAX",      RAND_MAX);
+    AV_INT("EXIT_FAILURE",  EXIT_FAILURE);
+    AV_INT("EXIT_SUCCESS",  EXIT_SUCCESS);
 
-    /* Sizeof fpos_t. */
-
-    addVariable(unit, "FPOS_T",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       sizeof(fpos_t)));
-
-    /* Sizeof time_t. */
-
-    addVariable(unit, "TIME_T",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       sizeof(time_t)));
-
-    /* Sizeof clock_t. */
-
-    addVariable(unit, "CLOCK_T",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       sizeof(clock_t)));
-
-    /* Sizeof long. */
-
-    addVariable(unit, "SIZEOF_LONG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       sizeof(long)));
-
-    /* Sizeof long long. */
-
-    addVariable(unit, "SIZEOF_LONG_LONG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       sizeof(long long)));
-
-    /* Add float.h constants. */
-
-    addVariable(unit, "FLT_RADIX",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FLT_RADIX));
-    addVariable(unit, "FLT_MANT_DIG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FLT_MANT_DIG));
-    addVariable(unit, "FLT_DIG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FLT_DIG));
     addVariable(unit, "FLT_EPSILON",
                 type_float,
-                llvm::ConstantFP::get(llvm::Type::getFloatTy(llvm::getGlobalContext()),
+                llvm::ConstantFP::get(llvm::Type::getFloatTy(
+                                      llvm::getGlobalContext()),
                                       FLT_EPSILON));
-    addVariable(unit, "FLT_ROUNDS",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FLT_ROUNDS));
-    addVariable(unit, "FLT_MIN_EXP",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FLT_MIN_EXP));
-    addVariable(unit, "FLT_MAX_EXP",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FLT_MAX_EXP));
     addVariable(unit, "FLT_MIN",
                 type_float,
-                llvm::ConstantFP::get(llvm::Type::getFloatTy(llvm::getGlobalContext()),
+                llvm::ConstantFP::get(llvm::Type::getFloatTy(
+                                      llvm::getGlobalContext()),
                                       FLT_MIN));
     addVariable(unit, "FLT_MAX",
                 type_float,
-                llvm::ConstantFP::get(llvm::Type::getFloatTy(llvm::getGlobalContext()),
+                llvm::ConstantFP::get(llvm::Type::getFloatTy(
+                                      llvm::getGlobalContext()),
                                       FLT_MAX));
 
-    addVariable(unit, "DBL_MANT_DIG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       DBL_MANT_DIG));
-    addVariable(unit, "DBL_DIG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       DBL_DIG));
     addVariable(unit, "DBL_EPSILON",
                 type_double,
-                llvm::ConstantFP::get(llvm::Type::getDoubleTy(llvm::getGlobalContext()),
+                llvm::ConstantFP::get(llvm::Type::getDoubleTy(
+                                      llvm::getGlobalContext()),
                                       DBL_EPSILON));
-    addVariable(unit, "DBL_MIN_EXP",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       DBL_MIN_EXP));
-    addVariable(unit, "DBL_MAX_EXP",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       DBL_MAX_EXP));
     addVariable(unit, "DBL_MIN",
                 type_double,
-                llvm::ConstantFP::get(llvm::Type::getDoubleTy(llvm::getGlobalContext()),
+                llvm::ConstantFP::get(llvm::Type::getDoubleTy(
+                                      llvm::getGlobalContext()),
                                       DBL_MIN));
     addVariable(unit, "DBL_MAX",
                 type_double,
-                llvm::ConstantFP::get(llvm::Type::getDoubleTy(llvm::getGlobalContext()),
+                llvm::ConstantFP::get(llvm::Type::getDoubleTy(
+                                      llvm::getGlobalContext()),
                                       DBL_MAX));
 
-    addVariable(unit, "LDBL_MANT_DIG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       LDBL_MANT_DIG));
-    addVariable(unit, "LDBL_DIG",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       LDBL_DIG));
     addVariable(unit, "LDBL_EPSILON",
                 type_longdouble,
-                llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(llvm::getGlobalContext()),
+                llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(
+                                      llvm::getGlobalContext()),
                                       LDBL_EPSILON));
-    addVariable(unit, "LDBL_MIN_EXP",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       LDBL_MIN_EXP));
-    addVariable(unit, "LDBL_MAX_EXP",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       LDBL_MAX_EXP));
     addVariable(unit, "LDBL_MIN",
                 type_longdouble,
-                llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(llvm::getGlobalContext()),
+                llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(
+                                      llvm::getGlobalContext()),
                                       LDBL_MIN));
     addVariable(unit, "LDBL_MAX",
                 type_longdouble,
-                llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(llvm::getGlobalContext()),
+                llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(
+                                      llvm::getGlobalContext()),
                                       LDBL_MAX));
-
-    /* Add floating-point infinity constants for float, double and
-     * long-double. */
 
     addVariable(unit, "HUGE_VAL",
                 type_double,
@@ -329,37 +266,6 @@ addStandardVariables(Unit *unit)
                 llvm::ConstantFP::getInfinity(
                     llvm::Type::getX86_FP80Ty(llvm::getGlobalContext())
                 ));
-
-    /* Other misc. constants. */
-
-    addVariable(unit, "L_tmpnam",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       L_tmpnam));
-    addVariable(unit, "TMP_MAX",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       TMP_MAX));
-    addVariable(unit, "FILENAME_MAX",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FILENAME_MAX));
-    addVariable(unit, "FOPEN_MAX",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       FOPEN_MAX));
-    addVariable(unit, "RAND_MAX",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       RAND_MAX));
-    addVariable(unit, "EXIT_FAILURE",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       EXIT_FAILURE));
-    addVariable(unit, "EXIT_SUCCESS",
-                type_int,
-                llvm::ConstantInt::get(nt->getNativeIntType(),
-                                       EXIT_SUCCESS));
 
     return;
 }

@@ -222,8 +222,7 @@ makeEnumFunction(Context *ctx,
                  int mylinkage)
 {
     std::vector<llvm::Value *> two_zero_indices;
-    llvm::Value *llvm_native_zero =
-        llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0);
+    llvm::Value *llvm_native_zero = ctx->nt->getNativeInt(0);
     two_zero_indices.push_back(llvm_native_zero);
     two_zero_indices.push_back(llvm_native_zero);
 
@@ -671,8 +670,7 @@ addEnum(Context *ctx,
         int flinkage)
 {
     std::vector<llvm::Value *> two_zero_indices;
-    llvm::Value *llvm_native_zero =
-        llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0);
+    llvm::Value *llvm_native_zero = ctx->nt->getNativeInt(0);
     two_zero_indices.push_back(llvm_native_zero);
     two_zero_indices.push_back(llvm_native_zero);
 
