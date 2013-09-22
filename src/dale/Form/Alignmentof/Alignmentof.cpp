@@ -2,6 +2,7 @@
 #include "../../Node/Node.h"
 #include "../../ParseResult/ParseResult.h"
 #include "../../Element/Function/Function.h"
+#include "../../Operation/Alignmentof/Alignmentof.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -39,7 +40,7 @@ bool execute(Generator *gen,
         return false;
     }
 
-    bool res = gen->getAlignmentofType(block, type, pr);
+    bool res = Operation::Alignmentof::execute(ctx, block, type, pr);
     return res;
 }
 }

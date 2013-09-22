@@ -323,9 +323,6 @@ public:
                                    Element::Type *array_type,
                                    bool getAddress,
                                    int *size, ParseResult *pr);
-    bool getAlignmentofType(llvm::BasicBlock *block,
-                                    Element::Type *type, ParseResult
-                                    *pr);
 
     int parseInteger(Node *n);
 

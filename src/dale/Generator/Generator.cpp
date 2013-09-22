@@ -4766,59 +4766,6 @@ void Generator::removeTemporaryGlobalFunction(
     return;
 }
 
-int mystructs = 0;
-bool Generator::getAlignmentofType(llvm::BasicBlock *block,
-        Element::Type *type,
-        ParseResult *pr)
-{
-    std::vector<llvm::Type*> elements_llvm;
-    elements_llvm.push_back(ctx->toLLVMType(type_char, NULL, false));
-
-    llvm::Type *llvm_type =
-        ctx->toLLVMType(type, NULL, false);
-    if (!llvm_type) {
-        return false;
-    }
-    elements_llvm.push_back(llvm_type);
-
-    llvm::StructType *llvm_new_struct =
-        llvm::StructType::get(llvm::getGlobalContext(),
-                              elements_llvm,
-                              false);
-
-    char buf[100];
-    sprintf(buf, "__mystruct%d", mystructs++);
-    std::string name2;
-    name2.append("struct_");
-    std::string name3;
-    ctx->ns()->nameToSymbol(buf, &name3);
-    name2.append(name3);
-
-    llvm_new_struct->setName(name2.c_str());
-    if (llvm_new_struct->getName() != llvm::StringRef(name2)) {
-        fprintf(stderr, "Internal error: unable to add struct.");
-        abort();
-    }
-
-    llvm::IRBuilder<> builder(block);
-
-    llvm::PointerType *lpt =
-        llvm::PointerType::getUnqual(llvm_new_struct);
-
-    llvm::Value *res =
-        builder.CreateGEP(
-            llvm::ConstantPointerNull::get(lpt),
-            llvm::ArrayRef<llvm::Value*>(
-                two_zero_indices
-            ));
-
-    llvm::Value *res2 =
-        builder.CreatePtrToInt(res, nt->getNativeSizeType());
-
-    setPr(pr, block, type_size, res2);
-    return true;
-}
-
 bool isFunctionPointerVarArgs(Element::Type *fn_ptr)
 {
     if (fn_ptr->points_to->parameter_types->size() == 0) {
