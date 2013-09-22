@@ -94,6 +94,7 @@
 #include "../Unit/Unit.h"
 #include "../CommonDecl/CommonDecl.h"
 #include "../Operation/Sizeof/Sizeof.h"
+#include "../Operation/Offsetof/Offsetof.h"
 
 #include <iostream>
 #include <sys/time.h>
@@ -3021,7 +3022,7 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
             size_t el_size =
                 Operation::Sizeof::get(unit_stack->top(), current);
             size_t offset =
-                getOffsetofTypeImmediate(type, NULL, i);
+                Operation::Offsetof::getByIndex(unit_stack->top(), type, i);
             size_t padding = 0;
             if (i != 0) {
                 padding = (offset - last_offset - last_el_size);
@@ -4816,136 +4817,6 @@ bool Generator::getAlignmentofType(llvm::BasicBlock *block,
 
     setPr(pr, block, type_size, res2);
     return true;
-}
-
-bool Generator::getOffsetofType(llvm::BasicBlock *block,
-                                Element::Type *type,
-                                const char *field_name,
-                                int index,
-                                ParseResult *pr)
-{
-    llvm::IRBuilder<> builder(block);
-
-    llvm::Type *llvm_type =
-        ctx->toLLVMType(type, NULL, false);
-    if (!llvm_type) {
-        return false;
-    }
-
-    llvm::PointerType *lpt =
-        llvm::PointerType::getUnqual(llvm_type);
-
-    int myindex;
-    if (index != -1) {
-        myindex = index;
-    } else {
-        Element::Struct *structp =
-            ctx->getStruct(
-                type->struct_name->c_str(),
-                type->namespaces
-            );
-
-        if (!structp) {
-            fprintf(stderr, "Internal error: invalid struct name.\n");
-            abort();
-        }
-
-        myindex = structp->nameToIndex(field_name);
-        if (myindex == -1) {
-            fprintf(stderr, "Internal error: invalid struct field"
-                    "name.\n");
-            abort();
-        }
-    }
-
-    std::vector<llvm::Value *> indices;
-    stl::push_back2(&indices,  nt->getLLVMZero(),
-                    getNativeInt(myindex));
-
-    llvm::Value *res =
-        builder.CreateGEP(
-            llvm::ConstantPointerNull::get(lpt),
-            llvm::ArrayRef<llvm::Value *>(indices));
-
-    llvm::Value *res2 =
-        builder.CreatePtrToInt(res, nt->getNativeSizeType());
-
-    setPr(pr, block, type_size, res2);
-    return true;
-}
-
-size_t Generator::getOffsetofTypeImmediate(Element::Type *type,
-        const char *field_name,
-        int index)
-{
-    llvm::Type *llvm_return_type =
-        ctx->toLLVMType(type_size, NULL, false);
-    if (!llvm_return_type) {
-        return 0;
-    }
-
-    std::vector<llvm::Type*> mc_args;
-
-    llvm::FunctionType *ft =
-        getFunctionType(
-            llvm_return_type,
-            mc_args,
-            false
-        );
-
-    std::string new_name;
-    char buf[255];
-    sprintf(buf, "___myfn%d", myn++);
-    ctx->ns()->nameToSymbol(buf, &new_name);
-
-    if (mod->getFunction(llvm::StringRef(new_name.c_str()))) {
-        fprintf(stderr, "Internal error: "
-                "function already exists in module ('%s').\n",
-                new_name.c_str());
-        abort();
-    }
-
-    llvm::Constant *fnc =
-        mod->getOrInsertFunction(
-            new_name.c_str(),
-            ft
-        );
-
-    std::vector<Element::Variable*> args;
-
-    llvm::Function *fn = llvm::cast<llvm::Function>(fnc);
-
-    fn->setCallingConv(llvm::CallingConv::C);
-
-    fn->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
-
-    llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);
-    ParseResult mine;
-    bool mres = getOffsetofType(block, type, field_name, index, &mine);
-    if (!mres) {
-        return 0;
-    }
-
-    llvm::IRBuilder<> builder(block);
-    builder.CreateRet(mine.value);
-
-    void* fptr =
-        ee->getPointerToFunction(fn);
-    if (!fptr) {
-        fprintf(stderr,
-                "Internal error: could not get pointer "
-                "to function for literal.\n");
-        abort();
-    }
-
-    size_t (*FPTR)(void) = (size_t (*)(void))fptr;
-
-    size_t res = (size_t) FPTR();
-
-    fn->eraseFromParent();
-
-    return res;
 }
 
 bool isFunctionPointerVarArgs(Element::Type *fn_ptr)

@@ -2,6 +2,7 @@
 #include "../../Node/Node.h"
 #include "../../ParseResult/ParseResult.h"
 #include "../../Element/Function/Function.h"
+#include "../../Operation/Offsetof/Offsetof.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -65,8 +66,8 @@ bool execute(Generator *gen,
 
     /* Second argument is struct field. */
 
-    bool res = gen->getOffsetofType(block, mytype,
-                           (*lst)[2]->token->str_value.c_str(), -1,
+    bool res = Operation::Offsetof::execute(ctx, block, mytype,
+                           (*lst)[2]->token->str_value.c_str(),
                            pr);
     return res;
 }

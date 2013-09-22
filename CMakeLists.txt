@@ -142,6 +142,8 @@ include_directories ("${PROJECT_BINARY_DIR}")
 add_executable (dalec src/dale/dalec.cpp
                       src/dale/Introspection/Introspection.cpp
                       src/dale/Operation/Cast/Cast.cpp
+                      src/dale/Operation/Sizeof/Sizeof.cpp
+                      src/dale/Operation/Offsetof/Offsetof.cpp
                       src/dale/BasicTypes/BasicTypes.cpp
                       src/dale/Module/Writer/Writer.cpp
                       src/dale/Serialise/Serialise.cpp

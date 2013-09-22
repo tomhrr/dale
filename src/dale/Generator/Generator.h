@@ -243,8 +243,6 @@ private:
                     llvm::Constant *init,
                     bool ignore_if_present = false);
 
-    size_t getOffsetofTypeImmediate(Element::Type *type,
-                                    const char *field_name, int index);
 
 public:
     int addIncludePath(char *filename);
@@ -309,10 +307,6 @@ public:
     Element::Type *type_pdnode;
     void parseStructDefinition(const char *name, Node *n);
     int parseLinkage(Node *n);
-    bool getOffsetofType(llvm::BasicBlock *block,
-                                 Element::Type *type,
-                                 const char *field_name,
-                                 int index, ParseResult *pr);
     bool parseFuncallInternal(
         Element::Function *dfn,
         Node *n,
