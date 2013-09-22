@@ -10,6 +10,7 @@
 namespace llvm {
     class Linker;
     class Module;
+    class ExecutionEngine;
 }
 
 namespace dale
@@ -24,6 +25,7 @@ public:
     ~Unit(void);
     llvm::Module *module;
     llvm::Linker *linker;
+    llvm::ExecutionEngine *ee;
     Context *ctx;
     Parser *parser;
     std::string once_tag;

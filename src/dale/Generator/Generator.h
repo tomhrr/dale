@@ -221,7 +221,6 @@ private:
         llvm::IntegerType *type,
         const char *numstr
     );
-    size_t getSizeofTypeImmediate(Element::Type *type);
 
     int mySizeToRealSize(int n);
 
@@ -304,8 +303,6 @@ public:
     Element::Type *parseType(Node *top, bool
                              allow_anon_structs,
                              bool allow_bitfields);
-    bool getSizeofType(llvm::BasicBlock *block,
-                               Element::Type *type, ParseResult *pr);
     llvm::Module          *mod;
     bool is_x86_64;
     llvm::Value *IntNodeToStaticDNode(Node *node, llvm::Value *next_node);

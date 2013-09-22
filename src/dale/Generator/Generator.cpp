@@ -93,6 +93,7 @@
 #include "../Form/ArrayOf/ArrayOf.h"
 #include "../Unit/Unit.h"
 #include "../CommonDecl/CommonDecl.h"
+#include "../Operation/Sizeof/Sizeof.h"
 
 #include <iostream>
 #include <sys/time.h>
@@ -620,6 +621,8 @@ int Generator::run(std::vector<const char *> *filenames,
                     "engine.\n");
             abort();
         }
+
+        unit->ee = ee;
 
         ee->InstallLazyFunctionCreator(myLFC);
         CommonDecl::addVarargsFunctions(unit);
@@ -3016,7 +3019,7 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
         while (begin != str->element_types.end()) {
             Element::Type *current = (*begin);
             size_t el_size =
-                getSizeofTypeImmediate(current);
+                Operation::Sizeof::get(unit_stack->top(), current);
             size_t offset =
                 getOffsetofTypeImmediate(type, NULL, i);
             size_t padding = 0;
@@ -3150,7 +3153,7 @@ a:
         /* Take the portion devoted to whatever the element is,
          * and re-call this function. */
         size_t el_size =
-            getSizeofTypeImmediate(type->array_type);
+            Operation::Sizeof::get(unit_stack->top(), type->array_type);
         int i = 0;
         int els = type->array_size;
         std::vector<llvm::Constant *> constants;
@@ -3428,7 +3431,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
     }
 
     size_t struct_size =
-        getSizeofTypeImmediate(type);
+        Operation::Sizeof::get(unit_stack->top(), type);
     char buf5[5];
     sprintf(buf5, "%u", (unsigned) struct_size);
 
@@ -4871,34 +4874,6 @@ bool Generator::getOffsetofType(llvm::BasicBlock *block,
     return true;
 }
 
-bool Generator::getSizeofType(llvm::BasicBlock *block,
-                              Element::Type *type,
-                              ParseResult *pr)
-{
-    llvm::IRBuilder<> builder(block);
-
-    llvm::Type *llvm_type =
-        ctx->toLLVMType(type, NULL, false);
-    if (!llvm_type) {
-        return false;
-    }
-
-    llvm::PointerType *lpt =
-        llvm::PointerType::getUnqual(llvm_type);
-
-    llvm::Value *res =
-        builder.CreateGEP(
-            llvm::ConstantPointerNull::get(lpt),
-            llvm::ConstantInt::get(nt->getNativeIntType(), 1)
-        );
-
-    llvm::Value *res2 =
-        builder.CreatePtrToInt(res, nt->getNativeSizeType());
-
-    setPr(pr, block, type_size, res2);
-    return true;
-}
-
 size_t Generator::getOffsetofTypeImmediate(Element::Type *type,
         const char *field_name,
         int index)
@@ -4948,78 +4923,6 @@ size_t Generator::getOffsetofTypeImmediate(Element::Type *type,
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);
     ParseResult mine;
     bool mres = getOffsetofType(block, type, field_name, index, &mine);
-    if (!mres) {
-        return 0;
-    }
-
-    llvm::IRBuilder<> builder(block);
-    builder.CreateRet(mine.value);
-
-    void* fptr =
-        ee->getPointerToFunction(fn);
-    if (!fptr) {
-        fprintf(stderr,
-                "Internal error: could not get pointer "
-                "to function for literal.\n");
-        abort();
-    }
-
-    size_t (*FPTR)(void) = (size_t (*)(void))fptr;
-
-    size_t res = (size_t) FPTR();
-
-    fn->eraseFromParent();
-
-    return res;
-}
-
-size_t Generator::getSizeofTypeImmediate(Element::Type *type)
-{
-    llvm::Type *llvm_return_type =
-        ctx->toLLVMType(type_size, NULL, false);
-    if (!llvm_return_type) {
-        return 0;
-    }
-
-    std::vector<llvm::Type*> mc_args;
-
-    llvm::FunctionType *ft =
-        getFunctionType(
-            llvm_return_type,
-            mc_args,
-            false
-        );
-
-    std::string new_name;
-    char buf[255];
-    sprintf(buf, "___myfn%d", myn++);
-    ctx->ns()->nameToSymbol(buf, &new_name);
-
-    if (mod->getFunction(llvm::StringRef(new_name.c_str()))) {
-        fprintf(stderr, "Internal error: "
-                "function already exists in module ('%s').\n",
-                new_name.c_str());
-        abort();
-    }
-
-    llvm::Constant *fnc =
-        mod->getOrInsertFunction(
-            new_name.c_str(),
-            ft
-        );
-
-    std::vector<Element::Variable*> args;
-
-    llvm::Function *fn = llvm::cast<llvm::Function>(fnc);
-
-    fn->setCallingConv(llvm::CallingConv::C);
-
-    fn->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
-
-    llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);
-    ParseResult mine;
-    bool mres = getSizeofType(block, type, &mine);
     if (!mres) {
         return 0;
     }

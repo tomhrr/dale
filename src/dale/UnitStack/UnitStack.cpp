@@ -62,6 +62,7 @@ UnitStack::push(Unit *new_unit)
 {
     Unit *current = units.top();
     new_unit->ctx->merge(current->ctx);
+    new_unit->ee = current->ee;
     units.push(new_unit);
 
     return;

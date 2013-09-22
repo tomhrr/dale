@@ -25,6 +25,8 @@ Unit::Unit(const char *path,
 
     module = new llvm::Module(path, llvm::getGlobalContext());
     linker = new llvm::Linker(path, module, false);
+
+    ee = NULL;
 }
 
 Unit::~Unit(void)

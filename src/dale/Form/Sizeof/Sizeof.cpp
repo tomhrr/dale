@@ -2,6 +2,7 @@
 #include "../../Node/Node.h"
 #include "../../ParseResult/ParseResult.h"
 #include "../../Element/Function/Function.h"
+#include "../../Operation/Sizeof/Sizeof.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -84,7 +85,7 @@ bool execute(Generator *gen,
     }
 
 
-    bool res = gen->getSizeofType(block, type, pr);
+    bool res = Operation::Sizeof::execute(ctx, block, type, pr);
 
     return res;
 }

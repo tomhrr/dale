@@ -3,6 +3,7 @@
 #include "../../ParseResult/ParseResult.h"
 #include "../../Element/Function/Function.h"
 #include "../../Operation/Cast/Cast.h"
+#include "../../Operation/Sizeof/Sizeof.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -58,7 +59,8 @@ bool execute(Generator *gen,
 
     if (val.type->isIntegerType()) {
         ParseResult size;
-        mres = gen->getSizeofType(val.block, ptr.type->points_to, &size);
+        mres = Operation::Sizeof::execute(ctx, val.block, 
+                                          ptr.type->points_to, &size);
         if (!mres) {
             return false;
         }
