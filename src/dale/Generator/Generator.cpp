@@ -1231,8 +1231,6 @@ void Generator::parseNamespace(Node *top)
     return;
 }
 
-static int module_number = 0;
-
 int Generator::addDaleModule(Node *n,
                              const char *my_module_name,
                              std::vector<const char*> *import_forms)
@@ -1899,7 +1897,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
 
     /* Enums have a maximum size of 64 bits. */
     llvm::Type *d_enumtype =
-        toLLVMType(enumtype, NULL, false);
+        ctx->toLLVMType(enumtype, NULL, false);
     if (!d_enumtype) {
         return;
     }
@@ -2236,12 +2234,12 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
             break;
         }
         if (count == 0) {
-            temp = toLLVMType((*iter)->type, NULL, false);
+            temp = ctx->toLLVMType((*iter)->type, NULL, false);
             if (!temp) {
                 return;
             }
         } else {
-            temp = toLLVMType(r_type, NULL, false);
+            temp = ctx->toLLVMType(r_type, NULL, false);
             if (!temp) {
                 return;
             }
@@ -2251,7 +2249,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
         ++iter;
     }
 
-    temp = toLLVMType(r_type, NULL, false);
+    temp = ctx->toLLVMType(r_type, NULL, false);
     if (!temp) {
         return;
     }
@@ -2613,7 +2611,7 @@ void Generator::parseStructDefinition(const char *name, Node *top)
     llvm::Type *temp;
 
     while (iter != elements_internal->end()) {
-        temp = toLLVMType((*iter)->type, NULL, false);
+        temp = ctx->toLLVMType((*iter)->type, NULL, false);
         if (!temp) {
             return;
         }
@@ -2821,7 +2819,7 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
          && (linkage != Linkage::Intern));
 
     llvm::Type *rdttype =
-        toLLVMType(r_type, top, false,
+        ctx->toLLVMType(r_type, top, false,
                        (has_extern_linkage && !has_initialiser));
     if (!rdttype) {
         return;
@@ -3054,7 +3052,7 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
         }
 
         llvm::Type *llvm_type =
-            toLLVMType(type, NULL, false);
+            ctx->toLLVMType(type, NULL, false);
         if (!llvm_type) {
             return NULL;
         }
@@ -3099,7 +3097,7 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
         llvm::GlobalVariable *svar2 =
             llvm::cast<llvm::GlobalVariable>(
                 mod->getOrInsertGlobal(varname2.c_str(),
-                                       toLLVMType(archar, NULL, false))
+                                       ctx->toLLVMType(archar, NULL, false))
             );
 
         svar2->setInitializer(myconststr);
@@ -3137,7 +3135,7 @@ llvm::Constant *Generator::parseLiteralElement(Node *top,
         }
 a:
         llvm::Type *llvm_type =
-            toLLVMType(type, NULL, false);
+            ctx->toLLVMType(type, NULL, false);
         if (!llvm_type) {
             return NULL;
         }
@@ -3185,7 +3183,7 @@ a:
         llvm::Constant *mine =
             llvm::ConstantArray::get(
                 llvm::cast<llvm::ArrayType>(
-                    toLLVMType(type, top, false, false)
+                    ctx->toLLVMType(type, top, false, false)
                 ),
                 constants
             );
@@ -3256,7 +3254,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
     // specified type.
 
     llvm::Type *llvm_return_type =
-        toLLVMType(type, top, false);
+        ctx->toLLVMType(type, top, false);
     if (!llvm_return_type) {
         return NULL;
     }
@@ -3314,7 +3312,7 @@ llvm::Constant *Generator::parseLiteral(Element::Type *type,
         return NULL;
     }
 
-    llvm::Type *tttt = toLLVMType(type_void, NULL, true);
+    llvm::Type *tttt = ctx->toLLVMType(type_void, NULL, true);
     llvm::FunctionType *wrapft =
         getFunctionType(
             tttt,
@@ -3929,7 +3927,7 @@ void Generator::parseFunction(const char *name, Node *n,
         if ((*iter)->type->base_type == Type::VarArgs) {
             break;
         }
-        temp = toLLVMType((*iter)->type, NULL, false);
+        temp = ctx->toLLVMType((*iter)->type, NULL, false);
         if (!temp) {
             return;
         }
@@ -3974,7 +3972,7 @@ void Generator::parseFunction(const char *name, Node *n,
      * LLVM function type. */
 
     llvm::Type *llvm_r_type =
-        toLLVMType(r_type, NULL, true);
+        ctx->toLLVMType(r_type, NULL, true);
     if (!llvm_r_type) {
         return;
     }
@@ -4456,7 +4454,7 @@ bool Generator::destructIfApplicable(ParseResult *pr,
             if (builder) {
                 llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
                         builder->CreateAlloca(
-                            toLLVMType(pr->type, NULL, false))
+                            ctx->toLLVMType(pr->type, NULL, false))
                         );
                 builder->CreateStore(pr->value, new_ptr2);
                 actual_value = new_ptr2;
@@ -4464,7 +4462,7 @@ bool Generator::destructIfApplicable(ParseResult *pr,
                 llvm::IRBuilder<> builder(mbl);
                 llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
                         builder.CreateAlloca(
-                            toLLVMType(pr->type, NULL, false))
+                            ctx->toLLVMType(pr->type, NULL, false))
                         );
                 builder.CreateStore(pr->value, new_ptr2);
                 actual_value = new_ptr2;
@@ -4541,7 +4539,7 @@ bool Generator::destructIfApplicable(ParseResult *pr,
         new_ptr2 = pr->value;
     } else {
         new_ptr2 = llvm::cast<llvm::Value>(
-            builder->CreateAlloca(toLLVMType(pr->type, NULL, false))
+            builder->CreateAlloca(ctx->toLLVMType(pr->type, NULL, false))
         );
         builder->CreateStore(pr->value, new_ptr2);
     }
@@ -4592,11 +4590,11 @@ bool Generator::copyWithSetfIfApplicable(
     }
     llvm::IRBuilder<> builder(pr->block);
     llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(toLLVMType(pr->type, NULL,
+                                builder.CreateAlloca(ctx->toLLVMType(pr->type, NULL,
                                         false))
                             );
     llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(toLLVMType(pr->type, NULL,
+                                builder.CreateAlloca(ctx->toLLVMType(pr->type, NULL,
                                         false))
                             );
 
@@ -4651,7 +4649,7 @@ int Generator::makeTemporaryGlobalFunction(
     /* Create a temporary function for evaluating the arguments. */
 
     llvm::Type *llvm_return_type =
-        toLLVMType(type_int, NULL, false);
+        ctx->toLLVMType(type_int, NULL, false);
     if (!llvm_return_type) {
         return 0;
     }
@@ -4770,10 +4768,10 @@ bool Generator::getAlignmentofType(llvm::BasicBlock *block,
         ParseResult *pr)
 {
     std::vector<llvm::Type*> elements_llvm;
-    elements_llvm.push_back(toLLVMType(type_char, NULL, false));
+    elements_llvm.push_back(ctx->toLLVMType(type_char, NULL, false));
 
     llvm::Type *llvm_type =
-        toLLVMType(type, NULL, false);
+        ctx->toLLVMType(type, NULL, false);
     if (!llvm_type) {
         return false;
     }
@@ -4826,7 +4824,7 @@ bool Generator::getOffsetofType(llvm::BasicBlock *block,
     llvm::IRBuilder<> builder(block);
 
     llvm::Type *llvm_type =
-        toLLVMType(type, NULL, false);
+        ctx->toLLVMType(type, NULL, false);
     if (!llvm_type) {
         return false;
     }
@@ -4880,7 +4878,7 @@ bool Generator::getSizeofType(llvm::BasicBlock *block,
     llvm::IRBuilder<> builder(block);
 
     llvm::Type *llvm_type =
-        toLLVMType(type, NULL, false);
+        ctx->toLLVMType(type, NULL, false);
     if (!llvm_type) {
         return false;
     }
@@ -4906,7 +4904,7 @@ size_t Generator::getOffsetofTypeImmediate(Element::Type *type,
         int index)
 {
     llvm::Type *llvm_return_type =
-        toLLVMType(type_size, NULL, false);
+        ctx->toLLVMType(type_size, NULL, false);
     if (!llvm_return_type) {
         return 0;
     }
@@ -4978,7 +4976,7 @@ size_t Generator::getOffsetofTypeImmediate(Element::Type *type,
 size_t Generator::getSizeofTypeImmediate(Element::Type *type)
 {
     llvm::Type *llvm_return_type =
-        toLLVMType(type_size, NULL, false);
+        ctx->toLLVMType(type_size, NULL, false);
     if (!llvm_return_type) {
         return 0;
     }
@@ -5529,7 +5527,7 @@ tryvar:
             Element::Type *temp = tr->getArrayType(type_char, size);
 
             llvm::Type *llvm_type =
-                toLLVMType(temp, NULL, false);
+                ctx->toLLVMType(temp, NULL, false);
             if (!llvm_type) {
                 return false;
             }
@@ -6194,14 +6192,14 @@ void Generator::setPdnode()
         Element::Type *tt = tr->getPointerType(st);
 
         llvm::Type *dnode =
-            toLLVMType(st, NULL, false);
+            ctx->toLLVMType(st, NULL, false);
         if (!dnode) {
             fprintf(stderr, "Unable to fetch DNode type.\n");
             abort();
         }
 
         llvm::Type *pointer_to_dnode =
-            toLLVMType(tt, NULL, false);
+            ctx->toLLVMType(tt, NULL, false);
         if (!pointer_to_dnode) {
             fprintf(stderr, "Unable to fetch pointer to DNode type.\n");
             abort();
@@ -6526,7 +6524,7 @@ Node *Generator::parseOptionalMacroCall(Node *n)
     /* Create a temporary function for evaluating the arguments. */
 
     llvm::Type *llvm_return_type =
-        toLLVMType(type_int, NULL, false);
+        ctx->toLLVMType(type_int, NULL, false);
     if (!llvm_return_type) {
         return NULL;
     }
@@ -6717,7 +6715,7 @@ bool Generator::parseEnumLiteral(llvm::BasicBlock *block,
                           llvm::ArrayRef<llvm::Value*>(two_zero_indices));
 
     llvm::Type *llvm_type =
-        toLLVMType(myenumstructtype->element_types.at(0),
+        ctx->toLLVMType(myenumstructtype->element_types.at(0),
                        NULL, false);
     if (!llvm_type) {
         return false;
@@ -6820,7 +6818,7 @@ bool Generator::parseArrayLiteral(Element::Function *dfn,
     array_type = tr->getArrayType(array_type->array_type, *size);
 
     llvm::Type *llvm_array_type =
-        toLLVMType(array_type, n, false);
+        ctx->toLLVMType(array_type, n, false);
     if (!llvm_array_type) {
         return NULL;
     }
@@ -7173,7 +7171,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
         if (p.type->is_array) {
             llvm::IRBuilder<> builder(block);
             llvm::Type *llvm_type =
-                toLLVMType(p.type, NULL, false);
+                ctx->toLLVMType(p.type, NULL, false);
             if (!llvm_type) {
                 return false;
             }
@@ -7535,14 +7533,14 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
                         /* Target integer is signed - use sext. */
                         (*call_args_iter) =
                             builder.CreateSExt((*call_args_iter),
-                                               toLLVMType(type_int,
+                                               ctx->toLLVMType(type_int,
                                                               NULL, false));
                         (*call_arg_types_iter) = type_int;
                     } else {
                         /* Target integer is not signed - use zext. */
                         (*call_args_iter) =
                             builder.CreateZExt((*call_args_iter),
-                                               toLLVMType(type_uint,
+                                               ctx->toLLVMType(type_uint,
                                                               NULL, false));
                         (*call_arg_types_iter) = type_uint;
                     }
@@ -7645,7 +7643,7 @@ int Generator::parseFunctionBody(Element::Function *dfn,
 
         /* Make CreateAlloca instructions for each argument. */
         llvm::Type *llvm_type =
-            toLLVMType(myvar->type,
+            ctx->toLLVMType(myvar->type,
                            NULL,
                            false);
         if (!llvm_type) {
@@ -8539,23 +8537,6 @@ Element::Type *Generator::parseType(Node *top,
     return NULL;
 }
 
-llvm::Type *Generator::toLLVMType(Element::Type *type,
-                                      Node *n,
-                                      bool
-                                      allow_non_first_class,
-                                      bool
-                                      externally_defined)
-{
-    return ctx->toLLVMType(type, n, allow_non_first_class,
-                               externally_defined);
-}
-
-llvm::Type *Generator::toLLVMType(Element::Type *type,
-        Node *n)
-{
-    return ctx->toLLVMType(type, n);
-}
-
 llvm::Value *Generator::coerceValue(llvm::Value *from_value,
                                     Element::Type *from_type,
                                     Element::Type *to_type,
@@ -9000,7 +8981,7 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
             svar2 =
                 llvm::cast<llvm::GlobalVariable>(
                     mod->getOrInsertGlobal(varname2.c_str(),
-                                           toLLVMType(archar, NULL, false))
+                                           ctx->toLLVMType(archar, NULL, false))
                 );
 
             svar2->setInitializer(arr);
@@ -9031,7 +9012,7 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
             llvm::cast<llvm::Constant>(
                 llvm::ConstantPointerNull::get(
                     llvm::cast<llvm::PointerType>(
-                        toLLVMType(type_pchar, NULL, false)
+                        ctx->toLLVMType(type_pchar, NULL, false)
                     )
                 )
             )
@@ -9137,7 +9118,7 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
         llvm::cast<llvm::Constant>(
             llvm::ConstantPointerNull::get(
                 llvm::cast<llvm::PointerType>(
-                    toLLVMType(type_pchar, NULL, false)
+                    ctx->toLLVMType(type_pchar, NULL, false)
                 )
             )
         )

@@ -132,8 +132,6 @@ private:
     void parseEnumDefinition(const char *name, Node *n);
     int parseFunctionBody(Element::Function *dfn,
                           llvm::Function *fn, Node *n, int skip, int is_anonymous);
-    llvm::Type *toLLVMType(Element::Type *type, Node *n, bool allow_non_first_class, bool externally_defined = false);
-    llvm::Type *toLLVMType(Element::Type *type, Node *n);
     llvm::Value *coerceValue(llvm::Value *from_value,
                              Element::Type *from_type,
                              Element::Type *to_type,

@@ -147,12 +147,12 @@ public:
 
     bool merge(Context *other);
 
+    llvm::Type *toLLVMType_(Element::Type *type,
+                            Node *n);
     llvm::Type *toLLVMType(Element::Type *type,
                            Node *n,
-                           bool allow_non_first_class,
+                           bool allow_non_first_class = true,
                            bool externally_defined = false);
-    llvm::Type *toLLVMType(Element::Type *type,
-                           Node *n);
     llvm::Type *toLLVMTypeStruct(Element::Type *type,
                                  Node *n);
     llvm::Type *toLLVMTypeBase(Element::Type *type,

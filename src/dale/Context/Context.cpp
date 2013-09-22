@@ -1126,8 +1126,8 @@ Context::toLLVMTypeStruct(Element::Type *type,
 }
 
 llvm::Type *
-Context::toLLVMType(Element::Type *type,
-                    Node *n)
+Context::toLLVMType_(Element::Type *type,
+                     Node *n)
 {
     llvm::LLVMContext &lc = llvm::getGlobalContext();
 
@@ -1202,7 +1202,7 @@ Context::toLLVMType(Element::Type *type,
         }
     }
 
-    llvm::Type *llvm_type = toLLVMType(type, n);
+    llvm::Type *llvm_type = toLLVMType_(type, n);
 
     if (!llvm_type) {
         return llvm_type;
