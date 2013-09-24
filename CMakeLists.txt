@@ -170,36 +170,36 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Element/Struct/Struct.cpp
                       src/dale/NativeTypes/NativeTypes.cpp
                       src/dale/TypeRegister/TypeRegister.cpp
-                      src/dale/Form/Goto/Goto.cpp
-                      src/dale/Form/If/If.cpp
-                      src/dale/Form/Label/Label.cpp
-                      src/dale/Form/Return/Return.cpp
-                      src/dale/Form/Setf/Setf.cpp
-                      src/dale/Form/Dereference/Dereference.cpp
-                      src/dale/Form/Sref/Sref.cpp
-                      src/dale/Form/AddressOf/AddressOf.cpp
-                      src/dale/Form/Aref/Aref.cpp
-                      src/dale/Form/PtrEquals/PtrEquals.cpp
-                      src/dale/Form/PtrAdd/PtrAdd.cpp
-                      src/dale/Form/PtrSubtract/PtrSubtract.cpp
-                      src/dale/Form/PtrLessThan/PtrLessThan.cpp
-                      src/dale/Form/PtrGreaterThan/PtrGreaterThan.cpp
-                      src/dale/Form/VaStart/VaStart.cpp
-                      src/dale/Form/VaEnd/VaEnd.cpp
-                      src/dale/Form/VaArg/VaArg.cpp
-                      src/dale/Form/Null/Null.cpp
-                      src/dale/Form/GetDNodes/GetDNodes.cpp
-                      src/dale/Form/Def/Def.cpp
-                      src/dale/Form/NullPtr/NullPtr.cpp
-                      src/dale/Form/Do/Do.cpp
-                      src/dale/Form/Cast/Cast.cpp
-                      src/dale/Form/Sizeof/Sizeof.cpp
-                      src/dale/Form/Offsetof/Offsetof.cpp
-                      src/dale/Form/Alignmentof/Alignmentof.cpp
-                      src/dale/Form/Funcall/Funcall.cpp
-                      src/dale/Form/UsingNamespace/UsingNamespace.cpp
-                      src/dale/Form/NewScope/NewScope.cpp
-                      src/dale/Form/ArrayOf/ArrayOf.cpp
+                      src/dale/Form/Proc/Goto/Goto.cpp
+                      src/dale/Form/Proc/If/If.cpp
+                      src/dale/Form/Proc/Label/Label.cpp
+                      src/dale/Form/Proc/Return/Return.cpp
+                      src/dale/Form/Proc/Setf/Setf.cpp
+                      src/dale/Form/Proc/Dereference/Dereference.cpp
+                      src/dale/Form/Proc/Sref/Sref.cpp
+                      src/dale/Form/Proc/AddressOf/AddressOf.cpp
+                      src/dale/Form/Proc/Aref/Aref.cpp
+                      src/dale/Form/Proc/PtrEquals/PtrEquals.cpp
+                      src/dale/Form/Proc/PtrAdd/PtrAdd.cpp
+                      src/dale/Form/Proc/PtrSubtract/PtrSubtract.cpp
+                      src/dale/Form/Proc/PtrLessThan/PtrLessThan.cpp
+                      src/dale/Form/Proc/PtrGreaterThan/PtrGreaterThan.cpp
+                      src/dale/Form/Proc/VaStart/VaStart.cpp
+                      src/dale/Form/Proc/VaEnd/VaEnd.cpp
+                      src/dale/Form/Proc/VaArg/VaArg.cpp
+                      src/dale/Form/Proc/Null/Null.cpp
+                      src/dale/Form/Proc/GetDNodes/GetDNodes.cpp
+                      src/dale/Form/Proc/Def/Def.cpp
+                      src/dale/Form/Proc/NullPtr/NullPtr.cpp
+                      src/dale/Form/Proc/Do/Do.cpp
+                      src/dale/Form/Proc/Cast/Cast.cpp
+                      src/dale/Form/Proc/Sizeof/Sizeof.cpp
+                      src/dale/Form/Proc/Offsetof/Offsetof.cpp
+                      src/dale/Form/Proc/Alignmentof/Alignmentof.cpp
+                      src/dale/Form/Proc/Funcall/Funcall.cpp
+                      src/dale/Form/Proc/UsingNamespace/UsingNamespace.cpp
+                      src/dale/Form/Proc/NewScope/NewScope.cpp
+                      src/dale/Form/Proc/ArrayOf/ArrayOf.cpp
                       src/dale/Element/Label/Label.cpp
                       src/dale/CommonDecl/CommonDecl.cpp
                       src/dale/Unit/Unit.cpp

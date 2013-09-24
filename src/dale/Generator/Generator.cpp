@@ -61,36 +61,36 @@
 #include "../NativeTypes/NativeTypes.h"
 #include "../ContextSavePoint/ContextSavePoint.h"
 #include "../Module/Writer/Writer.h"
-#include "../Form/Goto/Goto.h"
-#include "../Form/If/If.h"
-#include "../Form/Label/Label.h"
-#include "../Form/Return/Return.h"
-#include "../Form/Setf/Setf.h"
-#include "../Form/Dereference/Dereference.h"
-#include "../Form/Sref/Sref.h"
-#include "../Form/AddressOf/AddressOf.h"
-#include "../Form/Aref/Aref.h"
-#include "../Form/PtrEquals/PtrEquals.h"
-#include "../Form/PtrAdd/PtrAdd.h"
-#include "../Form/PtrSubtract/PtrSubtract.h"
-#include "../Form/PtrLessThan/PtrLessThan.h"
-#include "../Form/PtrGreaterThan/PtrGreaterThan.h"
-#include "../Form/VaStart/VaStart.h"
-#include "../Form/VaEnd/VaEnd.h"
-#include "../Form/VaArg/VaArg.h"
-#include "../Form/Null/Null.h"
-#include "../Form/GetDNodes/GetDNodes.h"
-#include "../Form/Def/Def.h"
-#include "../Form/NullPtr/NullPtr.h"
-#include "../Form/Do/Do.h"
-#include "../Form/Cast/Cast.h"
-#include "../Form/Sizeof/Sizeof.h"
-#include "../Form/Offsetof/Offsetof.h"
-#include "../Form/Alignmentof/Alignmentof.h"
-#include "../Form/Funcall/Funcall.h"
-#include "../Form/UsingNamespace/UsingNamespace.h"
-#include "../Form/NewScope/NewScope.h"
-#include "../Form/ArrayOf/ArrayOf.h"
+#include "../Form/Proc/Goto/Goto.h"
+#include "../Form/Proc/If/If.h"
+#include "../Form/Proc/Label/Label.h"
+#include "../Form/Proc/Return/Return.h"
+#include "../Form/Proc/Setf/Setf.h"
+#include "../Form/Proc/Dereference/Dereference.h"
+#include "../Form/Proc/Sref/Sref.h"
+#include "../Form/Proc/AddressOf/AddressOf.h"
+#include "../Form/Proc/Aref/Aref.h"
+#include "../Form/Proc/PtrEquals/PtrEquals.h"
+#include "../Form/Proc/PtrAdd/PtrAdd.h"
+#include "../Form/Proc/PtrSubtract/PtrSubtract.h"
+#include "../Form/Proc/PtrLessThan/PtrLessThan.h"
+#include "../Form/Proc/PtrGreaterThan/PtrGreaterThan.h"
+#include "../Form/Proc/VaStart/VaStart.h"
+#include "../Form/Proc/VaEnd/VaEnd.h"
+#include "../Form/Proc/VaArg/VaArg.h"
+#include "../Form/Proc/Null/Null.h"
+#include "../Form/Proc/GetDNodes/GetDNodes.h"
+#include "../Form/Proc/Def/Def.h"
+#include "../Form/Proc/NullPtr/NullPtr.h"
+#include "../Form/Proc/Do/Do.h"
+#include "../Form/Proc/Cast/Cast.h"
+#include "../Form/Proc/Sizeof/Sizeof.h"
+#include "../Form/Proc/Offsetof/Offsetof.h"
+#include "../Form/Proc/Alignmentof/Alignmentof.h"
+#include "../Form/Proc/Funcall/Funcall.h"
+#include "../Form/Proc/UsingNamespace/UsingNamespace.h"
+#include "../Form/Proc/NewScope/NewScope.h"
+#include "../Form/Proc/ArrayOf/ArrayOf.h"
 #include "../Unit/Unit.h"
 #include "../CommonDecl/CommonDecl.h"
 #include "../Operation/Sizeof/Sizeof.h"
@@ -5667,36 +5667,36 @@ past_sl_parse:
                      ParseResult *pr);
 
     core_fn =
-          (eq("goto"))            ? &dale::Form::Goto::execute
-        : (eq("if"))              ? &dale::Form::If::execute
-        : (eq("label"))           ? &dale::Form::Label::execute
-        : (eq("return"))          ? &dale::Form::Return::execute
-        : (eq("setf"))            ? &dale::Form::Setf::execute
-        : (eq("@"))               ? &dale::Form::Dereference::execute
-        : (eq(":"))               ? &dale::Form::Sref::execute
-        : (eq("#"))               ? &dale::Form::AddressOf::execute
-        : (eq("$"))               ? &dale::Form::Aref::execute
-        : (eq("p="))              ? &dale::Form::PtrEquals::execute
-        : (eq("p+"))              ? &dale::Form::PtrAdd::execute
-        : (eq("p-"))              ? &dale::Form::PtrSubtract::execute
-        : (eq("p<"))              ? &dale::Form::PtrLessThan::execute
-        : (eq("p>"))              ? &dale::Form::PtrGreaterThan::execute
-        : (eq("va-arg"))          ? &dale::Form::VaArg::execute
-        : (eq("va-start"))        ? &dale::Form::VaStart::execute
-        : (eq("va-end"))          ? &dale::Form::VaEnd::execute
-        : (eq("null"))            ? &dale::Form::Null::execute
-        : (eq("get-dnodes"))      ? &dale::Form::GetDNodes::execute
-        : (eq("def"))             ? &dale::Form::Def::execute
-        : (eq("nullptr"))         ? &dale::Form::NullPtr::execute
-        : (eq("do"))              ? &dale::Form::Do::execute
-        : (eq("cast"))            ? &dale::Form::Cast::execute
-        : (eq("sizeof"))          ? &dale::Form::Sizeof::execute
-        : (eq("offsetof"))        ? &dale::Form::Offsetof::execute
-        : (eq("alignmentof"))     ? &dale::Form::Alignmentof::execute
-        : (eq("funcall"))         ? &dale::Form::Funcall::execute
-        : (eq("using-namespace")) ? &dale::Form::UsingNamespace::execute
-        : (eq("new-scope"))       ? &dale::Form::NewScope::execute
-        : (eq("array-of"))        ? &dale::Form::ArrayOf::execute
+          (eq("goto"))            ? &Form::Proc::Goto::parse
+        : (eq("if"))              ? &Form::Proc::If::parse
+        : (eq("label"))           ? &Form::Proc::Label::parse
+        : (eq("return"))          ? &Form::Proc::Return::parse
+        : (eq("setf"))            ? &Form::Proc::Setf::parse
+        : (eq("@"))               ? &Form::Proc::Dereference::parse
+        : (eq(":"))               ? &Form::Proc::Sref::parse
+        : (eq("#"))               ? &Form::Proc::AddressOf::parse
+        : (eq("$"))               ? &Form::Proc::Aref::parse
+        : (eq("p="))              ? &Form::Proc::PtrEquals::parse
+        : (eq("p+"))              ? &Form::Proc::PtrAdd::parse
+        : (eq("p-"))              ? &Form::Proc::PtrSubtract::parse
+        : (eq("p<"))              ? &Form::Proc::PtrLessThan::parse
+        : (eq("p>"))              ? &Form::Proc::PtrGreaterThan::parse
+        : (eq("va-arg"))          ? &Form::Proc::VaArg::parse
+        : (eq("va-start"))        ? &Form::Proc::VaStart::parse
+        : (eq("va-end"))          ? &Form::Proc::VaEnd::parse
+        : (eq("null"))            ? &Form::Proc::Null::parse
+        : (eq("get-dnodes"))      ? &Form::Proc::GetDNodes::parse
+        : (eq("def"))             ? &Form::Proc::Def::parse
+        : (eq("nullptr"))         ? &Form::Proc::NullPtr::parse
+        : (eq("do"))              ? &Form::Proc::Do::parse
+        : (eq("cast"))            ? &Form::Proc::Cast::parse
+        : (eq("sizeof"))          ? &Form::Proc::Sizeof::parse
+        : (eq("offsetof"))        ? &Form::Proc::Offsetof::parse
+        : (eq("alignmentof"))     ? &Form::Proc::Alignmentof::parse
+        : (eq("funcall"))         ? &Form::Proc::Funcall::parse
+        : (eq("using-namespace")) ? &Form::Proc::UsingNamespace::parse
+        : (eq("new-scope"))       ? &Form::Proc::NewScope::parse
+        : (eq("array-of"))        ? &Form::Proc::ArrayOf::parse
                                   : NULL;
  
     if (core_fn) {
@@ -5778,7 +5778,7 @@ past_sl_parse:
         funcall_str_node->filename = erep->current_filename;
         lst->insert(lst->begin(), funcall_str_node);
         bool res =
-            Form::Funcall::execute(
+            Form::Proc::Funcall::parse(
                          this,
                          dfn,
                          block,
