@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
+#include "../../Linkage/Linkage.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -78,13 +79,13 @@ bool parse(Generator *gen,
 
     /* Parse linkage. */
 
-    int linkage = gen->parseLinkage((*newlist)[1]);
+    int linkage = Form::Linkage::parse(ctx, (*newlist)[1]);
     if (!linkage) {
         return false;
     }
 
-    if ((linkage != Linkage::Auto)
-            && (linkage != Linkage::Intern)
+    if ((linkage != dale::Linkage::Auto)
+            && (linkage != dale::Linkage::Intern)
             && (newlist->size() > 3)) {
         Error *e = new Error(
             ErrorInst::Generator::HasBothExternAndInitialiser,
@@ -140,7 +141,7 @@ bool parse(Generator *gen,
         var2->name.append(name);
         var2->type = type;
         var2->value = new_ptr;
-        var2->linkage = Linkage::Auto;
+        var2->linkage = dale::Linkage::Auto;
         int avres = ctx->ns()->addVariable(name, var2);
 
         if (!avres) {

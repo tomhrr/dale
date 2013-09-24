@@ -216,7 +216,6 @@ private:
     bool typeToStringExternal(DNode *dnode, char *buf);
 
     int parseStructLinkage(Node *n);
-    int parseEnumLinkage(Node *n);
 
     llvm::Constant *parseLiteralElement(Node *top,
                                         char *thing,
@@ -297,7 +296,6 @@ public:
     llvm::Value *IntNodeToStaticDNode(Node *node, llvm::Value *next_node);
     Element::Type *type_pdnode;
     void parseStructDefinition(const char *name, Node *n);
-    int parseLinkage(Node *n);
     bool parseFuncallInternal(
         Element::Function *dfn,
         Node *n,

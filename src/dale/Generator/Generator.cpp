@@ -91,6 +91,9 @@
 #include "../Form/Proc/UsingNamespace/UsingNamespace.h"
 #include "../Form/Proc/NewScope/NewScope.h"
 #include "../Form/Proc/ArrayOf/ArrayOf.h"
+#include "../Form/Linkage/Enum/Enum.h"
+#include "../Form/Linkage/Struct/Struct.h"
+#include "../Form/Linkage/Linkage.h"
 #include "../Unit/Unit.h"
 #include "../CommonDecl/CommonDecl.h"
 #include "../Operation/Sizeof/Sizeof.h"
@@ -1858,7 +1861,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
     }
 
     Node *lnk = (*lst)[1];
-    int linkage = parseEnumLinkage(lnk);
+    int linkage = Form::Linkage::Enum::parse(ctx, lnk);
     if (!linkage) {
         return;
     }
@@ -2104,7 +2107,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
         return;
     }
 
-    int linkage = parseLinkage((*lst)[1]);
+    int linkage = Form::Linkage::parse(ctx, (*lst)[1]);
     if (!linkage) {
         return;
     }
@@ -2496,7 +2499,7 @@ void Generator::parseStructDefinition(const char *name, Node *top)
         ++next_index;
     }
 
-    int linkage = parseStructLinkage((*lst)[next_index]);
+    int linkage = Form::Linkage::Struct::parse(ctx, (*lst)[next_index]);
     if (!linkage) {
         return;
     }
@@ -2726,7 +2729,7 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
         return;
     }
 
-    int linkage = parseLinkage((*lst)[1]);
+    int linkage = Form::Linkage::parse(ctx, (*lst)[1]);
 
     Element::Type *r_type = parseType((*lst)[2], false, false);
     if (r_type == NULL) {
@@ -3550,153 +3553,6 @@ llvm::Constant *Generator::parseLiteral1(Element::Type *type,
     return NULL;
 }
 
-int Generator::parseEnumLinkage(Node *n)
-{
-    if (!n->is_token) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement,
-            n,
-            "atom", "linkage", "list"
-        );
-        erep->addError(e);
-        return 0;
-    }
-
-    if (n->token->type != TokenType::String) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement,
-            n,
-            "symbol", "linkage", n->token->tokenType()
-        );
-        erep->addError(e);
-        return 0;
-    }
-
-    const char *lnk = n->token->str_value.c_str();
-
-    if (!strcmp(lnk, "extern")) {
-        return EnumLinkage::Extern;
-    } else if (!strcmp(lnk, "intern")) {
-        return EnumLinkage::Intern;
-    }
-
-    std::string temp;
-    temp.append("'")
-    .append(lnk)
-    .append("'");
-
-    Error *e = new Error(
-        ErrorInst::Generator::UnexpectedElement,
-        n,
-        "'extern'/'intern'/'opaque'", "linkage",
-        temp.c_str()
-    );
-    erep->addError(e);
-    return 0;
-}
-
-int Generator::parseStructLinkage(Node *n)
-{
-    if (!n->is_token) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement,
-            n,
-            "atom", "linkage", "list"
-        );
-        erep->addError(e);
-        return 0;
-    }
-
-    if (n->token->type != TokenType::String) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement,
-            n,
-            "symbol", "linkage", n->token->tokenType()
-        );
-        erep->addError(e);
-        return 0;
-    }
-
-    const char *lnk = n->token->str_value.c_str();
-
-    if (!strcmp(lnk, "extern")) {
-        return StructLinkage::Extern;
-    } else if (!strcmp(lnk, "intern")) {
-        return StructLinkage::Intern;
-    } else if (!strcmp(lnk, "opaque")) {
-        return StructLinkage::Opaque;
-    }
-
-    std::string temp;
-    temp.append("'")
-    .append(lnk)
-    .append("'");
-
-    Error *e = new Error(
-        ErrorInst::Generator::UnexpectedElement,
-        n,
-        "'extern'/'intern'/'opaque'", "linkage",
-        temp.c_str()
-    );
-    erep->addError(e);
-    return 0;
-}
-
-int Generator::parseLinkage(Node *n)
-{
-    if (!n->is_token) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement,
-            n,
-            "atom", "linkage", "list"
-        );
-        erep->addError(e);
-        return 0;
-    }
-
-    if (n->token->type != TokenType::String) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement,
-            n,
-            "symbol", "linkage", n->token->tokenType()
-        );
-        erep->addError(e);
-        return 0;
-    }
-
-    const char *lnk = n->token->str_value.c_str();
-
-    if (!strcmp(lnk, "extern"))       {
-        return Linkage::Extern;
-    }
-    else if (!strcmp(lnk, "intern"))       {
-        return Linkage::Intern;
-    }
-    else if (!strcmp(lnk, "auto"))         {
-        return Linkage::Auto;
-    }
-    else if (!strcmp(lnk, "extern-c"))     {
-        return Linkage::Extern_C;
-    }
-    else if (!strcmp(lnk, "_extern-weak")) {
-        return Linkage::Extern_Weak;
-    }
-
-    std::string temp;
-    temp.append("'")
-    .append(lnk)
-    .append("'");
-
-    Error *e = new Error(
-        ErrorInst::Generator::UnexpectedElement,
-        n,
-        "'extern'/'intern'/'auto'/'extern-c'", "linkage",
-        temp.c_str()
-    );
-    erep->addError(e);
-    return 0;
-}
-
 void Generator::parseFunction(const char *name, Node *n,
                               Element::Function **new_function,
                               int override_linkage,
@@ -3790,7 +3646,7 @@ void Generator::parseFunction(const char *name, Node *n,
     int linkage =
         (override_linkage)
         ? override_linkage
-        : parseLinkage((*lst)[next_index]);
+        : Form::Linkage::parse(ctx, (*lst)[next_index]);
 
     if (!linkage) {
         return;

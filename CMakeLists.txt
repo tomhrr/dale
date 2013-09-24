@@ -200,6 +200,9 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/Proc/UsingNamespace/UsingNamespace.cpp
                       src/dale/Form/Proc/NewScope/NewScope.cpp
                       src/dale/Form/Proc/ArrayOf/ArrayOf.cpp
+                      src/dale/Form/Linkage/Enum/Enum.cpp
+                      src/dale/Form/Linkage/Struct/Struct.cpp
+                      src/dale/Form/Linkage/Linkage.cpp
                       src/dale/Element/Label/Label.cpp
                       src/dale/CommonDecl/CommonDecl.cpp
                       src/dale/Unit/Unit.cpp
