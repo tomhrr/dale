@@ -203,6 +203,7 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/Linkage/Enum/Enum.cpp
                       src/dale/Form/Linkage/Struct/Struct.cpp
                       src/dale/Form/Linkage/Linkage.cpp
+                      src/dale/CoreForms/CoreForms.cpp
                       src/dale/Element/Label/Label.cpp
                       src/dale/CommonDecl/CommonDecl.cpp
                       src/dale/Unit/Unit.cpp

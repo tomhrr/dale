@@ -95,6 +95,7 @@
 #include "../Form/Linkage/Struct/Struct.h"
 #include "../Form/Linkage/Linkage.h"
 #include "../Unit/Unit.h"
+#include "../CoreForms/CoreForms.h"
 #include "../CommonDecl/CommonDecl.h"
 #include "../Operation/Sizeof/Sizeof.h"
 #include "../Operation/Offsetof/Offsetof.h"
@@ -113,25 +114,6 @@
 #define IMPLICIT 1
 
 #define eq(str) !strcmp(t->str_value.c_str(), str)
-
-int core_forms_max = 35;
-const char *core_forms_strs[36] = {
-    "goto", "label", "return", "setf", "@", ":", "#", "$",
-    "get-dnodes", "p=", "p+", "p-", "p<", "p>", "def", "if", "null",
-    "nullptr", "do", "cast", "va-arg", "sizeof", "offsetof",
-    "va-start", "va-end",
-    "alignmentof", "funcall", "using-namespace", "new-scope",
-    "array-of", "setv", "@$", "@:", ":@", "@:@", NULL
-};
-
-int core_forms_no_max = 31;
-const char *core_forms_no[32] = {
-    "goto", "label", "return", ":", "get-dnodes", "p=", "p+", "p-", "p<",
-    "p>", "def", "if", "null", "nullptr", "do", "cast", "va-arg",
-    "va-start", "va-end",
-    "sizeof", "offsetof", "alignmentof", "funcall", "using-namespace",
-    "new-scope", "array-of",  "setv", "@$", ":@", "@:", "@:@", NULL
-};
 
 extern "C" {
     void *find_introspection_function(const char *);
@@ -194,9 +176,6 @@ std::vector<llvm::Value *> two_zero_indices;
 
 int has_defined_extern_macro;
 
-std::set<std::string> *core_forms;
-std::set<std::string> *core_forms_no_override;
-
 char *inc_paths[100];
 int inc_path_count = 0;
 
@@ -221,6 +200,8 @@ int Generator::getUnusedVarname(std::string *mystr)
 
 Generator::Generator()
 {
+    CoreForms::init();
+
     prefunction_ns = NULL;
 
     llvm::InitializeNativeTarget();
@@ -276,16 +257,6 @@ Generator::Generator()
 
     has_defined_extern_macro = 0;
 
-    core_forms = new std::set<std::string>;
-    for (int i = 0; i < core_forms_max; i++) {
-        core_forms->insert(core_forms_strs[i]);
-    }
-
-    core_forms_no_override = new std::set<std::string>;
-    for (int i = 0; i < core_forms_no_max; i++) {
-        core_forms_no_override->insert(core_forms_no[i]);
-    }
-
     cto_modules = new std::set<std::string>;
 }
 
@@ -298,8 +269,6 @@ Generator::~Generator()
     delete included_once_tags;
     delete included_modules;
 
-    delete core_forms;
-    delete core_forms_no_override;
     delete cto_modules;
     delete dtm_modules;
     delete dtm_nm_modules;
@@ -2084,9 +2053,7 @@ void Generator::parseMacroDefinition(const char *name, Node *top)
 {
     /* Ensure this isn't core (core forms cannot be overridden
      * with a macro). */
-    std::set<std::string>::iterator cf =
-        core_forms->find(name);
-    if (cf != core_forms->end()) {
+    if (CoreForms::exists(name)) {
         Error *e = new Error(
             ErrorInst::Generator::NoCoreFormNameInMacro,
             top
@@ -3564,10 +3531,8 @@ void Generator::parseFunction(const char *name, Node *n,
 
     assert(n->list && "must receive a list!");
 
-    /* Ensure this isn't a no-override core. */
-    std::set<std::string>::iterator cf =
-        core_forms_no_override->find(name);
-    if (cf != core_forms_no_override->end()) {
+    /* Ensure this isn't a no-override core form. */
+    if (CoreForms::existsNoOverride(name)) {
         Error *e = new Error(
             ErrorInst::Generator::ThisCoreFormCannotBeOverridden,
             n
