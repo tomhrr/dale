@@ -223,11 +223,6 @@ private:
                                         *type, int *size);
 
 
-    Node *parseArrayDeref(Node *n);
-    Node *parseStructDeref(Node *n);
-    Node *parseDerefStruct(Node *n);
-    Node *parseDerefStructDeref(Node *n);
-
     int addVariable(const char *name,
                     Element::Type *type,
                     llvm::Constant *init,

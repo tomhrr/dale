@@ -91,6 +91,11 @@
 #include "../Form/Proc/UsingNamespace/UsingNamespace.h"
 #include "../Form/Proc/NewScope/NewScope.h"
 #include "../Form/Proc/ArrayOf/ArrayOf.h"
+#include "../Form/Macro/ArrayDeref/ArrayDeref.h"
+#include "../Form/Macro/StructDeref/StructDeref.h"
+#include "../Form/Macro/DerefStructDeref/DerefStructDeref.h"
+#include "../Form/Macro/DerefStruct/DerefStruct.h"
+#include "../Form/Macro/Setv/Setv.h"
 #include "../Form/Linkage/Enum/Enum.h"
 #include "../Form/Linkage/Struct/Struct.h"
 #include "../Form/Linkage/Linkage.h"
@@ -3998,192 +4003,6 @@ void Generator::parseFunction(const char *name, Node *n,
     return;
 }
 
-Node *Generator::parseDerefStructDeref(Node *n)
-{
-    assert(n->list && "parseDerefStructDeref must receive a list!");
-
-    if (!ctx->er->assertArgNums("@:@", n, 2, 2)) {
-        return NULL;
-    }
-
-    symlist *lst = n->list;
-
-    // (@:@ array element) => (@ (: (@ array) element))
-
-    // Change the first token.
-    (*lst)[0]->token->str_value.clear();
-    (*lst)[0]->token->str_value.append("@");
-
-    // Create a new nodelist, first element @, second element the
-    // second element from the first list.
-
-    symlist *newlst = new std::vector<Node *>;
-    Token *de = new Token(TokenType::String,0,0,0,0);
-    de->str_value.append("@");
-    Node *nde = new Node(de);
-    (*lst)[1]->copyMetaTo(nde);
-    newlst->push_back(nde);
-    newlst->push_back((*lst)[1]);
-
-    // Create a new nodelist, first element :, second element
-    // newlst, third element the third element from the first
-    // list. Adjust the original list to suit.
-
-    symlist *newlst2 = new std::vector<Node *>;
-    Token *ad = new Token(TokenType::String,0,0,0,0);
-    ad->str_value.append(":");
-    Node *nad = new Node(ad);
-    (*lst)[1]->copyMetaTo(nad);
-    newlst2->push_back(nad);
-    Node *nnewlst = new Node(newlst);
-    (*lst)[1]->copyMetaTo(nnewlst);
-    newlst2->push_back(nnewlst);
-    newlst2->push_back((*lst)[2]);
-
-    (*lst)[1] = new Node(newlst2);
-    nnewlst->copyMetaTo((*lst)[1]);
-    lst->pop_back();
-
-    // Return the original node.
-    return n;
-}
-
-Node *Generator::parseDerefStruct(Node *n)
-{
-    assert(n->list && "parseDerefStruct must receive a list!");
-
-    if (!ctx->er->assertArgNums(":@", n, 2, 2)) {
-        return NULL;
-    }
-
-    symlist *lst = n->list;
-
-    // (:@ array element) => (: (@ array) element)
-
-    // Change the first token.
-    (*lst)[0]->token->str_value.clear();
-    (*lst)[0]->token->str_value.append(":");
-
-    // Create a new nodelist, first element @ and second element
-    // as per the original second element. Remove that element
-    // from the provided list, and make the second element of the
-    // provided list this new list.
-
-    symlist *newlst = new std::vector<Node *>;
-    Token *ad = new Token(TokenType::String,0,0,0,0);
-    ad->str_value.append("@");
-    newlst->push_back(new Node(ad));
-    newlst->push_back((*lst)[1]);
-    (*lst)[1] = new Node(newlst);
-
-    // Return the original node.
-    return n;
-}
-
-Node *Generator::parseStructDeref(Node *n)
-{
-    assert(n->list && "parseStructDeref must receive a list!");
-
-    if (!ctx->er->assertArgNums("@:", n, 2, 2)) {
-        return NULL;
-    }
-
-    symlist *lst = n->list;
-
-    // (@: array element) => (@ (: array element))
-
-    // Change the first token.
-    (*lst)[0]->token->str_value.clear();
-    (*lst)[0]->token->str_value.append("@");
-
-    // Create a new nodelist, first element :, second element and
-    // third element from the current list. Remove the third
-    // element from the provided list, make the second element of
-    // the provided list this new list.
-
-    symlist *newlst = new std::vector<Node *>;
-    Token *ad = new Token(TokenType::String,0,0,0,0);
-    ad->str_value.append(":");
-    newlst->push_back(new Node(ad));
-    newlst->push_back((*lst)[1]);
-    newlst->push_back((*lst)[2]);
-    (*lst)[1] = new Node(newlst);
-    lst->pop_back();
-
-    // Return the original node.
-    return n;
-}
-
-Node *Generator::parseArrayDeref(Node *n)
-{
-    assert(n->list && "parseArrayDeref must receive a list!");
-
-    if (!ctx->er->assertArgNums("@$", n, 2, 2)) {
-        return NULL;
-    }
-
-    symlist *lst = n->list;
-
-    // (@$ array element) => (@ ($ array element))
-
-    // Change the first token.
-    (*lst)[0]->token->str_value.clear();
-    (*lst)[0]->token->str_value.append("@");
-
-    // Create a new nodelist, first element $, second element and
-    // third element from the current list. Remove the third
-    // element from the provided list, make the second element of
-    // the provided list this new list.
-
-    symlist *newlst = new std::vector<Node *>;
-    Token *ad = new Token(TokenType::String,0,0,0,0);
-    ad->str_value.append("$");
-    newlst->push_back(new Node(ad));
-    newlst->push_back((*lst)[1]);
-    newlst->push_back((*lst)[2]);
-    (*lst)[1] = new Node(newlst);
-    lst->pop_back();
-
-    // Return the original node.
-    return n;
-}
-
-Node *Generator::parseSetv(Node *n)
-{
-    assert(n->list && "parseSetv must receive a list!");
-
-    if (!ctx->er->assertArgNums("setv", n, 2, 2)) {
-        return NULL;
-    }
-
-    symlist *lst = n->list;
-    Node *varn = (*lst)[1];
-
-    if (!ctx->er->assertArgIsAtom("setv", varn, "1")) {
-        return NULL;
-    }
-
-    // (setv a 10) => (setf (# a) 10)
-
-    // Change the first token.
-    (*lst)[0]->token->str_value.clear();
-    (*lst)[0]->token->str_value.append("setf");
-
-    // Create a new nodelist, first element #, second element
-    // whatever the current second element is, make it the second
-    // element of the current list.
-
-    symlist *newlst = new std::vector<Node *>;
-    Token *addrof = new Token(TokenType::String,0,0,0,0);
-    addrof->str_value.append("#");
-    newlst->push_back(new Node(addrof));
-    newlst->push_back((*lst)[1]);
-    (*lst)[1] = new Node(newlst);
-
-    // Return the original node.
-    return n;
-}
-
 bool Generator::destructIfApplicable(ParseResult *pr,
         llvm::IRBuilder<> *builder,
         ParseResult *pr_ret,
@@ -5527,18 +5346,18 @@ past_sl_parse:
        
     /* Not core form - look for core macro. */
 
-    Node* (dale::Generator::* core_mac)(Node *n);
+    Node* (*core_mac)(Context *ctx, Node *n);
 
-    core_mac =   (eq("setv"))   ? &dale::Generator::parseSetv
-               : (eq("@$"))     ? &dale::Generator::parseArrayDeref
-               : (eq(":@"))     ? &dale::Generator::parseDerefStruct
-               : (eq("@:"))     ? &dale::Generator::parseStructDeref
-               : (eq("@:@"))    ? &dale::Generator::parseDerefStructDeref
+    core_mac =   (eq("setv"))   ? &Form::Macro::Setv::parse
+               : (eq("@$"))     ? &Form::Macro::ArrayDeref::parse
+               : (eq(":@"))     ? &Form::Macro::DerefStruct::parse
+               : (eq("@:"))     ? &Form::Macro::StructDeref::parse
+               : (eq("@:@"))    ? &Form::Macro::DerefStructDeref::parse
                : NULL;
 
     if (core_mac) {
         /* Going to assume similarly here, re the error messages. */
-        Node *new_node = ((this)->*(core_mac))(n);
+        Node *new_node = core_mac(ctx, n);
         if (!new_node) {
             return false;
         }
@@ -6013,17 +5832,17 @@ Node *Generator::parseOptionalMacroCall(Node *n)
 
     /* Core macros. */
 
-    Node* (dale::Generator::* core_mac)(Node *n);
+    Node* (*core_mac)(Context *ctx, Node *n);
 
-    core_mac =   (eq("setv"))   ? &dale::Generator::parseSetv
-               : (eq("@$"))     ? &dale::Generator::parseArrayDeref
-               : (eq(":@"))     ? &dale::Generator::parseDerefStruct
-               : (eq("@:"))     ? &dale::Generator::parseStructDeref
-               : (eq("@:@"))    ? &dale::Generator::parseDerefStructDeref
+    core_mac =   (eq("setv"))   ? &Form::Macro::Setv::parse
+               : (eq("@$"))     ? &Form::Macro::ArrayDeref::parse
+               : (eq(":@"))     ? &Form::Macro::DerefStruct::parse
+               : (eq("@:"))     ? &Form::Macro::StructDeref::parse
+               : (eq("@:@"))    ? &Form::Macro::DerefStructDeref::parse
                : NULL;
 
     if (core_mac) {
-        Node *new_node = ((this)->*(core_mac))(n);
+        Node *new_node = core_mac(ctx, n);
         if (!new_node) {
             return NULL;
         }
