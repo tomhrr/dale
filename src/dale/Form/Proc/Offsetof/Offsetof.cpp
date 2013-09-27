@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
 #include "../../../Operation/Offsetof/Offsetof.h"
+#include "../../Type/Type.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -39,7 +40,7 @@ bool parse(Generator *gen,
         return false;
     }
 
-    Element::Type *mytype = gen->parseType(struct_name,
+    Element::Type *mytype = Form::Type::parse(gen, struct_name,
                                            false,
                                            false);
     if (!mytype) {

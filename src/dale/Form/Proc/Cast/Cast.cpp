@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
 #include "../../../Operation/Cast/Cast.h"
+#include "../../Type/Type.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -46,7 +47,7 @@ bool parse(Generator *gen,
      * cast to a bitfield type, because there's no other way to
      * set a bitfield value.) */
 
-    Element::Type *type = gen->parseType((*lst)[2], false, true);
+    Element::Type *type = Form::Type::parse(gen, (*lst)[2], false, true);
     if (!type) {
         return false;
     }

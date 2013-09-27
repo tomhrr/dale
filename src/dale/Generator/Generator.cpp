@@ -99,6 +99,7 @@
 #include "../Form/Linkage/Enum/Enum.h"
 #include "../Form/Linkage/Struct/Struct.h"
 #include "../Form/Linkage/Linkage.h"
+#include "../Form/Type/Type.h"
 #include "../Unit/Unit.h"
 #include "../CoreForms/CoreForms.h"
 #include "../CommonDecl/CommonDecl.h"
@@ -1842,7 +1843,7 @@ void Generator::parseEnumDefinition(const char *name, Node *top)
 
     Node *enumtypen = (*lst)[2];
 
-    Element::Type *enumtype = parseType(enumtypen, false, false);
+    Element::Type *enumtype = Form::Type::parse(this, enumtypen, false, false);
     if (!enumtype) {
         return;
     }
@@ -2703,7 +2704,7 @@ void Generator::parseGlobalVariable(const char *name, Node *top)
 
     int linkage = Form::Linkage::parse(ctx, (*lst)[1]);
 
-    Element::Type *r_type = parseType((*lst)[2], false, false);
+    Element::Type *r_type = Form::Type::parse(this, (*lst)[2], false, false);
     if (r_type == NULL) {
         return;
     }
@@ -3760,7 +3761,7 @@ void Generator::parseFunction(const char *name, Node *n,
         ctx->ns()->addVariable((*b)->name.c_str(), (*b));
     }
 
-    Element::Type *r_type = parseType((*lst)[return_type_index], false,
+    Element::Type *r_type = Form::Type::parse(this, (*lst)[return_type_index], false,
                                       false);
 
     ctx->deactivateNamespace(anon_name.c_str());
@@ -5087,7 +5088,7 @@ tryvar:
         }
 
         Element::Type *myenumtype =
-            parseType((*lst)[0], false, false);
+            Form::Type::parse(this, (*lst)[0], false, false);
 
         if (!myenumtype) {
             fprintf(stderr,
@@ -5135,7 +5136,7 @@ past_en_parse:
         }
 
         Element::Type *structtype =
-            parseType((*lst)[0], false, false);
+            Form::Type::parse(this, (*lst)[0], false, false);
 
         if (!structtype) {
             fprintf(stderr,
@@ -7415,10 +7416,7 @@ void Generator::parseArgument(Element::Variable *var, Node *top,
     var->name.clear();
     var->name.append(tname->str_value.c_str());
 
-    /* parseType returns a newly allocated type - it is assumed
-     * that Element::Variable has not initialised its type and
-     * that memory is not going to leak here. */
-    Element::Type *type = parseType((*lst)[1], allow_anon_structs,
+    Element::Type *type = Form::Type::parse(this, (*lst)[1], allow_anon_structs,
                                     allow_bitfields);
     var->type = type;
 
@@ -7477,399 +7475,6 @@ void mysplitString(std::string *str, std::vector<std::string> *lst, char c)
         lst->push_back(temp);
         index = found + 1;
     }
-}
-
-Element::Type *Generator::parseType(Node *top,
-                                    bool allow_anon_structs,
-                                    bool allow_bitfields)
-{
-    if (!top) {
-        return NULL;
-    }
-
-    if (top->is_token) {
-        Token *t = top->token;
-
-        if (t->type != TokenType::String) {
-            Error *e = new Error(
-                ErrorInst::Generator::IncorrectSingleParameterType,
-                top,
-                "symbol", t->tokenType()
-            );
-            erep->addError(e);
-            return NULL;
-        }
-
-        const char *typs = t->str_value.c_str();
-
-        Element::Type *mt =
-              (!strcmp(typs, "int" ))        ? type_int
-            : (!strcmp(typs, "void"))        ? type_void
-            : (!strcmp(typs, "char"))        ? type_char
-            : (!strcmp(typs, "bool"))        ? type_bool
-            : (!strcmp(typs, "uint" ))       ? type_uint
-            : (!strcmp(typs, "int8"))        ? type_int8
-            : (!strcmp(typs, "uint8"))       ? type_uint8
-            : (!strcmp(typs, "int16"))       ? type_int16
-            : (!strcmp(typs, "uint16"))      ? type_uint16
-            : (!strcmp(typs, "int32"))       ? type_int32
-            : (!strcmp(typs, "uint32"))      ? type_uint32
-            : (!strcmp(typs, "int64"))       ? type_int64
-            : (!strcmp(typs, "uint64"))      ? type_uint64
-            : (!strcmp(typs, "int128"))      ? type_int128
-            : (!strcmp(typs, "uint128"))     ? type_uint128
-            : (!strcmp(typs, "intptr"))      ? type_intptr
-            : (!strcmp(typs, "size"))        ? type_size
-            : (!strcmp(typs, "ptrdiff"))     ? type_ptrdiff
-            : (!strcmp(typs, "float"))       ? type_float
-            : (!strcmp(typs, "double"))      ? type_double
-            : (!strcmp(typs, "long-double")) ? type_longdouble
-                                             : NULL;
-
-        if (mt) {
-            if (!is_x86_64
-                    && (mt->base_type == Type::Int128
-                        || mt->base_type == Type::UInt128)) {
-                Error *e = new Error(
-                    ErrorInst::Generator::TypeNotSupported,
-                    top,
-                    typs
-                );
-                erep->addError(e);
-                return NULL;
-            }
-            return mt;
-        }
-
-        /* Not a simple type - check if it is a struct. */
-
-        Element::Struct *temp_struct;
-
-        if ((temp_struct = ctx->getStruct(typs))) {
-            std::string fqsn;
-            bool b = ctx->setFullyQualifiedStructName(typs, &fqsn);
-            if (!b) {
-                fprintf(stderr, "Internal error: unable to set struct "
-                                "name (%s).\n", typs);
-                abort();
-            }
-            return tr->getStructType(fqsn);
-        }
-
-        Error *err = new Error(
-            ErrorInst::Generator::TypeNotInScope,
-            top,
-            typs
-        );
-        erep->addError(err);
-        return NULL;
-    }
-
-    // If here, node is a list node. First, try for a macro call.
-
-    Node *newtop = parseOptionalMacroCall(top);
-
-    if (newtop != top) {
-        /* New node - re-call parseType. */
-        return parseType(newtop, allow_anon_structs,
-                         allow_bitfields);
-    }
-
-    symlist *lst = top->list;
-
-    Node *n = (*lst)[0];
-
-    if (!n->is_token) {
-        Error *e = new Error(
-            ErrorInst::Generator::FirstListElementMustBeAtom,
-            n
-        );
-        erep->addError(e);
-        return NULL;
-    }
-
-    Token *t = n->token;
-
-    if (t->type != TokenType::String) {
-        Error *e = new Error(
-            ErrorInst::Generator::FirstListElementMustBeSymbol,
-            n
-        );
-        erep->addError(e);
-        return NULL;
-    }
-
-    // If the first element is 'do', then skip that element.
-
-    std::vector<Node*> templist;
-    if (!(t->str_value.compare("do"))) {
-        templist.assign(lst->begin() + 1, lst->end());
-        lst = &templist;
-        if (lst->size() == 1) {
-            return parseType(lst->at(0), allow_anon_structs,
-                             allow_bitfields);
-        }
-    }
-
-    /* If list is a two-element list, where the first element is
-     * 'struct', then this is an anonymous struct. If
-     * allow_anon_structs is enabled, then construct a list that
-     * can in turn be used to create that struct, call
-     * parseStructDefinition, and then use that new struct name
-     * for the value of this element. */
-
-    if (allow_anon_structs
-            && lst->size() == 2
-            && lst->at(0)->is_token
-            && !(lst->at(0)->token->str_value.compare("struct"))) {
-        Token *li = new Token(TokenType::String,0,0,0,0);
-        li->str_value.append("extern");
-        lst->insert((lst->begin() + 1), new Node(li));
-        char buf[255];
-        sprintf(buf, "__as%d", anonstructcount++);
-        int error_count =
-            erep->getErrorTypeCount(ErrorType::Error);
-
-        parseStructDefinition(buf, new Node(lst));
-
-        int error_post_count =
-            erep->getErrorTypeCount(ErrorType::Error);
-        if (error_count != error_post_count) {
-            return NULL;
-        }
-
-        Token *name = new Token(TokenType::String,0,0,0,0);
-        name->str_value.append(buf);
-        Element::Type *myst = parseType(new Node(name), false,
-                                        false);
-        if (!myst) {
-            fprintf(stderr, "Unable to retrieve anonymous struct.\n");
-            abort();
-        }
-        return myst;
-    }
-
-    /* If list is a three-element list, where the first element is
-     * 'bf', then this is a bitfield type. Only return such a type
-     * if allow_bitfields is enabled. */
-
-    if (allow_bitfields
-            && lst->size() == 3
-            && lst->at(0)->is_token
-            && !(lst->at(0)->token->str_value.compare("bf"))) {
-        Element::Type *bf_type =
-            parseType(lst->at(1), false, false);
-        if (!(bf_type->isIntegerType())) {
-            Error *e = new Error(
-                ErrorInst::Generator::BitfieldMustHaveIntegerType,
-                top
-            );
-            erep->addError(e);
-            return NULL;
-        }
-        int size = parseInteger(lst->at(2));
-        if (size == -1) {
-            return NULL;
-        }
-        return tr->getBitfieldType(bf_type, size);
-    }
-
-    if (!strcmp(t->str_value.c_str(), "const")) {
-        if (lst->size() != 2) {
-            Error *e = new Error(
-                ErrorInst::Generator::IncorrectNumberOfArgs,
-                top,
-                "const", "1"
-            );
-            char buf[100];
-            sprintf(buf, "%d", (int) lst->size() - 1);
-            e->addArgString(buf);
-            erep->addError(e);
-            return NULL;
-        }
-
-        Node *newnum = parseOptionalMacroCall((*lst)[1]);
-        if (!newnum) {
-            return NULL;
-        }
-
-        Element::Type *const_type =
-            parseType((*lst)[1], allow_anon_structs,
-                      allow_bitfields);
-
-        if (const_type == NULL) {
-            return NULL;
-        }
-
-        return tr->getConstType(const_type);
-    }
-
-    if (!strcmp(t->str_value.c_str(), "array-of")) {
-        if (lst->size() != 3) {
-            Error *e = new Error(
-                ErrorInst::Generator::IncorrectNumberOfArgs,
-                top,
-                "array-of", "2"
-            );
-            char buf[100];
-            sprintf(buf, "%d", (int) lst->size() - 1);
-            e->addArgString(buf);
-            erep->addError(e);
-            return NULL;
-        }
-
-        Node *newnum = parseOptionalMacroCall((*lst)[1]);
-        if (!newnum) {
-            return NULL;
-        }
-
-        int size = parseInteger(newnum);
-        if (size == -1) {
-            return NULL;
-        }
-
-        Element::Type *array_type =
-            parseType((*lst)[2], allow_anon_structs,
-                      allow_bitfields);
-
-        if (array_type == NULL) {
-            return NULL;
-        }
-
-        Element::Type *type = tr->getArrayType(array_type, size);
-
-        return type;
-    }
-
-    if (!strcmp(t->str_value.c_str(), "p")) {
-        if (!ctx->er->assertArgNums("p", top, 1, 1)) {
-            return NULL;
-        }
-
-        Element::Type *points_to_type =
-            parseType((*lst)[1], allow_anon_structs,
-                      allow_bitfields);
-
-        if (points_to_type == NULL) {
-            return NULL;
-        }
-
-        return tr->getPointerType(points_to_type);
-    }
-
-    if (!strcmp(t->str_value.c_str(), "fn")) {
-        if (!ctx->er->assertArgNums("fn", top, 2, 2)) {
-            return NULL;
-        }
-
-        Element::Type *ret_type =
-            parseType((*lst)[1], allow_anon_structs,
-                      allow_bitfields);
-
-        if (ret_type == NULL) {
-            return NULL;
-        }
-        if (ret_type->is_array) {
-            Error *e = new Error(
-                ErrorInst::Generator::ReturnTypesCannotBeArrays,
-                n
-            );
-            erep->addError(e);
-            return NULL;
-        }
-
-        Node *params = (*lst)[2];
-
-        if (!params->is_list) {
-            Error *e = new Error(
-                ErrorInst::Generator::UnexpectedElement,
-                n,
-                "list", "fn parameters", "symbol"
-            );
-            erep->addError(e);
-            return NULL;
-        }
-
-        symlist *plst = params->list;
-
-        Element::Variable *var;
-
-        std::vector<Element::Type *> *parameter_types =
-            new std::vector<Element::Type *>;
-
-        std::vector<Node *>::iterator node_iter;
-        node_iter = plst->begin();
-
-        while (node_iter != plst->end()) {
-            var = new Element::Variable();
-            var->type = NULL;
-
-            parseArgument(var, (*node_iter),
-                          allow_anon_structs,
-                          allow_bitfields);
-
-            if (var->type == NULL) {
-                delete var;
-                return NULL;
-            }
-
-            if (var->type->base_type == Type::Void) {
-                delete var;
-                if (plst->size() != 1) {
-                    Error *e = new Error(
-                        ErrorInst::Generator::VoidMustBeTheOnlyParameter,
-                        params
-                    );
-                    erep->addError(e);
-                    return NULL;
-                }
-                break;
-            }
-
-            /* Have to check that none come after this. */
-            if (var->type->base_type == Type::VarArgs) {
-                if ((plst->end() - node_iter) != 1) {
-                    delete var;
-                    Error *e = new Error(
-                        ErrorInst::Generator::VarArgsMustBeLastParameter,
-                        params
-                    );
-                    erep->addError(e);
-                    return NULL;
-                }
-                parameter_types->push_back(var->type);
-                break;
-            }
-
-            if (var->type->is_function) {
-                delete var;
-                Error *e = new Error(
-                    ErrorInst::Generator::NonPointerFunctionParameter,
-                    (*node_iter)
-                );
-                erep->addError(e);
-                return NULL;
-            }
-
-            parameter_types->push_back(var->type);
-
-            ++node_iter;
-        }
-
-        Element::Type *type = new Element::Type();
-        type->is_function     = 1;
-        type->return_type     = ret_type;
-        type->parameter_types = parameter_types;
-        return type;
-    }
-
-    Error *e = new Error(
-        ErrorInst::Generator::InvalidType,
-        top
-    );
-    erep->addError(e);
-
-    return NULL;
 }
 
 llvm::Value *Generator::coerceValue(llvm::Value *from_value,

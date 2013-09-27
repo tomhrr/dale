@@ -1,6 +1,7 @@
 #include "Introspection.h"
 #include "../Element/Type/Type.h"
 #include "../Generator/Generator.h"
+#include "../Form/Type/Type.h"
 
 using namespace dale;
 
@@ -34,8 +35,8 @@ extern "C" {
         int original_error_count =
             g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Element::Type *thetype  = g->parseType(n,  false, false);
-        Element::Type *thetype2 = g->parseType(n2, false, false);
+        Element::Type *thetype  = Form::Type::parse(g, n,  false, false);
+        Element::Type *thetype2 = Form::Type::parse(g, n2, false, false);
 
         g->ctx->er->popErrors(original_error_count);
         if (!thetype || !thetype2) {
@@ -73,7 +74,7 @@ extern "C" {
         int original_error_count =
             g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        *type = g->parseType(n, false, false);
+        *type = Form::Type::parse(g, n, false, false);
 
         g->ctx->er->popErrors(original_error_count);
         if (!*type) {
@@ -152,8 +153,8 @@ extern "C" {
         int original_error_count =
             g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Element::Type *thetype  = g->parseType(n,  false, false);
-        Element::Type *thetype2 = g->parseType(n2, false, false);
+        Element::Type *thetype  = Form::Type::parse(g, n,  false, false);
+        Element::Type *thetype2 = Form::Type::parse(g, n2, false, false);
 
         g->ctx->er->popErrors(original_error_count);
         if (!thetype || !thetype2) {
@@ -233,7 +234,7 @@ extern "C" {
         int original_error_count =
             g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Element::Type *ptype = g->parseType(n, false, false);
+        Element::Type *ptype = Form::Type::parse(g, n, false, false);
         if (!ptype) {
             g->ctx->er->popErrors(original_error_count);
             return false;
@@ -262,7 +263,7 @@ extern "C" {
         int original_error_count =
             g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Element::Type *ptype = g->parseType(n, false, false);
+        Element::Type *ptype = Form::Type::parse(g, n, false, false);
         if (!ptype) {
             g->ctx->er->popErrors(original_error_count);
             return false;
@@ -299,7 +300,7 @@ extern "C" {
         std::string map_key;
         std::vector<Element::Type *> parameter_types;
         while (iter != lst->end()) {
-            Element::Type *ptype = g->parseType((*iter), false,
+            Element::Type *ptype = Form::Type::parse(g, (*iter), false,
                                                 false);
             if (!ptype) {
                 g->ctx->er->popErrors(original_error_count);
@@ -381,7 +382,7 @@ extern "C" {
 
         std::string map_key;
         while (iter != lst->end()) {
-            Element::Type *ptype = g->parseType((*iter), false,
+            Element::Type *ptype = Form::Type::parse(g, (*iter), false,
                                                 false);
             if (!ptype) {
                 g->ctx->er->popErrors(original_error_count);
@@ -510,7 +511,7 @@ extern "C" {
 
         Node *n = WrapNode(g->DNodeToIntNode(dnode));
 
-        Element::Type *type = g->parseType((*(n->list))[0], false,
+        Element::Type *type = Form::Type::parse(g, (*(n->list))[0], false,
                                            false);
         if (!type) {
             return false;
@@ -536,7 +537,7 @@ extern "C" {
 
         Node *n = WrapNode(g->DNodeToIntNode(dnode));
 
-        Element::Type *type = g->parseType((*(n->list))[0], false,
+        Element::Type *type = Form::Type::parse(g, (*(n->list))[0], false,
                                            false);
         if (!type) {
             return false;
@@ -587,7 +588,7 @@ extern "C" {
         int original_error_count =
             g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Element::Type *ret_type = g->parseType(nret_type, false,
+        Element::Type *ret_type = Form::Type::parse(g, nret_type, false,
                                                false);
         if (!ret_type) {
             g->ctx->er->popErrors(original_error_count);
@@ -598,7 +599,7 @@ extern "C" {
 
         std::vector<Element::Type *> parameter_types;
         while (iter != lst->end()) {
-            Element::Type *ptype = g->parseType((*iter), false,
+            Element::Type *ptype = Form::Type::parse(g, (*iter), false,
                                                 false);
             if (!ptype) {
                 g->ctx->er->popErrors(original_error_count);
@@ -638,7 +639,7 @@ extern "C" {
 
         int error_count = g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Element::Type *type = g->parseType((*lst)[0], false,
+        Element::Type *type = Form::Type::parse(g, (*lst)[0], false,
                                            false);
         g->ctx->er->popErrors(error_count);
 
@@ -673,7 +674,7 @@ extern "C" {
 
         std::vector<Element::Type *> parameter_types;
         while (iter != lst->end()) {
-            Element::Type *ptype = g->parseType((*iter), false,
+            Element::Type *ptype = Form::Type::parse(g, (*iter), false,
                                                 false);
             if (!ptype) {
                 g->ctx->er->popErrors(original_error_count);
@@ -723,7 +724,7 @@ extern "C" {
 
         std::vector<Element::Type *> parameter_types;
         while (iter != lst->end()) {
-            Element::Type *ptype = g->parseType((*iter), false,
+            Element::Type *ptype = Form::Type::parse(g, (*iter), false,
                                                 false);
             if (!ptype) {
                 g->ctx->er->popErrors(original_error_count);
@@ -814,7 +815,7 @@ extern "C" {
 
         std::vector<Element::Type *> parameter_types;
         while (iter != lst->end()) {
-            Element::Type *ptype = g->parseType((*iter), false,
+            Element::Type *ptype = Form::Type::parse(g, (*iter), false,
                                                 false);
             if (!ptype) {
                 g->ctx->er->popErrors(original_error_count);

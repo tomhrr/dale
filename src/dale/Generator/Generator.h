@@ -123,9 +123,6 @@ private:
 
     int addDaleModule(Node *n, const char *module_name,
                       std::vector<const char*> *import_forms);
-    void parseArgument(Element::Variable *var, Node *n,
-                       bool allow_anon_structs,
-                       bool allow_bitfields);
     int getUnusedVarname(std::string *mystr);
     void parseGlobalVariable(const char *name, Node *n);
     void parseMacroDefinition(const char *name, Node *n);
@@ -283,9 +280,6 @@ public:
                                         Element::Type *wanted_type,
                                         ParseResult *pr);
     Node *parseOptionalMacroCall(Node *n);
-    Element::Type *parseType(Node *top, bool
-                             allow_anon_structs,
-                             bool allow_bitfields);
     llvm::Module          *mod;
     bool is_x86_64;
     llvm::Value *IntNodeToStaticDNode(Node *node, llvm::Value *next_node);
@@ -320,6 +314,10 @@ public:
      * the stringification of of the parameter types. This map will, in
      * turn, be used by fnByArgsName. */
     std::map<std::string, std::vector<std::string>*> fn_by_args;
+
+    void parseArgument(Element::Variable *var, Node *n,
+                       bool allow_anon_structs,
+                       bool allow_bitfields);
 };
 }
 

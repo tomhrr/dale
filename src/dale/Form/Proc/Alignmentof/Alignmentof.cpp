@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
 #include "../../../Operation/Alignmentof/Alignmentof.h"
+#include "../../Type/Type.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -36,7 +37,7 @@ bool parse(Generator *gen,
     if (!mytype) {
         return false;
     }
-    Element::Type *type = gen->parseType(mytype, false,
+    Element::Type *type = Form::Type::parse(gen, mytype, false,
                                     false);
     if (!type) {
         return false;

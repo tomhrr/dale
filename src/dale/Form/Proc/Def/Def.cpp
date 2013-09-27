@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
 #include "../../Linkage/Linkage.h"
+#include "../../Type/Type.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -22,7 +23,7 @@ bool parse(Generator *gen,
            ParseResult *pr)
 {
     Context *ctx = gen->ctx;
-    Element::Type *type_int = ctx->tr->getBasicType(Type::Int);
+    Element::Type *type_int = ctx->tr->getBasicType(dale::Type::Int);
 
     assert(node->list && "must receive a list!");
 
@@ -161,7 +162,7 @@ bool parse(Generator *gen,
          * allowing the variable to be fully initialised once the
          * define is complete. */
 
-        if (!(type->isIntegerType()) && (type->base_type != Type::Bool)) {
+        if (!(type->isIntegerType()) && (type->base_type != dale::Type::Bool)) {
             if (llvm::ConstantInt *temp =
                         llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
                 if (temp->getValue().getLimitedValue() == 0) {
@@ -221,7 +222,7 @@ bool parse(Generator *gen,
         return true;
     } else {
         /* Parse the type. */
-        type = gen->parseType((*newlist)[2], false, false);
+        type = Form::Type::parse(gen, (*newlist)[2], false, false);
         if (!type) {
             return false;
         }
@@ -308,7 +309,7 @@ bool parse(Generator *gen,
          * the variable to be fully initialised once the define is
          * complete. */
 
-        if (!(type->isIntegerType()) && (type->base_type != Type::Bool)) {
+        if (!(type->isIntegerType()) && (type->base_type != dale::Type::Bool)) {
             if (llvm::ConstantInt *temp =
                         llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
                 if (temp->getValue().getLimitedValue() == 0) {

@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
+#include "../../Type/Type.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -98,7 +99,7 @@ bool parse(Generator *gen,
                 ++iter;
                 ++iter;
                 while (iter != lst->end()) {
-                    Element::Type *type = gen->parseType((*iter),
+                    Element::Type *type = Form::Type::parse(gen, (*iter),
                                                     false, false);
                     if (!type) {
                         return NULL;
@@ -107,7 +108,7 @@ bool parse(Generator *gen,
                     ++iter;
                 }
                 if (types.empty()) {
-                    types.push_back(ctx->tr->getBasicType(Type::Void));
+                    types.push_back(ctx->tr->getBasicType(dale::Type::Void));
                 }
 
                 Element::Function *closest_fn = NULL;

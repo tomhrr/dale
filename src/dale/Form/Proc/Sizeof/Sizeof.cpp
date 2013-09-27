@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
 #include "../../../Operation/Sizeof/Sizeof.h"
+#include "../../Type/Type.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -39,7 +40,7 @@ bool parse(Generator *gen,
         return false;
     }
 
-    Element::Type *type = gen->parseType((*lst)[1], false, false);
+    Element::Type *type = Form::Type::parse(gen, (*lst)[1], false, false);
 
     if (!type) {
         ctx->er->popLastError();

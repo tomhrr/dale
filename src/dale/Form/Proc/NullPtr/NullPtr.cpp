@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
+#include "../../Type/Type.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -30,7 +31,7 @@ bool parse(Generator *gen,
 
     symlist *lst = node->list;
 
-    Element::Type *type = gen->parseType((*lst)[1], false, false);
+    Element::Type *type = Form::Type::parse(gen, (*lst)[1], false, false);
     if (!type) {
         return false;
     }
