@@ -62,7 +62,8 @@ bool parse(Generator *gen,
     pr->block = block;
     while (node_iter != lst->end()) {
         bool res = gen->parseFunctionBodyInstr(
-                       fn, pr->block, (*node_iter), get_address, NULL, pr
+                       fn, pr->block, (*node_iter), get_address, 
+                       false, NULL, pr
                    );
         if (!res) {
             return false;

@@ -35,6 +35,7 @@ bool parse(Generator *gen,
 
     ParseResult pr_arglist;
     bool res = gen->parseFunctionBodyInstr(fn, block, (*lst)[1], false,
+                                      false,
                                       NULL, &pr_arglist);
     if (!res) {
         return false;

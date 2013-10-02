@@ -38,6 +38,7 @@ bool parse(Generator *gen,
     ParseResult pr_struct;
     bool res =
         gen->parseFunctionBodyInstr(fn, block, (*lst)[1], get_address,
+                               false,
                                NULL, &pr_struct);
 
     if (!res) {
@@ -50,7 +51,8 @@ bool parse(Generator *gen,
                     ErrorInst::Generator::CannotTakeAddressOfNonLvalue) {
                 res =
                     gen->parseFunctionBodyInstr(
-                        fn, block, (*lst)[1], false, NULL, &pr_struct
+                        fn, block, (*lst)[1], false, 
+                        false, NULL, &pr_struct
                     );
                 if (!res) {
                     ctx->er->addError(e);

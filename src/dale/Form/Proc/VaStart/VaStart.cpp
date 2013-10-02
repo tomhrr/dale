@@ -31,7 +31,8 @@ bool parse(Generator *gen,
 
     ParseResult pr_valist;
     bool res =
-        gen->parseFunctionBodyInstr(fn, block, (*lst)[1], false, NULL,
+        gen->parseFunctionBodyInstr(fn, block, (*lst)[1], false,
+                                false, NULL,
                                &pr_valist);
     if (!res) {
         return false;

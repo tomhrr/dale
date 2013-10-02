@@ -58,7 +58,8 @@ bool parse(Generator *gen,
 
     ParseResult pr_value;
     bool res = 
-        gen->parseFunctionBodyInstr(fn, block, arg, false, NULL, &pr_value);
+        gen->parseFunctionBodyInstr(fn, block, arg, false, 
+                                    false, NULL, &pr_value);
 
     if (!res) {
         return false;

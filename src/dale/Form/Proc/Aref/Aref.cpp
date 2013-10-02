@@ -33,6 +33,7 @@ bool parse(Generator *gen,
     ParseResult pr_array;
     bool res = 
         gen->parseFunctionBodyInstr(fn, block, (*lst)[1], true,
+                                    false, 
                                     NULL, &pr_array);
     if (!res) {
         return false;
@@ -53,7 +54,7 @@ bool parse(Generator *gen,
     ParseResult pr_index;
     res =
         gen->parseFunctionBodyInstr(fn, pr_array.block, (*lst)[2], false,
-                               NULL, &pr_index);
+                               false, NULL, &pr_index);
     if (!res) {
         return false;
     }

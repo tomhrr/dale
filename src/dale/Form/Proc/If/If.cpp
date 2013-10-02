@@ -33,6 +33,7 @@ bool parse(Generator *gen,
     ParseResult pr_cond;
     bool res =
         gen->parseFunctionBodyInstr(fn, block, (*lst)[1], get_address,
+                               false,
                                NULL, &pr_cond);
     if (!res) {
         return false;
@@ -71,6 +72,7 @@ bool parse(Generator *gen,
     ParseResult pr_then;
     res =
         gen->parseFunctionBodyInstr(fn, then_block, (*lst)[2], get_address,
+                                false,
                                NULL, &pr_then);
     gen->scopeClose(fn, then_block, NULL);
     ctx->deactivateAnonymousNamespace();
@@ -82,6 +84,7 @@ bool parse(Generator *gen,
     ParseResult pr_else;
     res =
         gen->parseFunctionBodyInstr(fn, else_block, (*lst)[3], get_address,
+                                false,
                                NULL, &pr_else);
     gen->scopeClose(fn, else_block, NULL);
     ctx->deactivateAnonymousNamespace();

@@ -123,7 +123,6 @@ private:
 
     int addDaleModule(Node *n, const char *module_name,
                       std::vector<const char*> *import_forms);
-    int getUnusedVarname(std::string *mystr);
     void parseGlobalVariable(const char *name, Node *n);
     void parseMacroDefinition(const char *name, Node *n);
     void parseEnumDefinition(const char *name, Node *n);
@@ -135,12 +134,12 @@ private:
                              llvm::BasicBlock *block);
     llvm::GlobalValue::LinkageTypes daleToLLVMLinkage(int linkage);
     llvm::Constant *parseLiteral(Element::Type *type, Node *n, int *size);
-    llvm::Constant *parseLiteral1(Element::Type *type, Node *n, int *size);
 
     bool parseFunctionBodyInstrInternal(Element::Function *dfn,
             llvm::BasicBlock *block,
             Node *n,
             bool getAddress,
+            bool prefixed_with_core,
             Element::Type *wanted_type, ParseResult *pr);
 
     bool parseFunctionCall(Element::Function *dfn,
@@ -199,16 +198,6 @@ private:
 
     Node *WrapNode(Node *n);
     void addMacroPosition(Node *n, Node *mac_node);
-
-    bool parseEnumLiteral(
-        llvm::BasicBlock *block,
-        Node *n,
-        Element::Enum *myenum,
-        Element::Type
-        *myenumtype,
-        Element::Struct
-        *myenumstructtype,
-        bool getAddress, ParseResult *pr);
 
     bool typeToStringExternal(DNode *dnode, char *buf);
 
@@ -277,6 +266,7 @@ public:
                                         llvm::BasicBlock *block,
                                         Node *n,
                                         bool getAddress,
+                                        bool prefixed_with_core,
                                         Element::Type *wanted_type,
                                         ParseResult *pr);
     Node *parseOptionalMacroCall(Node *n);
@@ -318,6 +308,17 @@ public:
     void parseArgument(Element::Variable *var, Node *n,
                        bool allow_anon_structs,
                        bool allow_bitfields);
+    bool parseEnumLiteral(
+        llvm::BasicBlock *block,
+        Node *n,
+        Element::Enum *myenum,
+        Element::Type
+        *myenumtype,
+        Element::Struct
+        *myenumstructtype,
+        bool getAddress, ParseResult *pr);
+    llvm::Constant *parseLiteral1(Element::Type *type, Node *n, int *size);
+    int getUnusedVarname(std::string *mystr);
 };
 }
 

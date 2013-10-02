@@ -36,7 +36,8 @@ bool parse(Generator *gen,
 
     ParseResult pr_variable;
     bool res =
-        gen->parseFunctionBodyInstr(fn, block, (*lst)[1], false, NULL,
+        gen->parseFunctionBodyInstr(fn, block, (*lst)[1], false, 
+                                    false, NULL,
                                     &pr_variable);
 
     if (!res) {
@@ -87,6 +88,7 @@ bool parse(Generator *gen,
     res =
         gen->parseFunctionBodyInstr(
             fn, pr_variable.block, val_node, false,
+            false,
             pr_variable.type->points_to,
             &pr_value
         );

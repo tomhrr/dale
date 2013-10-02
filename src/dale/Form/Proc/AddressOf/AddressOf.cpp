@@ -52,7 +52,7 @@ bool parse(Generator *gen,
 
     bool res =
         gen->parseFunctionBodyInstr(
-            fn, block, (*lst)[1], true, NULL, pr
+            fn, block, (*lst)[1], true, false, NULL, pr
         );
 
     int diff = ctx->er->getErrorTypeCount(ErrorType::Error)

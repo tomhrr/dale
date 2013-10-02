@@ -121,7 +121,7 @@ bool parse(Generator *gen,
         ParseResult p;
         bool res =
             gen->parseFunctionBodyInstr(
-                fn, block, (*newlist)[3], get_address, NULL, &p
+                fn, block, (*newlist)[3], get_address, false, NULL, &p
             );
         if (!res) {
             return false;
@@ -296,7 +296,7 @@ bool parse(Generator *gen,
         ParseResult p;
         bool res =
             gen->parseFunctionBodyInstr(
-                fn, block, (*newlist)[3], get_address, type, &p
+                fn, block, (*newlist)[3], get_address, false, type, &p
             );
         if (!res) {
             return false;

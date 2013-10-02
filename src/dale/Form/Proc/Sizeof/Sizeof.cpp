@@ -50,7 +50,7 @@ bool parse(Generator *gen,
         ParseResult expr_res;
         bool res =
             gen->parseFunctionBodyInstr(
-                fn, block, (*lst)[1], true, NULL, &expr_res
+                fn, block, (*lst)[1], true, false, NULL, &expr_res
             );
 
         if (!res) {
@@ -58,7 +58,7 @@ bool parse(Generator *gen,
 
             bool res =
                 gen->parseFunctionBodyInstr(
-                    fn, block, (*lst)[1], false, NULL, &expr_res
+                    fn, block, (*lst)[1], false, false, NULL, &expr_res
                 );
             if (!res) {
                 return false;

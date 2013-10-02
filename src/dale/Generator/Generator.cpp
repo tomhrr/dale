@@ -100,6 +100,7 @@
 #include "../Form/Linkage/Struct/Struct.h"
 #include "../Form/Linkage/Linkage.h"
 #include "../Form/Type/Type.h"
+#include "../Form/Proc/Token/Token.h"
 #include "../Unit/Unit.h"
 #include "../CoreForms/CoreForms.h"
 #include "../CommonDecl/CommonDecl.h"
@@ -4495,7 +4496,7 @@ bool Generator::parseFuncallInternal(
     while (symlist_iter != lst->end()) {
         ParseResult p;
         bool res = parseFunctionBodyInstr(
-            dfn, block, (*symlist_iter), getAddress, NULL, &p
+            dfn, block, (*symlist_iter), getAddress, false, NULL, &p
         );
         if (!res) {
             return false;
@@ -4588,12 +4589,15 @@ bool Generator::parseFunctionBodyInstr(Element::Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
         bool getAddress,
+        bool prefixed_with_core,
         Element::Type *wanted_type,
         ParseResult *pr)
 {
     bool res =
         parseFunctionBodyInstrInternal(dfn, block, n,
-                                       getAddress, wanted_type,
+                                       getAddress, 
+                                       prefixed_with_core,
+                                       wanted_type,
                                        pr);
 
     if (!res) {
@@ -4614,6 +4618,7 @@ bool Generator::parseFunctionBodyInstrInternal(
     llvm::BasicBlock *block,
     Node *n,
     bool getAddress,
+    bool prefixed_with_core,
     Element::Type *wanted_type,
     ParseResult *pr)
 {
@@ -4626,310 +4631,10 @@ bool Generator::parseFunctionBodyInstrInternal(
     global_block = block;
 
     if (n->is_token) {
-        /* Single value. */
-        Token *t = n->token;
-
-        /* Check if we are expecting an enum. */
-
-        Element::Enum *myenum2;
-        if (wanted_type
-                && (wanted_type->struct_name)
-                && (myenum2 =
-                        ctx->getEnum(wanted_type->struct_name->c_str()))) {
-
-            Element::Struct *myenumstruct2 =
-                ctx->getStruct(wanted_type->struct_name->c_str());
-
-            if (!myenumstruct2) {
-                fprintf(stderr,
-                        "Internal error: no struct associated "
-                        "with enum.\n");
-                abort();
-            }
-
-            int original_error_count =
-                erep->getErrorTypeCount(ErrorType::Error);
-
-            /* Will fail here where the token is not a valid
-             * literal, so in that case just continue onwards
-             * (token could be a var name). */
-
-            bool res =
-                parseEnumLiteral(block, n,
-                                 myenum2,
-                                 wanted_type,
-                                 myenumstruct2,
-                                 getAddress,
-                                 pr);
-
-            if (res) {
-                return res;
-            } else {
-                erep->popErrors(original_error_count);
-                goto tryvar;
-            }
-        } else if (t->type == TokenType::Int) {
-            if (wanted_type
-                    && wanted_type->isIntegerType()) {
-                int mysize =
-                    nt->internalSizeToRealSize(wanted_type->getIntegerSize());
-                setPr(pr,
-                           block,
-                           tr->getBasicType(wanted_type->base_type),
-                           nt->getConstantInt(
-                               llvm::IntegerType::get(
-                                   llvm::getGlobalContext(),
-                                   mysize
-                               ),
-                               t->str_value.c_str()
-                           )
-                       );
-                return true;
-            } else {
-                setPr(pr,
-                           block,
-                           type_int,
-                           nt->getConstantInt(
-                               nt->getNativeIntType(),
-                               t->str_value.c_str()
-                           )
-                       );
-                return true;
-            }
-        } else if (t->type == TokenType::FloatingPoint) {
-            if (wanted_type
-                    && wanted_type->base_type == Type::Float) {
-                setPr(pr,
-                           block,
-                           type_float,
-                           llvm::ConstantFP::get(
-                               llvm::Type::getFloatTy(llvm::getGlobalContext()),
-                               llvm::StringRef(t->str_value.c_str())
-                           )
-                       );
-                return true;
-            } else if (wanted_type
-                       && wanted_type->base_type == Type::Double) {
-                setPr(pr, 
-                           block,
-                           type_double,
-                           llvm::ConstantFP::get(
-                               llvm::Type::getDoubleTy(llvm::getGlobalContext()),
-                               llvm::StringRef(t->str_value.c_str())
-                           )
-                       );
-                return true;
-            } else if (wanted_type
-                       && wanted_type->base_type == Type::LongDouble) {
-                setPr(pr, 
-                           block,
-                           type_longdouble,
-                           llvm::ConstantFP::get(
-                               nt->getNativeLongDoubleType(),
-                               llvm::StringRef(t->str_value.c_str())
-                           )
-                       );
-                return true;
-            } else {
-                setPr(pr, 
-                           block,
-                           type_float,
-                           llvm::ConstantFP::get(
-                               llvm::Type::getFloatTy(llvm::getGlobalContext()),
-                               llvm::StringRef(t->str_value.c_str())
-                           )
-                       );
-                return true;
-            }
-        } else if (t->type == TokenType::String) {
-tryvar:
-            /* Special cases - boolean values. */
-            int is_true  = !t->str_value.compare("true");
-            int is_false = !t->str_value.compare("false");
-
-            if (is_true || is_false) {
-                setPr(pr, 
-                           block,
-                           type_bool,
-                           llvm::ConstantInt::get(
-                               llvm::Type::getInt1Ty(llvm::getGlobalContext()),
-                               is_true
-                           )
-                       );
-                return true;
-            }
-
-            /* Special case - characters. */
-            if ((t->str_value.size() >= 3)
-                    && (t->str_value.at(0) == '#')
-                    && (t->str_value.at(1) == '\\')) {
-                const char *temp = t->str_value.c_str();
-                temp += 2;
-                char c;
-
-                if (!strcmp(temp, "NULL")) {
-                    c = '\0';
-                } else if (!strcmp(temp, "TAB")) {
-                    c = '\t';
-                } else if (!strcmp(temp, "SPACE")) {
-                    c = ' ';
-                } else if (!strcmp(temp, "NEWLINE")) {
-                    c = '\n';
-                } else if (!strcmp(temp, "CARRIAGE")) {
-                    c = '\r';
-                } else if (!strcmp(temp, "EOF")) {
-                    c = EOF;
-                } else {
-                    if (strlen(temp) != 1) {
-                        Error *e = new Error(
-                            ErrorInst::Generator::InvalidChar,
-                            n,
-                            temp
-                        );
-                        erep->addError(e);
-                        return false;
-                    }
-                    c = t->str_value.at(2);
-                }
-
-                setPr(pr,
-                           block,
-                           type_char,
-                           llvm::ConstantInt::get(nt->getNativeCharType(), c)
-                       );
-                return true;
-            }
-
-            /* Plain string - has to be variable. */
-            Element::Variable *var =
-                ctx->getVariable(t->str_value.c_str());
-
-            if (!var) {
-                Error *e = new Error(
-                    ErrorInst::Generator::VariableNotInScope,
-                    n,
-                    t->str_value.c_str()
-                );
-                erep->addError(e);
-                return false;
-            }
-
-            llvm::IRBuilder<> builder(block);
-
-            if (getAddress) {
-                setPr(pr,
-                           block,
-                           tr->getPointerType(var->type),
-                           var->value
-                       );
-                return true;
-            } else {
-                if (var->type->is_array) {
-                    /* If the variable is an array, return a pointer of
-                    * the array's type. */
-                    llvm::Value *p_to_array =
-                        builder.CreateGEP(
-                            var->value,
-                            llvm::ArrayRef<llvm::Value*>(two_zero_indices)
-                        );
-
-                    setPr(pr,
-                               block,
-                               tr->getPointerType(var->type->array_type),
-                               p_to_array
-                           );
-                    return true;
-                }
-
-                /* Return the dereferenced variable. */
-                setPr(pr, 
-                           block,
-                           var->type,
-                           llvm::cast<llvm::Value>(
-                               builder.CreateLoad(var->value)
-                           )
-                       );
-                return true;
-            }
-        } else if (t->type == TokenType::StringLiteral) {
-
-            /* Add the variable to the module */
-
-            int size = 0;
-            llvm::Constant *init = parseLiteral1(type_pchar, n, &size);
-            if (!init) {
-                return false;
-            }
-            Element::Type *temp = tr->getArrayType(type_char, size);
-
-            llvm::Type *llvm_type =
-                ctx->toLLVMType(temp, NULL, false);
-            if (!llvm_type) {
-                return false;
-            }
-
-            /* Have to check for existing variables with this
-             * name, due to modules. */
-
-            std::string varname;
-            llvm::GlobalVariable *var;
-            do {
-                varname.clear();
-                getUnusedVarname(&varname);
-            } while (
-                (var = mod->getGlobalVariable(varname.c_str(),
-                                              llvm_type))
-            );
-
-            var =
-                llvm::cast<llvm::GlobalVariable>(
-                    mod->getOrInsertGlobal(varname.c_str(),
-                                           llvm_type)
-                );
-
-            var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
-            var->setInitializer(init);
-            var->setConstant(true);
-
-            Element::Variable *var2 = new Element::Variable();
-            var2->name.append(varname.c_str());
-            var2->internal_name.append(varname);
-            var2->type = temp;
-            var2->value = llvm::cast<llvm::Value>(var);
-            var2->linkage = Linkage::Intern;
-            int avres = ctx->ns()->addVariable(varname.c_str(), var2);
-
-            if (!avres) {
-                Error *e = new Error(
-                    ErrorInst::Generator::RedefinitionOfVariable,
-                    n,
-                    varname.c_str()
-                );
-                erep->addError(e);
-                return false;
-            }
-
-            llvm::IRBuilder<> builder(block);
-
-            llvm::Value *charpointer =
-                builder.CreateGEP(
-                    llvm::cast<llvm::Value>(var2->value),
-                    llvm::ArrayRef<llvm::Value*>(two_zero_indices));
-
-            setPr(pr, 
-                       block,
-                       type_pchar,
-                       charpointer
-                   );
-            return true;
-        } else {
-            Error *e = new Error(
-                ErrorInst::Generator::UnableToParseForm,
-                n
-            );
-            erep->addError(e);
-            return false;
-        }
+        return Form::Proc::Token::parse(
+            this, dfn, block, n, getAddress, prefixed_with_core,
+            wanted_type, pr
+        );
     }
 
     symlist *lst = n->list;
@@ -5194,7 +4899,7 @@ past_sl_parse:
 
     Error *backup_error = NULL;
 
-    int prefixed_with_core = !(t->str_value.compare("core"));
+    prefixed_with_core = !(t->str_value.compare("core"));
 
     if (!prefixed_with_core) {
         Element::Function *fn_exists =
@@ -5233,7 +4938,7 @@ past_sl_parse:
                 }
                 bool res =
                     parseFunctionBodyInstr(
-                        dfn, block, mac_node, getAddress, wanted_type, pr
+                        dfn, block, mac_node, getAddress, false, wanted_type, pr
                     );
 
                 delete mac_node;
@@ -5363,7 +5068,7 @@ past_sl_parse:
             return false;
         }
         return parseFunctionBodyInstr(dfn, block, new_node,
-                                      getAddress, wanted_type, pr);
+                                      getAddress, false, wanted_type, pr);
     }
 
     /* Not core form/macro, nor function. If the string token is
@@ -5390,7 +5095,7 @@ past_sl_parse:
     ParseResult try_fnp;
     bool res = parseFunctionBodyInstr(
                                dfn, block, (*lst)[0], getAddress,
-                               wanted_type, &try_fnp
+                               false, wanted_type, &try_fnp
                            );
     if (!res) {
         /* If this fails, and there is one extra error, and the
@@ -5430,7 +5135,7 @@ past_sl_parse:
         return res;
     }
     res = parseFunctionBodyInstr(
-                  dfn, try_fnp.block, (*lst)[0], true, wanted_type,
+                  dfn, try_fnp.block, (*lst)[0], true, false, wanted_type,
                   &try_fnp
               );
     if (!res) {
@@ -5948,7 +5653,7 @@ Node *Generator::parseOptionalMacroCall(Node *n)
             ++b) {
         ParseResult mine;
         bool res =
-            parseFunctionBodyInstr(dfn, block, *b, false, NULL,
+            parseFunctionBodyInstr(dfn, block, *b, false, false, NULL,
                                    &mine);
         if (res) {
             /* Add the type. */
@@ -6112,6 +5817,7 @@ bool Generator::parseArrayLiteral(Element::Function *dfn,
                 block,
                 (*iter),
                 false,
+                false, 
                 array_type->array_type,
                 el
             );
@@ -6282,8 +5988,8 @@ bool Generator::parseStructLiteral(Element::Function *dfn,
 
         ParseResult newvalue;
         bool mres = 
-            parseFunctionBodyInstr(dfn, block, namevalue, false, NULL,
-                                   &newvalue);
+            parseFunctionBodyInstr(dfn, block, namevalue, false, 
+                                   false, NULL, &newvalue);
 
         if (!mres) {
             return false;
@@ -6478,7 +6184,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
         ParseResult p;
         bool res = 
             parseFunctionBodyInstr(dfn, block, (*symlist_iter),
-                                   getAddress, NULL,
+                                   getAddress, false, NULL,
                                    &p);
 
         int diff = erep->getErrorTypeCount(ErrorType::Error)
@@ -7023,7 +6729,7 @@ int Generator::parseFunctionBody(Element::Function *dfn,
         }
         ParseResult p;
         bool res =
-            parseFunctionBodyInstr(dfn, next, (*iter), false,
+            parseFunctionBodyInstr(dfn, next, (*iter), false, false,
             wanted_type, &p);
         if (!res) {
             /* Add an option to stop on first error, which would
