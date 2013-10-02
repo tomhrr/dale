@@ -4,6 +4,7 @@
 #include "../../../Element/Function/Function.h"
 #include "../../../Operation/Sizeof/Sizeof.h"
 #include "../../Type/Type.h"
+#include "../Inst/Inst.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -49,7 +50,7 @@ bool parse(Generator *gen,
 
         ParseResult expr_res;
         bool res =
-            gen->parseFunctionBodyInstr(
+            Form::Proc::Inst::parse(gen, 
                 fn, block, (*lst)[1], true, false, NULL, &expr_res
             );
 
@@ -57,7 +58,7 @@ bool parse(Generator *gen,
             ctx->er->popErrors(error_count);
 
             bool res =
-                gen->parseFunctionBodyInstr(
+                Form::Proc::Inst::parse(gen, 
                     fn, block, (*lst)[1], false, false, NULL, &expr_res
                 );
             if (!res) {

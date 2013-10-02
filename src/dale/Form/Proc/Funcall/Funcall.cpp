@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
+#include "../Inst/Inst.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -34,7 +35,7 @@ bool parse(Generator *gen,
 
     ParseResult fn_ptr;
     bool res =
-        gen->parseFunctionBodyInstr(
+        Form::Proc::Inst::parse(gen, 
             fn, block, (*lst)[1], get_address, false, NULL, &fn_ptr
         );
     if (!res) {

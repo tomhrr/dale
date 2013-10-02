@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
+#include "../Inst/Inst.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -32,7 +33,7 @@ bool parse(Generator *gen,
 
     ParseResult pr_cond;
     bool res =
-        gen->parseFunctionBodyInstr(fn, block, (*lst)[1], get_address,
+        Form::Proc::Inst::parse(gen, fn, block, (*lst)[1], get_address,
                                false,
                                NULL, &pr_cond);
     if (!res) {
@@ -71,7 +72,7 @@ bool parse(Generator *gen,
     ctx->activateAnonymousNamespace();
     ParseResult pr_then;
     res =
-        gen->parseFunctionBodyInstr(fn, then_block, (*lst)[2], get_address,
+        Form::Proc::Inst::parse(gen, fn, then_block, (*lst)[2], get_address,
                                 false,
                                NULL, &pr_then);
     gen->scopeClose(fn, then_block, NULL);
@@ -83,7 +84,7 @@ bool parse(Generator *gen,
     ctx->activateAnonymousNamespace();
     ParseResult pr_else;
     res =
-        gen->parseFunctionBodyInstr(fn, else_block, (*lst)[3], get_address,
+        Form::Proc::Inst::parse(gen, fn, else_block, (*lst)[3], get_address,
                                 false,
                                NULL, &pr_else);
     gen->scopeClose(fn, else_block, NULL);

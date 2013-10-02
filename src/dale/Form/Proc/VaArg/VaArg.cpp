@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
 #include "../../Type/Type.h"
+#include "../Inst/Inst.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -34,7 +35,7 @@ bool parse(Generator *gen,
     /* Get the arglist. */
 
     ParseResult pr_arglist;
-    bool res = gen->parseFunctionBodyInstr(fn, block, (*lst)[1], false,
+    bool res = Form::Proc::Inst::parse(gen, fn, block, (*lst)[1], false,
                                       false,
                                       NULL, &pr_arglist);
     if (!res) {

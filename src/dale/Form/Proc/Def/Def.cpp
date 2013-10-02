@@ -4,6 +4,7 @@
 #include "../../../Element/Function/Function.h"
 #include "../../Linkage/Linkage.h"
 #include "../../Type/Type.h"
+#include "../Inst/Inst.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -120,7 +121,7 @@ bool parse(Generator *gen,
 
         ParseResult p;
         bool res =
-            gen->parseFunctionBodyInstr(
+            Form::Proc::Inst::parse(gen, 
                 fn, block, (*newlist)[3], get_address, false, NULL, &p
             );
         if (!res) {
@@ -295,7 +296,7 @@ bool parse(Generator *gen,
 
         ParseResult p;
         bool res =
-            gen->parseFunctionBodyInstr(
+            Form::Proc::Inst::parse(gen, 
                 fn, block, (*newlist)[3], get_address, false, type, &p
             );
         if (!res) {

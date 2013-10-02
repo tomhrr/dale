@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
+#include "../Inst/Inst.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -35,7 +36,7 @@ bool parse(Generator *gen,
     pr->block = block;
     while (node_iter != lst->end()) {
         ParseResult local_pr;
-        bool res = gen->parseFunctionBodyInstr(
+        bool res = Form::Proc::Inst::parse(gen, 
                        fn, pr->block, (*node_iter), get_address, 
                        false, NULL,
                        &local_pr

@@ -4,6 +4,7 @@
 #include "../../../Element/Function/Function.h"
 #include "../../../Operation/Cast/Cast.h"
 #include "../../../Operation/Sizeof/Sizeof.h"
+#include "../Inst/Inst.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -35,7 +36,7 @@ bool parse(Generator *gen,
     symlist *lst = node->list;
 
     ParseResult ptr;
-    bool mres = gen->parseFunctionBodyInstr(
+    bool mres = Form::Proc::Inst::parse(gen, 
                          fn, block, (*lst)[1], get_address, false, NULL, &ptr
                      );
     if (!mres) {
@@ -46,7 +47,7 @@ bool parse(Generator *gen,
     }
 
     ParseResult val;
-    mres = gen->parseFunctionBodyInstr(
+    mres = Form::Proc::Inst::parse(gen, 
                  fn, ptr.block, (*lst)[2], get_address, false, NULL, &val
           );
     if (!mres) {

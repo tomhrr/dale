@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
+#include "../Inst/Inst.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -36,7 +37,7 @@ bool parse(Generator *gen,
 
     ParseResult pr_variable;
     bool res =
-        gen->parseFunctionBodyInstr(fn, block, (*lst)[1], false, 
+        Form::Proc::Inst::parse(gen, fn, block, (*lst)[1], false, 
                                     false, NULL,
                                     &pr_variable);
 
@@ -86,7 +87,7 @@ bool parse(Generator *gen,
     llvm::IRBuilder<> builder(pr_variable.block);
     ParseResult pr_value;
     res =
-        gen->parseFunctionBodyInstr(
+        Form::Proc::Inst::parse(gen, 
             fn, pr_variable.block, val_node, false,
             false,
             pr_variable.type->points_to,

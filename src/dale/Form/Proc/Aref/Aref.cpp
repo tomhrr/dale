@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
 #include "../../../Operation/Cast/Cast.h"
+#include "../Inst/Inst.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -32,7 +33,7 @@ bool parse(Generator *gen,
     symlist *lst = node->list;
     ParseResult pr_array;
     bool res = 
-        gen->parseFunctionBodyInstr(fn, block, (*lst)[1], true,
+        Form::Proc::Inst::parse(gen, fn, block, (*lst)[1], true,
                                     false, 
                                     NULL, &pr_array);
     if (!res) {
@@ -53,7 +54,7 @@ bool parse(Generator *gen,
 
     ParseResult pr_index;
     res =
-        gen->parseFunctionBodyInstr(fn, pr_array.block, (*lst)[2], false,
+        Form::Proc::Inst::parse(gen, fn, pr_array.block, (*lst)[2], false,
                                false, NULL, &pr_index);
     if (!res) {
         return false;

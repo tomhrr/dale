@@ -2,6 +2,7 @@
 #include "../Element/Type/Type.h"
 #include "../Generator/Generator.h"
 #include "../Form/Type/Type.h"
+#include "../Form/Proc/Inst/Inst.h"
 
 using namespace dale;
 
@@ -202,7 +203,8 @@ extern "C" {
          * null DNode pointer. This is not necessarily an error. */
         n = g->parseOptionalMacroCall(n);
         if (n) {
-            g->parseFunctionBodyInstr(
+            Form::Proc::Inst::parse(
+                g,
                 g->global_function,
                 g->global_block,
                 n,
@@ -434,7 +436,8 @@ extern "C" {
 
         ParseResult *p = new ParseResult();
         bool res =
-            g->parseFunctionBodyInstr(
+            Form::Proc::Inst::parse(
+                g,
                 g->global_function,
                 g->global_block,
                 n,

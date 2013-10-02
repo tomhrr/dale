@@ -105,10 +105,6 @@ private:
 
     int  parseTopLevel(Node *top);
     void parseDefine(Node *top);
-    void parseFunction(const char *name, Node *n,
-                       Element::Function **new_function,
-                       int override_linkage,
-                       int is_anonymous);
     void addCommonDeclarations(void);
     void addVoidPointerType(void);
     void addVarargsFunctions(void);
@@ -134,25 +130,6 @@ private:
                              llvm::BasicBlock *block);
     llvm::GlobalValue::LinkageTypes daleToLLVMLinkage(int linkage);
     llvm::Constant *parseLiteral(Element::Type *type, Node *n, int *size);
-
-    bool parseFunctionBodyInstrInternal(Element::Function *dfn,
-            llvm::BasicBlock *block,
-            Node *n,
-            bool getAddress,
-            bool prefixed_with_core,
-            Element::Type *wanted_type, ParseResult *pr);
-
-    bool parseFunctionCall(Element::Function *dfn,
-                                   llvm::BasicBlock *block, Node *n, const char* fn_name,
-                                   bool getAddress, bool
-                                   prefixed_with_core,
-                                   Element::Function
-                                   **macro_to_call, ParseResult *pr);
-
-    Node *parseMacroCall(
-        Node *n,
-        const char *name,
-        Element::Function *macro_to_call);
 
     void parseNamespace(Node *top);
     void parseUsingNamespaceTopLevel(Node *top);
@@ -185,14 +162,6 @@ private:
                         int linkage, int must_init);
     void popErrors(int original_count);
     bool parseExistsMacro(DNode *dnode);
-
-    bool parseStructLiteral(Element::Function *dfn,
-                                    llvm::BasicBlock *block,
-                                    Node *n,
-                                    const char *name,
-                                    Element::Struct *str,
-                                    Element::Type *structtype,
-                                    bool getAddress, ParseResult *pr);
 
     void reportErrorExternal(DNode *dnode, char *str);
 
@@ -262,13 +231,6 @@ public:
     bool destructIfApplicable(ParseResult *pr, llvm::IRBuilder<> *builder, 
                               ParseResult *pr2, bool value_is_ptr = false);
     Context               *ctx;
-    bool parseFunctionBodyInstr(Element::Function *dfn,
-                                        llvm::BasicBlock *block,
-                                        Node *n,
-                                        bool getAddress,
-                                        bool prefixed_with_core,
-                                        Element::Type *wanted_type,
-                                        ParseResult *pr);
     Node *parseOptionalMacroCall(Node *n);
     llvm::Module          *mod;
     bool is_x86_64;
@@ -319,6 +281,31 @@ public:
         bool getAddress, ParseResult *pr);
     llvm::Constant *parseLiteral1(Element::Type *type, Node *n, int *size);
     int getUnusedVarname(std::string *mystr);
+
+    Namespace *prefunction_ns;
+    void parseFunction(const char *name, Node *n,
+                       Element::Function **new_function,
+                       int override_linkage,
+                       int is_anonymous);
+    bool parseStructLiteral(Element::Function *dfn,
+                                    llvm::BasicBlock *block,
+                                    Node *n,
+                                    const char *name,
+                                    Element::Struct *str,
+                                    Element::Type *structtype,
+                                    bool getAddress, ParseResult *pr);
+    Node *parseMacroCall(
+        Node *n,
+        const char *name,
+        Element::Function *macro_to_call);
+    bool parseFunctionCall(Element::Function *dfn,
+                                   llvm::BasicBlock *block, Node *n, const char* fn_name,
+                                   bool getAddress, bool
+                                   prefixed_with_core,
+                                   Element::Function
+                                   **macro_to_call, ParseResult *pr);
+
+
 };
 }
 
