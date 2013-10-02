@@ -257,7 +257,7 @@ install (FILES man/dalec.1.gz DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
 add_custom_command (OUTPUT  libdrt.so
                     COMMAND ${CMAKE_BINARY_DIR}/dalec 
                                 -c ${CMAKE_SOURCE_DIR}/modules/drt.dt 
-                                -o ./temp.dt.s
+                                -o ./drt.dt.s
                                 --no-dale-stdlib
                                 --no-strip
                                 --static-modules)
@@ -279,7 +279,7 @@ macro (standard_library path name)
                        COMMAND ${CMAKE_BINARY_DIR}/dalec 
                                ${DALE_FLAGS}
                                -c ${CMAKE_SOURCE_DIR}/${path}
-                               -o ./temp.dt.s
+                               -o ./${name}.dt.s
                        DEPENDS ${CMAKE_SOURCE_DIR}/${path})
     add_custom_target(${name} ALL DEPENDS lib${name}.so)
     add_dependencies(${name} dalec ${ARGV2} ${ARGV3} ${ARGV4} ${ARGV5})
