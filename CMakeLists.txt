@@ -127,7 +127,7 @@ set (CMAKE_CXX_FLAGS_RELEASE "-O3 -fomit-frame-pointer")
 set (DALE_FLAGS_DEBUG   "-O0")
 # Some of the optimisation passes don't work properly, no doubt
 # because of the module hackery that goes on in generator.
-set (DALE_FLAGS_RELEASE "-O3")
+set (DALE_FLAGS_RELEASE "-O0")
 
 if (IS_DEBUG)
     set (DALE_FLAGS ${DALE_FLAGS_DEBUG})
@@ -211,6 +211,7 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/Type/Type.cpp
                       src/dale/Form/Proc/Token/Token.cpp
                       src/dale/Form/Proc/Inst/Inst.cpp
+                      src/dale/Form/TopLevel/Namespace/Namespace.cpp
                       src/dale/CoreForms/CoreForms.cpp
                       src/dale/Element/Label/Label.cpp
                       src/dale/CommonDecl/CommonDecl.cpp

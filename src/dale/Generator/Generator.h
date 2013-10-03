@@ -103,7 +103,6 @@ private:
 
     std::vector<std::string> *so_paths_g;
 
-    int  parseTopLevel(Node *top);
     void parseDefine(Node *top);
     void addCommonDeclarations(void);
     void addVoidPointerType(void);
@@ -304,6 +303,7 @@ public:
                                    prefixed_with_core,
                                    Element::Function
                                    **macro_to_call, ParseResult *pr);
+    int  parseTopLevel(Node *top);
 
 
 };

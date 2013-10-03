@@ -72,6 +72,7 @@
 #include "../Form/Type/Type.h"
 #include "../Form/Proc/Token/Token.h"
 #include "../Form/Proc/Inst/Inst.h"
+#include "../Form/TopLevel/Namespace/Namespace.h"
 #include "../Unit/Unit.h"
 #include "../CoreForms/CoreForms.h"
 #include "../CommonDecl/CommonDecl.h"
@@ -986,7 +987,7 @@ int Generator::parseTopLevel(Node *top)
         parseDefine(top);
         return 1;
     } else if (!t->str_value.compare("namespace")) {
-        parseNamespace(top);
+        Form::TopLevel::Namespace::parse(this, top);
         return 1;
     } else if (!t->str_value.compare("using-namespace")) {
         parseUsingNamespaceTopLevel(top);
@@ -1108,56 +1109,6 @@ void Generator::parseUsingNamespaceTopLevel(Node *top)
 
     ctx->unuseNamespace();
     //ctx->unuseNamespace(t->str_value.c_str());
-
-    return;
-}
-
-void Generator::parseNamespace(Node *top)
-{
-    assert(top->list && "parseNamespace must receive a list!");
-
-    if (!ctx->er->assertArgNums("namespace", top, 1, -1)) {
-        return;
-    }
-
-    symlist *lst = top->list;
-    Node *n = (*lst)[1];
-    n = parseOptionalMacroCall(n);
-    if (!n) {
-        return;
-    }
-    if (!ctx->er->assertArgIsAtom("namespace", n, "1")) {
-        return;
-    }
-    if (!ctx->er->assertAtomIsSymbol("namespace", n, "1")) {
-        return;
-    }
-
-    Token *t = n->token;
-
-    int success = ctx->activateNamespace(t->str_value.c_str());
-    if (!success) {
-        fprintf(stderr, "Internal error: cannot activate "
-                "namespace '%s'.\n",
-                t->str_value.c_str());
-        abort();
-    }
-
-    std::vector<Node *>::iterator symlist_iter;
-    symlist_iter = lst->begin();
-
-    /* Skip the namespace token and the name token/form. */
-
-    ++symlist_iter;
-    ++symlist_iter;
-
-    while (symlist_iter != lst->end()) {
-        parseTopLevel((*symlist_iter));
-        erep->flush();
-        ++symlist_iter;
-    }
-
-    ctx->deactivateNamespace(t->str_value.c_str());
 
     return;
 }
