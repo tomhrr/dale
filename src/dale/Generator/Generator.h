@@ -79,23 +79,18 @@ class Generator
 private:
     NativeTypes           *nt;
     TypeRegister          *tr;
-    Parser                *prsr;
     ErrorReporter         *erep;
 
-    UnitStack *unit_stack;
 
     std::map<std::string, llvm::Module*> *dtm_modules;
     std::map<std::string, std::string>   *dtm_nm_modules;
 
-    llvm::ExecutionEngine *ee;
-    llvm::Linker          *linker;
 
     std::vector<DeferredGoto *> *defgotos;
     std::multiset<ino_t> *included_inodes;
     std::set<std::string> *included_once_tags;
     std::set<std::string> *included_modules;
     std::set<std::string> *cto_modules;
-    std::string current_once_tag;
     std::string module_name;
     int cto;
     int set_module_name;
@@ -104,10 +99,8 @@ private:
     std::vector<std::string> *so_paths_g;
 
     void parseDefine(Node *top);
-    void addCommonDeclarations(void);
     void addVoidPointerType(void);
     void addVarargsFunctions(void);
-    void parseInclude(Node *top);
     void parseModuleName(Node *top);
     void parseImport(Node *top);
     int removeUnneededForms(
@@ -116,8 +109,6 @@ private:
         std::set<std::string> *found_forms
     );
 
-    int addDaleModule(Node *n, const char *module_name,
-                      std::vector<const char*> *import_forms);
     void parseGlobalVariable(const char *name, Node *n);
     void parseMacroDefinition(const char *name, Node *n);
     void parseEnumDefinition(const char *name, Node *n);
@@ -129,9 +120,6 @@ private:
                              llvm::BasicBlock *block);
     llvm::GlobalValue::LinkageTypes daleToLLVMLinkage(int linkage);
     llvm::Constant *parseLiteral(Element::Type *type, Node *n, int *size);
-
-    void parseNamespace(Node *top);
-    void parseUsingNamespaceTopLevel(Node *top);
 
     void regetPointersForFVDM(Context *newctx);
     void regetPointersForDM(Context *newctx);
@@ -219,7 +207,6 @@ public:
         Element::Function *dfn,
         ParseResult *pr, ParseResult *pr2);
 
-    void setPdnode();
     void setPoolfree();
 
     int prefunction_ctx_index;
@@ -304,7 +291,19 @@ public:
                                    Element::Function
                                    **macro_to_call, ParseResult *pr);
     int  parseTopLevel(Node *top);
-
+    Parser                *prsr;
+    llvm::Linker          *linker;
+    std::string current_once_tag;
+    llvm::ExecutionEngine *ee;
+    bool no_add_common_declarations;
+    bool no_drt;
+    void setPdnode();
+    char *inc_paths[100];
+    int inc_path_count;
+    void addCommonDeclarations(void);
+    UnitStack *unit_stack;
+    int addDaleModule(Node *n, const char *module_name,
+                      std::vector<const char*> *import_forms);
 
 };
 }

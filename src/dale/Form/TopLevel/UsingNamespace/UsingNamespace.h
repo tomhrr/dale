@@ -1,5 +1,5 @@
-#ifndef DALE_FORM_TOPLEVEL_NAMESPACE
-#define DALE_FORM_TOPLEVEL_NAMESPACE
+#ifndef DALE_FORM_TOPLEVEL_USINGNAMESPACE
+#define DALE_FORM_TOPLEVEL_USINGNAMESPACE
 
 #include "../../../Generator/Generator.h"
 
@@ -9,7 +9,7 @@ namespace Form
 {
 namespace TopLevel
 {
-namespace Namespace
+namespace UsingNamespace
 {
 bool parse(Generator *gen,
            Node *node);

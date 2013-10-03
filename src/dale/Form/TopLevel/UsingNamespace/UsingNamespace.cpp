@@ -1,4 +1,4 @@
-#include "Namespace.h"
+#include "UsingNamespace.h"
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 
@@ -8,14 +8,14 @@ namespace Form
 {
 namespace TopLevel
 {
-namespace Namespace
+namespace UsingNamespace
 {
 bool parse(Generator *gen,
            Node *node)
 {
     Context *ctx = gen->ctx;
 
-    if (!ctx->er->assertArgNums("namespace", node, 1, -1)) {
+    if (!ctx->er->assertArgNums("using-namespace", node, 1, -1)) {
         return false;
     }
 
@@ -25,21 +25,24 @@ bool parse(Generator *gen,
     if (!n) {
         return false;
     }
-    if (!ctx->er->assertArgIsAtom("namespace", n, "1")) {
+    if (!ctx->er->assertArgIsAtom("using-namespace", n, "1")) {
         return false;
     }
-    if (!ctx->er->assertAtomIsSymbol("namespace", n, "1")) {
+    if (!ctx->er->assertAtomIsSymbol("using-namespace", n, "1")) {
         return false;
     }
 
     Token *t = n->token;
 
-    int success = ctx->activateNamespace(t->str_value.c_str());
-    if (!success) {
-        fprintf(stderr, "Internal error: cannot activate "
-                "namespace '%s'.\n",
-                t->str_value.c_str());
-        abort();
+    int res = ctx->useNamespace(t->str_value.c_str());
+    if (!res) {
+        Error *e = new Error(
+            ErrorInst::Generator::NamespaceNotInScope,
+            n,
+            t->str_value.c_str()
+        );
+        ctx->er->addError(e);
+        return false;
     }
 
     std::vector<Node *>::iterator symlist_iter;
@@ -56,7 +59,7 @@ bool parse(Generator *gen,
         ++symlist_iter;
     }
 
-    ctx->deactivateNamespace(t->str_value.c_str());
+    ctx->unuseNamespace();
 
     return true;
 }

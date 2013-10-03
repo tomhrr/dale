@@ -73,6 +73,8 @@
 #include "../Form/Proc/Token/Token.h"
 #include "../Form/Proc/Inst/Inst.h"
 #include "../Form/TopLevel/Namespace/Namespace.h"
+#include "../Form/TopLevel/UsingNamespace/UsingNamespace.h"
+#include "../Form/TopLevel/Include/Include.h"
 #include "../Unit/Unit.h"
 #include "../CoreForms/CoreForms.h"
 #include "../CommonDecl/CommonDecl.h"
@@ -155,9 +157,6 @@ std::vector<llvm::Value *> two_zero_indices;
 
 int has_defined_extern_macro;
 
-char *inc_paths[100];
-int inc_path_count = 0;
-
 char *mod_paths[100];
 int mod_path_count = 0;
 
@@ -180,6 +179,7 @@ Generator::Generator()
     CoreForms::init();
 
     prefunction_ns = NULL;
+    inc_path_count = 0;
 
     llvm::InitializeNativeTarget();
     llvm::InitializeAllAsmPrinters();
@@ -452,6 +452,8 @@ int Generator::run(std::vector<const char *> *filenames,
 {
     g_no_acd = no_acd;
     g_nodrt  = nodrt;
+    no_add_common_declarations = no_acd;
+    no_drt = nodrt;
 
     debug = mydebug;
 
@@ -990,10 +992,10 @@ int Generator::parseTopLevel(Node *top)
         Form::TopLevel::Namespace::parse(this, top);
         return 1;
     } else if (!t->str_value.compare("using-namespace")) {
-        parseUsingNamespaceTopLevel(top);
+        Form::TopLevel::UsingNamespace::parse(this, top);
         return 1;
     } else if (!t->str_value.compare("include")) {
-        parseInclude(top);
+        Form::TopLevel::Include::parse(this, top);
         return 1;
     } else if (!t->str_value.compare("module")) {
         parseModuleName(top);
@@ -1057,60 +1059,6 @@ int Generator::parseTopLevel(Node *top)
         erep->addError(e);
         return 0;
     }
-}
-
-void Generator::parseUsingNamespaceTopLevel(Node *top)
-{
-    assert(top->list && "parseUsingNamespace must receive a list!");
-
-    if (!ctx->er->assertArgNums("using-namespace", top, 1, -1)) {
-        return;
-    }
-
-    symlist *lst = top->list;
-    Node *n = (*lst)[1];
-    n = parseOptionalMacroCall(n);
-    if (!n) {
-        return;
-    }
-    if (!ctx->er->assertArgIsAtom("using-namespace", n, "1")) {
-        return;
-    }
-    if (!ctx->er->assertAtomIsSymbol("using-namespace", n, "1")) {
-        return;
-    }
-
-    Token *t = n->token;
-
-    int res = ctx->useNamespace(t->str_value.c_str());
-    if (!res) {
-        Error *e = new Error(
-            ErrorInst::Generator::NamespaceNotInScope,
-            n,
-            t->str_value.c_str()
-        );
-        erep->addError(e);
-        return;
-    }
-
-    std::vector<Node *>::iterator symlist_iter;
-    symlist_iter = lst->begin();
-
-    /* Skip the namespace token and the name token/form. */
-
-    ++symlist_iter;
-    ++symlist_iter;
-
-    while (symlist_iter != lst->end()) {
-        parseTopLevel((*symlist_iter));
-        erep->flush();
-        ++symlist_iter;
-    }
-
-    ctx->unuseNamespace();
-    //ctx->unuseNamespace(t->str_value.c_str());
-
-    return;
 }
 
 int Generator::addDaleModule(Node *n,
@@ -1519,105 +1467,6 @@ void Generator::parseImport(Node *top)
         );
         erep->addError(e);
         return;
-    }
-
-    return;
-}
-
-void Generator::parseInclude(Node *top)
-{
-    assert(top->list && "parseInclude must receive a list!");
-
-    if (!ctx->er->assertArgNums("include", top, 1, 1)) {
-        return;
-    }
-
-    symlist *lst = top->list;
-    Node *n = (*lst)[1];
-    n = parseOptionalMacroCall(n);
-    if (!n) {
-        return;
-    }
-    if (!ctx->er->assertArgIsAtom("include", n, "1")) {
-        return;
-    }
-    if (!ctx->er->assertAtomIsStringLiteral("include", n, "1")) {
-        return;
-    }
-
-    Token *t = n->token;
-
-    std::string filename_buf(t->str_value.c_str());
-
-    /* Check if the file exists in the current directory, or in ./include.
-     * If it doesn't, go through each of the -I (inc_paths) directories.
-     * If it doesn't exist in any of them, check DALE_INCLUDE_PATH (set at
-     * compile time - used to be an environment variable).  Otherwise,
-     * print an error and return nothing. */
-
-    FILE *include_file = fopen(filename_buf.c_str(), "r");
-
-    if (!include_file) {
-        filename_buf.clear();
-        filename_buf.append("./include/");
-        filename_buf.append(t->str_value.c_str());
-        include_file = fopen(filename_buf.c_str(), "r");
-        if (!include_file) {
-            int mi;
-            for (mi = 0; mi < inc_path_count; ++mi) {
-                filename_buf.clear();
-                filename_buf.append(inc_paths[mi])
-                .append("/")
-                .append(t->str_value.c_str());
-                include_file = fopen(filename_buf.c_str(), "r");
-                if (include_file) {
-                    break;
-                }
-            }
-        }
-        if (!include_file) {
-            filename_buf.clear();
-            filename_buf.append(DALE_INCLUDE_PATH)
-            .append("/")
-            .append(t->str_value.c_str());
-
-            include_file = fopen(filename_buf.c_str(), "r");
-
-            if (!include_file) {
-                Error *e = new Error(
-                    ErrorInst::Generator::FileError,
-                    n,
-                    filename_buf.c_str(),
-                    strerror(errno)
-                );
-                erep->addError(e);
-                return;
-            }
-        }
-    }
-    /* Add the current parser/module/context to their respective
-     * stacks, create new parser/module/context for the new file.
-     * */
-
-    Unit *unit = new Unit(filename_buf.c_str(), erep, nt, tr);
-    unit_stack->push(unit);
-    ctx    = unit->ctx;
-    mod    = unit->module;
-    linker = unit->linker;
-    prsr   = unit->parser;
-    current_once_tag.clear();
-
-    ee->addModule(mod);
-    CommonDecl::addVarargsFunctions(unit);
-
-    if (!g_no_acd) {
-        if (g_nodrt) {
-            addCommonDeclarations();
-        } else {
-            std::vector<const char*> import_forms;
-            addDaleModule(nullNode(), "drt", &import_forms);
-            setPdnode();
-        }
     }
 
     return;
