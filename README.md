@@ -1,6 +1,7 @@
 ## Dale
 
-Dale is an unsafe (no GC), homoiconic programming language.
+Dale is a system (no GC) programming language with a homoiconic
+syntax.
 
 ### Supported systems
 
