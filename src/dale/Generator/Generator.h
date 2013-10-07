@@ -112,8 +112,6 @@ private:
     void parseGlobalVariable(const char *name, Node *n);
     void parseMacroDefinition(const char *name, Node *n);
     void parseEnumDefinition(const char *name, Node *n);
-    int parseFunctionBody(Element::Function *dfn,
-                          llvm::Function *fn, Node *n, int skip, int is_anonymous);
     llvm::Value *coerceValue(llvm::Value *from_value,
                              Element::Type *from_type,
                              Element::Type *to_type,
@@ -158,11 +156,6 @@ private:
     bool typeToStringExternal(DNode *dnode, char *buf);
 
     int parseStructLinkage(Node *n);
-
-    llvm::Constant *parseLiteralElement(Node *top,
-                                        char *thing,
-                                        Element::Type
-                                        *type, int *size);
 
 
     int addVariable(const char *name,
@@ -304,7 +297,12 @@ public:
     UnitStack *unit_stack;
     int addDaleModule(Node *n, const char *module_name,
                       std::vector<const char*> *import_forms);
-
+    int parseFunctionBody(Element::Function *dfn,
+                          llvm::Function *fn, Node *n, int skip, int is_anonymous);
+    llvm::Constant *parseLiteralElement(Node *top,
+                                        char *thing,
+                                        Element::Type
+                                        *type, int *size);
 };
 }
 

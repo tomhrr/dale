@@ -214,6 +214,8 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/TopLevel/Namespace/Namespace.cpp
                       src/dale/Form/TopLevel/UsingNamespace/UsingNamespace.cpp
                       src/dale/Form/TopLevel/Include/Include.cpp
+                      src/dale/Form/TopLevel/Do/Do.cpp
+                      src/dale/Form/TopLevel/GlobalVariable/GlobalVariable.cpp
                       src/dale/CoreForms/CoreForms.cpp
                       src/dale/Element/Label/Label.cpp
                       src/dale/CommonDecl/CommonDecl.cpp
