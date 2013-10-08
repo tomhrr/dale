@@ -42,6 +42,7 @@
 #include "../../Macro/DerefStructDeref/DerefStructDeref.h"
 #include "../../Macro/DerefStruct/DerefStruct.h"
 #include "../../Macro/Setv/Setv.h"
+#include "../../Function/Function.h"
 
 #define eq(str) !strcmp(t->str_value.c_str(), str)
 
@@ -118,7 +119,7 @@ bool parseInternal(Generator *gen,
         Element::Function *myanonfn = NULL;
         int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        gen->parseFunction(buf, n, &myanonfn, Linkage::Intern, 1);
+        Form::Function::parse(gen, n, buf, &myanonfn, Linkage::Intern, 1);
 
         int diff = ctx->er->getErrorTypeCount(ErrorType::Error)
                    - error_count;

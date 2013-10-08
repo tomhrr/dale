@@ -92,7 +92,6 @@ private:
     std::set<std::string> *included_modules;
     std::set<std::string> *cto_modules;
     std::string module_name;
-    int cto;
     int set_module_name;
     int debug;
 
@@ -303,6 +302,7 @@ public:
                                         char *thing,
                                         Element::Type
                                         *type, int *size);
+    int cto;
 };
 }
 
