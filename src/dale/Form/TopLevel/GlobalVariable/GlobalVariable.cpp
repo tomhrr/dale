@@ -4,6 +4,7 @@
 #include "../../../Operation/Cast/Cast.h"
 #include "../../../Operation/Sizeof/Sizeof.h"
 #include "../../Linkage/Linkage.h"
+#include "../../ProcBody/ProcBody.h"
 #include "../../Type/Type.h"
 
 namespace dale
@@ -129,7 +130,7 @@ parseLiteral(Generator *gen,
     nodes.push_back(top);
     Node *topwrapper = new Node(&nodes);
 
-    gen->parseFunctionBody(dfn, fn, topwrapper, 0, 0);
+    Form::ProcBody::parse(gen, topwrapper, dfn, fn, 0, 0);
     int error_post_count =
         ctx->er->getErrorTypeCount(ErrorType::Error);
     if (error_count != error_post_count) {

@@ -6,6 +6,7 @@
 #include "../../CoreForms/CoreForms.h"
 #include "../Linkage/Linkage.h"
 #include "../Type/Type.h"
+#include "../ProcBody/ProcBody.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -449,7 +450,7 @@ parse(Generator *gen,
     gen->global_functions.push_back(dfn);
     gen->global_function = dfn;
 
-    gen->parseFunctionBody(dfn, fn, n, (next_index + 2), is_anonymous);
+    Form::ProcBody::parse(gen, n, dfn, fn, (next_index + 2), is_anonymous);
 
     gen->global_functions.pop_back();
     if (gen->global_functions.size()) {
