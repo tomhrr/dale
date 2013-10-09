@@ -1,6 +1,7 @@
 #include "Namespace.h"
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
+#include "../Inst/Inst.h"
 
 namespace dale
 {
@@ -51,7 +52,7 @@ bool parse(Generator *gen,
     ++symlist_iter;
 
     while (symlist_iter != lst->end()) {
-        gen->parseTopLevel((*symlist_iter));
+        Form::TopLevel::Inst::parse(gen, (*symlist_iter));
         ctx->er->flush();
         ++symlist_iter;
     }

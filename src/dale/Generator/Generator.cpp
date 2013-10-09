@@ -73,18 +73,7 @@
 #include "../Form/ProcBody/ProcBody.h"
 #include "../Form/Proc/Token/Token.h"
 #include "../Form/Proc/Inst/Inst.h"
-#include "../Form/TopLevel/Namespace/Namespace.h"
-#include "../Form/TopLevel/UsingNamespace/UsingNamespace.h"
-#include "../Form/TopLevel/Include/Include.h"
-#include "../Form/TopLevel/Do/Do.h"
-#include "../Form/TopLevel/GlobalVariable/GlobalVariable.h"
-#include "../Form/TopLevel/Function/Function.h"
-#include "../Form/TopLevel/Struct/Struct.h"
-#include "../Form/TopLevel/Macro/Macro.h"
-#include "../Form/TopLevel/Enum/Enum.h"
-#include "../Form/TopLevel/Def/Def.h"
-#include "../Form/TopLevel/Once/Once.h"
-#include "../Form/TopLevel/Module/Module.h"
+#include "../Form/TopLevel/Inst/Inst.h"
 #include "../Unit/Unit.h"
 #include "../CoreForms/CoreForms.h"
 #include "../CommonDecl/CommonDecl.h"
@@ -613,7 +602,7 @@ int Generator::run(std::vector<const char *> *filenames,
                 }
                 break;
             }
-            parseTopLevel(top);
+            Form::TopLevel::Inst::parse(this, top);
             erep->flush();
         } while (1);
 
@@ -908,112 +897,6 @@ done:
     return !res;
 }
 
-/* The only time this returns 0 is on EOF - possibly problematic. */
-int Generator::parseTopLevel(Node *top)
-{
-    /* Remove all anonymous namespaces. */
-    ctx->deleteAnonymousNamespaces();
-
-    if (!top) {
-        return 0;
-    }
-
-    if (!top->is_token && !top->is_list) {
-        unit_stack->pop();
-        if (!unit_stack->empty()) {
-            Unit *unit = unit_stack->top();
-            ctx    = unit->ctx;
-            mod    = unit->module;
-            linker = unit->linker;
-            prsr   = unit->parser;
-            current_once_tag.clear();
-            current_once_tag = unit->once_tag;
-            return 1;
-        }
-        return 0;
-    }
-
-    if (!top->is_list) {
-        Error *e = new Error(
-            ErrorInst::Generator::OnlyListsAtTopLevel, top
-        );
-        erep->addError(e);
-        return 0;
-    }
-
-    symlist *lst = top->list;
-
-    if (lst->size() == 0) {
-        Error *e = new Error(
-            ErrorInst::Generator::NoEmptyLists, top
-        );
-        erep->addError(e);
-        return 0;
-    }
-
-    Node *n = (*lst)[0];
-
-    if (!n->is_token) {
-        Error *e = new Error(
-            ErrorInst::Generator::FirstListElementMustBeAtom,
-            n
-        );
-        erep->addError(e);
-        return 0;
-    }
-
-    Token *t = n->token;
-
-    if (t->type != TokenType::String) {
-        Error *e = new Error(
-            ErrorInst::Generator::FirstListElementMustBeSymbol, n
-        );
-        erep->addError(e);
-        return 0;
-    }
-
-    if (!t->str_value.compare("do")) {
-        Form::TopLevel::Do::parse(this, top);
-        return 1;
-    } else if (!t->str_value.compare("def")) {
-        Form::TopLevel::Def::parse(this, top);
-        return 1;
-    } else if (!t->str_value.compare("namespace")) {
-        Form::TopLevel::Namespace::parse(this, top);
-        return 1;
-    } else if (!t->str_value.compare("using-namespace")) {
-        Form::TopLevel::UsingNamespace::parse(this, top);
-        return 1;
-    } else if (!t->str_value.compare("include")) {
-        Form::TopLevel::Include::parse(this, top);
-        return 1;
-    } else if (!t->str_value.compare("module")) {
-        Form::TopLevel::Module::parse(this, top);
-        return 1;
-    } else if (!t->str_value.compare("import")) {
-        parseImport(top);
-        return 1;
-    } else if (!t->str_value.compare("once")) {
-        Form::TopLevel::Once::parse(this, top);
-        return 1;
-    } else {
-        Node *newtop = parseOptionalMacroCall(top);
-        if (!newtop) {
-            return 0;
-        }
-        if (newtop != top) {
-            return parseTopLevel(newtop);
-        }
-        Error *e = new Error(
-            ErrorInst::Generator::NotInScope,
-            n,
-            t->str_value.c_str()
-        );
-        erep->addError(e);
-        return 0;
-    }
-}
-
 int Generator::addDaleModule(Node *n,
                              const char *my_module_name,
                              std::vector<const char*> *import_forms)
@@ -1280,58 +1163,6 @@ int Generator::addDaleModule(Node *n,
     ctx->relink();
 
     return 1;
-}
-
-void Generator::parseImport(Node *top)
-{
-    assert(top->list && "parseImport must receive a list!");
-
-    if (!ctx->er->assertArgNums("import", top, 1, 2)) {
-        return;
-    }
-
-    symlist *lst = top->list;
-    Node *n = (*lst)[1];
-    n = parseOptionalMacroCall(n);
-    if (!n) {
-        return;
-    }
-    if (!ctx->er->assertArgIsAtom("import", n, "1")) {
-        return;
-    }
-
-    const char *my_module_name = n->token->str_value.c_str();
-
-    std::vector<const char *> import_forms;
-    if (lst->size() == 3) {
-        n = (*lst)[2];
-        if (!ctx->er->assertArgIsList("import", n, "2")) {
-            return;
-        }
-        symlist *formlst = n->list;
-        for (symlist::iterator b = formlst->begin(),
-                e = formlst->end();
-                b != e;
-                ++b) {
-            if (!ctx->er->assertArgIsAtom("import", (*b), "2")) {
-                return;
-            }
-            import_forms.push_back((*b)->token->str_value.c_str());
-        }
-    }
-
-    int res = addDaleModule(top, my_module_name, &import_forms);
-    if (!res) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnableToLoadModule,
-            top,
-            my_module_name
-        );
-        erep->addError(e);
-        return;
-    }
-
-    return;
 }
 
 llvm::Constant *Generator::parseLiteralElement(Node *top,

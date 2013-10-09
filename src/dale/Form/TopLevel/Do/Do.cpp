@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
+#include "../Inst/Inst.h"
 
 namespace dale
 {
@@ -33,7 +34,7 @@ bool parse(Generator *gen,
     ++node_iter;
 
     while (node_iter != lst->end()) {
-        gen->parseTopLevel(*node_iter);
+        Form::TopLevel::Inst::parse(gen, (*node_iter));
         ctx->er->flush();
         ++node_iter;
     }
