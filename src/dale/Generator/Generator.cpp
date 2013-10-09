@@ -82,6 +82,7 @@
 #include "../Form/TopLevel/Struct/Struct.h"
 #include "../Form/TopLevel/Macro/Macro.h"
 #include "../Form/TopLevel/Enum/Enum.h"
+#include "../Form/TopLevel/Def/Def.h"
 #include "../Unit/Unit.h"
 #include "../CoreForms/CoreForms.h"
 #include "../CommonDecl/CommonDecl.h"
@@ -973,7 +974,7 @@ int Generator::parseTopLevel(Node *top)
         Form::TopLevel::Do::parse(this, top);
         return 1;
     } else if (!t->str_value.compare("def")) {
-        parseDefine(top);
+        Form::TopLevel::Def::parse(this, top);
         return 1;
     } else if (!t->str_value.compare("namespace")) {
         Form::TopLevel::Namespace::parse(this, top);
@@ -1452,122 +1453,6 @@ void Generator::parseImport(Node *top)
             top,
             my_module_name
         );
-        erep->addError(e);
-        return;
-    }
-
-    return;
-}
-
-void Generator::parseDefine(Node *top)
-{
-    assert(top->list && "parseDefine must receive a list!");
-
-    symlist *lst = top->list;
-
-    if (lst->size() != 3) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectNumberOfArgs,
-            top,
-            "def", 2, (int) (lst->size() - 1)
-        );
-        erep->addError(e);
-        return;
-    }
-
-    Node *n = (*lst)[1];
-
-    n = parseOptionalMacroCall(n);
-    if (!n) {
-        return;
-    }
-    if (!n->is_token) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            n,
-            "def", "an atom", "1", "a list"
-        );
-        erep->addError(e);
-        return;
-    }
-
-    Token *name = n->token;
-
-    if (name->type != TokenType::String) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            n,
-            "def", "a symbol", "1", name->tokenType()
-        );
-        erep->addError(e);
-        return;
-    }
-
-    n = (*lst)[2];
-
-    if (!n->is_list) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            n,
-            "def", "a list", "2", "an atom"
-        );
-        erep->addError(e);
-        return;
-    }
-
-    n = parseOptionalMacroCall(n);
-    if (!n) {
-        return;
-    }
-
-    symlist *sublst = n->list;
-
-    Node *subn = (*sublst)[0];
-
-    if (!subn->is_token) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            subn,
-            "def", "an atom", "2:1", "a list"
-        );
-        erep->addError(e);
-        return;
-    }
-
-    Token *subt = subn->token;
-
-    if (subt->type != TokenType::String) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            subn,
-            "def", "a symbol", "2:1", subt->tokenType()
-        );
-        erep->addError(e);
-        return;
-    }
-
-    if (!subt->str_value.compare("fn")) {
-        Form::TopLevel::Function::parse(this, top);
-    } else if (!subt->str_value.compare("var")) {
-        Form::TopLevel::GlobalVariable::parse(this, top);
-    } else if (!subt->str_value.compare("struct")) {
-        Form::TopLevel::Struct::parse(this, top);
-    } else if (!subt->str_value.compare("macro")) {
-        Form::TopLevel::Macro::parse(this, top);
-    } else if (!subt->str_value.compare("enum")) {
-        Form::TopLevel::Enum::parse(this, top);
-    } else {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            subn,
-            "def", "'fn'/'var'/'struct'/'macro'",
-            "2:1"
-        );
-        std::string temp;
-        temp.append("'");
-        temp.append(subt->str_value);
-        temp.append("'");
-        e->addArgString(&temp);
         erep->addError(e);
         return;
     }
