@@ -90,13 +90,10 @@ private:
     std::multiset<ino_t> *included_inodes;
     std::set<std::string> *included_modules;
     std::set<std::string> *cto_modules;
-    std::string module_name;
-    int set_module_name;
     int debug;
 
     std::vector<std::string> *so_paths_g;
 
-    void parseDefine(Node *top);
     void addVoidPointerType(void);
     void addVarargsFunctions(void);
     void parseModuleName(Node *top);
@@ -301,6 +298,8 @@ public:
     std::set<std::string> *included_once_tags;
     int cto;
     int has_defined_extern_macro;
+    std::string module_name;
+    int set_module_name;
 };
 }
 

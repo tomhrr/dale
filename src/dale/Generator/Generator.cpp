@@ -84,6 +84,7 @@
 #include "../Form/TopLevel/Enum/Enum.h"
 #include "../Form/TopLevel/Def/Def.h"
 #include "../Form/TopLevel/Once/Once.h"
+#include "../Form/TopLevel/Module/Module.h"
 #include "../Unit/Unit.h"
 #include "../CoreForms/CoreForms.h"
 #include "../CommonDecl/CommonDecl.h"
@@ -987,7 +988,7 @@ int Generator::parseTopLevel(Node *top)
         Form::TopLevel::Include::parse(this, top);
         return 1;
     } else if (!t->str_value.compare("module")) {
-        parseModuleName(top);
+        Form::TopLevel::Module::parse(this, top);
         return 1;
     } else if (!t->str_value.compare("import")) {
         parseImport(top);
@@ -1279,97 +1280,6 @@ int Generator::addDaleModule(Node *n,
     ctx->relink();
 
     return 1;
-}
-
-void Generator::parseModuleName(Node *top)
-{
-    if (module_name.size() > 0) {
-        fprintf(stderr, "Internal error: module name already set.\n");
-        abort();
-    }
-
-    assert(top->list && "parseModuleName must receive a list!");
-
-    if (!ctx->er->assertArgNums("module", top, 1, 2)) {
-        return;
-    }
-
-    symlist *lst = top->list;
-    Node *n = (*lst)[1];
-    n = parseOptionalMacroCall(n);
-    if (!n) {
-        return;
-    }
-    if (!ctx->er->assertArgIsAtom("module", n, "1")) {
-        return;
-    }
-
-    if (!isValidModuleName(&(n->token->str_value))) {
-        Error *e = new Error(
-            ErrorInst::Generator::InvalidModuleName,
-            n,
-            n->token->str_value.c_str()
-        );
-        erep->addError(e);
-        return;
-    }
-
-    const char *my_module_name = n->token->str_value.c_str();
-
-    if (lst->size() == 3) {
-        n = (*lst)[2];
-        n = parseOptionalMacroCall(n);
-        if (!n) {
-            return;
-        }
-        if (!ctx->er->assertArgIsList("module", n, "2")) {
-            return;
-        }
-        if (!(n->list->at(0)->is_token)
-                ||
-                (n->list->at(0)->token->str_value.compare("attr"))) {
-            Error *e = new Error(
-                ErrorInst::Generator::UnexpectedElement,
-                n,
-                "attr",
-                0,
-                0
-            );
-            erep->addError(e);
-            return;
-        }
-
-        symlist *attr_list = n->list;
-        std::vector<Node*>::iterator b = attr_list->begin(),
-                                     e = attr_list->end();
-        ++b;
-        for (; b != e; ++b) {
-            if ((*b)->is_list) {
-                Error *e = new Error(
-                    ErrorInst::Generator::InvalidAttribute,
-                    (*b)
-                );
-                erep->addError(e);
-                return;
-            }
-            if (!((*b)->token->str_value.compare("cto"))) {
-                cto = 1;
-            } else {
-                Error *e = new Error(
-                    ErrorInst::Generator::InvalidAttribute,
-                    (*b)
-                );
-                erep->addError(e);
-                return;
-            }
-        }
-    }
-
-    module_name = std::string("lib");
-    module_name.append(my_module_name);
-    set_module_name = 1;
-
-    return;
 }
 
 void Generator::parseImport(Node *top)

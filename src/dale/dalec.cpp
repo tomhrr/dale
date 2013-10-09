@@ -1,21 +1,12 @@
 #include "Token/Token.h"
 #include "Generator/Generator.h"
-#include "Position/Position.h"
-#include "Lexer/Lexer.h"
-#include "Context/Context.h"
-#include "Element/Function/Function.h"
-#include "Element/Type/Type.h"
-#include "Element/Variable/Variable.h"
-#include "Type/Type.h"
-#include "Linkage/Linkage.h"
-#include "Config.h"
 
-#include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <getopt.h>
+#include <cstdio>
 
 const int MAX_LIBS        = 100;
 const int MAX_INPUT_FILES = 100;
