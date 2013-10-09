@@ -220,6 +220,7 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/TopLevel/GlobalVariable/GlobalVariable.cpp
                       src/dale/Form/TopLevel/Function/Function.cpp
                       src/dale/Form/TopLevel/Struct/Struct.cpp
+                      src/dale/Form/TopLevel/Macro/Macro.cpp
                       src/dale/Form/Struct/Struct.cpp
                       src/dale/CoreForms/CoreForms.cpp
                       src/dale/Element/Label/Label.cpp

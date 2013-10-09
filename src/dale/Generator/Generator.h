@@ -300,6 +300,7 @@ public:
                                         Element::Type
                                         *type, int *size);
     int cto;
+    int has_defined_extern_macro;
 };
 }
 
