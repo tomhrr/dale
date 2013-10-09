@@ -88,7 +88,6 @@ private:
 
     std::vector<DeferredGoto *> *defgotos;
     std::multiset<ino_t> *included_inodes;
-    std::set<std::string> *included_once_tags;
     std::set<std::string> *included_modules;
     std::set<std::string> *cto_modules;
     std::string module_name;
@@ -299,6 +298,7 @@ public:
                                         char *thing,
                                         Element::Type
                                         *type, int *size);
+    std::set<std::string> *included_once_tags;
     int cto;
     int has_defined_extern_macro;
 };

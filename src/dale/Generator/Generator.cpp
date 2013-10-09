@@ -83,6 +83,7 @@
 #include "../Form/TopLevel/Macro/Macro.h"
 #include "../Form/TopLevel/Enum/Enum.h"
 #include "../Form/TopLevel/Def/Def.h"
+#include "../Form/TopLevel/Once/Once.h"
 #include "../Unit/Unit.h"
 #include "../CoreForms/CoreForms.h"
 #include "../CommonDecl/CommonDecl.h"
@@ -992,44 +993,7 @@ int Generator::parseTopLevel(Node *top)
         parseImport(top);
         return 1;
     } else if (!t->str_value.compare("once")) {
-        if (!ctx->er->assertArgNums("once", top, 1, 1)) {
-            return 1;
-        }
-        symlist *lst = top->list;
-        Node *n = (*lst)[1];
-        n = parseOptionalMacroCall(n);
-        if (!n) {
-            return 1;
-        }
-        if (!ctx->er->assertArgIsAtom("once", n, "1")) {
-            return 1;
-        }
-        const char *once_name = n->token->str_value.c_str();
-        std::string once_tag(once_name);
-
-        if (included_once_tags->find(once_tag) !=
-                included_once_tags->end()) {
-            if (unit_stack->size() == 1) {
-                Error *e = new Error(
-                    ErrorInst::Generator::CannotOnceTheLastOpenFile,
-                    n
-                );
-                erep->addError(e);
-                return 0;
-            }
-            unit_stack->pop();
-            Unit *unit = unit_stack->top();
-            ctx    = unit->ctx;
-            mod    = unit->module;
-            linker = unit->linker;
-            prsr   = unit->parser;
-            current_once_tag.clear();
-            current_once_tag = unit->once_tag;
-        }
-        included_once_tags->insert(once_tag);
-        current_once_tag = once_tag;
-        unit_stack->top()->setOnceTag(once_tag);
-
+        Form::TopLevel::Once::parse(this, top);
         return 1;
     } else {
         Node *newtop = parseOptionalMacroCall(top);
