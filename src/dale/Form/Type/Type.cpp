@@ -1,6 +1,7 @@
 #include "Type.h"
 
 #include "../../Generator/Generator.h"
+#include "../Struct/Struct.h"
 
 static int anonstructcount = 0;
 
@@ -159,7 +160,7 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
         int error_count =
             ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        gen->parseStructDefinition(buf, new Node(lst));
+        Form::Struct::parse(gen, new Node(lst), buf);
 
         int error_post_count =
             ctx->er->getErrorTypeCount(ErrorType::Error);

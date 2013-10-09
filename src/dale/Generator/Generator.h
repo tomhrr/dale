@@ -142,8 +142,6 @@ private:
 
 
 
-    int addOpaqueStruct(const char *name, Node *top,
-                        int linkage, int must_init);
     void popErrors(int original_count);
     bool parseExistsMacro(DNode *dnode);
 
@@ -214,7 +212,6 @@ public:
     bool is_x86_64;
     llvm::Value *IntNodeToStaticDNode(Node *node, llvm::Value *next_node);
     Element::Type *type_pdnode;
-    void parseStructDefinition(const char *name, Node *n);
     bool parseFuncallInternal(
         Element::Function *dfn,
         Node *n,

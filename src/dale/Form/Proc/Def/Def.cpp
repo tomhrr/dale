@@ -4,6 +4,7 @@
 #include "../../../Element/Function/Function.h"
 #include "../../Linkage/Linkage.h"
 #include "../../Type/Type.h"
+#include "../../Struct/Struct.h"
 #include "../Inst/Inst.h"
 #include "llvm/Function.h"
 
@@ -70,7 +71,7 @@ bool parse(Generator *gen,
     }
 
     if (!(nvar->token->str_value.compare("struct"))) {
-        gen->parseStructDefinition(name, ndef);
+        Form::Struct::parse(gen, ndef, name);
         pr->set(block, type_int,
               llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
         return true;
