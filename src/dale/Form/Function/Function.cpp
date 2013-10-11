@@ -326,7 +326,7 @@ parse(Generator *gen,
      * bool. */
 
     if (dfn->is_setf_fn) {
-        if (!r_type->isEqualTo(ctx->tr->getBasicType(dale::Type::Bool))) {
+        if (!r_type->isEqualTo(ctx->tr->type_bool)) {
             Error *e = new Error(
                 ErrorInst::Generator::SetfOverridesMustReturnBool,
                 (*lst)[return_type_index]

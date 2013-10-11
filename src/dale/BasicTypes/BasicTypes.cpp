@@ -390,8 +390,8 @@ addSignedInt(Context *ctx,
         builder.CreateRet(res);
     }
 
-    Element::Type *type_bool = ctx->tr->getBasicType(Type::Bool);
-    Element::Type *type_int  = ctx->tr->getBasicType(Type::Int);
+    Element::Type *type_bool = ctx->tr->type_bool;
+    Element::Type *type_int  = ctx->tr->type_int;
 
     makeFunction(ctx, mod, once_tag, "=",  
                  &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, type);
@@ -470,7 +470,7 @@ addFloatingPoint(Context *ctx,
     makeFunction(ctx, mod, once_tag, "-",  &llvm::IRBuilder<>::CreateFSub, type, type);
     makeFunction(ctx, mod, once_tag, "/",  &llvm::IRBuilder<>::CreateFDiv, type, type);
     makeFunction(ctx, mod, once_tag, "*",  &llvm::IRBuilder<>::CreateFMul, type, type);
-    Element::Type *type_bool = ctx->tr->getBasicType(Type::Bool);
+    Element::Type *type_bool = ctx->tr->type_bool;
     makeFunction(ctx, mod, once_tag, "=",  &llvm::IRBuilder<>::CreateFCmpOEQ, type_bool, type);
     makeFunction(ctx, mod, once_tag, "!=", &llvm::IRBuilder<>::CreateFCmpONE, type_bool, type);
     makeFunction(ctx, mod, once_tag, "<",  &llvm::IRBuilder<>::CreateFCmpOLT, type_bool, type);
@@ -566,8 +566,8 @@ addUnsignedInt(Context *ctx,
                            );
         builder.CreateRet(res);
     }
-    Element::Type *type_bool = ctx->tr->getBasicType(Type::Bool);
-    Element::Type *type_int  = ctx->tr->getBasicType(Type::Int);
+    Element::Type *type_bool = ctx->tr->type_bool;
+    Element::Type *type_int  = ctx->tr->type_int;
     makeFunction(ctx, mod, once_tag, "=",  &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, type);
     makeFunction(ctx, mod, once_tag, "!=", &llvm::IRBuilder<>::CreateICmpNE,  type_bool, type);
     makeFunction(ctx, mod, once_tag, "<",  &llvm::IRBuilder<>::CreateICmpULT, type_bool, type);
@@ -927,14 +927,14 @@ addEnum(Context *ctx,
             builder.CreateLoad(sp);
         builder.CreateRet(newint);
     }
-    Element::Type *type_bool = ctx->tr->getBasicType(Type::Bool);
+    Element::Type *type_bool = ctx->tr->type_bool;
     makeEnumFunction(ctx, mod, once_tag, "=",  &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, "!=", &llvm::IRBuilder<>::CreateICmpNE,  type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, "<",  &llvm::IRBuilder<>::CreateICmpULT, type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, "<=", &llvm::IRBuilder<>::CreateICmpULE, type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, ">",  &llvm::IRBuilder<>::CreateICmpUGT, type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, ">=", &llvm::IRBuilder<>::CreateICmpUGE, type_bool, enum_type, flinkage);
-    Element::Type *type_int = ctx->tr->getBasicType(Type::Int);
+    Element::Type *type_int = ctx->tr->type_int;
     {
         Element::Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "<<", enum_type, enum_type, type_int);

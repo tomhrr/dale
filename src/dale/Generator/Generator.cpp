@@ -113,36 +113,6 @@ int isValidModuleName(std::string *str)
     return 1;
 }
 
-/* These should be treated as const, except by the code that
- * initialises everything (i.e. once this is actually processing
- * code, these shouldn't change). */
-
-Element::Type *type_void;
-Element::Type *type_varargs;
-Element::Type *type_int;
-Element::Type *type_intptr;
-Element::Type *type_size;
-Element::Type *type_ptrdiff;
-Element::Type *type_uint;
-Element::Type *type_char;
-Element::Type *type_pchar;
-Element::Type *type_pvoid;
-Element::Type *type_bool;
-Element::Type *type_float;
-Element::Type *type_double;
-Element::Type *type_longdouble;
-
-Element::Type *type_int8;
-Element::Type *type_uint8;
-Element::Type *type_int16;
-Element::Type *type_uint16;
-Element::Type *type_int32;
-Element::Type *type_uint32;
-Element::Type *type_int64;
-Element::Type *type_uint64;
-Element::Type *type_int128;
-Element::Type *type_uint128;
-
 Element::Type *type_dnode = NULL;
 void (*pool_free_fptr)(MContext *) = NULL;
 llvm::Type *llvm_type_dnode = NULL;
@@ -191,32 +161,6 @@ Generator::Generator()
 
     dtm_modules     = new std::map<std::string, llvm::Module*>;
     dtm_nm_modules  = new std::map<std::string, std::string>;
-
-    type_bool        = tr->getBasicType(Type::Bool);
-    type_void        = tr->getBasicType(Type::Void);
-    type_varargs     = tr->getBasicType(Type::VarArgs);
-    type_int         = tr->getBasicType(Type::Int);
-    type_intptr      = tr->getBasicType(Type::IntPtr);
-    type_size        = tr->getBasicType(Type::Size);
-    type_ptrdiff     = tr->getBasicType(Type::PtrDiff);
-    type_uint        = tr->getBasicType(Type::UInt);
-    type_char        = tr->getBasicType(Type::Char);
-    type_float       = tr->getBasicType(Type::Float);
-    type_double      = tr->getBasicType(Type::Double);
-    type_longdouble  = tr->getBasicType(Type::LongDouble);
-
-    type_int8    = tr->getBasicType(Type::Int8);
-    type_uint8   = tr->getBasicType(Type::UInt8);
-    type_int16   = tr->getBasicType(Type::Int16);
-    type_uint16  = tr->getBasicType(Type::UInt16);
-    type_int32   = tr->getBasicType(Type::Int32);
-    type_uint32  = tr->getBasicType(Type::UInt32);
-    type_int64   = tr->getBasicType(Type::Int64);
-    type_uint64  = tr->getBasicType(Type::UInt64);
-    type_int128  = tr->getBasicType(Type::Int128);
-    type_uint128 = tr->getBasicType(Type::UInt128);
-
-    type_pchar  = tr->getPointerType(type_char);
 
     two_zero_indices.clear();
     stl::push_back2(&two_zero_indices,
@@ -1427,7 +1371,7 @@ int Generator::makeTemporaryGlobalFunction(
     /* Create a temporary function for evaluating the arguments. */
 
     llvm::Type *llvm_return_type =
-        ctx->toLLVMType(type_int, NULL, false);
+        ctx->toLLVMType(ctx->tr->type_int, NULL, false);
     if (!llvm_return_type) {
         return 0;
     }
@@ -1475,7 +1419,7 @@ int Generator::makeTemporaryGlobalFunction(
     std::vector<Element::Variable *> vars;
 
     Element::Function *dfn =
-        new Element::Function(type_int,
+        new Element::Function(ctx->tr->type_int,
                               &vars,
                               fn,
                               0,
@@ -2075,7 +2019,7 @@ Node *Generator::parseOptionalMacroCall(Node *n)
     /* Create a temporary function for evaluating the arguments. */
 
     llvm::Type *llvm_return_type =
-        ctx->toLLVMType(type_int, NULL, false);
+        ctx->toLLVMType(ctx->tr->type_int, NULL, false);
     if (!llvm_return_type) {
         return NULL;
     }
@@ -2123,7 +2067,7 @@ Node *Generator::parseOptionalMacroCall(Node *n)
     std::vector<Element::Variable *> vars;
 
     Element::Function *dfn =
-        new Element::Function(type_int,
+        new Element::Function(ctx->tr->type_int,
                               &vars,
                               fn,
                               0,
@@ -2287,7 +2231,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
     if (!strcmp(name, "setf")) {
         /* Add a bool argument and type to the front of the
          * function call. */
-        call_arg_types.push_back(type_bool);
+        call_arg_types.push_back(ctx->tr->type_bool);
         call_args.push_back(nt->getLLVMFalse());
     }
 
@@ -2657,7 +2601,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
              * generic code whether a particular value can be
              * destroyed or not. */
             if (!t->str_value.compare("destroy")) {
-                pr->set(block, type_void, NULL);
+                pr->set(block, ctx->tr->type_void, NULL);
                 return true;
             }
 
@@ -2743,7 +2687,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
                         llvm::Type::getDoubleTy(llvm::getGlobalContext())
                     );
                 (*call_arg_types_iter) =
-                    type_double;
+                    ctx->tr->type_double;
             } else if ((*call_arg_types_iter)->isIntegerType()) {
                 int real_size =
                     nt->internalSizeToRealSize(
@@ -2755,16 +2699,18 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
                         /* Target integer is signed - use sext. */
                         (*call_args_iter) =
                             builder.CreateSExt((*call_args_iter),
-                                               ctx->toLLVMType(type_int,
+                                               ctx->toLLVMType(
+                                                    ctx->tr->type_int,
                                                               NULL, false));
-                        (*call_arg_types_iter) = type_int;
+                        (*call_arg_types_iter) = ctx->tr->type_int;
                     } else {
                         /* Target integer is not signed - use zext. */
                         (*call_args_iter) =
                             builder.CreateZExt((*call_args_iter),
-                                               ctx->toLLVMType(type_uint,
+                                               ctx->toLLVMType(
+                                                    ctx->tr->type_uint,
                                                               NULL, false));
-                        (*call_arg_types_iter) = type_uint;
+                        (*call_arg_types_iter) = ctx->tr->type_uint;
                     }
                 }
             }
@@ -2810,10 +2756,10 @@ void Generator::parseArgument(Element::Variable *var, Node *top,
         }
 
         if (!strcmp(t->str_value.c_str(), "void")) {
-            var->type = type_void;
+            var->type = ctx->tr->type_void;
             return;
         } else if (!strcmp(t->str_value.c_str(), "...")) {
-            var->type = type_varargs;
+            var->type = ctx->tr->type_varargs;
             return;
         } else {
             Error *e = new Error(
@@ -3364,7 +3310,7 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
             getUnusedVarname(&varname2);
 
             Element::Type *archar = 
-                tr->getArrayType(type_char,
+                tr->getArrayType(ctx->tr->type_char,
                                  t->str_value.size() + 1);
 
             svar2 =
@@ -3401,7 +3347,7 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
             llvm::cast<llvm::Constant>(
                 llvm::ConstantPointerNull::get(
                     llvm::cast<llvm::PointerType>(
-                        ctx->toLLVMType(type_pchar, NULL, false)
+                        ctx->toLLVMType(ctx->tr->type_pchar, NULL, false)
                     )
                 )
             )
@@ -3473,7 +3419,7 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
         llvm::cast<llvm::Constant>(
             llvm::ConstantPointerNull::get(
                 llvm::cast<llvm::PointerType>(
-                    ctx->toLLVMType(type_pchar, NULL, false)
+                    ctx->toLLVMType(ctx->tr->type_pchar, NULL, false)
                 )
             )
         )

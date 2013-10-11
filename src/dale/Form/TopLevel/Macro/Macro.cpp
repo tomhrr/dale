@@ -134,7 +134,7 @@ bool parse(Generator *gen,
                     return false;
                 }
                 var = new Element::Variable();
-                var->type = ctx->tr->getBasicType(Type::VarArgs);
+                var->type = ctx->tr->type_varargs;
                 var->linkage = dale::Linkage::Auto;
                 mc_args_internal->push_back(var);
                 break;

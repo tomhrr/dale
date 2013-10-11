@@ -109,7 +109,7 @@ bool parse(Generator *gen,
                     ++iter;
                 }
                 if (types.empty()) {
-                    types.push_back(ctx->tr->getBasicType(dale::Type::Void));
+                    types.push_back(ctx->tr->type_void);
                 }
 
                 Element::Function *closest_fn = NULL;

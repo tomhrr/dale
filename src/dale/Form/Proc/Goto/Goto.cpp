@@ -107,7 +107,7 @@ bool parse(Generator *gen,
         builder.CreateBr(to_block);
     }
 
-    pr->set(block, ctx->tr->getBasicType(Type::Int), 
+    pr->set(block, ctx->tr->type_int, 
             llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
 
     /* Ugh. If setf was defined for ints, the caller of this

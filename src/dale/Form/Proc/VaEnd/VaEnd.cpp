@@ -61,7 +61,7 @@ bool parse(Generator *gen,
     builder.CreateCall(va_start,
                        llvm::ArrayRef<llvm::Value*>(call_args));
 
-    pr->set(to_pchar.block, ctx->tr->getBasicType(Type::Void), NULL);
+    pr->set(to_pchar.block, ctx->tr->type_void, NULL);
 
     return true;
 }

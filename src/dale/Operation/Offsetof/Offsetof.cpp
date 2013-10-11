@@ -73,7 +73,7 @@ executeByIndex(Context *ctx,
     llvm::Value *res2 =
         builder.CreatePtrToInt(res, ctx->nt->getNativeSizeType());
 
-    pr->set(block, ctx->tr->getBasicType(Type::Size), res2);
+    pr->set(block, ctx->tr->type_size, res2);
     return true;
 }
 
@@ -103,7 +103,7 @@ getByIndex(Unit *unit,
     Context *ctx = unit->ctx;
 
     llvm::Type *llvm_return_type =
-        ctx->toLLVMType(ctx->tr->getBasicType(Type::Size), NULL, false);
+        ctx->toLLVMType(ctx->tr->type_size, NULL, false);
     if (!llvm_return_type) {
         return 0;
     }

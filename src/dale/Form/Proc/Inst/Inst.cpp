@@ -531,7 +531,7 @@ past_sl_parse:
      * this if backup_error is set. */
 
     if (!(t->str_value.compare("destroy"))) {
-        pr->set(block, ctx->tr->getBasicType(dale::Type::Void), NULL);
+        pr->set(block, ctx->tr->type_void, NULL);
         return true;
     }
 

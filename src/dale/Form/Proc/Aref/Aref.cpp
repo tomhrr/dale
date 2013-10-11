@@ -70,7 +70,7 @@ bool parse(Generator *gen,
                                      pr_index.block,
                                      pr_index.value,
                                      pr_index.type, 
-                                     ctx->tr->getBasicType(Type::Size),
+                                     ctx->tr->type_size,
                                      (*lst)[2],
                                      true,
                                      &newt);

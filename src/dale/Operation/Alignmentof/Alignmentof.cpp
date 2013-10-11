@@ -16,7 +16,7 @@ execute(Context *ctx,
 {
     std::vector<llvm::Type*> elements_llvm;
     elements_llvm.push_back(
-        ctx->toLLVMType(ctx->tr->getBasicType(Type::Char), NULL, false));
+        ctx->toLLVMType(ctx->tr->type_char, NULL, false));
 
     llvm::Type *llvm_type =
         ctx->toLLVMType(type, NULL, false);
@@ -63,7 +63,7 @@ execute(Context *ctx,
     llvm::Value *res2 =
         builder.CreatePtrToInt(res, ctx->nt->getNativeSizeType());
 
-    pr->set(block, ctx->tr->getBasicType(Type::Size), res2);
+    pr->set(block, ctx->tr->type_size, res2);
     return true;
 }
 }

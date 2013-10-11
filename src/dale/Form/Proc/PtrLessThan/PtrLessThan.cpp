@@ -56,7 +56,7 @@ bool parse(Generator *gen,
                            builder.CreateICmpULT(p.value, p2.value)
                        );
 
-    pr->set(p2.block, ctx->tr->getBasicType(Type::Bool), vres);
+    pr->set(p2.block, ctx->tr->type_bool, vres);
 
     p.block = p2.block;
     ParseResult temp;

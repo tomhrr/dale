@@ -227,7 +227,7 @@ parseLiteralElement(Generator *gen,
         gen->getUnusedVarname(&varname2);
 
         Element::Type *archar =
-            tr->getArrayType(tr->getBasicType(dale::Type::Char), *size);
+            tr->getArrayType(tr->type_char, *size);
 
         if (gen->mod->getGlobalVariable(llvm::StringRef(varname2.c_str()))) {
             fprintf(stderr, "Internal error: "
@@ -461,7 +461,7 @@ parseLiteral(Generator *gen,
     }
 
     llvm::Type *tttt = ctx->toLLVMType(
-        ctx->tr->getBasicType(dale::Type::Void), NULL, true);
+        ctx->tr->type_void, NULL, true);
     llvm::FunctionType *wrapft =
         getFunctionType(
             tttt,
@@ -531,7 +531,7 @@ parseLiteral(Generator *gen,
                block,
                reta,
                ctx->tr->getPointerType(type),
-               ctx->tr->getPointerType(ctx->tr->getBasicType(dale::Type::Char)),
+               ctx->tr->type_pchar,
                top, 0, &temp_pr);
     if (!res) {
         return false;
@@ -561,8 +561,8 @@ parseLiteral(Generator *gen,
         Operation::Cast::execute(ctx, 
                block,
                v,
-               ctx->tr->getBasicType(dale::Type::IntPtr),
-               ctx->tr->getPointerType(ctx->tr->getBasicType(dale::Type::Char)),
+               ctx->tr->type_intptr,
+               ctx->tr->type_pchar,
                top, 0, &storeor
               );
     if (!res) {

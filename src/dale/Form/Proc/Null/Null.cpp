@@ -78,7 +78,7 @@ bool parse(Generator *gen,
                                        ctx->nt->getLLVMZero())
                            );
 
-    pr->set(pr_value.block, ctx->tr->getBasicType(Type::Bool), icmpres);
+    pr->set(pr_value.block, ctx->tr->type_bool, icmpres);
     ParseResult temp;
     res = gen->destructIfApplicable(&pr_value, NULL, &temp);
     if (!res) {

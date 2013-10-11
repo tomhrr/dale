@@ -141,7 +141,7 @@ bool parse(Generator *gen,
         if (!mres) {
             return false;
         }
-        pr->set(temp.block, ctx->tr->getBasicType(Type::Bool), ret);
+        pr->set(temp.block, ctx->tr->type_bool, ret);
         return true;
     }
 
@@ -178,7 +178,7 @@ cont1:
             return false;
         }
 
-        pr->set(temp.block, ctx->tr->getBasicType(Type::Bool), ret);
+        pr->set(temp.block, ctx->tr->type_bool, ret);
         return true;
     }
 
@@ -199,7 +199,7 @@ cont2:
             return false;
         }
 
-        pr->set(temp.block, ctx->tr->getBasicType(Type::Bool), 
+        pr->set(temp.block, ctx->tr->type_bool, 
                 llvm::ConstantInt::get(
                     llvm::IntegerType::get(llvm::getGlobalContext(), 1), 1
                 ));

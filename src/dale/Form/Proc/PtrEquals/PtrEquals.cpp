@@ -60,7 +60,7 @@ bool parse(Generator *gen,
                            builder.CreateICmpEQ(p1.value, p2.value)
                        );
 
-    pr->set(p2.block, ctx->tr->getBasicType(Type::Bool), res);
+    pr->set(p2.block, ctx->tr->type_bool, res);
 
     p1.block = p2.block;
     ParseResult ret;

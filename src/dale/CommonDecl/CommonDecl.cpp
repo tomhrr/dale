@@ -67,15 +67,14 @@ addVarargsFunctions(Unit *unit)
 {
     llvm::Module *mod = unit->module;
     Context *ctx = unit->ctx;
-    Element::Type *type_pchar =
-        ctx->tr->getPointerType(ctx->tr->getBasicType(Type::Char)); 
+    Element::Type *type_pchar = ctx->tr->type_pchar;
 
     std::vector<llvm::Type*> va_start_args;
     va_start_args.push_back(ctx->toLLVMType(type_pchar, NULL, false));
 
     llvm::FunctionType *va_start_ft =
         getFunctionType(
-            ctx->toLLVMType(ctx->tr->getBasicType(Type::Void), NULL, true),
+            ctx->toLLVMType(ctx->tr->type_void, NULL, true),
             va_start_args,
             false
         );
@@ -111,21 +110,21 @@ addBasicTypes(Unit *unit, bool is_x86_64)
     std::string current_once_tag = unit->once_tag;
     TypeRegister *tr = ctx->tr;
 
-    BT_SI(tr->getBasicType(Type::Int));
-    BT_SI(tr->getBasicType(Type::Char));
-    BT_SI(tr->getBasicType(Type::Int8));
-    BT_SI(tr->getBasicType(Type::Int16));
-    BT_SI(tr->getBasicType(Type::Int32));
-    BT_SI(tr->getBasicType(Type::Int64));
+    BT_SI(tr->type_int);
+    BT_SI(tr->type_char);
+    BT_SI(tr->type_int8);
+    BT_SI(tr->type_int16);
+    BT_SI(tr->type_int32);
+    BT_SI(tr->type_int64);
 
-    BT_UI(tr->getBasicType(Type::UInt));
-    BT_UI(tr->getBasicType(Type::IntPtr));
-    BT_UI(tr->getBasicType(Type::PtrDiff));
-    BT_UI(tr->getBasicType(Type::Size));
-    BT_UI(tr->getBasicType(Type::UInt8));
-    BT_UI(tr->getBasicType(Type::UInt16));
-    BT_UI(tr->getBasicType(Type::UInt32));
-    BT_UI(tr->getBasicType(Type::UInt64));
+    BT_UI(tr->type_uint);
+    BT_UI(tr->type_intptr);
+    BT_UI(tr->type_ptrdiff);
+    BT_UI(tr->type_size);
+    BT_UI(tr->type_uint8);
+    BT_UI(tr->type_uint16);
+    BT_UI(tr->type_uint32);
+    BT_UI(tr->type_uint64);
 
     /* i128 (actually any integer type with a size of more than 64
      * bits) does not work properly in some respects on x86-32
@@ -134,13 +133,13 @@ addBasicTypes(Unit *unit, bool is_x86_64)
      * completely. */
 
     if (is_x86_64) {
-        BT_SI(tr->getBasicType(Type::Int128));
-        BT_UI(tr->getBasicType(Type::UInt128));
+        BT_SI(tr->type_int128);
+        BT_UI(tr->type_uint128);
     }
 
-    BT_FP(tr->getBasicType(Type::Float));
-    BT_FP(tr->getBasicType(Type::Double));
-    BT_FP(tr->getBasicType(Type::LongDouble));
+    BT_FP(tr->type_float);
+    BT_FP(tr->type_double);
+    BT_FP(tr->type_longdouble);
 }
 
 void 
@@ -167,10 +166,10 @@ addStandardVariables(Unit *unit)
     Context *ctx = unit->ctx;
     NativeTypes *nt = ctx->nt;
     
-    Element::Type *type_int        = ctx->tr->getBasicType(Type::Int);
-    Element::Type *type_float      = ctx->tr->getBasicType(Type::Float);
-    Element::Type *type_double     = ctx->tr->getBasicType(Type::Double);
-    Element::Type *type_longdouble = ctx->tr->getBasicType(Type::LongDouble);
+    Element::Type *type_int        = ctx->tr->type_int;
+    Element::Type *type_float      = ctx->tr->type_float;
+    Element::Type *type_double     = ctx->tr->type_double;
+    Element::Type *type_longdouble = ctx->tr->type_longdouble;
 
     AV_INT("JMP_BUF_SIZE",     sizeof (jmp_buf));
     AV_INT("FPOS_T",           sizeof (fpos_t));

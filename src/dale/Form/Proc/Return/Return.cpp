@@ -34,7 +34,7 @@ bool parse(Generator *gen,
         llvm::IRBuilder<> builder(block);
         gen->scopeClose(fn, block, NULL);
         builder.CreateRetVoid();
-        pr->set(block, ctx->tr->getBasicType(Type::Int),
+        pr->set(block, ctx->tr->type_int,
                 ctx->nt->getNativeInt(0));
         pr->do_not_destruct       = 1;
         pr->do_not_copy_with_setf = 1;

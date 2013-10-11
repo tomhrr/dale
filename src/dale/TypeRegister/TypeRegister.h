@@ -65,6 +65,30 @@ public:
      *  by the caller after this function has been executed.
      *  @param type The type. */
     Element::Type *getType(Element::Type *type);
+    /*! Variables for common types. */
+    Element::Type *type_bool;
+    Element::Type *type_void;
+    Element::Type *type_varargs;
+    Element::Type *type_int;
+    Element::Type *type_intptr;
+    Element::Type *type_size;
+    Element::Type *type_ptrdiff;
+    Element::Type *type_uint;
+    Element::Type *type_char;
+    Element::Type *type_float;
+    Element::Type *type_double;
+    Element::Type *type_longdouble;
+    Element::Type *type_int8;
+    Element::Type *type_uint8;
+    Element::Type *type_int16;
+    Element::Type *type_uint16;
+    Element::Type *type_int32;
+    Element::Type *type_uint32;
+    Element::Type *type_int64;
+    Element::Type *type_uint64;
+    Element::Type *type_int128;
+    Element::Type *type_uint128;
+    Element::Type *type_pchar;
 
     /*! Dump debugging information to stderr. */
     void dump(void);

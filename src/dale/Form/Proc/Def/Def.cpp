@@ -25,7 +25,6 @@ bool parse(Generator *gen,
            ParseResult *pr)
 {
     Context *ctx = gen->ctx;
-    Element::Type *type_int = ctx->tr->getBasicType(dale::Type::Int);
 
     assert(node->list && "must receive a list!");
 
@@ -72,7 +71,7 @@ bool parse(Generator *gen,
 
     if (!(nvar->token->str_value.compare("struct"))) {
         Form::Struct::parse(gen, ndef, name);
-        pr->set(block, type_int,
+        pr->set(block, ctx->tr->type_int,
               llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
         return true;
     }
@@ -102,7 +101,7 @@ bool parse(Generator *gen,
      * it is, then the type is implied based on the result of
      * parsing the later expression. */
 
-    pr->set(block, type_int,
+    pr->set(block, ctx->tr->type_int,
           llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
     pr->do_not_destruct       = 1;
     pr->do_not_copy_with_setf = 1;
@@ -289,7 +288,7 @@ bool parse(Generator *gen,
             /* Finished - no value for this define. If the type is
              * const, though, it's an error. */
 
-            pr->set(block, type_int,
+            pr->set(block, ctx->tr->type_int,
                   llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
 
             return true;

@@ -34,6 +34,32 @@ TypeRegister::TypeRegister(void)
     basic_types[Type::UInt64]     = new Element::Type(Type::UInt64);
     basic_types[Type::Int128]     = new Element::Type(Type::Int128);
     basic_types[Type::UInt128]    = new Element::Type(Type::UInt128);
+
+    type_bool        = getBasicType(Type::Bool);
+    type_void        = getBasicType(Type::Void);
+    type_varargs     = getBasicType(Type::VarArgs);
+    type_int         = getBasicType(Type::Int);
+    type_intptr      = getBasicType(Type::IntPtr);
+    type_size        = getBasicType(Type::Size);
+    type_ptrdiff     = getBasicType(Type::PtrDiff);
+    type_uint        = getBasicType(Type::UInt);
+    type_char        = getBasicType(Type::Char);
+    type_float       = getBasicType(Type::Float);
+    type_double      = getBasicType(Type::Double);
+    type_longdouble  = getBasicType(Type::LongDouble);
+
+    type_int8    = getBasicType(Type::Int8);
+    type_uint8   = getBasicType(Type::UInt8);
+    type_int16   = getBasicType(Type::Int16);
+    type_uint16  = getBasicType(Type::UInt16);
+    type_int32   = getBasicType(Type::Int32);
+    type_uint32  = getBasicType(Type::UInt32);
+    type_int64   = getBasicType(Type::Int64);
+    type_uint64  = getBasicType(Type::UInt64);
+    type_int128  = getBasicType(Type::Int128);
+    type_uint128 = getBasicType(Type::UInt128);
+
+    type_pchar  = getPointerType(type_char);
 }
 
 TypeRegister::~TypeRegister(void)

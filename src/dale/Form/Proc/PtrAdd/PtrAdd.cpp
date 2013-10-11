@@ -25,8 +25,6 @@ bool parse(Generator *gen,
 {
     Context *ctx = gen->ctx; 
 
-    Element::Type *type_intptr = ctx->tr->getBasicType(Type::IntPtr);
-
     assert(node->list && "must receive a list!");
 
     if (!ctx->er->assertArgNums("p+", node, 2, 2)) {
@@ -69,7 +67,7 @@ bool parse(Generator *gen,
         }
         mres = 
             Operation::Cast::execute(ctx, size.block, size.value, size.type,
-                     type_intptr, (*lst)[2], 0, &temp2);
+                     ctx->tr->type_intptr, (*lst)[2], 0, &temp2);
         if (!mres) {
             return false;
         }
@@ -81,12 +79,12 @@ bool parse(Generator *gen,
     ParseResult cast1;
     ParseResult cast2;
     mres = Operation::Cast::execute(ctx, mynextb, ptr.value, ptr.type,
-                 type_intptr, (*lst)[1], 0, &cast1);
+                 ctx->tr->type_intptr, (*lst)[1], 0, &cast1);
     if (!mres) {
         return false;
     }
     mres = Operation::Cast::execute(ctx, cast1.block, val.value, val.type,
-                 type_intptr, (*lst)[2], 0, &cast2);
+                 ctx->tr->type_intptr, (*lst)[2], 0, &cast2);
     if (!mres) {
         return false;
     }
@@ -110,7 +108,7 @@ bool parse(Generator *gen,
     }
 
     ParseResult final_res;
-    Operation::Cast::execute(ctx, cast2.block, res, type_intptr, 
+    Operation::Cast::execute(ctx, cast2.block, res, ctx->tr->type_intptr, 
                              ptr.type, node, 0, &final_res);
 
     ptr.block = final_res.block;

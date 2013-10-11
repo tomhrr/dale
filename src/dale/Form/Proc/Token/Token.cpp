@@ -118,8 +118,8 @@ bool parse(Generator *gen,
 {
     Context *ctx = gen->ctx;
     NativeTypes *nt = ctx->nt;
-    Element::Type *type_char  = ctx->tr->getBasicType(Type::Char);
-    Element::Type *type_pchar = ctx->tr->getPointerType(type_char);
+    Element::Type *type_char  = ctx->tr->type_char;
+    Element::Type *type_pchar = ctx->tr->type_pchar;
     std::vector<llvm::Value *> two_zero_indices;
     stl::push_back2(&two_zero_indices,
                     nt->getLLVMZero(), nt->getLLVMZero());
@@ -186,7 +186,7 @@ bool parse(Generator *gen,
         } else {
             pr->set(
                         block,
-                        ctx->tr->getBasicType(Type::Int),
+                        ctx->tr->type_int,
                         nt->getConstantInt(
                             nt->getNativeIntType(),
                             t->str_value.c_str()
@@ -199,7 +199,7 @@ bool parse(Generator *gen,
                 && wanted_type->base_type == Type::Float) {
             pr->set(
                         block,
-                        ctx->tr->getBasicType(Type::Float),
+                        ctx->tr->type_float,
                         llvm::ConstantFP::get(
                             llvm::Type::getFloatTy(llvm::getGlobalContext()),
                             llvm::StringRef(t->str_value.c_str())
@@ -210,7 +210,7 @@ bool parse(Generator *gen,
                     && wanted_type->base_type == Type::Double) {
             pr->set(
                         block,
-                        ctx->tr->getBasicType(Type::Double),
+                        ctx->tr->type_double,
                         llvm::ConstantFP::get(
                             llvm::Type::getDoubleTy(llvm::getGlobalContext()),
                             llvm::StringRef(t->str_value.c_str())
@@ -221,7 +221,7 @@ bool parse(Generator *gen,
                     && wanted_type->base_type == Type::LongDouble) {
             pr->set(
                         block,
-                        ctx->tr->getBasicType(Type::LongDouble),
+                        ctx->tr->type_longdouble,
                         llvm::ConstantFP::get(
                             nt->getNativeLongDoubleType(),
                             llvm::StringRef(t->str_value.c_str())
@@ -231,7 +231,7 @@ bool parse(Generator *gen,
         } else {
             pr->set(
                         block,
-                        ctx->tr->getBasicType(Type::Float),
+                        ctx->tr->type_float,
                         llvm::ConstantFP::get(
                             llvm::Type::getFloatTy(llvm::getGlobalContext()),
                             llvm::StringRef(t->str_value.c_str())
@@ -248,7 +248,7 @@ tryvar:
         if (is_true || is_false) {
             pr->set(
                         block,
-                        ctx->tr->getBasicType(Type::Bool),
+                        ctx->tr->type_bool,
                         llvm::ConstantInt::get(
                             llvm::Type::getInt1Ty(llvm::getGlobalContext()),
                             is_true
@@ -292,7 +292,7 @@ tryvar:
 
             pr->set(
                         block,
-                        ctx->tr->getBasicType(Type::Char),
+                        ctx->tr->type_char,
                         llvm::ConstantInt::get(nt->getNativeCharType(), c)
                     );
             return true;

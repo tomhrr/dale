@@ -52,7 +52,7 @@ bool parse(Generator *gen,
     res = Operation::Cast::execute(ctx, pr_valist.block,
                 pr_valist.value,
                 pr_valist.type,
-                ctx->tr->getPointerType(ctx->tr->getBasicType(Type::Char)),
+                ctx->tr->getPointerType(ctx->tr->type_char),
                 node, 0, &to_pchar);
     if (!res) {
         return false;
@@ -61,7 +61,7 @@ bool parse(Generator *gen,
     builder.CreateCall(va_start,
                        llvm::ArrayRef<llvm::Value*>(call_args));
 
-    pr->set(to_pchar.block, ctx->tr->getBasicType(Type::Void), NULL);
+    pr->set(to_pchar.block, ctx->tr->type_void, NULL);
 
     return true;
 }
