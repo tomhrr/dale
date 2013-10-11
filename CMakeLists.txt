@@ -228,6 +228,9 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/TopLevel/Module/Module.cpp
                       src/dale/Form/TopLevel/Import/Import.cpp
                       src/dale/Form/TopLevel/Inst/Inst.cpp
+                      src/dale/Form/Literal/Struct/Struct.cpp
+                      src/dale/Form/Literal/Enum/Enum.cpp
+                      src/dale/Form/Literal/Array/Array.cpp
                       src/dale/CoreForms/CoreForms.cpp
                       src/dale/Element/Label/Label.cpp
                       src/dale/CommonDecl/CommonDecl.cpp

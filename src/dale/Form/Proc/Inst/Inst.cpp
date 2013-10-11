@@ -43,6 +43,9 @@
 #include "../../Macro/DerefStruct/DerefStruct.h"
 #include "../../Macro/Setv/Setv.h"
 #include "../../Function/Function.h"
+#include "../../Literal/Struct/Struct.h"
+#include "../../Literal/Enum/Enum.h"
+#include "../../Literal/Array/Array.h"
 
 #define eq(str) !strcmp(t->str_value.c_str(), str)
 
@@ -171,7 +174,8 @@ bool parseInternal(Generator *gen,
     }
 
     /* If wanted_type is present and is a struct, then use
-     * parseStructLiteral, if the first list element is a list. */
+     * Form::Literal::Struct::parse, if the first list element is a
+     * list. */
 
     if (wanted_type
             && (wanted_type->struct_name)
@@ -189,7 +193,8 @@ bool parseInternal(Generator *gen,
         }
 
         bool res =
-            gen->parseStructLiteral(fn, block, n,
+            Form::Literal::Struct::parse(
+                               gen, fn, block, n,
                                wanted_type->struct_name->c_str(),
                                str,
                                wanted_type,
@@ -252,7 +257,7 @@ bool parseInternal(Generator *gen,
         int original_error_count =
             ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        bool res = gen->parseEnumLiteral(block, (*lst)[1],
+        bool res = Form::Literal::Enum::parse(gen, block, (*lst)[1],
                                              myenum,
                                              myenumtype,
                                              myenumstruct,
@@ -301,12 +306,12 @@ past_en_parse:
         int original_error_count =
             ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        bool res = gen->parseStructLiteral(fn, block, (*lst)[1],
-                                               "asdf",
-                                               str,
-                                               structtype,
-                                               get_address,
-                                               pr);
+        bool res = Form::Literal::Struct::parse(gen, fn, block, (*lst)[1],
+                                                "asdf",
+                                                str,
+                                                structtype,
+                                                get_address,
+                                                pr);
         if (!res) {
             ctx->er->popErrors(original_error_count);
             goto past_sl_parse;
@@ -321,9 +326,9 @@ past_sl_parse:
     if (wanted_type
             && wanted_type->is_array
             && (!strcmp(t->str_value.c_str(), "array"))) {
-        /* go to parseArrayLiteral */
         int size;
-        bool res = gen->parseArrayLiteral(
+        bool res = Form::Literal::Array::parse(
+                                gen,
                                 fn, block, n,
                                 "array literal",
                                 wanted_type,

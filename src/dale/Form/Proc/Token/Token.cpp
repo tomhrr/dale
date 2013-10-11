@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
+#include "../../Literal/Enum/Enum.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -12,6 +13,100 @@ namespace Proc
 {
 namespace Token
 {
+llvm::Constant *
+parseStringLiteral(Generator *gen,
+                   Element::Type *type,
+                   Node *top,
+                   int *size) 
+{
+    Context *ctx = gen->ctx;
+
+    if (type->base_type == Type::Int) {
+        if (!top->is_token) {
+            Error *e = new Error(
+                ErrorInst::Generator::UnexpectedElement,
+                top,
+                "atom", "literal", "list"
+            );
+            ctx->er->addError(e);
+            return NULL;
+        }
+        dale::Token *t = top->token;
+
+        if (t->type != TokenType::Int) {
+            Error *e = new Error(
+                ErrorInst::Generator::UnexpectedElement,
+                top,
+                "integer", "literal", t->tokenType()
+            );
+            ctx->er->addError(e);
+            return NULL;
+        }
+
+        llvm::Constant *myconstint =
+            ctx->nt->getConstantInt(ctx->nt->getNativeIntType(),
+                                    t->str_value.c_str());
+
+        llvm::Value *myconstvalue =
+            llvm::cast<llvm::Value>(myconstint);
+
+        llvm::Constant *myconstint2 =
+            llvm::cast<llvm::Constant>(myconstvalue);
+
+        return myconstint2;
+    }
+
+    int underlying_type =
+          (!type->base_type && type->points_to) ? type->points_to->base_type
+        : (type->is_array)                      ? type->array_type->base_type
+        : 0;
+
+    if (underlying_type == Type::Char) {
+        if (!top->is_token) {
+            Error *e = new Error(
+                ErrorInst::Generator::UnexpectedElement,
+                top,
+                "atom", "literal", "list"
+            );
+            ctx->er->addError(e);
+            return NULL;
+        }
+        dale::Token *t = top->token;
+
+        if (t->type != TokenType::StringLiteral) {
+            Error *e = new Error(
+                ErrorInst::Generator::UnexpectedElement,
+                top,
+                "string", "literal", t->tokenType()
+            );
+            ctx->er->addError(e);
+            return NULL;
+        }
+
+        size_t pos = 0;
+        while ((pos = t->str_value.find("\\n", pos)) != std::string::npos) {
+            t->str_value.replace(pos, 2, "\n");
+        }
+
+        *size = strlen(t->str_value.c_str()) + 1;
+
+        return
+            llvm::ConstantArray::get(llvm::getGlobalContext(),
+                                     t->str_value.c_str(),
+                                     true);
+    }
+
+    std::string temp;
+    type->toStringProper(&temp);
+    Error *e = new Error(
+        ErrorInst::Generator::CannotParseLiteral,
+        top,
+        temp.c_str()
+    );
+    ctx->er->addError(e);
+    return NULL;
+}
+
 bool parse(Generator *gen,
            Element::Function *fn,
            llvm::BasicBlock *block,
@@ -57,7 +152,8 @@ bool parse(Generator *gen,
             * (token could be a var name). */
 
         bool res =
-            gen->parseEnumLiteral(block, node,
+            Form::Literal::Enum::parse(
+                                gen, block, node,
                                 myenum2,
                                 wanted_type,
                                 myenumstruct2,
@@ -255,10 +351,11 @@ tryvar:
         }
     } else if (t->type == TokenType::StringLiteral) {
 
-        /* Add the variable to the module */
+        /* Add the variable to the module. */
 
         int size = 0;
-        llvm::Constant *init = gen->parseLiteral1(type_pchar, node, &size);
+        llvm::Constant *init = parseStringLiteral(gen, type_pchar, 
+                                                  node, &size);
         if (!init) {
             return false;
         }
@@ -271,7 +368,7 @@ tryvar:
         }
 
         /* Have to check for existing variables with this
-            * name, due to modules. */
+         * name, due to modules. */
 
         std::string varname;
         llvm::GlobalVariable *var;

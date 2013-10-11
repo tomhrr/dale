@@ -3,6 +3,7 @@
 #include "../../../Node/Node.h"
 #include "../../../Operation/Cast/Cast.h"
 #include "../../../Operation/Sizeof/Sizeof.h"
+#include "../../../Operation/Offsetof/Offsetof.h"
 #include "../../Linkage/Linkage.h"
 #include "../../ProcBody/ProcBody.h"
 #include "../../Type/Type.h"
@@ -15,11 +16,333 @@ namespace TopLevel
 {
 namespace GlobalVariable
 {
-llvm::FunctionType *getFunctionType(llvm::Type *t,
-                                    std::vector<llvm::Type*> &v,
-                                    bool b) {
+llvm::FunctionType *
+getFunctionType(llvm::Type *t,
+                std::vector<llvm::Type*> &v,
+                bool b) {
     llvm::ArrayRef<llvm::Type*> temp(v);
     return llvm::FunctionType::get(t, temp, b);
+}
+
+llvm::Constant *
+parseLiteralElement(Generator *gen,
+                    Node *top,
+                    char *thing,
+                    Element::Type *type,
+                    int *size)
+{
+    Context *ctx = gen->ctx;
+    NativeTypes *nt = ctx->nt;
+    TypeRegister *tr = ctx->tr;
+
+    std::string t;
+    type->toStringProper(&t);
+
+    if (type->base_type == dale::Type::Bool) {
+        llvm::APInt myint(1,
+                          *thing);
+        llvm::ConstantInt *myconstint =
+            llvm::ConstantInt::get(llvm::getGlobalContext(),
+                                   myint);
+        return llvm::cast<llvm::Constant>(myconstint);
+    }
+
+    if (type->base_type == dale::Type::Char) {
+        llvm::APInt myint(8,
+                          *thing);
+        llvm::ConstantInt *myconstint =
+            llvm::ConstantInt::get(llvm::getGlobalContext(),
+                                   myint);
+        return llvm::cast<llvm::Constant>(myconstint);
+    }
+
+    if (type->isIntegerType()) {
+        union mynum {
+            unsigned char udata[8];
+            uint64_t      nvalue;
+        } bling;
+        bling.nvalue = 0;
+        int pr_size =
+            nt->internalSizeToRealSize(type->getIntegerSize());
+        int i;
+        if (pr_size == 128) {
+            uint64_t nvalues[2];
+            for (i = 0; i < 8; i++) {
+                bling.udata[i] = *(thing + i);
+            }
+            nvalues[0] = bling.nvalue;
+            for (i = 8; i < 16; i++) {
+                bling.udata[i - 8] = *(thing + i);
+            }
+            nvalues[1] = bling.nvalue;
+            llvm::APInt myint((unsigned) pr_size,
+                              2,
+                              nvalues);
+            llvm::ConstantInt *myconstint =
+                llvm::ConstantInt::get(llvm::getGlobalContext(),
+                                       myint);
+            return llvm::cast<llvm::Constant>(myconstint);
+        } else {
+            bling.nvalue = 0;
+            for (i = 0; i < (pr_size / 8); i++) {
+                bling.udata[i] = *(thing + i);
+            }
+            llvm::APInt myint(pr_size,
+                              bling.nvalue);
+            llvm::ConstantInt *myconstint =
+                llvm::ConstantInt::get(llvm::getGlobalContext(),
+                                       myint);
+            return llvm::cast<llvm::Constant>(myconstint);
+        }
+    }
+
+    if (type->base_type == dale::Type::Float) {
+        union float_hex {
+            unsigned char udata[4];
+            float         fvalue;
+        } bling;
+        bling.udata[3] = thing[3];
+        bling.udata[2] = thing[2];
+        bling.udata[1] = thing[1];
+        bling.udata[0] = thing[0];
+        llvm::APFloat myfloat(bling.fvalue);
+        llvm::ConstantFP *myconstfloat =
+            llvm::ConstantFP::get(llvm::getGlobalContext(),
+                                  myfloat);
+        return llvm::cast<llvm::Constant>(myconstfloat);
+    }
+
+    if (type->base_type == dale::Type::Double) {
+        union double_hex {
+            unsigned char udata[8];
+            double        dvalue;
+        } bling;
+        bling.udata[7] = thing[7];
+        bling.udata[6] = thing[6];
+        bling.udata[5] = thing[5];
+        bling.udata[4] = thing[4];
+
+        bling.udata[3] = thing[3];
+        bling.udata[2] = thing[2];
+        bling.udata[1] = thing[1];
+        bling.udata[0] = thing[0];
+        llvm::APFloat mydouble(bling.dvalue);
+        llvm::ConstantFP *myconstdouble =
+            llvm::ConstantFP::get(llvm::getGlobalContext(),
+                                  mydouble);
+        return llvm::cast<llvm::Constant>(myconstdouble);
+    }
+
+    if (type->struct_name) {
+        std::vector<llvm::Constant *> constants;
+
+        Element::Struct *str =
+            ctx->getStruct(
+                type->struct_name->c_str(),
+                type->namespaces
+            );
+        if (!str) {
+            fprintf(stderr, "Internal error: invalid struct.\n");
+            abort();
+        }
+
+        std::vector<Element::Type *>::iterator begin =
+            str->element_types.begin();
+
+        int i = 0;
+        int last_el_size = -1;
+        int last_offset = -1;
+        int incr = 0;
+
+        while (begin != str->element_types.end()) {
+            Element::Type *current = (*begin);
+            size_t el_size =
+                Operation::Sizeof::get(gen->unit_stack->top(), current);
+            size_t offset =
+                Operation::Offsetof::getByIndex(gen->unit_stack->top(), type, i);
+            size_t padding = 0;
+            if (i != 0) {
+                padding = (offset - last_offset - last_el_size);
+            }
+            if (padding) {
+                Error *e = new Error(
+                    ErrorInst::Generator::StructContainsPadding,
+                    top
+                );
+                ctx->er->addError(e);
+            }
+            incr += padding;
+            char *addr = thing;
+            addr += offset;
+            char aligned[256];
+            memcpy(aligned, addr, el_size);
+
+            llvm::Constant *el =
+                parseLiteralElement(gen,
+                                    top,
+                                    (char*) aligned,
+                                    current,
+                                    size);
+            if (!el) {
+                return NULL;
+            }
+            constants.push_back(el);
+            last_offset  = offset - incr;
+            last_el_size = el_size;
+            ++i;
+            ++begin;
+        }
+
+        llvm::Type *llvm_type =
+            ctx->toLLVMType(type, NULL, false);
+        if (!llvm_type) {
+            return NULL;
+        }
+
+        llvm::StructType *st =
+            llvm::cast<llvm::StructType>(llvm_type);
+
+        llvm::Constant *init =
+            llvm::ConstantStruct::get(
+                st,
+                constants
+            );
+
+        return init;
+    }
+
+    if (type->points_to && (type->points_to->base_type == dale::Type::Char)) {
+        char *temp =
+            *(char**)
+            (((uintptr_t) thing));
+        *size = strlen(temp) + 1;
+        llvm::Constant *myconststr =
+            llvm::cast<llvm::Constant>(
+                llvm::ConstantArray::get(llvm::getGlobalContext(),
+                                         temp,
+                                         true)
+            );
+
+        std::string varname2;
+        gen->getUnusedVarname(&varname2);
+
+        Element::Type *archar =
+            tr->getArrayType(tr->getBasicType(dale::Type::Char), *size);
+
+        if (gen->mod->getGlobalVariable(llvm::StringRef(varname2.c_str()))) {
+            fprintf(stderr, "Internal error: "
+                    "global variable already exists "
+                    "in module ('%s').\n",
+                    varname2.c_str());
+            abort();
+        }
+
+        llvm::GlobalVariable *svar2 =
+            llvm::cast<llvm::GlobalVariable>(
+                gen->mod->getOrInsertGlobal(varname2.c_str(),
+                                       ctx->toLLVMType(archar, NULL, false))
+            );
+
+        svar2->setInitializer(myconststr);
+        svar2->setConstant(true);
+        svar2->setLinkage(ctx->toLLVMLinkage(dale::Linkage::Intern));
+
+        llvm::Value *temps[2];
+        temps[0] = nt->getLLVMZero();
+        temps[1] = nt->getLLVMZero();
+
+        llvm::Constant *pce =
+            llvm::ConstantExpr::getGetElementPtr(
+                llvm::cast<llvm::Constant>(svar2),
+                temps,
+                2
+            );
+
+        return pce;
+    }
+
+    if (type->points_to) {
+        if (*thing) {
+            uint64_t value = *(uint64_t*)thing;
+            if (sizeof(char*) == 4) {
+                value <<= 32;
+                if (!value) {
+                    goto a;
+                }
+            }
+            Error *e = new Error(
+                ErrorInst::Generator::NonNullPointerInGlobalStructDeclaration,
+                top
+            );
+            ctx->er->addError(e);
+        }
+a:
+        llvm::Type *llvm_type =
+            ctx->toLLVMType(type, NULL, false);
+        if (!llvm_type) {
+            return NULL;
+        }
+        llvm::Constant *pce =
+            llvm::ConstantPointerNull::get(
+                llvm::cast<llvm::PointerType>(llvm_type)
+            );
+        return pce;
+    }
+
+    if (type->is_array) {
+        /* Take the portion devoted to whatever the element is,
+         * and re-call this function. */
+        size_t el_size =
+            Operation::Sizeof::get(gen->unit_stack->top(), type->array_type);
+        int i = 0;
+        int els = type->array_size;
+        std::vector<llvm::Constant *> constants;
+
+        char elmemm[256];
+        char *elmem = elmemm;
+
+        for (i = 0; i < els; i++) {
+            // Memset it to nothing.
+
+            memset(elmem, 0, 256);
+
+            // Offset thing by the index, cast to a char pointer, and
+            // copy x elements into the new block.
+            char *mp = (char*) thing;
+            mp += (i * el_size);
+            memcpy(elmem, mp, el_size);
+
+            // Re-call parseLiteralElement, push the new constant onto
+            // the vector.
+            llvm::Constant *mycon =
+                parseLiteralElement(gen,
+                                    top,
+                                    elmem,
+                                    type->array_type,
+                                    size);
+
+            constants.push_back(mycon);
+        }
+
+        llvm::Constant *mine =
+            llvm::ConstantArray::get(
+                llvm::cast<llvm::ArrayType>(
+                    ctx->toLLVMType(type, top, false, false)
+                ),
+                constants
+            );
+
+        return mine;
+    }
+
+    Error *e = new Error(
+        ErrorInst::Generator::CannotParseLiteral,
+        top,
+        t.c_str()
+    );
+    ctx->er->addError(e);
+
+    return NULL;
 }
 
 static int myn = 0;
@@ -287,7 +610,7 @@ parseLiteral(Generator *gen,
     ((void (*)(void)) fptr)();
 
     llvm::Constant *parsed =
-        gen->parseLiteralElement(top, (char*) &thing, type, size);
+        parseLiteralElement(gen, top, (char*) &thing, type, size);
 
     wrap_fn->eraseFromParent();
     (llvm::cast<llvm::Function>(fnc))->eraseFromParent();

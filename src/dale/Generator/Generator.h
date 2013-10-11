@@ -104,29 +104,19 @@ private:
         std::set<std::string> *found_forms
     );
 
-    void parseGlobalVariable(const char *name, Node *n);
-    void parseMacroDefinition(const char *name, Node *n);
-    void parseEnumDefinition(const char *name, Node *n);
     llvm::Value *coerceValue(llvm::Value *from_value,
                              Element::Type *from_type,
                              Element::Type *to_type,
                              llvm::BasicBlock *block);
-    llvm::GlobalValue::LinkageTypes daleToLLVMLinkage(int linkage);
-    llvm::Constant *parseLiteral(Element::Type *type, Node *n, int *size);
 
     void regetPointersForFVDM(Context *newctx);
     void regetPointersForDM(Context *newctx);
 
-    Node *parseSetv(Node *n);
-
     Node *typeToIntNode(Element::Type *type);
-
 
     void removeMacroTemporaries(void);
 
     void deleteDNode(DNode *dnode);
-
-    Parser *newParser(FILE *new_fp, const char *filename);
 
     bool doCast(llvm::BasicBlock *block,
                         llvm::Value *value,
@@ -139,23 +129,9 @@ private:
 
 
     void popErrors(int original_count);
-    bool parseExistsMacro(DNode *dnode);
-
-    void reportErrorExternal(DNode *dnode, char *str);
 
     Node *WrapNode(Node *n);
     void addMacroPosition(Node *n, Node *mac_node);
-
-    bool typeToStringExternal(DNode *dnode, char *buf);
-
-    int parseStructLinkage(Node *n);
-
-
-    int addVariable(const char *name,
-                    Element::Type *type,
-                    llvm::Constant *init,
-                    bool ignore_if_present = false);
-
 
 public:
     int addIncludePath(char *filename);
@@ -217,14 +193,6 @@ public:
         std::vector<llvm::Value*> *extra_call_args
     , ParseResult *pr);
 
-    bool parseArrayLiteral(Element::Function *dfn,
-                                   llvm::BasicBlock *block,
-                                   Node *n,
-                                   const char *name,
-                                   Element::Type *array_type,
-                                   bool getAddress,
-                                   int *size, ParseResult *pr);
-
     int parseInteger(Node *n);
 
     std::vector<dale::Element::Function*> global_functions;
@@ -241,30 +209,9 @@ public:
     void parseArgument(Element::Variable *var, Node *n,
                        bool allow_anon_structs,
                        bool allow_bitfields);
-    bool parseEnumLiteral(
-        llvm::BasicBlock *block,
-        Node *n,
-        Element::Enum *myenum,
-        Element::Type
-        *myenumtype,
-        Element::Struct
-        *myenumstructtype,
-        bool getAddress, ParseResult *pr);
-    llvm::Constant *parseLiteral1(Element::Type *type, Node *n, int *size);
     int getUnusedVarname(std::string *mystr);
 
     Namespace *prefunction_ns;
-    void parseFunction(const char *name, Node *n,
-                       Element::Function **new_function,
-                       int override_linkage,
-                       int is_anonymous);
-    bool parseStructLiteral(Element::Function *dfn,
-                                    llvm::BasicBlock *block,
-                                    Node *n,
-                                    const char *name,
-                                    Element::Struct *str,
-                                    Element::Type *structtype,
-                                    bool getAddress, ParseResult *pr);
     Node *parseMacroCall(
         Node *n,
         const char *name,
@@ -275,7 +222,6 @@ public:
                                    prefixed_with_core,
                                    Element::Function
                                    **macro_to_call, ParseResult *pr);
-    int  parseTopLevel(Node *top);
     Parser                *prsr;
     llvm::Linker          *linker;
     std::string current_once_tag;
@@ -289,12 +235,6 @@ public:
     UnitStack *unit_stack;
     int addDaleModule(Node *n, const char *module_name,
                       std::vector<const char*> *import_forms);
-    int parseFunctionBody(Element::Function *dfn,
-                          llvm::Function *fn, Node *n, int skip, int is_anonymous);
-    llvm::Constant *parseLiteralElement(Node *top,
-                                        char *thing,
-                                        Element::Type
-                                        *type, int *size);
     std::set<std::string> *included_once_tags;
     int cto;
     int has_defined_extern_macro;

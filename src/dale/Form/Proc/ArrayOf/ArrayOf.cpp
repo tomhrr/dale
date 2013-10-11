@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
 #include "../../Type/Type.h"
+#include "../../Literal/Array/Array.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -49,8 +50,9 @@ bool parse(Generator *gen,
     Element::Type *arrtype = ctx->tr->getArrayType(type, size);
 
     int size2;
-    bool res =
-        gen->parseArrayLiteral(
+    return
+        Form::Literal::Array::parse(
+            gen,
             fn,
             block,
             ((*lst)[3]),
@@ -60,8 +62,6 @@ bool parse(Generator *gen,
             &size2,
             pr
         );
-
-    return res;
 }
 }
 }
