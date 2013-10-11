@@ -248,14 +248,6 @@ Generator::~Generator()
     delete dtm_nm_modules;
 }
 
-void setPr(ParseResult *pr, llvm::BasicBlock *block, Element::Type *type,
-           llvm::Value *value)
-{
-    pr->block = block;
-    pr->type  = type;
-    pr->value = value;
-}
-
 llvm::Module *loadModule(std::string *path)
 {
     const llvm::sys::Path sys_path(*path);
@@ -1393,7 +1385,7 @@ bool Generator::copyWithSetfIfApplicable(
         llvm::ArrayRef<llvm::Value*>(call_args));
     llvm::Value *result = builder.CreateLoad(new_ptr1);
 
-    setPr(pr_res, pr->block, pr->type, result);
+    pr_res->set(pr->block, pr->type, result);
     pr_res->freshly_copied = 1;
 
     return true;
@@ -1716,7 +1708,7 @@ bool Generator::parseFuncallInternal(
     llvm::Value *call_res =
         builder.CreateCall(fn, llvm::ArrayRef<llvm::Value*>(call_args));
 
-    setPr(pr, block, fn_ptr->type->points_to->return_type, call_res);
+    pr->set(block, fn_ptr->type->points_to->return_type, call_res);
 
     fn_ptr->block = pr->block;
     ParseResult temp;
@@ -2665,7 +2657,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
              * generic code whether a particular value can be
              * destroyed or not. */
             if (!t->str_value.compare("destroy")) {
-                setPr(pr, block, type_void, NULL);
+                pr->set(block, type_void, NULL);
                 return true;
             }
 
@@ -2785,7 +2777,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
                                 fn->llvm_function,
                                 llvm::ArrayRef<llvm::Value*>(call_args));
 
-    setPr(pr, block, fn->return_type, call_res);
+    pr->set(block, fn->return_type, call_res);
 
     /* If the return type of the function is one that should be
      * copied with an overridden setf, that will occur in the
