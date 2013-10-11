@@ -4195,46 +4195,20 @@ llvm::Value *Generator::IntNodeToStaticDNode(Node *node,
         );
     }
 
-    constants.push_back(
-        llvm::cast<llvm::Constant>(
-            nt->getNativeInt(node->getBeginPos()->line_number)
-        )
-    );
-    constants.push_back(
-        llvm::cast<llvm::Constant>(
-            nt->getNativeInt(node->getBeginPos()->column_number)
-        )
-    );
-    constants.push_back(
-        llvm::cast<llvm::Constant>(
-            nt->getNativeInt(node->getEndPos()->line_number)
-        )
-    );
-    constants.push_back(
-        llvm::cast<llvm::Constant>(
-            nt->getNativeInt(node->getEndPos()->column_number)
-        )
-    );
-    constants.push_back(
-        llvm::cast<llvm::Constant>(
-            nt->getNativeInt(node->macro_begin.line_number)
-        )
-    );
-    constants.push_back(
-        llvm::cast<llvm::Constant>(
-            nt->getNativeInt(node->macro_begin.column_number)
-        )
-    );
-    constants.push_back(
-        llvm::cast<llvm::Constant>(
-            nt->getNativeInt(node->macro_end.line_number)
-        )
-    );
-    constants.push_back(
-        llvm::cast<llvm::Constant>(
-            nt->getNativeInt(node->macro_end.column_number)
-        )
-    );
+    int pos[8] = { node->getBeginPos()->line_number,
+                   node->getBeginPos()->column_number,
+                   node->getEndPos()->line_number,
+                   node->getEndPos()->column_number,
+                   node->macro_begin.line_number,
+                   node->macro_begin.column_number,
+                   node->macro_end.line_number,
+                   node->macro_end.column_number };
+    for (int i = 0; i < 8; i++) {
+        constants.push_back(
+            llvm::cast<llvm::Constant>(nt->getNativeInt(pos[i]))
+        );
+    }
+
     constants.push_back(
         llvm::cast<llvm::Constant>(
             llvm::ConstantPointerNull::get(
