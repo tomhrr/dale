@@ -166,7 +166,6 @@ extern "C" {
 
     DNode *pointee_2D_type(MContext *mc, DNode *dnode)
     {
-        Generator *g = (dale::Generator*) mc->generator;
         Element::Type *type;
         bool res = get_type(mc, dnode, &type);
         if (!res) {
@@ -175,7 +174,7 @@ extern "C" {
         if (!type->points_to) {
             return false;
         }
-        return g->IntNodeToDNode(type->points_to->toNode());
+        return type->points_to->toNode()->toDNode();
     }
 
     bool has_2D_errors(MContext *mc, DNode *dnode)
@@ -453,7 +452,7 @@ extern "C" {
 
         g_parse_results.push_back(p);
 
-        DNode *mynode = g->IntNodeToDNode(p->type->toNode());
+        DNode *mynode = p->type->toNode()->toDNode();
         return mynode;
     }
 
@@ -843,9 +842,7 @@ extern "C" {
         g->ctx->er->popErrors(original_error_count);
         if (thefn && !thefn->is_macro) {
             DNode *dn =
-                g->IntNodeToDNode(
-                    thefn->return_type->toNode()
-                );
+                thefn->return_type->toNode()->toDNode();
             return dn;
         }
         else {
@@ -877,9 +874,7 @@ extern "C" {
         }
 
         return
-            g->IntNodeToDNode(
-                fn->parameter_types->at(arg_count)->type->toNode()
-            );
+            fn->parameter_types->at(arg_count)->type->toNode()->toDNode();
     }
 
     DNode *struct_2D_member_2D_type(MContext *mc,
@@ -902,9 +897,7 @@ extern "C" {
             return NULL;
         }
         return
-            g->IntNodeToDNode(
-                st->element_types.at(arg_count)->toNode()
-            );
+            st->element_types.at(arg_count)->toNode()->toDNode();
     }
 
     const char *struct_2D_member_2D_name(MContext *mc,

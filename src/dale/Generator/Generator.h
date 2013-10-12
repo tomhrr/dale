@@ -31,23 +31,6 @@ namespace llvm {
     class Module;
 }
 
-struct DNode
-{
-    int    is_list;
-    char  *token_str;
-    DNode *list_node;
-    DNode *next_node;
-    int    begin_line;
-    int    begin_column;
-    int    end_line;
-    int    end_column;
-    int    macro_begin_line;
-    int    macro_begin_column;
-    int    macro_end_line;
-    int    macro_end_column;
-    const char  *filename;
-};
-
 struct PoolNode
 {
     void     *value;
@@ -112,11 +95,7 @@ private:
     void regetPointersForFVDM(Context *newctx);
     void regetPointersForDM(Context *newctx);
 
-    Node *typeToIntNode(Element::Type *type);
-
     void removeMacroTemporaries(void);
-
-    void deleteDNode(DNode *dnode);
 
     bool doCast(llvm::BasicBlock *block,
                         llvm::Value *value,
@@ -146,7 +125,6 @@ public:
                                        std::map<std::string, Element::Label*> *mls
                                       );
     Node  *DNodeToIntNode(DNode *dnode);
-    DNode *IntNodeToDNode(Node  *node);
     Generator();
     ~Generator();
     int run(std::vector<const char *> *filenames,
@@ -240,6 +218,8 @@ public:
     int has_defined_extern_macro;
     std::string module_name;
     int set_module_name;
+    llvm::Type *llvm_type_dnode;
+    llvm::Type *llvm_type_pdnode;
 };
 }
 

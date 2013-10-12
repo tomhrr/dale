@@ -6,6 +6,23 @@
 
 #include <vector>
 
+struct DNode
+{
+    int    is_list;
+    char  *token_str;
+    DNode *list_node;
+    DNode *next_node;
+    int    begin_line;
+    int    begin_column;
+    int    end_line;
+    int    end_column;
+    int    macro_begin_line;
+    int    macro_begin_column;
+    int    macro_end_line;
+    int    macro_end_column;
+    const char  *filename;
+};
+
 namespace dale
 {
 class Node
@@ -30,6 +47,7 @@ public:
     Position *getEndPos(void);
     void copyMetaTo(Node *other);
     void copyTo(Node *other);
+    DNode *toDNode(void);
     ~Node(void);
 };
 

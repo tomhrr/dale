@@ -1,6 +1,8 @@
 #include "Node.h"
 
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 namespace dale
 {
@@ -160,5 +162,92 @@ Node *nullNode(void)
     }
     null_node = new Node(0);
     return null_node;
+}
+
+DNode *
+Node::toDNode(void)
+{
+    if (is_token) {
+        Token *t     = token;
+        DNode *dnode = (DNode*)malloc(sizeof(*dnode));
+
+        std::string ttostr;
+        t->valueToString(&ttostr);
+
+        char *sv = (char*)malloc(ttostr.length() + 1);
+
+        strncpy(sv, ttostr.c_str(), ttostr.length()+1);
+
+        dnode->is_list   = 0;
+        dnode->token_str = sv;
+        dnode->list_node = NULL;
+        dnode->next_node = NULL;
+
+        dnode->begin_line   = getBeginPos()->getLineNumber();
+        dnode->begin_column = getBeginPos()->getColumnNumber();
+        dnode->end_line     = getEndPos()->getLineNumber();
+        dnode->end_column   = getEndPos()->getColumnNumber();
+        if (macro_begin.getLineNumber()) {
+            dnode->macro_begin_line = macro_begin.getLineNumber();
+            dnode->macro_begin_column =
+                macro_begin.getColumnNumber();
+            dnode->macro_end_line = macro_end.getLineNumber();
+            dnode->macro_end_column =
+                macro_end.getColumnNumber();
+        }
+        dnode->filename = filename;
+
+        return dnode;
+    }
+
+    /* If node is list - for each element, call self, link the
+     * nodes together. */
+
+    if (is_list) {
+        DNode *top_node = (DNode*)malloc(sizeof(*top_node));
+        top_node->is_list   = 1;
+        top_node->token_str = NULL;
+        top_node->next_node = NULL;
+
+        DNode *current_dnode = NULL;
+
+        std::vector<Node*> *lst = list;
+
+        std::vector<Node *>::iterator node_iter;
+        node_iter = lst->begin();
+
+        while (node_iter != lst->end()) {
+            DNode *temp_node = (*node_iter)->toDNode();
+
+            if (!current_dnode) {
+                top_node->list_node = temp_node;
+                current_dnode = temp_node;
+            } else {
+                current_dnode->next_node = temp_node;
+                current_dnode            = temp_node;
+            }
+
+            ++node_iter;
+        }
+
+        top_node->begin_line   = getBeginPos()->getLineNumber();
+        top_node->begin_column = getBeginPos()->getColumnNumber();
+        top_node->end_line     = getEndPos()->getLineNumber();
+        top_node->end_column   = getEndPos()->getColumnNumber();
+
+        if (macro_begin.getLineNumber()) {
+            top_node->macro_begin_line = macro_begin.getLineNumber();
+            top_node->macro_begin_column =
+                macro_begin.getColumnNumber();
+            top_node->macro_end_line = macro_end.getLineNumber();
+            top_node->macro_end_column =
+                macro_end.getColumnNumber();
+        }
+        top_node->filename = filename;
+
+        return top_node;
+    }
+
+    return NULL;
 }
 }
