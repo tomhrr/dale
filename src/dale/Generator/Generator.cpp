@@ -2859,22 +2859,6 @@ int Generator::parseInteger(Node *n)
     return addnum;
 }
 
-void mysplitString(std::string *str, std::vector<std::string> *lst, char c)
-{
-    int index = 0;
-    int len = str->length();
-
-    while (index < len) {
-        int found = str->find(c, index);
-        if (found == -1) {
-            found = str->length();
-        }
-        std::string temp(str->substr(index, found - index));
-        lst->push_back(temp);
-        index = found + 1;
-    }
-}
-
 llvm::Value *Generator::coerceValue(llvm::Value *from_value,
                                     Element::Type *from_type,
                                     Element::Type *to_type,
