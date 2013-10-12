@@ -113,14 +113,6 @@ public:
     int addIncludePath(char *filename);
     int addModulePath(char *filename);
 
-    int makeTemporaryGlobalFunction(
-        std::vector<DeferredGoto*> *dgs,
-        std::map<std::string, Element::Label*> *mls
-    );
-    void removeTemporaryGlobalFunction(int,
-                                       std::vector<DeferredGoto*> *dgs,
-                                       std::map<std::string, Element::Label*> *mls
-                                      );
     Node  *DNodeToIntNode(DNode *dnode);
     Generator();
     ~Generator();

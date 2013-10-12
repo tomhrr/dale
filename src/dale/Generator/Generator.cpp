@@ -1360,128 +1360,6 @@ bool Generator::scopeClose(Element::Function *dfn,
     return true;
 }
 
-static int myn = 0;
-int Generator::makeTemporaryGlobalFunction(
-    std::vector<DeferredGoto*> *dgs,
-    std::map<std::string, Element::Label*> *mls
-)
-{
-    /* Create a temporary function for evaluating the arguments. */
-
-    llvm::Type *llvm_return_type =
-        ctx->toLLVMType(ctx->tr->type_int, NULL, false);
-    if (!llvm_return_type) {
-        return 0;
-    }
-
-    std::vector<llvm::Type*> mc_args;
-
-    llvm::FunctionType *ft =
-        getFunctionType(
-            llvm_return_type,
-            mc_args,
-            false
-        );
-
-    std::string new_name;
-    char buf[255];
-    sprintf(buf, "___myfn%d", myn++);
-    ctx->ns()->nameToSymbol(buf, &new_name);
-
-    if (mod->getFunction(llvm::StringRef(new_name.c_str()))) {
-        fprintf(stderr, "Internal error: "
-                "function already exists in module ('%s').\n",
-                new_name.c_str());
-        abort();
-    }
-
-    llvm::Constant *fnc =
-        mod->getOrInsertFunction(new_name.c_str(), ft);
-    if (!fnc) {
-        fprintf(stderr, "Internal error: unable to add "
-                "function ('%s') to module.\n",
-                new_name.c_str());
-        abort();
-    }
-
-    llvm::Function *fn =
-        llvm::dyn_cast<llvm::Function>(fnc);
-    if (!fn) {
-        fprintf(stderr, "Internal error: unable to convert "
-                "function constant to function "
-                "for function '%s'.\n",
-                new_name.c_str());
-        abort();
-    }
-
-    std::vector<Element::Variable *> vars;
-
-    Element::Function *dfn =
-        new Element::Function(ctx->tr->type_int,
-                              &vars,
-                              fn,
-                              0,
-                              new std::string(new_name),
-                              0);
-    dfn->linkage = Linkage::Intern;
-    if (!dfn) {
-        fprintf(stderr, "Internal error: unable to create new "
-                "function (!) '%s'.\n",
-                new_name.c_str());
-        abort();
-    }
-
-    llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                 "entry",
-                                 fn);
-
-    int error_count = erep->getErrorTypeCount(ErrorType::Error);
-
-    global_functions.push_back(dfn);
-    global_function = dfn;
-
-    global_blocks.push_back(block);
-    global_block = block;
-
-    ctx->activateAnonymousNamespace();
-
-    return error_count;
-}
-
-void Generator::removeTemporaryGlobalFunction(
-    int error_count,
-    std::vector<DeferredGoto*> *dgs,
-    std::map<std::string, Element::Label*> *mls
-)
-{
-    if (error_count >= 0) {
-        erep->popErrors(error_count);
-    }
-
-    ctx->deactivateAnonymousNamespace();
-    Element::Function *current = global_function;
-
-    global_functions.pop_back();
-    if (global_functions.size()) {
-        global_function = global_functions.back();
-    } else {
-        global_function = NULL;
-    }
-
-    global_blocks.pop_back();
-    if (global_blocks.size()) {
-        global_block = global_blocks.back();
-    } else {
-        global_block = NULL;
-    }
-
-    /* Remove the temporary function. */
-    current->llvm_function->eraseFromParent();
-
-    return;
-}
-
 bool Generator::parseFuncallInternal(
     Element::Function *dfn,
     Node *n,
@@ -1913,6 +1791,8 @@ Node *Generator::parseMacroCall(Node *n,
 
     return mc_result_node;
 }
+
+static int myn = 0;
 
 Node *Generator::parseOptionalMacroCall(Node *n)
 {

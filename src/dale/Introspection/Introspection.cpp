@@ -9,6 +9,142 @@ using namespace dale;
 std::vector<ParseResult*> g_parse_results;
 std::vector<Node *> g_nodes;
 
+llvm::FunctionType *
+getFunctionType(llvm::Type *t,
+                std::vector<llvm::Type*> &v,
+                bool b) {
+    llvm::ArrayRef<llvm::Type*> temp(v);
+    return llvm::FunctionType::get(t, temp, b);
+}
+
+static int myn = 0;
+bool makeTemporaryGlobalFunction(
+    Generator *gen,
+    std::vector<DeferredGoto*> *dgs,
+    std::map<std::string, Element::Label*> *mls
+)
+{
+    Context *ctx = gen->ctx;
+
+    /* Create a temporary function for evaluating the arguments. */
+
+    llvm::Type *llvm_return_type =
+        ctx->toLLVMType(ctx->tr->type_int, NULL, false);
+    if (!llvm_return_type) {
+        return false;
+    }
+
+    std::vector<llvm::Type*> mc_args;
+
+    llvm::FunctionType *ft =
+        getFunctionType(
+            llvm_return_type,
+            mc_args,
+            false
+        );
+
+    std::string new_name;
+    char buf[255];
+    sprintf(buf, "___myfn%d", myn++);
+    ctx->ns()->nameToSymbol(buf, &new_name);
+
+    if (gen->mod->getFunction(llvm::StringRef(new_name.c_str()))) {
+        fprintf(stderr, "Internal error: "
+                "function already exists in module ('%s').\n",
+                new_name.c_str());
+        abort();
+    }
+
+    llvm::Constant *fnc =
+        gen->mod->getOrInsertFunction(new_name.c_str(), ft);
+    if (!fnc) {
+        fprintf(stderr, "Internal error: unable to add "
+                "function ('%s') to module.\n",
+                new_name.c_str());
+        abort();
+    }
+
+    llvm::Function *fn =
+        llvm::dyn_cast<llvm::Function>(fnc);
+    if (!fn) {
+        fprintf(stderr, "Internal error: unable to convert "
+                "function constant to function "
+                "for function '%s'.\n",
+                new_name.c_str());
+        abort();
+    }
+
+    std::vector<Element::Variable *> vars;
+
+    Element::Function *dfn =
+        new Element::Function(ctx->tr->type_int,
+                              &vars,
+                              fn,
+                              0,
+                              new std::string(new_name),
+                              0);
+    dfn->linkage = Linkage::Intern;
+    if (!dfn) {
+        fprintf(stderr, "Internal error: unable to create new "
+                "function (!) '%s'.\n",
+                new_name.c_str());
+        abort();
+    }
+
+    llvm::BasicBlock *block =
+        llvm::BasicBlock::Create(llvm::getGlobalContext(),
+                                 "entry",
+                                 fn);
+
+    int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
+
+    gen->global_functions.push_back(dfn);
+    gen->global_function = dfn;
+
+    gen->global_blocks.push_back(block);
+    gen->global_block = block;
+
+    ctx->activateAnonymousNamespace();
+
+    return error_count;
+}
+
+void removeTemporaryGlobalFunction(
+    Generator *gen,
+    int error_count,
+    std::vector<DeferredGoto*> *dgs,
+    std::map<std::string, Element::Label*> *mls
+)
+{
+    Context *ctx = gen->ctx;
+
+    if (error_count >= 0) {
+        ctx->er->popErrors(error_count);
+    }
+
+    ctx->deactivateAnonymousNamespace();
+    Element::Function *current = gen->global_function;
+
+    gen->global_functions.pop_back();
+    if (gen->global_functions.size()) {
+        gen->global_function = gen->global_functions.back();
+    } else {
+        gen->global_function = NULL;
+    }
+
+    gen->global_blocks.pop_back();
+    if (gen->global_blocks.size()) {
+        gen->global_block = gen->global_blocks.back();
+    } else {
+        gen->global_block = NULL;
+    }
+
+    /* Remove the temporary function. */
+    current->llvm_function->eraseFromParent();
+
+    return;
+}
+
 extern "C" {
     Node *WrapNode(Node *n)
     {
@@ -192,7 +328,7 @@ extern "C" {
         std::vector<DeferredGoto*> dgs;
         std::map<std::string, Element::Label*> mls;
         if (!g->global_function) {
-            g->makeTemporaryGlobalFunction(&dgs, &mls);
+            makeTemporaryGlobalFunction(g, &dgs, &mls);
             made_temp = 1;
         }
 
@@ -215,7 +351,7 @@ extern "C" {
         }
 
         if (made_temp) {
-            g->removeTemporaryGlobalFunction(-1, &dgs, &mls);
+            removeTemporaryGlobalFunction(g, -1, &dgs, &mls);
         }
 
         int new_error_count =
