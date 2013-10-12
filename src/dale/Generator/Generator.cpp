@@ -1482,32 +1482,6 @@ void Generator::removeTemporaryGlobalFunction(
     return;
 }
 
-bool isFunctionPointerVarArgs(Element::Type *fn_ptr)
-{
-    if (fn_ptr->points_to->parameter_types->size() == 0) {
-        return false;
-    }
-
-    Element::Type *back = fn_ptr->points_to->parameter_types->back();
-
-    return (back->base_type == dale::Type::VarArgs) ? 1 : 0;
-}
-
-int fnPtrNumberOfRequiredArgs(Element::Type *fn_ptr)
-{
-    if (fn_ptr->points_to->parameter_types->size() == 0) {
-        return 0;
-    }
-
-    unsigned int num_of_args = fn_ptr->points_to->parameter_types->size();
-
-    if (isFunctionPointerVarArgs(fn_ptr)) {
-        num_of_args -= 1;
-    }
-
-    return num_of_args;
-}
-
 bool Generator::parseFuncallInternal(
     Element::Function *dfn,
     Node *n,
@@ -1531,9 +1505,9 @@ bool Generator::parseFuncallInternal(
     }
 
     int num_required_args =
-        fnPtrNumberOfRequiredArgs(fn_ptr->type);
+        fn_ptr->type->points_to->numberOfRequiredArgs();
 
-    if (isFunctionPointerVarArgs(fn_ptr->type)) {
+    if (fn_ptr->type->points_to->isVarArgs()) {
         if (count < num_required_args) {
             char buf1[100];
             char buf2[100];

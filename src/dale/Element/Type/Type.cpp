@@ -162,8 +162,8 @@ Type::~Type()
 
 /* pretty horrid, will tidy up later - linkage is not taken
  * into account when doing comparisons */
-int Type::isEqualTo(Type *other_type,
-                    int ignore_arg_constness)
+bool Type::isEqualTo(Type *other_type,
+                     int ignore_arg_constness)
 {
     if (DEBUG)  printf("Called type::isEqualTo\n");
 
@@ -172,7 +172,7 @@ int Type::isEqualTo(Type *other_type,
     if (base_type != other_type->base_type) {
         if (DEBUG)  printf("Base types don't compare: %d, %d\n",
                                base_type, other_type->base_type);
-        return 0;
+        return false;
     } else {
         if (DEBUG)  printf("Base types are fine: %d, %d\n",
                                base_type, other_type->base_type);
@@ -191,7 +191,7 @@ int Type::isEqualTo(Type *other_type,
                 printf("Constness does not match: %d, %d\n",
                        is_const, other_type->is_const);
             }
-            return 0;
+            return false;
         }
     } else {
         if (DEBUG) {
@@ -205,7 +205,7 @@ int Type::isEqualTo(Type *other_type,
         if (DEBUG)  printf("Bitfield size mismatch: %d, %d\n",
                                bitfield_size,
                                other_type->bitfield_size);
-        return 0;
+        return false;
     } else {
         if (DEBUG)  printf("Bitfield sizes are fine: %d, %d\n",
                                bitfield_size,
@@ -216,14 +216,14 @@ int Type::isEqualTo(Type *other_type,
     if ((namespaces == NULL) ^ (other_type->namespaces == NULL)) {
         if (DEBUG)  printf("namespaces is set in one but not the other\n");
         if (DEBUG)  printf("(%p) (%p)\n", namespaces, other_type->namespaces);
-        return 0;
+        return false;
     } else {
         if (DEBUG)  printf("namespaces set in both\n");
     }
 
     if (namespaces != NULL) {
         if (*namespaces != *(other_type->namespaces)) {
-            return 0;
+            return false;
         }
     }
 
@@ -231,14 +231,14 @@ int Type::isEqualTo(Type *other_type,
 
     if ((struct_name == NULL) ^ (other_type->struct_name == NULL)) {
         if (DEBUG)  printf("struct name is set in one but not the other\n");
-        return 0;
+        return false;
     } else {
         if (DEBUG)  printf("no struct name problems\n");
     }
 
     if (struct_name != NULL) {
         if (*struct_name != *(other_type->struct_name)) {
-            return 0;
+            return false;
         }
     }
 
@@ -248,16 +248,16 @@ int Type::isEqualTo(Type *other_type,
 
     if (is_array != other_type->is_array) {
         if (DEBUG)  printf("ERR: one is array, one is not\n");
-        return 0;
+        return false;
     }
     if (array_size != other_type->array_size) {
         if (DEBUG)  printf("ERR: array size is off\n");
-        return 0;
+        return false;
     }
     if (is_array) {
         if (!array_type || !other_type->array_type) {
             if (DEBUG)  printf("ERR: one has array type, one does not\n");
-            return 0;
+            return false;
         }
         return array_type->isEqualTo(other_type->array_type);
     }
@@ -266,11 +266,11 @@ int Type::isEqualTo(Type *other_type,
     /* Function type checking. */
 
     if (is_function != other_type->is_function) {
-        return 0;
+        return false;
     }
     if (is_function) {
         if (!return_type->isEqualTo(other_type->return_type)) {
-            return 0;
+            return false;
         }
         return dale::stl::isEqualTo(
                    parameter_types,
@@ -282,15 +282,15 @@ int Type::isEqualTo(Type *other_type,
 
     if ((points_to == NULL) && (other_type->points_to != NULL)) {
         if (DEBUG)  printf("first is not pointer, second is pointer\n");
-        return 0;
+        return false;
     }
     if ((other_type->points_to == NULL) && (points_to != NULL)) {
         if (DEBUG)  printf("first is pointer, second is not pointer\n");
-        return 0;
+        return false;
     }
     if ((points_to == NULL) && (other_type->points_to == NULL)) {
         if (DEBUG)  printf("both are not pointers, all good\n");
-        return 1;
+        return true;
     }
 
     if (DEBUG)  printf("ok - checking the types to which these types point\n");
@@ -690,7 +690,7 @@ void Type::toEncStr(std::string *newstr)
     if (DEBUG)  printf("ERROR: cannot yet handle encstr for this type\n");
 }
 
-int Type::isIntegerType(void)
+bool Type::isIntegerType(void)
 {
     return (   base_type == dale::Type::Int
                || base_type == dale::Type::Char
@@ -710,7 +710,7 @@ int Type::isIntegerType(void)
                || base_type == dale::Type::UInt128);
 }
 
-int Type::isSignedIntegerType(void)
+bool Type::isSignedIntegerType(void)
 {
     return (   base_type == dale::Type::Int
                || base_type == dale::Type::Char
@@ -800,11 +800,37 @@ int Type::getFPRelativeSize(void)
     return size;
 }
 
-int Type::isFloatingPointType(void)
+bool Type::isFloatingPointType(void)
 {
     return (   base_type == dale::Type::Float
                || base_type == dale::Type::Double
                || base_type == dale::Type::LongDouble);
+}
+
+bool Type::isVarArgs(void)
+{
+    if (parameter_types->size() == 0) {
+        return false;
+    }
+
+    Element::Type *back = parameter_types->back();
+
+    return (back->base_type == dale::Type::VarArgs);
+}
+
+unsigned int Type::numberOfRequiredArgs(void)
+{
+    if (parameter_types->size() == 0) {
+        return 0;
+    }
+
+    unsigned int num_of_args = parameter_types->size();
+
+    if (isVarArgs()) {
+        num_of_args -= 1;
+    }
+
+    return num_of_args;
 }
 
 const char *baseTypeToString(int base_type)

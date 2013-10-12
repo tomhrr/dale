@@ -67,18 +67,20 @@ public:
 
     ~Type();
 
-    int isEqualTo(Element::Type *other_type,
+    bool isEqualTo(Element::Type *other_type,
                   int ignore_arg_constness = 0);
     void toEncStr(std::string *newstr);
 
     Element::Type *makeCopy(void);
 
-    int isIntegerType(void);
-    int isSignedIntegerType(void);
+    bool isIntegerType(void);
+    bool isSignedIntegerType(void);
     int getIntegerSize(void);
     int getFPRelativeSize(void);
-    int isFloatingPointType(void);
+    bool isFloatingPointType(void);
     void toStringProper(std::string *str);
+    bool isVarArgs(void);
+    unsigned int numberOfRequiredArgs(void);
     Node *toNode(void);
 };
 
