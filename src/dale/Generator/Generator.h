@@ -97,16 +97,6 @@ private:
 
     void removeMacroTemporaries(void);
 
-    bool doCast(llvm::BasicBlock *block,
-                        llvm::Value *value,
-                        Element::Type *from_type,
-                        Element::Type *to_type,
-                        Node *n,
-                        int implicit, ParseResult *pr);
-
-
-
-
     void popErrors(int original_count);
 
 public:

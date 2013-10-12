@@ -1515,21 +1515,6 @@ bool Generator::parseFuncallInternal(
     return true;
 }
 
-/* If 'implicit' is set to 1, then int->ptr and ptr->int
- * conversions are disallowed. */
-bool Generator::doCast(llvm::BasicBlock *block,
-                               llvm::Value *value,
-                               Element::Type *from_type,
-                               Element::Type *to_type,
-                               Node *n,
-                               int implicit,
-                               ParseResult *pr)
-{
-    return Operation::Cast::execute(ctx, block,
-                                    value, from_type, to_type,
-                                    n, implicit, pr);
-}
-
 void Generator::setPdnode()
 {
     if (!type_dnode) {
@@ -2393,7 +2378,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
                 }
 
                 ParseResult mytemp;
-                bool res = doCast(block,
+                bool res = Operation::Cast::execute(ctx, block,
                            (*citer),
                            (*caiter),
                            (*miter)->type,
