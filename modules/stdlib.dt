@@ -6,7 +6,7 @@ control structures (`for`, `while` and `let`). All of the bindings
 provided by this library are in the root namespace.
 
 |#
-(module stdlib)
+(module stdlib (attr cto))
 
 (import macros-core)
 
