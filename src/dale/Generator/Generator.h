@@ -109,9 +109,6 @@ private:
 
     void popErrors(int original_count);
 
-    Node *WrapNode(Node *n);
-    void addMacroPosition(Node *n, Node *mac_node);
-
 public:
     int addIncludePath(char *filename);
     int addModulePath(char *filename);

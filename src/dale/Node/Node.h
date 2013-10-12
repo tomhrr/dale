@@ -48,6 +48,7 @@ public:
     void copyMetaTo(Node *other);
     void copyTo(Node *other);
     DNode *toDNode(void);
+    void addMacroPosition(Node *mp_node);
     ~Node(void);
 };
 

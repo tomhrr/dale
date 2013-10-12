@@ -250,4 +250,31 @@ Node::toDNode(void)
 
     return NULL;
 }
+
+void
+Node::addMacroPosition(Node *mp_node)
+{
+    if (!(macro_begin.getLineNumber())) {
+        macro_begin.setLineAndColumn(
+            mp_node->getBeginPos()->getLineNumber(),
+            mp_node->getBeginPos()->getColumnNumber()
+        );
+        macro_end.setLineAndColumn(
+            mp_node->getEndPos()->getLineNumber(),
+            mp_node->getEndPos()->getColumnNumber()
+        );
+    }
+
+    if (is_list) {
+        for (std::vector<Node *>::iterator
+                b = list->begin(),
+                e = list->end();
+                b != e;
+                ++b) {
+            (*b)->addMacroPosition(mp_node);
+        }
+    }
+
+    return;
+}
 }

@@ -1877,7 +1877,7 @@ Node *Generator::parseMacroCall(Node *n,
 
     while (node_iter != lst->end()) {
         Node *ni = (*node_iter);
-        addMacroPosition(ni, n);
+        ni->addMacroPosition(n);
 
         if ((*var_iter)->type->base_type == Type::VarArgs) {
             /* Into varargs - always pointers to DNodes. */
@@ -1932,37 +1932,12 @@ Node *Generator::parseMacroCall(Node *n,
     /* Add the macro position information to the nodes. */
 
     if (mc_result_node) {
-        addMacroPosition(mc_result_node, n);
+        mc_result_node->addMacroPosition(n);
     }
 
     /* Finished - return the macro result node. */
 
     return mc_result_node;
-}
-
-void Generator::addMacroPosition(Node *n, Node *mac_node)
-{
-    if (!(n->macro_begin.getLineNumber())) {
-        n->macro_begin.setLineAndColumn(
-            mac_node->getBeginPos()->getLineNumber(),
-            mac_node->getBeginPos()->getColumnNumber()
-        );
-        n->macro_end.setLineAndColumn(
-            mac_node->getEndPos()->getLineNumber(),
-            mac_node->getEndPos()->getColumnNumber()
-        );
-    }
-
-    if (n->is_list) {
-        std::vector<Node *>::iterator iter = n->list->begin();
-
-        while (iter != n->list->end()) {
-            addMacroPosition((*iter), mac_node);
-            ++iter;
-        }
-    }
-
-    return;
 }
 
 Node *Generator::parseOptionalMacroCall(Node *n)
@@ -3034,5 +3009,4 @@ Node *Generator::DNodeToIntNode(DNode *dnode)
 
     return NULL;
 }
-
 }

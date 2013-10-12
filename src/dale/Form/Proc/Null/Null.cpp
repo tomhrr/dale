@@ -31,9 +31,9 @@ bool parse(Generator *gen,
 
     symlist *lst = node->list;
 
-    /* Take the second value, parseMacroCall, see if it's a list,
-     * if it is a list and the form is : or $, then show an error
-     * about that value never being null. */
+    /* Take the second value, parseOptionalMacroCall, see if it's a
+     * list, if it is a list and the form is : or $, then show an
+     * error about that value never being null. */
 
     Node *arg = (*lst)[1];
     if (arg->is_list) {
