@@ -105,16 +105,10 @@ int main(int argc, char **argv)
         } else if (optc == 'd') {
             debug = 1;
         } else if (optc == 'O') {
-            if (optarg[0] == 's') {
-                optlevel = 4;
-            } else if (optarg[0] == '4') {
-                optlevel = 5;
-            } else {
-                optlevel = (optarg[0] - '0');
-                if ((optlevel < 0) || (optlevel > 3)) {
-                    fprintf(stderr, "dalec: invalid optimisation level.\n");
-                    exit(1);
-                }
+            optlevel = (optarg[0] - '0');
+            if ((optlevel < 0) || (optlevel > 4)) {
+                fprintf(stderr, "dalec: invalid optimisation level.\n");
+                exit(1);
             }
         } else if (optc == 's') {
             char *type = optarg;

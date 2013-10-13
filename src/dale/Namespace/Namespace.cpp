@@ -649,7 +649,8 @@ Namespace::eraseLLVMMacrosAndCTOFunctions(void)
         if (erased.find(lfn) == erased.end()) {
             erased.insert(lfn);
             llvm::Module *m = lfn->getParent();
-            if (m->getFunction(llvm::StringRef(fn->internal_name->c_str()))) {
+            llvm::StringRef x(fn->internal_name->c_str());
+            if (m->getFunction(x)) {
                 lfn->eraseFromParent();
             }
         }

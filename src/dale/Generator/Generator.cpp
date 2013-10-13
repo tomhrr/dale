@@ -190,7 +190,7 @@ Generator::~Generator()
     delete dtm_nm_modules;
 }
 
-llvm::Module *loadModule(std::string *path)
+llvm::Module *loadModule(std::string *path, bool materialize)
 {
     const llvm::sys::Path sys_path(*path);
 
@@ -207,6 +207,15 @@ llvm::Module *loadModule(std::string *path)
         fprintf(stderr,
                 "Internal error: cannot load module: %s\n",
                 errmsg.c_str());
+        abort();
+    }
+
+    std::string ma_error;
+    bool ma = module->MaterializeAll(&ma_error);
+    if (ma) {
+        fprintf(stderr, "Internal error: failed to materialize "
+                        "module (%s): %s\n",
+                        path->c_str(), ma_error.c_str());
         abort();
     }
 
@@ -474,6 +483,13 @@ int Generator::run(std::vector<const char *> *filenames,
             TheTriple.setTriple(llvm::sys::getHostTriple());
         }
 
+        /* todo: need some sort of platform table/class. */
+        if (is_x86_64) {
+            mod->setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128");
+        } else {
+            mod->setDataLayout("e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32");
+        }
+
         llvm::EngineBuilder eb = llvm::EngineBuilder(mod);
         eb.setEngineKind(llvm::EngineKind::JIT);
         ee = eb.create();
@@ -674,7 +690,7 @@ int Generator::run(std::vector<const char *> *filenames,
                     mdtm_modules.insert(
                         std::pair<std::string, llvm::Module*>(
                             b->first,
-                            loadModule(&(b->second))
+                            loadModule(&(b->second), true)
                         )
                     );
                 }
@@ -726,7 +742,9 @@ int Generator::run(std::vector<const char *> *filenames,
         if (rgp) {
             ctx->regetPointers(mod);
         }
-        ctx->eraseLLVMMacrosAndCTOFunctions();
+        if (remove_macros) {
+            ctx->eraseLLVMMacrosAndCTOFunctions();
+        }
 
         llvm::formatted_raw_ostream *temp_fro
         = new llvm::formatted_raw_ostream(temp,
@@ -966,7 +984,7 @@ int Generator::addDaleModule(Node *n,
     module_path_nomacros.replace(module_path_nomacros.find(".bc"), 
                                  3, bc_nm_suffix);
 
-    llvm::Module *new_module = loadModule(&module_path);
+    llvm::Module *new_module = loadModule(&module_path, false);
 
     included_modules->insert(real_module_name);
 
