@@ -1,0 +1,26 @@
+(import macros)
+
+(def mys1 (struct intern ((a int))))
+
+(def destroy
+  (fn intern void ((a (p mys1)))
+    (printf "destroying mys1 %d\n" (@:@ a a))
+    (return)))
+
+(def destroy
+  (fn intern void ((a (p float)))
+    (printf "destroying float\n")
+    (return)))
+
+(def mys2 (struct intern ((a mys1))))
+
+(def main (fn extern-c int (void)
+  (def myothervar (var auto float))
+  (def n1 (var auto mys2))
+  (setf (: n1 a) ((a 1)))
+  (def n2 (var auto mys2))
+  (setf (: n2 a) ((a 2)))
+  (let ((n mys2) (m mys2))
+    (setf (: n a) ((a 3)))
+    (setf (: m a) ((a 4)))
+    (return 0))))

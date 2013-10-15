@@ -65,7 +65,7 @@ bool parse(Generator *gen,
         return false;
     }
 
-    int index = ctx->ns()->lv_index++;
+    int index = ++(ctx->ns()->lv_index);
     Element::Label *my_label = new Element::Label();
     my_label->block = new_block;
     my_label->ns = ctx->ns();

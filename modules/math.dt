@@ -96,7 +96,7 @@ A macro constant for `e` is also provided.
                             (rem  (uq T)))))
           (def div
             (fn extern (uq sn-node) ((num   (uq T))
-                                         (denom (uq T)))
+                                     (denom (uq T)))
               (let ((mysn-node (uq sn-node) ((quot (/   num denom))
                                              (rem  (mod num denom)))))
                 mysn-node)))))))

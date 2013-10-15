@@ -32,10 +32,9 @@ bool parse(Generator *gen,
     }
     if (lst->size() == 1) {
         llvm::IRBuilder<> builder(block);
-        gen->scopeClose(fn, block, NULL);
+        gen->scopeClose(fn, block, NULL, true);
         builder.CreateRetVoid();
-        pr->set(block, ctx->tr->type_int,
-                ctx->nt->getNativeInt(0));
+        pr->set(block, ctx->tr->type_void, NULL);
         pr->do_not_destruct       = 1;
         pr->do_not_copy_with_setf = 1;
         pr->treat_as_terminator   = 1;
@@ -67,17 +66,16 @@ bool parse(Generator *gen,
      * in parseIf. So, return the proper value in the second
      * branch.) */
     if (p.type->base_type == Type::Void) {
-        gen->scopeClose(fn, block, NULL);
+        gen->scopeClose(fn, block, NULL, true);
         builder.SetInsertPoint(block);
         builder.CreateRetVoid();
-        pr->set(block, fn->return_type, 
-                ctx->nt->getNativeInt(0));
+        pr->set(block, ctx->tr->type_void, NULL);
         pr->do_not_destruct       = 1;
         pr->do_not_copy_with_setf = 1;
         pr->treat_as_terminator   = 1;
         return true;
     } else {
-        gen->scopeClose(fn, block, NULL);
+        gen->scopeClose(fn, block, NULL, true);
         builder.SetInsertPoint(block);
         builder.CreateRet(p.value);
         pr->set(block, fn->return_type, p.value);

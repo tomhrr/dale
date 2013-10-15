@@ -49,6 +49,7 @@ bool parse(Generator *gen,
             continue;
         }
 
+        local_pr.copyTo(pr);
         if (node_iter != lst->end()) {
             ParseResult pr_value;
             bool res = 
@@ -57,12 +58,10 @@ bool parse(Generator *gen,
                 return false;
             }
             pr->block = pr_value.block;
-        } else {
-            local_pr.copyTo(pr);
         }
     }
 
-    gen->scopeClose(fn, block, NULL);
+    gen->scopeClose(fn, block, NULL, false);
     ctx->deactivateNamespace(anon_name.c_str());
 
     return success;

@@ -380,16 +380,16 @@ parse(Generator *gen,
                         goto finish;
                     }
                     if (dfn->return_type->base_type == dale::Type::Void) {
-                        gen->scopeClose(dfn, i, NULL);
+                        gen->scopeClose(dfn, i, NULL, true);
                         builder.CreateRetVoid();
                     } else {
                         ParseResult x;
                         x.set(i, last_type, last_value);
-                        gen->scopeClose(dfn, x.block, NULL);
+                        gen->scopeClose(dfn, x.block, NULL, true);
                         builder.CreateRet(x.value);
                     }
                 } else {
-                    gen->scopeClose(dfn, i, NULL);
+                    gen->scopeClose(dfn, i, NULL, true);
                     builder.CreateRetVoid();
                 }
             } else {

@@ -46,6 +46,7 @@ bool parse(Generator *gen,
         }
         ++node_iter;
 
+        local_pr.copyTo(pr);
         if (node_iter != lst->end()) {
             ParseResult pr_value;
             bool res = gen->destructIfApplicable(&local_pr, NULL, &pr_value);
@@ -53,9 +54,6 @@ bool parse(Generator *gen,
                 return false;
             }
             pr->block = pr_value.block;
-            pr_value.copyTo(pr);
-        } else {
-            local_pr.copyTo(pr);
         }
     }
 

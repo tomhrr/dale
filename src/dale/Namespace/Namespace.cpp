@@ -97,6 +97,7 @@ Namespace::addFunction(const char *name,
 {
     std::map<std::string, std::vector<Element::Function *>* >::iterator iter;
     std::vector<Element::Function *>::iterator fn_iter;
+    function->index = ++lv_index;
 
     std::string ss_name(name);
     iter = functions.find(ss_name);
@@ -489,12 +490,12 @@ void
 Namespace::getVarsAfterIndex(int index,
                              std::vector<Element::Variable *> *vars)
 {
-    for (std::map<std::string, Element::Variable *>::iterator
-            b = variables.begin(),
-            e = variables.end();
+    for (std::vector<std::string>::reverse_iterator
+            b = variables_ordered.rbegin(),
+            e = variables_ordered.rend();
             b != e;
             ++b) {
-        Element::Variable *v = b->second;
+        Element::Variable *v = getVariable(b->c_str());
         if (!v->index) {
             continue;
         }
@@ -684,12 +685,13 @@ Namespace::getFunctionNames(std::set<std::string> *names,
 void
 Namespace::getVariables(std::vector<Element::Variable *> *vars)
 {
-    for (std::map<std::string, Element::Variable *>::reverse_iterator
-            b = variables.rbegin(),
-            e = variables.rend();
+    for (std::vector<std::string>::reverse_iterator
+            b = variables_ordered.rbegin(),
+            e = variables_ordered.rend();
             b != e;
             ++b) {
-        vars->push_back(b->second);
+        Element::Variable *v = getVariable(b->c_str());
+        vars->push_back(v);
     }
 }
 

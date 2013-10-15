@@ -1263,6 +1263,81 @@ bool Generator::destructIfApplicable(ParseResult *pr,
     Element::Function *fn = ctx->getFunction("destroy", &types,
                             NULL, 0);
     if (!fn) {
+        /* If this is a struct, call destructIfApplicable on each of
+         * the elements, in the absence of a destructor for the struct
+         * as a whole. */
+        Element::Type *type = pr->type;
+        if (type->struct_name) {
+            Element::Struct *st = ctx->getStruct(type->struct_name->c_str(),
+                                                 type->namespaces);
+            std::vector<Element::Type*> *st_types = &(st->element_types);
+            int i = 0;
+            llvm::Value *actual_value = pr->value;
+
+            if (!value_is_ptr) {
+                if (builder) {
+                    llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
+                            builder->CreateAlloca(
+                                ctx->toLLVMType(pr->type, NULL, false))
+                            );
+                    builder->CreateStore(pr->value, new_ptr2);
+                    actual_value = new_ptr2;
+                } else {
+                    llvm::IRBuilder<> builder(pr->block);
+                    llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
+                            builder.CreateAlloca(
+                                ctx->toLLVMType(pr->type, NULL, false))
+                            );
+                    builder.CreateStore(pr->value, new_ptr2);
+                    actual_value = new_ptr2;
+                }
+            }
+
+            for (std::vector<Element::Type*>::iterator
+                    b = st_types->begin(),
+                    e = st_types->end();
+                    b != e;
+                    ++b) {
+                ParseResult element;
+                ParseResult mnew;
+                std::string ts;
+                (*b)->toStringProper(&ts);
+                element.set(pr->block, *b, actual_value);
+                std::vector<llvm::Value *> indices;
+                stl::push_back2(&indices,
+                                nt->getLLVMZero(),
+                                llvm::cast<llvm::Value>(
+                                    llvm::ConstantInt::get(
+                                        nt->getNativeIntType(),
+                                        i++
+                                    )
+                                ));
+                if (builder) {
+                    llvm::Value *res = 
+                        builder->Insert(
+                            llvm::GetElementPtrInst::Create(
+                                actual_value,
+                                llvm::ArrayRef<llvm::Value*>(indices)
+                            ),
+                            "asdf"
+                        );
+                    element.value = res;
+                    destructIfApplicable(&element, builder, &mnew, true);
+                } else {
+                    llvm::IRBuilder<> builder(pr->block);
+                    llvm::Value *res = 
+                        builder.Insert(
+                            llvm::GetElementPtrInst::Create(
+                                actual_value,
+                                llvm::ArrayRef<llvm::Value*>(indices)
+                            ),
+                            "asdf"
+                        );
+                    element.value = res;
+                    destructIfApplicable(&element, &builder, &mnew, true);
+                }
+            }
+        }
         return true;
     }
     int destroy_builder = 0;
@@ -1352,11 +1427,16 @@ bool Generator::copyWithSetfIfApplicable(
 }
 
 bool Generator::scopeClose(Element::Function *dfn,
-                          llvm::BasicBlock *block,
-                          llvm::Value *no_destruct)
+                           llvm::BasicBlock *block,
+                           llvm::Value *no_destruct,
+                           bool entire_function)
 {
     std::vector<Element::Variable *> stack_vars;
-    ctx->ns()->getVariables(&stack_vars);
+    if (entire_function) {
+        ctx->ns()->getVarsAfterIndex(dfn->index, &stack_vars);
+    } else {
+        ctx->ns()->getVariables(&stack_vars);
+    }
     
     ParseResult mnew;
     mnew.block = block;

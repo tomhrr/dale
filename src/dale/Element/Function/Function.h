@@ -27,6 +27,7 @@ public:
     int is_destructor;
     int is_setf_fn;
     int linkage;
+    int index;
     bool serialise;
 
     Function();

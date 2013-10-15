@@ -75,7 +75,7 @@ bool parse(Generator *gen,
         Form::Proc::Inst::parse(gen, fn, then_block, (*lst)[2], get_address,
                                 false,
                                NULL, &pr_then);
-    gen->scopeClose(fn, then_block, NULL);
+    gen->scopeClose(fn, then_block, NULL, false);
     ctx->deactivateAnonymousNamespace();
     if (!res) {
         return false;
@@ -87,7 +87,7 @@ bool parse(Generator *gen,
         Form::Proc::Inst::parse(gen, fn, else_block, (*lst)[3], get_address,
                                 false,
                                NULL, &pr_else);
-    gen->scopeClose(fn, else_block, NULL);
+    gen->scopeClose(fn, else_block, NULL, false);
     ctx->deactivateAnonymousNamespace();
     if (!res) {
         return false;
