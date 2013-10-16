@@ -10,8 +10,6 @@
         (arrp  \ (# arr))
         (earr  (Array int 0))
         (earrp \ (# earr)))
-    (init arrp)
-    (init earrp)
     (printf "%u %u\n" (size arrp) (max-size arrp))
     (printf "%d\n" (size earrp))
     (if (not (empty arrp))

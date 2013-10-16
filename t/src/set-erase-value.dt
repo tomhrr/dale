@@ -35,8 +35,6 @@
   (fn extern-c int (void)
     (let ((s  (Set int))
           (sp \ (# s)))
-      (init sp)
-
       (let ((i \ 0))
         (for true (< i 100) (incv i)
           (insert sp i)))

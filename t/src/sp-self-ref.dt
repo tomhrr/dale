@@ -10,10 +10,10 @@
   (fn extern-c int (void)
 
     (let ((myint \ (malloc' 1 int))
-          (myptr (SharedPtr int) (do (init (# myptr) myint) 0)))
+          (myptr (SharedPtr int) (init (# myptr) myint)))
       (setf myint 100)
       (let ((myint2 \ (malloc' 1 int))
-            (myptr2 (SharedPtr int) (do (init (# myptr2) myint2) 0)))
+            (myptr2 (SharedPtr int) (init (# myptr2) myint2)))
         (setf myint2 200)
         ; Values and reference counts should remain the same after the
         ; self-assignments.

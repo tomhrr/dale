@@ -9,10 +9,9 @@
 (using-namespace mine
   (def main
     (fn extern-c int (void)
-      (let ((vec (Vector int))
+      (let ((vec (Vector int) (init (# vec) 100))
             (vecp \ (# vec))
             (myiter (Iterator (Vector int))))
-        (init vecp 100)
         (push-back vecp 200)
         (setv myiter (begin vecp))
         (printf "%d\n" (@source myiter))

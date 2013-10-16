@@ -23,14 +23,12 @@
 
 (def main
   (fn extern-c int (void)
-    (let ((vec   (Vector (Pair int int)))
+    (let ((vec   (Vector (Pair int int)) (init (# vec) 1))
           (vecp  \ (# vec))
-          (vec2  (Vector (Pair int int)))
+          (vec2  (Vector (Pair int int)) (init (# vec2) 200))
           (vec2p \ (# vec2))
           (one  (Pair int int) ((first 1) (second 2)))
           (two  (Pair int int) ((first 3) (second 4))))
-    (init vecp 1)
-    (init vec2p 200)
     (printf "Empty?: %d\n" (if (empty vecp) 1 0))
 
     (push-back vecp one)

@@ -35,8 +35,6 @@
   (fn extern-c int (void)
     (let ((s  (Set int))
           (sp \ (# s)))
-      (init sp)
-
       (if (empty sp)
           (printf "Set is empty\n")
           (printf "Set is not empty\n"))

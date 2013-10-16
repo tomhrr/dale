@@ -26,7 +26,6 @@
   (fn extern-c int (void)
     (let ((list (List int))
           (lst  \ (# list)))
-      (init lst)
       (push-back lst 1)
       (push-back lst 2)
       (pop-back lst)

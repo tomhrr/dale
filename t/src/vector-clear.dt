@@ -15,7 +15,7 @@
   (fn extern-c int (void)
     (let ((vec  (Vector int))
           (vecp \ (# vec)))
-      (init vecp 10)
+      (resize vecp (cast 10 size))
       (printv vecp)
       (insert vecp (begin vecp) 100)
       (insert vecp (begin vecp) 200)

@@ -227,6 +227,13 @@ bool parse(Generator *gen,
         if (!type) {
             return false;
         }
+        
+        /* Find the init function, if it exists. */
+        std::vector<Element::Type *> init_arg_types;
+        init_arg_types.push_back(ctx->tr->getPointerType(type));
+        Element::Function *init_fn =
+            ctx->getFunction("init", &init_arg_types, NULL, 0);
+
         /* If it's a struct, check if it's must-init. */
         if (type->struct_name) {
             Element::Struct *mine =
@@ -234,7 +241,7 @@ bool parse(Generator *gen,
                     type->struct_name->c_str(),
                     type->namespaces
                 );
-            if (mine->must_init && (newlist->size() == 3)) {
+            if (mine->must_init && (newlist->size() == 3) && !init_fn) {
                 Error *e = new Error(
                     ErrorInst::Generator::MustHaveInitialiserForType,
                     ndef
@@ -276,7 +283,7 @@ bool parse(Generator *gen,
         }
 
         if (newlist->size() == 3) {
-            if (type->is_const) {
+            if (type->is_const && !init_fn) {
                 Error *e = new Error(
                     ErrorInst::Generator::MustHaveInitialiserForConstType,
                     ndef
@@ -285,8 +292,14 @@ bool parse(Generator *gen,
                 return false;
             }
 
-            /* Finished - no value for this define. If the type is
-             * const, though, it's an error. */
+            if (init_fn) {
+                std::vector<llvm::Value *> call_args;
+                call_args.push_back(new_ptr);
+                builder.CreateCall(
+                    init_fn->llvm_function, 
+                    llvm::ArrayRef<llvm::Value*>(call_args)
+                );
+            }
 
             pr->set(block, ctx->tr->type_int,
                   llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
@@ -295,20 +308,30 @@ bool parse(Generator *gen,
         }
 
         ParseResult p;
+        Node *last = (*newlist)[3];
         bool res =
             Form::Proc::Inst::parse(gen, 
-                fn, block, (*newlist)[3], get_address, false, type, &p
+                fn, block, last, get_address, false, type, &p
             );
         if (!res) {
             return false;
         }
 
-        /* If the constant int 0 is returned, and this isn't an
-         * integer type, then skip this part (assume that the
-         * variable has been initialised by the user). This is to
-         * save pointless copies/destructs, while still allowing
-         * the variable to be fully initialised once the define is
+        /* If the constant int 0 is returned and this isn't an integer
+         * type, or the initialisation form is a list where the first
+         * token is 'init', then skip this part (assume that the
+         * variable has been initialised by the user). This is to save
+         * pointless copies/destructs, while still allowing the
+         * variable to be fully initialised once the define is
          * complete. */
+
+        if (last->is_list) {
+            Node *first = last->list->at(0);
+            if (first && first->is_token 
+                      && !(first->token->str_value.compare("init"))) {
+                return true;
+            }
+        }
 
         if (!(type->isIntegerType()) && (type->base_type != dale::Type::Bool)) {
             if (llvm::ConstantInt *temp =

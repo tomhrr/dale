@@ -11,7 +11,6 @@
     (def m  (var auto (Map int int)))
     (def mp (var auto (p (Map int int)) (# m)))
 
-    (init mp)
     (if (= mp mp)
         (printf "Equal\n")
         (printf "Not equal\n"))

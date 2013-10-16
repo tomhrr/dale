@@ -12,8 +12,6 @@
     (let ((v  (Vector int))
           (vp (p (Vector int)) (# v))
           (i  int 0))
-      (init vp)
-      
       (for true (< i 10) (incv i)
         (push-back vp i))
 

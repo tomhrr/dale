@@ -13,9 +13,8 @@
 
 (def main
   (fn extern-c int (void)
-    (let ((vec  (Vector int))
+    (let ((vec  (Vector int) (init (# vec) 10))
           (vecp \ (# vec)))
-      (init vecp 10)
       (printv vecp)
       (insert vecp (begin vecp) 100)
       (insert vecp (begin vecp) 200)

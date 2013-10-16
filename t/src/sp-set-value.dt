@@ -9,7 +9,7 @@
 (def main
   (fn extern-c int (void)
     (let ((myint \ (malloc' 1 int))
-          (myptr (SharedPtr int) (do (init (# myptr) myint) 0)))
+          (myptr (SharedPtr int) (init (# myptr) myint)))
       (setv myptr 100)
       (printf "%d\n" (@ myptr))
       0)))
