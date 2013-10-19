@@ -332,6 +332,49 @@ bool parse(Generator *gen,
                         indices.pop_back();
                     }
                 }
+            } else if (type->struct_name) {
+                Element::Struct *sp =
+                    ctx->getStruct(
+                        type->struct_name->c_str(),
+                        type->namespaces
+                    );
+                int i = 0;
+                std::vector<llvm::Value *> call_args;
+                std::vector<llvm::Value *> indices;
+                indices.push_back(ctx->nt->getLLVMZero());
+                for (std::vector<Element::Type *>::iterator
+                        b = sp->element_types.begin(),
+                        e = sp->element_types.end();
+                        b != e;
+                        ++b) {
+                    Element::Type *t = (*b);
+                    std::vector<Element::Type *> init_arg_types;
+                    init_arg_types.push_back(ctx->tr->getPointerType(t));
+                    Element::Function *init_fn =
+                        ctx->getFunction("init", &init_arg_types, NULL, 0);
+                    if (init_fn) {
+                        call_args.clear();
+                        indices.push_back(
+                            llvm::cast<llvm::Value>(
+                                ctx->nt->getNativeInt(i)
+                            )
+                        );
+                        llvm::Value *sref = builder.Insert(
+                            llvm::GetElementPtrInst::Create(
+                                new_ptr,
+                                llvm::ArrayRef<llvm::Value*>(indices)
+                            ),
+                            "sref"
+                        );
+                        call_args.push_back(sref);
+                        builder.CreateCall(
+                            init_fn->llvm_function, 
+                            llvm::ArrayRef<llvm::Value*>(call_args)
+                        );
+                        indices.pop_back();
+                    }
+                    i++;
+                }
             }
 
             pr->set(block, ctx->tr->type_int,
