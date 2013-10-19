@@ -15,7 +15,7 @@ is($?, 0, 'Program executed successfully');
 
 chomp for @res;
 
-is_deeply(\@res, [ (1..9) ], 'Got correct results');
+is_deeply(\@res, [ (0..9) ], 'Got correct results');
 
 `rm array-init`;
 
