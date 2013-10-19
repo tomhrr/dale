@@ -8,26 +8,15 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 3;
 
-my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtor-struct.dt -o dtor-struct `;
+my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/array-init.dt -o array-init `;
 is_deeply(\@res, [], 'No compilation errors');
-@res = `./dtor-struct`;
+@res = `./array-init`;
 is($?, 0, 'Program executed successfully');
 
 chomp for @res;
 
-is_deeply(\@res, [ 
-'destroying mys1 1',
-'destroying mys1 2',
-'destroying mys1 3',
-'destroying mys1 4',
-'destroying mys1 4',
-'destroying mys1 3',
-'destroying mys1 2',
-'destroying mys1 1',
-'destroying float',
-],
-        'Got correct results');
+is_deeply(\@res, [ (1..9) ], 'Got correct results');
 
-`rm dtor-struct`;
+`rm array-init`;
 
 1;
