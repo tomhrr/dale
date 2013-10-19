@@ -1,0 +1,32 @@
+(import cstdio)
+(import macros)
+
+(def fvar (var intern float 0.0))
+
+(def init (fn intern void ((n (p float)))
+  (setf n fvar)
+  (setv fvar (+ fvar 1.0))
+  (return)))
+
+(def dvar (var intern double 0.0))
+
+(def init (fn intern void ((n (p double)))
+  (setf n dvar)
+  (setv dvar (+ dvar (cast 1.0 double)))
+  (return)))
+
+(def mys (struct intern ((a float) (b double) (c float) (d double))))
+(def mys2 (struct intern ((a mys) (b mys))))
+
+(def main (fn extern-c int (void)
+  (let ((n mys2))
+    (printf "%d\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n" 
+            (cast (@: (: n a) a) int)
+            (cast (@: (: n a) b) int)
+            (cast (@: (: n a) c) int)
+            (cast (@: (: n a) d) int)
+            (cast (@: (: n b) a) int)
+            (cast (@: (: n b) b) int)
+            (cast (@: (: n b) c) int)
+            (cast (@: (: n b) d) int))
+    0)))

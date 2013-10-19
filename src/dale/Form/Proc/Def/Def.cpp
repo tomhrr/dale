@@ -16,6 +16,100 @@ namespace Proc
 {
 namespace Def
 {
+Element::Function *get_init_fn(Context *ctx,
+                               Element::Type *type)
+{
+    std::vector<Element::Type *> init_arg_types;
+    init_arg_types.push_back(ctx->tr->getPointerType(type));
+    return ctx->getFunction("init", &init_arg_types, NULL, 0);
+}
+
+bool initialise(Context *ctx,
+                llvm::IRBuilder<> *builder,
+                Element::Type *type,
+                llvm::Value *value,
+                Element::Function *init_fn)
+{
+    if (!init_fn) {
+        init_fn = get_init_fn(ctx, type);
+    }
+
+    if (init_fn) {
+        std::vector<llvm::Value *> call_args;
+        call_args.push_back(value);
+        builder->CreateCall(
+            init_fn->llvm_function, 
+            llvm::ArrayRef<llvm::Value*>(call_args)
+        );
+        return true;
+    }
+
+    if (type->array_type) {
+        init_fn = get_init_fn(ctx, type->array_type);
+        if (!init_fn) {
+            return true;
+        }
+
+        std::vector<llvm::Value *> indices;
+        indices.push_back(ctx->nt->getLLVMZero());
+        for (int i = 0; i < type->array_size; i++) {
+            indices.push_back(
+                llvm::cast<llvm::Value>(
+                    ctx->nt->getNativeInt(i)
+                )
+            );
+            llvm::Value *aref = builder->Insert(
+                llvm::GetElementPtrInst::Create(
+                    value,
+                    llvm::ArrayRef<llvm::Value*>(indices)
+                ),
+                "aref"
+            );
+            initialise(ctx, builder, type->array_type,
+                        aref, init_fn);
+            indices.pop_back();
+        }
+
+        return true;
+    }
+
+    if (type->struct_name) {
+        Element::Struct *sp =
+            ctx->getStruct(
+                type->struct_name->c_str(),
+                type->namespaces
+            );
+        int i = 0;
+        std::vector<llvm::Value *> indices;
+        indices.push_back(ctx->nt->getLLVMZero());
+        for (std::vector<Element::Type *>::iterator
+                b = sp->element_types.begin(),
+                e = sp->element_types.end();
+                b != e;
+                ++b) {
+            Element::Type *t = (*b);
+            indices.push_back(
+                llvm::cast<llvm::Value>(
+                    ctx->nt->getNativeInt(i)
+                )
+            );
+            llvm::Value *sref = builder->Insert(
+                llvm::GetElementPtrInst::Create(
+                    value,
+                    llvm::ArrayRef<llvm::Value*>(indices)
+                ),
+                "sref"
+            );
+            indices.pop_back();
+            i++;
+            initialise(ctx, builder, t, sref, NULL);
+        }
+        return true;
+    }
+
+    return true;
+}
+
 bool parse(Generator *gen,
            Element::Function *fn,
            llvm::BasicBlock *block,
@@ -292,90 +386,7 @@ bool parse(Generator *gen,
                 return false;
             }
 
-            if (init_fn) {
-                std::vector<llvm::Value *> call_args;
-                call_args.push_back(new_ptr);
-                builder.CreateCall(
-                    init_fn->llvm_function, 
-                    llvm::ArrayRef<llvm::Value*>(call_args)
-                );
-            } else if (type->array_type) {
-                std::vector<Element::Type *> init_arg_types;
-                init_arg_types.push_back(
-                    ctx->tr->getPointerType(type->array_type)
-                );
-                Element::Function *init_fn =
-                    ctx->getFunction("init", &init_arg_types, NULL, 0);
-                if (init_fn) {
-                    std::vector<llvm::Value *> call_args;
-                    std::vector<llvm::Value *> indices;
-                    indices.push_back(ctx->nt->getLLVMZero());
-                    for (int i = 0; i < type->array_size; i++) {
-                        call_args.clear();
-                        indices.push_back(
-                            llvm::cast<llvm::Value>(
-                                ctx->nt->getNativeInt(i)
-                            )
-                        );
-                        llvm::Value *aref = builder.Insert(
-                            llvm::GetElementPtrInst::Create(
-                                new_ptr,
-                                llvm::ArrayRef<llvm::Value*>(indices)
-                            ),
-                            "aref"
-                        );
-                        call_args.push_back(aref);
-                        builder.CreateCall(
-                            init_fn->llvm_function, 
-                            llvm::ArrayRef<llvm::Value*>(call_args)
-                        );
-                        indices.pop_back();
-                    }
-                }
-            } else if (type->struct_name) {
-                Element::Struct *sp =
-                    ctx->getStruct(
-                        type->struct_name->c_str(),
-                        type->namespaces
-                    );
-                int i = 0;
-                std::vector<llvm::Value *> call_args;
-                std::vector<llvm::Value *> indices;
-                indices.push_back(ctx->nt->getLLVMZero());
-                for (std::vector<Element::Type *>::iterator
-                        b = sp->element_types.begin(),
-                        e = sp->element_types.end();
-                        b != e;
-                        ++b) {
-                    Element::Type *t = (*b);
-                    std::vector<Element::Type *> init_arg_types;
-                    init_arg_types.push_back(ctx->tr->getPointerType(t));
-                    Element::Function *init_fn =
-                        ctx->getFunction("init", &init_arg_types, NULL, 0);
-                    if (init_fn) {
-                        call_args.clear();
-                        indices.push_back(
-                            llvm::cast<llvm::Value>(
-                                ctx->nt->getNativeInt(i)
-                            )
-                        );
-                        llvm::Value *sref = builder.Insert(
-                            llvm::GetElementPtrInst::Create(
-                                new_ptr,
-                                llvm::ArrayRef<llvm::Value*>(indices)
-                            ),
-                            "sref"
-                        );
-                        call_args.push_back(sref);
-                        builder.CreateCall(
-                            init_fn->llvm_function, 
-                            llvm::ArrayRef<llvm::Value*>(call_args)
-                        );
-                        indices.pop_back();
-                    }
-                    i++;
-                }
-            }
+            initialise(ctx, &builder, type, new_ptr, init_fn);
 
             pr->set(block, ctx->tr->type_int,
                   llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
