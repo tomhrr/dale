@@ -1,0 +1,15 @@
+(import cstdio)
+
+(def fvar (var intern float 0.0))
+
+(def init (fn intern void ((n (p float)))
+  (setf n fvar)
+  (setv fvar (+ fvar 1.0))
+  (return)))
+
+(def main (fn extern-c int (void)
+  (let ((n (array-of 10 float))
+        (i \ 0))
+    (for true (< i 10) (incv i)
+      (printf "%d\n" (cast (@$ n i) int)))
+    0)))

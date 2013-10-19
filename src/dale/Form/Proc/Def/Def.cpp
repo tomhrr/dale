@@ -299,6 +299,39 @@ bool parse(Generator *gen,
                     init_fn->llvm_function, 
                     llvm::ArrayRef<llvm::Value*>(call_args)
                 );
+            } else if (type->array_type) {
+                std::vector<Element::Type *> init_arg_types;
+                init_arg_types.push_back(
+                    ctx->tr->getPointerType(type->array_type)
+                );
+                Element::Function *init_fn =
+                    ctx->getFunction("init", &init_arg_types, NULL, 0);
+                if (init_fn) {
+                    std::vector<llvm::Value *> call_args;
+                    std::vector<llvm::Value *> indices;
+                    indices.push_back(ctx->nt->getLLVMZero());
+                    for (int i = 0; i < type->array_size; i++) {
+                        call_args.clear();
+                        indices.push_back(
+                            llvm::cast<llvm::Value>(
+                                ctx->nt->getNativeInt(i)
+                            )
+                        );
+                        llvm::Value *aref = builder.Insert(
+                            llvm::GetElementPtrInst::Create(
+                                new_ptr,
+                                llvm::ArrayRef<llvm::Value*>(indices)
+                            ),
+                            "aref"
+                        );
+                        call_args.push_back(aref);
+                        builder.CreateCall(
+                            init_fn->llvm_function, 
+                            llvm::ArrayRef<llvm::Value*>(call_args)
+                        );
+                        indices.pop_back();
+                    }
+                }
             }
 
             pr->set(block, ctx->tr->type_int,
