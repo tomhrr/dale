@@ -10,7 +10,7 @@ class Generator;
 namespace Form { namespace Type {
 Element::Type *
 parse(Generator *gen, Node *top, bool allow_anon_structs,
-      bool allow_bitfields);
+      bool allow_bitfields, bool allow_refs = false);
 }}}
 
 #endif

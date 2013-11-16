@@ -198,7 +198,7 @@ parse(Generator *gen,
         var = new Element::Variable();
         var->type = NULL;
 
-        gen->parseArgument(var, (*node_iter), true, true);
+        gen->parseArgument(var, (*node_iter), true, true, false);
 
         if (!var || !var->type) {
             Error *e = new Error(

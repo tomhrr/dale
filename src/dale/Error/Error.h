@@ -141,6 +141,7 @@ enum
     ZeroLengthGlobalArraysAreUnsupported,
     CannotModifyConstVariable,
     SetfOverridesMustReturnBool,
+    RefsNotPermittedHere,
 
     /* these two should print the macro call that caused
      * them, if applicable */

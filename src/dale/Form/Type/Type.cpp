@@ -8,7 +8,7 @@ static int anonstructcount = 0;
 namespace dale { namespace Form { namespace Type {
 Element::Type *
 parse(Generator *gen, Node *top, bool allow_anon_structs,
-      bool allow_bitfields)
+      bool allow_bitfields, bool allow_refs)
 {
     if (!top) {
         return NULL;
@@ -96,7 +96,7 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
         return NULL;
     }
 
-    // If here, node is a list node. First, try for a macro call.
+    /* If here, node is a list node. Try for a macro call. */
 
     Node *newtop = gen->parseOptionalMacroCall(top);
 
@@ -139,6 +139,37 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
             return parse(gen, lst->at(0), allow_anon_structs,
                              allow_bitfields);
         }
+    }
+
+    /* If list is a two-element list, where the first element is
+     * 'ref', then this is a reference type. */
+    if (lst->size() == 2
+            && lst->at(0)->is_token
+            && !(lst->at(0)->token->str_value.compare("ref"))) {
+        if (!allow_refs) {
+            Error *e = new Error(
+                ErrorInst::Generator::RefsNotPermittedHere,
+                top
+            );
+            ctx->er->addError(e);
+            return NULL;
+        }
+        Node *new_type = gen->parseOptionalMacroCall((*lst)[1]);
+        if (!new_type) {
+            return NULL;
+        }
+
+        /* Reference types are only permitted at the 'top level' of
+         * the type. */
+        Element::Type *reference_type =
+            parse(gen, (*lst)[1], allow_anon_structs,
+                  allow_bitfields);
+
+        if (reference_type == NULL) {
+            return NULL;
+        }
+
+        return ctx->tr->getReferenceType(reference_type);
     }
 
     /* If list is a two-element list, where the first element is
@@ -336,7 +367,8 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
 
             gen->parseArgument(var, (*node_iter),
                           allow_anon_structs,
-                          allow_bitfields);
+                          allow_bitfields,
+                          true);
 
             if (var->type == NULL) {
                 delete var;

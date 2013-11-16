@@ -347,6 +347,7 @@ tryvar:
                             builder.CreateLoad(var->value)
                         )
                     );
+            pr->address_of_value = var->value;
             return true;
         }
     } else if (t->type == TokenType::StringLiteral) {

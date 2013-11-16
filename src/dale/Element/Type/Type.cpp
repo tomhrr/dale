@@ -104,7 +104,9 @@ Type::Type()
 
     struct_name = NULL;
     namespaces  = NULL;
-    is_const    = 0;
+
+    is_const     = 0;
+    is_reference = 0;
 }
 
 Type::Type(int new_base_type,
@@ -124,7 +126,9 @@ Type::Type(int new_base_type,
 
     struct_name = NULL;
     namespaces  = NULL;
-    is_const    = 0;
+    
+    is_const     = 0;
+    is_reference = 0;
 }
 
 Type::Type(Element::Type *new_points_to,
@@ -144,7 +148,9 @@ Type::Type(Element::Type *new_points_to,
 
     struct_name = NULL;
     namespaces  = NULL;
-    is_const    = 0;
+
+    is_const     = 0;
+    is_reference = 0;
 }
 
 Type::~Type()

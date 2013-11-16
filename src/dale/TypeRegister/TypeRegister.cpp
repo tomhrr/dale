@@ -71,6 +71,7 @@ TypeRegister::~TypeRegister(void)
     stl::deleteMapElements(&pointer_types);
     stl::deleteMapElements(&const_types);
     stl::deleteMapElements(&struct_types);
+    stl::deleteMapElements(&reference_types);
     stl::deleteNestedMapElements(&array_types);
     stl::deleteNestedMapElements(&bitfield_types);
 }
@@ -170,6 +171,23 @@ TypeRegister::getConstType(Element::Type *type)
         std::pair<Element::Type*, Element::Type*>(type, const_type)
     );
     return const_type;
+}
+
+Element::Type*
+TypeRegister::getReferenceType(Element::Type *type)
+{
+    std::map<Element::Type*, Element::Type*>::iterator
+        b = reference_types.find(type), e = reference_types.end();
+    if (b != e) {
+        return b->second;
+    }
+
+    Element::Type *reference_type = type->makeCopy();
+    reference_type->is_reference = 1;
+    reference_types.insert(
+        std::pair<Element::Type*, Element::Type*>(type, reference_type)
+    );
+    return reference_type;
 }
 
 Element::Type*

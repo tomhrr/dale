@@ -53,7 +53,11 @@ parse(Generator *gen,
         int avres;
         Element::Variable *myvart = (*fn_args_iter);
         Element::Variable *myvar = new Element::Variable();
-        myvar->type          = myvart->type;
+        if (myvart->type->is_reference) {
+            myvar->type = ctx->tr->getPointerType(myvart->type);
+        } else {
+            myvar->type = myvart->type;
+        }
         myvar->name          = myvart->name;
         myvar->internal_name = myvart->internal_name;
         myvar->value         = myvart->value;

@@ -2133,6 +2133,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
     std::vector<Node *>::iterator symlist_iter;
 
     std::vector<llvm::Value *> call_args;
+    std::vector<ParseResult> call_arg_prs;
     std::vector<Element::Type *> call_arg_types;
 
     std::vector<llvm::Value *> call_args_newer;
@@ -2218,8 +2219,8 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
         ParseResult p;
         bool res = 
             Form::Proc::Inst::parse(this, dfn, block, (*symlist_iter),
-                                   getAddress, false, NULL,
-                                   &p);
+                                    false, false, NULL,
+                                    &p);
 
         int diff = erep->getErrorTypeCount(ErrorType::Error)
                    - error_count;
@@ -2267,6 +2268,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
             call_args.push_back(p.value);
             call_arg_types.push_back(p.type);
         }
+        call_arg_prs.push_back(p);
 
         ++symlist_iter;
     }
@@ -2629,9 +2631,24 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
         }
     }
 
+    /* Iterate over the types of the found function. For the reference
+     * types, replace the call argument with its address. */
+    
+    std::vector<llvm::Value *> call_args_final = call_args;
+    int caps = call_arg_prs.size();
+    int pts  = fn->parameter_types->size();
+    int limit = (caps > pts ? pts : caps);
+    for (int i = 0; i < limit; i++) {
+        Element::Type *pt = fn->parameter_types->at(i)->type;
+        if (pt->is_reference) {
+            call_args_final[i] =
+                call_arg_prs.at(i).getAddressOfValue(ctx);
+        }
+    }
+
     llvm::Value *call_res = builder.CreateCall(
                                 fn->llvm_function,
-                                llvm::ArrayRef<llvm::Value*>(call_args));
+                                llvm::ArrayRef<llvm::Value*>(call_args_final));
 
     pr->set(block, fn->return_type, call_res);
 
@@ -2647,7 +2664,8 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
 
 void Generator::parseArgument(Element::Variable *var, Node *top,
                               bool allow_anon_structs,
-                              bool allow_bitfields)
+                              bool allow_bitfields,
+                              bool allow_refs)
 {
     var->linkage = Linkage::Auto;
 
@@ -2725,7 +2743,7 @@ void Generator::parseArgument(Element::Variable *var, Node *top,
     var->name.append(tname->str_value.c_str());
 
     Element::Type *type = Form::Type::parse(this, (*lst)[1], allow_anon_structs,
-                                    allow_bitfields);
+                                    allow_bitfields, allow_refs);
     var->type = type;
 
     return;

@@ -126,6 +126,8 @@ void serialise(FILE *out, Element::Type *t)
             && !t->points_to
             && !t->return_type
             && !t->parameter_types
+            && !t->is_const
+            && !t->is_reference
             && !t->bitfield_size) {
         c = 'S';
         serialise(out, &c);
@@ -140,6 +142,7 @@ void serialise(FILE *out, Element::Type *t)
     serialise(out, &(t->array_size));
     serialise(out, &(t->bitfield_size));
     serialise(out, &(t->is_const));
+    serialise(out, &(t->is_reference));
     if (!t->array_type) {
         serialise(out, 0);
     } else {
@@ -203,6 +206,7 @@ char *deserialise(TypeRegister *tr, char *in, Element::Type **t)
     in = deserialise(tr, in, &(temp.array_size));
     in = deserialise(tr, in, &(temp.bitfield_size));
     in = deserialise(tr, in, &(temp.is_const));
+    in = deserialise(tr, in, &(temp.is_reference));
     int is_present;
     in = deserialise(tr, in, &is_present);
     if (is_present) {

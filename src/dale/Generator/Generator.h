@@ -166,7 +166,8 @@ public:
 
     void parseArgument(Element::Variable *var, Node *n,
                        bool allow_anon_structs,
-                       bool allow_bitfields);
+                       bool allow_bitfields,
+                       bool allow_refs);
     int getUnusedVarname(std::string *mystr);
 
     Namespace *prefunction_ns;

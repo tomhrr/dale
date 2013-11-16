@@ -661,6 +661,9 @@ const char *Error::getPrintfString(void)
     case ErrorInst::Generator::SetfOverridesMustReturnBool:
         ret = "setf overrides must return bool";
         break;
+    case ErrorInst::Generator::RefsNotPermittedHere:
+        ret = "reference types not permitted in this context";
+        break;
     default:
         ret = "(Unknown)";
     }

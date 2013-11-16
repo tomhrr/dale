@@ -49,6 +49,7 @@ public:
     int            is_function;
     int            bitfield_size;
     int            is_const;
+    int            is_reference;
     std::string    *struct_name;
     std::vector<std::string> *namespaces;
 

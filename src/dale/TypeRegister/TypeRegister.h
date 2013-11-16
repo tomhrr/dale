@@ -26,6 +26,8 @@ private:
     std::map<Element::Type*, Element::Type*> pointer_types;
     /*! A map from type to const type. */
     std::map<Element::Type*, Element::Type*> const_types;
+    /*! A map from type to reference type. */
+    std::map<Element::Type*, Element::Type*> reference_types;
     /*! A map from type, to size, to array type. */
     std::map<Element::Type*, std::map<size_t, Element::Type*> > array_types;
     /*! A map from type, to size, to bitfield type. */
@@ -47,6 +49,9 @@ public:
     /*! Return an instance of a const type.
      *  @param type The type to 'make const'. */
     Element::Type *getConstType(Element::Type *type);
+    /*! Return an instance of a reference type.
+     *  @param type The type to make into a reference type. */
+    Element::Type *getReferenceType(Element::Type *type);
     /*! Return an instance of an array type.
      *  @param type The array element type.
      *  @param size The size of the array. */

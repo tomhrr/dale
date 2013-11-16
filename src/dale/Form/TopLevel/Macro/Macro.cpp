@@ -106,7 +106,7 @@ bool parse(Generator *gen,
     while (node_iter != args->end()) {
         if (!(*node_iter)->is_token) {
             var = new Element::Variable();
-            gen->parseArgument(var, (*node_iter), false, false);
+            gen->parseArgument(var, (*node_iter), false, false, false);
             if (!var->type) {
                 return false;
             }

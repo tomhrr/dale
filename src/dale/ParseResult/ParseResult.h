@@ -12,6 +12,7 @@
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 
 #include "../Element/Type/Type.h"
+#include "../Context/Context.h"
 
 namespace dale
 {
@@ -21,6 +22,7 @@ public:
     Element::Type *type;
     llvm::BasicBlock *block;
     llvm::Value *value;
+    llvm::Value *address_of_value;
     int treat_as_terminator;
     int do_not_destruct;
     int do_not_copy_with_setf;
@@ -36,6 +38,7 @@ public:
     void set(llvm::BasicBlock *new_block,
             Element::Type *new_type,
             llvm::Value *new_value);
+    llvm::Value *getAddressOfValue(Context *ctx);
 };
 }
 

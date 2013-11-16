@@ -170,7 +170,7 @@ parse(Generator *gen,
         var = new Element::Variable();
         var->type = NULL;
 
-        gen->parseArgument(var, (*node_iter), false, false);
+        gen->parseArgument(var, (*node_iter), false, false, true);
 
         if (var->type == NULL) {
             delete var;
@@ -237,17 +237,20 @@ parse(Generator *gen,
 
     std::vector<Element::Variable *>::iterator iter;
     iter = fn_args_internal->begin();
-    llvm::Type *temp;
 
     while (iter != fn_args_internal->end()) {
-        if ((*iter)->type->base_type == dale::Type::VarArgs) {
+        Element::Type *type = (*iter)->type;
+        if (type->is_reference) {
+            type = ctx->tr->getPointerType(type);
+        }
+        if (type->base_type == dale::Type::VarArgs) {
             break;
         }
-        temp = ctx->toLLVMType((*iter)->type, NULL, false);
-        if (!temp) {
+        llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
+        if (!llvm_type) {
             return false;
         }
-        fn_args.push_back(temp);
+        fn_args.push_back(llvm_type);
         ++iter;
     }
 
