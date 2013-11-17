@@ -551,11 +551,11 @@ must also implement `LessThanComparable`.
                 (while (!= newval (@:@ cn value))
                   (if (< newval (@:@ cn value))
                       (do (if (null (@:@ cn left))
-                              (do (setv newnp (# (@:@ cn left)))
+                              (do (setv newnp (:@ cn left))
                                   (break))
                               (setv cn (@:@ cn left))))
                       (do (if (null (@:@ cn right))
-                              (do (setv newnp (# (@:@ cn right)))
+                              (do (setv newnp (:@ cn right))
                                   (break))
                               (setv cn (@:@ cn right))))))
                 

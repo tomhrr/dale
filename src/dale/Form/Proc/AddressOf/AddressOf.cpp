@@ -53,7 +53,7 @@ bool parse(Generator *gen,
 
     bool res =
         Form::Proc::Inst::parse(gen, 
-            fn, block, (*lst)[1], true, false, NULL, pr
+            fn, block, (*lst)[1], false, false, NULL, pr
         );
 
     int diff = ctx->er->getErrorTypeCount(ErrorType::Error)
@@ -189,6 +189,7 @@ bool parse(Generator *gen,
             pr->set(block, ctx->tr->getPointerType(type),
                        llvm::cast<llvm::Value>(fn->llvm_function)
                    );
+            return pr;
         } else {
             for (std::vector<Error*>::iterator b = errors.begin(),
                     e = errors.end();
@@ -200,11 +201,7 @@ bool parse(Generator *gen,
         }
     }
 
-    /* Confirm that pr's value "points to" something - this error
-     * message should probably be "cannot take address of
-     * non-lvalue" once confirmed all good. */
-
-    if (!pr->type->points_to) {
+    if (!pr->value_is_lvalue) {
         Error *e = new Error(
             ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
             (*lst)[1]
@@ -212,6 +209,17 @@ bool parse(Generator *gen,
         ctx->er->addError(e);
         return false;
     }
+
+    ParseResult newpr;
+    bool ga_res = pr->getAddressOfValue(ctx, &newpr);
+    if (!ga_res) {
+        return false;
+    }
+
+    newpr.copyTo(pr);
+    pr->value_is_lvalue = 0;
+    pr->address_of_value = NULL;
+    pr->type_of_address_of_value = NULL;
 
     return true;
 }

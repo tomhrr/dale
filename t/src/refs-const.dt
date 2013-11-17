@@ -1,0 +1,11 @@
+(import cstdio)
+
+(def plus (fn extern int ((a (ref (const int))) (b (ref (const int))))
+  (+ (@ a) (@ b))))
+
+(def main (fn extern-c int (void)
+  (def x (var auto int 0))
+  (printf "%d\n" (plus x 100))
+  (printf "%d\n" (plus 200 300))
+  (printf "%d\n" (plus x x))
+  0))

@@ -300,7 +300,8 @@ bool Type::isEqualTo(Type *other_type,
     }
 
     if (DEBUG)  printf("ok - checking the types to which these types point\n");
-    return points_to->isEqualTo(other_type->points_to);
+    return points_to->isEqualTo(other_type->points_to,
+                                ignore_arg_constness);
 }
 
 /* todo: this doesn't handle namespaces! */

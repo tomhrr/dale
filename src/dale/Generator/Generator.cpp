@@ -2133,6 +2133,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
     std::vector<Node *>::iterator symlist_iter;
 
     std::vector<llvm::Value *> call_args;
+    std::vector<Node *> call_arg_nodes;
     std::vector<ParseResult> call_arg_prs;
     std::vector<Element::Type *> call_arg_types;
 
@@ -2213,6 +2214,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
     ContextSavePoint *csp = new ContextSavePoint(ctx);
 
     while (symlist_iter != lst->end()) {
+        call_arg_nodes.push_back(*symlist_iter);
         int error_count =
             erep->getErrorTypeCount(ErrorType::Error);
 
@@ -2638,11 +2640,24 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
     int caps = call_arg_prs.size();
     int pts  = fn->parameter_types->size();
     int limit = (caps > pts ? pts : caps);
+    ParseResult refpr;
     for (int i = 0; i < limit; i++) {
         Element::Type *pt = fn->parameter_types->at(i)->type;
         if (pt->is_reference) {
-            call_args_final[i] =
-                call_arg_prs.at(i).getAddressOfValue(ctx);
+            ParseResult *arg_refpr = &(call_arg_prs.at(i));
+            if (!pt->is_const && !arg_refpr->value_is_lvalue) {
+                Error *e = new Error(
+                    ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
+                    call_arg_nodes.at(i)
+                );
+                erep->addError(e);
+                return false;
+            }
+            bool res = arg_refpr->getAddressOfValue(ctx, &refpr);
+            if (!res) {
+                return false;
+            }
+            call_args_final[i] = refpr.value;
         }
     }
 

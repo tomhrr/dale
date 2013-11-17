@@ -10,8 +10,8 @@
     (printf (if (p= var2 var2) "Yes\n" "No\n"))
 
     (def var3 (var auto (p int) (cast (malloc (* (cast 5 size) (sizeof int))) (p int))))
-    (def var4 (var auto (p int) (# ($ var3 1))))
-    (def var5 (var auto (p int) (# ($ var3 3))))
+    (def var4 (var auto (p int) ($ var3 1)))
+    (def var5 (var auto (p int) ($ var3 3)))
 
     (printf (if (p< var3 var4) "Yes\n" "No\n"))
     (printf (if (p> var3 var4) "No\n" "Yes\n"))

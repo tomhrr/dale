@@ -324,7 +324,7 @@ tryvar:
         } else {
             if (var->type->is_array) {
                 /* If the variable is an array, return a pointer of
-                * the array's type. */
+                 * the array's type. */
                 llvm::Value *p_to_array =
                     builder.CreateGEP(
                         var->value,
@@ -332,10 +332,14 @@ tryvar:
                     );
 
                 pr->set(
-                            block,
-                            ctx->tr->getPointerType(var->type->array_type),
-                            p_to_array
-                        );
+                    block,
+                    ctx->tr->getPointerType(var->type->array_type),
+                    p_to_array
+                );
+                pr->address_of_value = var->value;
+                pr->value_is_lvalue = 1;
+                pr->type_of_address_of_value =
+                    ctx->tr->getPointerType(var->type);
                 return true;
             }
 
@@ -348,6 +352,7 @@ tryvar:
                         )
                     );
             pr->address_of_value = var->value;
+            pr->value_is_lvalue = 1;
             return true;
         }
     } else if (t->type == TokenType::StringLiteral) {

@@ -20,6 +20,7 @@ class ParseResult
 {
 public:
     Element::Type *type;
+    Element::Type *type_of_address_of_value;
     llvm::BasicBlock *block;
     llvm::Value *value;
     llvm::Value *address_of_value;
@@ -27,6 +28,7 @@ public:
     int do_not_destruct;
     int do_not_copy_with_setf;
     int freshly_copied;
+    int value_is_lvalue;
 
     ParseResult();
     ParseResult(llvm::BasicBlock *new_block,
@@ -38,7 +40,8 @@ public:
     void set(llvm::BasicBlock *new_block,
             Element::Type *new_type,
             llvm::Value *new_value);
-    llvm::Value *getAddressOfValue(Context *ctx);
+    bool getAddressOfValue(Context *ctx, ParseResult *pr);
+    bool setAddressOfValue(Context *ctx);
 };
 }
 

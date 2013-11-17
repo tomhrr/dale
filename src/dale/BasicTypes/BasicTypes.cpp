@@ -14,6 +14,8 @@ addSimpleUnaryFunction(Context *ctx,
 {
     int linkage = Linkage::Extern;
 
+    type1 = ctx->tr->getConstType(type1);
+
     std::vector<Element::Variable*> *new_args_ctx =
         new std::vector<Element::Variable*>;
 
@@ -97,6 +99,9 @@ addSimpleBinaryFunction(Context *ctx,
                         Element::Type *type2)
 {
     int linkage = Linkage::Extern;
+
+    type1 = ctx->tr->getConstType(type1);
+    type2 = ctx->tr->getConstType(type2);
 
     std::vector<Element::Variable*> *new_args_ctx =
         new std::vector<Element::Variable*>;

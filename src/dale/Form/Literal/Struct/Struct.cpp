@@ -151,6 +151,8 @@ parse(Generator *gen,
     } else {
         llvm::Value *final_value = builder.CreateLoad(sp);
         pr->set(block, structtype, final_value);
+        pr->address_of_value = sp;
+        pr->value_is_lvalue = 1;
     }
     return true;
 }
