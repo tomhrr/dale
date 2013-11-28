@@ -684,7 +684,8 @@ bool parse(Generator *gen,
            bool get_address,
            bool prefixed_with_core,
            Element::Type *wanted_type,
-           ParseResult *pr)
+           ParseResult *pr,
+           bool no_copy)
 {
     bool res =
         parseInternal(gen, fn, block, node,
@@ -701,7 +702,9 @@ bool parse(Generator *gen,
     }
     /* todo: if there's never a use case for a separate
      * parseresult, then fix this function accordingly. */
-    gen->copyWithSetfIfApplicable(fn, pr, pr);
+    if (!no_copy) {
+        gen->copyWithSetfIfApplicable(fn, pr, pr);
+    }
 
     return true;
 }

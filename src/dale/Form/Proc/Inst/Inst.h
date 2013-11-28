@@ -18,7 +18,8 @@ bool parse(Generator *gen,
            bool get_address,
            bool prefixed_with_core,
            Element::Type *wanted_type,
-           ParseResult *pr);
+           ParseResult *pr,
+           bool no_copy = false);
 }
 }
 }

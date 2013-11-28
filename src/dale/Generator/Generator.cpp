@@ -2222,7 +2222,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
         bool res = 
             Form::Proc::Inst::parse(this, dfn, block, (*symlist_iter),
                                     false, false, NULL,
-                                    &p);
+                                    &p, true);
 
         int diff = erep->getErrorTypeCount(ErrorType::Error)
                    - error_count;
@@ -2248,28 +2248,11 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
 
         block = p.block;
         if (p.type->is_array) {
-            llvm::IRBuilder<> builder(block);
-            llvm::Type *llvm_type =
-                ctx->toLLVMType(p.type, NULL, false);
-            if (!llvm_type) {
-                return false;
-            }
-            llvm::Value *newptr =
-                builder.CreateAlloca(llvm_type);
-            builder.CreateStore(p.value, newptr);
-
-            llvm::Value *p_to_array =
-                builder.CreateGEP(
-                    newptr,
-                    llvm::ArrayRef<llvm::Value*>(two_zero_indices));
-            call_arg_types.push_back(
-                tr->getPointerType(p.type->array_type)
-            );
-            call_args.push_back(p_to_array);
-        } else {
-            call_args.push_back(p.value);
-            call_arg_types.push_back(p.type);
+            p = ParseResult(block, p.type_of_address_of_value,
+                            p.address_of_value);
         }
+        call_args.push_back(p.value);
+        call_arg_types.push_back(p.type);
         call_arg_prs.push_back(p);
 
         ++symlist_iter;
@@ -2353,6 +2336,8 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
         }
         return false;
     }
+
+    bool args_cast = false;
 
     if (!fn) {
         /* If no function was found, and there are errors related
@@ -2509,6 +2494,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
 
             call_args = call_args_newer;
             call_arg_types = call_arg_types_newer;
+            args_cast = true;
         } else if (ctx->existsNonExternCFunction(t->str_value.c_str())) {
             /* Return a no-op ParseResult if the function name is
              * 'destroy', because it's tedious to have to check in
@@ -2582,6 +2568,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
      * integer size to native integer size. */
 
     if (fn->isVarArgs()) {
+        args_cast = true;
         int n = fn->numberOfRequiredArgs();
 
         std::vector<llvm::Value *>::iterator call_args_iter
@@ -2643,8 +2630,8 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
     ParseResult refpr;
     for (int i = 0; i < limit; i++) {
         Element::Type *pt = fn->parameter_types->at(i)->type;
+        ParseResult *arg_refpr = &(call_arg_prs.at(i));
         if (pt->is_reference) {
-            ParseResult *arg_refpr = &(call_arg_prs.at(i));
             if (!pt->is_const && !arg_refpr->value_is_lvalue) {
                 Error *e = new Error(
                     ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
@@ -2658,6 +2645,17 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
                 return false;
             }
             call_args_final[i] = refpr.value;
+        } else {
+            /* If arguments had to be cast, then skip the copies,
+             * here. (todo: do the casting after this part, instead.)
+             * */
+            if (!args_cast) {
+                bool res = copyWithSetfIfApplicable(dfn, arg_refpr, arg_refpr);
+                if (!res) {
+                    return false;
+                }
+                call_args_final[i] = arg_refpr->value;
+            }
         }
     }
 

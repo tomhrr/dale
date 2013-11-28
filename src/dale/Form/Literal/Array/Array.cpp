@@ -115,12 +115,27 @@ parse(Generator *gen,
         delete elements[i];
     }
 
-    pr->set(block, array_type, llvm_array);
+    indices.push_back(ctx->nt->getNativeInt(0));
+    llvm::Value *array_ptr = 
+        builder.Insert(
+            llvm::GetElementPtrInst::Create(
+                llvm_array,
+                llvm::ArrayRef<llvm::Value*>(indices)
+            ),
+            "asdf"
+        );
 
-    if (getAddress) {
-        pr->type = ctx->tr->getPointerType(array_type);
-    } else {
-        /* Add a load instruction */
+    pr->set(block, ctx->tr->getPointerType(array_type->array_type), 
+            array_ptr);
+
+    if (!getAddress) {
+        pr->address_of_value = pr->value;
+        pr->value_is_lvalue = 0;
+        pr->type_of_address_of_value = pr->type;
+
+        pr->type = array_type;
+        /* todo: is this right? Seems like it should be the caller's
+         * responsibility to get the first value out of the array. */
         llvm::Value *pvalue =
             llvm::cast<llvm::Value>(builder.CreateLoad(llvm_array));
         pr->value = pvalue;
