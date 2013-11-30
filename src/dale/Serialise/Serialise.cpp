@@ -310,6 +310,7 @@ void serialise(FILE *out, Element::Function *fn)
     serialise(out, fn->is_macro);
     serialise(out, fn->internal_name);
     serialise(out, fn->always_inline);
+    serialise(out, fn->retval);
     serialise(out, fn->once_tag);
     serialise(out, fn->cto);
     serialise(out, fn->linkage);
@@ -342,6 +343,7 @@ char *deserialise(TypeRegister *tr, char *in, Element::Function *fn)
     fn->internal_name = name;
 
     in = deserialise(tr, in, &(fn->always_inline));
+    in = deserialise(tr, in, &(fn->retval));
     in = deserialise(tr, in, &(fn->once_tag));
     in = deserialise(tr, in, &(fn->cto));
     in = deserialise(tr, in, &(fn->linkage));

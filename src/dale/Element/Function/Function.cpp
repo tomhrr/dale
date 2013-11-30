@@ -25,7 +25,8 @@ Function::Function(
     llvm::Function *llvm_function,
     int is_macro,
     std::string *internal_name,
-    int always_inline)
+    int always_inline,
+    int retval)
 {
     this->return_type     = return_type;
     this->parameter_types = parameter_types;
@@ -33,6 +34,7 @@ Function::Function(
     this->is_macro        = is_macro;
     this->internal_name   = new std::string(*internal_name);
     this->always_inline   = always_inline;
+    this->retval          = retval;
     cto = 0;
     is_destructor = 0;
     is_setf_fn    = 0;

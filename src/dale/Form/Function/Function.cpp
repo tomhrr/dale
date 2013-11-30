@@ -70,6 +70,7 @@ parse(Generator *gen,
 
     int next_index = 1;
     int always_inline = 0;
+    int retval = 0;
     /* Whole modules, as well as specific functions, can be
      * declared as being compile-time-only. If the global cto
      * value is set to one, that overrides a zero value here.
@@ -102,6 +103,8 @@ parse(Generator *gen,
                 always_inline = 1;
             } else if (!((*b)->token->str_value.compare("cto"))) {
                 my_cto = 1;
+            } else if (!((*b)->token->str_value.compare("retval"))) {
+                retval = 1;
             } else {
                 Error *e = new Error(
                     ErrorInst::Generator::InvalidAttribute,
@@ -144,7 +147,7 @@ parse(Generator *gen,
 
     if (!nargs->is_list) {
         Error *e = new Error(
-            ErrorInst::Generator::IncorrectMinimumNumberOfArgs,
+            ErrorInst::Generator::UnexpectedElement,
             nargs,
             "list", "parameters", "symbol"
         );
@@ -314,7 +317,7 @@ parse(Generator *gen,
 
     Element::Function *dfn =
         new Element::Function(r_type, fn_args_internal, NULL, 0,
-                              &new_name, always_inline);
+                              &new_name, always_inline, retval);
     dfn->linkage = linkage;
     dfn->cto = my_cto;
     if (!strcmp(name, "setf-copy")) {

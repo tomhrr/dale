@@ -22,6 +22,7 @@ public:
     int is_macro;
     std::string *internal_name;
     int always_inline;
+    int retval;
     std::string once_tag;
     int cto;
     int is_destructor;
@@ -36,7 +37,8 @@ public:
              llvm::Function *llvm_function,
              int is_macro,
              std::string *internal_name,
-             int always_inline = 0);
+             int always_inline = 0,
+             int retval = 0);
     ~Function();
 
     int isVarArgs(void);
