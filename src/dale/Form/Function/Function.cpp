@@ -291,13 +291,23 @@ parse(Generator *gen,
         return false;
     }
 
-    /* Convert the return type into an LLVM type and create the
-     * LLVM function type. */
-
     llvm::Type *llvm_r_type =
         ctx->toLLVMType(r_type, NULL, true);
     if (!llvm_r_type) {
         return false;
+    }
+
+    /* Create the LLVM function type. If the retval attribute is
+     * present, then the LLVM function type will have a return type of
+     * void, and a pointer to a value of the return type will be the
+     * final parameter. */
+
+    if (retval) {
+        fn_args.push_back(ctx->toLLVMType(ctx->tr->getPointerType(r_type),
+                                          NULL, true));
+        llvm_r_type =
+            ctx->toLLVMType(ctx->tr->getBasicType(dale::Type::Void),
+                            NULL, true);
     }
 
     llvm::FunctionType *ft =
