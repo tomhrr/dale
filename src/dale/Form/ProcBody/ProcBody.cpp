@@ -21,7 +21,8 @@ parse(Generator *gen,
       Element::Function *dfn,
       llvm::Function *fn,
       int skip,
-      int is_anonymous)
+      int is_anonymous,
+      llvm::Value *return_value)
 {
     Context *ctx = gen->ctx;
 
@@ -112,6 +113,45 @@ parse(Generator *gen,
 
         ++fn_args_iter;
         ++mcount;
+    }
+
+    if (dfn->retval) {
+        Element::Variable *myvar = new Element::Variable();
+        myvar->type            = ctx->tr->getPointerType(dfn->return_type);
+        myvar->name            = "retval";
+        myvar->internal_name   = "retval";
+        myvar->has_initialiser = 0;
+        myvar->once_tag        = "";
+        myvar->index           = 0;
+        myvar->linkage         = dale::Linkage::Auto;
+        int avres = 
+            ctx->ns()->addVariable(
+                myvar->name.c_str(), myvar
+            );
+        if (!avres) {
+            Error *e = new Error(
+                ErrorInst::Generator::RedefinitionOfVariable,
+                n, myvar->name.c_str()
+            );
+            ctx->er->addError(e);
+            return 0;
+        }
+        
+        llvm::Type *llvm_type =
+            ctx->toLLVMType(myvar->type,
+                            NULL,
+                            false);
+        if (!llvm_type) {
+            return 0;
+        }
+
+        llvm::Value *new_ptr = 
+            llvm::cast<llvm::Value>(
+                builder.CreateAlloca(llvm_type)
+            );
+
+        myvar->value = new_ptr;
+        builder.CreateStore(return_value, new_ptr);
     }
 
     std::vector<Node *>::iterator iter;
@@ -365,7 +405,7 @@ parse(Generator *gen,
             /* The underlying error here will have been
              * reported earlier, if there is no
              * last_value. */
-            if (bcount == bmax) {
+            if ((bcount == bmax) && !dfn->retval) {
                 if (last_value) {
                     Element::Type *got_type = last_type;
 

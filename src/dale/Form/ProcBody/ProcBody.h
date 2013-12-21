@@ -15,7 +15,8 @@ parse(Generator *gen,
       Element::Function *dfn,
       llvm::Function *fn,
       int skip,
-      int is_anonymous);
+      int is_anonymous,
+      llvm::Value *return_value = NULL);
 }
 }
 }

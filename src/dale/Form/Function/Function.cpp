@@ -423,7 +423,6 @@ parse(Generator *gen,
     iter = fn_args_internal->begin();
     while (iter != fn_args_internal->end()) {
         if ((*iter)->type->base_type == dale::Type::VarArgs) {
-            /* varargs - finish */
             break;
         }
 
@@ -432,6 +431,12 @@ parse(Generator *gen,
         temp->setName((*iter)->name.c_str());
         (*iter)->value = temp;
         ++iter;
+    }
+
+    llvm::Value *lv_return_value = NULL;
+    if (retval) {
+        lv_return_value = largs;
+        lv_return_value->setName("retval");
     }
 
     /* If this is an extern-c function, if any non-extern-c function
@@ -466,7 +471,8 @@ parse(Generator *gen,
     gen->global_functions.push_back(dfn);
     gen->global_function = dfn;
 
-    Form::ProcBody::parse(gen, n, dfn, fn, (next_index + 2), is_anonymous);
+    Form::ProcBody::parse(gen, n, dfn, fn, (next_index + 2),
+                          is_anonymous, lv_return_value);
 
     gen->global_functions.pop_back();
     if (gen->global_functions.size()) {

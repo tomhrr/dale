@@ -49,8 +49,11 @@ bool parse(Generator *gen,
     if (!res) {
         return false;
     }
+    Element::Type *real_return_type =
+        (fn->retval ? ctx->tr->getBasicType(Type::Void)
+                    : fn->return_type);
     if (!ctx->er->assertTypeEquality("return", node, p.type,
-                                     fn->return_type, false)) {
+                                     real_return_type, false)) {
         return false;
     }
     block = p.block;
