@@ -30,6 +30,10 @@ public:
     int freshly_copied;
     int value_is_lvalue;
 
+    llvm::Value *retval;
+    Element::Type *retval_type;
+    bool retval_used;
+
     ParseResult();
     ParseResult(llvm::BasicBlock *new_block,
                 Element::Type *new_type,

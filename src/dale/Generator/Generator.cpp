@@ -1458,6 +1458,22 @@ bool Generator::scopeClose(Element::Function *dfn,
     return true;
 }
 
+void processRetval(Element::Function *fn,
+                   ParseResult *pr,
+                   std::vector<llvm::Value*> *call_args)
+{
+    if (fn->retval) {
+        if (!pr->retval) {
+            fprintf(stderr, "No retval memory in ParseResult.\n");
+            abort();
+        }
+        call_args->push_back(pr->retval);
+        pr->retval_used = true;
+    }
+
+    return;
+}
+
 bool Generator::parseFuncallInternal(
     Element::Function *dfn,
     Node *n,
@@ -1596,6 +1612,8 @@ bool Generator::parseFuncallInternal(
     }
 
     llvm::IRBuilder<> builder(block);
+
+    processRetval(dfn, pr, &call_args);
 
     llvm::Value *call_res =
         builder.CreateCall(fn, llvm::ArrayRef<llvm::Value*>(call_args));
@@ -2658,6 +2676,8 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
             }
         }
     }
+   
+    processRetval(fn, pr, &call_args_final);
 
     llvm::Value *call_res = builder.CreateCall(
                                 fn->llvm_function,

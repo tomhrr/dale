@@ -395,6 +395,10 @@ bool parse(Generator *gen,
         }
 
         ParseResult p;
+        /* Add the pointer as the retval. */
+        p.retval      = new_ptr;
+        p.retval_type = ctx->tr->getPointerType(type);
+
         Node *last = (*newlist)[3];
         bool res =
             Form::Proc::Inst::parse(gen, 
@@ -402,6 +406,13 @@ bool parse(Generator *gen,
             );
         if (!res) {
             return false;
+        }
+
+        /* If the retval was used, then there's no need for anything
+         * following. */
+        if (p.retval_used) {
+            pr->block = p.block;
+            return true;
         }
 
         /* If the constant int 0 is returned and this isn't an integer

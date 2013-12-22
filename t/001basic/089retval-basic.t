@@ -8,15 +8,17 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 3;
 
-my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/refs-const.dt -o refs-const`;
+my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/retval-basic.dt -o retval-basic`;
 is(@res, 0, 'No compilation errors');
 
-@res = `./refs-const`;
+@res = `./retval-basic`;
 is($?, 0, 'Program executed successfully');
 
 chomp for @res;
-is_deeply(\@res, [qw(100 500 0)], 'Got expected results');
+is_deeply(\@res, [
+'3 3'
+], 'Got expected results');
 
-`rm refs-const`;
+`rm retval-basic`;
 
 1;

@@ -17,10 +17,6 @@ is($?, 0, 'Program executed successfully');
 chomp for @res;
 is_deeply(\@res, [qw(0 1 2)], 'Got expected results');
 
-if (@res) {
-    print Dumper(\@res);
-}
-
 `rm refs-basic`;
 
 1;

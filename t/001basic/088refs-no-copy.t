@@ -34,10 +34,6 @@ is_deeply(\@res, [
 'destroy',
 ], 'Got expected results');
 
-if (@res) {
-    print Dumper(\@res);
-}
-
 `rm refs-no-copy`;
 
 1;

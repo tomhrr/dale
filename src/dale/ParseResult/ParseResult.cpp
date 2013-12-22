@@ -14,6 +14,10 @@ ParseResult::ParseResult()
     do_not_copy_with_setf = 0;
     freshly_copied = 0;
     value_is_lvalue = 0;
+
+    retval = NULL;
+    retval_type = NULL;
+    retval_used = false;
 }
 
 ParseResult::ParseResult(
@@ -32,6 +36,10 @@ ParseResult::ParseResult(
     value = new_value;
     address_of_value = NULL;
     type_of_address_of_value = NULL;
+
+    retval = NULL;
+    retval_type = NULL;
+    retval_used = false;
 }
 
 ParseResult::~ParseResult()
@@ -50,6 +58,9 @@ int ParseResult::copyTo(ParseResult *x)
     x->freshly_copied = freshly_copied;
     x->value_is_lvalue = value_is_lvalue;
     x->type_of_address_of_value = type_of_address_of_value;
+    x->retval_type = retval_type;
+    x->retval = retval;
+    x->retval_used = retval_used;
     return 1;
 }
 

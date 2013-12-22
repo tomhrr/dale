@@ -98,6 +98,9 @@ private:
     void removeMacroTemporaries(void);
 
     void popErrors(int original_count);
+    void processRetval(Element::Function *fn,
+                       ParseResult *pr,
+                       std::vector<llvm::Value*> *call_args);
 
 public:
     int addIncludePath(char *filename);
