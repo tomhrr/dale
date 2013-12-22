@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
 #include "../Inst/Inst.h"
+#include "../Do/Do.h"
 #include "llvm/Function.h"
 
 namespace dale
@@ -22,44 +23,18 @@ bool parse(Generator *gen,
            ParseResult *pr)
 {
     Context *ctx = gen->ctx;
-
     assert(node->list && "must receive a list!");
-
-    symlist *lst = node->list;
+    if (!ctx->er->assertArgNums("new-scope", node, 1, -1)) {
+        return false;
+    }
 
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;
 
-    std::vector<Node *>::iterator node_iter;
-    node_iter = lst->begin();
-    ++node_iter;
-
-    pr->block = block;
-    bool success = true;
-    while (node_iter != lst->end()) {
-        ParseResult local_pr;
-        bool res = Form::Proc::Inst::parse(gen, 
-                       fn, pr->block, (*node_iter), get_address, 
-                       false, NULL,
-                       &local_pr
-                   );
-        ++node_iter;
-        if (!res) {
-            success = false;
-            continue;
-        }
-
-        local_pr.copyTo(pr);
-        if (node_iter != lst->end()) {
-            ParseResult pr_value;
-            bool res = 
-                gen->destructIfApplicable(&local_pr, NULL, &pr_value);
-            if (!res) {
-                return false;
-            }
-            pr->block = pr_value.block;
-        }
-    }
+    bool success = Form::Proc::Do::parse(gen, fn, block, node,
+                                         get_address,
+                                         prefixed_with_core,
+                                         pr);
 
     gen->scopeClose(fn, block, NULL, false);
     ctx->deactivateNamespace(anon_name.c_str());

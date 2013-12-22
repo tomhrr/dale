@@ -1458,9 +1458,9 @@ bool Generator::scopeClose(Element::Function *dfn,
     return true;
 }
 
-void processRetval(Element::Function *fn,
-                   ParseResult *pr,
-                   std::vector<llvm::Value*> *call_args)
+void Generator::processRetval(Element::Function *fn,
+                              ParseResult *pr,
+                              std::vector<llvm::Value*> *call_args)
 {
     if (fn->retval) {
         if (!pr->retval) {

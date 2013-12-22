@@ -53,23 +53,25 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
             : (!strcmp(typs, "float"))       ? dale::Type::Float
             : (!strcmp(typs, "double"))      ? dale::Type::Double
             : (!strcmp(typs, "long-double")) ? dale::Type::LongDouble
-                                             : NULL;
+                                             : -1;
 
-        Element::Type *mt = gen->ctx->tr->getBasicType(bmt);
+        if (bmt != -1) {
+            Element::Type *mt = gen->ctx->tr->getBasicType(bmt);
 
-        if (mt) {
-            if (!gen->is_x86_64
-                    && (mt->base_type == dale::Type::Int128
-                        || mt->base_type == dale::Type::UInt128)) {
-                Error *e = new Error(
-                    ErrorInst::Generator::TypeNotSupported,
-                    top,
-                    typs
-                );
-                ctx->er->addError(e);
-                return NULL;
+            if (mt) {
+                if (!gen->is_x86_64
+                        && (mt->base_type == dale::Type::Int128
+                            || mt->base_type == dale::Type::UInt128)) {
+                    Error *e = new Error(
+                        ErrorInst::Generator::TypeNotSupported,
+                        top,
+                        typs
+                    );
+                    ctx->er->addError(e);
+                    return NULL;
+                }
+                return mt;
             }
-            return mt;
         }
 
         /* Not a simple type - check if it is a struct. */

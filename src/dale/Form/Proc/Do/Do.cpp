@@ -21,9 +21,8 @@ bool parse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    assert(node->list && "must receive a list!");
     Context *ctx = gen->ctx;
-
+    assert(node->list && "must receive a list!");
     if (!ctx->er->assertArgNums("do", node, 1, -1)) {
         return false;
     }
