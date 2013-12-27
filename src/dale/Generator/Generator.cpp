@@ -1409,7 +1409,6 @@ bool Generator::copyWithSetfIfApplicable(
                                 builder.CreateAlloca(ctx->toLLVMType(pr->type, NULL,
                                         false))
                             );
-
     builder.CreateStore(pr->value, new_ptr2);
 
     std::vector<llvm::Value *> call_args;
@@ -1459,16 +1458,33 @@ bool Generator::scopeClose(Element::Function *dfn,
 }
 
 void Generator::processRetval(Element::Function *fn,
+                              llvm::BasicBlock *block, 
                               ParseResult *pr,
                               std::vector<llvm::Value*> *call_args)
 {
     if (fn->retval) {
-        if (!pr->retval) {
-            fprintf(stderr, "No retval memory in ParseResult.\n");
-            abort();
-        }
-        call_args->push_back(pr->retval);
+        pr->do_not_destruct = 1;
+        pr->do_not_copy_with_setf = 1;
+        /* todo: may turn out to be unnecessary. */
         pr->retval_used = true;
+        if (!pr->retval) {
+            llvm::IRBuilder<> builder(block);
+            llvm::Type *et = 
+                ctx->toLLVMType(fn->return_type, NULL, false,
+                                false);
+            if (!et) {
+                return;
+            }
+            llvm::Value *new_ptr =
+                llvm::cast<llvm::Value>(
+                    builder.CreateAlloca(et)
+                );
+            call_args->push_back(new_ptr);
+            pr->retval = new_ptr;
+            pr->retval_type = ctx->tr->getPointerType(fn->return_type);
+        } else {
+            call_args->push_back(pr->retval);
+        }
     }
 
     return;
@@ -1569,7 +1585,7 @@ bool Generator::parseFuncallInternal(
                 && (!(p.type->isEqualTo((*param_iter))))
                 && ((*param_iter)->base_type != Type::VarArgs)) {
 
-            llvm::Value *new_val = coerceValue(p.value,
+            llvm::Value *new_val = coerceValue(p.getValue(ctx),
                                                p.type,
                                                (*param_iter),
                                                block);
@@ -1594,7 +1610,7 @@ bool Generator::parseFuncallInternal(
                 call_args.push_back(new_val);
             }
         } else {
-            call_args.push_back(p.value);
+            call_args.push_back(p.getValue(ctx));
         }
 
         ++symlist_iter;
@@ -1613,7 +1629,7 @@ bool Generator::parseFuncallInternal(
 
     llvm::IRBuilder<> builder(block);
 
-    processRetval(dfn, pr, &call_args);
+    processRetval(dfn, block, pr, &call_args);
 
     llvm::Value *call_res =
         builder.CreateCall(fn, llvm::ArrayRef<llvm::Value*>(call_args));
@@ -2269,7 +2285,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
             p = ParseResult(block, p.type_of_address_of_value,
                             p.address_of_value);
         }
-        call_args.push_back(p.value);
+        call_args.push_back(p.getValue(ctx));
         call_arg_types.push_back(p.type);
         call_arg_prs.push_back(p);
 
@@ -2502,7 +2518,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
                     return false;
                 }
                 block = mytemp.block;
-                call_args_newer.push_back(mytemp.value);
+                call_args_newer.push_back(mytemp.getValue(ctx));
                 call_arg_types_newer.push_back(mytemp.type);
 
                 ++miter;
@@ -2662,7 +2678,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
             if (!res) {
                 return false;
             }
-            call_args_final[i] = refpr.value;
+            call_args_final[i] = refpr.getValue(ctx);
         } else {
             /* If arguments had to be cast, then skip the copies,
              * here. (todo: do the casting after this part, instead.)
@@ -2672,12 +2688,12 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
                 if (!res) {
                     return false;
                 }
-                call_args_final[i] = arg_refpr->value;
+                call_args_final[i] = arg_refpr->getValue(ctx);
             }
         }
     }
    
-    processRetval(fn, pr, &call_args_final);
+    processRetval(fn, block, pr, &call_args_final);
 
     llvm::Value *call_res = builder.CreateCall(
                                 fn->llvm_function,

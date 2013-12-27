@@ -46,6 +46,7 @@ public:
             llvm::Value *new_value);
     bool getAddressOfValue(Context *ctx, ParseResult *pr);
     bool setAddressOfValue(Context *ctx);
+    llvm::Value *getValue(Context *ctx);
 };
 }
 

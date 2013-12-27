@@ -1,0 +1,34 @@
+(import cstdio)
+
+(def mys (struct intern ((a int) (b int))))
+
+(def setf-copy (fn intern bool ((dst (p mys)) (src (p mys)))
+  (printf "Called setf-copy\n")
+  (memcpy (cast dst (p void)) (cast src (p void)) (sizeof mys))
+  (return true)))
+
+(def setf-assign (fn intern bool ((dst (p mys)) (src (p mys)))
+  (printf "Called setf-assign\n")
+  (memcpy (cast dst (p void)) (cast src (p void)) (sizeof mys))
+  (return true)))
+
+(def +
+  (fn (attr retval) intern mys ((a (ref mys)) (b (ref mys)))
+    (setf (:@ retval a) (+ (@:@ a a) (@:@ b a)))
+    (setf (:@ retval b) (+ (@:@ a b) (@:@ b b)))
+    (return)))
+
+(def main
+  (fn extern-c int (void)
+    (def n (var auto mys))
+    (def m (var auto mys))
+    (setf (: n a) 1)
+    (setf (: n b) 2)
+    (setf (: m a) 2)
+    (setf (: m b) 1)
+    (+ n m)
+    (do 0 (+ n m) 0 (+ n m) 0)
+    (+ n m)
+    (def p (var auto mys (do (+ n m))))
+    (printf "%d %d\n" (@: p a) (@: p b))
+    0))

@@ -84,7 +84,9 @@ bool ParseResult::setAddressOfValue(Context *ctx)
         return false;
     }
     address_of_value = builder.CreateAlloca(llvm_type);
-    builder.CreateStore(value, address_of_value);
+    /* todo: if retval is present, that should probably be returned
+     * instead. */
+    builder.CreateStore(getValue(ctx), address_of_value);
     return true;
 }
 
@@ -101,5 +103,18 @@ bool ParseResult::getAddressOfValue(Context *ctx, ParseResult *pr)
 
     pr->set(block, new_type, address_of_value);
     return true;
+}
+
+llvm::Value *ParseResult::getValue(Context *ctx)
+{
+    if (retval) {
+        llvm::IRBuilder<> builder(block);
+        return builder.CreateLoad(retval);
+    }
+    if (value) {
+        return value;
+    }
+    fprintf(stderr, "No value in ParseResult.\n");
+    abort();
 }
 }

@@ -27,26 +27,27 @@ bool parse(Generator *gen,
         return false;
     }
 
-    symlist *lst = node->list;
-    std::vector<Node *>::iterator node_iter;
-    node_iter = lst->begin();
-    ++node_iter;
-
     pr->block = block;
-    while (node_iter != lst->end()) {
+
+    for (std::vector<Node*>::iterator b = (node->list->begin() + 1),
+                                      e = node->list->end();
+            b != e;
+            ++b) {
+        bool is_last = ((b + 1) == e);
+
         ParseResult local_pr;
+        ParseResult *used_pr = (is_last ? pr : &local_pr);
         bool res = Form::Proc::Inst::parse(gen, 
-                       fn, pr->block, (*node_iter), get_address, 
+                       fn, pr->block, *b, get_address, 
                        false, NULL,
-                       &local_pr
+                       used_pr
                    );
         if (!res) {
             return false;
         }
-        ++node_iter;
 
-        local_pr.copyTo(pr);
-        if (node_iter != lst->end()) {
+        pr->block = used_pr->block;
+        if (!is_last) {
             ParseResult pr_value;
             bool res = gen->destructIfApplicable(&local_pr, NULL, &pr_value);
             if (!res) {

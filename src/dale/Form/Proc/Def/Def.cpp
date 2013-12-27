@@ -250,6 +250,12 @@ bool parse(Generator *gen,
             return false;
         }
 
+        if (p.retval_used) {
+            var2->value = p.retval;
+            pr->block = p.block;
+            return true;
+        }
+
         /* If the constant int 0 is returned, and this isn't an
          * integer type (or bool), then skip this part (assume
          * that the variable has been initialised by the user).
@@ -301,7 +307,7 @@ bool parse(Generator *gen,
                 call_args2.push_back(new_ptr);
                 call_args2.push_back(p.value);
                 builder.CreateCall(
-                    or_setf->llvm_function,
+                    or_setf2->llvm_function,
                     llvm::ArrayRef<llvm::Value*>(call_args2));
             } else {
                 builder.CreateStore(p.value, new_ptr);
