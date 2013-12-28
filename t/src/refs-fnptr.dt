@@ -1,0 +1,10 @@
+(import cstdio)
+
+(def myfn (fn intern int ((a (ref (const int))) (b (ref (const int))))
+  (+ (@ a) (@ b))))
+
+(def main
+  (fn extern-c int (void)
+    (def fp (var auto \ (# myfn int int)))
+    (printf "%d\n" (fp 50 50))
+    0))

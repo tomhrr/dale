@@ -148,19 +148,23 @@ public:
     bool merge(Context *other);
 
     llvm::Type *toLLVMType_(Element::Type *type,
-                            Node *n);
+                            Node *n,
+                            bool refs_to_pointers);
     llvm::Type *toLLVMType(Element::Type *type,
                            Node *n,
                            bool allow_non_first_class = true,
-                           bool externally_defined = false);
+                           bool externally_defined = false,
+                           bool refs_to_pointers = false);
     llvm::Type *toLLVMTypeStruct(Element::Type *type,
                                  Node *n);
     llvm::Type *toLLVMTypeBase(Element::Type *type,
                                Node *n);
     llvm::Type *toLLVMTypeFunction(Element::Type *type,
-                                   Node *n);
+                                   Node *n,
+                                   bool refs_to_pointers);
     llvm::Type *toLLVMTypePointer(Element::Type *type,
-                                  Node *n);
+                                  Node *n,
+                                  bool refs_to_pointers);
     llvm::Type *toLLVMTypeArray(Element::Type *type,
                                 Node *n);
     llvm::GlobalValue::LinkageTypes toLLVMLinkage(int linkage);

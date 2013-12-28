@@ -1548,6 +1548,8 @@ bool Generator::parseFuncallInternal(
     }
 
     std::vector<llvm::Value *> call_args;
+    std::vector<ParseResult> call_arg_prs;
+    std::vector<Node *> call_arg_nodes;
     if (extra_call_args) {
         for (std::vector<llvm::Value*>::iterator b =
                     extra_call_args->begin(), e = extra_call_args->end(); b !=
@@ -1562,6 +1564,7 @@ bool Generator::parseFuncallInternal(
     }
 
     param_iter = fn_ptr->type->points_to->parameter_types->begin();
+    bool args_cast = false;
     int arg_count = 1;
     int size = 0;
     if (extra_call_args) {
@@ -1579,10 +1582,12 @@ bool Generator::parseFuncallInternal(
             return false;
         }
 
+        call_arg_prs.push_back(p);
+        call_arg_nodes.push_back(*symlist_iter);
         block = p.block;
 
         if ((param_iter != fn_ptr->type->points_to->parameter_types->end())
-                && (!(p.type->isEqualTo((*param_iter))))
+                && (!(p.type->isEqualTo((*param_iter), 1)))
                 && ((*param_iter)->base_type != Type::VarArgs)) {
 
             llvm::Value *new_val = coerceValue(p.getValue(ctx),
@@ -1607,6 +1612,7 @@ bool Generator::parseFuncallInternal(
                 erep->addError(e);
                 return NULL;
             } else {
+                args_cast = true;
                 call_args.push_back(new_val);
             }
         } else {
@@ -1629,10 +1635,53 @@ bool Generator::parseFuncallInternal(
 
     llvm::IRBuilder<> builder(block);
 
-    processRetval(dfn, block, pr, &call_args);
+    /* Iterate over the types of the found function. For the reference
+     * types, replace the call argument with its address. todo: same
+     * code as in parseFunctionCall, move into a separate function. */
+
+    std::vector<llvm::Value *> call_args_final = call_args;
+    int caps = call_arg_prs.size();
+    int pts  = fn_ptr->type->points_to->parameter_types->size();
+    int limit = (caps > pts ? pts : caps);
+    ParseResult refpr;
+    int start = (extra_call_args ? extra_call_args->size() : 0);
+    for (int i = start; i < limit; i++) {
+        Element::Type *pt = 
+            fn_ptr->type->points_to->parameter_types->at(i);
+        ParseResult *arg_refpr = &(call_arg_prs.at(i));
+        if (pt->is_reference) {
+            if (!pt->is_const && !arg_refpr->value_is_lvalue) {
+                Error *e = new Error(
+                    ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
+                    call_arg_nodes.at(i)
+                );
+                erep->addError(e);
+                return false;
+            }
+            bool res = arg_refpr->getAddressOfValue(ctx, &refpr);
+            if (!res) {
+                return false;
+            }
+            call_args_final[i] = refpr.getValue(ctx);
+        } else {
+            /* If arguments had to be cast, then skip the copies,
+             * here. (todo: do the casting after this part, instead.)
+             * */
+            if (!args_cast) {
+                bool res = copyWithSetfIfApplicable(dfn, arg_refpr, arg_refpr);
+                if (!res) {
+                    return false;
+                }
+                call_args_final[i] = arg_refpr->getValue(ctx);
+            }
+        }
+    }
+
+    /* todo: dfn here is definitely not right. */
+    processRetval(dfn, block, pr, &call_args_final);
 
     llvm::Value *call_res =
-        builder.CreateCall(fn, llvm::ArrayRef<llvm::Value*>(call_args));
+        builder.CreateCall(fn, llvm::ArrayRef<llvm::Value*>(call_args_final));
 
     pr->set(block, fn_ptr->type->points_to->return_type, call_res);
 

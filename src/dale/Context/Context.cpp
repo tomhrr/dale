@@ -998,7 +998,8 @@ Context::regetPointersForNewModule(llvm::Module *mod)
 
 llvm::Type *
 Context::toLLVMTypeFunction(Element::Type *type,
-                            Node *n)
+                            Node *n,
+                            bool refs_to_pointers)
 {
     std::vector<llvm::Type*> llvm_fn_params;
     bool is_varargs = 0;
@@ -1010,7 +1011,9 @@ Context::toLLVMTypeFunction(Element::Type *type,
         if ((*iter)->base_type == Type::VarArgs) {
             is_varargs = true;
         } else {
-            llvm::Type *t = toLLVMType((*iter), n);
+            llvm::Type *t = toLLVMType((*iter), n,
+                                       true, false,
+                                       refs_to_pointers);
             if (!t) {
                 return NULL;
             }
@@ -1042,14 +1045,16 @@ Context::toLLVMTypeArray(Element::Type *type,
 
 llvm::Type *
 Context::toLLVMTypePointer(Element::Type *type,
-                           Node *n)
+                           Node *n,
+                           bool refs_to_pointers)
 {
-    llvm::Type *temp_type =
-        toLLVMType(type->points_to, n);
+    llvm::Type *temp_type = toLLVMType(type, n, true, false, 
+                                       refs_to_pointers);
 
     if (!temp_type) {
         return NULL;
     }
+
     /* If this is a pointer to void, then return a _vp struct
         * instead. */
     if (temp_type->isVoidTy()) {
@@ -1127,7 +1132,8 @@ Context::toLLVMTypeStruct(Element::Type *type,
 
 llvm::Type *
 Context::toLLVMType_(Element::Type *type,
-                     Node *n)
+                     Node *n,
+                     bool refs_to_pointers)
 {
     llvm::LLVMContext &lc = llvm::getGlobalContext();
 
@@ -1136,7 +1142,7 @@ Context::toLLVMType_(Element::Type *type,
     }
 
     if (type->is_function) {
-        return toLLVMTypeFunction(type, n);
+        return toLLVMTypeFunction(type, n, refs_to_pointers);
     }
 
     if (type->is_array) {
@@ -1144,7 +1150,14 @@ Context::toLLVMType_(Element::Type *type,
     }
 
     if (type->points_to != NULL) {
-        return toLLVMTypePointer(type, n);
+        return toLLVMTypePointer(type->points_to, n, refs_to_pointers);
+    }
+
+    if (refs_to_pointers && type->is_reference) {
+        type->is_reference = 0;
+        llvm::Type *result = toLLVMTypePointer(type, n, refs_to_pointers);
+        type->is_reference = 1;
+        return result;
     }
 
     llvm::Type *base_type = toLLVMTypeBase(type, n);
@@ -1175,7 +1188,8 @@ llvm::Type *
 Context::toLLVMType(Element::Type *type,
                     Node *n,
                     bool allow_non_first_class,
-                    bool externally_defined)
+                    bool externally_defined,
+                    bool refs_to_pointers)
 {
     int error_count =
         er->getErrorTypeCount(ErrorType::Error);
@@ -1202,7 +1216,7 @@ Context::toLLVMType(Element::Type *type,
         }
     }
 
-    llvm::Type *llvm_type = toLLVMType_(type, n);
+    llvm::Type *llvm_type = toLLVMType_(type, n, refs_to_pointers);
 
     if (!llvm_type) {
         return llvm_type;
@@ -1367,8 +1381,7 @@ deleteAnonymousNamespaces_(NSNode *nsnode)
     }
 
     std::map<std::string, NSNode *>::iterator
-        b = nsnode->children.begin(),
-        e = nsnode->children.end();
+        b = nsnode->children.begin();
     while (b != nsnode->children.end()) {
         deleteAnonymousNamespaces_(b->second);
         ++b;

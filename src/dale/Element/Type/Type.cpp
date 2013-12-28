@@ -426,6 +426,15 @@ void Type::toStringProper(std::string *str)
         return;
     }
 
+    if (is_reference) {
+        str->append("(ref ");
+        is_reference = 0;
+        toStringProper(str);
+        str->append(")");
+        is_reference = 1;
+        return;
+    }
+
     if (struct_name) {
         char tb[1024];
         tb[0] = '\0';

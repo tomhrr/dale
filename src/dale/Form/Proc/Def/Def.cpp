@@ -225,7 +225,8 @@ bool parse(Generator *gen,
         block = p.block;
 
         llvm::IRBuilder<> builder(block);
-        llvm::Type *et = ctx->toLLVMType(type, (*newlist)[2], false, false);
+        llvm::Type *et = ctx->toLLVMType(type, (*newlist)[2], 
+                                         false, false, true);
         if (!et) {
             return false;
         }
