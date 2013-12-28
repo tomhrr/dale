@@ -359,7 +359,7 @@ bool parse(Generator *gen,
 
         llvm::IRBuilder<> builder(block);
         llvm::Type *et = ctx->toLLVMType(type, (*newlist)[2], false,
-                                         false);
+                                         false, true);
         if (!et) {
             return false;
         }
