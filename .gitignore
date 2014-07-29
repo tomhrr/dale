@@ -1,3 +1,4 @@
+*.s
 *.o
 *.bc
 *.dtm
@@ -8,6 +9,7 @@ dale-bindgen
 dalec
 CMakeFiles
 CMakeCache
+CMakeCache.txt
 Makefile
 cmake_install.cmake
 install_manifest.txt
@@ -17,3 +19,4 @@ doc/2-
 doc/3-
 doc/drt.md
 a.out
+Config.h
