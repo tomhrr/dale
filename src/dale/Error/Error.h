@@ -142,6 +142,7 @@ enum
     CannotModifyConstVariable,
     SetfOverridesMustReturnBool,
     RefsNotPermittedHere,
+    RetvalsNotPermittedHere,
 
     /* these two should print the macro call that caused
      * them, if applicable */

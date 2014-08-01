@@ -115,7 +115,7 @@ parse(Generator *gen,
         ++mcount;
     }
 
-    if (dfn->retval) {
+    if (dfn->hasRetval()) {
         Element::Variable *myvar = new Element::Variable();
         myvar->type            = ctx->tr->getPointerType(dfn->return_type);
         myvar->name            = "retval";
@@ -405,7 +405,7 @@ parse(Generator *gen,
             /* The underlying error here will have been
              * reported earlier, if there is no
              * last_value. */
-            if ((bcount == bmax) && !dfn->retval) {
+            if ((bcount == bmax) && !dfn->hasRetval()) {
                 if (last_value) {
                     Element::Type *got_type = last_type;
 

@@ -13,7 +13,7 @@
   (return true)))
 
 (def +
-  (fn (attr retval) intern mys ((a (ref mys)) (b (ref mys)))
+  (fn intern (retval mys) ((a (ref mys)) (b (ref mys)))
     (setf (:@ retval a) (+ (@:@ a a) (@:@ b a)))
     (setf (:@ retval b) (+ (@:@ a b) (@:@ b b)))
     (return)))

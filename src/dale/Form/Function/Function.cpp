@@ -70,7 +70,6 @@ parse(Generator *gen,
 
     int next_index = 1;
     int always_inline = 0;
-    int retval = 0;
     /* Whole modules, as well as specific functions, can be
      * declared as being compile-time-only. If the global cto
      * value is set to one, that overrides a zero value here.
@@ -103,8 +102,6 @@ parse(Generator *gen,
                 always_inline = 1;
             } else if (!((*b)->token->str_value.compare("cto"))) {
                 my_cto = 1;
-            } else if (!((*b)->token->str_value.compare("retval"))) {
-                retval = 1;
             } else {
                 Error *e = new Error(
                     ErrorInst::Generator::InvalidAttribute,
@@ -275,7 +272,7 @@ parse(Generator *gen,
 
     Element::Type *r_type = 
         Form::Type::parse(gen, (*lst)[return_type_index], false,
-                          false);
+                          false, false, true);
 
     ctx->deactivateNamespace(anon_name.c_str());
 
@@ -302,7 +299,7 @@ parse(Generator *gen,
      * void, and a pointer to a value of the return type will be the
      * final parameter. */
 
-    if (retval) {
+    if (r_type->is_retval) {
         fn_args.push_back(ctx->toLLVMType(ctx->tr->getPointerType(r_type),
                                           NULL, true));
         llvm_r_type =
@@ -327,7 +324,7 @@ parse(Generator *gen,
 
     Element::Function *dfn =
         new Element::Function(r_type, fn_args_internal, NULL, 0,
-                              &new_name, always_inline, retval);
+                              &new_name, always_inline);
     dfn->linkage = linkage;
     dfn->cto = my_cto;
     if (!strcmp(name, "setf-copy")) {
@@ -434,7 +431,7 @@ parse(Generator *gen,
     }
 
     llvm::Value *lv_return_value = NULL;
-    if (retval) {
+    if (r_type->is_retval) {
         lv_return_value = largs;
         lv_return_value->setName("retval");
     }

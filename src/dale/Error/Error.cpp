@@ -664,6 +664,9 @@ const char *Error::getPrintfString(void)
     case ErrorInst::Generator::RefsNotPermittedHere:
         ret = "reference types not permitted in this context";
         break;
+    case ErrorInst::Generator::RetvalsNotPermittedHere:
+        ret = "retval types not permitted in this context";
+        break;
     default:
         ret = "(Unknown)";
     }

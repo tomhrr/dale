@@ -128,7 +128,8 @@ void serialise(FILE *out, Element::Type *t)
             && !t->parameter_types
             && !t->is_const
             && !t->is_reference
-            && !t->bitfield_size) {
+            && !t->bitfield_size
+            && !t->is_retval) {
         c = 'S';
         serialise(out, &c);
         serialise(out, &(t->base_type));
@@ -143,6 +144,7 @@ void serialise(FILE *out, Element::Type *t)
     serialise(out, &(t->bitfield_size));
     serialise(out, &(t->is_const));
     serialise(out, &(t->is_reference));
+    serialise(out, &(t->is_retval));
     if (!t->array_type) {
         serialise(out, 0);
     } else {
@@ -207,6 +209,7 @@ char *deserialise(TypeRegister *tr, char *in, Element::Type **t)
     in = deserialise(tr, in, &(temp.bitfield_size));
     in = deserialise(tr, in, &(temp.is_const));
     in = deserialise(tr, in, &(temp.is_reference));
+    in = deserialise(tr, in, &(temp.is_retval));
     int is_present;
     in = deserialise(tr, in, &is_present);
     if (is_present) {
@@ -310,7 +313,6 @@ void serialise(FILE *out, Element::Function *fn)
     serialise(out, fn->is_macro);
     serialise(out, fn->internal_name);
     serialise(out, fn->always_inline);
-    serialise(out, fn->retval);
     serialise(out, fn->once_tag);
     serialise(out, fn->cto);
     serialise(out, fn->linkage);
@@ -343,7 +345,6 @@ char *deserialise(TypeRegister *tr, char *in, Element::Function *fn)
     fn->internal_name = name;
 
     in = deserialise(tr, in, &(fn->always_inline));
-    in = deserialise(tr, in, &(fn->retval));
     in = deserialise(tr, in, &(fn->once_tag));
     in = deserialise(tr, in, &(fn->cto));
     in = deserialise(tr, in, &(fn->linkage));

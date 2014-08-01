@@ -28,6 +28,8 @@ private:
     std::map<Element::Type*, Element::Type*> const_types;
     /*! A map from type to reference type. */
     std::map<Element::Type*, Element::Type*> reference_types;
+    /*! A map from type to retval type. */
+    std::map<Element::Type*, Element::Type*> retval_types;
     /*! A map from type, to size, to array type. */
     std::map<Element::Type*, std::map<size_t, Element::Type*> > array_types;
     /*! A map from type, to size, to bitfield type. */
@@ -52,6 +54,9 @@ public:
     /*! Return an instance of a reference type.
      *  @param type The type to make into a reference type. */
     Element::Type *getReferenceType(Element::Type *type);
+    /*! Return an instance of a retval type.
+     *  @param type The type to make into a retval type. */
+    Element::Type *getRetvalType(Element::Type *type);
     /*! Return an instance of an array type.
      *  @param type The array element type.
      *  @param size The size of the array. */

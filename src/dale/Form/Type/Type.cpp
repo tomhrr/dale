@@ -8,7 +8,7 @@ static int anonstructcount = 0;
 namespace dale { namespace Form { namespace Type {
 Element::Type *
 parse(Generator *gen, Node *top, bool allow_anon_structs,
-      bool allow_bitfields, bool allow_refs)
+      bool allow_bitfields, bool allow_refs, bool allow_retvals)
 {
     if (!top) {
         return NULL;
@@ -172,6 +172,37 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
         }
 
         return ctx->tr->getReferenceType(reference_type);
+    }
+
+    /* If list is a two-element list, where the first element is
+     * 'retval', then this is a retval type. */
+    if (lst->size() == 2
+            && lst->at(0)->is_token
+            && !(lst->at(0)->token->str_value.compare("retval"))) {
+        if (!allow_retvals) {
+            Error *e = new Error(
+                ErrorInst::Generator::RetvalsNotPermittedHere,
+                top
+            );
+            ctx->er->addError(e);
+            return NULL;
+        }
+        Node *new_type = gen->parseOptionalMacroCall((*lst)[1]);
+        if (!new_type) {
+            return NULL;
+        }
+
+        /* Retval types are only permitted at the 'top level' of
+         * the type. */
+        Element::Type *retval_type =
+            parse(gen, (*lst)[1], allow_anon_structs,
+                  allow_bitfields);
+
+        if (retval_type == NULL) {
+            return NULL;
+        }
+
+        return ctx->tr->getRetvalType(retval_type);
     }
 
     /* If list is a two-element list, where the first element is

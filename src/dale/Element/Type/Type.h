@@ -52,6 +52,7 @@ public:
     int            is_reference;
     std::string    *struct_name;
     std::vector<std::string> *namespaces;
+    int            is_retval;
 
     Element::Type     *points_to;
 

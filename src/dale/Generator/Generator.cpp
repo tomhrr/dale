@@ -1462,7 +1462,7 @@ void Generator::processRetval(Element::Function *fn,
                               ParseResult *pr,
                               std::vector<llvm::Value*> *call_args)
 {
-    if (fn->retval) {
+    if (fn->hasRetval()) {
         pr->do_not_destruct = 1;
         pr->do_not_copy_with_setf = 1;
         /* todo: may turn out to be unnecessary. */

@@ -107,6 +107,7 @@ Type::Type()
 
     is_const     = 0;
     is_reference = 0;
+    is_retval       = 0;
 }
 
 Type::Type(int new_base_type,
@@ -129,6 +130,7 @@ Type::Type(int new_base_type,
     
     is_const     = 0;
     is_reference = 0;
+    is_retval       = 0;
 }
 
 Type::Type(Element::Type *new_points_to,
@@ -151,6 +153,7 @@ Type::Type(Element::Type *new_points_to,
 
     is_const     = 0;
     is_reference = 0;
+    is_retval       = 0;
 }
 
 Type::~Type()
@@ -520,6 +523,7 @@ Element::Type *Type::makeCopy(void)
     new_type->is_function   = is_function;
     new_type->bitfield_size = bitfield_size;
     new_type->is_const      = is_const;
+    new_type->is_retval     = is_retval;
 
     if (points_to) {
         new_type->points_to = points_to->makeCopy();
