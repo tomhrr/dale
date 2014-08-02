@@ -1022,9 +1022,24 @@ Context::toLLVMTypeFunction(Element::Type *type,
         ++iter;
     }
 
+    Element::Type *r_type = type->return_type;
+    llvm::Type *llvm_r_type = NULL;
+
+    if (r_type->is_retval) {
+        llvm_fn_params.push_back(
+            toLLVMType(tr->getPointerType(r_type),
+                       NULL, true)
+        );
+        llvm_r_type =
+            toLLVMType(tr->getBasicType(dale::Type::Void),
+                       NULL, true);
+    } else {
+        llvm_r_type = toLLVMType(r_type, NULL);
+    }
+
     llvm::FunctionType *fntype = 
         llvm::FunctionType::get(
-            toLLVMType(type->return_type, n),
+            llvm_r_type,
             llvm_fn_params,
             is_varargs
         );

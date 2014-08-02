@@ -98,7 +98,7 @@ private:
     void removeMacroTemporaries(void);
 
     void popErrors(int original_count);
-    void processRetval(Element::Function *fn,
+    void processRetval(Element::Type *et,
                        llvm::BasicBlock *block,
                        ParseResult *pr,
                        std::vector<llvm::Value*> *call_args);

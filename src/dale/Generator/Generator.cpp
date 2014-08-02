@@ -1457,12 +1457,12 @@ bool Generator::scopeClose(Element::Function *dfn,
     return true;
 }
 
-void Generator::processRetval(Element::Function *fn,
+void Generator::processRetval(Element::Type *return_type,
                               llvm::BasicBlock *block, 
                               ParseResult *pr,
                               std::vector<llvm::Value*> *call_args)
 {
-    if (fn->hasRetval()) {
+    if (return_type->is_retval) {
         pr->do_not_destruct = 1;
         pr->do_not_copy_with_setf = 1;
         /* todo: may turn out to be unnecessary. */
@@ -1470,7 +1470,7 @@ void Generator::processRetval(Element::Function *fn,
         if (!pr->retval) {
             llvm::IRBuilder<> builder(block);
             llvm::Type *et = 
-                ctx->toLLVMType(fn->return_type, NULL, false,
+                ctx->toLLVMType(return_type, NULL, false,
                                 false);
             if (!et) {
                 return;
@@ -1481,7 +1481,7 @@ void Generator::processRetval(Element::Function *fn,
                 );
             call_args->push_back(new_ptr);
             pr->retval = new_ptr;
-            pr->retval_type = ctx->tr->getPointerType(fn->return_type);
+            pr->retval_type = ctx->tr->getPointerType(return_type);
         } else {
             call_args->push_back(pr->retval);
         }
@@ -1678,7 +1678,8 @@ bool Generator::parseFuncallInternal(
     }
 
     /* todo: dfn here is definitely not right. */
-    processRetval(dfn, block, pr, &call_args_final);
+    processRetval(fn_ptr->type->points_to->return_type,
+                  block, pr, &call_args_final);
 
     llvm::Value *call_res =
         builder.CreateCall(fn, llvm::ArrayRef<llvm::Value*>(call_args_final));
@@ -2742,7 +2743,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
         }
     }
    
-    processRetval(fn, block, pr, &call_args_final);
+    processRetval(fn->return_type, block, pr, &call_args_final);
 
     llvm::Value *call_res = builder.CreateCall(
                                 fn->llvm_function,

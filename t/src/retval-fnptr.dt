@@ -1,0 +1,22 @@
+(import cstdio)
+
+(def mys (struct intern ((a int) (b int))))
+
+(def +
+  (fn intern (retval mys) ((a mys) (b mys))
+    (setf (:@ retval a) (+ (@: a a) (@: b a)))
+    (setf (:@ retval b) (+ (@: a b) (@: b b)))
+    (return)))
+
+(def main
+  (fn extern-c int (void)
+    (def n (var auto mys))
+    (def m (var auto mys))
+    (setf (: n a) 1)
+    (setf (: n b) 2)
+    (setf (: m a) 2)
+    (setf (: m b) 1)
+    (def fp (var auto \ (# + mys mys)))
+    (def p (var auto \ (do (fp (fp n m) (fp n m)))))
+    (printf "%d %d\n" (@: p a) (@: p b))
+    0))

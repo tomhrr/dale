@@ -358,7 +358,7 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
 
         Element::Type *ret_type =
             parse(gen, (*lst)[1], allow_anon_structs,
-                      allow_bitfields);
+                      allow_bitfields, false, true);
 
         if (ret_type == NULL) {
             return NULL;
