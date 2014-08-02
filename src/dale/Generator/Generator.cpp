@@ -1568,7 +1568,7 @@ bool Generator::parseFuncallInternal(
     int arg_count = 1;
     int size = 0;
     if (extra_call_args) {
-        size = (int) extra_call_args->size();
+       size = (int) extra_call_args->size();
     }
     while (size--) {
         ++param_iter;
@@ -1576,7 +1576,8 @@ bool Generator::parseFuncallInternal(
     while (symlist_iter != lst->end()) {
         ParseResult p;
         bool res = Form::Proc::Inst::parse(this, 
-            dfn, block, (*symlist_iter), getAddress, false, NULL, &p
+            dfn, block, (*symlist_iter), getAddress, false, NULL, &p,
+            true
         );
         if (!res) {
             return false;
@@ -1677,7 +1678,6 @@ bool Generator::parseFuncallInternal(
         }
     }
 
-    /* todo: dfn here is definitely not right. */
     processRetval(fn_ptr->type->points_to->return_type,
                   block, pr, &call_args_final);
 
