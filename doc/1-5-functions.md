@@ -24,7 +24,7 @@ attributes that can be set:
 
 Each `{param}` is a name-type pair. The last `{param}` may also be the
 string '...', which denotes a `varargs` function. A function that
-takesn no parameters should have the atom `void` as the sole element
+takes no parameters should have the atom `void` as the sole element
 in its parameter list.
 
 A function that adds three integers looks like so:
@@ -93,8 +93,8 @@ For example:
 When using the address-of (`#`) operator on a function, it is
 necessary to include the function argument types so as to distinguish
 between overloaded functions. However, if the function only has one
-definition, and that definition has `extern-c` linkage, it is not
-necessary to provide the argument types.
+definition, and that definition has `extern-c` linkage, the argument
+types may be omitted.
 
 The above example is much saner when local type deduction is used:
 
@@ -118,6 +118,40 @@ address of the newly-'constructed' function.
 
 Note that these functions are not closures, and do not have access to
 the surrounding environment.
+
+### Reference parameters
+
+Function parameters may be passed by reference. Within the body of the
+function, the arguments for those parameters have a type of 'pointer
+to referenced type'; i.e., a reference is not a separate type as such.
+For example:
+
+        (def add-2-ints (fn intern int ((a (ref int)) (b (ref int)))
+          (return (+ (@ a) (@ b)))))
+
+Values passed by reference must be addressable, unless the reference
+is to a constant type.
+
+### Retvals
+
+A function's return type may be marked as `retval`. Such a function,
+rather than returning a value using `return`, writes the result to the
+binding `retval`, which is provided implicitly by the compiler. That
+binding has the type 'pointer to actual return type', and its value is
+used as the return value of the function. `retval` allows for avoiding
+unnecessary allocations/copies. For example:
+
+        (def add-2-ints (fn intern (retval int) ((a int) (b int))
+          (setf retval (+ a b))
+          (return)))
+
+        ...
+
+        (def n (var auto int (add-2-ints 5 10)))
+        (printf "%d\n" n) ; prints "15\n"
+
+(As with reference parameters, `int` is not a type for which this
+would be used in practice.)
 
 ### Function structs
 
