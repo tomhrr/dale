@@ -23,8 +23,6 @@
 #include "llvm/Function.h"
 #include "llvm/CallingConv.h"
 #include "llvm/Assembly/PrintModulePass.h"
-#include "llvm/Support/IRBuilder.h"
-#include "llvm/Support/TypeBuilder.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/JIT.h"
 #include "llvm/ExecutionEngine/Interpreter.h"

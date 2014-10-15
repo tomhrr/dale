@@ -8,8 +8,7 @@
 
 #include "llvm/Module.h"
 #include "llvm/Function.h"
-#include "llvm/Support/IRBuilder.h"
-#include "llvm/Support/TypeBuilder.h"
+#include "../../llvm_IRBuilder.h"
 
 namespace dale
 {

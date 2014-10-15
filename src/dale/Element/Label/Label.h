@@ -10,9 +10,9 @@
 #include "llvm/CallingConv.h"
 #include "llvm/Analysis/Verifier.h"
 #include "llvm/Assembly/PrintModulePass.h"
-#include "llvm/Support/IRBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "../../llvm_IRBuilder.h"
 
 namespace dale
 {

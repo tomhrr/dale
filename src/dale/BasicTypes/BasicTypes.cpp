@@ -4,6 +4,20 @@ namespace dale
 {
 namespace BasicTypes
 {
+void
+setStandardAttributes(llvm::Function *fn)
+{
+#if LLVM_VERSION_MINOR == 2
+    fn->addFnAttr(llvm::Attributes::NoUnwind);
+    fn->addFnAttr(llvm::Attributes::ReadOnly);
+    fn->addFnAttr(llvm::Attributes::AlwaysInline);
+#else
+    fn->addFnAttr(llvm::Attribute::NoUnwind);
+    fn->addFnAttr(llvm::Attribute::ReadOnly);
+    fn->addFnAttr(llvm::Attribute::AlwaysInline);
+#endif
+}
+
 Element::Function *
 addSimpleUnaryFunction(Context *ctx,
                        llvm::Module *mod,
@@ -57,9 +71,7 @@ addSimpleUnaryFunction(Context *ctx,
 
     new_fn->setCallingConv(llvm::CallingConv::C);
     new_fn->setLinkage(llvm::GlobalValue::LinkOnceAnyLinkage);
-    new_fn->addFnAttr(llvm::Attribute::NoUnwind |
-                      llvm::Attribute::ReadOnly |
-                      llvm::Attribute::AlwaysInline);
+    setStandardAttributes(new_fn);
 
     Element::Function *myfn =
         new Element::Function(
@@ -153,9 +165,7 @@ addSimpleBinaryFunction(Context *ctx,
 
     new_fn->setCallingConv(llvm::CallingConv::C);
     new_fn->setLinkage(llvm::GlobalValue::LinkOnceAnyLinkage);
-    new_fn->addFnAttr(llvm::Attribute::NoUnwind |
-                      llvm::Attribute::ReadOnly |
-                      llvm::Attribute::AlwaysInline);
+    setStandardAttributes(new_fn);
 
     Element::Function *myfn =
         new Element::Function(

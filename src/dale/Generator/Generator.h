@@ -19,6 +19,7 @@
 #include "../Element/Enum/Enum.h"
 #include "../TypeRegister/TypeRegister.h"
 #include "../UnitStack/UnitStack.h"
+#include "../llvm_IRBuilder.h"
 
 #define DECIMAL_RADIX 10
 

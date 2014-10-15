@@ -305,10 +305,10 @@ extern "C" {
         Element::Type *type;
         bool res = get_type(mc, dnode, &type);
         if (!res) {
-            return false;
+            return NULL;
         }
         if (!type->points_to) {
-            return false;
+            return NULL;
         }
         return type->points_to->toNode()->toDNode();
     }
