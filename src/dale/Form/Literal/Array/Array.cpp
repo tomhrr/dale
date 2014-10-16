@@ -80,7 +80,7 @@ parse(Generator *gen,
             elements.size(), array_type->array_size
         );
         ctx->er->addError(e);
-        return NULL;
+        return false;
     }
 
     *size = (int) elements.size();
@@ -89,7 +89,7 @@ parse(Generator *gen,
     llvm::Type *llvm_array_type =
         ctx->toLLVMType(array_type, n, false);
     if (!llvm_array_type) {
-        return NULL;
+        return false;
     }
 
     llvm::IRBuilder<> builder(block);

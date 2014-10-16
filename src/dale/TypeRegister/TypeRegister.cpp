@@ -269,10 +269,10 @@ TypeRegister::getType(Element::Type *type)
 void
 TypeRegister::dump(void)
 {
-    fprintf(stderr, "Pointer type count: %d\n", pointer_types.size());
-    fprintf(stderr, "Const type count:   %d\n", const_types.size());
-    fprintf(stderr, "Array type count:   %d\n", array_types.size());
-    fprintf(stderr, "BF type count:      %d\n", bitfield_types.size());
-    fprintf(stderr, "Struct type count:  %d\n", struct_types.size());
+    fprintf(stderr, "Pointer type count: %lu\n", pointer_types.size());
+    fprintf(stderr, "Const type count:   %lu\n", const_types.size());
+    fprintf(stderr, "Array type count:   %lu\n", array_types.size());
+    fprintf(stderr, "BF type count:      %lu\n", bitfield_types.size());
+    fprintf(stderr, "Struct type count:  %lu\n", struct_types.size());
 }
 }

@@ -49,10 +49,10 @@ bool parse(Generator *gen,
                  fn, ptr.block, (*lst)[2], get_address, false, NULL, &val
           );
     if (!mres) {
-        return NULL;
+        return false;
     }
     if (!ctx->er->assertIsPointerOrIntegerType("p-", (*lst)[2], val.type, "2")) {
-        return NULL;
+        return false;
     }
 
     llvm::BasicBlock *mynextb;

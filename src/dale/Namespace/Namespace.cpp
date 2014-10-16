@@ -1039,7 +1039,7 @@ Namespace::removeUnneededFunctions(std::set<std::string> *forms,
         } else {
             /* If every function is intern, then skip this (but
              * don't erase - it will not be merged in any event). */
-            bool has_extern;
+            bool has_extern = false;
             for (std::vector<Element::Function*>::iterator
                     fnb = b->second->begin(),
                     fne = b->second->end();

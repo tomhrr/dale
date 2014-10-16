@@ -24,7 +24,7 @@ bool parse(Generator *gen,
     Context *ctx = gen->ctx; 
 
     if (!ctx->er->assertArgNums("p<", node, 2, 2)) {
-        return NULL;
+        return false;
     }
 
     symlist *lst = node->list;

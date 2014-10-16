@@ -275,7 +275,7 @@ bool parse(Generator *gen,
         }
 
         if (!ctx->er->assertTypeEquality("def", node, p.type, type, 1)) {
-            return NULL;
+            return false;
         }
 
         std::vector<Element::Type *> call_arg_types;

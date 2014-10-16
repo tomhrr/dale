@@ -75,7 +75,12 @@ IntNodeToStaticDNode(Generator *gen,
 
         if (!svar2) {
             llvm::Constant *arr =
-                llvm::ConstantArray::get(llvm::getGlobalContext(),
+#if LLVM_VERSION_MINOR < 2
+                llvm::ConstantArray::get(
+#else
+                llvm::ConstantDataArray::getString(
+#endif
+                                         llvm::getGlobalContext(),
                                          t->str_value.c_str(),
                                          true);
             std::string varname2;

@@ -91,7 +91,12 @@ parseStringLiteral(Generator *gen,
         *size = strlen(t->str_value.c_str()) + 1;
 
         return
-            llvm::ConstantArray::get(llvm::getGlobalContext(),
+#if LLVM_VERSION_MINOR < 2
+            llvm::ConstantArray::get(
+#else
+            llvm::ConstantDataArray::getString(
+#endif
+                                     llvm::getGlobalContext(),
                                      t->str_value.c_str(),
                                      true);
     }

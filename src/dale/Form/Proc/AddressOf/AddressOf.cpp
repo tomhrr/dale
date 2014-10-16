@@ -103,7 +103,7 @@ bool parse(Generator *gen,
                     Element::Type *type = Form::Type::parse(gen, (*iter),
                                                     false, false);
                     if (!type) {
-                        return NULL;
+                        return false;
                     }
                     types.push_back(type);
                     ++iter;
@@ -165,7 +165,7 @@ bool parse(Generator *gen,
                         );
                     }
                     ctx->er->addError(e);
-                    return NULL;
+                    return false;
                 }
             }
 

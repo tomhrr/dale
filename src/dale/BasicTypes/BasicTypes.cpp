@@ -200,8 +200,13 @@ makeFunction(Context *ctx,
              llvm::Module *mod,
              std::string *once_tag, 
              const char *name,
+#if LLVM_VERSION_MINOR >= 2
+             llvm::Value* (llvm::IRBuilder<>:: *method_name)
+                (llvm::Value*, llvm::Value*, const llvm::Twine &, llvm::MDNode *),
+#else
              llvm::Value* (llvm::IRBuilder<>:: *method_name)
                 (llvm::Value*, llvm::Value*, const llvm::Twine &),
+#endif
              Element::Type *ret_type,
              Element::Type *type)
 {
@@ -218,10 +223,15 @@ makeFunction(Context *ctx,
 
     llvm::IRBuilder<> builder(block);
     llvm::Twine bling;
+#if LLVM_VERSION_MINOR >= 2
     llvm::Value *res = llvm::cast<llvm::Value>(
                            ((builder).*(method_name))((*iter)->value, (*(iter +
-                                   1))->value, bling)
-                       );
+                                   1))->value, bling, NULL));
+#else
+    llvm::Value *res = llvm::cast<llvm::Value>(
+                           ((builder).*(method_name))((*iter)->value, (*(iter +
+                                   1))->value, bling));
+#endif
     builder.CreateRet(res);
 }
 

@@ -117,8 +117,15 @@ if (NOT IS_DEBUG)
 endif ()
 
 # Set compile/link flags.
+set (DALEC_LIBDIR_FLAGS_ "$ENV{LDFLAGS} ${FFI_LIBRARY_DIR}")
+set (DALEC_LIB_FLAGS_    "-lffi -lpthread")
 
-set (DALEC_LINK_FLAGS_       "$ENV{LDFLAGS} ${FFI_LIBRARY_DIR} -lffi -lpthread -ldl")
+if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+    set (DALEC_LINK_FLAGS_ "${DALEC_LIBDIR_FLAGS_} -L/usr/local/lib ${DALEC_LIB_FLAGS_}")
+else ()
+    set (DALEC_LINK_FLAGS_ "${DALEC_LIBDIR_FLAGS_} ${DALEC_LIB_FLAGS_} -ldl")
+endif ()
+
 string(REGEX REPLACE "^ +" "" DALEC_LINK_FLAGS ${DALEC_LINK_FLAGS_})
 set (CMAKE_CXX_FLAGS         "$ENV{CPPFLAGS} ${FFI_INCLUDE_DIR} -Wall -ansi")
 set (CMAKE_CXX_FLAGS_DEBUG   "-g -ggdb -O0 -fno-inline -Wextra -Wno-unused-parameter")
@@ -133,7 +140,9 @@ else ()
     set (DALE_FLAGS ${DALE_FLAGS_RELEASE})
 endif ()
 
-include_directories ("${PROJECT_BINARY_DIR}")
+# Adding /usr/local/include here for FreeBSD (ffi.h).  There is
+# probably a better way to handle this.
+include_directories ("${PROJECT_BINARY_DIR}" "/usr/local/include")
 
 # Compile the compiler.
 

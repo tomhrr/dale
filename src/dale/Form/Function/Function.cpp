@@ -405,7 +405,11 @@ parse(Generator *gen,
     }
 
     if (always_inline) {
+#if LLVM_VERSION_MINOR < 2
         fn->addFnAttr(llvm::Attribute::AlwaysInline);
+#else
+        fn->addFnAttr(llvm::Attributes::AlwaysInline);
+#endif
     }
 
     fn->setCallingConv(llvm::CallingConv::C);

@@ -95,7 +95,7 @@ bool parse(Generator *gen,
         );
 
     if (!res) {
-        return NULL;
+        return false;
     }
 
     builder.SetInsertPoint(pr_value.block);

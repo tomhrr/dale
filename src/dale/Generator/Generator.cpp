@@ -40,7 +40,6 @@
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Support/TargetSelect.h"
-#include "llvm/Target/TargetData.h"
 #include "llvm/CodeGen/LinkAllAsmWriterComponents.h"
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/Support/FileUtilities.h"
@@ -478,7 +477,11 @@ int Generator::run(std::vector<const char *> *filenames,
 
         llvm::Triple TheTriple(mod->getTargetTriple());
         if (TheTriple.getTriple().empty()) {
+#if LLVM_VERSION_MINOR >= 2
+            TheTriple.setTriple(llvm::sys::getDefaultTargetTriple());
+#else
             TheTriple.setTriple(llvm::sys::getHostTriple());
+#endif
         }
 
         /* todo: need some sort of platform table/class. */
@@ -590,7 +593,11 @@ int Generator::run(std::vector<const char *> *filenames,
 
     llvm::Triple GTheTriple(last_module->getTargetTriple());
     if (GTheTriple.getTriple().empty()) {
+#if LLVM_VERSION_MINOR >= 2
+        GTheTriple.setTriple(llvm::sys::getDefaultTargetTriple());
+#else
         GTheTriple.setTriple(llvm::sys::getHostTriple());
+#endif
     }
 
     std::string Err;
@@ -603,11 +610,19 @@ int Generator::run(std::vector<const char *> *filenames,
         abort();
     }
 
+#if LLVM_VERSION_MINOR >= 2
+    llvm::TargetOptions target_options;
+#endif
+
     std::string Features;
     std::auto_ptr<llvm::TargetMachine> target =
         std::auto_ptr<llvm::TargetMachine>
         (TheTarget->createTargetMachine(
-             GTheTriple.getTriple(), llvm::sys::getHostCPUName(), Features
+            GTheTriple.getTriple(), llvm::sys::getHostCPUName(),
+            Features
+#if LLVM_VERSION_MINOR >= 2
+            , target_options
+#endif
          ));
 
     llvm::TargetMachine &Target = *target.get();
@@ -656,7 +671,11 @@ int Generator::run(std::vector<const char *> *filenames,
     llvm::PassManagerBuilder PMB;
     PMB.OptLevel = optlevel;
 
+#if LLVM_VERSION_MINOR >= 2
+    PM.add(new llvm::DataLayout(mod));
+#else
     PM.add(new llvm::TargetData(mod));
+#endif
     PM.add(llvm::createPostDomTree());
     PMB.DisableUnitAtATime = true;
     if (optlevel > 0) {
@@ -754,7 +773,7 @@ int Generator::run(std::vector<const char *> *filenames,
             Target.setAsmVerbosityDefault(true);
             bool res = Target.addPassesToEmitFile(
                 PM, *temp_fro, llvm::TargetMachine::CGFT_AssemblyFile, 
-                OLvl, false);
+                OLvl, NULL);
             if (res) {
                 fprintf(stderr,
                         "Internal error: unable to add passes "
@@ -1609,7 +1628,7 @@ bool Generator::parseFuncallInternal(
                     twant.c_str(), buf, tgot.c_str()
                 );
                 erep->addError(e);
-                return NULL;
+                return false;
             } else {
                 args_cast = true;
                 call_args.push_back(new_val);
@@ -2273,7 +2292,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
                 }
                 if (use) {
                     *macro_to_call = fn;
-                    return NULL;
+                    return false;
                 }
             }
         }

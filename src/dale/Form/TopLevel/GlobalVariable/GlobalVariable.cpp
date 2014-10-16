@@ -218,7 +218,12 @@ parseLiteralElement(Generator *gen,
         *size = strlen(temp) + 1;
         llvm::Constant *myconststr =
             llvm::cast<llvm::Constant>(
-                llvm::ConstantArray::get(llvm::getGlobalContext(),
+#if LLVM_VERSION_MINOR < 2
+                llvm::ConstantArray::get(
+#else
+                llvm::ConstantDataArray::getString(
+#endif
+                                         llvm::getGlobalContext(),
                                          temp,
                                          true)
             );
@@ -534,7 +539,7 @@ parseLiteral(Generator *gen,
                ctx->tr->type_pchar,
                top, 0, &temp_pr);
     if (!res) {
-        return false;
+        return NULL;
     }
     block = temp_pr.block;
     llvm::Value *retaa = temp_pr.value;
@@ -566,7 +571,7 @@ parseLiteral(Generator *gen,
                top, 0, &storeor
               );
     if (!res) {
-        return false;
+        return NULL;
     }
     llvm::Value *store = storeor.value;
     builder.SetInsertPoint(storeor.block);
