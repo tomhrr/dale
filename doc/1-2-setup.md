@@ -7,7 +7,7 @@ features, so most versions of clang/gcc should suffice.
 
 ### External dependencies
 
-  * LLVM (>= 3.0)
+  * LLVM (3.0 or 3.1 only)
   * libffi
 
 ### Tested platforms
@@ -22,7 +22,7 @@ From the 'dale' directory, for an out-of-tree (recommended) build:
         cd ../build
         cmake ../dale
         make
-        make test
+        make tests
         make install
     
 cmake needs to know the location of the ffi.h header. If this isn't

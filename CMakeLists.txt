@@ -272,8 +272,8 @@ endif ()
 
 # Run tests.
 
-add_custom_target (test COMMAND ${CMAKE_SOURCE_DIR}/run-tests ${CMAKE_SOURCE_DIR})
-add_dependencies (test dalec libarray.so)
+add_custom_target (tests COMMAND ${CMAKE_SOURCE_DIR}/run-tests ${CMAKE_SOURCE_DIR})
+add_dependencies (tests dalec)
 
 # Manfile for the compiler.
 

@@ -24,14 +24,14 @@ See the /doc directory ([index](./doc/index.md)).
     cd ../build
     cmake ../dale
     make
-    make test
+    make tests
     make install
 
 #### In-tree
 
     cmake .
     make
-    make test
+    make tests
     make install
 
 ### Bugs/problems/suggestions
