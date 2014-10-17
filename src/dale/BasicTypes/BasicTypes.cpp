@@ -196,17 +196,50 @@ addSimpleBinaryFunction(Context *ctx,
 }
 
 void
+makeFloatFunction(Context *ctx,
+                  llvm::Module *mod,
+                  std::string *once_tag,
+                  const char *name,
+                  llvm::Value* (llvm::IRBuilder<>:: *method_name)
+                      (llvm::Value*, llvm::Value*, const llvm::Twine &
+#if LLVM_VERSION_MINOR >= 2
+                      , llvm::MDNode *
+#endif
+                      ),
+                  Element::Type *ret_type,
+                  Element::Type *type)
+{
+    Element::Function *fn =
+        addSimpleBinaryFunction(ctx, mod, once_tag,
+                                name, ret_type, type, type);
+
+    std::vector<Element::Variable *>::iterator iter;
+    iter = fn->parameter_types->begin();
+
+    llvm::BasicBlock *block =
+        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+                                 fn->llvm_function);
+
+    llvm::IRBuilder<> builder(block);
+    llvm::Twine bling;
+    llvm::Value *res = llvm::cast<llvm::Value>(
+                           ((builder).*(method_name))((*iter)->value, (*(iter +
+                                   1))->value, bling
+#if LLVM_VERSION_MINOR >= 2
+                                   , NULL
+#endif
+                                   ));
+
+    builder.CreateRet(res);
+}
+
+void
 makeFunction(Context *ctx,
              llvm::Module *mod,
              std::string *once_tag, 
              const char *name,
-#if LLVM_VERSION_MINOR >= 2
-             llvm::Value* (llvm::IRBuilder<>:: *method_name)
-                (llvm::Value*, llvm::Value*, const llvm::Twine &, llvm::MDNode *),
-#else
              llvm::Value* (llvm::IRBuilder<>:: *method_name)
                 (llvm::Value*, llvm::Value*, const llvm::Twine &),
-#endif
              Element::Type *ret_type,
              Element::Type *type)
 {
@@ -223,15 +256,9 @@ makeFunction(Context *ctx,
 
     llvm::IRBuilder<> builder(block);
     llvm::Twine bling;
-#if LLVM_VERSION_MINOR >= 2
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           ((builder).*(method_name))((*iter)->value, (*(iter +
-                                   1))->value, bling, NULL));
-#else
     llvm::Value *res = llvm::cast<llvm::Value>(
                            ((builder).*(method_name))((*iter)->value, (*(iter +
                                    1))->value, bling));
-#endif
     builder.CreateRet(res);
 }
 
@@ -491,10 +518,10 @@ addFloatingPoint(Context *ctx,
                  std::string *once_tag,
                  Element::Type *type)
 {
-    makeFunction(ctx, mod, once_tag, "+",  &llvm::IRBuilder<>::CreateFAdd, type, type);
-    makeFunction(ctx, mod, once_tag, "-",  &llvm::IRBuilder<>::CreateFSub, type, type);
-    makeFunction(ctx, mod, once_tag, "/",  &llvm::IRBuilder<>::CreateFDiv, type, type);
-    makeFunction(ctx, mod, once_tag, "*",  &llvm::IRBuilder<>::CreateFMul, type, type);
+    makeFloatFunction(ctx, mod, once_tag, "+",  &llvm::IRBuilder<>::CreateFAdd, type, type);
+    makeFloatFunction(ctx, mod, once_tag, "-",  &llvm::IRBuilder<>::CreateFSub, type, type);
+    makeFloatFunction(ctx, mod, once_tag, "/",  &llvm::IRBuilder<>::CreateFDiv, type, type);
+    makeFloatFunction(ctx, mod, once_tag, "*",  &llvm::IRBuilder<>::CreateFMul, type, type);
     Element::Type *type_bool = ctx->tr->type_bool;
     makeFunction(ctx, mod, once_tag, "=",  &llvm::IRBuilder<>::CreateFCmpOEQ, type_bool, type);
     makeFunction(ctx, mod, once_tag, "!=", &llvm::IRBuilder<>::CreateFCmpONE, type_bool, type);
