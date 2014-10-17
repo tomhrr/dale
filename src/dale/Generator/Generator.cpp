@@ -165,6 +165,7 @@ Generator::Generator()
      * processor is x86-64, hence the extra check here. */
     is_x86_64 =
         ((!strcmp(SYSTEM_PROCESSOR, "x86_64"))
+         || ((!strcmp(SYSTEM_PROCESSOR, "amd64")))
          || ((!strcmp(SYSTEM_NAME, "Darwin"))
              && (sizeof(char *) == 8)));
 
