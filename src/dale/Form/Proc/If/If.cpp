@@ -21,7 +21,7 @@ bool parse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    assert(n->list && "must receive a list!");
+    assert(node->list && "must receive a list!");
 
     Context *ctx = gen->ctx;
 

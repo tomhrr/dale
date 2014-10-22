@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
 #include "llvm/Function.h"
+#include "Config.h"
 
 namespace dale
 {
@@ -75,7 +76,7 @@ IntNodeToStaticDNode(Generator *gen,
 
         if (!svar2) {
             llvm::Constant *arr =
-#if LLVM_VERSION_MINOR < 2
+#if D_LLVM_VERSION_MINOR < 2
                 llvm::ConstantArray::get(
 #else
                 llvm::ConstantDataArray::getString(

@@ -8,7 +8,7 @@
 #include <cerrno>
 #include <sys/stat.h>
 
-#if LLVM_VERSION_MAJOR < 3
+#if D_LLVM_VERSION_MAJOR < 3
 #error "LLVM >= 3.0 is required."
 #endif
 
@@ -478,7 +478,7 @@ int Generator::run(std::vector<const char *> *filenames,
 
         llvm::Triple TheTriple(mod->getTargetTriple());
         if (TheTriple.getTriple().empty()) {
-#if LLVM_VERSION_MINOR >= 2
+#if D_LLVM_VERSION_MINOR >= 2
             TheTriple.setTriple(llvm::sys::getDefaultTargetTriple());
 #else
             TheTriple.setTriple(llvm::sys::getHostTriple());
@@ -594,7 +594,7 @@ int Generator::run(std::vector<const char *> *filenames,
 
     llvm::Triple GTheTriple(last_module->getTargetTriple());
     if (GTheTriple.getTriple().empty()) {
-#if LLVM_VERSION_MINOR >= 2
+#if D_LLVM_VERSION_MINOR >= 2
         GTheTriple.setTriple(llvm::sys::getDefaultTargetTriple());
 #else
         GTheTriple.setTriple(llvm::sys::getHostTriple());
@@ -611,7 +611,7 @@ int Generator::run(std::vector<const char *> *filenames,
         abort();
     }
 
-#if LLVM_VERSION_MINOR >= 2
+#if D_LLVM_VERSION_MINOR >= 2
     llvm::TargetOptions target_options;
 #endif
 
@@ -621,7 +621,7 @@ int Generator::run(std::vector<const char *> *filenames,
         (TheTarget->createTargetMachine(
             GTheTriple.getTriple(), llvm::sys::getHostCPUName(),
             Features
-#if LLVM_VERSION_MINOR >= 2
+#if D_LLVM_VERSION_MINOR >= 2
             , target_options
 #endif
          ));
@@ -672,7 +672,7 @@ int Generator::run(std::vector<const char *> *filenames,
     llvm::PassManagerBuilder PMB;
     PMB.OptLevel = optlevel;
 
-#if LLVM_VERSION_MINOR >= 2
+#if D_LLVM_VERSION_MINOR >= 2
     PM.add(new llvm::DataLayout(mod));
 #else
     PM.add(new llvm::TargetData(mod));

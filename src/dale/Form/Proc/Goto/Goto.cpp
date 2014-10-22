@@ -22,7 +22,7 @@ bool parse(Generator *gen,
 {
     Context *ctx = gen->ctx;
 
-    assert(n->list && "parseGoto must receive a list!");
+    assert(node->list && "parseGoto must receive a list!");
 
     if (!ctx->er->assertArgNums("goto", node, 1, 1)) {
         return false;

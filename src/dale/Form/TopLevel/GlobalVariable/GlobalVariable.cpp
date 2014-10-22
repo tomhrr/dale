@@ -7,6 +7,7 @@
 #include "../../Linkage/Linkage.h"
 #include "../../ProcBody/ProcBody.h"
 #include "../../Type/Type.h"
+#include "Config.h"
 
 namespace dale
 {
@@ -218,7 +219,7 @@ parseLiteralElement(Generator *gen,
         *size = strlen(temp) + 1;
         llvm::Constant *myconststr =
             llvm::cast<llvm::Constant>(
-#if LLVM_VERSION_MINOR < 2
+#if D_LLVM_VERSION_MINOR < 2
                 llvm::ConstantArray::get(
 #else
                 llvm::ConstantDataArray::getString(

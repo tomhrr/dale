@@ -1,4 +1,5 @@
 #include "BasicTypes.h"
+#include "Config.h"
 
 namespace dale
 {
@@ -7,7 +8,7 @@ namespace BasicTypes
 void
 setStandardAttributes(llvm::Function *fn)
 {
-#if LLVM_VERSION_MINOR == 2
+#if D_LLVM_VERSION_MINOR == 2
     fn->addFnAttr(llvm::Attributes::NoUnwind);
     fn->addFnAttr(llvm::Attributes::ReadOnly);
     fn->addFnAttr(llvm::Attributes::AlwaysInline);
@@ -202,7 +203,7 @@ makeFloatFunction(Context *ctx,
                   const char *name,
                   llvm::Value* (llvm::IRBuilder<>:: *method_name)
                       (llvm::Value*, llvm::Value*, const llvm::Twine &
-#if LLVM_VERSION_MINOR >= 2
+#if D_LLVM_VERSION_MINOR >= 2
                       , llvm::MDNode *
 #endif
                       ),
@@ -225,7 +226,7 @@ makeFloatFunction(Context *ctx,
     llvm::Value *res = llvm::cast<llvm::Value>(
                            ((builder).*(method_name))((*iter)->value, (*(iter +
                                    1))->value, bling
-#if LLVM_VERSION_MINOR >= 2
+#if D_LLVM_VERSION_MINOR >= 2
                                    , NULL
 #endif
                                    ));

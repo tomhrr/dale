@@ -10,33 +10,34 @@ if (NOT LLVM_CONFIG)
 endif()
 
 execute_process (COMMAND ${LLVM_CONFIG} --version
-                 OUTPUT_VARIABLE LLVM_VERSION
+                 OUTPUT_VARIABLE D_LLVM_VERSION
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process (COMMAND ${LLVM_CONFIG} --bindir
                  OUTPUT_VARIABLE LLVM_BIN_DIR
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process (COMMAND echo ${LLVM_VERSION}
+execute_process (COMMAND echo ${D_LLVM_VERSION}
                  COMMAND sed -e "s/[^0-9].*//"
-                 OUTPUT_VARIABLE LLVM_VERSION_MAJOR
+                 OUTPUT_VARIABLE D_LLVM_VERSION_MAJOR
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process (COMMAND echo ${LLVM_VERSION}
-                 COMMAND sed -e "s/.*[^0-9]//"
-                 OUTPUT_VARIABLE LLVM_VERSION_MINOR
+execute_process (COMMAND echo ${D_LLVM_VERSION}
+                 COMMAND sed -e "s/.*\\.//"
+                 COMMAND sed -e "s/svn//"
+                 OUTPUT_VARIABLE D_LLVM_VERSION_MINOR
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 set (Dale_VERSION_MAJOR 0)
 set (Dale_VERSION_MINOR 1)
-set (DALE_INCLUDE_PATH  "${CMAKE_INSTALL_PREFIX}/include/dale")
-set (DALE_LIBRARY_PATH  "${CMAKE_INSTALL_PREFIX}/lib/dale")
-set (DALE_MODULE_PATH   "${CMAKE_INSTALL_PREFIX}/lib/dale")
-set (SYSTEM             "${CMAKE_SYSTEM}")
-set (SYSTEM_NAME        "${CMAKE_SYSTEM_NAME}")
-set (SYSTEM_PROCESSOR   "${CMAKE_SYSTEM_PROCESSOR}")
-set (SIZEOF_DATA_PTR    "${CMAKE_CXX_SIZEOF_DATA_PTR}")
-set (LLVM_VERSION       "${LLVM_VERSION}")
-set (LLVM_VERSION_MAJOR "${LLVM_VERSION_MAJOR}")
-set (LLVM_VERSION_MINOR "${LLVM_VERSION_MINOR}")
-set (LLVM_BIN_DIR       "${LLVM_BIN_DIR}")
+set (DALE_INCLUDE_PATH    "${CMAKE_INSTALL_PREFIX}/include/dale")
+set (DALE_LIBRARY_PATH    "${CMAKE_INSTALL_PREFIX}/lib/dale")
+set (DALE_MODULE_PATH     "${CMAKE_INSTALL_PREFIX}/lib/dale")
+set (SYSTEM               "${CMAKE_SYSTEM}")
+set (SYSTEM_NAME          "${CMAKE_SYSTEM_NAME}")
+set (SYSTEM_PROCESSOR     "${CMAKE_SYSTEM_PROCESSOR}")
+set (SIZEOF_DATA_PTR      "${CMAKE_CXX_SIZEOF_DATA_PTR}")
+set (D_LLVM_VERSION       "${D_LLVM_VERSION}")
+set (D_LLVM_VERSION_MAJOR "${D_LLVM_VERSION_MAJOR}")
+set (D_LLVM_VERSION_MINOR "${D_LLVM_VERSION_MINOR}")
+set (LLVM_BIN_DIR         "${LLVM_BIN_DIR}")
 
 set (BUILD_BINDGEN False)
 # Temporarily disabling
