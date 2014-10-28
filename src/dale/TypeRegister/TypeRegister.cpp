@@ -60,6 +60,7 @@ TypeRegister::TypeRegister(void)
     type_uint128 = getBasicType(Type::UInt128);
 
     type_pchar  = getPointerType(type_char);
+    type_pvoid  = getPointerType(type_void);
 }
 
 TypeRegister::~TypeRegister(void)

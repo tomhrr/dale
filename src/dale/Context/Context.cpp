@@ -816,10 +816,7 @@ Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
                 ++fb) {
             Element::Function *fn = (*fb);
 
-            fn->llvm_function =
-                llvm::dyn_cast<llvm::Function>(
-                    mod->getFunction(fn->internal_name->c_str())
-                );
+            fn->llvm_function = mod->getFunction(fn->internal_name->c_str());
             if (fn->llvm_function) {
                 continue;
             }

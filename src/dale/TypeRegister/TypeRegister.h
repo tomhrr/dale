@@ -99,6 +99,7 @@ public:
     Element::Type *type_int128;
     Element::Type *type_uint128;
     Element::Type *type_pchar;
+    Element::Type *type_pvoid;
 
     /*! Dump debugging information to stderr. */
     void dump(void);

@@ -537,7 +537,7 @@ parseLiteral(Generator *gen,
                block,
                reta,
                ctx->tr->getPointerType(type),
-               ctx->tr->type_pchar,
+               ctx->tr->type_pvoid,
                top, 0, &temp_pr);
     if (!res) {
         return NULL;
@@ -568,7 +568,7 @@ parseLiteral(Generator *gen,
                block,
                v,
                ctx->tr->type_intptr,
-               ctx->tr->type_pchar,
+               ctx->tr->type_pvoid,
                top, 0, &storeor
               );
     if (!res) {
@@ -593,9 +593,12 @@ parseLiteral(Generator *gen,
     memcpy_args.push_back(store);
     memcpy_args.push_back(retaa);
     memcpy_args.push_back(
-        ctx->nt->getConstantInt(llvm::IntegerType::get(
-                        llvm::getGlobalContext(),
-                       32), buf5));
+        ctx->nt->getConstantInt(
+            (llvm::IntegerType*) ctx->toLLVMType(ctx->tr->type_size, NULL, false),
+            buf5
+        )
+    );
+
     builder.CreateCall(memcpy->llvm_function,
                        llvm::ArrayRef<llvm::Value*>(memcpy_args)
                       );
