@@ -6,8 +6,8 @@
 #include "../../Element/Type/Type.h"
 #include "../../Node/Node.h"
 
-#include "llvm/Module.h"
-#include "llvm/Function.h"
+#include "../../llvm_Module.h"
+#include "../../llvm_Function.h"
 #include "../../llvm_IRBuilder.h"
 
 namespace dale

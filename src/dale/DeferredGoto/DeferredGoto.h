@@ -1,8 +1,8 @@
 #ifndef DALE_DEFERREDGOTO
 #define DALE_DEFERREDGOTO
 
-#include "llvm/LLVMContext.h"
-#include "llvm/Function.h"
+#include "../llvm_LLVMContext.h"
+#include "../llvm_Function.h"
 
 namespace dale
 {

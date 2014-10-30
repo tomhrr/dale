@@ -16,17 +16,17 @@
 #include "llvm/Support/Host.h"
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/system_error.h"
-#include "llvm/LLVMContext.h"
-#include "llvm/Module.h"
+#include "../llvm_LLVMContext.h"
+#include "../llvm_Module.h"
 #include "llvm/LinkAllPasses.h"
 #include "llvm/Linker.h"
-#include "llvm/Function.h"
-#include "llvm/CallingConv.h"
+#include "../llvm_Function.h"
+#include "../llvm_CallingConv.h"
 #include "llvm/Assembly/PrintModulePass.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/JIT.h"
 #include "llvm/ExecutionEngine/Interpreter.h"
-#include "llvm/ValueSymbolTable.h"
+#include "../llvm_ValueSymbolTable.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/PassManager.h"
 #include "llvm/Analysis/Passes.h"
@@ -47,6 +47,11 @@
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Transforms/Utils/Cloning.h"
+
+#if D_LLVM_VERSION_MINOR >= 3
+#include "llvm/Support/SourceMgr.h"
+#include "llvm/IRReader/IRReader.h"
+#endif
 
 #include "../BasicTypes/BasicTypes.h"
 #include "../Utils/Utils.h"
@@ -567,7 +572,11 @@ int Generator::run(std::vector<const char *> *filenames,
 
         if (last_module) {
             std::string link_error;
+#if D_LLVM_VERSION_MINOR <= 2
             if (linker->LinkInModule(last_module, &link_error)) {
+#else
+            if (linker->linkInModule(last_module, &link_error)) {
+#endif
                 Error *e = new Error(
                     "not applicable",
                     ErrorInst::Generator::CannotLinkModules,
@@ -638,6 +647,7 @@ int Generator::run(std::vector<const char *> *filenames,
                 e = bc_files->end();
                 b != e;
                 ++b) {
+#if D_LLVM_VERSION_MINOR <= 2
             const llvm::sys::Path bb(*b);
             bool is_native = false;
             if (linker->LinkInFile(bb, is_native)) {
@@ -645,6 +655,17 @@ int Generator::run(std::vector<const char *> *filenames,
                         "bitcode file.\n");
                 abort();
             }
+#else
+            llvm::SMDiagnostic err;
+            llvm::Module *mymod = llvm::ParseIRFile(*b, err,
+                                                    llvm::getGlobalContext());
+            std::string errstr;
+            if (linker->linkInModule(mymod, &errstr)) {
+                fprintf(stderr, "Internal error: unable to link "
+                        "bitcode file module: %s.\n", errstr.c_str());
+                abort();
+            }
+#endif
         }
     }
 
@@ -723,7 +744,11 @@ int Generator::run(std::vector<const char *> *filenames,
                         mdtm_modules.begin(), e = mdtm_modules.end();
                     b != e; ++b) {
                 if (cto_modules->find(b->first) == cto_modules->end()) {
+#if D_LLVM_VERSION_MINOR <= 2
                     if (linker->LinkInModule(b->second, &err)) {
+#else
+                    if (linker->linkInModule(b->second, &err)) {
+#endif
                         fprintf(stderr,
                                 "Internal error: unable to link "
                                 "dale module: %s\n",
@@ -740,7 +765,11 @@ int Generator::run(std::vector<const char *> *filenames,
                 std::map<std::string, llvm::Module *>::iterator
                 found = mdtm_modules.find(std::string(*b));
                 if (found != mdtm_modules.end()) {
+#if D_LLVM_VERSION_MINOR <= 2
                     if (linker->LinkInModule(found->second, &err)) {
+#else
+                    if (linker->linkInModule(found->second, &err)) {
+#endif
                         fprintf(stderr,
                                 "Internal error: unable to link "
                                 "dale module: %s\n",

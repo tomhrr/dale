@@ -1,6 +1,6 @@
 #include "Context.h"
 
-#include "llvm/LinkAllVMCore.h"
+#include "../llvm_LinkAll.h"
 #include "../Utils/Utils.h"
 
 namespace dale

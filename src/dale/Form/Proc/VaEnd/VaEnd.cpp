@@ -4,7 +4,7 @@
 #include "../../../Element/Function/Function.h"
 #include "../../../Operation/Cast/Cast.h"
 #include "../Inst/Inst.h"
-#include "llvm/Function.h"
+#include "../../../llvm_Function.h"
 
 namespace dale
 {

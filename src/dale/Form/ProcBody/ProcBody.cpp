@@ -7,7 +7,7 @@
 #include "../Linkage/Linkage.h"
 #include "../Type/Type.h"
 #include "../Proc/Inst/Inst.h"
-#include "llvm/Function.h"
+#include "../../llvm_Function.h"
 
 namespace dale
 {

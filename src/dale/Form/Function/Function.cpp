@@ -7,7 +7,7 @@
 #include "../Linkage/Linkage.h"
 #include "../Type/Type.h"
 #include "../ProcBody/ProcBody.h"
-#include "llvm/Function.h"
+#include "../../llvm_Function.h"
 #include "Config.h"
 
 namespace dale
@@ -406,10 +406,10 @@ parse(Generator *gen,
     }
 
     if (always_inline) {
-#if D_LLVM_VERSION_MINOR < 2
-        fn->addFnAttr(llvm::Attribute::AlwaysInline);
-#else
+#if D_LLVM_VERSION_MINOR == 2
         fn->addFnAttr(llvm::Attributes::AlwaysInline);
+#else
+        fn->addFnAttr(llvm::Attribute::AlwaysInline);
 #endif
     }
 

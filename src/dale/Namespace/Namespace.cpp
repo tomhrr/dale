@@ -1,6 +1,6 @@
 #include "Namespace.h"
 
-#include "llvm/LinkAllVMCore.h"
+#include "../llvm_LinkAll.h"
 #include "../NativeTypes/NativeTypes.h"
 #include "../STLUtils/STLUtils.h"
 

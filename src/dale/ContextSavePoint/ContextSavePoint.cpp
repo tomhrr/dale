@@ -1,6 +1,6 @@
 #include "ContextSavePoint.h"
 
-#include "llvm/LinkAllVMCore.h"
+#include "../llvm_LinkAll.h"
 #include "../NativeTypes/NativeTypes.h"
 
 namespace dale

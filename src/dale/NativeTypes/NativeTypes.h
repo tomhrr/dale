@@ -1,7 +1,7 @@
 #ifndef DALE_NATIVETYPES
 #define DALE_NATIVETYPES
 
-#include "llvm/LinkAllVMCore.h"
+#include "../llvm_LinkAll.h"
 
 namespace dale
 {

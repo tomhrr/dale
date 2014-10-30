@@ -5,7 +5,7 @@
 #include "../../../Element/Function/Function.h"
 #include "../Token/Token.h"
 #include "../../Type/Type.h"
-#include "llvm/Function.h"
+#include "../../../llvm_Function.h"
 
 #include "../Goto/Goto.h"
 #include "../If/If.h"
