@@ -15,14 +15,18 @@
 #include "llvm/Support/DynamicLibrary.h"
 #include "llvm/Support/Host.h"
 #include "llvm/Support/Signals.h"
+#if D_LLVM_VERSION_MINOR <= 4
 #include "llvm/Support/system_error.h"
+#else
+#include "llvm/Object/Error.h"
+#endif
 #include "../llvm_LLVMContext.h"
 #include "../llvm_Module.h"
 #include "llvm/LinkAllPasses.h"
-#include "llvm/Linker.h"
+#include "../llvm_Linker.h"
 #include "../llvm_Function.h"
 #include "../llvm_CallingConv.h"
-#include "llvm/Assembly/PrintModulePass.h"
+#include "../llvm_AssemblyPrintModulePass.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/JIT.h"
 #include "llvm/ExecutionEngine/Interpreter.h"
@@ -30,7 +34,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/PassManager.h"
 #include "llvm/Analysis/Passes.h"
-#include "llvm/Analysis/Verifier.h"
+#include "../llvm_AnalysisVerifier.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
@@ -195,20 +199,38 @@ Generator::~Generator()
 
 llvm::Module *loadModule(std::string *path, bool materialize)
 {
-    llvm::OwningPtr<llvm::MemoryBuffer> buffer;
+#if D_LLVM_VERSION_MINOR <= 4
+    llvm::OwningPtr
+#else
+    std::unique_ptr
+#endif
+    <llvm::MemoryBuffer> buffer;
 
 #if D_LLVM_VERSION_MINOR <= 3
     const llvm::sys::Path sys_path(*path);
     llvm::MemoryBuffer::getFileOrSTDIN(sys_path.c_str(), buffer);
-#else
+#elif D_LLVM_VERSION_MINOR <= 4
     llvm::MemoryBuffer::getFileOrSTDIN(*path, buffer);
+#else
+    llvm::MemoryBuffer::getFileOrSTDIN(*path);
 #endif
 
+#if D_LLVM_VERSION_MINOR <= 4
     std::string errmsg;
     llvm::Module *module = 
         llvm::getLazyBitcodeModule(buffer.get(),
                                    llvm::getGlobalContext(),
                                    &errmsg);
+#else
+    std::string errmsg;
+    llvm::ErrorOr<llvm::Module *> err =
+        llvm::getLazyBitcodeModule(buffer.get(),
+                                   llvm::getGlobalContext());
+    llvm::Module *module = err.get();
+    if (!module) {
+        errmsg = err.getError().message();
+    }
+#endif
 
     if (!module) {
         fprintf(stderr,
@@ -218,7 +240,15 @@ llvm::Module *loadModule(std::string *path, bool materialize)
     }
 
     std::string ma_error;
+#if D_LLVM_VERSION_MINOR <= 4
     bool ma = module->MaterializeAll(&ma_error);
+#else
+    std::error_code ec = module->materializeAllPermanently();
+    bool ma = (bool) ec;
+    if (ec) {
+        ma_error = ec.message();
+    }
+#endif
     if (ma) {
         fprintf(stderr, "Internal error: failed to materialize "
                         "module (%s): %s\n",
@@ -629,8 +659,13 @@ int Generator::run(std::vector<const char *> *filenames,
 #endif
 
     std::string Features;
+#if D_LLVM_VERSION_MINOR <= 4
     std::auto_ptr<llvm::TargetMachine> target =
         std::auto_ptr<llvm::TargetMachine>
+#else
+    std::shared_ptr<llvm::TargetMachine> target =
+        std::shared_ptr<llvm::TargetMachine>
+#endif
         (TheTarget->createTargetMachine(
             GTheTriple.getTriple(), llvm::sys::getHostCPUName(),
             Features
@@ -697,7 +732,9 @@ int Generator::run(std::vector<const char *> *filenames,
     llvm::PassManagerBuilder PMB;
     PMB.OptLevel = optlevel;
 
-#if D_LLVM_VERSION_MINOR >= 2
+#if D_LLVM_VERSION_MINOR >= 5
+    PM.add(new llvm::DataLayoutPass(mod));
+#elif D_LLVM_VERSION_MINOR >= 2
     PM.add(new llvm::DataLayout(mod));
 #else
     PM.add(new llvm::TargetData(mod));
@@ -802,7 +839,11 @@ int Generator::run(std::vector<const char *> *filenames,
             llvm::formatted_raw_ostream::DELETE_STREAM);
 
         if (produce == IR) {
+#if D_LLVM_VERSION_MINOR <= 4
             PM.add(llvm::createPrintModulePass(&temp));
+#else
+            PM.add(llvm::createPrintModulePass(temp));
+#endif
         } else if (produce == ASM) {
             Target.setAsmVerbosityDefault(true);
             bool res = Target.addPassesToEmitFile(

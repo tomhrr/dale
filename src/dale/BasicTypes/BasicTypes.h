@@ -9,7 +9,7 @@
 #include "../llvm_LLVMContext.h"
 #include "../llvm_Module.h"
 #include "llvm/LinkAllPasses.h"
-#include "llvm/Linker.h"
+#include "../llvm_Linker.h"
 #include "../llvm_Function.h"
 #include "llvm/PassManager.h"
 #include "../llvm_CallingConv.h"

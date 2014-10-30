@@ -1,7 +1,7 @@
 #include "Unit.h"
 #include "../Lexer/Lexer.h"
 #include "../llvm_Module.h"
-#include "llvm/Linker.h"
+#include "../llvm_Linker.h"
 
 namespace dale
 {

@@ -20,8 +20,9 @@ execute_process (COMMAND echo ${D_LLVM_VERSION}
                  OUTPUT_VARIABLE D_LLVM_VERSION_MAJOR
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process (COMMAND echo ${D_LLVM_VERSION}
-                 COMMAND sed -e "s/.*\\.//"
+                 COMMAND sed -e "s/[0-9]*\\.//"
                  COMMAND sed -e "s/svn//"
+                 COMMAND sed -e "s/\\..*//"
                  OUTPUT_VARIABLE D_LLVM_VERSION_MINOR
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
 
@@ -121,16 +122,27 @@ endif ()
 set (DALEC_LIBDIR_FLAGS_ "$ENV{LDFLAGS} ${FFI_LIBRARY_DIR}")
 set (DALEC_LIB_FLAGS_    "-lffi -lpthread")
 
+if (${D_LLVM_VERSION_MINOR} GREATER 4)
+    set (DALEC_LIB_FLAGS_ "${DALEC_LIB_FLAGS_} -lz -ltinfo")
+endif()
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     set (DALEC_LINK_FLAGS_ "${DALEC_LIBDIR_FLAGS_} -L/usr/local/lib ${DALEC_LIB_FLAGS_}")
 else ()
     set (DALEC_LINK_FLAGS_ "${DALEC_LIBDIR_FLAGS_} ${DALEC_LIB_FLAGS_} -ldl")
 endif ()
 
+# LLVM 3.5 relies on C++11.
+if (${D_LLVM_VERSION_MINOR} GREATER 4)
+    set (CXX_FLAGS_EXTRA "-std=c++11")
+else ()
+    set (CXX_FLAGS_EXTRA "")
+endif ()
+
 string(REGEX REPLACE "^ +" "" DALEC_LINK_FLAGS ${DALEC_LINK_FLAGS_})
 set (CMAKE_CXX_FLAGS         "$ENV{CPPFLAGS} ${FFI_INCLUDE_DIR} -Wall -ansi")
-set (CMAKE_CXX_FLAGS_DEBUG   "-g -ggdb -O0 -fno-inline -Wextra -Wno-unused-parameter")
-set (CMAKE_CXX_FLAGS_RELEASE "-O3 -fomit-frame-pointer")
+set (CMAKE_CXX_FLAGS_DEBUG   "-g -ggdb -O0 -fno-inline -Wextra -Wno-unused-parameter ${CXX_FLAGS_EXTRA}")
+set (CMAKE_CXX_FLAGS_RELEASE "-O3 -fomit-frame-pointer ${CXX_FLAGS_EXTRA}")
 
 set (DALE_FLAGS_DEBUG   "-O0")
 set (DALE_FLAGS_RELEASE "-O3")

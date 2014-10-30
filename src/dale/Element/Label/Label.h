@@ -5,14 +5,14 @@
 #include <cstdlib>
 
 #include "llvm/PassManager.h"
-#include "llvm/Analysis/Verifier.h"
-#include "llvm/Assembly/PrintModulePass.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "../../llvm_IRBuilder.h"
 #include "../../llvm_Module.h"
 #include "../../llvm_Function.h"
 #include "../../llvm_CallingConv.h"
+#include "../../llvm_AnalysisVerifier.h"
+#include "../../llvm_AssemblyPrintModulePass.h"
 
 namespace dale
 {
