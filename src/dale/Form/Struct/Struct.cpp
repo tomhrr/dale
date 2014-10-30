@@ -8,7 +8,7 @@
 #include "../Linkage/Struct/Struct.h"
 #include "../Type/Type.h"
 #include "../ProcBody/ProcBody.h"
-#include "llvm/Function.h"
+#include "../../llvm_Function.h"
 
 namespace dale
 {

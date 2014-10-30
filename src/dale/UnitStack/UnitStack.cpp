@@ -44,7 +44,12 @@ UnitStack::pop(void)
     Unit *current = units.top();
 
     std::string link_error;
+
+#if D_LLVM_VERSION_MINOR <= 2
     if (current->linker->LinkInModule(popped->module, &link_error)) {
+#else
+    if (current->linker->linkInModule(popped->module, &link_error)) {
+#endif
         fprintf(stderr,
                 "Internal error: cannot link modules: "
                 "%s\n", link_error.c_str());

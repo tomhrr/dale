@@ -24,7 +24,11 @@ Unit::Unit(const char *path,
     parser = new Parser(lxr, er, path);
 
     module = new llvm::Module(path, llvm::getGlobalContext());
+#if D_LLVM_VERSION_MINOR <= 2
     linker = new llvm::Linker(path, module, false);
+#else
+    linker = new llvm::Linker(module);
+#endif
 
     ee = NULL;
 }
