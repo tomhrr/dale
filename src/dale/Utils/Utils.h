@@ -18,6 +18,7 @@ ino_t get_inode(const char *filename1);
 ino_t get_inode(int fildes);
 
 void splitString(std::string *str, std::vector<std::string> *lst, char c);
+void encodeStandard(const std::string *from, std::string *to);
 }
 
 #endif

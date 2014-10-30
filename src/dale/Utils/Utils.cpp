@@ -147,4 +147,22 @@ splitString(std::string *str, std::vector<std::string> *lst, char c)
         index = found + 1;
     }
 }
+
+void
+encodeStandard(const std::string *from,
+               std::string *to)
+{
+    char buf[5];
+
+    for (std::string::const_iterator b = from->begin(),
+                                     e = from->end();
+            b != e;
+            ++b) {
+        char c = *b;
+        sprintf(buf, ((isalnum(c) || c == '_') ? "%c" : "$%x"), c);
+        to->append(buf);
+    }
+
+    return;
+}
 }

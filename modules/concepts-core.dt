@@ -51,7 +51,7 @@ ones that should be used directly are:
 Determines whether the given concept, as described by the node, has
 been defined.
 
-@param mc An MContext.
+@param mc       An MContext.
 @param frm      The node containing the concept name.
 |#
 (def exists-concept-fn

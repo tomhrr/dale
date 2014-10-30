@@ -195,10 +195,14 @@ Generator::~Generator()
 
 llvm::Module *loadModule(std::string *path, bool materialize)
 {
-    const llvm::sys::Path sys_path(*path);
-
     llvm::OwningPtr<llvm::MemoryBuffer> buffer;
+
+#if D_LLVM_VERSION_MINOR <= 3
+    const llvm::sys::Path sys_path(*path);
     llvm::MemoryBuffer::getFileOrSTDIN(sys_path.c_str(), buffer);
+#else
+    llvm::MemoryBuffer::getFileOrSTDIN(*path, buffer);
+#endif
 
     std::string errmsg;
     llvm::Module *module = 

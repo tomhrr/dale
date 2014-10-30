@@ -1,6 +1,7 @@
 #include "Type.h"
 
 #include "../../STLUtils/STLUtils.h"
+#include "../../Utils/Utils.h"
 
 #define DEBUG 0
 
@@ -690,7 +691,7 @@ void Type::toEncStr(std::string *newstr)
         char num[255];
         sprintf(num, "%d", len);
         newstr->append(num);
-        newstr->append((*struct_name));
+        encodeStandard(struct_name, newstr);
         return;
     }
 

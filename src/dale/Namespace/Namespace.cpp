@@ -3,6 +3,7 @@
 #include "../llvm_LinkAll.h"
 #include "../NativeTypes/NativeTypes.h"
 #include "../STLUtils/STLUtils.h"
+#include "../Utils/Utils.h"
 
 namespace dale
 {
@@ -537,24 +538,6 @@ Namespace::getVarsBeforeIndex(int index,
 }
 
 void
-encodeStandard(const std::string *from,
-               std::string *to)
-{
-    char buf[5];
-
-    for (std::string::const_iterator b = from->begin(),
-                                     e = from->end();
-            b != e;
-            ++b) {
-        char c = *b;
-        sprintf(buf, ((isalnum(c) || c == '_') ? "%c" : "$%x"), c);
-        to->append(buf);
-    }
-
-    return; 
-}
-
-void
 Namespace::nameToSymbol(const char *name, 
                         std::string *new_name)
 {
@@ -586,7 +569,17 @@ Namespace::functionNameToSymbol(const char *name,
                                 std::vector<Element::Variable *> *types)
 {
     if (linkage == dale::Linkage::Extern_C) {
-        new_name->append(name);
+        /* Handle hyphens. */
+        char buf[5];
+        std::string ss_name(name);
+        for (std::string::const_iterator b = ss_name.begin(),
+                                         e = ss_name.end();
+                b != e;
+                ++b) {
+            char c = *b;
+            sprintf(buf, ((c == '-') ? "_2D_" : "%c"), c);
+            new_name->append(buf);
+        }
         return;
     }
 
