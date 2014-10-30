@@ -200,11 +200,8 @@ Generator::~Generator()
 llvm::Module *loadModule(std::string *path, bool materialize)
 {
 #if D_LLVM_VERSION_MINOR <= 4
-    llvm::OwningPtr
-#else
-    std::unique_ptr
+    llvm::OwningPtr<llvm::MemoryBuffer> buffer;
 #endif
-    <llvm::MemoryBuffer> buffer;
 
 #if D_LLVM_VERSION_MINOR <= 3
     const llvm::sys::Path sys_path(*path);
@@ -212,7 +209,15 @@ llvm::Module *loadModule(std::string *path, bool materialize)
 #elif D_LLVM_VERSION_MINOR <= 4
     llvm::MemoryBuffer::getFileOrSTDIN(*path, buffer);
 #else
-    llvm::MemoryBuffer::getFileOrSTDIN(*path);
+    llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> eo =
+        llvm::MemoryBuffer::getFileOrSTDIN(*path);
+    if (eo.getError()) {
+        fprintf(stderr, 
+                "Internal error: cannot load module: %s\n", 
+                eo.getError().message().c_str());
+        abort();
+    }
+    std::unique_ptr<llvm::MemoryBuffer> buffer = std::move(eo.get());
 #endif
 
 #if D_LLVM_VERSION_MINOR <= 4
@@ -230,6 +235,7 @@ llvm::Module *loadModule(std::string *path, bool materialize)
     if (!module) {
         errmsg = err.getError().message();
     }
+    buffer.release();
 #endif
 
     if (!module) {
