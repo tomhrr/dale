@@ -375,3 +375,8 @@ standard_library (modules/derivations.dt derivations   utility)
 set_directory_properties (PROPERTIES 
                           ADDITIONAL_MAKE_CLEAN_FILES
                           "${CLEAN_FILES}")
+
+message (STATUS "LLVM version: ${D_LLVM_VERSION}")
+message (STATUS "System name: ${CMAKE_SYSTEM_NAME}")
+message (STATUS "System processor: ${CMAKE_SYSTEM_PROCESSOR}")
+message (STATUS "System version: ${CMAKE_SYSTEM_VERSION}")
