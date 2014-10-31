@@ -1,3 +1,9 @@
 language: cpp
 compiler: gcc
 script: cmake . && make && make tests
+notifications:
+  email:
+    recipients:
+      - tomh5908@gmail.com
+  on_success: never
+  on_failure: change
