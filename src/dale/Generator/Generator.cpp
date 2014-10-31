@@ -433,6 +433,10 @@ int Generator::run(std::vector<const char *> *filenames,
                    int mydebug,
                    int nodrt)
 {
+    if (static_mods_all) {
+        nodrt = 1;
+    }
+
     has_defined_extern_macro = 0;
     g_no_acd = no_acd;
     g_nodrt  = nodrt;
