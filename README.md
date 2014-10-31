@@ -1,5 +1,7 @@
 ## Dale
 
+[![Build Status](https://travis-ci.org/tomhrr/dale.png)](https://travis-ci.org/tomhrr/dale)
+
 Dale is a system (no GC) programming language with a homoiconic
 syntax.
 
