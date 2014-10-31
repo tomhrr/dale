@@ -1,6 +1,3 @@
 language: cpp
 compiler: gcc
-before_script:
-  - mkdir _build
-  - cd _build
 script: cmake . && make && make tests
