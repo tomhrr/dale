@@ -7,7 +7,6 @@ $ENV{PATH} .= ":.";
 
 use Data::Dumper;
 use Test::More;
-use IPC::Run qw(run);
 
 plan tests => 2;
 

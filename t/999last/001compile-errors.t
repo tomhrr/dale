@@ -7,7 +7,6 @@ $ENV{PATH} .= ":.";
 
 use Data::Dumper;
 use Test::More;
-use IPC::Run qw(run);
 
 my @error_files =
     (@ARGV)

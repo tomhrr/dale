@@ -5,11 +5,14 @@ use strict;
 my $test_dir = $ENV{"DALE_TEST_DIR"} || ".";
 $ENV{PATH} .= ":.";
 
-use IPC::Run qw(run timeout);
 use Test::More;
 
 if (not $ENV{'DALE_SLOW'}) {
     plan skip_all => '$ENV{DALE_SLOW} not set';
+}
+eval { require IPC::Run; };
+if (my $error = $@) {
+    plan skip_all => 'IPC::Run not installed';
 }
 
 # Get a list of all the programs in src.
@@ -22,7 +25,7 @@ for (@progs) {
     my @cmd = ('valgrind', '--leak-check=full', 'dalec', $_);
     my ($in, $out, $err);
 
-    run \@cmd, \$in, \$out, \$err;
+    IPC::Run::run(\@cmd, \$in, \$out, \$err);
 
     my @res = split /\n/, $err;
 
