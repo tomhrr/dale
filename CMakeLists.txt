@@ -122,7 +122,7 @@ endif ()
 set (DALEC_LIBDIR_FLAGS_ "$ENV{LDFLAGS} ${FFI_LIBRARY_DIR}")
 set (DALEC_LIB_FLAGS_    "-lffi -lpthread")
 
-if (${D_LLVM_VERSION_MINOR} GREATER 4)
+if (${D_LLVM_VERSION_MINOR} GREATER 3)
     set (DALEC_LIB_FLAGS_ "${DALEC_LIB_FLAGS_} -lz -ltinfo")
 endif()
 
