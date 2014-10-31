@@ -109,6 +109,8 @@ bool parse(Generator *gen,
         }
     }
 
+    gen->ctx->regetPointers(gen->mod);
+
     return true;
 }
 }
