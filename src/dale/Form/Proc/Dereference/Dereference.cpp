@@ -74,6 +74,10 @@ bool parse(Generator *gen,
         llvm::Value *res =
             llvm::cast<llvm::Value>(builder.CreateLoad(p.value));
 
+        pr->address_of_value = p.value;
+        pr->value_is_lvalue = 1;
+        pr->type_of_address_of_value = p.type;
+
         pr->type  = p.type->points_to;
         pr->value = res;
     } else {

@@ -1,0 +1,19 @@
+(import cstdio)
+
+(def mys (struct intern ((a int) (b int))))
+
+(def ref-fn2 (fn intern int ((n (ref mys)))
+  (setf (:@ n a) (+ 3 (@:@ n a)))
+  (setf (:@ n b) (+ 4 (@:@ n b)))
+  0))
+
+(def ref-fn1 (fn intern int ((n (ref mys)))
+  (setf (:@ n a) (+ 1 (@:@ n a)))
+  (setf (:@ n b) (+ 2 (@:@ n b)))
+  (ref-fn2 (@ n))))
+
+(def main (fn extern-c int ((argc int) (argv (p (p char))))
+  (let ((m mys ((a 1) (b 2))))
+    (ref-fn1 m)
+    (printf "%d %d\n" (@: m a) (@: m b))
+    0)))
