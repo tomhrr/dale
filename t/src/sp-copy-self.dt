@@ -10,7 +10,7 @@
           (myptr2 (SharedPtr int))
           (myint \ (malloc' 1 int)))
       (setf myint 100)
-      (init (# myptr) myint)
+      (init myptr myint)
       (setv myptr2 myptr)
       (setv myptr2 myptr2)
       (setv myptr myptr)

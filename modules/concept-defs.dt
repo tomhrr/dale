@@ -66,8 +66,8 @@ over pointers to the type.
   (let ((success \ true))
     (concept-assert (not (is-const mc T)) T 
                     "type is constant, so it is not Assignable")
-    (concept-assert (exists-fn mc (qq void swap (p (uq T)) (p (uq T))))
-                    T "swap is not defined over pointers to this type")
+    (concept-assert (exists-fn mc (qq void swap (uq T) (uq T)))
+                    T "swap is not defined over this type")
     success))
 
 #|
@@ -157,21 +157,21 @@ conditions hold:
                   T "value-type is not Assignable")
   (concept-assert (exists-type mc (qq Iterator (uq T)))
                   T "no Iterator type found for container")
-  (concept-assert (exists-fn mc (qq (Iterator (uq T)) begin (p (uq T))))
+  (concept-assert (exists-fn mc (qq (Iterator (uq T)) begin (uq T)))
                   T "begin not defined over this type")
-  (concept-assert (exists-fn mc (qq (Iterator (uq T)) end (p (uq T))))
+  (concept-assert (exists-fn mc (qq (Iterator (uq T)) end (uq T)))
                   T "end not defined over this type")
   (concept-assert (exists-fn mc (qq (size-type (nullptr (uq T))) 
-                                     size (p (uq T))))
+                                     size (uq T)))
                   T "size not defined over this type")
   (concept-assert (exists-fn mc (qq (size-type (nullptr (uq T))) 
-                                     max-size (p (uq T))))
+                                     max-size (uq T)))
                   T "max-size not defined over this type")
-  (concept-assert (exists-fn mc (qq bool empty (p (uq T))))
+  (concept-assert (exists-fn mc (qq bool empty (uq T)))
                   T "empty not defined over this type")
-  (concept-assert (exists-fn mc (qq void swap (p (uq T)) (p (uq T))))
+  (concept-assert (exists-fn mc (qq void swap (uq T) (uq T)))
                   T "swap not defined over this type")
-  (concept-assert (exists-fn mc (qq void init (p (uq T))))
+  (concept-assert (exists-fn mc (qq void init (uq T)))
                   T "init not defined over this type")
       success))))
 
@@ -224,10 +224,10 @@ Additional requirements:
                       (ReverseIterator (uq T)) InputIterator)))
                   T "Iterator type is not an InputIterator")
   (concept-assert (exists-fn mc 
-                    (qq (ReverseIterator (uq T)) rbegin (p (uq T))))
+                    (qq (ReverseIterator (uq T)) rbegin (uq T)))
                   T "rbegin not defined over this type")
   (concept-assert (exists-fn mc 
-                    (qq (ReverseIterator (uq T)) rend (p (uq T))))
+                    (qq (ReverseIterator (uq T)) rend (uq T)))
                   T "rend not defined over this type")
   success))
 
@@ -247,7 +247,7 @@ over the container.
   (concept-assert (exists-fn mc
                     (qq (p (value-type (nullptr (uq T)))) 
                         $ 
-                        (p (uq T))
+                        (uq T)
                         (distance-type (nullptr (Iterator (uq T))))))
                     T "$ is not defined over this type")
   success))
@@ -272,26 +272,26 @@ Additional requirements:
   (concept-assert (exists-fn mc
                     (qq (p (value-type (nullptr (uq T))))
                         front
-                        (p (uq T))))
+                        (uq T)))
                   T "front not defined over this type")
   (concept-assert (exists-fn mc
                     (qq (Iterator (uq T))
                         insert
-                        (p (uq T))
+                        (uq T)
                         (Iterator (uq T))
                         (value-type (nullptr (uq T)))))
                   T "insert (single) not defined over this type")
   (concept-assert (exists-fn mc
                     (qq (Iterator (uq T))
                         erase
-                        (p (uq T))
+                        (uq T)
                         (Iterator (uq T))))
                   T "erase (single) not defined over this type")
   ; todo: insert (range), erase (range), resize with default, resize
   ; without default. First two require implicit 'type' concepts. Last
   ; two require some thought about constructors/initialisers.
   (concept-assert (exists-fn mc
-                    (qq void clear (p (uq T))))
+                    (qq void clear (uq T)))
                   T "clear not defined over this type")
   
   success))
@@ -311,12 +311,12 @@ Additional requirements:
   (let ((success \ true))
   (concept-assert (exists-fn mc
                     (qq void push-front
-                             (p (uq T))
+                             (uq T)
                              (value-type (nullptr (uq T)))))
                   T "push-front not defined over this type")
   (concept-assert (exists-fn mc
                     (qq void pop-front
-                             (p (uq T))))
+                             (uq T)))
                   T "pop-front not defined over this type")
   success))
 
@@ -335,17 +335,17 @@ Additional requirements:
   (let ((success \ true))
   (concept-assert (exists-fn mc
                     (qq void push-back
-                             (p (uq T))
+                             (uq T)
                              (value-type (nullptr (uq T)))))
                   T "push-back not defined over this type")
   (concept-assert (exists-fn mc
                     (qq void pop-back
-                             (p (uq T))))
+                             (uq T)))
                   T "pop-back not defined over this type")
   (concept-assert (exists-fn mc
                     (qq (p (value-type (nullptr (uq T))))
                         back
-                        (p (uq T))))
+                        (uq T)))
                   T "back not defined over this type")
   success))
 
@@ -367,7 +367,7 @@ Additional requirements:
   (let ((success \ true))
   (concept-assert (exists-macro mc (qq key-type (p (uq T))))
                   T "key-type is not defined over this type")
-  (concept-assert (exists-fn mc (qq bool erase (p (uq T))
+  (concept-assert (exists-fn mc (qq bool erase (uq T)
                                            (key-type 
                                              (nullptr (uq T)))))
                   T "erase (key) is not defined over this type")
@@ -376,12 +376,12 @@ Additional requirements:
                   T "erase (iterator) is not defined over this type")
   (concept-assert (exists-fn mc 
                     (qq (Iterator (uq T)) 
-                        find (p (uq T))
+                        find (uq T)
                              (key-type (nullptr (uq T)))))
                   T "find is not defined over this type")
   (concept-assert (exists-fn mc 
                     (qq (size-type (nullptr (uq T)))
-                        count (p (uq T))
+                        count (uq T)
                               (key-type (nullptr (uq T)))))
                   T "count is not defined over this type")
   success))
@@ -414,12 +414,12 @@ defined.
   (let ((success \ true))
   (concept-assert
     (exists-fn mc (qq (Iterator (uq T))
-                       lower-bound (p (uq T))
+                       lower-bound (uq T)
                                    (key-type (nullptr (uq T)))))
                    T "lower-bound is not defined over this type")
   (concept-assert
     (exists-fn mc (qq (Iterator (uq T))
-                       upper-bound (p (uq T))
+                       upper-bound (uq T)
                                    (key-type (nullptr (uq T)))))
                    T "upper-bound is not defined over this type")
   success))
@@ -438,7 +438,7 @@ value-type.
   (concept-assert (exists-fn mc
                     (qq (Iterator (uq T))
                         insert
-                        (p (uq T))
+                        (uq T)
                         (value-type (nullptr (uq T)))))
                   T "insert (single) not defined over this type")
   success))

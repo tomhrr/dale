@@ -104,7 +104,7 @@ must also implement `LessThanComparable`.
     @return-type    bool
     |#
     (def init
-      (fn extern bool ((vecp (p (uq typenode))) (cap int))
+      (fn extern bool ((vecp (ref (uq typenode))) (cap int))
         (setf (:@ vecp first-element)
               (malloc' cap (uq T)))
         (setf (:@ vecp last-element)  (@:@ vecp first-element))
@@ -123,8 +123,8 @@ must also implement `LessThanComparable`.
     @return-type    bool
     |#
     (def init
-      (fn extern bool ((vecp (p (uq typenode))))
-        (init vecp 0)))
+      (fn extern bool ((vecp (ref (uq typenode))))
+        (init (@ vecp) 0)))
 
     #|
     @fn empty
@@ -137,7 +137,7 @@ must also implement `LessThanComparable`.
     @return-type    bool
     |#
     (def empty
-      (fn extern bool ((vecp (p (uq typenode))))
+      (fn extern bool ((vecp (ref (const (uq typenode)))))
         (= (@:@ vecp size) (cast 0 size))))
 
     #|
@@ -151,7 +151,7 @@ must also implement `LessThanComparable`.
     @return-type    size
     |#
     (def size
-      (fn extern size ((vecp (p (uq typenode))))
+      (fn extern (const size) ((vecp (ref (const (uq typenode)))))
         (@:@ vecp size)))
 
     #|
@@ -166,7 +166,7 @@ must also implement `LessThanComparable`.
     @return-type    size
     |#
     (def max-size
-      (fn extern size ((vecp (p (uq typenode))))
+      (fn extern size ((vecp (ref (const (uq typenode)))))
         (- (cast 0 size) (cast 1 size))))
 
     #|
@@ -221,7 +221,7 @@ must also implement `LessThanComparable`.
     @return-type    T
     |#
     (def front
-      (fn extern (uq T) ((vecp (p (uq typenode))))
+      (fn extern (uq T) ((vecp (ref (const (uq typenode)))))
         (@ (@ (:@ vecp first-element)))))
 
     #|
@@ -235,7 +235,7 @@ must also implement `LessThanComparable`.
     @return-type    T
     |#
     (def back
-      (fn extern (uq T) ((vecp (p (uq typenode))))
+      (fn extern (uq T) ((vecp (ref (const (uq typenode)))))
         (@ (@ (:@ vecp last-element)))))
 
     #|
@@ -249,7 +249,7 @@ must also implement `LessThanComparable`.
     @return-type    void
     |#
     (def pop-back
-      (fn extern void ((vecp (p (uq typenode))))
+      (fn extern void ((vecp (ref (uq typenode))))
         (let ((value \ (:@ vecp last-element)))
           (destroy value)
           (setf (:@ vecp size) (- (@:@ vecp size) (cast 1 size)))
@@ -270,13 +270,13 @@ must also implement `LessThanComparable`.
     @return-type    bool
     |#
     (def resize
-      (fn extern bool ((vecp (p (uq typenode))) (new-capacity size))
+      (fn extern bool ((vecp (ref (uq typenode))) (new-capacity size))
         (let ((cc \ (@:@ vecp capacity))
               (cs \ (@:@ vecp size)))
           (and (= cc new-capacity)
                (return true))
           (while (< new-capacity cs)
-            (pop-back vecp)
+            (pop-back (@ vecp))
             (setv cs (- cs (cast 1 size))))
           (setf (:@ vecp first-element)
                 (cast (realloc (cast (@ (:@ vecp first-element)) (p void))
@@ -303,8 +303,8 @@ must also implement `LessThanComparable`.
     @return-type    bool
     |#
     (def reserve
-      (fn extern bool ((vecp (p (uq typenode))) (extra size))
-        (resize vecp (+ extra (@ (:@ vecp capacity))))))
+      (fn extern bool ((vecp (ref (uq typenode))) (extra size))
+        (resize (@ vecp) (+ extra (@ (:@ vecp capacity))))))
 
     #|
     @fn push-back
@@ -319,9 +319,9 @@ must also implement `LessThanComparable`.
     @return-type    bool
     |#
     (def push-back
-      (fn extern bool ((vecp (p (uq typenode))) (value (uq T)))
+      (fn extern bool ((vecp (ref (uq typenode))) (value (uq T)))
         (if (= (@:@ vecp capacity) (@:@ vecp size))
-            (reserve vecp (cast 1 size))
+            (reserve (@ vecp) (cast 1 size))
             true)
         (setf (@:@ vecp last-element) value)
         (setf (:@ vecp last-element)
@@ -341,8 +341,8 @@ must also implement `LessThanComparable`.
     @return-type    (p T)
     |#
     (def $
-      (fn extern (p (uq T)) ((vecp (p (uq typenode))) (index int))
-        (p+ (@:@ vecp first-element) index)))
+      (fn extern (p (uq T)) ((vecp (ref (const (uq typenode)))) (index int))
+        (cast (p+ (@:@ vecp first-element) index) (p (uq T)))))
 
     #|
     @fn $
@@ -355,8 +355,8 @@ must also implement `LessThanComparable`.
     @return-type    (p T)
     |#
     (def $
-      (fn extern (p (uq T)) ((vecp (p (uq typenode))) (index size))
-        (p+ (@:@ vecp first-element) index)))
+      (fn extern (p (uq T)) ((vecp (ref (const (uq typenode)))) (index size))
+        (cast (p+ (@:@ vecp first-element) index) (p (uq T)))))
 
     #|
     @struct (Iterator (Vector T))
@@ -378,10 +378,11 @@ must also implement `LessThanComparable`.
     @return-type    (Iterator (Vector T))
     |#
     (def begin
-      (fn extern (Iterator (Vector (uq T))) ((vecp (p (uq typenode))))
-        ((Iterator (Vector (uq T)))
-          ((parent-vector vecp)
-           (element       (@:@ vecp first-element))))))
+      (fn extern (Iterator (Vector (uq T))) ((vecp (ref (uq typenode))))
+        (def iter (var auto (Iterator (Vector (uq T)))))
+        (setf (: iter parent-vector) vecp)
+        (setf (: iter element) (@:@ vecp first-element))
+        iter))
 
     #|
     @fn end
@@ -394,7 +395,7 @@ must also implement `LessThanComparable`.
     @return-type    (Iterator (Vector T))
     |#
     (def end
-      (fn extern (Iterator (Vector (uq T))) ((vecp (p (uq typenode))))
+      (fn extern (Iterator (Vector (uq T))) ((vecp (ref (uq typenode))))
         ((Iterator (Vector (uq T))) 
           ((parent-vector vecp)
            (element       (@:@ vecp last-element))))))
@@ -615,9 +616,9 @@ must also implement `LessThanComparable`.
     @return-type    (ReverseIterator (Vector T))
     |#
     (def rbegin
-      (fn extern (ReverseIterator (Vector (uq T))) ((vec (p (uq typenode))))
+      (fn extern (ReverseIterator (Vector (uq T))) ((vec (ref (uq typenode))))
         (let ((thing (ReverseIterator (Vector (uq T))) 
-                     ((element (@ (:@ vec last-element))))))
+                     ((element (cast (@ (:@ vec last-element)) (p (uq T)))))))
           (if (!= (@:@ vec size) (cast 0 size))
               (do (setf (: thing element)
                         (p- (@: thing element) 1))
@@ -637,9 +638,9 @@ must also implement `LessThanComparable`.
     @return-type    (ReverseIterator (Vector T))
     |#
     (def rend
-      (fn extern (ReverseIterator (Vector (uq T))) ((vec (p (uq typenode))))
+      (fn extern (ReverseIterator (Vector (uq T))) ((vec (ref (uq typenode))))
         (let ((thing (ReverseIterator (Vector (uq T))) 
-                     ((element (@ (:@ vec first-element))))))
+                     ((element (cast (@ (:@ vec first-element)) (p (uq T)))))))
           thing)))
 
     (def value-type
@@ -733,22 +734,22 @@ must also implement `LessThanComparable`.
     |#
     (def insert
       (fn extern (Iterator (Vector (uq T))) 
-                        ((unused (p (uq typenode)))
+                        ((unused (ref (const (uq typenode))))
                          (iter   (Iterator (Vector (uq T))))
                          (value  (uq T)))
         (let ((vecp          \ (@: iter parent-vector))
               (original-iter \ iter)
               (next1         \ (@source iter))
               (next2         \ (@source iter)))
-          (if (<= (@:@ vecp capacity) (size vecp))
-              (reserve vecp (@:@ vecp capacity))
+          (if (<= (@:@ vecp capacity) (size (@ vecp)))
+              (reserve (@ vecp) (@:@ vecp capacity))
               true)
-          (if (= (cast 0 size) (size vecp))
-              (do (push-back vecp value)
+          (if (= (cast 0 size) (size (@ vecp)))
+              (do (push-back (@ vecp) value)
                   (return iter))
               0)
           (setf (:@ vecp size) (+ (@ (:@ vecp size)) (cast 1 size)))
-          (while (!= iter (end vecp))
+          (while (!= iter (end (@ vecp)))
             (setv iter (successor iter))
             (setv next1 (@source iter))
             (sink iter next2)
@@ -772,20 +773,20 @@ must also implement `LessThanComparable`.
     |#
     (def erase
       (fn extern (Iterator (Vector (uq T))) 
-                        ((unused (p (uq typenode)))
+                        ((unused (ref (const (uq typenode))))
                          (iter   (Iterator (Vector (uq T)))))
         (let ((value \ (@: iter element))
               (nn    (Iterator (Vector (uq T))))
               (nn2   (Iterator (Vector (uq T))))
               (vecp  \ (@: iter parent-vector)))
-          (if (= iter (end vecp))
+          (if (= iter (end (@ vecp)))
               (return iter)
               0)
           (destroy value)
           (setf (:@ vecp size) (- (@ (:@ vecp size)) (cast 1 size)))
           (setv nn (successor iter))
           (setv nn2 iter)
-          (while (!= nn (end vecp))
+          (while (!= nn (end (@ vecp)))
             (setv nn2 nn)
             (sink iter (@source nn))
             (setv nn (successor nn)))
@@ -803,9 +804,9 @@ must also implement `LessThanComparable`.
     @return-type    bool
     |#
     (def clear
-      (fn extern bool ((vecp (p (uq typenode))))
-        (while (not (empty vecp))
-          (pop-back vecp))
+      (fn extern bool ((vecp (ref (uq typenode))))
+        (while (not (empty (@ vecp)))
+          (pop-back (@ vecp)))
         true))
 
     #|
@@ -819,8 +820,8 @@ must also implement `LessThanComparable`.
     @return-type    void
     |#
     (def swap
-      (fn extern void ((vec1 (p (uq typenode)))
-                       (vec2 (p (uq typenode))))
+      (fn extern void ((vec1 (ref (uq typenode)))
+                       (vec2 (ref (uq typenode))))
         (let ((vec3 (uq typenode)))
           (core setf (# vec3) (@ vec1))
           (core setf vec1     (@ vec2))
@@ -829,37 +830,29 @@ must also implement `LessThanComparable`.
 
     (def setf-copy (fn extern bool ((dst (p (uq typenode)))
                                     (src (p (uq typenode))))
-      (init dst)
-      (let ((b1 \ (begin src))
-            (e1 \ (end   src)))
+      (init (@ dst))
+      (let ((b1 \ (begin (@ src)))
+            (e1 \ (end   (@ src))))
         (for true (!= b1 e1) (setv b1 (successor b1))
-          (push-back dst (@source b1))))
+          (push-back (@ dst) (@source b1))))
       true))
 
     (def setf-assign (fn extern bool ((dst (p (uq typenode)))
                                       (src (p (uq typenode))))
-      (clear dst)
+      (clear (@ dst))
       (setf-copy dst src)))
 
     (implement Container (uq typenode))
     (implement Type (p (uq typenode)))
-    (mfor F (= <)
+    (mfor F (= != < <= > >=)
       (instantiate F (uq typenode)))
-    (mfor F (!= <= > >=)
-      (instantiate F (p (uq typenode))))
-
-    (mfor F (= != < > <= >=)
-      (def F
-        (fn extern bool ((fst (uq typenode))
-                         (snd (uq typenode)))
-          (F (# fst) (# snd)))))
 
     (implement EqualityComparable (uq typenode))
     (implement LessThanComparable (uq typenode))
 
     (def destroy
       (fn extern void ((vecp (p (uq typenode))))
-        (clear vecp)
+        (clear (@ vecp))
         (return)))
 
     (implement Type (Iterator (Vector (uq T))))

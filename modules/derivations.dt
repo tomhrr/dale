@@ -82,14 +82,14 @@ the `swap` function.
 #|
 @concept-macro swap
 
-Expands to a `swap` function over pointers to the provided type.
+Expands to a `swap` function over references to the provided type.
 
 @param T    The type node.
 |#
 (def-concept-macro swap extern ((T Type))
   (qq do
-    (def swap (fn extern void ((a (p (uq T)))
-                               (b (p (uq T))))
+    (def swap (fn extern void ((a (ref (uq T)))
+                               (b (ref (uq T))))
       (let ((temp (uq T) (@ a)))
         (setf a (@ b))
         (setf b temp)
@@ -105,7 +105,7 @@ over the type before calling this macro.
 |#
 (def-concept-macro != extern ((T Type))
   (and (not (exists-fn mc (bqq bool = (uq T) (uq T))))
-       (do (report-error mc T "type does not implement =")
+       (do (print T) (printf "\n") (report-error mc T "type does not implement =")
            (return (nullptr DNode))))
   (qq do
     (def != (fn extern bool ((a (uq T)) (b (uq T)))

@@ -24,8 +24,8 @@ over the built-in integral types, as well as `char`, `size` and
          uint uint8 uint16 uint32 uint64
          size ptrdiff)
   (def swap
-    (fn extern void ((a (p T))
-                         (b (p T)))
+    (fn extern void ((a (ref T))
+                     (b (ref T)))
       (let ((temp T (@ a)))
         (setf a (@ b))
         (setf b temp)

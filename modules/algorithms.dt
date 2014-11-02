@@ -125,15 +125,15 @@ pretty slow.)
         (let ((right      (uq Ti) (- end (cast 1 size)))
               (storep     (uq Ti) begin)
               (pivotvalue (value-type (nullptr (uq Ti))) (@source pivot)))
-          (swap (source pivot) (source right))
+          (swap (@ (source pivot)) (@ (source right)))
           (while (<= begin (- right (cast 1 size)))
             (if (<= (@source begin) pivotvalue)
-                (do (swap (source storep) (source begin))
+                (do (swap (@ (source storep)) (@ (source begin)))
                     (setv storep (successor storep))
                     0)
                 0)
             (setv begin (successor begin)))
-          (swap (source storep) (source right))
+          (swap (@ (source storep)) (@ (source right)))
           (return storep))))
 
     (def sort
@@ -355,12 +355,12 @@ into the cleared container.
                                   (Ti InputIterator))
   (qq do
     (def assign
-      (fn extern bool ((obj   (p (uq Tc)))
+      (fn extern bool ((obj   (ref (uq Tc)))
                        (begin (uq Ti))
                        (end   (uq Ti)))
-        (clear obj)
+        (clear (@ obj))
         (for true (!= begin end) (setv begin (successor begin))
-          (push-back obj (@source begin)))
+          (push-back (@ obj) (@source begin)))
         true))))
 
 #|
@@ -370,23 +370,18 @@ Takes a container type as its argument. Expands to a function that
 takes two container pointers and returns a boolean indicating whether
 the elements of those containers match.
 
-(`=` is defined over pointers to containers, rather than container
-values, because such types generally override copy/assign/destroy, and
-executing functions that accept the values directly would be
-expensive.)
-
 @param Tc   The container type.
 |#
 (def-concept-macro = extern ((Tc Container))
   (qq do
-    (def = (fn extern bool ((c1 (p (uq Tc)))
-                            (c2 (p (uq Tc))))
-      (and (!= (size c1) (size c2))
+    (def = (fn extern bool ((c1 (ref (uq Tc)))
+                            (c2 (ref (uq Tc))))
+      (and (!= (size (@ c1)) (size (@ c2)))
            (return false))
-      (let ((b1 \ (begin c1))
-            (b2 \ (begin c2))
-            (e1 \ (end c1))
-            (e2 \ (end c2)))
+      (let ((b1 \ (begin (@ c1)))
+            (b2 \ (begin (@ c2)))
+            (e1 \ (end (@ c1)))
+            (e2 \ (end (@ c2))))
         (for true (!= b1 e1) (do (setv b1 (successor b1))
                                  (setv b2 (successor b2)))
           (and (not (= (@source b1) (@source b2)))
@@ -413,14 +408,14 @@ values, for the same reasons as `=`).
 |#
 (def-concept-macro < extern ((Tc Container))
   (qq do
-    (def < (fn extern bool ((c1 (p (uq Tc)))
-                            (c2 (p (uq Tc))))
-      (and (< (size c1) (size c2))
+    (def < (fn extern bool ((c1 (ref (uq Tc)))
+                            (c2 (ref (uq Tc))))
+      (and (< (size (@ c1)) (size (@ c2)))
            (return true))
-      (let ((b1 \ (begin c1))
-            (b2 \ (begin c2))
-            (e1 \ (end c1))
-            (e2 \ (end c2)))
+      (let ((b1 \ (begin (@ c1)))
+            (b2 \ (begin (@ c2)))
+            (e1 \ (end (@ c1)))
+            (e2 \ (end (@ c2))))
         (for true (!= b1 e1) (do (setv b1 (successor b1))
                                  (setv b2 (successor b2)))
           (let ((v1 \ (@source b1))

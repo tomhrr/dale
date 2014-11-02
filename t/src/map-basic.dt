@@ -9,30 +9,29 @@
 (def main
   (fn extern-c int (void)
     (def m  (var auto (Map int int)))
-    (def mp (var auto (p (Map int int)) (# m)))
 
-    (if (= mp mp)
+    (if (= m m)
         (printf "Equal\n")
         (printf "Not equal\n"))
 
-    (insert mp (make-pair 1 2))
-    (insert mp (make-pair 3 4))
-    (insert mp (make-pair 5 6))
-    (insert mp (make-pair 7 8))
+    (insert m (make-pair 1 2))
+    (insert m (make-pair 3 4))
+    (insert m (make-pair 5 6))
+    (insert m (make-pair 7 8))
 
-    (erase mp 3)
+    (erase m 3)
 
-    (let ((b \ (begin mp))
-          (e \ (end mp)))
+    (let ((b \ (begin m))
+          (e \ (end m)))
       (for true (!= b e) (setv b (successor b))
         (printf "%d: %d\n" (@: (@source b) first)
                            (@: (@source b) second))))
 
-    (printf "%d: %d\n" (@source (find mp 5)))
-    (printf "%d: %d\n" (@source (find mp 7)))
-    (printf "%d: %d\n" (@source (find mp 1)))
+    (printf "%d: %d\n" (@source (find m 5)))
+    (printf "%d: %d\n" (@source (find m 7)))
+    (printf "%d: %d\n" (@source (find m 1)))
 
-    (if (= mp mp)
+    (if (= m m)
         (printf "Equal\n")
         (printf "Not equal\n"))
 

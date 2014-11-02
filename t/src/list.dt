@@ -3,9 +3,9 @@
 (std.concepts.instantiate List int)
 
 (def print-forward
-  (fn intern void ((lst (p (List int))))
-    (let ((b \ (begin lst))
-          (e \ (end   lst)))
+  (fn intern void ((lst (ref (List int))))
+    (let ((b \ (begin (@ lst)))
+          (e \ (end   (@ lst))))
       (while (!= b e)
         (printf "%d " (@source b))
         (setv b (successor b))))
@@ -13,9 +13,9 @@
     (return)))
 
 (def print-backward
-  (fn intern void ((lst (p (List int))))
-    (let ((b \ (rbegin lst))
-          (e \ (rend   lst)))
+  (fn intern void ((lst (ref (List int))))
+    (let ((b \ (rbegin (@ lst)))
+          (e \ (rend   (@ lst))))
       (while (!= b e)
         (printf "%d " (@source b))
         (setv b (successor b))))
@@ -24,8 +24,7 @@
 
 (def main
   (fn extern-c int (void)
-    (let ((list (List int))
-          (lst  \ (# list)))
+    (let ((lst (List int)))
       (push-back lst 1)
       (push-back lst 2)
       (pop-back lst)

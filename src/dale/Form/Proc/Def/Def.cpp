@@ -20,7 +20,7 @@ Element::Function *get_init_fn(Context *ctx,
                                Element::Type *type)
 {
     std::vector<Element::Type *> init_arg_types;
-    init_arg_types.push_back(ctx->tr->getPointerType(type));
+    init_arg_types.push_back(type);
     return ctx->getFunction("init", &init_arg_types, NULL, 0);
 }
 
@@ -331,7 +331,7 @@ bool parse(Generator *gen,
         
         /* Find the init function, if it exists. */
         std::vector<Element::Type *> init_arg_types;
-        init_arg_types.push_back(ctx->tr->getPointerType(type));
+        init_arg_types.push_back(type);
         Element::Function *init_fn =
             ctx->getFunction("init", &init_arg_types, NULL, 0);
 

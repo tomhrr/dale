@@ -3,14 +3,14 @@
 
 (def fvar (var intern float 0.0))
 
-(def init (fn intern void ((n (p float)))
+(def init (fn intern void ((n (ref float)))
   (setf n fvar)
   (setv fvar (+ fvar 1.0))
   (return)))
 
 (def dvar (var intern double 0.0))
 
-(def init (fn intern void ((n (p double)))
+(def init (fn intern void ((n (ref double)))
   (setf n dvar)
   (setv dvar (+ dvar (cast 1.0 double)))
   (return)))

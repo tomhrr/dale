@@ -109,7 +109,7 @@ Expands to a `List` definition over the relevant type.
     @return-type    bool
     |#
     (def init
-      (fn extern bool ((lst (p (uq typenode))))
+      (fn extern bool ((lst (ref (uq typenode))))
         (setf (:@ lst first) (nullptr (uq nodetypenode)))
         (setf (:@ lst last)  (nullptr (uq nodetypenode)))
         true))
@@ -125,7 +125,7 @@ Expands to a `List` definition over the relevant type.
     @return-type    bool
     |#
     (def empty
-      (fn extern bool ((lst (p (uq typenode))))
+      (fn extern bool ((lst (ref (const (uq typenode)))))
         (null (@:@ lst first))))
 
     #|
@@ -139,9 +139,9 @@ Expands to a `List` definition over the relevant type.
     @return-type    size
     |#
     (def size
-      (fn extern size ((lst (p (uq typenode))))
+      (fn extern size ((lst (ref (const (uq typenode)))))
         (let ((n     size 0)
-              (first \ (@:@ lst first)))
+              (first \ (cast (@:@ lst first) (p (uq nodetypenode)))))
           (while (not (null first))
             (setv n (+ n (cast 1 size)))
             (setv first (@:@ first next)))
@@ -159,7 +159,7 @@ Expands to a `List` definition over the relevant type.
     @return-type    size
     |#
     (def max-size
-      (fn extern size ((lst (p (uq typenode))))
+      (fn extern size ((lst (ref (const (uq typenode)))))
         (- (cast 0 size) (cast 1 size))))
 
     #|
@@ -214,7 +214,7 @@ Expands to a `List` definition over the relevant type.
     @return-type    T
     |#
     (def front
-      (fn extern (uq T) ((lst (p (uq typenode))))
+      (fn extern (uq T) ((lst (ref (const (uq typenode)))))
         (@:@ (@:@ lst first) element)))
 
     #|
@@ -228,7 +228,7 @@ Expands to a `List` definition over the relevant type.
     @return-type    T
     |#
     (def back
-      (fn extern (uq T) ((lst (p (uq typenode))))
+      (fn extern (uq T) ((lst (ref (const (uq typenode)))))
         (@:@ (@:@ lst last) element)))
 
     #|
@@ -244,7 +244,7 @@ Expands to a `List` definition over the relevant type.
     @return-type    bool
     |#
     (def push-back
-      (fn extern bool ((lst (p (uq typenode))) (value (uq T)))
+      (fn extern bool ((lst (ref (uq typenode))) (value (uq T)))
         (let ((new-node \ (malloc' 1 (uq nodetypenode))))
           (setf (:@ new-node element) value)
           (setf (:@ new-node next) (nullptr (uq nodetypenode)))
@@ -270,11 +270,11 @@ Expands to a `List` definition over the relevant type.
     @return-type    void
     |#
     (def pop-back
-      (fn extern void ((lst (p (uq typenode))))
-        (and (empty lst) (return))
+      (fn extern void ((lst (ref (uq typenode))))
+        (and (empty (@ lst)) (return))
         (let ((last-node        \ (@:@ lst last))
               (second-last-node \ (@:@ last-node prev))
-              (size             \ (size lst)))
+              (size             \ (size (@ lst))))
           (if (null second-last-node)
               (do (setf (:@ lst first) (nullptr (uq nodetypenode)))
                   (setf (:@ lst last)  (nullptr (uq nodetypenode))))
@@ -299,7 +299,7 @@ Expands to a `List` definition over the relevant type.
     @return-type    bool
     |#
     (def push-front
-      (fn extern bool ((lst (p (uq typenode))) (value (uq T)))
+      (fn extern bool ((lst (ref (uq typenode))) (value (uq T)))
         (let ((new-node \ (malloc' 1 (uq nodetypenode))))
           (setf (:@ new-node element) value)
           (setf (:@ new-node next) (nullptr (uq nodetypenode)))
@@ -325,11 +325,11 @@ Expands to a `List` definition over the relevant type.
     @return-type    void
     |#
     (def pop-front
-      (fn extern void ((lst (p (uq typenode))))
-        (and (empty lst) (return))
+      (fn extern void ((lst (ref (uq typenode))))
+        (and (empty (@ lst)) (return))
         (let ((first-node  \ (@:@ lst first))
               (second-node \ (@:@ first-node next))
-              (size        \ (size lst)))
+              (size        \ (size (@ lst))))
           (if (null second-node)
               (do (setf (:@ lst first) (nullptr (uq nodetypenode)))
                   (setf (:@ lst last)  (nullptr (uq nodetypenode))))
@@ -360,7 +360,7 @@ Expands to a `List` definition over the relevant type.
     @return-type    (Iterator (List T))
     |#
     (def begin
-      (fn extern (Iterator (List (uq T))) ((lst (p (uq typenode))))
+      (fn extern (Iterator (List (uq T))) ((lst (ref (uq typenode))))
         ((Iterator (List (uq T))) ((node (@:@ lst first))))))
 
     #|
@@ -374,7 +374,7 @@ Expands to a `List` definition over the relevant type.
     @return-type    (Iterator (List T))
     |#
     (def end
-      (fn extern (Iterator (List (uq T))) ((lst (p (uq typenode))))
+      (fn extern (Iterator (List (uq T))) ((lst (ref (uq typenode))))
         ((Iterator (List (uq T))) ((node (nullptr (uq nodetypenode)))))))
 
     #|
@@ -515,7 +515,7 @@ Expands to a `List` definition over the relevant type.
     @return-type    (ReverseIterator (List T))
     |#
     (def rbegin
-      (fn extern (ReverseIterator (List (uq T))) ((lst (p (uq typenode))))
+      (fn extern (ReverseIterator (List (uq T))) ((lst (ref (uq typenode))))
         ((ReverseIterator (List (uq T))) 
          ((node (@:@ lst last))))))
 
@@ -530,7 +530,7 @@ Expands to a `List` definition over the relevant type.
     @return-type    (ReverseIterator (List T))
     |#
     (def rend
-      (fn extern (ReverseIterator (List (uq T))) ((lst (p (uq typenode))))
+      (fn extern (ReverseIterator (List (uq T))) ((lst (ref (uq typenode))))
         ((ReverseIterator (List (uq T))) 
          ((node (nullptr (uq nodetypenode)))))))
 
@@ -594,12 +594,12 @@ Expands to a `List` definition over the relevant type.
     |#
     (def insert
       (fn extern (Iterator (List (uq T))) 
-                    ((lst   (p (uq typenode)))
+                    ((lst   (ref (uq typenode)))
                      (iter  (Iterator (List (uq T))))
                      (value (uq T)))
-        (and (empty lst)
-             (do (push-back lst value)
-                 (return (begin lst))))
+        (and (empty (@ lst))
+             (do (push-back (@ lst) value)
+                 (return (begin (@ lst)))))
         (let ((new-node \ (malloc' 1 (uq nodetypenode))))
           (setf (:@ new-node element) value)
           (setf (:@ new-node next) (@: iter node))
@@ -622,9 +622,9 @@ Expands to a `List` definition over the relevant type.
     |#
     (def erase
       (fn extern (Iterator (List (uq T))) 
-                    ((lst   (p (uq typenode)))
+                    ((lst   (ref (uq typenode)))
                      (iter  (Iterator (List (uq T)))))
-        (and (empty lst)
+        (and (empty (@ lst))
              (return iter))
         (let ((node      \ (@: iter node))
               (prev-node \ (@:@ node prev))
@@ -651,9 +651,9 @@ Expands to a `List` definition over the relevant type.
     @return-type    bool
     |#
     (def clear
-      (fn extern bool ((lst (p (uq typenode))))
-        (while (not (empty lst))
-          (pop-front lst))
+      (fn extern bool ((lst (ref (uq typenode))))
+        (while (not (empty (@ lst)))
+          (pop-front (@ lst)))
         true))
 
     #|
@@ -667,8 +667,8 @@ Expands to a `List` definition over the relevant type.
     @return-type    void
     |#
     (def swap
-      (fn extern void ((lst1 (p (uq typenode)))
-                       (lst2 (p (uq typenode))))
+      (fn extern void ((lst1 (ref (uq typenode)))
+                       (lst2 (ref (uq typenode))))
         (let ((first-1 \ (@:@ lst1 first))
               (last-1  \ (@:@ lst1 last))
               (first-2 \ (@:@ lst2 first))
@@ -681,11 +681,11 @@ Expands to a `List` definition over the relevant type.
 
     (def setf-copy (fn extern bool ((dst (p (uq typenode)))
                                     (src (p (uq typenode))))
-      (init dst)
-      (let ((b1 \ (begin src))
-            (e1 \ (end   src))
-            (b2 \ (begin dst))
-            (e2 \ (end   dst)))
+      (init (@ dst))
+      (let ((b1 \ (begin (@ src)))
+            (e1 \ (end   (@ src)))
+            (b2 \ (begin (@ dst)))
+            (e2 \ (end   (@ dst))))
         (for true (!= b1 e1) (do (setv b1 (successor b1))
                                  (setv b2 (successor b2)))
           (sink b2 (@source b1))))
@@ -693,28 +693,20 @@ Expands to a `List` definition over the relevant type.
 
     (def setf-assign (fn extern bool ((dst (p (uq typenode)))
                                       (src (p (uq typenode))))
-      (clear dst)
+      (clear (@ dst))
       (setf-copy dst src)))
 
     (implement Container (uq typenode))
-    (implement Type (p (uq typenode)))
-    (mfor F (= <)
+    (implement Type (uq typenode))
+    (mfor F (= != < <= > >=)
       (instantiate F (uq typenode)))
-    (mfor F (!= <= > >=)
-      (instantiate F (p (uq typenode))))
-
-    (mfor F (= != < > <= >=)
-      (def F
-        (fn extern bool ((fst (uq typenode))
-                         (snd (uq typenode)))
-          (F (# fst) (# snd)))))
 
     (implement EqualityComparable (uq typenode))
     (implement LessThanComparable (uq typenode))
 
     (def destroy
       (fn extern void ((lstp (p (uq typenode))))
-        (clear lstp)
+        (clear (@ lstp))
         (return)))
 
     (instantiate swap (Iterator (List (uq T))))

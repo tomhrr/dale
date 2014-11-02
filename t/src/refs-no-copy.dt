@@ -4,7 +4,7 @@
 (def mys (struct intern ((a int))))
 
 (def init
-  (fn intern bool ((dst (p mys)))
+  (fn intern bool ((dst (ref mys)))
     (printf "init\n")
     true))
 

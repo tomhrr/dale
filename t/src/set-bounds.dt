@@ -9,19 +9,19 @@
 (def debug (var auto bool false))
 
 (def print-set
-  (fn intern void ((sp (p (Set int)))) 
-    (let ((b \ (begin sp))
-          (e \ (end   sp)))
+  (fn intern void ((sp (ref (Set int))))
+    (let ((b \ (begin (@ sp)))
+          (e \ (end   (@ sp))))
       (for true (!= b e) (setv b (successor b))
         (printf "%d " (@source b))))
     (printf "\n")
     (return)))
 
 (def dump-nodes
-  (fn intern void ((sp (p (Set int))))
+  (fn intern void ((sp (ref (Set int))))
     (if (not debug) (return) 0)
-    (let ((b \ (begin sp))
-          (e \ (end   sp)))
+    (let ((b \ (begin (@ sp)))
+          (e \ (end   (@ sp))))
       (for true (!= b e) (setv b (successor b))
       (printf "%d (%p, %p %p %p)\n" (@source b)
             (@: b element)
@@ -33,29 +33,28 @@
 
 (def main
   (fn extern-c int (void)
-    (let ((s  (Set int))
-          (sp \ (# s)))
+    (let ((s (Set int)))
       (let ((i \ 0))
         (for true (< i 100) (incv i)
-          (insert sp i)))
+          (insert s i)))
 
-      (printf "%d\n" (@source (lower-bound sp 0)))
-      (printf "%d\n" (@source (upper-bound sp 0)))
+      (printf "%d\n" (@source (lower-bound s 0)))
+      (printf "%d\n" (@source (upper-bound s 0)))
 
-      (printf "%d\n" (@source (lower-bound sp 50)))
-      (printf "%d\n" (@source (upper-bound sp 50)))
+      (printf "%d\n" (@source (lower-bound s 50)))
+      (printf "%d\n" (@source (upper-bound s 50)))
 
       (let ((i \ 50))
         (for true (< i 60) (incv i)
-          (erase sp i)))
+          (erase s i)))
 
-    (print-set sp)
+    (print-set s)
 
-      (printf "%d\n" (@source (lower-bound sp 55)))
-      (printf "%d\n" (@source (upper-bound sp 55)))
+      (printf "%d\n" (@source (lower-bound s 55)))
+      (printf "%d\n" (@source (upper-bound s 55)))
 
-      (if (not (= (upper-bound sp 100)
-                  (end sp)))
+      (if (not (= (upper-bound s 100)
+                  (end s)))
           (printf "Should have got end iterator, but did not\n")
           (printf "Got end iterator\n"))
 

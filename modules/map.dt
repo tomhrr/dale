@@ -78,11 +78,11 @@ must also implement `LessThanComparable`.
 
     (register-type mc typename etypename)
 
-    (def typenode     (var auto (p DNode) 
+    (def typenode     (var auto (p DNode)
                                 (std.macros.mnfv mc typename)))
-    (def pairtypenode (var auto (p DNode) 
+    (def pairtypenode (var auto (p DNode)
                                 (std.macros.mnfv mc pairtypename)))
-    
+ 
     (qq do
 
     (using-namespace std.macros
@@ -96,12 +96,12 @@ must also implement `LessThanComparable`.
     ; Define the pair value type. Implement the operations required by
     ; EqualityComparable and LessThanComparable, and instantiate a set
     ; for the pair.
-    
+ 
     (def (uq pairtypenode)
       (struct extern ((first  (uq Tk))
                       (second (uq Tv)))))
 
-    (def = (fn extern bool ((p1 (uq pairtypenode)) 
+    (def = (fn extern bool ((p1 (uq pairtypenode))
                             (p2 (uq pairtypenode)))
       (= (@: p1 first)
          (@: p2 first))))
@@ -150,8 +150,8 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    bool
     |#
-    (def init (fn extern bool ((mapp (p (uq typenode))))
-      (init (:@ mapp set))))
+    (def init (fn extern bool ((mapp (ref (uq typenode))))
+      (init (@ (:@ mapp set)))))
 
     #|
     @fn size
@@ -164,8 +164,8 @@ must also implement `LessThanComparable`.
     @return-type    size
     |#
  
-    (def size (fn extern size ((mapp (p (uq typenode))))
-      (size (:@ mapp set))))
+    (def size (fn extern size ((mapp (ref (uq typenode))))
+      (size (@ (:@ mapp set)))))
 
     #|
     @fn max-size
@@ -178,8 +178,8 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    size
     |#
-    (def max-size (fn extern size ((mapp (p (uq typenode))))
-      (max-size (:@ mapp set))))
+    (def max-size (fn extern size ((mapp (ref (const (uq typenode)))))
+      (max-size (@ (:@ mapp set)))))
 
     #|
     @fn empty
@@ -191,8 +191,8 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    bool
     |#
-    (def empty (fn extern bool ((mapp (p (uq typenode))))
-      (empty (:@ mapp set))))
+    (def empty (fn extern bool ((mapp (ref (const (uq typenode)))))
+      (empty (@ (:@ mapp set)))))
 
     #|
     @macro key-type
@@ -299,10 +299,11 @@ must also implement `LessThanComparable`.
     @return-type    (Iterator (Map Tk Tv))
     |#
     (def end (fn extern (Iterator (Map (uq Tk) (uq Tv))) 
-                            ((mapp (p (uq typenode))))
-      ((Iterator (Map (uq Tk) (uq Tv))) 
-        ((mapp mapp)
-         (setiter (end (:@ mapp set)))))))
+                            ((mapp (ref (uq typenode))))
+      (let ((iter (Iterator (Map (uq Tk) (uq Tv)))))
+        (setf (: iter mapp)     mapp)
+        (setf (: iter setiter)  (end (@ (:@ mapp set))))
+        iter)))
 
     #|
     @fn begin
@@ -315,10 +316,10 @@ must also implement `LessThanComparable`.
     @return-type    (Iterator (Map Tk Tv))
     |#
     (def begin (fn extern (Iterator (Map (uq Tk) (uq Tv))) 
-                            ((mapp (p (uq typenode))))
+                            ((mapp (ref (uq typenode))))
       ((Iterator (Map (uq Tk) (uq Tv))) 
         ((mapp    mapp)
-         (setiter (begin (:@ mapp set)))))))
+         (setiter (begin (@ (:@ mapp set))))))))
 
     #|
     @fn @source
@@ -423,9 +424,9 @@ must also implement `LessThanComparable`.
     @return-type    (ReverseIterator (Map Tk Tv))
     |#
     (def rend (fn extern (ReverseIterator (Map (uq Tk) (uq Tv))) 
-                            ((mapp (p (uq typenode))))
+                            ((mapp (ref (uq typenode))))
       ((ReverseIterator (Map (uq Tk) (uq Tv))) ((mapp mapp)
-                           (setiter (rend (:@ mapp set)))))))
+                           (setiter (rend (@ (:@ mapp set))))))))
 
     #|
     @fn rbegin
@@ -438,9 +439,9 @@ must also implement `LessThanComparable`.
     @return-type    (ReverseIterator (Map Tk Tv))
     |#
     (def rbegin (fn extern (ReverseIterator (Map (uq Tk) (uq Tv))) 
-                            ((mapp (p (uq typenode))))
+                            ((mapp (ref (uq typenode))))
       ((ReverseIterator (Map (uq Tk) (uq Tv))) ((mapp mapp)
-                           (setiter (rbegin (:@ mapp set)))))))
+                           (setiter (rbegin (@ (:@ mapp set))))))))
 
     (def value-type
       (macro extern ((mapiter (p (ReverseIterator (Map (uq Tk) (uq Tv))))))
@@ -489,8 +490,8 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    bool
     |#
-    (def clear (fn extern void ((mapp (p (uq typenode))))
-      (clear (:@ mapp set))))
+    (def clear (fn extern void ((mapp (ref (uq typenode))))
+      (clear (@ (:@ mapp set)))))
 
     #|
     @fn insert
@@ -504,9 +505,9 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    bool
     |#
-    (def insert (fn extern bool ((mapp (p (uq typenode)))
+    (def insert (fn extern bool ((mapp (ref (uq typenode)))
                                  (valt (uq pairtypenode)))
-      (insert (:@ mapp set) valt)))
+      (insert (@ (:@ mapp set)) valt)))
 
     #|
     @fn insert
@@ -520,9 +521,9 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    bool
     |#
-    (def insert (fn extern bool ((mapp (p (uq typenode)))
+    (def insert (fn extern bool ((mapp (ref (uq typenode)))
                                  (valt (Pair (uq Tk) (uq Tv))))
-      (insert mapp (@ (cast (# valt) (p (uq pairtypenode)))))))
+      (insert (@ mapp) (@ (cast (# valt) (p (uq pairtypenode)))))))
 
     #|
     @fn find
@@ -538,11 +539,11 @@ must also implement `LessThanComparable`.
     @return-type    (Iterator (Map Tk Tv))
     |#
     (def find (fn extern (Iterator (Map (uq Tk) (uq Tv))) 
-                              ((mapp (p (uq typenode)))
+                              ((mapp (ref (uq typenode)))
                                (key  (uq Tk)))
       (let ((temp (uq pairtypenode)))
         (setf (: temp first) key)
-        (let ((myiter \ (find (:@ mapp set) temp))
+        (let ((myiter \ (find (@ (:@ mapp set)) temp))
               (itn    (Iterator (Map (uq Tk) (uq Tv)))))
           (setf (: itn mapp) mapp)
           (setf (: itn setiter) myiter)
@@ -574,9 +575,9 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    bool
     |#
-    (def erase (fn extern bool ((mapp (p (uq typenode))) 
+    (def erase (fn extern bool ((mapp (ref (uq typenode)))
                                 (key (uq Tk)))
-      (erase (@: (find mapp key) setiter))))
+      (erase (@: (find (@ mapp) key) setiter))))
 
     #|
     @fn count
@@ -592,10 +593,10 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    size
     |#
-    (def count (fn extern size ((mapp (p (uq typenode))) 
+    (def count (fn extern size ((mapp (ref (uq typenode)))
                                 (key (uq Tk)))
-      (let ((f \ (find mapp key)))
-        (cast (if (= f (end mapp)) 0 1) size))))
+      (let ((f \ (find (@ mapp) key)))
+        (cast (if (= f (end (@ mapp))) 0 1) size))))
 
     #|
     @fn lower-bound
@@ -610,11 +611,11 @@ must also implement `LessThanComparable`.
     @return-type    (Iterator (Map Tk Tv))
     |#
     (def lower-bound (fn extern (Iterator (Map (uq Tk) (uq Tv)))
-                                  ((mapp (p (uq typenode)))
+                                  ((mapp (ref (uq typenode)))
                                    (key  (uq Tk)))
       (let ((temp (uq pairtypenode)))
         (setf (: temp first) key)
-        (let ((lb \ (lower-bound (:@ mapp set) temp)))
+        (let ((lb \ (lower-bound (@ (:@ mapp set)) temp)))
           ((Iterator (Map (uq Tk) (uq Tv))) ((mapp mapp)
                               (setiter lb)))))))
 
@@ -631,37 +632,37 @@ must also implement `LessThanComparable`.
     @return-type    (Iterator (Map Tk Tv))
     |#
     (def upper-bound (fn extern (Iterator (Map (uq Tk) (uq Tv)))
-                                  ((mapp (p (uq typenode)))
+                                  ((mapp (ref (uq typenode)))
                                    (key  (uq Tk)))
       (let ((temp (uq pairtypenode)))
         (setf (: temp first) key)
-        (let ((lb \ (upper-bound (:@ mapp set) temp)))
+        (let ((lb \ (upper-bound (@ (:@ mapp set)) temp)))
           ((Iterator (Map (uq Tk) (uq Tv))) ((mapp mapp)
                               (setiter lb)))))))
 
     (def setf-copy (fn extern bool ((dst (p (uq typenode)))
                                     (src (p (uq typenode))))
-      (init (:@ dst set))
-      (let ((b \ (begin (:@ src set)))
-            (e \ (end   (:@ src set))))
+      (init (@ (:@ dst set)))
+      (let ((b \ (begin (@ (:@ src set))))
+            (e \ (end   (@ (:@ src set)))))
         (for true (!= b e) (setv b (successor b))
-          (insert (:@ dst set) (@source b))))
+          (insert (@ (:@ dst set)) (@source b))))
       true))
 
     (def setf-assign (fn extern bool ((dst (p (uq typenode)))
                                       (src (p (uq typenode))))
-      (clear (:@ dst set))
+      (clear (@ (:@ dst set)))
       (setf-copy dst src)))
 
     (implement Type (uq typenode))
     (instantiate swap (uq typenode))
 
-    (def = (fn extern bool ((map1 (p (uq typenode)))
-                            (map2 (p (uq typenode))))
-      (let ((b1 \ (begin (:@ map1 set)))
-            (b2 \ (begin (:@ map2 set)))
-            (e1 \ (end   (:@ map1 set)))
-            (e2 \ (end   (:@ map2 set))))
+    (def = (fn extern bool ((map1 (ref (uq typenode)))
+                            (map2 (ref (uq typenode))))
+      (let ((b1 \ (begin (@ (:@ map1 set))))
+            (b2 \ (begin (@ (:@ map2 set))))
+            (e1 \ (end   (@ (:@ map1 set))))
+            (e2 \ (end   (@ (:@ map2 set)))))
         (for true (and (!= b1 e1)
                        (!= b2 e2))
                   (do (setv b1 (successor b1))
@@ -672,22 +673,17 @@ must also implement `LessThanComparable`.
                  (return false))))
         (and (= b1 e1) (= b2 e2)))))
 
-    (def < (fn extern bool ((map1 (p (uq typenode)))
-                            (map2 (p (uq typenode))))
+    (def < (fn extern bool ((map1 (ref (uq typenode)))
+                            (map2 (ref (uq typenode))))
       (< (@:@ map1 set) (@:@ map2 set))))
 
-    (implement Type (p (uq typenode)))
+    (implement Type (uq typenode))
     (mfor F (!= <= > >=)
-      (instantiate F (p (uq typenode))))
-
-    (mfor F (= != < <= > >=)
-      (def F (fn extern bool ((map1 (uq typenode))
-                              (map2 (uq typenode)))
-        (F (# map1) (# map2)))))
+      (instantiate F (uq typenode)))
 
     (def destroy
       (fn extern void ((mapp (p (uq typenode))))
-        (clear mapp)
+        (clear (@ mapp))
         (return)))
 
     (implement EqualityComparable (uq typenode))

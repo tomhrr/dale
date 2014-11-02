@@ -82,7 +82,7 @@ Expands to a `SharedPtr` definition over the relevant type.
     @return-type    bool
     |#
     (def init
-      (fn extern bool ((loc   (p (uq snnode)))
+      (fn extern bool ((loc   (ref (uq snnode)))
                        (value (p (uq T))))
         (let ((newint (p int) (cast (malloc (sizeof int)) (p int))))
           (setf newint 1)
@@ -101,7 +101,7 @@ Expands to a `SharedPtr` definition over the relevant type.
     @return-type    bool
     |#
     (def init
-      (fn extern bool ((loc (p (uq snnode))))
+      (fn extern bool ((loc (ref (uq snnode))))
         (setf (:@ loc pointer)  (nullptr (uq T)))
         (setf (:@ loc refcount) (nullptr int))
         true))

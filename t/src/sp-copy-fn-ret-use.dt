@@ -16,7 +16,7 @@
           (myptr2 (SharedPtr int))
           (myint \ (malloc' 1 int)))
       (setf myint 100)
-      (init (# myptr) myint)
+      (init myptr myint)
       (setv myptr2 myptr)
       (printf "Ref count is %d\n" (@ (@: myptr refcount)))
       (setv myptr (otherfn myptr))

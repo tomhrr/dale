@@ -103,7 +103,7 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    bool
     |#
-    (def init (fn extern bool ((arrp (p (uq typenode))))
+    (def init (fn extern bool ((arrp (ref (uq typenode))))
       true))
 
     #|
@@ -118,7 +118,7 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    bool
     |#
-    (def empty (fn extern bool ((arrp (p (uq typenode))))
+    (def empty (fn extern bool ((arrp (ref (const (uq typenode)))))
       (= 0 (uq N))))
 
     #|
@@ -132,7 +132,7 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    size
     |#
-    (def size (fn extern size ((arrp (p (uq typenode))))
+    (def size (fn extern size ((arrp (ref (const (uq typenode)))))
       (uq N)))
 
     #|
@@ -146,7 +146,7 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    size
     |#
-    (def max-size (fn extern size ((arrp (p (uq typenode))))
+    (def max-size (fn extern size ((arrp (ref (const (uq typenode)))))
       (uq N)))
 
     #|
@@ -210,7 +210,7 @@ must also implement `LessThanComparable`.
     @return-type    (Iterator (Array T N))
     |#
     (def begin (fn extern (Iterator (Array (uq T) (uq N)))
-                             ((arrp (p (uq typenode))))
+                             ((arrp (ref (uq typenode))))
       ((Iterator (Array (uq T) (uq N))) 
         ((arrp arrp)
          (element (cast (:@ arrp elements)
@@ -227,7 +227,7 @@ must also implement `LessThanComparable`.
     @return-type    (Iterator (Array T N))
     |#
     (def end (fn extern (Iterator (Array (uq T) (uq N)))
-                            ((arrp (p (uq typenode))))
+                            ((arrp (ref (uq typenode))))
       ((Iterator (Array (uq T) (uq N))) 
         ((arrp arrp)
          (element (p+ (cast (:@ arrp elements) 
@@ -433,7 +433,7 @@ must also implement `LessThanComparable`.
     @return-type    (ReverseIterator (Array T N))
     |#
     (def rbegin (fn extern (ReverseIterator (Array (uq T) (uq N)))
-                             ((arrp (p (uq typenode))))
+                             ((arrp (ref (uq typenode))))
       ((ReverseIterator (Array (uq T) (uq N))) 
         ((arrp arrp)
          (element (p+ (cast (:@ arrp elements)
@@ -452,7 +452,7 @@ must also implement `LessThanComparable`.
     |#
     ; This probably isn't safe in all cases (-1 at the beginning).
     (def rend (fn extern (ReverseIterator (Array (uq T) (uq N)))
-                          ((arrp (p (uq typenode))))
+                          ((arrp (ref (uq typenode))))
       ((ReverseIterator (Array (uq T) (uq N))) 
         ((arrp arrp)
          (element (p- (cast (:@ arrp elements)
@@ -531,11 +531,11 @@ must also implement `LessThanComparable`.
 
     (def setf-copy (fn extern bool ((dst (p (uq typenode)))
                                     (src (p (uq typenode))))
-      (init dst)
-      (let ((b1 \ (begin src))
-            (e1 \ (end   src))
-            (b2 \ (begin dst))
-            (e2 \ (end   dst)))
+      (init (@ dst))
+      (let ((b1 \ (begin (@ src)))
+            (e1 \ (end   (@ src)))
+            (b2 \ (begin (@ dst)))
+            (e2 \ (end   (@ dst))))
         (for true (!= b1 e1) (do (setv b1 (successor b1))
                                  (setv b2 (successor b2)))
           (sink b2 (@source b1))))
@@ -550,16 +550,8 @@ must also implement `LessThanComparable`.
 
     (implement Container (uq typenode))
     (implement Type (p (uq typenode)))
-    (mfor F (= <)
+    (mfor F (= != < <= > >=)
       (instantiate F (uq typenode)))
-    (mfor F (!= <= > >=)
-      (instantiate F (p (uq typenode))))
-
-    (mfor F (= != < > <= >=)
-      (def F
-        (fn extern bool ((fst (uq typenode))
-                         (snd (uq typenode)))
-          (F (# fst) (# snd)))))
 
     (implement EqualityComparable (uq typenode))
     (implement LessThanComparable (uq typenode))
@@ -574,8 +566,8 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    T
     |#
-    (def front (fn extern (uq T) ((arrp (p (uq typenode))))
-      (@source (begin arrp))))
+    (def front (fn extern (uq T) ((arrp (ref (uq typenode))))
+      (@source (begin (@ arrp)))))
 
     #|
     @fn back
@@ -587,8 +579,8 @@ must also implement `LessThanComparable`.
     @linkage        extern
     @return-type    T
     |#
-    (def back (fn extern (uq T) ((arrp (p (uq typenode))))
-      (@source (rbegin arrp))))
+    (def back (fn extern (uq T) ((arrp (ref (uq typenode))))
+      (@source (rbegin (@ arrp)))))
 
     #|
     fn $
@@ -601,7 +593,7 @@ must also implement `LessThanComparable`.
     @return-type    (p T)
     |#
     (def $
-      (fn extern (p (uq T)) ((arrp (p (uq typenode))) (index int))
+      (fn extern (p (uq T)) ((arrp (ref (uq typenode))) (index int))
         (p+ (cast (:@ arrp elements)
                   (p (uq T)))
             (cast index size))))
@@ -617,7 +609,7 @@ must also implement `LessThanComparable`.
     @return-type    (p T)
     |#
     (def $
-      (fn extern (p (uq T)) ((arrp (p (uq typenode))) (index size))
+      (fn extern (p (uq T)) ((arrp (ref (uq typenode))) (index size))
         (p+ (cast (:@ arrp elements)
                   (p (uq T)))
             index)))

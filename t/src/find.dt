@@ -9,15 +9,14 @@
 
 (def main
   (fn extern-c int (void)
-    (let ((v  (Vector int))
-          (vp (p (Vector int)) (# v))
-          (i  int 0))
+    (let ((v (Vector int))
+          (i int 0))
       (for true (< i 10) (incv i)
-        (push-back vp i))
+        (push-back v i))
 
       (for (setv i 0) (< i 20) (setv i (+ i 2))
-        (let ((b (Iterator (Vector int)) (begin vp))
-              (e (Iterator (Vector int)) (end   vp))
+        (let ((b (Iterator (Vector int)) (begin v))
+              (e (Iterator (Vector int)) (end   v))
               (f (Iterator (Vector int))))
           (setv f (find b e i))
           (if (not (= e f))

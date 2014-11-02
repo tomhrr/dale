@@ -9,6 +9,6 @@
     (let ((myptr (SharedPtr int))
           (myint \ (malloc' 1 int)))
       (setf myint 100)
-      (init (# myptr) myint)
+      (init myptr myint)
       (printf "%d\n" (@ myptr))
       0)))

@@ -38,16 +38,15 @@
 
 (def main
   (fn extern-c int (void)
-    (let ((v  (Vector int))
-          (vp (p (Vector int)) (# v))
-          (i  int 0))
+    (let ((v (Vector int))
+          (i int 0))
       (for (setv i 100) (> i 0) (decv i)
-        (push-back vp i))
+        (push-back v i))
 
-      (for-each (begin vp) (end vp) (# print-num int))
+      (for-each (begin v) (end v) (# print-num int))
       (printf "\n")
-      (sort (begin vp) (end vp))
-      (for-each (begin vp) (end vp) (# print-num int))
+      (sort (begin v) (end v))
+      (for-each (begin v) (end v) (# print-num int))
       (printf "\n")
 
       (printf "Count: %f\n" osetf-count)

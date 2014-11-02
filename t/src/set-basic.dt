@@ -9,19 +9,19 @@
 (def debug (var auto bool false))
 
 (def print-set
-  (fn intern void ((sp (p (Set int)))) 
-    (let ((b \ (begin sp))
-          (e \ (end   sp)))
+  (fn intern void ((sp (ref (Set int))))
+    (let ((b \ (begin (@ sp)))
+          (e \ (end   (@ sp))))
       (for true (!= b e) (setv b (successor b))
         (printf "%d " (@source b))))
     (printf "\n")
     (return)))
 
 (def dump-nodes
-  (fn intern void ((sp (p (Set int))))
+  (fn intern void ((sp (ref (Set int))))
     (if (not debug) (return) 0)
-    (let ((b \ (begin sp))
-          (e \ (end   sp)))
+    (let ((b \ (begin (@ sp)))
+          (e \ (end   (@ sp))))
       (for true (!= b e) (setv b (successor b))
       (printf "%d (%p, %p %p %p)\n" (@source b)
             (@: b element)
@@ -33,74 +33,73 @@
 
 (def main
   (fn extern-c int (void)
-    (let ((s  (Set int))
-          (sp \ (# s)))
-      (if (empty sp)
+    (let ((s (Set int)))
+      (if (empty s)
           (printf "Set is empty\n")
           (printf "Set is not empty\n"))
 
-      (print-set sp)
+      (print-set s)
 
-      (insert sp 3)
+      (insert s 3)
       (printf "Inserted element\n")
 
-      (if (empty sp)
+      (if (empty s)
           (printf "Set is empty\n")
           (printf "Set is not empty\n"))
 
-      (print-set sp)
+      (print-set s)
       
-      (insert sp 1)
-      (insert sp 5)
-      (insert sp 2)
-      (insert sp 4)
+      (insert s 1)
+      (insert s 5)
+      (insert s 2)
+      (insert s 4)
 
       (printf "Should be 1..5\n")
-      (print-set sp)
-      (dump-nodes sp)
+      (print-set s)
+      (dump-nodes s)
 
-      (erase (successor (successor (begin sp))))
+      (erase (successor (successor (begin s))))
       (printf "Should be 1, 2, 4, 5\n")
-      (print-set sp)
-      (dump-nodes sp)
+      (print-set s)
+      (dump-nodes s)
 
-      (erase (begin sp))
+      (erase (begin s))
       (printf "Should be 2, 4, 5\n")
-      (print-set sp)
-      (dump-nodes sp)
+      (print-set s)
+      (dump-nodes s)
 
-      (erase (begin sp))
+      (erase (begin s))
       (printf "Should be 4, 5\n")
-      (print-set sp)
+      (print-set s)
 
-      (erase (begin sp))
+      (erase (begin s))
       (printf "Should be 5\n")
-      (print-set sp)
+      (print-set s)
       
-      (if (empty sp)
+      (if (empty s)
           (printf "Set is empty\n")
           (printf "Set is not empty\n"))
 
-      (erase (begin sp))
+      (erase (begin s))
       (printf "Should now be empty\n")
-      (print-set sp)
+      (print-set s)
       
-      (if (empty sp)
+      (if (empty s)
           (printf "Set is empty\n")
           (printf "Set is not empty\n"))
 
-      (insert sp 5)
-      (insert sp 3)
-      (insert sp 4)
-      (insert sp 2)
-      (insert sp 1)
+      (insert s 5)
+      (insert s 3)
+      (insert s 4)
+      (insert s 2)
+      (insert s 1)
 
-      (if (empty sp)
+      (if (empty s)
           (printf "Set is empty\n")
           (printf "Set is not empty\n"))
 
       (printf "Should be 1..5\n")
-      (print-set sp)
+      (print-set s)
     0)))
 
 

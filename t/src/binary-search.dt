@@ -21,28 +21,27 @@
 
 (def main
   (fn extern-c int (void)
-    (let ((v  (Vector int))
-          (vp (p (Vector int)) (# v))
-          (i  int 0))
+    (let ((v (Vector int))
+          (i int 0))
       (for (setv i 10) (> i 0) (decv i)
-        (push-back vp i))
+        (push-back v i))
       (for (setv i 10) (> i 0) (decv i)
-        (push-back vp i))
-      (sort (begin vp) (end vp))
+        (push-back v i))
+      (sort (begin v) (end v))
 
       (let ((n (Iterator (Vector int)) 
-               (lower-bound (begin vp) (end vp) 5)))
-        (for-each n (end vp) (# print-num int)))
+               (lower-bound (begin v) (end v) 5)))
+        (for-each n (end v) (# print-num int)))
       (printf "\n")
       
       (let ((n (Iterator (Vector int)) 
-               (upper-bound (begin vp) (end vp) 5)))
-        (for-each (begin vp) n (# print-num int)))
+               (upper-bound (begin v) (end v) 5)))
+        (for-each (begin v) n (# print-num int)))
       (printf "\n")
 
       (let ((pp (Pair (Iterator (Vector int)) 
                       (Iterator (Vector int)))
-                (equal-range (begin vp) (end vp) 5)))
+                (equal-range (begin v) (end v) 5)))
         (for-each (@ (: pp first)) 
                   (@ (: pp second)) 
                   (# print-num int)))
@@ -51,6 +50,6 @@
       (for (setv i 0) (< i 20) (incv i)
         (printf "%d is present? %s\n"
                 i
-                (if (binary-search (begin vp) (end vp) i)
+                (if (binary-search (begin v) (end v) i)
                     "Yes" "No")))
     0)))
