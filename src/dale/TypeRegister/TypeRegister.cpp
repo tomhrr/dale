@@ -240,6 +240,9 @@ TypeRegister::getType(Element::Type *type)
     if (type->is_const) {
         type->is_const = 0;
         final = getConstType(getType(type));
+    } else if (type->is_reference) {
+        type->is_reference = 0;
+        final = getReferenceType(getType(type));
     } else if (type->is_array) {
         final = getArrayType(getType(type->array_type), type->array_size);
     } else if (type->points_to) {
