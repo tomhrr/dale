@@ -829,11 +829,15 @@ Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
                     vb != ve;
                     ++vb) {
                 Element::Variable *var = (*vb);
-                if (var->type->base_type == Type::VarArgs) {
+                Element::Type *var_type = var->type;
+                if (var_type->is_reference) {
+                    var_type = tr->getPointerType(var_type);
+                }
+                if (var_type->base_type == Type::VarArgs) {
                     break;
                 }
                 llvm::Type *llvm_type =
-                    toLLVMType(var->type, NULL, false, false);
+                    toLLVMType(var_type, NULL, false, false);
                 if (!llvm_type) {
                     er->flush();
                     fprintf(stderr, "Failed conversion 1 (%s).\n",
