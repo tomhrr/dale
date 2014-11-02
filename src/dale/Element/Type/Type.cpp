@@ -524,6 +524,7 @@ Element::Type *Type::makeCopy(void)
     new_type->is_function   = is_function;
     new_type->bitfield_size = bitfield_size;
     new_type->is_const      = is_const;
+    new_type->is_reference  = is_reference;
     new_type->is_retval     = is_retval;
 
     if (points_to) {
