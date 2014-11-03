@@ -44,6 +44,15 @@ Returns true if the argument is a type.
     success))
 
 #|
+@concept PreferRefs
+
+Returns true if the argument is a type for which references should be
+used where possible.
+
+|#
+(def-concept PreferRefs (refines Type) (T) true)
+
+#|
 @concept Struct
 
 Returns true if the argument is a struct type.

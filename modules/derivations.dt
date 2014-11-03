@@ -105,11 +105,19 @@ over the type before calling this macro.
 |#
 (def-concept-macro != extern ((T Type))
   (and (not (exists-fn mc (bqq bool = (uq T) (uq T))))
-       (do (print T) (printf "\n") (report-error mc T "type does not implement =")
+       (do (report-error mc T "type does not implement =")
            (return (nullptr DNode))))
   (qq do
     (def != (fn extern bool ((a (uq T)) (b (uq T)))
       (not (= a b))))))
+
+(def-concept-macro != extern ((T PreferRefs))
+  (and (not (exists-fn mc (bqq bool = (uq T) (uq T))))
+       (do (report-error mc T "type does not implement =")
+           (return (nullptr DNode))))
+  (qq do
+    (def != (fn extern bool ((a (ref (uq T))) (b (ref (uq T))))
+      (not (= (@ a) (@ b)))))))
 
 #|
 @concept-macro <=
@@ -128,6 +136,15 @@ over the type before calling this macro.
       (or (< a b)
           (not (< b a)))))))
 
+(def-concept-macro <= extern ((T PreferRefs))
+  (and (not (exists-fn mc (bqq bool < (uq T) (uq T))))
+       (do (report-error mc T "type does not implement <")
+           (return (nullptr DNode))))
+  (qq do
+    (def <= (fn extern bool ((a (ref (uq T))) (b (ref (uq T))))
+      (or (< (@ a) (@ b))
+          (not (< (@ b) (@ a))))))))
+
 #|
 @concept-macro >
 
@@ -144,6 +161,15 @@ over the type before calling this macro.
     (def > (fn extern bool ((a (uq T)) (b (uq T)))
       (and (not (< a b)) (< b a))))))
 
+(def-concept-macro > extern ((T PreferRefs))
+  (and (not (exists-fn mc (bqq bool < (uq T) (uq T))))
+       (do (report-error mc T "type does not implement <")
+           (return (nullptr DNode))))
+  (qq do
+    (def > (fn extern bool ((a (ref (uq T))) (b (ref (uq T))))
+      (and (not (< (@ a) (@ b))) (< (@ b) (@ a)))))))
+
+
 #|
 @concept-macro >=
 
@@ -159,6 +185,14 @@ over the type before calling this macro.
   (qq do
     (def >= (fn extern bool ((a (uq T)) (b (uq T)))
       (or (not (< a b)) (< b a))))))
+
+(def-concept-macro >= extern ((T PreferRefs))
+  (and (not (exists-fn mc (bqq bool < (uq T) (uq T))))
+       (do (report-error mc T "type does not implement <")
+           (return (nullptr DNode))))
+  (qq do
+    (def >= (fn extern bool ((a (ref (uq T))) (b (ref (uq T))))
+      (or (not (< (@ a) (@ b))) (< (@ b) (@ a)))))))
 
 #|
 @concept-macro =

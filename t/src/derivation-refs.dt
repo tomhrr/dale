@@ -1,0 +1,52 @@
+(import cstdio)
+(import derivations)
+(import concepts)
+
+(using-namespace std.concepts
+
+(def mys (struct intern ((a int) (b int) (c int))))
+
+(def init 
+  (fn intern bool ((dst (ref mys)) (a int) (b int) (c int))
+    (setf (:@ dst a) a)
+    (setf (:@ dst b) b)
+    (setf (:@ dst c) c)
+    true))
+  
+(def setf-copy (fn intern bool ((dst (p mys)) (src (p mys)))
+  (printf "Called overridden copy\n")
+  (setf (:@ dst a) (@:@ src a))
+  (setf (:@ dst b) (@:@ src b))
+  (setf (:@ dst c) (@:@ src c))
+  true))
+
+(def setf-assign (fn intern bool ((dst (p mys)) (src (p mys)))
+  (setf-copy dst src)))
+
+(def = (fn intern bool ((fst (ref mys)) (snd (ref mys)))
+  (and (= (@:@ fst a) (@:@ snd a))
+  (and (= (@:@ fst b) (@:@ snd b))
+       (= (@:@ fst c) (@:@ snd c))))))
+
+(def < (fn intern bool ((fst (ref mys)) (snd (ref mys)))
+  (or (< (@:@ fst a) (@:@ snd a))
+  (or (< (@:@ fst b) (@:@ snd b))
+      (< (@:@ fst c) (@:@ snd c))))))
+
+(implement Type mys)
+(implement PreferRefs mys)
+(mfor Op (!= <= > >=)
+  (instantiate Op mys))
+
+(def main (fn extern-c int (void)
+  (def m (var auto mys (init m 1 2 3)))
+  (def n (var auto mys (init n 1 2 4)))
+  (printf "m =  n? (%d)\n" (= m n))
+  (printf "m != n? (%d)\n" (!= m n))
+  (printf "m <  n? (%d)\n" (< m n))
+  (printf "m <= n? (%d)\n" (<= m n))
+  (printf "m >  n? (%d)\n" (> m n))
+  (printf "m >= n? (%d)\n" (>= m n))
+  0))
+
+)
