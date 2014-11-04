@@ -104,7 +104,7 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
 
     if (newtop != top) {
         return parse(gen, newtop, allow_anon_structs,
-                         allow_bitfields);
+                         allow_bitfields, allow_refs, allow_retvals);
     }
 
     symlist *lst = top->list;
