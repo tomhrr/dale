@@ -515,4 +515,14 @@ Expands to nothing.
   (macro extern (void)
     (nullptr DNode)))
 
+#|
+@macro identity
+
+Expands to the argument form.
+
+|#
+(def identity
+  (macro extern (frm)
+    frm))
+
 )
