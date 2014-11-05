@@ -843,6 +843,26 @@ macro buffer and returns true.  Otherwise, returns false.
                            "force"))))))
 
 #|
+@fn validate-forced-concept
+|#
+(def validate-forced-concept
+  (fn intern bool ((mc   (p MContext))
+                   (node (p DNode)))
+    (assert-return-b (null (@:@ node next-node))
+                     node "expected concept as next element")
+    (let ((concept \ (@:@ node next-node)))
+      (assert-return-b (null (@:@ concept next-node))
+                       concept "expected type as next element")
+      (assert-return-b (not (exists-concept-fn mc concept))
+                       concept "element is not a concept")
+      (let ((type \ (@:@ concept next-node)))
+        (assert-return-b (not (exists-type mc type))
+                         type "element is not a type")
+        (assert-return-b (not (implements-fn mc type concept))
+                         type "type does not implement concept")))
+    true))
+
+#|
 @fn get-type-concept-list
 |#
 (def get-type-concept-list
@@ -851,27 +871,16 @@ macro buffer and returns true.  Otherwise, returns false.
                    (varargs-count     int)
                    (type-concept-list (p (p concept-node))))
     (def i (var auto \ 0))
+    (def myvl (var auto \ varargs-list))
 
     (for true (< i varargs-count) (incv i)
-      (def myvl (var auto \ varargs-list))
       (if (is-forced-concept myvl)
           (do
-            (def first
-              (var auto (p DNode) (@:@ myvl list-node)))
-            (assert-return-b (null (@:@ first next-node))
-                            first "expected concept as next element")
-            (let ((concept \ (@:@ first next-node)))
-              (do (assert-return-b (null (@:@ concept next-node))
-                              concept "expected type as next element")
-                  (assert-return-b (not (exists-concept-fn mc concept))
-                              concept "element is not a concept")
-                (let ((type \ (@:@ concept next-node)))
-                  (assert-return-b (not (exists-type mc type))
-                              type "element is not a type")
-                  (assert-return-b (not (implements-fn mc type concept))
-                              type "type does not implement concept")
-                  (setf ($ type-concept-list i)
-                        (make-simple-node mc concept))))))
+            (def first (var auto \ (@:@ myvl list-node)))
+            (and (not (validate-forced-concept mc first))
+                 (return false))
+            (setf ($ type-concept-list i)
+                  (make-simple-node mc (@:@ first next-node))))
           (do
               ; If the type argument is not actually a type, then
               ; treat it as being of the Value concept.
@@ -910,58 +919,15 @@ expands into a series of bindings; for example, `Vector`.
     (def pre-arg-count (var auto \ arg-count))
     (get-varargs-list)
     (setv arg-count pre-arg-count)
-    (def myvl (var auto \ varargs-list))
 
     (assert-return (= 0 arg-count) 
                    macro-name
                    "expected at least one type argument")
 
     (def type-concept-list (var auto (array-of 64 (p concept-node))))
-
-    (let ((i \ 0))
-      (for true (< i arg-count) (incv i)
-        (if (and (= 1 (@:@ myvl is-list))
-                 (and (= 0 (@:@ (@:@ myvl list-node) is-list))
-                      (= 0 (strcmp (@:@ (@:@ myvl list-node) token-str)
-                                   "force"))))
-            (do
-              (def first
-                (var auto (p DNode) (@:@ myvl list-node)))
-              (assert-return (null (@:@ first next-node))
-                              first "expected concept as next element")
-              (let ((concept \ (@:@ first next-node)))
-                (do (assert-return (null (@:@ concept next-node))
-                                concept "expected type as next element")
-                    (assert-return (not (exists-concept-fn mc concept))
-                                concept "element is not a concept")
-                  (let ((type \ (@:@ concept next-node)))
-                    (assert-return (not (exists-type mc type))
-                                type "element is not a type")
-                    (assert-return (not (implements-fn mc type concept))
-                                type "type does not implement concept")
-                    (setf ($ type-concept-list i)
-                          (make-simple-node mc concept))))))
-            (do
-                ; If the type argument is not actually a type, then
-                ; treat it as being of the Value concept.
-                (if (and (not (exists-type mc myvl))
-                         (= 0 (@:@ myvl is-list)))
-                    (do (setf ($ type-concept-list i)
-                          (make-simple-node
-                                mc
-                                (mnfv mc "Value"))))
-                    (setf ($ type-concept-list i)
-                          (get-type-concept-map mc myvl)))
-                (if (null (@$ type-concept-list i))
-                    (do (report-error mc myvl
-                        "type does not implement any concepts")
-                        (return (nullptr DNode)))
-                    true)))
-        (setv myvl (@:@ myvl next-node))))
-
-    ;(def res (var auto \ (get-type-concept-list mc varargs-list
-    ;arg-count type-concept-list)))
-    ;(if (not res) (return (nullptr DNode)) 0)
+    (def res (var auto \ (get-type-concept-list mc varargs-list
+                                                arg-count type-concept-list)))
+    (if (not res) (return (nullptr DNode)) 0)
 
     (let ((macbuf (array-of 255 char))
           (err \ 0)
