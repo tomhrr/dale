@@ -864,6 +864,16 @@ macro buffer and returns true.  Otherwise, returns false.
 
 #|
 @fn get-type-concept-list
+
+Takes a list of concept instantiation arguments, except for the
+initial concept name.  Populates the type concept list, being the
+mapping between the parameter and the concept map for the parameter.
+
+Most parameters are plain types, for which see get-type-concept-map.
+The special processing here is for disambiguation (forcing the use of
+a specific concept) and non-types, the latter of which are treated as
+being of the Value concept.
+
 |#
 (def get-type-concept-list
   (fn intern bool ((mc                (p MContext))
@@ -882,21 +892,19 @@ macro buffer and returns true.  Otherwise, returns false.
             (setf ($ type-concept-list i)
                   (make-simple-node mc (@:@ first next-node))))
           (do
-              ; If the type argument is not actually a type, then
-              ; treat it as being of the Value concept.
               (if (and (not (exists-type mc myvl))
                        (= 0 (@:@ myvl is-list)))
-                  (do (setf ($ type-concept-list i)
-                        (make-simple-node
-                              mc
-                              (mnfv mc "Value"))))
+                  ; If the type argument is not actually a type, then
+                  ; treat it as being of the Value concept.
                   (setf ($ type-concept-list i)
-                        (get-type-concept-map mc myvl)))
-              (if (null (@$ type-concept-list i))
-                  (do (report-error mc myvl
-                      "type does not implement any concepts")
-                      (return false))
-                  true)))
+                        (make-simple-node mc (mnfv mc "Value")))
+                  (setf ($ type-concept-list i)
+                        (get-type-concept-map mc myvl)))))
+      (if (null (@$ type-concept-list i))
+          (do (report-error mc myvl
+              "type does not implement any concepts")
+              (return false))
+          true)
       (setv myvl (@:@ myvl next-node)))
     true))
 
