@@ -420,6 +420,25 @@ reports an error about the concept not being implemented.
       pcn)))
 
 #|
+@fn dump-concept-map
+|#
+(def pd (fn intern void ((n int))
+  (while (!= n 0) (printf ".") (setv n (- n 1)))
+  (return)))
+
+(def dump-concept-map
+  (fn extern void ((mc (p MContext))
+                   (mapp (p concept-node))
+                   (mlist bool)
+                   (n int))
+    (pd n)
+    (printf " %s (%d)\n" (@:@ mapp name) (@:@ mapp refinement-count))
+    (let ((i \ 0))
+      (for true (< i (@:@ mapp refinement-count)) (incv i)
+        (dump-concept-map mc (@ (p+ (@:@ mapp refinements) i)) false (+ n 1))))
+    (return)))
+
+#|
 @fn get-type-concept-map
 |#
 (def get-type-concept-map
@@ -429,6 +448,7 @@ reports an error about the concept not being implemented.
     (if (null tcl)
         (return (nullptr concept-node))
         0)
+
     ; Make a list of concept nodes out of the type concept list.
     (def cns       (var auto (array-of 255 (p concept-node))))
     (def cns-count (var auto \ 0))
@@ -598,74 +618,105 @@ arguments.
         (return (exists-macro mc macnode))))))
 
 #|
-@fn get-candidate
+@fn all-applicable
+
+Returns true if the list of concept nodes does not contain any
+instances of "not-applicable" (i.e. of the root, unused concept node).
+
 |#
-(def get-candidate
-  (fn intern int ((mc  (p MContext))
-                  (errn      (p DNode))
-                  (tcl-list  (p (p concept-node)))
-                  (tcl-count int)
-                  (arg-cycle int)
-                  (macname   (p char))
-                  (macbuf    (p char))
-                  (is-error  (p int))
-                  (hasbuf    bool)
-                  (mybuf2    (p char)))
-    (def all-applicable (var auto \ true))
+(def all-applicable
+  (fn intern bool ((tcl-list  (p (p concept-node)))
+                   (tcl-count int))
     (let ((i \ 0))
       (for true (< i tcl-count) (incv i)
         (if (= 0 (strcmp (@:@ (@$ tcl-list i) name) "not-applicable"))
-            (do (setv all-applicable false)
-                (break))
+            (return false)
             0)))
+    true))
 
-    (if hasbuf
-        (setf ($ mybuf2 0) #\NULL)
-        true)
+#|
+@fn get-candidate-toplevel
 
-    (if all-applicable
-        (let ((i        \ 0)
-              (cnode    (p DNode))
-              (cnodepre (p DNode) (nullptr DNode))
-              (cnodelst (p DNode) (nullptr DNode))
-              (cnodestr (array-of 255 char))
-              (mybuf    (array-of 255 char))
-              (myn      (p DNode)))
-          (sprintf mybuf "_%s" macname)
-          (for true (< i tcl-count) (incv i)
-            (setv cnode (mnfv mc (@:@ (@$ tcl-list i) name)))
-            (if (null cnodelst)
-                (setv cnodelst cnode)
-                true)
-            (if (not (null cnodepre))
-                (setf (:@ cnodepre next-node) cnode)
-                true)
-            (type-to-string mc cnode cnodestr)
-            (if hasbuf
-                (do (strcat mybuf2 (@:@ cnode token-str))
-                    (if (< i (- tcl-count 1))
-                        (strcat mybuf2 " ")
-                        0))
-                0)
-            (strcat mybuf "@")
-            (strcat mybuf cnodestr)
-            (setv cnodepre cnode))
-          (setv myn (mnfv mc mybuf))
-          (if (exists-macro mc (qq (uq myn)
-                                (uql cnodelst)))
-              (do 
-                  (strcpy macbuf mybuf)
-                  (return 1))
-              (do 
-                  (setf ($ mybuf2 0) #\NULL)
-                  0)))
-        0)
+Checks at the top-level of the concept list for a candidate that
+matches the requested macro name.  If one exists, writes it to the
+macro buffer and returns true.  Otherwise, returns false.
+
+|#
+(def get-candidate-toplevel
+  (fn intern bool ((mc          (p MContext))
+                   (tcl-list    (p (p concept-node)))
+                   (tcl-count   int)
+                   (macname     (p char))
+                   (macbuf      (p char))
+                   (hascnamebuf bool)
+                   (cname       (p char)))
+    (let ((i        \ 0)
+          (cnode    (p DNode))
+          (cnodepre (p DNode) (nullptr DNode))
+          (cnodelst (p DNode) (nullptr DNode))
+          (cnodestr (array-of 255 char))
+          (mybuf    (array-of 255 char))
+          (myn      (p DNode)))
+      (sprintf mybuf "_%s" macname)
+      (for true (< i tcl-count) (incv i)
+        (setv cnode (mnfv mc (@:@ (@$ tcl-list i) name)))
+        (if (null cnodelst)
+            (setv cnodelst cnode)
+            true)
+        (if (not (null cnodepre))
+            (setf (:@ cnodepre next-node) cnode)
+            true)
+        (type-to-string mc cnode cnodestr)
+        (if hascnamebuf
+            (do (strcat cname (@:@ cnode token-str))
+                (if (< i (- tcl-count 1))
+                    (strcat cname " ")
+                    0))
+            0)
+        (strcat mybuf "@")
+        (strcat mybuf cnodestr)
+        (setv cnodepre cnode))
+      (setv myn (mnfv mc mybuf))
+      (if (exists-macro mc (qq (uq myn)
+                               (uql cnodelst)))
+          (do
+              (strcpy macbuf mybuf)
+              (return true))
+          (do
+              (setf ($ cname 0) #\NULL)
+              0)))
+    false))
+
+#|
+@fn get-candidate
+|#
+(def get-candidate
+  (fn intern int ((mc          (p MContext))
+                  (errn        (p DNode))
+                  (tcl-list    (p (p concept-node)))
+                  (tcl-count   int)
+                  (arg-cycle   int)
+                  (macname     (p char))
+                  (macbuf      (p char))
+                  (is-error    (p int))
+                  (hascnamebuf bool)
+                  (cname       (p char)))
+    (if hascnamebuf (setf ($ cname 0) #\NULL) true)
+
+    (def all-applicable (var auto \ (all-applicable tcl-list tcl-count)))
+
+    (and all-applicable
+         (let ((res \ (get-candidate-toplevel mc tcl-list tcl-count
+                                              macname macbuf
+                                              hascnamebuf cname)))
+           (and res (return 1))))
 
     (if (>= arg-cycle tcl-count)
         (return 0)
         0)
 
-    ; If here, then no match was found for the concepts. 
+    ; If here, then no match was found at the top-level for the
+    ; concepts.
 
     (let ((i \ 0)
           (j \ 0)
@@ -682,80 +733,80 @@ arguments.
 
       ; First: try incrementing arg-cycle. If this succeeds, don't
       ; check for refinements.
-        (strcpy lastbuf thisbuf)
-        (setv res (get-candidate mc 
-                                 errn
-                                 tcl-list
-                                 tcl-count
-                                 (+ arg-cycle 1)
-                                 macname
-                                 macbuf
-                                 is-error
-                                 true
-                                 thisbuf))
-        (setf ($ tcl-list arg-cycle) tclorig)
-        (and (= 1 (@ is-error))
-             (do (return 0)))
-        (and (= 0 res)
-             (goto next-part))
-        (if hasbuf 
-            (strcpy mybuf2 thisbuf)
-            0)
-        (if (and (=  1 has-last)
-                 (!= 0 (strcmp thisbuf lastbuf)))
-            (let ((errbuf (array-of 1024 char)))
-              (sprintf errbuf "multiple instantiations found: (%s), (%s)"
-                              thisbuf
-                              lastbuf)
-              (report-error mc errn errbuf)
-              (setf is-error 1)
-              (return 0))
-            (do (setv has-last 1)))
+      (strcpy lastbuf thisbuf)
+      (setv res (get-candidate mc
+                               errn
+                               tcl-list
+                               tcl-count
+                               (+ arg-cycle 1)
+                               macname
+                               macbuf
+                               is-error
+                               true
+                               thisbuf))
+      (setf ($ tcl-list arg-cycle) tclorig)
+      (and (= 1 (@ is-error))
+           (do (return 0)))
+      (and (= 0 res)
+           (goto next-part))
+      (if hascnamebuf
+          (strcpy cname thisbuf)
+          0)
+      (if (and (=  1 has-last)
+               (!= 0 (strcmp thisbuf lastbuf)))
+          (let ((errbuf (array-of 1024 char)))
+            (sprintf errbuf "multiple instantiations found: (%s), (%s)"
+                            thisbuf
+                            lastbuf)
+            (report-error mc errn errbuf)
+            (setf is-error 1)
+            (return 0))
+          (do (setv has-last 1)))
 
-        (if (= 1 has-last)
-            (return has-last)
-            0)
+      (if (= 1 has-last)
+          (return has-last)
+          0)
 
-        (label next-part)
+      (label next-part)
 
-      ; Loop through the refinements at the arg-cycle position and see
-      ; whether any is relevant.
-      (for true (< i (@:@ tcl refinement-count)) (incv i)
-        (strcpy lastbuf thisbuf)
-        ; In tcl-list, set the arg-cycle node to the appropriate
-        ; refinement node.
-        (setf ($ tcl-list arg-cycle) (@ (p+ (@:@ tcl refinements) i)))
-        ; However, if this concept has further refinements, check them
-        ; first (by leaving arg-cycle at its current value).
-        (setv res (get-candidate mc 
-                                 errn
-                                 tcl-list
-                                 tcl-count
-                                 arg-cycle
-                                 macname
-                                 macbuf
-                                 is-error
-                                 true
-                                 thisbuf))
-        (setf ($ tcl-list arg-cycle) tclorig)
-        (and (= 1 (@ is-error))
-             (do 
-                 (return 0)))
-        (and (= 0 res)
-             (continue))
-        (if hasbuf 
-            (strcpy mybuf2 thisbuf)
-            0)
-        (if (and (=  1 has-last)
-                 (!= 0 (strcmp thisbuf lastbuf)))
-            (let ((errbuf (array-of 1024 char)))
-              (sprintf errbuf "multiple instantiations found: (%s), (%s)"
-                              thisbuf
-                              lastbuf)
-              (report-error mc errn errbuf)
-              (setf is-error 1)
-              (return 0))
-            (do (setv has-last 1))))
+        ; Loop through the refinements at the arg-cycle position and see
+        ; whether any is relevant.
+        (for true (< i (@:@ tcl refinement-count)) (incv i)
+          (strcpy lastbuf thisbuf)
+          ; In tcl-list, set the arg-cycle node to the appropriate
+          ; refinement node.
+          (setf ($ tcl-list arg-cycle) (@ (p+ (@:@ tcl refinements) i)))
+          ; However, if this concept has further refinements, check them
+          ; first (by leaving arg-cycle at its current value).
+          (setv res (get-candidate mc
+                                   errn
+                                   tcl-list
+                                   tcl-count
+                                   arg-cycle
+                                   macname
+                                   macbuf
+                                   is-error
+                                   true
+                                   thisbuf))
+          (setf ($ tcl-list arg-cycle) tclorig)
+          (and (= 1 (@ is-error))
+               (do
+                   (return 0)))
+          (and (= 0 res)
+               (continue))
+          (if hascnamebuf
+              (strcpy cname thisbuf)
+              0)
+          (if (and (=  1 has-last)
+                   (!= 0 (strcmp thisbuf lastbuf)))
+              (let ((errbuf (array-of 1024 char)))
+                (sprintf errbuf "multiple instantiations found: (%s), (%s)"
+                                thisbuf
+                                lastbuf)
+                (report-error mc errn errbuf)
+                (setf is-error 1)
+                (return 0))
+              (do (setv has-last 1))))
       
       (return has-last))))
 
@@ -769,6 +820,76 @@ arguments.
                              (uq report-error-str))
                (return (nullptr DNode)))
            0)))
+
+#|
+@macro assert-return-nn
+|#
+(def assert-return-b
+  (macro intern (error-cond report-error-node report-error-str)
+    (qq if (uq error-cond)
+           (do (report-error mc (uq report-error-node)
+                             (uq report-error-str))
+               (return false))
+           0)))
+
+#|
+@fn is-forced-concept
+|#
+(def is-forced-concept
+  (fn intern bool ((node (p DNode)))
+    (and (= 1 (@:@ node is-list))
+         (and (= 0 (@:@ (@:@ node list-node) is-list))
+              (= 0 (strcmp (@:@ (@:@ node list-node) token-str)
+                           "force"))))))
+
+#|
+@fn get-type-concept-list
+|#
+(def get-type-concept-list
+  (fn intern bool ((mc                (p MContext))
+                   (varargs-list      (p DNode))
+                   (varargs-count     int)
+                   (type-concept-list (p (p concept-node))))
+    (def i (var auto \ 0))
+
+    (for true (< i varargs-count) (incv i)
+      (def myvl (var auto \ varargs-list))
+      (if (is-forced-concept myvl)
+          (do
+            (def first
+              (var auto (p DNode) (@:@ myvl list-node)))
+            (assert-return-b (null (@:@ first next-node))
+                            first "expected concept as next element")
+            (let ((concept \ (@:@ first next-node)))
+              (do (assert-return-b (null (@:@ concept next-node))
+                              concept "expected type as next element")
+                  (assert-return-b (not (exists-concept-fn mc concept))
+                              concept "element is not a concept")
+                (let ((type \ (@:@ concept next-node)))
+                  (assert-return-b (not (exists-type mc type))
+                              type "element is not a type")
+                  (assert-return-b (not (implements-fn mc type concept))
+                              type "type does not implement concept")
+                  (setf ($ type-concept-list i)
+                        (make-simple-node mc concept))))))
+          (do
+              ; If the type argument is not actually a type, then
+              ; treat it as being of the Value concept.
+              (if (and (not (exists-type mc myvl))
+                       (= 0 (@:@ myvl is-list)))
+                  (do (setf ($ type-concept-list i)
+                        (make-simple-node
+                              mc
+                              (mnfv mc "Value"))))
+                  (setf ($ type-concept-list i)
+                        (get-type-concept-map mc myvl)))
+              (if (null (@$ type-concept-list i))
+                  (do (report-error mc myvl
+                      "type does not implement any concepts")
+                      (return false))
+                  true)))
+      (setv myvl (@:@ myvl next-node)))
+    true))
 
 #|
 @macro instantiate
@@ -790,17 +911,18 @@ expands into a series of bindings; for example, `Vector`.
     (get-varargs-list)
     (setv arg-count pre-arg-count)
     (def myvl (var auto \ varargs-list))
-    
+
     (assert-return (= 0 arg-count) 
                    macro-name
                    "expected at least one type argument")
 
     (def type-concept-list (var auto (array-of 64 (p concept-node))))
+
     (let ((i \ 0))
       (for true (< i arg-count) (incv i)
         (if (and (= 1 (@:@ myvl is-list))
                  (and (= 0 (@:@ (@:@ myvl list-node) is-list))
-                      (= 0 (strcmp (@:@ (@:@ myvl list-node) token-str) 
+                      (= 0 (strcmp (@:@ (@:@ myvl list-node) token-str)
                                    "force"))))
             (do
               (def first
@@ -819,13 +941,13 @@ expands into a series of bindings; for example, `Vector`.
                                 type "type does not implement concept")
                     (setf ($ type-concept-list i)
                           (make-simple-node mc concept))))))
-            (do 
+            (do
                 ; If the type argument is not actually a type, then
                 ; treat it as being of the Value concept.
                 (if (and (not (exists-type mc myvl))
                          (= 0 (@:@ myvl is-list)))
                     (do (setf ($ type-concept-list i)
-                          (make-simple-node 
+                          (make-simple-node
                                 mc
                                 (mnfv mc "Value"))))
                     (setf ($ type-concept-list i)
@@ -836,6 +958,10 @@ expands into a series of bindings; for example, `Vector`.
                         (return (nullptr DNode)))
                     true)))
         (setv myvl (@:@ myvl next-node))))
+
+    ;(def res (var auto \ (get-type-concept-list mc varargs-list
+    ;arg-count type-concept-list)))
+    ;(if (not res) (return (nullptr DNode)) 0)
 
     (let ((macbuf (array-of 255 char))
           (err \ 0)
