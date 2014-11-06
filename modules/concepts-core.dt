@@ -733,7 +733,6 @@ macro buffer and returns true.  Otherwise, returns false.
 
       ; First: try incrementing arg-cycle. If this succeeds, don't
       ; check for refinements.
-      (strcpy lastbuf thisbuf)
       (setv res (get-candidate mc
                                errn
                                tcl-list
@@ -752,20 +751,7 @@ macro buffer and returns true.  Otherwise, returns false.
       (if hascnamebuf
           (strcpy cname thisbuf)
           0)
-      (if (and (=  1 has-last)
-               (!= 0 (strcmp thisbuf lastbuf)))
-          (let ((errbuf (array-of 1024 char)))
-            (sprintf errbuf "multiple instantiations found: (%s), (%s)"
-                            thisbuf
-                            lastbuf)
-            (report-error mc errn errbuf)
-            (setf is-error 1)
-            (return 0))
-          (do (setv has-last 1)))
-
-      (if (= 1 has-last)
-          (return has-last)
-          0)
+      (return 1)
 
       (label next-part)
 
