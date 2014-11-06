@@ -758,7 +758,9 @@ macro buffer and returns true.  Otherwise, returns false.
         ; Loop through the refinements at the arg-cycle position and see
         ; whether any is relevant.
         (for true (< i (@:@ tcl refinement-count)) (incv i)
-          (strcpy lastbuf thisbuf)
+          (if (!= 0 (cast (strlen thisbuf) int))
+              (strcpy lastbuf thisbuf)
+              0)
           ; In tcl-list, set the arg-cycle node to the appropriate
           ; refinement node.
           (setf ($ tcl-list arg-cycle) (@ (p+ (@:@ tcl refinements) i)))
