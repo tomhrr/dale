@@ -1,0 +1,30 @@
+(import concepts)
+(import macros)
+
+(using-namespace std.macros
+(using-namespace std.concepts
+
+(def-concept Number (refines) (T) true)
+(def-concept Integer (refines Number) (T) true)
+(def-concept Negative (refines Number) (T) true)
+
+(def-concept-macro Add intern ((T Number))
+  (qq do (def + (fn extern int ((a (uq T))) 1))))
+
+(def-concept-macro Add intern ((T Integer))
+  (qq do (def + (fn extern int ((a (uq T))) 2))))
+
+(def-concept-macro Add intern ((T Negative))
+  (qq do (def + (fn extern int ((a (uq T))) 3))))
+
+(implement Number int)
+(implement Integer int)
+(implement Negative int)
+
+(instantiate Add (force Integer int))
+
+(def main (fn extern-c int (void)
+  (printf "%d\n" (+ 1))
+  0))
+
+))

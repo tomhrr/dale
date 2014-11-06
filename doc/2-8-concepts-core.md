@@ -306,3 +306,9 @@ concept macro, based on the provided arguments, and expands into a
 call to that macro. The term `instantiate` is used because in nearly
 all cases, the concept macro being run is something that in turn
 expands into a series of bindings; for example, `Vector`.
+
+When multiple instantiations are available for a given call, this will
+report an error and expand to nothing. Disambiguation is achieved by
+way of the `force` form:
+
+        (instantiate MacroName (force ConceptName Type) ...)

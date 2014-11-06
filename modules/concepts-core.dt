@@ -346,9 +346,9 @@ reports an error about the concept not being implemented.
         (nullptr DNode)))))
 
 #|
-@fn get-type-concept-list
+@fn get-node-type-concept-list
 |#
-(def get-type-concept-list
+(def get-node-type-concept-list
   (fn extern (p (p char)) ((mc (p MContext)) (T (p DNode)))
     (let ((cnames  (array-of 255 (p char)))
           (cnamesi \ 0)
@@ -444,7 +444,8 @@ reports an error about the concept not being implemented.
 (def get-type-concept-map
   (fn extern (p concept-node) ((mc (p MContext))
                                (T    (p DNode)))
-    (def tcl (var auto \ (get-type-concept-list mc T)))
+    (def tcl (var auto \ (get-node-type-concept-list mc T)))
+
     (if (null tcl)
         (return (nullptr concept-node))
         0)
@@ -719,7 +720,6 @@ macro buffer and returns true.  Otherwise, returns false.
     ; concepts.
 
     (let ((i \ 0)
-          (j \ 0)
           (tcl (p concept-node) (@$ tcl-list arg-cycle))
           (tclorig (p concept-node) tcl)
           (lastbuf (array-of 1024 char))
@@ -879,7 +879,8 @@ being of the Value concept.
   (fn intern bool ((mc                (p MContext))
                    (varargs-list      (p DNode))
                    (varargs-count     int)
-                   (type-concept-list (p (p concept-node))))
+                   (type-concept-list (p (p concept-node)))
+                   (type-list         (p (p DNode))))
     (def i (var auto \ 0))
     (def myvl (var auto \ varargs-list))
 
@@ -890,7 +891,9 @@ being of the Value concept.
             (and (not (validate-forced-concept mc first))
                  (return false))
             (setf ($ type-concept-list i)
-                  (make-simple-node mc (@:@ first next-node))))
+                  (make-simple-node mc (@:@ first next-node)))
+            (setf ($ type-list i)
+                  (@:@ (@:@ first next-node) next-node)))
           (do
               (if (and (not (exists-type mc myvl))
                        (= 0 (@:@ myvl is-list)))
@@ -899,13 +902,15 @@ being of the Value concept.
                   (setf ($ type-concept-list i)
                         (make-simple-node mc (mnfv mc "Value")))
                   (setf ($ type-concept-list i)
-                        (get-type-concept-map mc myvl)))))
+                        (get-type-concept-map mc myvl)))
+              (setf ($ type-list i) myvl)))
       (if (null (@$ type-concept-list i))
           (do (report-error mc myvl
               "type does not implement any concepts")
               (return false))
           true)
       (setv myvl (@:@ myvl next-node)))
+
     true))
 
 #|
@@ -917,6 +922,12 @@ concept macro, based on the provided arguments, and expands into a
 call to that macro. The term `instantiate` is used because in nearly
 all cases, the concept macro being run is something that in turn
 expands into a series of bindings; for example, `Vector`.
+
+When multiple instantiations are available for a given call, this will
+report an error and expand to nothing. Disambiguation is achieved by
+way of the `force` form:
+
+        (instantiate MacroName (force ConceptName Type) ...)
 
 @param macro-name       The name of the macro to be instantiated.
 |#
@@ -933,9 +944,13 @@ expands into a series of bindings; for example, `Vector`.
                    "expected at least one type argument")
 
     (def type-concept-list (var auto (array-of 64 (p concept-node))))
+    (def type-list (var auto (array-of 64 (p DNode))))
     (def res (var auto \ (get-type-concept-list mc varargs-list
-                                                arg-count type-concept-list)))
+                                                arg-count type-concept-list
+                                                type-list)))
     (if (not res) (return (nullptr DNode)) 0)
+
+    (setf ($ type-list arg-count) (nullptr DNode))
 
     (let ((macbuf (array-of 255 char))
           (err \ 0)
@@ -962,5 +977,5 @@ expands into a series of bindings; for example, `Vector`.
               (return (nullptr DNode)))
           0)
       (let ((macnode \ (mnfv mc macbuf))
-            (retnode \ (qq do ((uq macnode) (uql varargs-list)))))
+            (retnode \ (qq do ((uq macnode) (uql (@ type-list))))))
         retnode)))))))
