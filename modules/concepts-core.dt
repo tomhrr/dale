@@ -347,6 +347,13 @@ reports an error about the concept not being implemented.
 
 #|
 @fn get-node-type-concept-list
+
+Takes a type DNode as its single argument.  Returns a list of char
+pointers, each being the name of a concept implemented by this type.
+This is recursive, so if the type implements a concept A, which is in
+turn a refinement of concept B, the list will includes entries for
+both A and B.
+
 |#
 (def get-node-type-concept-list
   (fn extern (p (p char)) ((mc (p MContext)) (T (p DNode)))
@@ -724,10 +731,12 @@ macro buffer and returns true.  Otherwise, returns false.
           (tclorig (p concept-node) tcl)
           (lastbuf (array-of 1024 char))
           (thisbuf (array-of 1024 char))
+          (omacbuf (array-of 1024 char))
           (has-last \ 0)
           (err \ 0)
           (res \ 0)
           (cn (p concept-node)))
+      (setf ($ omacbuf 0) #\NULL)
       (setf ($ lastbuf 0) #\NULL)
       (setf ($ thisbuf 0) #\NULL)
 
@@ -754,10 +763,10 @@ macro buffer and returns true.  Otherwise, returns false.
       (return 1)
 
       (label next-part)
-
         ; Loop through the refinements at the arg-cycle position and see
         ; whether any is relevant.
         (for true (< i (@:@ tcl refinement-count)) (incv i)
+          (strcpy omacbuf macbuf)
           (if (!= 0 (cast (strlen thisbuf) int))
               (strcpy lastbuf thisbuf)
               0)
@@ -782,20 +791,28 @@ macro buffer and returns true.  Otherwise, returns false.
                    (return 0)))
           (and (= 0 res)
                (continue))
-          (if hascnamebuf
-              (strcpy cname thisbuf)
-              0)
           (if (and (=  1 has-last)
                    (!= 0 (strcmp thisbuf lastbuf)))
-              (let ((errbuf (array-of 1024 char)))
-                (sprintf errbuf "multiple instantiations found: (%s), (%s)"
-                                thisbuf
-                                lastbuf)
-                (report-error mc errn errbuf)
-                (setf is-error 1)
-                (return 0))
-              (do (setv has-last 1))))
-      
+              (do
+                (if (refines mc thisbuf lastbuf)
+                    (do (setv has-last 1)
+                        (strcpy macbuf omacbuf)
+                        (strcpy thisbuf lastbuf) true)
+                    (if (refines mc lastbuf thisbuf)
+                        (do (setv has-last 1)
+                            (strcpy lastbuf thisbuf) true)
+                        (let ((errbuf (array-of 1024 char)))
+                          (sprintf errbuf "multiple instantiations found: (%s), (%s)"
+                                          thisbuf
+                                          lastbuf)
+                          (report-error mc errn errbuf)
+                          (setf is-error 1)
+                          (return 0)))))
+              (do (setv has-last 1)))
+          (if hascnamebuf
+              (strcpy cname thisbuf)
+              0))
+
       (return has-last))))
 
 #|
