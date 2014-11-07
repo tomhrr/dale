@@ -19,6 +19,39 @@ over the built-in integral types, as well as `char`, `size` and
 (using-namespace std.macros
 (using-namespace std.concepts
 
+#|
+@macro refconst
+
+Expands a form `frm` into `(ref (const frm))`.
+
+|#
+(def refconst
+  (macro extern (frm)
+    (qq ref (const (uq frm)))))
+
+#|
+@macro prefer-ref-bindings
+
+Takes a type as its single argument.  Expands into a series of `def`
+forms: the first is `prefer-refs`, being a boolean indicating whether
+this type implements the `PreferRefs` concept; the second is `tpw`
+(type parameter wrapper), which expands to `refconst` for types
+preferring references and `identity` otherwise, and the third is `tvw'
+(type value wrapper), which expands to `@` for types preferring
+references and `identity` otherwise.
+
+|#
+(def prefer-ref-bindings
+  (macro extern (T)
+    (qq do
+      (def prefref (var auto bool (not (has-errors mc
+                                         (qq std.concepts.implements
+                                           (uq (uq T)) PreferRefs)))))
+      (def tpw     (var auto (p DNode)
+                             (mnfv mc (if prefref "refconst" "identity"))))
+      (def tvw     (var auto (p DNode)
+                             (mnfv mc (if prefref "@" "identity")))))))
+
 (mfor T (char
          int  int8  int16  int32  int64
          uint uint8 uint16 uint32 uint64

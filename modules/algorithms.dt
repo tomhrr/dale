@@ -49,13 +49,14 @@ returned.
 @param Ti   The iterator type.
 |#
 (def-concept-macro find extern ((Ti InputIterator))
+  (prefer-ref-bindings T)
   (qq do
     (def find (fn extern (uq Ti)
                          ((begin  (uq Ti))
                           (end    (uq Ti))
-                          (fvalue (value-type (nullptr (uq Ti)))))
+                          (fvalue ((uq tpw) (value-type (nullptr (uq Ti))))))
       (for true (!= begin end) (setv begin (successor begin))
-        (and (= fvalue (@source begin))
+        (and (= ((uq tvw) fvalue) (@ (source begin)))
              (return begin)))
       (return end)))))
 
@@ -81,7 +82,7 @@ returned. Otherwise, the second argument iterator is returned.
       (return end)))))
 
 #|
-@concept-macro find-if
+@concept-macro find-if-not
 
 Expands to a function that accepts two of the provided iterator types
 and a `Predicate`. On calling that function, if a value that does not

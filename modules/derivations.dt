@@ -204,21 +204,13 @@ macro.
 @param T    The struct type node.
 |#
 
-(def refconst
-  (macro extern (frm)
-    (qq ref (const (uq frm)))))
-
 (def-concept-macro = extern ((T Struct))
   (let ((n int (struct-member-count mc T))
         (i int 0)
         (holder-node  (p DNode) (make-node mc))
         (null-node    (p DNode) (cast 0 (p DNode)))
-        (current-node (p DNode) null-node)
-        (prefref      bool      (not (has-errors mc
-                                    (qq std.concepts.implements
-                                      (uq T) PreferRefs))))
-        (twp          (p DNode) (mnfv mc (if prefref "refconst" "identity")))
-        (twv          (p DNode) (mnfv mc (if prefref "@" "identity"))))
+        (current-node (p DNode) null-node))
+    (prefer-ref-bindings T)
 
     (and (= n 0)
          (do (report-error mc T "struct has no members")
@@ -247,8 +239,8 @@ macro.
                (return (mnfv mc "0"))))
 
         (let ((part (p DNode) 
-                    (bqq and (= (@ (: ((uq twv) a) (uq name)))
-                                (@ (: ((uq twv) b) (uq name)))))))
+                    (bqq and (= (@ (: ((uq tvw) a) (uq name)))
+                                (@ (: ((uq tvw) b) (uq name)))))))
           (if (not (null current-node))
               (do (setf (:@ current-node next-node) part)
                   (setv current-node (get-last-node (@:@ part list-node))))
@@ -258,8 +250,8 @@ macro.
     (setf (:@ current-node next-node) (mnfv mc "true"))
 
     (setv holder-node
-      (bqq def = (fn extern bool ((a ((uq twp) (uq T)))
-                                  (b ((uq twp) (uq T))))
+      (bqq def = (fn extern bool ((a ((uq tpw) (uq T)))
+                                  (b ((uq tpw) (uq T))))
         (uq holder-node))))
 
     (return holder-node)))
@@ -278,12 +270,8 @@ macro.
         (i int 0)
         (holder-node  (p DNode) (make-node mc))
         (null-node    (p DNode) (cast 0 (p DNode)))
-        (current-node (p DNode) null-node)
-        (prefref      bool      (not (has-errors mc
-                                    (qq std.concepts.implements
-                                      (uq T) PreferRefs))))
-        (twp          (p DNode) (mnfv mc (if prefref "refconst" "identity")))
-        (twv          (p DNode) (mnfv mc (if prefref "@" "identity"))))
+        (current-node (p DNode) null-node))
+    (prefer-ref-bindings T)
 
     (and (= n 0)
          (do (report-error mc T "struct has no members")
@@ -312,8 +300,8 @@ macro.
                (return (mnfv mc "0"))))
 
         (let ((part (p DNode) 
-                    (bqq or (< (@ (: ((uq twv) a) (uq name)))
-                               (@ (: ((uq twv) b) (uq name)))))))
+                    (bqq or (< (@ (: ((uq tvw) a) (uq name)))
+                               (@ (: ((uq tvw) b) (uq name)))))))
           (if (not (null current-node))
               (do (setf (:@ current-node next-node) part)
                   (setv current-node (get-last-node (@:@ part list-node))))
@@ -323,8 +311,8 @@ macro.
     (setf (:@ current-node next-node) (mnfv mc "false"))
 
     (setv holder-node
-      (bqq def < (fn extern bool ((a ((uq twp) (uq T)))
-                                  (b ((uq twp) (uq T))))
+      (bqq def < (fn extern bool ((a ((uq tpw) (uq T)))
+                                  (b ((uq tpw) (uq T))))
         (uq holder-node))))
 
     (return holder-node)))
