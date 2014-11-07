@@ -46,7 +46,7 @@ references and `identity` otherwise.
     (qq do
       (def prefref (var auto bool (not (has-errors mc
                                          (qq std.concepts.implements
-                                           (uq (uq T)) PreferRefs)))))
+                                           (uq T) PreferRefs)))))
       (def tpw     (var auto (p DNode)
                              (mnfv mc (if prefref "refconst" "identity"))))
       (def tvw     (var auto (p DNode)

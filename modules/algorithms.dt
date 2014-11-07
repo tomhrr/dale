@@ -49,7 +49,7 @@ returned.
 @param Ti   The iterator type.
 |#
 (def-concept-macro find extern ((Ti InputIterator))
-  (prefer-ref-bindings T)
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
   (qq do
     (def find (fn extern (uq Ti)
                          ((begin  (uq Ti))
