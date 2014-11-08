@@ -8,11 +8,11 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 6;
 
-my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/modc.dt -o ./t.dt.o -c -m ./modc`;
+my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/modc.dt -o ./t.dtm-rec.o -c -m ./modc`;
 is_deeply(\@res, [], 'no compilation errors');
-   @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/modp.dt -o ./t.dt.o -c -m ./modp`;
+   @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/modp.dt -o ./t.dtm-rec.o -c -m ./modp`;
 is_deeply(\@res, [], 'no compilation errors');
-   @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/modp2.dt -o ./t.dt.o -c -m ./modp2`;
+   @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/modp2.dt -o ./t.dtm-rec.o -c -m ./modp2`;
 is_deeply(\@res, [], 'no compilation errors');
 
 @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/modp-user.dt -o modp-user --static-module=modc`;

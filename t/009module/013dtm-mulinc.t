@@ -8,9 +8,9 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 5;
 
-my @res = `dalec -O0 $test_dir/t/src/dtm1.dt -o ./t.dt.o -c -m ./mod1`;
+my @res = `dalec -O0 $test_dir/t/src/dtm1.dt -o ./t.dtm-mulinc.o -c -m ./mod1`;
 is_deeply(\@res, [], 'no compilation errors');
-   @res = `dalec -O0 $test_dir/t/src/dtm2.dt -o ./t.dt.o -c -m ./mod2`;
+   @res = `dalec -O0 $test_dir/t/src/dtm2.dt -o ./t.dtm-mulinc.o -c -m ./mod2`;
 is_deeply(\@res, [], 'no compilation errors');
 
 @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtm-mulinc.dt -o dtm-mulinc`;

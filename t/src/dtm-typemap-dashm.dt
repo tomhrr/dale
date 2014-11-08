@@ -1,0 +1,8 @@
+(module pairintint-dashm)
+
+(import cstdio)
+(import macros)
+(import utility)
+(import concepts)
+
+(std.concepts.instantiate Pair int int)

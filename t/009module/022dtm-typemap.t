@@ -8,7 +8,7 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 2;
 
-my @res = `dalec -O0 -o ./t.dt.o -c $test_dir/t/src/dtm-typemap.dt`;
+my @res = `dalec -O0 -o ./t.dtm-typemap.o -c $test_dir/t/src/dtm-typemap.dt`;
 is_deeply(\@res, [], 'No compilation errors');
 
 @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtm-typemap-user.dt 2>&1`;

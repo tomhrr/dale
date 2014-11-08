@@ -1,4 +1,4 @@
-(import dtm-var)
+(import dtm-var-macro)
 (import cstdio)
 (import macros)
 

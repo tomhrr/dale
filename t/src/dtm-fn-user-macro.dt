@@ -1,4 +1,4 @@
-(import dtm-fn)
+(import dtm-fn-macro)
 (import cstdio)
 (import macros)
 

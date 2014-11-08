@@ -1,5 +1,5 @@
 (import cstdio)
-(import dtm-inc)
+(import dtm-inc-pre)
 
 (def main
   (fn extern-c int (void)

@@ -12,7 +12,7 @@ use Test::More tests => 4;
 # visible at compile time. This makes everything much simpler, though
 # could change in the future if there's a compelling enough reason.
 
-my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtm-var.dt -o ./t.dt.o -c -m ./dtm-var`;
+my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtm-var.dt -o ./t.dtm-var-user-macro.o -c -m ./dtm-var-macro`;
 is_deeply(\@res, [], 'No compilation errors');
 
 @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtm-var-user-macro.dt -o dtm-var-user-macro `;
@@ -28,11 +28,11 @@ is_deeply(\@res,
       [ '100' ],
     'Got correct results (original variable value)');
 
-`rm libdtm-var.so`;
-`rm libdtm-var-nomacros.so`;
-`rm libdtm-var.dtm`;
-`rm libdtm-var.bc`;
-`rm libdtm-var-nomacros.bc`;
+`rm libdtm-var-macro.so`;
+`rm libdtm-var-macro-nomacros.so`;
+`rm libdtm-var-macro.dtm`;
+`rm libdtm-var-macro.bc`;
+`rm libdtm-var-macro-nomacros.bc`;
 `rm dtm-var-user-macro`;
 
 1;

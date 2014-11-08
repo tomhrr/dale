@@ -1,0 +1,12 @@
+(import cstdio)
+(import macros)
+(import pairintint-dashm)
+
+(def myfn
+  (fn extern int ((a (Pair int int)))
+    0))
+
+(def main
+  (fn extern-c int (void)
+    (myfn 100)
+    0))

@@ -1,4 +1,4 @@
-(import dtm-noimport (x y))
+(import dtm-noimport-intover (x y))
 (import cstdio)
 
 (def z (var extern int 1000))

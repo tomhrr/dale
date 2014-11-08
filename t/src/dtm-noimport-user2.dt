@@ -1,1 +1,1 @@
-(import dtm-noimport (z zz))
+(import dtm-noimport-int (z zz))

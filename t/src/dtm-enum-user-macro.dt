@@ -1,6 +1,6 @@
 (import cstdio)
 (import macros)
-(import dtm-enum)
+(import dtm-enum-macro)
 
 (def m
   (macro intern (void)

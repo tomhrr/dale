@@ -12,15 +12,15 @@ plan tests => 2;
 
 my @res = 
     map { chomp; $_ } 
-        `dalec -O0 -o ./t.dt.o -c $test_dir/t/src/dtm-noimport.dt`;
+        `dalec -O0 -o ./t.dtm-noimport-int.o -c $test_dir/t/src/dtm-noimport-int.dt`;
 ok((not @res), 'No compilation errors');
 @res = map { chomp; $_ } `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtm-noimport-user2.dt 2>&1`;
 is_deeply(\@res,
-["$test_dir/t/src/dtm-noimport-user2.dt:1:1: error: module 'dtm-noimport' does not provide the following forms: z, zz",
- "$test_dir/t/src/dtm-noimport-user2.dt:1:1: error: unable to load module 'dtm-noimport'"],
+["$test_dir/t/src/dtm-noimport-user2.dt:1:1: error: module 'dtm-noimport-int' does not provide the following forms: z, zz",
+ "$test_dir/t/src/dtm-noimport-user2.dt:1:1: error: unable to load module 'dtm-noimport-int'"],
         'Got correct compilation errors');
 
-`rm libdtm-noimport.bc`;
-`rm libdtm-noimport.dtm`;
+`rm libdtm-noimport-int.bc`;
+`rm libdtm-noimport-int.dtm`;
 
 1;

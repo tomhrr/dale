@@ -8,7 +8,7 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 4;
 
-my @res = `dalec -O0 $test_dir/t/src/dtm-inc.dt -o ./t.dt.o -c -m ./dtm-inc`;
+my @res = `dalec -O0 $test_dir/t/src/dtm-inc.dt -o ./t.dtm-inc-pre-user.o -c -m ./dtm-inc-pre`;
 is_deeply(\@res, [], 'no compilation errors');
 
 @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtm-inc-pre-user.dt -o dtm-inc-pre-user`;
@@ -26,11 +26,11 @@ is_deeply(\@res,
           [ 'Hello', 'Hello' ],
           'Got expected results');
 
-`rm libdtm-inc.so`;
-`rm libdtm-inc-nomacros.so`;
-`rm libdtm-inc.dtm`;
-`rm libdtm-inc.bc`;
-`rm libdtm-inc-nomacros.bc`;
+`rm libdtm-inc-pre.so`;
+`rm libdtm-inc-pre-nomacros.so`;
+`rm libdtm-inc-pre.dtm`;
+`rm libdtm-inc-pre.bc`;
+`rm libdtm-inc-pre-nomacros.bc`;
 `rm dtm-inc-pre-user`;
 
 1;

@@ -12,7 +12,7 @@ plan tests => 2;
 
 my @res = 
     map { chomp; $_ } 
-        `dalec -O0 -o ./t.dt.o -c $test_dir/t/src/dtm-noimport.dt`;
+        `dalec -O0 -o ./t.dtm-noimport.o -c $test_dir/t/src/dtm-noimport.dt`;
 ok((not @res), 'No compilation errors');
 @res = map { chomp; $_ } `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtm-noimport-user.dt 2>&1`;
 is_deeply(\@res,

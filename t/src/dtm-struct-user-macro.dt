@@ -1,4 +1,4 @@
-(import dtm-struct)
+(import dtm-struct-macro)
 (import cstdio)
 (import macros)
 

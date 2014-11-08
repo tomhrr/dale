@@ -8,7 +8,7 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 4;
 
-my @res = `dalec -O0 -o ./t.dt.o -c $test_dir/t/src/dtm-noimport.dt`;
+my @res = `dalec -O0 -o ./t.dtm-intover.o -c $test_dir/t/src/dtm-noimport-intover.dt`;
 is_deeply(\@res, [], 'no compilation errors');
 
 @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtm-intover-user.dt -o dtm-intover-user --static-modules`;
@@ -26,11 +26,11 @@ is_deeply(\@res,
           [ '100 200 1000' ],
           'Got expected results');
 
-`rm libdtm-noimport.so`;
-`rm libdtm-noimport-nomacros.so`;
-`rm libdtm-noimport.dtm`;
-`rm libdtm-noimport.bc`;
-`rm libdtm-noimport-nomacros.bc`;
+`rm libdtm-noimport-intover.so`;
+`rm libdtm-noimport-intover-nomacros.so`;
+`rm libdtm-noimport-intover.dtm`;
+`rm libdtm-noimport-intover.bc`;
+`rm libdtm-noimport-intover-nomacros.bc`;
 `rm dtm-intover-user`;
 
 1;

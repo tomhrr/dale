@@ -8,7 +8,7 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 4;
 
-my @res = `dalec -O0 -o ./t.dt.o -c $test_dir/t/src/dtm-nsimport.dt`;
+my @res = `dalec -O0 -o ./t.dtm-importns.o -c $test_dir/t/src/dtm-nsimport.dt`;
 is_deeply(\@res, [], 'no compilation errors');
 
 @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtm-nsimport-user.dt -o dtm-nsimport-user`;
