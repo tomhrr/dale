@@ -1012,9 +1012,10 @@ Context::toLLVMTypeFunction(Element::Type *type,
         if ((*iter)->base_type == Type::VarArgs) {
             is_varargs = true;
         } else {
+            /* Parameter references should always be converted to
+             * pointers. */
             llvm::Type *t = toLLVMType((*iter), n,
-                                       true, false,
-                                       refs_to_pointers);
+                                       true, false, true);
             if (!t) {
                 return NULL;
             }

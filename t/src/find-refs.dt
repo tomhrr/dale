@@ -1,0 +1,79 @@
+(import cstdio)
+(import derivations)
+(import concepts)
+(import algorithms)
+(import list)
+
+(using-namespace std.concepts
+
+(def mys (struct intern ((a int) (b int) (c int))))
+
+(def init
+  (fn intern bool ((dst (ref mys)) (a int) (b int) (c int))
+    (setf (:@ dst a) a)
+    (setf (:@ dst b) b)
+    (setf (:@ dst c) c)
+    true))
+
+(def setf-copy (fn intern bool ((dst (p mys)) (src (p mys)))
+  (printf ".")
+  (setf (:@ dst a) (@:@ src a))
+  (setf (:@ dst b) (@:@ src b))
+  (setf (:@ dst c) (@:@ src c))
+  true))
+
+(def setf-assign (fn intern bool ((dst (p mys)) (src (p mys)))
+  (setf-copy dst src)))
+
+(implement PreferRefs mys)
+(implement Type mys)
+(implement Struct mys)
+(instantiate swap mys)
+
+(mfor Op (= != < <= > >=)
+  (instantiate Op mys))
+(mfor C (Assignable EqualityComparable LessThanComparable)
+  (implement C mys))
+
+(instantiate List mys)
+
+(mfor Cm (find find-if find-if-not)
+  (instantiate Cm (Iterator (List mys))))
+
+(def if-b-is-3 (fn intern bool ((m (ref (const mys))))
+  (= (@:@ m b) 3)))
+
+(def main (fn extern-c int (void)
+  (def a (var auto mys (init a 1 2 3)))
+  (def b (var auto mys (init b 1 2 4)))
+  (def c (var auto mys (init c 1 3 4)))
+  (def d (var auto mys (init d 2 3 4)))
+  (let ((lst (List mys)))
+    (push-back lst a)
+    (push-back lst b)
+    (push-back lst c)
+    (push-back lst d)
+    (printf "Populated list\n")
+
+    (let ((bi \ (find (begin lst) (end lst) c)))
+      (printf "Called find\n")
+      (for true (!= bi (end lst)) (setv bi (successor bi))
+        (printf "%d %d %d\n" (@:@ (source bi) a)
+                             (@:@ (source bi) b)
+                             (@:@ (source bi) c))))
+    (let ((bi \ (find-if (begin lst) (end lst) (# if-b-is-3))))
+      (printf "Called find-if\n")
+      (for true (!= bi (end lst)) (setv bi (successor bi))
+        (printf "%d %d %d\n" (@:@ (source bi) a)
+                             (@:@ (source bi) b)
+                             (@:@ (source bi) c))))
+    (let ((bi \ (find-if-not (begin lst) (end lst) (# if-b-is-3))))
+      (printf "Called find-if-not\n")
+      (for true (!= bi (end lst)) (setv bi (successor bi))
+        (printf "%d %d %d\n" (@:@ (source bi) a)
+                             (@:@ (source bi) b)
+                             (@:@ (source bi) c)))))
+
+  0))
+
+)

@@ -42,15 +42,17 @@ references and `identity` otherwise.
 
 |#
 (def prefer-ref-bindings
-  (macro extern (T)
+  (macro extern (T2)
     (qq do
-      (def prefref (var auto bool (not (has-errors mc
-                                         (qq std.concepts.implements
-                                           (uq T) PreferRefs)))))
+      (def prefer-refs (var auto bool (not (has-errors mc
+                                             (qq std.concepts.implements
+                                               (uq T2) PreferRefs)))))
       (def tpw     (var auto (p DNode)
-                             (mnfv mc (if prefref "refconst" "identity"))))
+                             (mnfv mc (if prefer-refs
+                                          "refconst" "identity"))))
       (def tvw     (var auto (p DNode)
-                             (mnfv mc (if prefref "@" "identity")))))))
+                             (mnfv mc (if prefer-refs
+                                          "@" "identity")))))))
 
 (mfor T (char
          int  int8  int16  int32  int64

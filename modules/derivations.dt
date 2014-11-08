@@ -210,7 +210,7 @@ macro.
         (holder-node  (p DNode) (make-node mc))
         (null-node    (p DNode) (cast 0 (p DNode)))
         (current-node (p DNode) null-node))
-    (prefer-ref-bindings T)
+    (prefer-ref-bindings (uq T))
 
     (and (= n 0)
          (do (report-error mc T "struct has no members")
@@ -271,7 +271,7 @@ macro.
         (holder-node  (p DNode) (make-node mc))
         (null-node    (p DNode) (cast 0 (p DNode)))
         (current-node (p DNode) null-node))
-    (prefer-ref-bindings T)
+    (prefer-ref-bindings (uq T))
 
     (and (= n 0)
          (do (report-error mc T "struct has no members")

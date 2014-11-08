@@ -26,6 +26,16 @@ shorthand in this module's documentation.
   (qq do (p (fn bool ((i (value-type (nullptr (uq T))))))))))
 
 #|
+@macro RefPredicate
+
+Like `Predicate`, except the function pointer type takes a const reference.
+
+@param T    The type node.
+|#
+(def RefPredicate (macro extern (T)
+  (qq do (p (fn bool ((i (ref (const (value-type (nullptr (uq T))))))))))))
+
+#|
 @macro Action
 
 Expands to a function pointer type that takes the `value-type` of the
@@ -71,13 +81,16 @@ returned. Otherwise, the second argument iterator is returned.
 @param Ti   The iterator type.
 |#
 (def-concept-macro find-if extern ((Ti InputIterator))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
+  (def P (var auto (p DNode) (mnfv mc (if prefer-refs "RefPredicate"
+                                                      "Predicate"))))
   (qq do
     (def find-if (fn extern (uq Ti)
                             ((begin (uq Ti))
                              (end   (uq Ti))
-                             (pred  (Predicate (uq Ti))))
+                             (pred  ((uq P) (uq Ti))))
       (for true (!= begin end) (setv begin (successor begin))
-        (and (pred (@source begin))
+        (and (pred (@ (source begin)))
              (return begin)))
       (return end)))))
 
@@ -93,13 +106,16 @@ returned.
 @param Ti   The iterator type.
 |#
 (def-concept-macro find-if-not extern ((Ti InputIterator))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
+  (def P (var auto (p DNode) (mnfv mc (if prefer-refs "RefPredicate"
+                                                      "Predicate"))))
   (qq do
     (def find-if-not (fn extern (uq Ti)
                                 ((begin (uq Ti))
                                  (end   (uq Ti))
-                                 (pred  (Predicate (uq Ti))))
+                                 (pred  ((uq P) (uq Ti))))
       (for true (!= begin end) (setv begin (successor begin))
-        (and (not (pred (@source begin)))
+        (and (not (pred (@ (source begin))))
              (return begin)))
       (return end)))))
 
@@ -125,10 +141,10 @@ pretty slow.)
                           (pivot (uq Ti)))
         (let ((right      (uq Ti) (- end (cast 1 size)))
               (storep     (uq Ti) begin)
-              (pivotvalue (value-type (nullptr (uq Ti))) (@source pivot)))
+              (pivotvalue (value-type (nullptr (uq Ti))) (@ (source pivot))))
           (swap (@ (source pivot)) (@ (source right)))
           (while (<= begin (- right (cast 1 size)))
-            (if (<= (@source begin) pivotvalue)
+            (if (<= (@ (source begin)) pivotvalue)
                 (do (swap (@ (source storep)) (@ (source begin)))
                     (setv storep (successor storep))
                     0)
@@ -169,7 +185,7 @@ each value in the range.
                                    (end   (uq Ti))
                                    (ac    (Action (uq Ti))))
       (for true (!= begin end) (setv begin (successor begin))
-        (ac (@source begin)))
+        (ac (@ (source begin))))
       (return)))))
 
 #|
@@ -195,7 +211,7 @@ The function assumes that the range is sorted.
             (setv it b)
             (setv step (/ count (cast 2 size)))
             (setv it (+ it step))
-            (if (< (@source it) v)
+            (if (< (@ (source it)) v)
                 (do (setv it (successor it))
                     (setv b it)
                     (setv count (- count (+ step (cast 1 size))))
@@ -227,7 +243,7 @@ The function assumes that the range is sorted.
             (setv it b)
             (setv step (/ count (cast 2 size)))
             (setv it (+ it step))
-            (if (not (< v (@source it)))
+            (if (not (< v (@ (source it))))
                 (do (setv it (successor it))
                     (setv b it)
                     (setv count (- count (+ step (cast 1 size))))
@@ -254,7 +270,7 @@ assumes that the range is sorted.
                        (v (value-type (nullptr (uq Ti)))))
         (setv b (lower-bound b e v))
         (and (not (= b e))
-             (not (< v (@source b))))))))
+             (not (< v (@ (source b)))))))))
 
 #|
 @concept-macro equal-range
@@ -335,7 +351,7 @@ output iterator at each step.
                           (from-end   (uq Ti))
                           (to-begin   (uq To)))
         (while (< from-begin from-end)
-          (sink to-begin   (@source from-begin))
+          (sink to-begin   (@ (source from-begin)))
           (setv from-begin (successor from-begin))
           (setv to-begin   (successor to-begin)))
         to-begin))))
@@ -361,7 +377,7 @@ into the cleared container.
                        (end   (uq Ti)))
         (clear (@ obj))
         (for true (!= begin end) (setv begin (successor begin))
-          (push-back (@ obj) (@source begin)))
+          (push-back (@ obj) (@ (source begin))))
         true))))
 
 #|
@@ -385,7 +401,7 @@ the elements of those containers match.
             (e2 \ (end (@ c2))))
         (for true (!= b1 e1) (do (setv b1 (successor b1))
                                  (setv b2 (successor b2)))
-          (and (not (= (@source b1) (@source b2)))
+          (and (not (= (@ (source b1)) (@ (source b2))))
                (return false))))
       true))))
 
@@ -419,8 +435,8 @@ values, for the same reasons as `=`).
             (e2 \ (end (@ c2))))
         (for true (!= b1 e1) (do (setv b1 (successor b1))
                                  (setv b2 (successor b2)))
-          (let ((v1 \ (@source b1))
-                (v2 \ (@source b2)))
+          (let ((v1 \ (@ (source b1)))
+                (v2 \ (@ (source b2))))
             (and (!= v1 v2)
                  (return (< v1 v2))))))
       true))))
