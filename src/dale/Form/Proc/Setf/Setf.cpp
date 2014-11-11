@@ -77,15 +77,28 @@ bool parse(Generator *gen,
     llvm::IRBuilder<> builder(pr_variable.block);
     ParseResult pr_value;
     Element::Variable *var_value = NULL;
+    std::vector<Node *> *lst = val_node->list;
 
-    /* If the value is a variable, load the underlying value directly,
-     * to shortcut setf-copy for types that define it. */
+    /* If the value is a variable, or a variable dereference, load the
+     * underlying value directly, to shortcut setf-copy for types that
+     * define it. */
 
     if (val_node->is_token
             && (var_value = ctx->getVariable(
                     val_node->token->str_value.c_str()))) {
         pr_value.value = var_value->value;
         pr_value.type  = ctx->tr->getPointerType(var_value->type);
+        pr_value.do_not_destruct = 1;
+        pr_value.block = pr_variable.block;
+    } else if (val_node->is_list
+                && (lst->size() == 2)
+                && (lst->at(0)->is_token)
+                && (!lst->at(0)->token->str_value.compare("@"))
+                && (lst->at(1)->is_token)
+                && (var_value = ctx->getVariable(
+                        lst->at(1)->token->str_value.c_str()))) {
+        pr_value.value = builder.CreateLoad(var_value->value);
+        pr_value.type  = var_value->type;
         pr_value.do_not_destruct = 1;
         pr_value.block = pr_variable.block;
     } else {
