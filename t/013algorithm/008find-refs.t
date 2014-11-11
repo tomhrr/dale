@@ -20,7 +20,7 @@ chomp for @res;
 # the find calls, due to the use of PreferRefs.
 is_deeply(\@res,
 [
-'............Populated list',
+'........Populated list',
 'Called find',
 '1 3 4',
 '2 3 4',

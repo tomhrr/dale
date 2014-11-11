@@ -74,28 +74,32 @@ bool parse(Generator *gen,
         return false;
     }
 
-    /* Previously: 'if pr_value is a variable, use the value
-     * directly, rather than calling PFBI and getting a copy'.
-     * That only worked because there was a branch further down
-     * that accepted two pointers-to-type as the arguments to this
-     * form, and set the destination to be the value of the
-     * source, directly. That form of call is no longer supported,
-     * because it was extremely error-prone and unintuitive. So
-     * this will now cause additional copies, which is
-     * unfortunate; there is probably a way to make it better. */
-
     llvm::IRBuilder<> builder(pr_variable.block);
     ParseResult pr_value;
-    res =
-        Form::Proc::Inst::parse(gen, 
-            fn, pr_variable.block, val_node, false,
-            false,
-            pr_variable.type->points_to,
-            &pr_value
-        );
+    Element::Variable *var_value = NULL;
 
-    if (!res) {
-        return false;
+    /* If the value is a variable, load the underlying value directly,
+     * to shortcut setf-copy for types that define it. */
+
+    if (val_node->is_token
+            && (var_value = ctx->getVariable(
+                    val_node->token->str_value.c_str()))) {
+        pr_value.value = var_value->value;
+        pr_value.type  = ctx->tr->getPointerType(var_value->type);
+        pr_value.do_not_destruct = 1;
+        pr_value.block = pr_variable.block;
+    } else {
+        res =
+            Form::Proc::Inst::parse(gen, 
+                fn, pr_variable.block, val_node, false,
+                false,
+                pr_variable.type->points_to,
+                &pr_value
+            );
+
+        if (!res) {
+            return false;
+        }
     }
 
     builder.SetInsertPoint(pr_value.block);
@@ -183,6 +187,24 @@ cont1:
     }
 
 cont2:
+
+    /* var_value is only present to support the overridden set
+     * operations: if this point is reached, then fall back to the
+     * standard form-processing logic. */
+
+    if (var_value) {
+        res =
+            Form::Proc::Inst::parse(gen, 
+                fn, pr_value.block, val_node, false,
+                false,
+                pr_variable.type->points_to,
+                &pr_value
+            );
+
+        if (!res) {
+            return false;
+        }
+    }
 
     if (pr_value.type->isEqualTo(pr_variable.type->points_to)) {
         builder.CreateStore(pr_value.value, pr_variable.value);

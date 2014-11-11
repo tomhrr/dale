@@ -1,0 +1,43 @@
+(import cstdio)
+(import cstring)
+
+(def mys (struct intern ((a int))))
+
+(def init
+  (fn intern bool ((dst (ref mys)))
+    (printf "init\n")
+    true))
+
+(def setf-copy
+  (fn intern bool ((dst (p mys)) (src (p mys)))
+    (printf "setf-copy\n")
+    (memcpy (cast dst (p void)) (cast src (p void)) (sizeof mys))
+    true))
+
+(def setf-assign
+  (fn intern bool ((dst (p mys)) (src (p mys)))
+    (printf "setf-assign\n")
+    (memcpy (cast dst (p void)) (cast src (p void)) (sizeof mys))
+    true))
+
+(def destroy
+  (fn intern bool ((m (p mys)))
+    (printf "destroy\n")
+    true))
+
+(def plus
+  (fn intern mys ((a (ref (const mys))) (b (ref (const mys))))
+    (def c (var auto mys))
+    (setf (: c a) (+ (@:@ a a) (@:@ b a)))
+    c))
+
+(def main (fn extern-c int (void)
+  (def a (var auto mys))
+  (def b (var auto mys))
+  (setf (: a a) 1)
+  (setf (: b a) 2)
+  (printf "preset\n")
+  (setv a b)
+  (printf "postset\n")
+  (printf "%d\n" (@: b a))
+  0))
