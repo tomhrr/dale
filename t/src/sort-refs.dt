@@ -53,7 +53,11 @@
     (push-back vec d)
     (printf "Presort\n")
     (sort (begin vec) (end vec))
-    (printf "Postsort\n"))
-
+    (printf "Postsort\n")
+    (let ((b \ (begin vec))
+          (e \ (end vec)))
+      (for true (!= b e) (setv b (successor b))
+        (let ((v \ (source b)))
+          (printf "%d %d %d\n" (@:@ v a) (@:@ v b) (@:@ v c))))))
   0))
 )

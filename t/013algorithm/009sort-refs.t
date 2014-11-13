@@ -16,13 +16,16 @@ is($?, 0, 'Program executed successfully');
 
 chomp for @res;
 
-# The periods indicate copy operations.  Whether all of these are
-# currently required for the sort has not been verified, but it is
-# still a big improvement over the non-PreferRefs version.
+# The periods indicate copy operations.  For the sort, there are
+# fifteen copies, representing five swaps.
 is_deeply(\@res,
 [
 '........Presort',
-'...................Postsort',
+'...............Postsort',
+'1 2 3',
+'1 2 4',
+'1 3 4',
+'2 3 4',
 ],
     'Got expected results');
 
