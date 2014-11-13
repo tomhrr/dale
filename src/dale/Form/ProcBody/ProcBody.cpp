@@ -437,10 +437,15 @@ parse(Generator *gen,
                     builder.CreateRetVoid();
                 }
             } else {
-                /* Get the next block and create a branch to it. */
-                ++i;
-                builder.CreateBr(i);
-                --i;
+                if (bcount == bmax) {
+                    gen->scopeClose(dfn, i, NULL, true);
+                    builder.CreateRetVoid();
+                } else {
+                    /* Get the next block and create a branch to it. */
+                    ++i;
+                    builder.CreateBr(i);
+                    --i;
+                }
             }
         }
         ++bcount;

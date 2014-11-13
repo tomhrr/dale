@@ -1,0 +1,93 @@
+(import cstdio)
+(import derivations)
+(import concepts)
+(import algorithms)
+(import vector)
+
+(using-namespace std.concepts
+
+(def mys (struct intern ((a int) (b int) (c int))))
+
+(def init
+  (fn intern bool ((dst (ref mys)) (a int) (b int) (c int))
+    (setf (:@ dst a) a)
+    (setf (:@ dst b) b)
+    (setf (:@ dst c) c)
+    true))
+
+(def setf-copy (fn intern bool ((dst (p mys)) (src (p (const mys))))
+  (printf ".")
+  (setf (:@ dst a) (cast (@:@ src a) int))
+  (setf (:@ dst b) (cast (@:@ src b) int))
+  (setf (:@ dst c) (cast (@:@ src c) int))
+  true))
+
+(def setf-assign (fn intern bool ((dst (p mys)) (src (p (const mys))))
+  (setf-copy dst src)))
+
+(implement PreferRefs mys)
+(implement Type mys)
+(implement Struct mys)
+(instantiate swap mys)
+
+(mfor Op (= != < <= > >=)
+  (instantiate Op mys))
+(mfor C (Assignable EqualityComparable LessThanComparable)
+  (implement C mys))
+
+(mfor Cm (Vector min max)
+  (instantiate Cm mys))
+
+(mfor Cm (sort for-each lower-bound upper-bound
+          binary-search equal-range)
+  (instantiate Cm (Iterator (Vector mys))))
+
+(instantiate copy   (Iterator (Vector mys)) (Iterator (Vector mys)))
+(instantiate assign (Vector mys) (Iterator (Vector mys)))
+
+(def ra (fn intern void ((m (ref mys)))
+  (printf "%d %d %d\n" (@:@ m a) (@:@ m b) (@:@ m c))
+  (return)))
+
+(def main (fn extern-c int (void)
+  (def a (var auto mys (init a 1 2 3)))
+  (def b (var auto mys (init b 1 2 4)))
+  (def c (var auto mys (init c 1 3 4)))
+  (def d (var auto mys (init d 2 3 4)))
+
+  (let ((vec  (Vector mys))
+        (vec2 (Vector mys)))
+    (push-back vec a)
+    (push-back vec b)
+    (push-back vec c)
+    (push-back vec d)
+    (push-back vec2 d)
+    (push-back vec2 c)
+    (push-back vec2 b)
+    (push-back vec2 a)
+
+    (printf "Pre for-each\n")
+    (for-each (begin vec) (end vec) (# ra))
+    (printf "Post for-each\n")
+
+    (def i1 (var auto \ (lower-bound (begin vec) (end vec) b)))
+    (ra (@ (source i1)))
+    (printf "Post lower-bound\n")
+
+    (def i2 (var auto \ (upper-bound (begin vec) (end vec) b)))
+    (ra (@ (source i2)))
+    (printf "Post upper-bound\n")
+
+    (def i3 (var auto \ (binary-search (begin vec) (end vec) b)))
+    (ra (@ (source i2)))
+    (printf "Post binary-search\n")
+
+    (def e (var auto \ (max a d)))
+    (ra e)
+    (printf "Post max\n")
+
+    (def f (var auto \ (min a d)))
+    (ra f)
+    (printf "Post min\n"))
+  0))
+)

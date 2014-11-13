@@ -48,6 +48,16 @@ shorthand in this module's documentation.
   (qq do (p (fn void ((i (value-type (nullptr (uq T))))))))))
 
 #|
+@macro RefAction
+
+Like `Action`, except the function pointer takes a reference.
+
+@param T    The type node.
+|#
+(def RefAction (macro extern (T)
+  (qq do (p (fn void ((i (ref (value-type (nullptr (uq T)))))))))))
+
+#|
 @concept-macro find
 
 Expands to a function that accepts two of the provided iterator types
@@ -179,10 +189,13 @@ each value in the range.
 @param Ti   The iterator type.
 |#
 (def-concept-macro for-each extern ((Ti InputIterator))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
+  (def A (var auto (p DNode) (mnfv mc (if prefer-refs "RefAction"
+                                                      "Action"))))
   (qq do
     (def for-each (fn extern void ((begin (uq Ti))
                                    (end   (uq Ti))
-                                   (ac    (Action (uq Ti))))
+                                   (ac    ((uq A) (uq Ti))))
       (for true (!= begin end) (setv begin (successor begin))
         (ac (@ (source begin))))
       (return)))))
@@ -198,11 +211,12 @@ The function assumes that the range is sorted.
 @param Ti   The iterator type.
 |#
 (def-concept-macro lower-bound extern ((Ti RandomAccessIterator))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
   (qq do    
     (def lower-bound 
       (fn extern (uq Ti) ((b (uq Ti))
                           (e (uq Ti))
-                          (v (value-type (nullptr (uq Ti)))))
+                          (v ((uq tpw) (value-type (nullptr (uq Ti))))))
         (let ((count \ (distance b e))
               (step  size)
               (it    (uq Ti)))
@@ -210,7 +224,7 @@ The function assumes that the range is sorted.
             (setv it b)
             (setv step (/ count (cast 2 size)))
             (setv it (+ it step))
-            (if (< (@ (source it)) v)
+            (if (< (@ (source it)) ((uq tvw) v))
                 (do (setv it (successor it))
                     (setv b it)
                     (setv count (- count (+ step (cast 1 size))))
@@ -230,11 +244,12 @@ The function assumes that the range is sorted.
 @param Ti   The iterator type.
 |#
 (def-concept-macro upper-bound extern ((Ti RandomAccessIterator))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
   (qq do
     (def upper-bound
       (fn extern (uq Ti) ((b (uq Ti))
                           (e (uq Ti))
-                          (v (value-type (nullptr (uq Ti)))))
+                          (v ((uq tpw) (value-type (nullptr (uq Ti))))))
         (let ((count \ (distance b e))
               (step  size)
               (it    (uq Ti)))
@@ -242,7 +257,7 @@ The function assumes that the range is sorted.
             (setv it b)
             (setv step (/ count (cast 2 size)))
             (setv it (+ it step))
-            (if (not (< v (@ (source it))))
+            (if (not (< ((uq tvw) v) (@ (source it))))
                 (do (setv it (successor it))
                     (setv b it)
                     (setv count (- count (+ step (cast 1 size))))
@@ -262,14 +277,15 @@ assumes that the range is sorted.
 @param Ti   The iterator type.
 |#
 (def-concept-macro binary-search extern ((Ti RandomAccessIterator))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
   (qq do
     (def binary-search
       (fn extern bool ((b (uq Ti))
                        (e (uq Ti))
-                       (v (value-type (nullptr (uq Ti)))))
-        (setv b (lower-bound b e v))
+                       (v ((uq tpw) (value-type (nullptr (uq Ti))))))
+        (setv b (lower-bound b e ((uq tvw) v)))
         (and (not (= b e))
-             (not (< v (@ (source b)))))))))
+             (not (< ((uq tvw) v) (@ (source b)))))))))
 
 #|
 @concept-macro equal-range
@@ -283,16 +299,17 @@ the value.
 @param Ti   The iterator type.
 |#
 (def-concept-macro equal-range extern ((Ti RandomAccessIterator))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
   (qq do
     (std.concepts.instantiate Pair (uq Ti) (uq Ti))
     (def equal-range
       (fn extern (Pair (uq Ti) (uq Ti)) ((b (uq Ti))
                                          (e (uq Ti))
-                                         (v (value-type (nullptr (uq Ti)))))
-        (let ((it (uq Ti) (lower-bound b e v))
+                                         (v ((uq tpw) (value-type (nullptr (uq Ti))))))
+        (let ((it (uq Ti) (lower-bound b e ((uq tvw) v)))
               (pr (Pair (uq Ti) (uq Ti))))
           (setf (: pr first)  it)
-          (setf (: pr second) (upper-bound it e v))
+          (setf (: pr second) (upper-bound it e ((uq tvw) v)))
           pr)))))
 
 #|
@@ -304,14 +321,34 @@ returned. Otherwise, the second is returned.
 
 @param T    The type node.
 |#
-(def-concept-macro max extern ((T LessThanComparable))
+(def-concept-macro max extern ((T Type))
   (if (exists-fn mc (qq (uq T) max (uq T) (uq T)))
       (return (nullptr DNode))
+      0)
+  (if (has-errors mc
+                  (qq std.concepts.implements (uq T) LessThanComparable))
+      (return (qq std.concepts.implements (uq T) LessThanComparable))
       0)
   (qq do
     (def max (fn extern (uq T) ((a (uq T)) 
                                 (b (uq T)))
       (if (> a b) a b)))))
+
+(def-concept-macro max extern ((T PreferRefs))
+  (if (exists-fn mc (qq (uq T) max (uq T) (uq T)))
+      (return (nullptr DNode))
+      0)
+  (if (has-errors mc
+                  (qq std.concepts.implements (uq T) LessThanComparable))
+      (return (qq std.concepts.implements (uq T) LessThanComparable))
+      0)
+  (qq do
+    (def max (fn extern (retval (uq T)) ((a (ref (const (uq T))))
+                                         (b (ref (const (uq T)))))
+      (if (> (@ a) (@ b))
+          (setf retval (@ a))
+          (setf retval (@ b)))
+      (return)))))
 
 #|
 @concept-macro min
@@ -322,14 +359,34 @@ returned. Otherwise, the second is returned.
 
 @param T    The type node.
 |#
-(def-concept-macro min extern ((T LessThanComparable))
+(def-concept-macro min extern ((T Type))
   (if (exists-fn mc (qq (uq T) min (uq T) (uq T)))
       (return (nullptr DNode))
+      0)
+  (if (has-errors mc
+                  (qq std.concepts.implements (uq T) LessThanComparable))
+      (return (qq std.concepts.implements (uq T) LessThanComparable))
       0)
   (qq do
     (def min (fn extern (uq T) ((a (uq T)) 
                                 (b (uq T)))
       (if (< a b) a b)))))
+
+(def-concept-macro min extern ((T PreferRefs))
+  (if (exists-fn mc (qq (uq T) min (uq T) (uq T)))
+      (return (nullptr DNode))
+      0)
+  (if (has-errors mc
+                  (qq std.concepts.implements (uq T) LessThanComparable))
+      (return (qq std.concepts.implements (uq T) LessThanComparable))
+      0)
+  (qq do
+    (def min (fn extern (retval (uq T)) ((a (ref (const (uq T))))
+                                         (b (ref (const (uq T)))))
+      (if (< (@ a) (@ b))
+          (setf retval (@ a))
+          (setf retval (@ b)))
+      (return)))))
 
 #|
 @concept-macro copy
