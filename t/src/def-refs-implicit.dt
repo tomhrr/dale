@@ -1,0 +1,14 @@
+(import cstdio)
+
+(def mys (struct intern ((a int) (b int) (c int))))
+
+(def def-refs (fn intern void ((a (ref mys)))
+  (def mya (var auto \ (@ a)))
+  (printf "%d\n" (@: mya c))
+  (return)))
+
+(def main (fn extern-c int (void)
+  (def a (var auto mys))
+  (setf (: a c) 3)
+  (def-refs a)
+  0))
