@@ -214,17 +214,42 @@ bool parse(Generator *gen,
         }
 
         ParseResult p;
-        bool res =
-            Form::Proc::Inst::parse(gen, 
-                fn, block, (*newlist)[3], get_address, false, NULL, &p
-            );
-        if (!res) {
-            return false;
+        Node *last = (*newlist)[3];
+        symlist *vlst = last->list;
+        Element::Variable *var_value = NULL;
+        llvm::IRBuilder<> builder(block);
+        if (last->is_token
+                && (var_value = ctx->getVariable(
+                        last->token->str_value.c_str()))) {
+            p.value = builder.CreateLoad(var_value->value);
+            p.type  = var_value->type;
+            p.do_not_destruct = 1;
+            p.block = block;
+        } else if (last->is_list
+                && (vlst->size() == 2)
+                && (vlst->at(0)->is_token)
+                && (!vlst->at(0)->token->str_value.compare("@"))
+                && (vlst->at(1)->is_token)
+                && (var_value = ctx->getVariable(
+                        vlst->at(1)->token->str_value.c_str()))) {
+            p.value = builder.CreateLoad(builder.CreateLoad(var_value->value));
+            p.type  = var_value->type->points_to;
+            p.do_not_destruct = 1;
+            p.block = block;
+        } else {
+            bool res =
+                Form::Proc::Inst::parse(gen,
+                    fn, block, last, get_address, false, NULL, &p
+                );
+            if (!res) {
+                return false;
+            }
         }
+
         type  = p.type;
         block = p.block;
+        builder.SetInsertPoint(block);
 
-        llvm::IRBuilder<> builder(block);
         llvm::Type *et = ctx->toLLVMType(type, (*newlist)[2], 
                                          false, false, false);
         if (!et) {

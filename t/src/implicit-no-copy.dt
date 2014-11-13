@@ -1,0 +1,37 @@
+(import cstdio)
+
+(def mys (struct intern ((a int) (b int) (c int))))
+
+(def init
+  (fn intern bool ((dst (ref mys)) (a int) (b int) (c int))
+    (setf (:@ dst a) a)
+    (setf (:@ dst b) b)
+    (setf (:@ dst c) c)
+    true))
+
+(def setf-copy (fn intern bool ((dst (p mys)) (src (p mys)))
+  (printf ".")
+  (setf (:@ dst a) (@:@ src a))
+  (setf (:@ dst b) (@:@ src b))
+  (setf (:@ dst c) (@:@ src c))
+  true))
+
+(def setf-assign (fn intern bool ((dst (p mys)) (src (p mys)))
+  (setf-copy dst src)))
+
+(def swap (fn extern void ((a (ref mys))
+                           (b (ref mys)))
+  (let ((temp \ (@ a)))
+    (setf a (@ b))
+    (setf b temp)
+    (return))))
+
+(def main (fn extern-c int (void)
+  (def a (var auto mys (init a 1 2 3)))
+  (def b (var auto mys (init b 1 2 4)))
+  (printf "Preswap\n")
+  (swap a b)
+  (printf "Postswap\n")
+  (printf "%d %d %d\n" (@: a a) (@: a b) (@: a c))
+  (printf "%d %d %d\n" (@: b a) (@: b b) (@: b c))
+  0))
