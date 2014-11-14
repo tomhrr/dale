@@ -116,7 +116,7 @@ over the type before calling this macro.
        (do (report-error mc T "type does not implement =")
            (return (nullptr DNode))))
   (qq do
-    (def != (fn extern bool ((a (ref (uq T))) (b (ref (uq T))))
+    (def != (fn extern bool ((a (ref (const (uq T)))) (b (ref (const (uq T)))))
       (not (= (@ a) (@ b)))))))
 
 #|
@@ -141,7 +141,7 @@ over the type before calling this macro.
        (do (report-error mc T "type does not implement <")
            (return (nullptr DNode))))
   (qq do
-    (def <= (fn extern bool ((a (ref (uq T))) (b (ref (uq T))))
+    (def <= (fn extern bool ((a (ref (const (uq T)))) (b (ref (const (uq T)))))
       (or (< (@ a) (@ b))
           (not (< (@ b) (@ a))))))))
 
@@ -191,7 +191,7 @@ over the type before calling this macro.
        (do (report-error mc T "type does not implement <")
            (return (nullptr DNode))))
   (qq do
-    (def >= (fn extern bool ((a (ref (uq T))) (b (ref (uq T))))
+    (def >= (fn extern bool ((a (ref (const (uq T)))) (b (ref (const (uq T)))))
       (or (not (< (@ a) (@ b))) (< (@ b) (@ a)))))))
 
 #|

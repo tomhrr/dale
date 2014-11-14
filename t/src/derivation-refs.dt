@@ -23,12 +23,12 @@
 (def setf-assign (fn intern bool ((dst (p mys)) (src (p mys)))
   (setf-copy dst src)))
 
-(def = (fn intern bool ((fst (ref mys)) (snd (ref mys)))
+(def = (fn intern bool ((fst (ref (const mys))) (snd (ref (const mys))))
   (and (= (@:@ fst a) (@:@ snd a))
   (and (= (@:@ fst b) (@:@ snd b))
        (= (@:@ fst c) (@:@ snd c))))))
 
-(def < (fn intern bool ((fst (ref mys)) (snd (ref mys)))
+(def < (fn intern bool ((fst (ref (const mys))) (snd (ref (const mys))))
   (or (< (@:@ fst a) (@:@ snd a))
   (or (< (@:@ fst b) (@:@ snd b))
       (< (@:@ fst c) (@:@ snd c))))))
