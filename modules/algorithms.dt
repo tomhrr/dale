@@ -458,8 +458,8 @@ the elements of those containers match.
         (for true (!= b1 e1) (do (setv b1 (successor b1))
                                  (setv b2 (successor b2)))
           (and (not (= (@ (source b1)) (@ (source b2))))
-               (return false))))
-      true))))
+               (return false)))
+      true)))))
 
 #|
 @concept-macro <
@@ -491,9 +491,7 @@ values, for the same reasons as `=`).
             (e2 \ (end (@ c2))))
         (for true (!= b1 e1) (do (setv b1 (successor b1))
                                  (setv b2 (successor b2)))
-          (let ((v1 \ (@ (source b1)))
-                (v2 \ (@ (source b2))))
-            (and (!= v1 v2)
-                 (return (< v1 v2))))))
+          (and (!= (@ (source b1)) (@ (source b2)))
+               (return (< (@ (source b1)) (@ (source b2)))))))
       true))))
 ))

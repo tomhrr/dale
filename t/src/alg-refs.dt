@@ -17,9 +17,9 @@
 
 (def setf-copy (fn intern bool ((dst (p mys)) (src (p (const mys))))
   (printf ".")
-  (setf (:@ dst a) (cast (@:@ src a) int))
-  (setf (:@ dst b) (cast (@:@ src b) int))
-  (setf (:@ dst c) (cast (@:@ src c) int))
+  (setf (:@ dst a) (@:@ src a))
+  (setf (:@ dst b) (@:@ src b))
+  (setf (:@ dst c) (@:@ src c))
   true))
 
 (def setf-assign (fn intern bool ((dst (p mys)) (src (p (const mys))))
@@ -88,6 +88,29 @@
 
     (def f (var auto \ (min a d)))
     (ra f)
-    (printf "Post min\n"))
+    (printf "Post min\n")
+
+    (copy (begin vec) (end vec) (begin vec2))
+    (printf "Post copy\n")
+
+    (copy (begin vec) (end vec) (begin vec2))
+    (printf "Post copy\n")
+    (for-each (begin vec2) (end vec2) (# ra))
+
+    (pop-back vec2)
+    (pop-back vec2)
+    (assign vec (begin vec2) (end vec2))
+    (printf "Post assign\n")
+    (for-each (begin vec2) (end vec2) (# ra))
+
+    (push-back vec2 c)
+    (push-back vec2 d)
+    (assign vec (begin vec2) (end vec2))
+    (printf "Post regen\n")
+    (def eq (var auto \ (= vec vec2)))
+    (printf "Eq: %d\n" (if eq 1 0))
+    (def lt (var auto \ (< vec vec2)))
+    (printf "Lt: %d\n" (if lt 1 0)))
+
   0))
 )

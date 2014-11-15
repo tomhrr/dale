@@ -18,7 +18,7 @@ chomp for @res;
 
 is_deeply(\@res,
 [
-'................Pre for-each',
+'........Pre for-each',
 '1 2 3',
 '1 2 4',
 '1 3 4',
@@ -34,6 +34,18 @@ is_deeply(\@res,
 'Post max',
 '.1 2 3',
 'Post min',
+'....Post copy',
+'....Post copy',
+'1 2 3',
+'1 2 4',
+'1 3 4',
+'2 3 4',
+'..Post assign',
+'1 2 3',
+'1 2 4',
+'......Post regen',
+'Eq: 1',
+'Lt: 1',
 ],
     'Got expected results');
 

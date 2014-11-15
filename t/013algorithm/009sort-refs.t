@@ -20,7 +20,7 @@ chomp for @res;
 # fifteen copies, representing five swaps.
 is_deeply(\@res,
 [
-'........Presort',
+'....Presort',
 '...............Postsort',
 '1 2 3',
 '1 2 4',

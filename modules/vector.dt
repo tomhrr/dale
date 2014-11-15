@@ -55,6 +55,7 @@ must also implement `LessThanComparable`.
                   (qq std.concepts.implements (uq T) LessThanComparable))
       (return (qq std.concepts.implements (uq T) LessThanComparable))
       0)
+  (prefer-ref-bindings (uq T))
   
   (let ((typename (array-of 250 char))
         (etypename (array-of 250 char)))
@@ -319,11 +320,12 @@ must also implement `LessThanComparable`.
     @return-type    bool
     |#
     (def push-back
-      (fn extern bool ((vecp (ref (uq typenode))) (value (uq T)))
+      (fn extern bool ((vecp  (ref (uq typenode)))
+                       (value ((uq tpw) (uq T))))
         (if (= (@:@ vecp capacity) (@:@ vecp size))
             (reserve (@ vecp) (cast 1 size))
             true)
-        (setf (@:@ vecp last-element) value)
+        (setf (@:@ vecp last-element) ((uq tvw) value))
         (setf (:@ vecp last-element)
               (p+ (@:@ vecp last-element) 1))
         (setf (:@ vecp size) (+ (@:@ vecp size) (cast 1 size)))
@@ -467,8 +469,8 @@ must also implement `LessThanComparable`.
     |#
     (def sink
       (fn extern bool ((iter (Iterator (Vector (uq T))))
-                       (v (uq T)))
-        (setf (@ (: iter element)) v)))
+                       (v    ((uq tpw) (uq T))))
+        (setf (@ (: iter element)) ((uq tvw) v))))
 
     #|
     @fn successor

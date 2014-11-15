@@ -55,6 +55,7 @@ must also implement `LessThanComparable`.
                   (qq std.concepts.implements (uq T) LessThanComparable))
       (return (qq std.concepts.implements (uq T) LessThanComparable))
       0)
+  (prefer-ref-bindings (uq T))
 
   (and (!= 0 (@:@ N is-list))
        (do (report-error mc N "second argument must be an atom")
@@ -300,8 +301,8 @@ must also implement `LessThanComparable`.
     @return-type    bool
     |#
     (def sink (fn extern bool ((iter (Iterator (Array (uq T) (uq N))))
-                               (v (uq T)))
-      (setf (@: iter element) v)))
+                               (v ((uq tpw) (uq T))))
+      (setf (@: iter element) ((uq tvw) v))))
 
     #|
     @fn successor
@@ -476,8 +477,8 @@ must also implement `LessThanComparable`.
         (@: riter element)))
 
     (def sink (fn extern bool ((iter (ReverseIterator (Array (uq T) (uq N))))
-                               (v (uq T)))
-      (setf (@: iter element) v)))
+                               (v ((uq tpw) (uq T))))
+      (setf (@: iter element) ((uq tvw) v))))
     
     (def successor (fn extern (ReverseIterator (Array (uq T) (uq N)))
                          ((riter (ReverseIterator (Array (uq T) (uq N)))))
@@ -538,7 +539,7 @@ must also implement `LessThanComparable`.
             (e2 \ (end   (@ dst))))
         (for true (!= b1 e1) (do (setv b1 (successor b1))
                                  (setv b2 (successor b2)))
-          (sink b2 (@source b1))))
+          (sink b2 (@ (source b1)))))
       true))
 
     (def setf-assign (fn extern bool ((dst (p (uq typenode)))
@@ -567,7 +568,7 @@ must also implement `LessThanComparable`.
     @return-type    T
     |#
     (def front (fn extern (uq T) ((arrp (ref (uq typenode))))
-      (@source (begin (@ arrp)))))
+      (@ (source (begin (@ arrp))))))
 
     #|
     @fn back
@@ -580,7 +581,7 @@ must also implement `LessThanComparable`.
     @return-type    T
     |#
     (def back (fn extern (uq T) ((arrp (ref (uq typenode))))
-      (@source (rbegin (@ arrp)))))
+      (@ (source (rbegin (@ arrp))))))
 
     #|
     fn $

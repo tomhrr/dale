@@ -55,6 +55,7 @@ Expands to a `List` definition over the relevant type.
 @param T    The type node.
 |#
 (def-concept-macro List extern ((T Type))
+  (prefer-ref-bindings (uq T))
   (let ((typename     (array-of 250 char))
         (nodetypename (array-of 250 char))
         (etypename    (array-of 250 char)))
@@ -67,12 +68,12 @@ Expands to a `List` definition over the relevant type.
          (return (nullptr DNode)))
     (and (not (make-type-display-string mc "List" T etypename))
          (return (nullptr DNode)))
-    
+
     (def typenode     (var auto (p DNode) (mnfv mc typename)))
     (def nodetypenode (var auto (p DNode) (mnfv mc nodetypename)))
-    
+
     (register-type mc typename etypename)
-    
+
     (qq do
 
     (using-namespace std.macros
@@ -94,7 +95,7 @@ Expands to a `List` definition over the relevant type.
     @linkage extern
     |#
     (def (uq typenode)
-      (struct extern 
+      (struct extern
           ((first (p (uq nodetypenode)))
            (last  (p (uq nodetypenode))))))
 
@@ -180,7 +181,7 @@ Expands to a `List` definition over the relevant type.
     #|
     @macro size-type
 
-    Expands to the underlying size type of the list. 
+    Expands to the underlying size type of the list.
 
     @param lst      A type node.
     @param-type     (p (List T))
@@ -193,7 +194,7 @@ Expands to a `List` definition over the relevant type.
     #|
     @macro difference-type
 
-    Expands to the underlying iterator difference type of the list. 
+    Expands to the underlying iterator difference type of the list.
 
     @param lst      A type node.
     @param-type     (p (List T))
@@ -244,9 +245,10 @@ Expands to a `List` definition over the relevant type.
     @return-type    bool
     |#
     (def push-back
-      (fn extern bool ((lst (ref (uq typenode))) (value (uq T)))
+      (fn extern bool ((lst (ref (uq typenode)))
+                       (value ((uq tpw) (uq T))))
         (let ((new-node \ (malloc' 1 (uq nodetypenode))))
-          (setf (:@ new-node element) value)
+          (setf (:@ new-node element) ((uq tvw) value))
           (setf (:@ new-node next) (nullptr (uq nodetypenode)))
           (setf (:@ new-node prev) (nullptr (uq nodetypenode)))
           (and (null (@:@ lst first))
@@ -299,9 +301,10 @@ Expands to a `List` definition over the relevant type.
     @return-type    bool
     |#
     (def push-front
-      (fn extern bool ((lst (ref (uq typenode))) (value (uq T)))
+      (fn extern bool ((lst (ref (uq typenode)))
+                       (value ((uq tpw) (uq T))))
         (let ((new-node \ (malloc' 1 (uq nodetypenode))))
-          (setf (:@ new-node element) value)
+          (setf (:@ new-node element) ((uq tvw) value))
           (setf (:@ new-node next) (nullptr (uq nodetypenode)))
           (setf (:@ new-node prev) (nullptr (uq nodetypenode)))
           (and (null (@:@ lst first))
@@ -444,8 +447,8 @@ Expands to a `List` definition over the relevant type.
     |#
     (def sink
       (fn extern bool ((iter (Iterator (List (uq T))))
-                       (v (uq T)))
-        (setf (:@ (@: iter node) element) v)))
+                       (v ((uq tpw) (uq T))))
+        (setf (:@ (@: iter node) element) ((uq tvw) v))))
 
     #|
     @fn successor
@@ -516,7 +519,7 @@ Expands to a `List` definition over the relevant type.
     |#
     (def rbegin
       (fn extern (ReverseIterator (List (uq T))) ((lst (ref (uq typenode))))
-        ((ReverseIterator (List (uq T))) 
+        ((ReverseIterator (List (uq T)))
          ((node (@:@ lst last))))))
 
     #|
@@ -531,7 +534,7 @@ Expands to a `List` definition over the relevant type.
     |#
     (def rend
       (fn extern (ReverseIterator (List (uq T))) ((lst (ref (uq typenode))))
-        ((ReverseIterator (List (uq T))) 
+        ((ReverseIterator (List (uq T)))
          ((node (nullptr (uq nodetypenode)))))))
 
     (def value-type
@@ -552,20 +555,20 @@ Expands to a `List` definition over the relevant type.
 
     (def sink
       (fn extern bool ((iter (ReverseIterator (List (uq T))))
-                       (sinker (uq T)))
-        (setf (:@ (@: iter node) element) sinker)
+                       (sinker ((uq tpw) (uq T))))
+        (setf (:@ (@: iter node) element) ((uq tvw) sinker))
         true))
 
     (def successor
-      (fn extern (ReverseIterator (List (uq T))) 
+      (fn extern (ReverseIterator (List (uq T)))
                     ((iter (ReverseIterator (List (uq T)))))
-        ((ReverseIterator (List (uq T))) 
+        ((ReverseIterator (List (uq T)))
           ((node (@:@ (@: iter node) prev))))))
 
     (def predecessor
-      (fn extern (ReverseIterator (List (uq T))) 
+      (fn extern (ReverseIterator (List (uq T)))
                     ((iter (ReverseIterator (List (uq T)))))
-        ((ReverseIterator (List (uq T))) 
+        ((ReverseIterator (List (uq T)))
           ((node (@:@ (@: iter node) next))))))
 
     (def =
@@ -593,7 +596,7 @@ Expands to a `List` definition over the relevant type.
     @return-type    (Iterator (List T))
     |#
     (def insert
-      (fn extern (Iterator (List (uq T))) 
+      (fn extern (Iterator (List (uq T)))
                     ((lst   (ref (uq typenode)))
                      (iter  (Iterator (List (uq T))))
                      (value (uq T)))
@@ -621,7 +624,7 @@ Expands to a `List` definition over the relevant type.
     @return-type    (Iterator (List T))
     |#
     (def erase
-      (fn extern (Iterator (List (uq T))) 
+      (fn extern (Iterator (List (uq T)))
                     ((lst   (ref (uq typenode)))
                      (iter  (Iterator (List (uq T)))))
         (and (empty (@ lst))
@@ -688,7 +691,7 @@ Expands to a `List` definition over the relevant type.
             (e2 \ (end   (@ dst))))
         (for true (!= b1 e1) (do (setv b1 (successor b1))
                                  (setv b2 (successor b2)))
-          (sink b2 (@source b1))))
+          (sink b2 (@ (source b1)))))
       true))
 
     (def setf-assign (fn extern bool ((dst (p (uq typenode)))

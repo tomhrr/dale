@@ -64,6 +64,7 @@ must also implement `LessThanComparable`.
                   (qq std.concepts.implements (uq T) LessThanComparable))
       (return (qq std.concepts.implements (uq T) LessThanComparable))
       0)
+  (prefer-ref-bindings (uq T))
 
   (let ((typename      (array-of 250 char))
         (etypename     (array-of 250 char))
@@ -534,22 +535,22 @@ must also implement `LessThanComparable`.
     |#
     (def insert
       (fn extern bool ((setp   (ref (uq typenode)))
-                       (newval (uq T)))
+                       (newval ((uq tpw) (uq T))))
         (if (empty (@ setp))
             (do (setf (:@ (@ (@:@ setp begin-node)) value)
-                      newval)
+                      ((uq tvw) newval))
                 (setf (:@ (@ (@:@ setp begin-node)) up)
                       (nullptr (uq nodetypenode)))
                 (return true))
             (let ((newnodep \ (malloc' 1 (uq nodetypenode))))
-              (setf (:@ newnodep value) newval)
+              (setf (:@ newnodep value) ((uq tvw) newval))
               (setf (:@ newnodep up)    (nullptr (uq nodetypenode)))
               (setf (:@ newnodep left)  (nullptr (uq nodetypenode)))
               (setf (:@ newnodep right) (nullptr (uq nodetypenode)))
               (let ((cn    \ (@ (@:@ setp begin-node)))
                     (newnp \ (nullptr (p (uq nodetypenode)))))
-                (while (!= newval (@:@ cn value))
-                  (if (< newval (@:@ cn value))
+                (while (!= ((uq tvw) newval) (@:@ cn value))
+                  (if (< ((uq tvw) newval) (@:@ cn value))
                       (do (if (null (@:@ cn left))
                               (do (setv newnp (:@ cn left))
                                   (break))
@@ -562,7 +563,7 @@ must also implement `LessThanComparable`.
                 (if (not (null newnp))
                     (do (setf newnp newnodep)
                         (setf (:@ newnodep up) cn) 0)
-                    (do (setf (:@ cn value) newval) 0))
+                    (do (setf (:@ cn value) ((uq tvw) newval)) 0))
                 (return true))))))
 
     #|
@@ -581,12 +582,12 @@ must also implement `LessThanComparable`.
     (def find
       (fn extern (Iterator (Set (uq T))) 
                           ((setp   (ref (uq typenode)))
-                           (value  (uq T)))
+                           (value  ((uq tpw) (uq T))))
         (let ((cn \ (@ (@:@ setp begin-node))))
             (and (null cn)
                  (return (end (@ setp))))
-            (while (!= value (@:@ cn value))
-              (if (< value (@:@ cn value))
+            (while (!= ((uq tvw) value) (@:@ cn value))
+              (if (< ((uq tvw) value) (@:@ cn value))
                   (do (if (null (@:@ cn left))
                           (return (end (@ setp)))
                           (setv cn (@:@ cn left))))
@@ -710,8 +711,8 @@ must also implement `LessThanComparable`.
     |#
     (def erase
       (fn extern bool ((setp (ref (uq typenode)))
-                       (v (uq T)))
-        (let ((iter \ (find (@ setp) v)))
+                       (v ((uq tpw) (uq T))))
+        (let ((iter \ (find (@ setp) ((uq tvw) v))))
           (if (= (end (@ setp)) iter)
                  false
                  (erase iter)))))
@@ -731,12 +732,12 @@ must also implement `LessThanComparable`.
     (def lower-bound
       (fn extern (Iterator (Set (uq T))) 
                         ((setp (ref (uq typenode)))
-                         (value (uq T)))
+                         (value ((uq tpw) (uq T))))
         (let ((cn \ (@ (@:@ setp begin-node))))
             (and (null cn)
                  (return (end (@ setp))))
-            (while (!= value (@:@ cn value))
-              (if (< value (@:@ cn value))
+            (while (!= ((uq tvw) value) (@:@ cn value))
+              (if (< ((uq tvw) value) (@:@ cn value))
                   (do (if (null (@:@ cn left))
                           (break)
                           (setv cn (@:@ cn left))))
@@ -763,10 +764,10 @@ must also implement `LessThanComparable`.
     (def upper-bound
       (fn extern (Iterator (Set (uq T))) 
                         ((setp (ref (uq typenode)))
-                         (value (uq T)))
-        (let ((lb \ (lower-bound (@ setp) value)))
+                         (value ((uq tpw) (uq T))))
+        (let ((lb \ (lower-bound (@ setp) ((uq tvw) value))))
           (if (= lb (end (@ setp)))                   lb
-          (if (and (!= value (@source lb))
+          (if (and (!= ((uq tvw) value) (@source lb))
                    (= (successor lb) (end (@ setp)))) (end (@ setp))
                                                       (successor lb))))))
 
@@ -786,8 +787,8 @@ must also implement `LessThanComparable`.
     |#
     (def count
       (fn extern size ((setp (ref (uq typenode)))
-                       (v (uq T)))
-        (let ((iter \ (find (@ setp) v)))
+                       (v ((uq tpw) (uq T))))
+        (let ((iter \ (find (@ setp) ((uq tvw) v))))
           (cast (if (= (end (@ setp)) iter) 0 1) size))))
 
     #|
