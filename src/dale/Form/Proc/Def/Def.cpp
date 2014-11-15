@@ -541,7 +541,12 @@ bool parse(Generator *gen,
                     or_setf2->llvm_function,
                     llvm::ArrayRef<llvm::Value*>(call_args2));
             } else {
-                if (!ctx->er->assertTypeEquality("def", node, p.type, type, 1)) {
+                int old_const = p.type->is_const;
+                p.type->is_const = 0;
+                bool res = ctx->er->assertTypeEquality("def", node,
+                                                       p.type, type, 1);
+                p.type->is_const = old_const;
+                if (!res) {
                     return false;
                 }
                 builder2.CreateStore(p.value, new_ptr);
