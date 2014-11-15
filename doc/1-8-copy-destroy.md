@@ -12,8 +12,8 @@ relevant type as its single argument.
 
 A `setf-copy` function is defined like so:
 
-        (def setf-copy (fn {linkage} bool ((dst {pointer-to-type})
-                                           (src {source-type}))
+        (def setf-copy (fn {linkage} bool ((dst (p {source-type}))
+                                           (src (const {source-type})))
           {body}))
 
 Such functions will be used in lieu of the default `setf` behaviour
