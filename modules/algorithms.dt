@@ -437,6 +437,31 @@ into the cleared container.
         true))))
 
 #|
+@concept-macro foldl
+
+Takes an input iterator type as its arguments.  Expands to a fold-left
+function that takes a binary operation function pointer, an initial
+value, and a pair of input iterators as its arguments.
+
+@param Ti   The input iterator type.
+|#
+(def-concept-macro foldl extern ((Ti InputIterator))
+  (qq do
+    (def foldl
+      (fn extern (value-type (nullptr (uq Ti)))
+                 ((fun (p (fn (value-type (nullptr (uq Ti)))
+                              ((a (const (value-type (nullptr (uq Ti)))))
+                               (b (const (value-type (nullptr (uq Ti)))))))))
+                  (init (const (value-type (nullptr (uq Ti)))))
+                  (begin (uq Ti))
+                  (end (uq Ti)))
+        (def current (var auto (value-type (nullptr (uq Ti))) init))
+        (while (!= begin end)
+          (setv current (funcall fun current (@ (source begin))))
+          (setv begin (successor begin)))
+        current))))
+
+#|
 @concept-macro =
 
 Takes a container type as its argument. Expands to a function that

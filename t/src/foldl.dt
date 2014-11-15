@@ -1,0 +1,21 @@
+(import cstdio)
+(import concepts)
+(import algorithms)
+(import vector)
+
+(using-namespace std.concepts
+
+(instantiate Vector int)
+(instantiate foldl (Iterator (Vector int)))
+
+(def main (fn extern-c int (void)
+  (let ((vec  (Vector int)))
+    (push-back vec 1)
+    (push-back vec 2)
+    (push-back vec 3)
+    (push-back vec 4)
+    (let ((res \ (foldl (# + int int) 0 (begin vec) (end vec))))
+      (printf "%d\n" res)))
+
+  0))
+)
