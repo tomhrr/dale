@@ -63,6 +63,7 @@ must also implement `LessThanComparable`.
                   (qq std.concepts.implements (uq Tk) LessThanComparable))
       (return (qq std.concepts.implements (uq Tk) LessThanComparable))
       0)
+  (prefer-ref-bindings (uq Tk))
  
   (let ((typename       (array-of 250 char))
         (etypename      (array-of 250 char))
@@ -540,9 +541,9 @@ must also implement `LessThanComparable`.
     |#
     (def find (fn extern (Iterator (Map (uq Tk) (uq Tv))) 
                               ((mapp (ref (uq typenode)))
-                               (key  (uq Tk)))
+                               (key  ((uq tpw) (uq Tk))))
       (let ((temp (uq pairtypenode)))
-        (setf (: temp first) key)
+        (setf (: temp first) ((uq tvw) key))
         (let ((myiter \ (find (@ (:@ mapp set)) temp))
               (itn    (Iterator (Map (uq Tk) (uq Tv)))))
           (setf (: itn mapp) mapp)
@@ -576,8 +577,8 @@ must also implement `LessThanComparable`.
     @return-type    bool
     |#
     (def erase (fn extern bool ((mapp (ref (uq typenode)))
-                                (key (uq Tk)))
-      (erase (@: (find (@ mapp) key) setiter))))
+                                (key ((uq tpw) (uq Tk))))
+      (erase (@: (find (@ mapp) ((uq tvw) key)) setiter))))
 
     #|
     @fn count
@@ -594,8 +595,8 @@ must also implement `LessThanComparable`.
     @return-type    size
     |#
     (def count (fn extern size ((mapp (ref (uq typenode)))
-                                (key (uq Tk)))
-      (let ((f \ (find (@ mapp) key)))
+                                (key ((uq tpw) (uq Tk))))
+      (let ((f \ (find (@ mapp) ((uq tvw) key))))
         (cast (if (= f (end (@ mapp))) 0 1) size))))
 
     #|
@@ -612,9 +613,9 @@ must also implement `LessThanComparable`.
     |#
     (def lower-bound (fn extern (Iterator (Map (uq Tk) (uq Tv)))
                                   ((mapp (ref (uq typenode)))
-                                   (key  (uq Tk)))
+                                   (key ((uq tpw) (uq Tk))))
       (let ((temp (uq pairtypenode)))
-        (setf (: temp first) key)
+        (setf (: temp first) ((uq tvw) key))
         (let ((lb \ (lower-bound (@ (:@ mapp set)) temp)))
           ((Iterator (Map (uq Tk) (uq Tv))) ((mapp mapp)
                               (setiter lb)))))))
@@ -633,9 +634,9 @@ must also implement `LessThanComparable`.
     |#
     (def upper-bound (fn extern (Iterator (Map (uq Tk) (uq Tv)))
                                   ((mapp (ref (uq typenode)))
-                                   (key  (uq Tk)))
+                                   (key  ((uq tpw) (uq Tk))))
       (let ((temp (uq pairtypenode)))
-        (setf (: temp first) key)
+        (setf (: temp first) ((uq tvw) key))
         (let ((lb \ (upper-bound (@ (:@ mapp set)) temp)))
           ((Iterator (Map (uq Tk) (uq Tv))) ((mapp mapp)
                               (setiter lb)))))))
