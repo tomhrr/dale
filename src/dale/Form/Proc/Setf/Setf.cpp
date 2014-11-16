@@ -76,6 +76,8 @@ bool parse(Generator *gen,
 
     llvm::IRBuilder<> builder(pr_variable.block);
     ParseResult pr_value;
+    pr_value.retval = pr_variable.value;
+    pr_value.retval_type = pr_variable.type;
     Element::Variable *var_value = NULL;
     symlist *vlst = val_node->list;
 
@@ -112,6 +114,11 @@ bool parse(Generator *gen,
 
         if (!res) {
             return false;
+        }
+        if (pr_value.retval_used) {
+            pr->block = pr_value.block;
+            pr->type = ctx->tr->getBasicType(Type::Void);
+            return true;
         }
     }
 
