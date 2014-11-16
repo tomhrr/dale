@@ -1,0 +1,71 @@
+(import cstdio)
+(import derivations)
+(import concepts)
+(import algorithms)
+(import vector)
+
+(using-namespace std.concepts
+
+(def mys (struct intern ((a int) (b int) (c int))))
+
+(def init
+  (fn intern bool ((dst (ref mys)) (a int) (b int) (c int))
+    (setf (:@ dst a) a)
+    (setf (:@ dst b) b)
+    (setf (:@ dst c) c)
+    true))
+
+(def setf-copy (fn intern bool ((dst (p mys)) (src (p (const mys))))
+  (printf ".")
+  (setf (:@ dst a) (@:@ src a))
+  (setf (:@ dst b) (@:@ src b))
+  (setf (:@ dst c) (@:@ src c))
+  true))
+
+(def setf-assign (fn intern bool ((dst (p mys)) (src (p (const mys))))
+  (setf-copy dst src)))
+
+(implement PreferRefs mys)
+(implement Type mys)
+(implement Struct mys)
+(instantiate swap mys)
+
+(mfor Op (= != < <= > >=)
+  (instantiate Op mys))
+(mfor C (Assignable EqualityComparable LessThanComparable)
+  (implement C mys))
+
+(mfor Cm (Vector)
+  (instantiate Cm mys))
+(instantiate foldl-refs (Iterator (Vector mys)))
+
+(def ra (fn intern void ((m (ref mys)))
+  (printf "%d %d %d\n" (@:@ m a) (@:@ m b) (@:@ m c))
+  (return)))
+
+(def + (fn intern (retval mys) ((a (ref (const mys)))
+                                (b (ref (const mys))))
+  (setf (:@ retval a) (+ (@:@ a a) (@:@ b a)))
+  (setf (:@ retval b) (+ (@:@ a b) (@:@ b b)))
+  (setf (:@ retval c) (+ (@:@ a c) (@:@ b c)))
+  (return)))
+
+(def main (fn extern-c int (void)
+  (def a (var auto mys (init a 1 2 3)))
+  (def b (var auto mys (init b 1 2 4)))
+  (def c (var auto mys (init c 1 3 4)))
+  (def d (var auto mys (init d 2 3 4)))
+
+  (let ((vec2 (Vector mys)))
+    (push-back vec2 a)
+    (push-back vec2 b)
+    (push-back vec2 c)
+    (push-back vec2 d)
+    (printf "prefold\n")
+    (def res (var auto \ (foldl (# + mys mys) a (begin vec2) (end vec2))))
+    (printf "postfold\n")
+    (ra res)
+    0)
+
+  0))
+)

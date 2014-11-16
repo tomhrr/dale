@@ -461,6 +461,22 @@ value, and a pair of input iterators as its arguments.
           (setv begin (successor begin)))
         current))))
 
+(def-concept-macro foldl-refs extern ((Ti InputIterator))
+  (qq do
+    (def foldl
+      (fn extern (retval (value-type (nullptr (uq Ti))))
+                 ((fun (p (fn (retval (value-type (nullptr (uq Ti))))
+                              ((a (ref (const (value-type (nullptr (uq Ti))))))
+                               (b (ref (const (value-type (nullptr (uq Ti))))))))))
+                  (init (ref (const (value-type (nullptr (uq Ti))))))
+                  (begin (uq Ti))
+                  (end (uq Ti)))
+        (setf retval (@ init))
+        (while (!= begin end)
+          (setf retval (funcall fun (@ retval) (@ (source begin))))
+          (setv begin (successor begin)))
+        (return)))))
+
 #|
 @concept-macro =
 
