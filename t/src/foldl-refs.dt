@@ -37,7 +37,7 @@
 
 (mfor Cm (Vector)
   (instantiate Cm mys))
-(instantiate foldl-refs (Iterator (Vector mys)))
+(instantiate foldl (Iterator (Vector mys)))
 
 (def ra (fn intern void ((m (ref mys)))
   (printf "%d %d %d\n" (@:@ m a) (@:@ m b) (@:@ m c))
