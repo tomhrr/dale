@@ -82,7 +82,7 @@ must also implement `LessThanComparable`.
     (using-namespace std.macros
     (using-namespace std.concepts
 
-    #| 
+    #|
     @struct (Array T N)
 
     The core array structure type.
@@ -576,7 +576,7 @@ must also implement `LessThanComparable`.
     Returns the value of the last element in the array.
 
     @param lst      An array pointer.
-    @param-type     (p (Arrat T N))
+    @param-type     (p (Array T N))
     @linkage        extern
     @return-type    T
     |#
@@ -584,7 +584,7 @@ must also implement `LessThanComparable`.
       (@ (source (rbegin (@ arrp))))))
 
     #|
-    fn $
+    @fn $
 
     @param arrp     An array pointer.
     @param-type     (p (Array T N))
@@ -600,7 +600,7 @@ must also implement `LessThanComparable`.
             (cast index size))))
 
     #|
-    fn $
+    @fn $
 
     @param arrp     An array pointer.
     @param-type     (p (Array T N))
