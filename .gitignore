@@ -25,3 +25,4 @@ dalec.core
 .ninja_log
 build.ninja
 rules.ninja
+module-to-markdown
