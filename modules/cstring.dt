@@ -10,7 +10,7 @@ Bindings to `string.h`.
 @fn strcpy
 |#
 (def strcpy
-  (fn extern-c int ((dest (p char)) (source (p (const char))))))
+  (fn extern-c int ((dest (p char)) (source (const (p (const char)))))))
 
 #|
 @fn strncpy
