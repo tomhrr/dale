@@ -168,12 +168,12 @@
   (def linkage (var auto (p char) (malloc' 32 char)))
   (def returns (var auto (p char) (malloc' 255 char)))
   (setf ($ info 0) #\NULL)
-  (def n (var auto \ 
-    (getelement buf (if (= type FN) 
-                        "@fn " 
-                    (if (= type MACRO) 
-                        "@macro " 
-                        "@concept-macro ")) 
+  (def n (var auto \
+    (getelement buf (if (= type FN)
+                        "@fn "
+                    (if (= type MACRO)
+                        "@macro "
+                        "@concept-macro "))
                 "\n" name)))
   (and (not n) (err "no fn name found"))
 
@@ -219,7 +219,7 @@
                      (def paramtype (var auto \ (malloc' 255 char)))
                      (def paraminfo (var auto \ (malloc' 255 char)))
                      (strcpy paramname parambuf)
-                     (setv mybufp (p+ (strstr mybufp "@param ") 
+                     (setv mybufp (p+ (strstr mybufp "@param ")
                                       (+ (cast 7 size)
                                          (strlen paramname))))
                      (setv n (getelement mybufp " " "\n" paraminfo))
@@ -280,8 +280,7 @@
                 (handle-fn buf CMACRO)
                 true)))))))
 
-  (printf "\n\n### Structs\n\n")
-
+  (and (> structdefi 0) (do (printf "\n\n### Structs\n\n") true))
   (let ((i \ 0))
     (for true (< i structdefi) (incv i)
       (def linkage (var auto \ (@: (@$ structdefs i) linkage)))
@@ -305,8 +304,7 @@
       (printf "%s\n" (@: (@$ structdefs i) info))
       0))
 
-  (printf "\n\n### Functions\n\n")
-
+  (and (> fndefi 0) (do (printf "\n\n### Functions\n\n") true))
   (let ((i \ 0))
     (for true (< i fndefi) (incv i)
       (def linkage (var auto \ (@: (@$ fndefs i) linkage)))
@@ -322,17 +320,21 @@
           (do (printf "\n\n")
               (while (and (not (null params))
                           (not (null (@:@ params name))))
-                (printf "  * `(%s %s)`: %s\n"
-                        (@:@ params name)
-                        (rmws (@:@ params type))
-                        (rmws (@:@ params info)))
+                (if (not (null (@:@ params type)))
+                    (printf "  * `(%s %s)`: %s\n"
+                            (@:@ params name)
+                            (rmws (@:@ params type))
+                            (rmws (@:@ params info)))
+                    (printf "  * `%s`: %s\n"
+                            (@:@ params name)
+                            (rmws (@:@ params info))))
                 (setv params (p+ params 1)))
               (printf "\n")))
       (printf "\n")
       (printf "%s\n" (@: (@$ fndefs i) info))
       0))
 
-  (printf "\n\n### Concept macros\n\n")
+  (and (> cmacdefi 0) (do (printf "\n\n### Concept macros\n\n") true))
   (let ((i \ 0))
     (for true (< i cmacdefi) (incv i)
       (def linkage (var auto \ (@: (@$ cmacdefs i) linkage)))
@@ -361,7 +363,7 @@
       (printf "%s\n" (@: (@$ cmacdefs i) info))
       0))
 
-  (printf "\n\n### Macros\n\n")
+  (and (> macdefi 0) (do (printf "\n\n### Macros\n\n") true))
   (let ((i \ 0))
     (for true (< i macdefi) (incv i)
       (def linkage (var auto \ (@: (@$ macdefs i) linkage)))
@@ -390,4 +392,4 @@
       (printf "%s\n" (@: (@$ macdefs i) info))
       0))
 
-  0)) 
+  0))
