@@ -299,17 +299,17 @@ install (FILES man/dalec.1.gz DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
 
 # Dale programs.
 
-add_custom_command (OUTPUT  module-to-markdown
-                    COMMAND ${CMAKE_BINARY_DIR}/dalec
-                            ${CMAKE_SOURCE_DIR}/eg/module-to-markdown/module-to-markdown.dt
-                            -o module-to-markdown)
-add_custom_target (programs ALL DEPENDS module-to-markdown)
-add_dependencies (programs dalec)
-
-# Module documentation.
-
-add_custom_target (doc COMMAND ${CMAKE_SOURCE_DIR}/generate-docs ${CMAKE_SOURCE_DIR})
-add_dependencies (doc dalec programs)
+#add_custom_command (OUTPUT  module-to-markdown
+#                    COMMAND ${CMAKE_BINARY_DIR}/dalec
+#                            ${CMAKE_SOURCE_DIR}/eg/module-to-markdown/module-to-markdown.dt
+#                            -o module-to-markdown)
+#add_custom_target (programs ALL DEPENDS module-to-markdown)
+#add_dependencies (programs dalec)
+#
+## Module documentation.
+#
+#add_custom_target (doc COMMAND ${CMAKE_SOURCE_DIR}/generate-docs ${CMAKE_SOURCE_DIR})
+#add_dependencies (doc dalec programs)
 
 # Compile and install standard library files.
 
