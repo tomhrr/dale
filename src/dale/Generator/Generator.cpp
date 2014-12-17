@@ -120,11 +120,10 @@ int isValidModuleName(std::string *str)
 }
 
 Element::Type *type_dnode = NULL;
+llvm::Function *pool_free_fn = NULL;
 void (*pool_free_fptr)(MContext *) = NULL;
 
 int nesting = 0;
-int g_no_acd;
-int g_nodrt;
 
 std::vector<llvm::Value *> two_zero_indices;
 
@@ -433,13 +432,7 @@ int Generator::run(std::vector<const char *> *filenames,
                    int mydebug,
                    int nodrt)
 {
-    if (static_mods_all) {
-        nodrt = 1;
-    }
-
     has_defined_extern_macro = 0;
-    g_no_acd = no_acd;
-    g_nodrt  = nodrt;
     no_add_common_declarations = no_acd;
     no_drt = nodrt;
 
@@ -612,6 +605,10 @@ int Generator::run(std::vector<const char *> *filenames,
         if (remove_macros) {
             ctx->eraseLLVMMacros();
             has_defined_extern_macro = 0;
+        }
+
+        if (pool_free_fptr) {
+            ee->freeMachineCodeForFunction(pool_free_fn);
         }
 
         if (last_module) {
@@ -1831,11 +1828,10 @@ void Generator::setPdnode()
 void Generator::setPoolfree()
 {
     if (!pool_free_fptr) {
+        pool_free_fn = ctx->getFunction("pool-free", NULL, 0)->llvm_function;
         pool_free_fptr =
             (void (*)(MContext *mcp))
-                ee->getPointerToFunction(
-                    ctx->getFunction("pool-free", NULL, 0)->llvm_function
-                );
+                ee->getPointerToFunction(pool_free_fn);
     }
 }
 
