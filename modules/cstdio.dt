@@ -54,16 +54,18 @@ The standard error handle.
 #|
 @fn init-channels
 
-Initialises `stdin`, `stdout` and `stderr`. Used implicitly by the
-compiler, when available; there is almost certainly a better/safer way
-to do this.
+This function is used implicitly by the compiler to initialise
+`stdin`, `stdout` and `stderr`.  Previously, it would set those
+handles by using `fdopen`.  However, this isn't safe: for example,
+interleaved calls to `printf` and `puts` would yield
+incorrectly-ordered output when fully buffered.  Consequently, this
+depends on those handles being present as variables and already set.
+This is likely not true for all platforms, given that the C standard
+does not require the same.
 
 |#
 (def init-channels
   (fn extern int (void)
-    (setv stdin  (fdopen 0 "r"))
-    (setv stdout (fdopen 1 "w"))
-    (setv stderr (fdopen 2 "w"))
     0)) 
 
 #|
