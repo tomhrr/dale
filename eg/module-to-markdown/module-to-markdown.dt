@@ -79,6 +79,133 @@
 (std.concepts.implement LessThanComparable proc-def)
 (std.concepts.instantiate Vector proc-def)
 
+(def node (struct opaque))
+(def (Vector node) (struct opaque))
+(def node
+  (struct intern ((is-list   bool)
+                  (token-str (p char))
+                  (list-node (p (Vector node))))))
+
+(std.concepts.implement Struct node)
+(std.concepts.implement PreferRefs node)
+(std.concepts.instantiate swap node)
+(std.concepts.implement Assignable node)
+
+(def = (fn intern bool ((a (ref (const node)))
+                        (b (ref (const node))))
+  (p= (@:@ a token-str) (@:@ b token-str))))
+
+(std.concepts.instantiate != node)
+
+(def < (fn intern bool ((a (ref (const node)))
+                        (b (ref (const node))))
+  (p< (@:@ a token-str) (@:@ b token-str))))
+
+(std.concepts.instantiate <= node)
+(std.concepts.instantiate >  node)
+(std.concepts.instantiate >= node)
+
+(std.concepts.implement EqualityComparable node)
+(std.concepts.implement LessThanComparable node)
+(std.concepts.instantiate Vector node)
+
+;; S-expression parsing.
+
+; Print a node to standard output.
+(def print-node (fn intern void ((nd (p node)))
+  (and (not (@:@ nd is-list))
+       (do (printf "%s " (@:@ nd token-str))
+           (return)))
+  (printf "(")
+  (let ((b \ (begin (@ (@:@ nd list-node))))
+        (e \ (end   (@ (@:@ nd list-node)))))
+    (for true (!= b e) (setv b (successor b))
+      (print-node (source b))))
+  (printf ")")
+  (return)))
+
+; Check whether a node is empty.
+(def is-empty-node (fn intern bool ((mynode (p node)))
+  (and (null (@:@ mynode token-str))
+       (and (not (@:@ mynode is-list))
+            (null (@:@ mynode list-node))))))
+
+; Set the node to be a token node, using the provided string.
+(def set-to-string (fn intern void ((nd  (p node))
+                                    (buf (p char)))
+  (setf (:@ nd token-str) buf)
+  (setf (:@ nd is-list) false)
+  (setf (:@ nd list-node) (nullptr (Vector node)))
+  (return)))
+
+; Check whether a character is whitespace.
+(def is-whitespace (fn intern bool ((c char))
+  (or (= c #\SPACE) (or (= c #\TAB) (= c #\NEWLINE)))))
+
+; Return the node at a specified point in the hierarchy.
+(def get-node (fn intern (p node) ((nd (p node))
+                                   (n int)
+                                   ...)
+  (def arglist (var auto va-list))
+  (va-start (cast (# arglist) (p void)))
+  (def index (var auto int 0))
+  (while (> n 0)
+    (setv index (va-arg (# arglist) int))
+    (setv nd ($ (@ (@:@ nd list-node)) index))
+    (decv n))
+  (return nd)))
+
+; Parse s-expressions and return a node.
+(def parse-s-expressions
+  (fn intern int ((retval (p node)) (indent int))
+    (def b (var auto int 0))
+    (def c (var auto char))
+    (while true
+      (setv b (fread (cast (# c) (p void)) 1 1 stdin))
+      (printf "")
+      (and (= 0 b)
+           (return 0))
+      (and (is-whitespace c)
+           (continue))
+      (break))
+    (and (= c #\))
+         (do (set-to-string retval (nullptr char))
+             (return 2)))
+    (and (!= c #\()
+         (do (def buf (var auto (p char) (malloc' 255 char)))
+             (def bp  (var auto \ buf))
+             (setf bp c)
+             (setv bp (p+ bp 1))
+             (while true
+               (setv b (fread (cast bp (p void)) 1 1 stdin))
+               (and (= 0 b)
+                    (return 1))
+               (and (= (@ bp) #\))
+                    (do (setf bp #\NULL)
+                        (set-to-string retval buf)
+                        (return 2)))
+               (and (is-whitespace (@ bp))
+                    (do (setf bp #\NULL)
+                        (set-to-string retval buf)
+                        (return 1)))
+               (setv bp (p+ bp 1)))
+             true))
+    (setf (:@ retval token-str) (nullptr char))
+    (setf (:@ retval is-list) true)
+    (setf (:@ retval list-node) (malloc' 1 (Vector node)))
+    (init (@ (@:@ retval list-node)) 10)
+    (def new-node (var auto (p node)))
+    (def res (var auto int))
+    (while true
+      (setv new-node (malloc' 1 node))
+      (setv res (parse-s-expressions new-node (+ 1 indent)))
+      (and (= 0 res) (return 1))
+      (and (is-empty-node new-node)
+           (break))
+      (push-back (@ (@:@ retval list-node)) (@ new-node))
+      (and (= 2 res) (break)))
+    (return 1)))
+
 ;; Common functions.
 
 ; Read a line from standard input, up to limit characters, into buf.
@@ -355,8 +482,35 @@
                                                         paramtype))
                                               (info paraminfo)))
                      (incv parami)))))
-    ; todo: parsing other parts goes here.
     (setv c (get-line mybuf 255)))
+
+  (and (and (!= 0 c)
+            (!= 0 (strcmp (remove-whitespace mybuf) "|#\n")))
+    (do (while (do (setv c (get-line mybuf 255))
+                   (and (!= 0 c)
+                        (!= 0 (strcmp (remove-whitespace mybuf) "|#\n"))))
+          true)
+      true))
+
+  (def fn-node (var auto (p node) (malloc' 1 node)))
+  (parse-s-expressions fn-node 0)
+  (and (not (is-empty-node fn-node))
+       (let ((pname \ (@:@ (get-node fn-node 1 1) token-str)))
+         (and (= 0 (strcmp pname name))
+           (do (setv returns (@:@ (get-node fn-node 2 2 2) token-str))
+               (setv linkage (@:@ (get-node fn-node 2 2 1) token-str))
+               (let ((sparams \ (@:@ (get-node fn-node 2 2 3) list-node)))
+                 (let ((b  \ (begin (@ sparams)))
+                       (e  \ (end   (@ sparams)))
+                       (pc \ 0)
+                       (op (p param-def)))
+                   (for true (!= b e) (setv b (successor b))
+                     (setv op ($ params pc))
+                     (and (not (null op))
+                          (setf (:@ op name)
+                                (@:@ (get-node (source b) 1 0)
+                                     token-str))))))
+               true))))
 
   (setf (: (@$ params parami) name) (nullptr char))
 
@@ -388,7 +542,9 @@
   (while (!= c 0)
     (while (do (setv c (get-line buf 255))
                (and (!= c 0)
-                    (p= (nullptr char) (strstr buf "#|\n")))) true)
+                    (p= (nullptr char)
+                        (strstr (remove-whitespace buf) "#|\n"))))
+           true)
     (and (!= c 0)
          (do
             (get-line buf 255)
