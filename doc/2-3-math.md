@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: math  
-File: math  
+Module: math
 
 ### Description
 
@@ -32,3 +31,4 @@ Defines overloaded functions corresponding generally with those from
     * `modf`, `fmod`.
 
 A macro constant for `e` is also provided.
+

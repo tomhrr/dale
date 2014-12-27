@@ -19,10 +19,11 @@ opposed to the root namespace.
 
 #### `std.isalnum`
 
-Linkage: `N/A`
+Linkage: `extern`
+Returns: `bool`
 Parameters:
 
-  * `c`: A character.
+  * `(c char)`: A character.
 
 
 Determine whether a character is alphanumeric.
@@ -30,10 +31,11 @@ Determine whether a character is alphanumeric.
 
 #### `std.isalpha`
 
-Linkage: `N/A`
+Linkage: `extern`
+Returns: `bool`
 Parameters:
 
-  * `c`: A character.
+  * `(c char)`: A character.
 
 
 Determine whether a character is alphabetical.
@@ -41,10 +43,11 @@ Determine whether a character is alphabetical.
 
 #### `std.iscntrl`
 
-Linkage: `N/A`
+Linkage: `extern`
+Returns: `bool`
 Parameters:
 
-  * `c`: A character.
+  * `(c char)`: A character.
 
 
 Determine whether a character is a control character.
@@ -52,10 +55,11 @@ Determine whether a character is a control character.
 
 #### `std.isdigit`
 
-Linkage: `N/A`
+Linkage: `extern`
+Returns: `bool`
 Parameters:
 
-  * `c`: A character.
+  * `(c char)`: A character.
 
 
 Determine whether a character is a digit.
@@ -63,10 +67,11 @@ Determine whether a character is a digit.
 
 #### `std.isgraph`
 
-Linkage: `N/A`
+Linkage: `extern`
+Returns: `bool`
 Parameters:
 
-  * `c`: A character.
+  * `(c char)`: A character.
 
 
 Determine whether a character is printable (excludes space).
@@ -74,10 +79,11 @@ Determine whether a character is printable (excludes space).
 
 #### `std.islower`
 
-Linkage: `N/A`
+Linkage: `extern`
+Returns: `bool`
 Parameters:
 
-  * `c`: A character.
+  * `(c char)`: A character.
 
 
 Determine whether a character is lowercase.
