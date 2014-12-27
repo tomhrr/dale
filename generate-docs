@@ -31,5 +31,7 @@ echo "# Dale\n\n## 2.15 vector\n" > doc/2-15-vector.md
 ./module-to-markdown < modules/vector.dt >> doc/2-15-vector.md
 echo "# Dale\n\n## 2.16 set\n" > doc/2-16-set.md
 ./module-to-markdown < modules/set.dt >> doc/2-16-set.md
+echo "# Dale\n\n## 2.17 map\n" > doc/2-17-map.md
+./module-to-markdown < modules/map.dt >> doc/2-17-map.md
 echo "# Dale\n\n## 2.18 array\n" > doc/2-18-array.md
 ./module-to-markdown < modules/array.dt >> doc/2-18-array.md

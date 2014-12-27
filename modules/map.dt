@@ -98,38 +98,38 @@ must also implement `LessThanComparable`.
     ; EqualityComparable and LessThanComparable, and instantiate a set
     ; for the pair.
  
-    (def (uq pairtypenode)
+    (def (value-type (nullptr (Map (uq Tk) (uq Tv))))
       (struct extern ((first  (uq Tk))
                       (second (uq Tv)))))
 
-    (def = (fn extern bool ((p1 (uq pairtypenode))
-                            (p2 (uq pairtypenode)))
+    (def = (fn extern bool ((p1 (value-type (nullptr (Map (uq Tk) (uq Tv)))))
+                            (p2 (value-type (nullptr (Map (uq Tk) (uq Tv))))))
       (= (@: p1 first)
          (@: p2 first))))
 
-    (def both-= (fn extern bool ((p1 (uq pairtypenode)) 
-                                 (p2 (uq pairtypenode)))
+    (def both-= (fn extern bool ((p1 (value-type (nullptr (Map (uq Tk) (uq Tv))))) 
+                                 (p2 (value-type (nullptr (Map (uq Tk) (uq Tv))))))
       (and (= (@: p1 first)
               (@: p2 first))
            (= (@: p1 second)
               (@: p2 second)))))
 
-    (implement Type (uq pairtypenode))
-    (instantiate swap (uq pairtypenode))
-    (implement Assignable (uq pairtypenode))
-    (instantiate != (uq pairtypenode))
+    (implement Type (value-type (nullptr (Map (uq Tk) (uq Tv)))))
+    (instantiate swap (value-type (nullptr (Map (uq Tk) (uq Tv)))))
+    (implement Assignable (value-type (nullptr (Map (uq Tk) (uq Tv)))))
+    (instantiate != (value-type (nullptr (Map (uq Tk) (uq Tv)))))
 
-    (def < (fn extern bool ((p1 (uq pairtypenode)) (p2 (uq pairtypenode)))
+    (def < (fn extern bool ((p1 (value-type (nullptr (Map (uq Tk) (uq Tv))))) (p2 (value-type (nullptr (Map (uq Tk) (uq Tv))))))
       (< (@: p1 first)
          (@: p2 first))))
 
     (mfor F (<= > >=)
-      (instantiate F (uq pairtypenode)))
+      (instantiate F (value-type (nullptr (Map (uq Tk) (uq Tv))))))
 
-    (implement EqualityComparable (uq pairtypenode))
-    (implement LessThanComparable (uq pairtypenode))
+    (implement EqualityComparable (value-type (nullptr (Map (uq Tk) (uq Tv)))))
+    (implement LessThanComparable (value-type (nullptr (Map (uq Tk) (uq Tv)))))
 
-    (instantiate Set (uq pairtypenode)) 
+    (instantiate Set (value-type (nullptr (Map (uq Tk) (uq Tv))))) 
 
     #|
     @struct (Map Tk Tv)
@@ -139,19 +139,16 @@ must also implement `LessThanComparable`.
     @linkage extern
     |#
     (def (uq typenode)
-      (struct extern ((set (Set (uq pairtypenode))))))
+      (struct extern ((set (Set (value-type (nullptr (Map (uq Tk) (uq Tv)))))))))
 
     #|
     @fn init
 
     Initialise a map.
 
-    @param lst      A map pointer.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
-    @return-type    bool
+    @param lst      A map reference.
     |#
-    (def init (fn extern bool ((mapp (ref (uq typenode))))
+    (def init (fn extern bool ((mapp (ref (Map (uq Tk) (uq Tv)))))
       (init (@ (:@ mapp set)))))
 
     #|
@@ -159,13 +156,10 @@ must also implement `LessThanComparable`.
 
     Return the number of elements in the map.
 
-    @param mapp     A map pointer.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
-    @return-type    size
+    @param mapp     A map reference.
     |#
  
-    (def size (fn extern size ((mapp (ref (uq typenode))))
+    (def size (fn extern size ((mapp (ref (Map (uq Tk) (uq Tv)))))
       (size (@ (:@ mapp set)))))
 
     #|
@@ -174,12 +168,9 @@ must also implement `LessThanComparable`.
     Returns the number of elements that can be accommodated by the
     map.
 
-    @param mapp     A map pointer.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
-    @return-type    size
+    @param mapp     A map reference.
     |#
-    (def max-size (fn extern size ((mapp (ref (const (uq typenode)))))
+    (def max-size (fn extern size ((mapp (ref (const (Map (uq Tk) (uq Tv))))))
       (max-size (@ (:@ mapp set)))))
 
     #|
@@ -187,12 +178,9 @@ must also implement `LessThanComparable`.
 
     Determine whether the map is empty.
 
-    @param lst      A map pointer.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
-    @return-type    bool
+    @param lst      A map reference.
     |#
-    (def empty (fn extern bool ((mapp (ref (const (uq typenode)))))
+    (def empty (fn extern bool ((mapp (ref (const (Map (uq Tk) (uq Tv))))))
       (empty (@ (:@ mapp set)))))
 
     #|
@@ -203,11 +191,9 @@ must also implement `LessThanComparable`.
     call this with e.g. `(nullptr (Map Tk Tv))` as the argument.
 
     @param lst      A type node.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
     |#
     (def key-type
-      (macro extern ((mapp (p (uq typenode))))
+      (macro extern ((mapp (p (Map (uq Tk) (uq Tv)))))
         (qq do (uq Tk))))
 
     #|
@@ -216,11 +202,9 @@ must also implement `LessThanComparable`.
     Expands to the underlying data type (i.e. `Tv`) of the map.
 
     @param lst      A type node.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
     |#
     (def data-type
-      (macro extern ((mapp (p (uq typenode))))
+      (macro extern ((mapp (p (Map (uq Tk) (uq Tv)))))
         (qq do (uq Tv))))
 
     #|
@@ -233,12 +217,10 @@ must also implement `LessThanComparable`.
     mapping to `Tk` and `Tv` respectively.
 
     @param lst      A type node.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
     |#
     (def value-type
-      (macro extern ((mapp (p (uq typenode))))
-        (qq do (uq pairtypenode))))
+      (macro extern ((mapp (p (Map (uq Tk) (uq Tv)))))
+        (qq do (value-type (nullptr (Map (uq Tk) (uq Tv)))))))
 
     #|
     @macro size-type
@@ -246,11 +228,9 @@ must also implement `LessThanComparable`.
     Expands to the underlying size type of the map.
 
     @param lst      A type node.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
     |#
     (def size-type
-      (macro extern ((mapp (p (uq typenode))))
+      (macro extern ((mapp (p (Map (uq Tk) (uq Tv)))))
         (qq do size)))
 
     #|
@@ -259,11 +239,9 @@ must also implement `LessThanComparable`.
     Expands to the underlying iterator difference type of the map.
 
     @param lst      A type node.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
     |#
     (def difference-type
-      (macro extern ((mapp (p (uq typenode))))
+      (macro extern ((mapp (p (Map (uq Tk) (uq Tv)))))
         (qq do ptrdiff)))
 
     #|
@@ -272,8 +250,8 @@ must also implement `LessThanComparable`.
     @linkage extern
     |#
     (def (Iterator (Map (uq Tk) (uq Tv)))
-      (struct extern ((mapp (p (uq typenode)))
-                      (setiter (Iterator (Set (uq pairtypenode)))))))
+      (struct extern ((mapp (p (Map (uq Tk) (uq Tv))))
+                      (setiter (Iterator (Set (value-type (nullptr (Map (uq Tk) (uq Tv))))))))))
 
     #|
     @macro value-type
@@ -282,25 +260,20 @@ must also implement `LessThanComparable`.
     same as that of `value-type` for the container.
 
     @param iter     A type node.
-    @param-type     (p (Iterator (Map Tk Tv)))
-    @linkage        extern
     |#
     (def value-type
       (macro extern ((mapiter (p (Iterator (Map (uq Tk) (uq Tv))))))
-        (qq do (uq pairtypenode))))
+        (qq do (value-type (nullptr (Map (uq Tk) (uq Tv)))))))
 
     #|
     @fn end
 
     Returns the iterator representing the end of the map (sentinel).
 
-    @param lst      A set pointer.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
-    @return-type    (Iterator (Map Tk Tv))
+    @param lst      A map reference.
     |#
     (def end (fn extern (Iterator (Map (uq Tk) (uq Tv))) 
-                            ((mapp (ref (uq typenode))))
+                            ((mapp (ref (Map (uq Tk) (uq Tv)))))
       (let ((iter (Iterator (Map (uq Tk) (uq Tv)))))
         (setf (: iter mapp)     mapp)
         (setf (: iter setiter)  (end (@ (:@ mapp set))))
@@ -311,13 +284,10 @@ must also implement `LessThanComparable`.
 
     Returns the iterator for the first map element.
 
-    @param lst      A set pointer.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
-    @return-type    (Iterator (Map Tk Tv))
+    @param lst      A map reference.
     |#
     (def begin (fn extern (Iterator (Map (uq Tk) (uq Tv))) 
-                            ((mapp (ref (uq typenode))))
+                            ((mapp (ref (Map (uq Tk) (uq Tv)))))
       ((Iterator (Map (uq Tk) (uq Tv))) 
         ((mapp    mapp)
          (setiter (begin (@ (:@ mapp set))))))))
@@ -328,11 +298,8 @@ must also implement `LessThanComparable`.
     Returns the iterator's value.
 
     @param iter     An iterator.
-    @param-type     (Iterator (Map Tk Tv))
-    @linkage        extern
-    @return-type    T
     |#
-    (def @source (fn extern (uq pairtypenode)
+    (def @source (fn extern (value-type (nullptr (Map (uq Tk) (uq Tv))))
                            ((iter (Iterator (Map (uq Tk) (uq Tv)))))
       (@source (@: iter setiter))))
 
@@ -342,11 +309,8 @@ must also implement `LessThanComparable`.
     Returns a pointer to the iterator's value.
 
     @param iter     An iterator.
-    @param-type     (Iterator (Map Tk Tv))
-    @linkage        extern
-    @return-type    (p T)
     |#
-    (def source (fn extern (p (uq pairtypenode))
+    (def source (fn extern (p (value-type (nullptr (Map (uq Tk) (uq Tv)))))
                            ((iter (Iterator (Map (uq Tk) (uq Tv)))))
       (source (@: iter setiter))))
 
@@ -357,9 +321,6 @@ must also implement `LessThanComparable`.
     iterator.
 
     @param iter     An iterator.
-    @param-type     (Iterator (Map Tk Tv))
-    @linkage        extern
-    @return-type    (Iterator (Map Tk Tv))
     |#
     (def successor (fn extern (Iterator (Map (uq Tk) (uq Tv)))
                               ((iter (Iterator (Map (uq Tk) (uq Tv)))))
@@ -371,11 +332,7 @@ must also implement `LessThanComparable`.
     @fn =
 
     @param iter1    The first iterator.
-    @param-type     (Iterator (Map Tk Tv))
     @param iter2    The second iterator.
-    @param-type     (Iterator (Map Tk Tv))
-    @linkage        extern
-    @return-type    bool
     |#
     (def = (fn extern bool ((a (Iterator (Map (uq Tk) (uq Tv))))
                             (b (Iterator (Map (uq Tk) (uq Tv)))))
@@ -390,11 +347,7 @@ must also implement `LessThanComparable`.
     @fn <
 
     @param iter1    The first iterator.
-    @param-type     (Iterator (Map Tk Tv))
     @param iter2    The second iterator.
-    @param-type     (Iterator (Map Tk Tv))
-    @linkage        extern
-    @return-type    bool
     |#
     (def < (fn extern bool ((a (Iterator (Map (uq Tk) (uq Tv))))
                             (b (Iterator (Map (uq Tk) (uq Tv)))))
@@ -411,21 +364,18 @@ must also implement `LessThanComparable`.
     @linkage extern
     |#
     (def (ReverseIterator (Map (uq Tk) (uq Tv)))
-      (struct extern ((mapp (p (uq typenode)))
-                      (setiter (ReverseIterator (Set (uq pairtypenode)))))))
+      (struct extern ((mapp (p (Map (uq Tk) (uq Tv))))
+                      (setiter (ReverseIterator (Set (value-type (nullptr (Map (uq Tk) (uq Tv))))))))))
 
     #|
     @fn rend
 
     Returns the iterator representing the beginning of the map (sentinel).
 
-    @param lst      A map pointer.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
-    @return-type    (ReverseIterator (Map Tk Tv))
+    @param lst      A map reference.
     |#
     (def rend (fn extern (ReverseIterator (Map (uq Tk) (uq Tv))) 
-                            ((mapp (ref (uq typenode))))
+                            ((mapp (ref (Map (uq Tk) (uq Tv)))))
       ((ReverseIterator (Map (uq Tk) (uq Tv))) ((mapp mapp)
                            (setiter (rend (@ (:@ mapp set))))))))
 
@@ -434,25 +384,22 @@ must also implement `LessThanComparable`.
 
     Returns the iterator for the last map element.
 
-    @param lst      A set pointer.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
-    @return-type    (ReverseIterator (Map Tk Tv))
+    @param lst      A map reference.
     |#
     (def rbegin (fn extern (ReverseIterator (Map (uq Tk) (uq Tv))) 
-                            ((mapp (ref (uq typenode))))
+                            ((mapp (ref (Map (uq Tk) (uq Tv)))))
       ((ReverseIterator (Map (uq Tk) (uq Tv))) ((mapp mapp)
                            (setiter (rbegin (@ (:@ mapp set))))))))
 
     (def value-type
       (macro extern ((mapiter (p (ReverseIterator (Map (uq Tk) (uq Tv))))))
-        (qq do (uq pairtypenode))))
+        (qq do (value-type (nullptr (Map (uq Tk) (uq Tv)))))))
 
-    (def source (fn extern (p (uq pairtypenode))
+    (def source (fn extern (p (value-type (nullptr (Map (uq Tk) (uq Tv)))))
                            ((iter (ReverseIterator (Map (uq Tk) (uq Tv)))))
       (source (@: iter setiter))))
 
-    (def @source (fn extern (uq pairtypenode)
+    (def @source (fn extern (value-type (nullptr (Map (uq Tk) (uq Tv))))
                             ((iter (ReverseIterator (Map (uq Tk) (uq Tv)))))
       (@source (@: iter setiter))))
 
@@ -486,12 +433,9 @@ must also implement `LessThanComparable`.
 
     Remove all of the elements from the map.
 
-    @param setp     The map pointer.
-    @param-type     (p (Map Tk Tv))
-    @linkage        extern
-    @return-type    bool
+    @param setp     The map reference.
     |#
-    (def clear (fn extern void ((mapp (ref (uq typenode))))
+    (def clear (fn extern void ((mapp (ref (Map (uq Tk) (uq Tv)))))
       (clear (@ (:@ mapp set)))))
 
     #|
@@ -499,15 +443,11 @@ must also implement `LessThanComparable`.
 
     Insert a new element into the map.
 
-    @param setp     A map pointer.
-    @param-type     (p (Map Tk Tv))
+    @param setp     A map reference.
     @param val      The value to insert into the map.
-    @param-type     (value-type (nullptr (Map Tkey Tval)))
-    @linkage        extern
-    @return-type    bool
     |#
-    (def insert (fn extern bool ((mapp (ref (uq typenode)))
-                                 (valt (uq pairtypenode)))
+    (def insert (fn extern bool ((mapp (ref (Map (uq Tk) (uq Tv))))
+                                 (valt (value-type (nullptr (Map (uq Tk) (uq Tv))))))
       (insert (@ (:@ mapp set)) valt)))
 
     #|
@@ -515,16 +455,12 @@ must also implement `LessThanComparable`.
 
     Insert a new element into the map.
 
-    @param setp     A map pointer.
-    @param-type     (p (Map Tk Tv))
+    @param setp     A map reference.
     @param val      The value to insert into the set.
-    @param-type     (Pair Tk Tv)
-    @linkage        extern
-    @return-type    bool
     |#
-    (def insert (fn extern bool ((mapp (ref (uq typenode)))
+    (def insert (fn extern bool ((mapp (ref (Map (uq Tk) (uq Tv))))
                                  (valt (Pair (uq Tk) (uq Tv))))
-      (insert (@ mapp) (@ (cast (# valt) (p (uq pairtypenode)))))))
+      (insert (@ mapp) (@ (cast (# valt) (p (value-type (nullptr (Map (uq Tk) (uq Tv))))))))))
 
     #|
     @fn find
@@ -532,17 +468,13 @@ must also implement `LessThanComparable`.
     Find an element within the map, and return the iterator for its
     position.
 
-    @param setp     A map pointer.
-    @param-type     (p (Map Tk Tv))
+    @param setp     A map reference.
     @param val      The value to find in the set.
-    @param-type     Tk
-    @linkage        extern
-    @return-type    (Iterator (Map Tk Tv))
     |#
     (def find (fn extern (Iterator (Map (uq Tk) (uq Tv))) 
-                              ((mapp (ref (uq typenode)))
+                              ((mapp (ref (Map (uq Tk) (uq Tv))))
                                (key  ((uq tpw) (uq Tk))))
-      (let ((temp (uq pairtypenode)))
+      (let ((temp (value-type (nullptr (Map (uq Tk) (uq Tv))))))
         (setf (: temp first) ((uq tvw) key))
         (let ((myiter \ (find (@ (:@ mapp set)) temp))
               (itn    (Iterator (Map (uq Tk) (uq Tv)))))
@@ -557,9 +489,6 @@ must also implement `LessThanComparable`.
     position.
 
     @param iter     The iterator.
-    @param-type     (Iterator (Map Tk Tv))
-    @linkage        extern
-    @return-type    bool
     |#
     (def erase (fn extern bool ((iter (Iterator (Map (uq Tk) (uq Tv)))))
       (erase (@: iter setiter))))
@@ -569,14 +498,10 @@ must also implement `LessThanComparable`.
 
     Erase an element from the map by value.
 
-    @param setp     A map pointer.
-    @param-type     (p (Map Tk Tv))
+    @param setp     A map reference.
     @param val      The value to remove from the set.
-    @param-type     Tk
-    @linkage        extern
-    @return-type    bool
     |#
-    (def erase (fn extern bool ((mapp (ref (uq typenode)))
+    (def erase (fn extern bool ((mapp (ref (Map (uq Tk) (uq Tv))))
                                 (key ((uq tpw) (uq Tk))))
       (erase (@: (find (@ mapp) ((uq tvw) key)) setiter))))
 
@@ -587,14 +512,10 @@ must also implement `LessThanComparable`.
     a `UniqueAssociativeContainer` such as `Map`, this can only return
     1 or 0, depending on whether the element is present in the set.
 
-    @param setp     A map pointer.
-    @param-type     (p (Map Tk Tv))
+    @param setp     A map reference.
     @param val      The value for which the count should be determined.
-    @param-type     Tk
-    @linkage        extern
-    @return-type    size
     |#
-    (def count (fn extern size ((mapp (ref (uq typenode)))
+    (def count (fn extern size ((mapp (ref (Map (uq Tk) (uq Tv))))
                                 (key ((uq tpw) (uq Tk))))
       (let ((f \ (find (@ mapp) ((uq tvw) key))))
         (cast (if (= f (end (@ mapp))) 0 1) size))))
@@ -604,17 +525,13 @@ must also implement `LessThanComparable`.
 
     Find the lower bound for a given value.
 
-    @param setp     A map pointer.
-    @param-type     (p (Map Tk Tv))
+    @param setp     A map reference.
     @param val      The value for which the lower bound should be found.
-    @param-type     Tk
-    @linkage        extern
-    @return-type    (Iterator (Map Tk Tv))
     |#
     (def lower-bound (fn extern (Iterator (Map (uq Tk) (uq Tv)))
-                                  ((mapp (ref (uq typenode)))
+                                  ((mapp (ref (Map (uq Tk) (uq Tv))))
                                    (key ((uq tpw) (uq Tk))))
-      (let ((temp (uq pairtypenode)))
+      (let ((temp (value-type (nullptr (Map (uq Tk) (uq Tv))))))
         (setf (: temp first) ((uq tvw) key))
         (let ((lb \ (lower-bound (@ (:@ mapp set)) temp)))
           ((Iterator (Map (uq Tk) (uq Tv))) ((mapp mapp)
@@ -625,24 +542,20 @@ must also implement `LessThanComparable`.
 
     Find the upper bound for a given value.
 
-    @param setp     A map pointer.
-    @param-type     (p (Map Tk Tv))
+    @param setp     A map reference.
     @param val      The value for which the upper bound should be found.
-    @param-type     Tk
-    @linkage        extern
-    @return-type    (Iterator (Map Tk Tv))
     |#
     (def upper-bound (fn extern (Iterator (Map (uq Tk) (uq Tv)))
-                                  ((mapp (ref (uq typenode)))
+                                  ((mapp (ref (Map (uq Tk) (uq Tv))))
                                    (key  ((uq tpw) (uq Tk))))
-      (let ((temp (uq pairtypenode)))
+      (let ((temp (value-type (nullptr (Map (uq Tk) (uq Tv))))))
         (setf (: temp first) ((uq tvw) key))
         (let ((lb \ (upper-bound (@ (:@ mapp set)) temp)))
           ((Iterator (Map (uq Tk) (uq Tv))) ((mapp mapp)
                               (setiter lb)))))))
 
-    (def setf-copy (fn extern bool ((dst (p (uq typenode)))
-                                    (src (p (uq typenode))))
+    (def setf-copy (fn extern bool ((dst (p (Map (uq Tk) (uq Tv))))
+                                    (src (p (Map (uq Tk) (uq Tv)))))
       (init (@ (:@ dst set)))
       (let ((b \ (begin (@ (:@ src set))))
             (e \ (end   (@ (:@ src set)))))
@@ -650,16 +563,16 @@ must also implement `LessThanComparable`.
           (insert (@ (:@ dst set)) (@source b))))
       true))
 
-    (def setf-assign (fn extern bool ((dst (p (uq typenode)))
-                                      (src (p (uq typenode))))
+    (def setf-assign (fn extern bool ((dst (p (Map (uq Tk) (uq Tv))))
+                                      (src (p (Map (uq Tk) (uq Tv)))))
       (clear (@ (:@ dst set)))
       (setf-copy dst src)))
 
-    (implement Type (uq typenode))
-    (instantiate swap (uq typenode))
+    (implement Type (Map (uq Tk) (uq Tv)))
+    (instantiate swap (Map (uq Tk) (uq Tv)))
 
-    (def = (fn extern bool ((map1 (ref (uq typenode)))
-                            (map2 (ref (uq typenode))))
+    (def = (fn extern bool ((map1 (ref (Map (uq Tk) (uq Tv))))
+                            (map2 (ref (Map (uq Tk) (uq Tv)))))
       (let ((b1 \ (begin (@ (:@ map1 set))))
             (b2 \ (begin (@ (:@ map2 set))))
             (e1 \ (end   (@ (:@ map1 set))))
@@ -674,25 +587,25 @@ must also implement `LessThanComparable`.
                  (return false))))
         (and (= b1 e1) (= b2 e2)))))
 
-    (def < (fn extern bool ((map1 (ref (uq typenode)))
-                            (map2 (ref (uq typenode))))
+    (def < (fn extern bool ((map1 (ref (Map (uq Tk) (uq Tv))))
+                            (map2 (ref (Map (uq Tk) (uq Tv)))))
       (< (@:@ map1 set) (@:@ map2 set))))
 
-    (implement Type (uq typenode))
+    (implement Type (Map (uq Tk) (uq Tv)))
     (mfor F (!= <= > >=)
-      (instantiate F (uq typenode)))
+      (instantiate F (Map (uq Tk) (uq Tv))))
 
     (def destroy
-      (fn extern void ((mapp (p (uq typenode))))
+      (fn extern void ((mapp (p (Map (uq Tk) (uq Tv)))))
         (clear (@ mapp))
         (return)))
 
-    (implement EqualityComparable (uq typenode))
-    (implement LessThanComparable (uq typenode))
+    (implement EqualityComparable (Map (uq Tk) (uq Tv)))
+    (implement LessThanComparable (Map (uq Tk) (uq Tv)))
     (implement ForwardIterator (Iterator (Map (uq Tk) (uq Tv))))
     (implement ForwardIterator (ReverseIterator (Map (uq Tk) (uq Tv))))
-    (implement SortedAssociativeContainer (uq typenode))
-    (implement UniqueAssociativeContainer (uq typenode))
-    (implement PairAssociativeContainer (uq typenode))
+    (implement SortedAssociativeContainer (Map (uq Tk) (uq Tv)))
+    (implement UniqueAssociativeContainer (Map (uq Tk) (uq Tv)))
+    (implement PairAssociativeContainer (Map (uq Tk) (uq Tv)))
     ))
 )))))
