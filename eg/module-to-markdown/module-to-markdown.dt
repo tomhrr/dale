@@ -321,17 +321,20 @@
 
 ; Read from standard input into linebuf, and copying to buf, until a
 ; line containing the specified string is reached.
-(def get-until (fn intern void ((linebuf  (p char))
-                                (buf      (p char))
-                                (stop-str (p (const char))))
+(def get-until (fn intern void ((linebuf   (p char))
+                                (buf       (p char))
+                                (stop-str1 (p (const char)))
+                                (stop-str2 (p (const char))))
   (let ((linebufp   (p char))
         (past-first \ false)
         (whitespace \ 0)
         (c          \ 0))
     (while (do (setv c (get-line linebuf 255))
                (and (!= c 0)
-                    (not (p= (remove-whitespace linebuf)
-                             (strstr linebuf stop-str)))))
+                    (and (not (p= (remove-whitespace linebuf)
+                                  (strstr linebuf stop-str1)))
+                         (not (p= (remove-whitespace linebuf)
+                                  (strstr linebuf stop-str2))))))
       (setv linebufp ($ linebuf 0))
       (if (not past-first)
           (do (while (= #\SPACE (@$ linebufp 0))
@@ -406,7 +409,7 @@
   (def ws (var auto \ 0))
   (get-line mybuf 255)
 
-  (get-until mybuf info "@")
+  (get-until mybuf info "@" "|#")
 
   (while (and (!= c 0)
               (not (p= (nullptr char) (strstr mybuf "@"))))
@@ -515,7 +518,7 @@
   (def ws (var auto \ 0))
   (get-line mybuf 255)
 
-  (get-until mybuf info "@")
+  (get-until mybuf info "@" "|#")
 
   (def params (var auto \ (malloc' 10 param-def)))
   (def parami (var auto \ 0))
@@ -644,7 +647,7 @@
   (def ws (var auto \ 0))
   (get-line mybuf 255)
 
-  (get-until mybuf info "|#")
+  (get-until mybuf info "|#" "|#")
 
   (add-concept-def name info)
   true))

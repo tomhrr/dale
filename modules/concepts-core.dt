@@ -103,7 +103,6 @@ is as per a normal macro, so an `mc` is present.
 Concepts, once defined, can be used to 'tag' the parameters to a macro
 constructed by way of `def-concept-macro`.
 
-@linkage extern
 |#
 (def def-concept
   (macro extern (concept-name-node refinement-list type-arguments ...)
@@ -297,7 +296,6 @@ marking the type as such if it does. If the type does not satisfy the
 constraints, the expansion is a no-op, though note that the concept
 body may (generally, will) add errors if its requirements are not met.
 
-@linkage extern
 |#
 (def implement
   (macro extern (concept-name-node ...)
@@ -486,15 +484,14 @@ both A and B.
       (setf (:@ pcn name            ) mname)
       pcn)))
 
-#|
-@fn std.concepts.dump-concept-map
-
-@linkage extern
-|#
 (def pd (fn intern void ((n int))
   (while (!= n 0) (printf ".") (setv n (- n 1)))
   (return)))
 
+#|
+@fn std.concepts.dump-concept-map
+
+|#
 (def dump-concept-map
   (fn extern void ((mc (p MContext))
                    (mapp (p concept-node))
@@ -510,7 +507,6 @@ both A and B.
 #|
 @fn std.concepts.get-type-concept-map
 
-@linkage extern
 |#
 (def get-type-concept-map
   (fn extern (p concept-node) ((mc (p MContext))
@@ -705,7 +701,6 @@ arguments.
 Returns true if the list of concept nodes does not contain any
 instances of "not-applicable" (i.e. of the root, unused concept node).
 
-@linkage intern
 |#
 (def all-applicable
   (fn intern bool ((tcl-list  (p (p concept-node)))
@@ -724,7 +719,6 @@ Checks at the top-level of the concept list for a candidate that
 matches the requested macro name.  If one exists, writes it to the
 macro buffer and returns true.  Otherwise, returns false.
 
-@linkage intern
 |#
 (def get-candidate-toplevel
   (fn intern bool ((mc          (p MContext))
@@ -774,7 +768,6 @@ macro buffer and returns true.  Otherwise, returns false.
 #|
 @fn std.concepts.get-candidate
 
-@linkage intern
 |#
 (def get-candidate
   (fn intern int ((mc          (p MContext))
@@ -896,7 +889,6 @@ macro buffer and returns true.  Otherwise, returns false.
 #|
 @macro std.concepts.assert-return
 
-@linkage intern
 |#
 (def assert-return
   (macro intern (error-cond report-error-node report-error-str)
@@ -909,7 +901,6 @@ macro buffer and returns true.  Otherwise, returns false.
 #|
 @macro std.concepts.assert-return-b
 
-@linkage intern
 |#
 (def assert-return-b
   (macro intern (error-cond report-error-node report-error-str)
@@ -922,7 +913,6 @@ macro buffer and returns true.  Otherwise, returns false.
 #|
 @fn std.concepts.is-forced-concept
 
-@linkage intern
 |#
 (def is-forced-concept
   (fn intern bool ((node (p DNode)))
@@ -934,7 +924,6 @@ macro buffer and returns true.  Otherwise, returns false.
 #|
 @fn std.concepts.validate-forced-concept
 
-@linkage intern
 |#
 (def validate-forced-concept
   (fn intern bool ((mc   (p MContext))
@@ -965,7 +954,6 @@ The special processing here is for disambiguation (forcing the use of
 a specific concept) and non-types, the latter of which are treated as
 being of the Value concept.
 
-@linkage intern
 |#
 (def get-type-concept-list
   (fn intern bool ((mc                (p MContext))

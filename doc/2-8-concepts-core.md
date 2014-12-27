@@ -137,6 +137,7 @@ Parameters:
 #### `std.concepts.dump-concept-map`
 
 Linkage: `extern`
+Returns: `void`
 Parameters: N/A
 
 
