@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: derivations  
-File: derivations  
+Module: derivations
 
 ### Description
 
@@ -16,34 +15,26 @@ the `swap` function.
 
 
 
-
-
-
-
-
-
-
-
-
-
 ### Concept macros
 
 #### `swap`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `(T Type)`: The type node.  
+  * `(T Type)`: The type node.
 
-Expands to a `swap` function over pointers to the provided type.
+
+Expands to a `swap` function over references to the provided type.
 
 
 #### `!=`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `(T Type)`: The type node.  
+  * `(T Type)`: The type node.
+
 
 Expands to a `!=` function over the provided type. `=` must be defined
 over the type before calling this macro.
@@ -51,10 +42,11 @@ over the type before calling this macro.
 
 #### `<=`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `(T Type)`: The type node.  
+  * `(T Type)`: The type node.
+
 
 Expands to a `<=` function over the provided type. `<` must be defined
 over the type before calling this macro.
@@ -62,10 +54,11 @@ over the type before calling this macro.
 
 #### `>`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `(T Type)`: The type node.  
+  * `(T Type)`: The type node.
+
 
 Expands to a `>` function over the provided type. `<` must be defined
 over the type before calling this macro.
@@ -73,10 +66,11 @@ over the type before calling this macro.
 
 #### `>=`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `(T Type)`: The type node.  
+  * `(T Type)`: The type node.
+
 
 Expands to a `>=` function over the provided type. `<` must be defined
 over the type before calling this macro.
@@ -84,10 +78,11 @@ over the type before calling this macro.
 
 #### `=`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `(T Struct)`: The struct type node.  
+  * `(T Struct)`: The struct type node.
+
 
 Expands to a `=` function over the provided struct type. `=` must be
 defined over each of the struct's member types before calling this
@@ -96,10 +91,11 @@ macro.
 
 #### `<`
 
-Linkage: `N/A`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `T`: The struct type node.  
+  * `(T Struct)`: The struct type node.
+
 
 Expands to a `<` function over the provided struct type. `<` must be
 defined over each of the struct's member types before calling this
@@ -108,10 +104,13 @@ macro.
 
 #### `relations`
 
-Linkage: `N/A`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `T`: The struct type node.  
+  * `(T Struct)`: The struct type node.
+
 
 Expands to `=`, `!=`, `<`, `<=`, `>` and `>=` functions over the
 provided struct type. Any that have already been defined are skipped.
+
+
