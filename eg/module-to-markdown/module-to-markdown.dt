@@ -176,7 +176,8 @@
        (do (strcat buf "N/A") (return buf)))
   (and (and (= (cast 2 size)
                (size (@ (@:@ nd list-node))))
-            (= 0 (strcmp "uq" (node-to-string (get-node nd 1 0)))))
+            (or (= 0 (strcmp "uq"  (node-to-string (get-node nd 1 0))))
+                (= 0 (strcmp "tpw" (node-to-string (get-node nd 1 0))))))
        (do (strcat buf (node-to-string (get-node nd 1 1)))
            (return buf)))
   (strcat buf "(")
@@ -549,9 +550,12 @@
                    (for true (!= b e) (setv b (successor b))
                      (setv op ($ params pc))
                      (and (not (null op))
-                          (setf (:@ op name)
-                                (node-to-string
-                                  (get-node (source b) 1 0))))
+                          (do (setf (:@ op name)
+                                    (node-to-string
+                                      (get-node (source b) 1 0)))
+                              (setf (:@ op type)
+                                    (node-to-string
+                                      (get-node (source b) 1 1)))))
                      (incv pc))))
                true))))
 

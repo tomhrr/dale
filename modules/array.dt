@@ -91,7 +91,7 @@ must also implement `LessThanComparable`.
 
     @linkage extern
     |#
-    (def (uq typenode)
+    (def (Array (uq T) (uq N))
       (struct extern ((elements (array-of (uq N) (uq T))))))
 
     #|
@@ -101,12 +101,9 @@ must also implement `LessThanComparable`.
     actually zero the array, it is necessary to iterate over it and
     set values accordingly.)
 
-    @param arrp     An array pointer.
-    @param-type     (p (Array T N))
-    @linkage        extern
-    @return-type    bool
+    @param arrp     An array reference.
     |#
-    (def init (fn extern bool ((arrp (ref (uq typenode))))
+    (def init (fn extern bool ((arrp (ref (Array (uq T) (uq N)))))
       true))
 
     #|
@@ -116,12 +113,9 @@ must also implement `LessThanComparable`.
     size, this will always return true, unless the array actually has
     a size of zero.)
 
-    @param arrp     An array pointer.
-    @param-type     (p (Array T N))
-    @linkage        extern
-    @return-type    bool
+    @param arrp     An array reference.
     |#
-    (def empty (fn extern bool ((arrp (ref (const (uq typenode)))))
+    (def empty (fn extern bool ((arrp (ref (const (Array (uq T) (uq N))))))
       (= 0 (uq N))))
 
     #|
@@ -130,12 +124,9 @@ must also implement `LessThanComparable`.
     Returns the number of elements in the array (This is `N`, for all
     instances of the array.)
 
-    @param arrp     An array pointer.
-    @param-type     (p (Array T N))
-    @linkage        extern
-    @return-type    size
+    @param arrp     An array reference.
     |#
-    (def size (fn extern size ((arrp (ref (const (uq typenode)))))
+    (def size (fn extern size ((arrp (ref (const (Array (uq T) (uq N))))))
       (uq N)))
 
     #|
@@ -144,12 +135,9 @@ must also implement `LessThanComparable`.
     Returns the number of elements that can be accommodated by the
     array. (This is also `N`, for all instances of the array.)
 
-    @param arrp     An array pointer.
-    @param-type     (p (Array T N))
-    @linkage        extern
-    @return-type    size
+    @param arrp     An array reference.
     |#
-    (def max-size (fn extern size ((arrp (ref (const (uq typenode)))))
+    (def max-size (fn extern size ((arrp (ref (const (Array (uq T) (uq N))))))
       (uq N)))
 
     #|
@@ -159,12 +147,12 @@ must also implement `LessThanComparable`.
     only uses the type node for dispatch purposes, so it's safe to
     call this with e.g. `(nullptr (Array T N))` as the argument.
 
-    @param arrp     A type node.
+    @param arrp     An array pointer.
     @param-type     (p (Array T N))
     @linkage        extern
     |#
     (def value-type
-      (macro extern ((arrp (p (uq typenode))))
+      (macro extern ((arrp (p (Array (uq T) (uq N)))))
         (qq do (uq T))))
 
     #|
@@ -177,7 +165,7 @@ must also implement `LessThanComparable`.
     @linkage        extern
     |#
     (def size-type
-      (macro extern ((arrp (p (uq typenode))))
+      (macro extern ((arrp (p (Array (uq T) (uq N)))))
         (qq do size)))
 
     #|
@@ -190,7 +178,7 @@ must also implement `LessThanComparable`.
     @linkage        extern
     |#
     (def difference-type
-      (macro extern ((arrp (p (uq typenode))))
+      (macro extern ((arrp (p (Array (uq T) (uq N)))))
         (qq do ptrdiff)))
 
     #|
@@ -200,20 +188,17 @@ must also implement `LessThanComparable`.
     |#
     (def (Iterator (Array (uq T) (uq N)))
       (struct extern ((element (p (uq T)))
-                      (arrp    (p (uq typenode))))))
+                      (arrp    (p (Array (uq T) (uq N)))))))
 
     #|
     @fn begin
 
     Returns the iterator for the first array element.
 
-    @param arrp     An array pointer.
-    @param-type     (p (Array T N))
-    @linkage        extern
-    @return-type    (Iterator (Array T N))
+    @param arrp     An array reference.
     |#
     (def begin (fn extern (Iterator (Array (uq T) (uq N)))
-                             ((arrp (ref (uq typenode))))
+                             ((arrp (ref (Array (uq T) (uq N)))))
       ((Iterator (Array (uq T) (uq N))) 
         ((arrp arrp)
          (element (cast (:@ arrp elements)
@@ -224,13 +209,10 @@ must also implement `LessThanComparable`.
 
     Returns the iterator representing the end of the list (sentinel).
 
-    @param arrp     An array pointer.
-    @param-type     (p (Array T N))
-    @linkage        extern
-    @return-type    (Iterator (Array T N))
+    @param arrp     An array reference.
     |#
     (def end (fn extern (Iterator (Array (uq T) (uq N)))
-                            ((arrp (ref (uq typenode))))
+                            ((arrp (ref (Array (uq T) (uq N)))))
       ((Iterator (Array (uq T) (uq N))) 
         ((arrp arrp)
          (element (p+ (cast (:@ arrp elements) 
@@ -269,9 +251,6 @@ must also implement `LessThanComparable`.
     Returns the iterator's value.
 
     @param iter     An iterator.
-    @param-type     (Iterator (Array T N))
-    @linkage        extern
-    @return-type    T
     |#
     (def @source (fn extern (uq T) 
                             ((iter (Iterator (Array (uq T) (uq N)))))
@@ -283,9 +262,6 @@ must also implement `LessThanComparable`.
     Returns a pointer to the iterator's value.
 
     @param iter     An iterator.
-    @param-type     (Iterator (Array T N))
-    @linkage        extern
-    @return-type    (p T)
     |#
     (def source (fn extern (p (uq T)) 
                             ((iter (Iterator (Array (uq T) (uq N)))))
@@ -297,10 +273,7 @@ must also implement `LessThanComparable`.
     Set the given value at the specified position in the list.
 
     @param iter     An iterator.
-    @param-type     (Iterator (Array T N))
     @param v        The new value.
-    @param-type     T
-    @return-type    bool
     |#
     (def sink (fn extern bool ((iter (Iterator (Array (uq T) (uq N))))
                                (v ((uq tpw) (uq T))))
@@ -313,9 +286,6 @@ must also implement `LessThanComparable`.
     iterator.
 
     @param iter     An iterator.
-    @param-type     (Iterator (Array T N))
-    @linkage        extern
-    @return-type    (Iterator (Array T N))
     |#
     (def successor (fn extern (Iterator (Array (uq T) (uq N)))
                               ((iter (Iterator (Array (uq T) (uq N)))))
@@ -330,9 +300,6 @@ must also implement `LessThanComparable`.
     iterator.
 
     @param iter     An iterator.
-    @param-type     (Iterator (Array T N))
-    @linkage        extern
-    @return-type    (Iterator (Array T N))
     |#
     (def predecessor (fn extern (Iterator (Array (uq T) (uq N))) 
                                 ((iter (Iterator (Array (uq T) (uq N)))))
@@ -344,11 +311,7 @@ must also implement `LessThanComparable`.
     @fn =
 
     @param iter1    The first iterator.
-    @param-type     (Iterator (Array T N))
     @param iter2    The second iterator.
-    @param-type     (Iterator (Array T N))
-    @linkage        extern
-    @return-type    bool
     |#
     (def = (fn extern bool ((iter1 (Iterator (Array (uq T) (uq N))))
                             (iter2 (Iterator (Array (uq T) (uq N)))))
@@ -358,11 +321,7 @@ must also implement `LessThanComparable`.
     @fn <
 
     @param iter1    The first iterator.
-    @param-type     (Iterator (Array T N))
     @param iter2    The second iterator.
-    @param-type     (Iterator (Array T N))
-    @linkage        extern
-    @return-type    bool
     |#
     (def < (fn extern bool ((iter1 (Iterator (Array (uq T) (uq N))))
                             (iter2 (Iterator (Array (uq T) (uq N)))))
@@ -384,11 +343,7 @@ must also implement `LessThanComparable`.
     @fn +
 
     @param iter     An array iterator.
-    @param-type     (Iterator (Array T N))
     @param n        The number of steps forward.
-    @param-type     size
-    @linkage        extern
-    @return-type    (Iterator (Array T N))
     |#
     (def +
       (fn extern (Iterator (Array (uq T) (uq N)))
@@ -402,11 +357,7 @@ must also implement `LessThanComparable`.
     @fn -
 
     @param iter     An array iterator.
-    @param-type     (Iterator (Array T N))
     @param n        The number of steps backward.
-    @param-type     size
-    @linkage        extern
-    @return-type    (Iterator (Array T N))
     |#
     (def -
       (fn extern (Iterator (Array (uq T) (uq N)))
@@ -423,20 +374,17 @@ must also implement `LessThanComparable`.
     |#
     (def (ReverseIterator (Array (uq T) (uq N)))
       (struct extern ((element (p (uq T)))
-                      (arrp    (p (uq typenode))))))
+                      (arrp    (p (Array (uq T) (uq N)))))))
 
     #|
     @fn rbegin
 
     Returns the iterator for the last array element.
 
-    @param arrp     An array pointer.
-    @param-type     (p (Array T N))
-    @linkage        extern
-    @return-type    (ReverseIterator (Array T N))
+    @param arrp     An array reference.
     |#
     (def rbegin (fn extern (ReverseIterator (Array (uq T) (uq N)))
-                             ((arrp (ref (uq typenode))))
+                             ((arrp (ref (Array (uq T) (uq N)))))
       ((ReverseIterator (Array (uq T) (uq N))) 
         ((arrp arrp)
          (element (p+ (cast (:@ arrp elements)
@@ -448,13 +396,10 @@ must also implement `LessThanComparable`.
 
     Returns the iterator representing the beginning of the array (sentinel).
 
-    @param arrp     An array pointer.
-    @param-type     (p (Array T N))
-    @linkage        extern
-    @return-type    (ReverseIterator (Array T N))
+    @param arrp     An array reference.
     |#
     (def rend (fn extern (ReverseIterator (Array (uq T) (uq N)))
-                          ((arrp (ref (uq typenode))))
+                          ((arrp (ref (Array (uq T) (uq N)))))
       ; This probably isn't safe in all cases (-1 at the beginning).
       ((ReverseIterator (Array (uq T) (uq N))) 
         ((arrp arrp)
@@ -532,8 +477,8 @@ must also implement `LessThanComparable`.
 
     ; Container relations and concepts.
 
-    (def setf-copy (fn extern bool ((dst (p (uq typenode)))
-                                    (src (p (uq typenode))))
+    (def setf-copy (fn extern bool ((dst (p (Array (uq T) (uq N))))
+                                    (src (p (Array (uq T) (uq N)))))
       (init (@ dst))
       (let ((b1 \ (begin (@ src)))
             (e1 \ (end   (@ src)))
@@ -544,32 +489,29 @@ must also implement `LessThanComparable`.
           (sink b2 (@ (source b1)))))
       true))
 
-    (def setf-assign (fn extern bool ((dst (p (uq typenode)))
-                                      (src (p (uq typenode))))
+    (def setf-assign (fn extern bool ((dst (p (Array (uq T) (uq N))))
+                                      (src (p (Array (uq T) (uq N)))))
       (setf-copy dst src)))
 
-    (implement Type (uq typenode))
-    (instantiate swap (uq typenode))
+    (implement Type (Array (uq T) (uq N)))
+    (instantiate swap (Array (uq T) (uq N)))
 
-    (implement Container (uq typenode))
-    (implement Type (p (uq typenode)))
+    (implement Container (Array (uq T) (uq N)))
+    (implement Type (p (Array (uq T) (uq N))))
     (mfor F (= != < <= > >=)
-      (instantiate F (uq typenode)))
+      (instantiate F (Array (uq T) (uq N))))
 
-    (implement EqualityComparable (uq typenode))
-    (implement LessThanComparable (uq typenode))
+    (implement EqualityComparable (Array (uq T) (uq N)))
+    (implement LessThanComparable (Array (uq T) (uq N)))
 
     #|
     @fn front
 
     Returns the value of the first element in the array.
 
-    @param arrp     An array pointer.
-    @param-type     (p (Array T N))
-    @linkage        extern
-    @return-type    T
+    @param arrp     An array reference.
     |#
-    (def front (fn extern (uq T) ((arrp (ref (uq typenode))))
+    (def front (fn extern (uq T) ((arrp (ref (Array (uq T) (uq N)))))
       (@ (source (begin (@ arrp))))))
 
     #|
@@ -577,26 +519,19 @@ must also implement `LessThanComparable`.
 
     Returns the value of the last element in the array.
 
-    @param arrp     An array pointer.
-    @param-type     (p (Array T N))
-    @linkage        extern
-    @return-type    T
+    @param arrp     An array reference.
     |#
-    (def back (fn extern (uq T) ((arrp (ref (uq typenode))))
+    (def back (fn extern (uq T) ((arrp (ref (Array (uq T) (uq N)))))
       (@ (source (rbegin (@ arrp))))))
 
     #|
     @fn $
 
-    @param arrp     An array pointer.
-    @param-type     (p (Array T N))
+    @param arrp     An array reference.
     @param index    The index of the element.
-    @param-type     int
-    @linkage        extern
-    @return-type    (p T)
     |#
     (def $
-      (fn extern (p (uq T)) ((arrp (ref (uq typenode))) (index int))
+      (fn extern (p (uq T)) ((arrp (ref (Array (uq T) (uq N)))) (index int))
         (p+ (cast (:@ arrp elements)
                   (p (uq T)))
             (cast index size))))
@@ -604,15 +539,11 @@ must also implement `LessThanComparable`.
     #|
     @fn $
 
-    @param arrp     An array pointer.
-    @param-type     (p (Array T N))
+    @param arrp     An array reference.
     @param index    The index of the element.
-    @param-type     size
-    @linkage        extern
-    @return-type    (p T)
     |#
     (def $
-      (fn extern (p (uq T)) ((arrp (ref (uq typenode))) (index size))
+      (fn extern (p (uq T)) ((arrp (ref (Array (uq T) (uq N)))) (index size))
         (p+ (cast (:@ arrp elements)
                   (p (uq T)))
             index)))
@@ -627,7 +558,7 @@ must also implement `LessThanComparable`.
     (implement OutputIterator (ReverseIterator (Array (uq T) (uq N))))
     (implement RandomAccessIterator (Iterator (Array (uq T) (uq N))))
     (implement RandomAccessIterator (ReverseIterator (Array (uq T) (uq N))))
-    (implement RandomAccessContainer (uq typenode))
+    (implement RandomAccessContainer (Array (uq T) (uq N)))
     )))
 )))
 

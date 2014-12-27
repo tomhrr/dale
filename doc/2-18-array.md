@@ -52,7 +52,7 @@ Linkage: `extern`
 Returns: `bool`
 Parameters:
 
-  * `(arrp (p (Array T N)))`: An array pointer.
+  * `(arrp (ref (Array T N)))`: An array reference.
 
 
 Initialise an array. (This is a no-op for this container: to
@@ -66,7 +66,7 @@ Linkage: `extern`
 Returns: `bool`
 Parameters:
 
-  * `(arrp (p (Array T N)))`: An array pointer.
+  * `(arrp (ref (const (Array T N))))`: An array reference.
 
 
 Determine whether the array is empty. (Since arrays have a fixed
@@ -80,7 +80,7 @@ Linkage: `extern`
 Returns: `size`
 Parameters:
 
-  * `(arrp (p (Array T N)))`: An array pointer.
+  * `(arrp (ref (const (Array T N))))`: An array reference.
 
 
 Returns the number of elements in the array (This is `N`, for all
@@ -93,7 +93,7 @@ Linkage: `extern`
 Returns: `size`
 Parameters:
 
-  * `(arrp (p (Array T N)))`: An array pointer.
+  * `(arrp (ref (const (Array T N))))`: An array reference.
 
 
 Returns the number of elements that can be accommodated by the
@@ -106,7 +106,7 @@ Linkage: `extern`
 Returns: `(Iterator (Array T N))`
 Parameters:
 
-  * `(arrp (p (Array T N)))`: An array pointer.
+  * `(arrp (ref (Array T N)))`: An array reference.
 
 
 Returns the iterator for the first array element.
@@ -118,7 +118,7 @@ Linkage: `extern`
 Returns: `(Iterator (Array T N))`
 Parameters:
 
-  * `(arrp (p (Array T N)))`: An array pointer.
+  * `(arrp (ref (Array T N)))`: An array reference.
 
 
 Returns the iterator representing the end of the list (sentinel).
@@ -237,7 +237,7 @@ Linkage: `extern`
 Returns: `(ReverseIterator (Array T N))`
 Parameters:
 
-  * `(arrp (p (Array T N)))`: An array pointer.
+  * `(arrp (ref (Array T N)))`: An array reference.
 
 
 Returns the iterator for the last array element.
@@ -249,7 +249,7 @@ Linkage: `extern`
 Returns: `(ReverseIterator (Array T N))`
 Parameters:
 
-  * `(arrp (p (Array T N)))`: An array pointer.
+  * `(arrp (ref (Array T N)))`: An array reference.
 
 
 Returns the iterator representing the beginning of the array (sentinel).
@@ -261,7 +261,7 @@ Linkage: `extern`
 Returns: `T`
 Parameters:
 
-  * `(arrp (p (Array T N)))`: An array pointer.
+  * `(arrp (ref (Array T N)))`: An array reference.
 
 
 Returns the value of the first element in the array.
@@ -273,7 +273,7 @@ Linkage: `extern`
 Returns: `T`
 Parameters:
 
-  * `(arrp (p (Array T N)))`: An array pointer.
+  * `(arrp (ref (Array T N)))`: An array reference.
 
 
 Returns the value of the last element in the array.
@@ -285,7 +285,7 @@ Linkage: `extern`
 Returns: `(p T)`
 Parameters:
 
-  * `(arrp (p (Array T N)))`: An array pointer.
+  * `(arrp (ref (Array T N)))`: An array reference.
   * `(index int)`: The index of the element.
 
 
@@ -296,7 +296,7 @@ Linkage: `extern`
 Returns: `(p T)`
 Parameters:
 
-  * `(arrp (p (Array T N)))`: An array pointer.
+  * `(arrp (ref (Array T N)))`: An array reference.
   * `(index size)`: The index of the element.
 
 
@@ -339,7 +339,7 @@ the concept macro.
 Linkage: `extern`
 Parameters:
 
-  * `(arrp (p (Array T N)))`: A type node.
+  * `(arrp (p (Array T N)))`: An array pointer.
 
 
 Expands to the underlying value type (i.e. `T`) of the array. This
