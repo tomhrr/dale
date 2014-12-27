@@ -98,38 +98,39 @@ must also implement `LessThanComparable`.
     ; EqualityComparable and LessThanComparable, and instantiate a set
     ; for the pair.
  
-    (def (value-type (nullptr (Map (uq Tk) (uq Tv))))
+    (def (uq pairtypenode)
       (struct extern ((first  (uq Tk))
                       (second (uq Tv)))))
 
-    (def = (fn extern bool ((p1 (value-type (nullptr (Map (uq Tk) (uq Tv)))))
-                            (p2 (value-type (nullptr (Map (uq Tk) (uq Tv))))))
+    (def = (fn extern bool ((p1 (uq pairtypenode))
+                            (p2 (uq pairtypenode)))
       (= (@: p1 first)
          (@: p2 first))))
 
-    (def both-= (fn extern bool ((p1 (value-type (nullptr (Map (uq Tk) (uq Tv))))) 
-                                 (p2 (value-type (nullptr (Map (uq Tk) (uq Tv))))))
+    (def both-= (fn extern bool ((p1 (uq pairtypenode))
+                                 (p2 (uq pairtypenode)))
       (and (= (@: p1 first)
               (@: p2 first))
            (= (@: p1 second)
               (@: p2 second)))))
 
-    (implement Type (value-type (nullptr (Map (uq Tk) (uq Tv)))))
-    (instantiate swap (value-type (nullptr (Map (uq Tk) (uq Tv)))))
-    (implement Assignable (value-type (nullptr (Map (uq Tk) (uq Tv)))))
-    (instantiate != (value-type (nullptr (Map (uq Tk) (uq Tv)))))
+    (implement Type (uq pairtypenode))
+    (instantiate swap (uq pairtypenode))
+    (implement Assignable (uq pairtypenode))
+    (instantiate != (uq pairtypenode))
 
-    (def < (fn extern bool ((p1 (value-type (nullptr (Map (uq Tk) (uq Tv))))) (p2 (value-type (nullptr (Map (uq Tk) (uq Tv))))))
+    (def < (fn extern bool ((p1 (uq pairtypenode))
+                            (p2 (uq pairtypenode)))
       (< (@: p1 first)
          (@: p2 first))))
 
     (mfor F (<= > >=)
-      (instantiate F (value-type (nullptr (Map (uq Tk) (uq Tv))))))
+      (instantiate F (uq pairtypenode)))
 
-    (implement EqualityComparable (value-type (nullptr (Map (uq Tk) (uq Tv)))))
-    (implement LessThanComparable (value-type (nullptr (Map (uq Tk) (uq Tv)))))
+    (implement EqualityComparable (uq pairtypenode))
+    (implement LessThanComparable (uq pairtypenode))
 
-    (instantiate Set (value-type (nullptr (Map (uq Tk) (uq Tv))))) 
+    (instantiate Set (uq pairtypenode))
 
     #|
     @struct (Map Tk Tv)
@@ -139,7 +140,7 @@ must also implement `LessThanComparable`.
     @linkage extern
     |#
     (def (uq typenode)
-      (struct extern ((set (Set (value-type (nullptr (Map (uq Tk) (uq Tv)))))))))
+      (struct extern ((set (Set (uq pairtypenode))))))
 
     #|
     @fn init
@@ -220,7 +221,7 @@ must also implement `LessThanComparable`.
     |#
     (def value-type
       (macro extern ((mapp (p (Map (uq Tk) (uq Tv)))))
-        (qq do (value-type (nullptr (Map (uq Tk) (uq Tv)))))))
+        (qq do (uq pairtypenode))))
 
     #|
     @macro size-type
@@ -251,7 +252,7 @@ must also implement `LessThanComparable`.
     |#
     (def (Iterator (Map (uq Tk) (uq Tv)))
       (struct extern ((mapp (p (Map (uq Tk) (uq Tv))))
-                      (setiter (Iterator (Set (value-type (nullptr (Map (uq Tk) (uq Tv))))))))))
+                      (setiter (Iterator (Set (uq pairtypenode)))))))
 
     #|
     @macro value-type
@@ -263,7 +264,7 @@ must also implement `LessThanComparable`.
     |#
     (def value-type
       (macro extern ((mapiter (p (Iterator (Map (uq Tk) (uq Tv))))))
-        (qq do (value-type (nullptr (Map (uq Tk) (uq Tv)))))))
+        (qq do (uq pairtypenode))))
 
     #|
     @fn end
@@ -393,7 +394,7 @@ must also implement `LessThanComparable`.
 
     (def value-type
       (macro extern ((mapiter (p (ReverseIterator (Map (uq Tk) (uq Tv))))))
-        (qq do (value-type (nullptr (Map (uq Tk) (uq Tv)))))))
+        (qq do (uq pairtypenode))))
 
     (def source (fn extern (p (value-type (nullptr (Map (uq Tk) (uq Tv)))))
                            ((iter (ReverseIterator (Map (uq Tk) (uq Tv)))))
