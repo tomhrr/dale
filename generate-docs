@@ -7,5 +7,7 @@ echo "# Dale\n\n## 2.3 math\n" > doc/2-3-math.md
 ./module-to-markdown < modules/math.dt >> doc/2-3-math.md
 echo "# Dale\n\n## 2.4 macros-core\n" > doc/2-4-macros-core.md
 ./module-to-markdown < modules/macros-core.dt >> doc/2-4-macros-core.md
+echo "# Dale\n\n## 2.5 stdlib\n" > doc/2-5-stdlib.md
+./module-to-markdown < modules/stdlib.dt >> doc/2-5-stdlib.md
 echo "# Dale\n\n## 2.18 array\n" > doc/2-18-array.md
 ./module-to-markdown < modules/array.dt >> doc/2-18-array.md

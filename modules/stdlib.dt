@@ -279,6 +279,7 @@ expands to:
           ; ...
           )
 
+@linkage extern
 |#
 (def let
   (macro extern (new-vars ...)
@@ -360,12 +361,16 @@ cast to a void pointer, is passed.
 
 #|
 @macro p<=
+
+@linkage extern
 |#
 (def p<= (macro extern (ptr1 ptr2)
   (bqq or (p< (uq ptr1) (uq ptr2)) (p= (uq ptr1) (uq ptr2)))))
 
 #|
 @macro p>=
+
+@linkage extern
 |#
 (def p>= (macro extern (ptr1 ptr2)
   (bqq or (p> (uq ptr1) (uq ptr2)) (p= (uq ptr1) (uq ptr2)))))
@@ -390,6 +395,7 @@ expands to the value.
 Expands to `sizeof(long)`. Only intended for use when writing C
 bindings.
 
+@linkage extern
 |#
 (def long-type
   (macro extern (void)
@@ -406,6 +412,7 @@ bindings.
 Expands to `sizeof(unsigned long)`. Only intended for use when writing
 C bindings.
 
+@linkage extern
 |#
 (def ulong-type
   (macro extern (void)
@@ -422,6 +429,7 @@ C bindings.
 Expands to `sizeof(long long)`. Only intended for use when writing
 C bindings.
 
+@linkage extern
 |#
 (def long-long-type
   (macro extern (void)
@@ -437,6 +445,7 @@ C bindings.
 Expands to `sizeof(unsigned long long)`. Only intended for use when
 writing C bindings.
 
+@linkage extern
 |#
 (def ulong-long-type
   (macro extern (void)
@@ -483,6 +492,7 @@ expands to:
         (printf "%s\n" "zxcv")
         (printf "%s\n" "qwer")
 
+@linkage extern
 |#
 (def mfor
   (macro extern (value-name value-list ...)
@@ -510,6 +520,7 @@ expands to:
 
 Expands to nothing.
 
+@linkage extern
 |#
 (def no-op
   (macro extern (void)
@@ -520,6 +531,7 @@ Expands to nothing.
 
 Expands to the argument form.
 
+@param frm  A node.
 |#
 (def identity
   (macro extern (frm)
