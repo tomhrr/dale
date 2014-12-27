@@ -11,5 +11,7 @@ echo "# Dale\n\n## 2.5 stdlib\n" > doc/2-5-stdlib.md
 ./module-to-markdown < modules/stdlib.dt >> doc/2-5-stdlib.md
 echo "# Dale\n\n## 2.6 macros\n" > doc/2-6-macros.md
 ./module-to-markdown < modules/macros.dt >> doc/2-6-macros.md
+echo "# Dale\n\n## 2.7 assert\n" > doc/2-7-assert.md
+./module-to-markdown < modules/assert.dt >> doc/2-7-assert.md
 echo "# Dale\n\n## 2.18 array\n" > doc/2-18-array.md
 ./module-to-markdown < modules/array.dt >> doc/2-18-array.md

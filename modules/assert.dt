@@ -19,11 +19,12 @@ the `introspection` module.
   (var intern int 1))
 
 #|
-@macro disable-assertions
+@macro std.disable-assertions
 
 If called, subsequent calls to `assert` will expand to a no-op. Note
 that assertions are enabled by default.
 
+@linkage extern
 |#
 (def disable-assertions
   (macro extern (void)
@@ -31,11 +32,12 @@ that assertions are enabled by default.
     (nullptr DNode)))
 
 #|
-@macro enable-assertions
+@macro std.enable-assertions
 
 If called, subsequent calls to `assert` will expand to actual
 assertions.
 
+@linkage extern
 |#
 (def enable-assertions
   (macro extern (void)
@@ -43,7 +45,7 @@ assertions.
     (nullptr DNode)))
 
 #|
-@macro assert
+@macro std.assert
 
 Expands to a form that tests the condition; if the condition is false,
 then an error message is printed to `stderr` and execution is aborted

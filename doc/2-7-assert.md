@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: assert  
-File: assert  
+Module: assert
 
 ### Description
 
@@ -15,25 +14,12 @@ the `introspection` module.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 ### Macros
 
 #### `std.disable-assertions`
 
-Linkage: `extern`  
-Parameters: `void`
-
+Linkage: `extern`
+Parameters: N/A
 
 If called, subsequent calls to `assert` will expand to a no-op. Note
 that assertions are enabled by default.
@@ -41,9 +27,8 @@ that assertions are enabled by default.
 
 #### `std.enable-assertions`
 
-Linkage: `extern`  
-Parameters: `void`
-
+Linkage: `extern`
+Parameters: N/A
 
 If called, subsequent calls to `assert` will expand to actual
 assertions.
@@ -51,10 +36,11 @@ assertions.
 
 #### `std.assert`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `condition`: The condition expression.  
+  * `condition`: The condition expression.
+
 
 Expands to a form that tests the condition; if the condition is false,
 then an error message is printed to `stderr` and execution is aborted
@@ -64,3 +50,5 @@ compiler error message.
 
 If assertions have been disabled, by way of `disable-assertions`, then
 subsequent calls to this macro will expand to no-ops.
+
+
