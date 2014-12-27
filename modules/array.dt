@@ -101,7 +101,7 @@ must also implement `LessThanComparable`.
     actually zero the array, it is necessary to iterate over it and
     set values accordingly.)
 
-    @param lst      An array pointer.
+    @param arrp     An array pointer.
     @param-type     (p (Array T N))
     @linkage        extern
     @return-type    bool
@@ -116,7 +116,7 @@ must also implement `LessThanComparable`.
     size, this will always return true, unless the array actually has
     a size of zero.)
 
-    @param lst      An array pointer.
+    @param arrp     An array pointer.
     @param-type     (p (Array T N))
     @linkage        extern
     @return-type    bool
@@ -130,7 +130,7 @@ must also implement `LessThanComparable`.
     Returns the number of elements in the array (This is `N`, for all
     instances of the array.)
 
-    @param lst      An array pointer.
+    @param arrp     An array pointer.
     @param-type     (p (Array T N))
     @linkage        extern
     @return-type    size
@@ -144,7 +144,7 @@ must also implement `LessThanComparable`.
     Returns the number of elements that can be accommodated by the
     array. (This is also `N`, for all instances of the array.)
 
-    @param lst      An array pointer.
+    @param arrp     An array pointer.
     @param-type     (p (Array T N))
     @linkage        extern
     @return-type    size
@@ -159,7 +159,7 @@ must also implement `LessThanComparable`.
     only uses the type node for dispatch purposes, so it's safe to
     call this with e.g. `(nullptr (Array T N))` as the argument.
 
-    @param lst      A type node.
+    @param arrp     A type node.
     @param-type     (p (Array T N))
     @linkage        extern
     |#
@@ -172,7 +172,7 @@ must also implement `LessThanComparable`.
 
     Expands to the underlying size type of the array.
 
-    @param lst      A type node.
+    @param arrp     A type node.
     @param-type     (p (Array T N))
     @linkage        extern
     |#
@@ -185,7 +185,7 @@ must also implement `LessThanComparable`.
 
     Expands to the underlying iterator difference type of the array.
 
-    @param lst      A type node.
+    @param arrp     A type node.
     @param-type     (p (Array T N))
     @linkage        extern
     |#
@@ -207,7 +207,7 @@ must also implement `LessThanComparable`.
 
     Returns the iterator for the first array element.
 
-    @param lst      An array pointer.
+    @param arrp     An array pointer.
     @param-type     (p (Array T N))
     @linkage        extern
     @return-type    (Iterator (Array T N))
@@ -224,7 +224,7 @@ must also implement `LessThanComparable`.
 
     Returns the iterator representing the end of the list (sentinel).
 
-    @param lst      An array pointer.
+    @param arrp     An array pointer.
     @param-type     (p (Array T N))
     @linkage        extern
     @return-type    (Iterator (Array T N))
@@ -392,11 +392,11 @@ must also implement `LessThanComparable`.
     |#
     (def +
       (fn extern (Iterator (Array (uq T) (uq N)))
-                           ((iter1 (Iterator (Array (uq T) (uq N))))
+                           ((iter (Iterator (Array (uq T) (uq N))))
                            (n size))
         ((Iterator (Array (uq T) (uq N))) 
-          ((arrp (@: iter1 arrp))
-           (element (p+ (@: iter1 element) n))))))
+          ((arrp (@: iter arrp))
+           (element (p+ (@: iter element) n))))))
 
     #|
     @fn -
@@ -410,11 +410,11 @@ must also implement `LessThanComparable`.
     |#
     (def -
       (fn extern (Iterator (Array (uq T) (uq N)))
-                           ((iter1 (Iterator (Array (uq T) (uq N))))
+                           ((iter (Iterator (Array (uq T) (uq N))))
                            (n size))
         ((Iterator (Array (uq T) (uq N))) 
-          ((arrp (@: iter1 arrp))
-           (element (p- (@: iter1 element) n))))))
+          ((arrp (@: iter arrp))
+           (element (p- (@: iter element) n))))))
 
     #|
     @struct (ReverseIterator (Array T N))
@@ -430,7 +430,7 @@ must also implement `LessThanComparable`.
 
     Returns the iterator for the last array element.
 
-    @param lst      An array pointer.
+    @param arrp     An array pointer.
     @param-type     (p (Array T N))
     @linkage        extern
     @return-type    (ReverseIterator (Array T N))
@@ -448,14 +448,14 @@ must also implement `LessThanComparable`.
 
     Returns the iterator representing the beginning of the array (sentinel).
 
-    @param lst      An array pointer.
+    @param arrp     An array pointer.
     @param-type     (p (Array T N))
     @linkage        extern
     @return-type    (ReverseIterator (Array T N))
     |#
-    ; This probably isn't safe in all cases (-1 at the beginning).
     (def rend (fn extern (ReverseIterator (Array (uq T) (uq N)))
                           ((arrp (ref (uq typenode))))
+      ; This probably isn't safe in all cases (-1 at the beginning).
       ((ReverseIterator (Array (uq T) (uq N))) 
         ((arrp arrp)
          (element (p- (cast (:@ arrp elements)
@@ -564,7 +564,7 @@ must also implement `LessThanComparable`.
 
     Returns the value of the first element in the array.
 
-    @param lst      An array pointer.
+    @param arrp     An array pointer.
     @param-type     (p (Array T N))
     @linkage        extern
     @return-type    T
@@ -577,7 +577,7 @@ must also implement `LessThanComparable`.
 
     Returns the value of the last element in the array.
 
-    @param lst      An array pointer.
+    @param arrp     An array pointer.
     @param-type     (p (Array T N))
     @linkage        extern
     @return-type    T

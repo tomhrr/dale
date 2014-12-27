@@ -41,7 +41,7 @@ set (D_LLVM_VERSION_MINOR "${D_LLVM_VERSION_MINOR}")
 set (LLVM_BIN_DIR         "${LLVM_BIN_DIR}")
 
 set (BUILD_BINDGEN False)
-# Temporarily disabling
+# Temporarily disabling.
 #if (CLANG)
 #    set (BUILD_BINDGEN True)
 #else ()
@@ -297,11 +297,12 @@ add_dependencies (tests dalec)
 add_custom_target (documentation ALL DEPENDS man/dalec.1.gz)
 install (FILES man/dalec.1.gz DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
 
-# Dale programs.
-
+## Dale programs.
+#
 #add_custom_command (OUTPUT  module-to-markdown
 #                    COMMAND ${CMAKE_BINARY_DIR}/dalec
 #                            ${CMAKE_SOURCE_DIR}/eg/module-to-markdown/module-to-markdown.dt
+#                            -lm -O4 --static-modules
 #                            -o module-to-markdown)
 #add_custom_target (programs ALL DEPENDS module-to-markdown)
 #add_dependencies (programs dalec)

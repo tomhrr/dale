@@ -52,7 +52,7 @@ Linkage: `extern`
 Returns: `bool`
 Parameters:
 
-  * `(lst (p (Array T N)))`: An array pointer.
+  * `(arrp (p (Array T N)))`: An array pointer.
 
 
 Initialise an array. (This is a no-op for this container: to
@@ -66,7 +66,7 @@ Linkage: `extern`
 Returns: `bool`
 Parameters:
 
-  * `(lst (p (Array T N)))`: An array pointer.
+  * `(arrp (p (Array T N)))`: An array pointer.
 
 
 Determine whether the array is empty. (Since arrays have a fixed
@@ -80,7 +80,7 @@ Linkage: `extern`
 Returns: `size`
 Parameters:
 
-  * `(lst (p (Array T N)))`: An array pointer.
+  * `(arrp (p (Array T N)))`: An array pointer.
 
 
 Returns the number of elements in the array (This is `N`, for all
@@ -93,7 +93,7 @@ Linkage: `extern`
 Returns: `size`
 Parameters:
 
-  * `(lst (p (Array T N)))`: An array pointer.
+  * `(arrp (p (Array T N)))`: An array pointer.
 
 
 Returns the number of elements that can be accommodated by the
@@ -106,7 +106,7 @@ Linkage: `extern`
 Returns: `(Iterator (Array T N))`
 Parameters:
 
-  * `(lst (p (Array T N)))`: An array pointer.
+  * `(arrp (p (Array T N)))`: An array pointer.
 
 
 Returns the iterator for the first array element.
@@ -118,7 +118,7 @@ Linkage: `extern`
 Returns: `(Iterator (Array T N))`
 Parameters:
 
-  * `(lst (p (Array T N)))`: An array pointer.
+  * `(arrp (p (Array T N)))`: An array pointer.
 
 
 Returns the iterator representing the end of the list (sentinel).
@@ -150,7 +150,7 @@ Returns a pointer to the iterator's value.
 
 #### `sink`
 
-Linkage: `N/A`
+Linkage: `extern`
 Returns: `bool`
 Parameters:
 
@@ -215,7 +215,7 @@ Linkage: `extern`
 Returns: `(Iterator (Array T N))`
 Parameters:
 
-  * `(iter (Iterator (Array T N)))`: An array iterator.
+  * `(iter1 (Iterator (Array T N)))`: An array iterator.
   * `(n size)`: The number of steps forward.
 
 
@@ -226,7 +226,7 @@ Linkage: `extern`
 Returns: `(Iterator (Array T N))`
 Parameters:
 
-  * `(iter (Iterator (Array T N)))`: An array iterator.
+  * `(iter1 (Iterator (Array T N)))`: An array iterator.
   * `(n size)`: The number of steps backward.
 
 
@@ -237,7 +237,7 @@ Linkage: `extern`
 Returns: `(ReverseIterator (Array T N))`
 Parameters:
 
-  * `(lst (p (Array T N)))`: An array pointer.
+  * `(arrp (p (Array T N)))`: An array pointer.
 
 
 Returns the iterator for the last array element.
@@ -249,7 +249,7 @@ Linkage: `extern`
 Returns: `(ReverseIterator (Array T N))`
 Parameters:
 
-  * `(lst (p (Array T N)))`: An array pointer.
+  * `(arrp (p (Array T N)))`: An array pointer.
 
 
 Returns the iterator representing the beginning of the array (sentinel).
@@ -261,7 +261,7 @@ Linkage: `extern`
 Returns: `T`
 Parameters:
 
-  * `(lst (p (Array T N)))`: An array pointer.
+  * `(arrp (p (Array T N)))`: An array pointer.
 
 
 Returns the value of the first element in the array.
@@ -273,7 +273,7 @@ Linkage: `extern`
 Returns: `T`
 Parameters:
 
-  * `(lst (p (Array T N)))`: An array pointer.
+  * `(arrp (p (Array T N)))`: An array pointer.
 
 
 Returns the value of the last element in the array.
