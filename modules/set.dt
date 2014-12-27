@@ -111,10 +111,7 @@ must also implement `LessThanComparable`.
 
     Initialise a set.
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
-    @linkage        extern
-    @return-type    bool
+    @param setp     A set reference.
     |#
     (def init
       (fn extern bool ((setp (ref (uq typenode))))
@@ -132,13 +129,10 @@ must also implement `LessThanComparable`.
 
     Determine whether the set is empty.
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
-    @linkage        extern
-    @return-type    bool
+    @param setp     A set reference.
     |#
     (def empty
-      (fn extern bool ((setp (ref (const (uq typenode)))))
+      (fn extern bool ((setp (ref (const (Set (uq T))))))
         (let ((bn \ (@ (@:@ setp begin-node))))
           (p= (@:@ bn up) bn))))
 
@@ -148,13 +142,10 @@ must also implement `LessThanComparable`.
     Returns the number of elements that can be accommodated by the
     set.
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
-    @linkage        extern
-    @return-type    size
+    @param setp     A set reference.
     |#
     (def max-size
-      (fn extern size ((setp (ref (const (uq typenode)))))
+      (fn extern size ((setp (ref (const (Set (uq T))))))
         (- (cast 0 size) (cast 1 size))))
 
     #|
@@ -165,11 +156,9 @@ must also implement `LessThanComparable`.
     call this with e.g. `(nullptr (Set T))` as the argument.
 
     @param setp     A type node.
-    @param-type     (p (Set T))
-    @linkage        extern
     |#
     (def value-type
-      (macro extern ((setp (p (uq typenode))))
+      (macro extern ((setp (p (Set (uq T)))))
         (qq do (uq T))))
 
     #|
@@ -180,11 +169,9 @@ must also implement `LessThanComparable`.
     `value-type`.
 
     @param setp     A type node.
-    @param-type     (p (Set T))
-    @linkage        extern
     |#
     (def key-type
-      (macro extern ((setp (p (uq typenode))))
+      (macro extern ((setp (p (Set (uq T)))))
         (qq do (uq T))))
 
     #|
@@ -193,11 +180,9 @@ must also implement `LessThanComparable`.
     Expands to the underlying size type of the set.
 
     @param setp     A type node.
-    @param-type     (p (Set T))
-    @linkage        extern
     |#
     (def size-type
-      (macro extern ((setp (p (uq typenode))))
+      (macro extern ((setp (p (Set (uq T)))))
         (qq do size)))
 
     #|
@@ -206,11 +191,9 @@ must also implement `LessThanComparable`.
     Expands to the underlying iterator difference type of the set.
 
     @param setp     A type node.
-    @param-type     (p (Set T))
-    @linkage        extern
     |#
     (def difference-type
-      (macro extern ((setp (p (uq typenode))))
+      (macro extern ((setp (p (Set (uq T)))))
         (qq do ptrdiff)))
 
     #|
@@ -219,7 +202,7 @@ must also implement `LessThanComparable`.
     @linkage extern
     |#
     (def (Iterator (Set (uq T)))
-      (struct extern ((setp    (p (uq typenode)))
+      (struct extern ((setp    (p (Set (uq T))))
                       (element (p (uq nodetypenode))))))
 
     #|
@@ -227,13 +210,10 @@ must also implement `LessThanComparable`.
 
     Returns the iterator representing the end of the set (sentinel).
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
-    @linkage        extern
-    @return-type    (Iterator (Set T))
+    @param setp     A set reference.
     |#
     (def end
-      (fn extern (Iterator (Set (uq T))) ((setp (ref (uq typenode))))
+      (fn extern (Iterator (Set (uq T))) ((setp (ref (Set (uq T)))))
         (let ((thing (Iterator (Set (uq T)))))
           (setf (: thing element) (nullptr (uq nodetypenode)))
           (setf (: thing setp)    setp)
@@ -244,13 +224,10 @@ must also implement `LessThanComparable`.
 
     Returns the iterator for the first set element.
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
-    @linkage        extern
-    @return-type    (Iterator (Set T))
+    @param setp     A set reference.
     |#
     (def begin
-      (fn extern (Iterator (Set (uq T))) ((setp (ref (uq typenode))))
+      (fn extern (Iterator (Set (uq T))) ((setp (ref (Set (uq T)))))
         (let ((thing (Iterator (Set (uq T))) 
                         ((element (@ (@:@ setp begin-node)))
                          (setp    setp))))
@@ -405,20 +382,17 @@ must also implement `LessThanComparable`.
     |#
     (def (ReverseIterator (Set (uq T)))
       (struct extern ((element (p (uq nodetypenode)))
-                      (setp    (p (uq typenode))))))
+                      (setp    (p (Set (uq T)))))))
 
     #|
     @fn rend
 
     Returns the iterator representing the beginning of the set (sentinel).
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
-    @linkage        extern
-    @return-type    (ReverseIterator (Set T))
+    @param setp     A set reference.
     |#
     (def rend
-      (fn extern (ReverseIterator (Set (uq T))) ((setp (ref (uq typenode))))
+      (fn extern (ReverseIterator (Set (uq T))) ((setp (ref (Set (uq T)))))
         (let ((thing (ReverseIterator (Set (uq T)))))
           (setf (: thing element) (nullptr (uq nodetypenode)))
           (setf (: thing setp)    setp)
@@ -429,13 +403,10 @@ must also implement `LessThanComparable`.
 
     Returns the iterator for the last set element.
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
-    @linkage        extern
-    @return-type    (ReverseIterator (Set T))
+    @param setp     A set reference.
     |#
     (def rbegin
-      (fn extern (ReverseIterator (Set (uq T))) ((setp (ref (uq typenode))))
+      (fn extern (ReverseIterator (Set (uq T))) ((setp (ref (Set (uq T)))))
         (let ((thing (ReverseIterator (Set (uq T))) 
                         ((element (@ (@:@ setp begin-node)))
                          (setp    setp))))
@@ -526,15 +497,11 @@ must also implement `LessThanComparable`.
 
     Insert a new element into the set.
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
+    @param setp     A set reference.
     @param val      The value to insert into the set.
-    @param-type     T
-    @linkage        extern
-    @return-type    bool
     |#
     (def insert
-      (fn extern bool ((setp   (ref (uq typenode)))
+      (fn extern bool ((setp   (ref (Set (uq T))))
                        (newval ((uq tpw) (uq T))))
         (if (empty (@ setp))
             (do (setf (:@ (@ (@:@ setp begin-node)) value)
@@ -572,16 +539,12 @@ must also implement `LessThanComparable`.
     Find an element within the set, and return the iterator for its
     position.
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
+    @param setp     A set reference.
     @param val      The value to find in the set.
-    @param-type     T
-    @linkage        extern
-    @return-type    (Iterator (Set T))
     |#
     (def find
       (fn extern (Iterator (Set (uq T))) 
-                          ((setp   (ref (uq typenode)))
+                          ((setp   (ref (Set (uq T))))
                            (value  ((uq tpw) (uq T))))
         (let ((cn \ (@ (@:@ setp begin-node))))
             (and (null cn)
@@ -702,15 +665,11 @@ must also implement `LessThanComparable`.
 
     Erase an element from the set, by value.
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
+    @param setp     A set reference.
     @param val      The value to remove from the set.
-    @param-type     T
-    @linkage        extern
-    @return-type    bool
     |#
     (def erase
-      (fn extern bool ((setp (ref (uq typenode)))
+      (fn extern bool ((setp (ref (Set (uq T))))
                        (v ((uq tpw) (uq T))))
         (let ((iter \ (find (@ setp) ((uq tvw) v))))
           (if (= (end (@ setp)) iter)
@@ -722,16 +681,12 @@ must also implement `LessThanComparable`.
 
     Find the lower bound for a given value.
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
+    @param setp     A set reference.
     @param val      The value for which the lower bound should be found.
-    @param-type     T
-    @linkage        extern
-    @return-type    (Iterator (Set T))
     |#
     (def lower-bound
       (fn extern (Iterator (Set (uq T))) 
-                        ((setp (ref (uq typenode)))
+                        ((setp (ref (Set (uq T))))
                          (value ((uq tpw) (uq T))))
         (let ((cn \ (@ (@:@ setp begin-node))))
             (and (null cn)
@@ -754,16 +709,12 @@ must also implement `LessThanComparable`.
 
     Find the upper bound for a given value.
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
+    @param setp     A set reference.
     @param val      The value for which the upper bound should be found.
-    @param-type     T
-    @linkage        extern
-    @return-type    (Iterator (Set T))
     |#
     (def upper-bound
       (fn extern (Iterator (Set (uq T))) 
-                        ((setp (ref (uq typenode)))
+                        ((setp (ref (Set (uq T))))
                          (value ((uq tpw) (uq T))))
         (let ((lb \ (lower-bound (@ setp) ((uq tvw) value))))
           (if (= lb (end (@ setp)))                   lb
@@ -778,15 +729,11 @@ must also implement `LessThanComparable`.
     a `UniqueAssociativeContainer` such as `Set`, this can only return
     1 or 0, depending on whether the element is present in the set.
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
+    @param setp     A set reference.
     @param val      The value for which the count should be determined.
-    @param-type     T
-    @linkage        extern
-    @return-type    size
     |#
     (def count
-      (fn extern size ((setp (ref (uq typenode)))
+      (fn extern size ((setp (ref (Set (uq T))))
                        (v ((uq tpw) (uq T))))
         (let ((iter \ (find (@ setp) ((uq tvw) v))))
           (cast (if (= (end (@ setp)) iter) 0 1) size))))
@@ -796,13 +743,10 @@ must also implement `LessThanComparable`.
 
     Return the number of elements in the set.
 
-    @param setp     A set pointer.
-    @param-type     (p (Set T))
-    @linkage        extern
-    @return-type    size
+    @param setp     A set reference.
     |#
     (def size
-      (fn extern size ((setp (ref (uq typenode))))
+      (fn extern size ((setp (ref (Set (uq T)))))
         (let ((b \ (begin (@ setp)))
               (e \ (end (@ setp)))
               (c size 0))
@@ -829,13 +773,10 @@ must also implement `LessThanComparable`.
 
     Remove all of the elements from the set.
 
-    @param setp     The set pointer.
-    @param-type     (p (Set T))
-    @linkage        extern
-    @return-type    bool
+    @param setp     The set reference.
     |#
     (def clear
-      (fn extern void ((setp (ref (uq typenode))))
+      (fn extern void ((setp (ref (Set (uq T)))))
         (if (not (null (@ (@:@ setp begin-node))))
             (do (clear (@ (@ (@:@ setp begin-node)))) 0)
             0)
@@ -845,24 +786,20 @@ must also implement `LessThanComparable`.
     #|
     @fn swap
 
-    @param set1     The first set pointer.
-    @param set2     The second set pointer.
-    @param-type     (p (Set T))
-    @param-type     (p (Set T))
-    @linkage        extern
-    @return-type    void
+    @param set1     The first set reference.
+    @param set2     The second set reference.
     |#
     (def swap
-      (fn extern void ((set1 (ref (uq typenode)))
-                       (set2 (ref (uq typenode))))
+      (fn extern void ((set1 (ref (Set (uq T))))
+                       (set2 (ref (Set (uq T)))))
         (let ((bn1 \ (@:@ set1 begin-node))
               (bn2 \ (@:@ set2 begin-node)))
           (setf (:@ set1 begin-node) bn2)
           (setf (:@ set2 begin-node) bn1)
           (return))))
 
-    (def setf-copy (fn extern bool ((dst (p (uq typenode)))
-                                    (src (p (uq typenode))))
+    (def setf-copy (fn extern bool ((dst (p (Set (uq T))))
+                                    (src (p (Set (uq T)))))
       (init (@ dst))
       (let ((b \ (begin (@ src)))
             (e \ (end   (@ src))))
@@ -870,21 +807,21 @@ must also implement `LessThanComparable`.
           (insert (@ dst) (@source b))))
       true))
 
-    (def setf-assign (fn extern bool ((dst (p (uq typenode)))
-                                      (src (p (uq typenode))))
+    (def setf-assign (fn extern bool ((dst (p (Set (uq T))))
+                                      (src (p (Set (uq T)))))
       (clear (@ dst))
       (setf-copy dst src)))
 
-    (implement Container (uq typenode))
-    (implement Type (uq typenode))
+    (implement Container (Set (uq T)))
+    (implement Type (Set (uq T)))
     (mfor F (= < != <= > >=)
-      (instantiate F (uq typenode)))
+      (instantiate F (Set (uq T))))
 
-    (implement EqualityComparable (uq typenode))
-    (implement LessThanComparable (uq typenode))
+    (implement EqualityComparable (Set (uq T)))
+    (implement LessThanComparable (Set (uq T)))
 
     (def destroy
-      (fn extern void ((setp (p (uq typenode))))
+      (fn extern void ((setp (p (Set (uq T)))))
         (clear (@ setp))
         (return)))
 
@@ -894,9 +831,9 @@ must also implement `LessThanComparable`.
     (instantiate swap (ReverseIterator (Set (uq T))))
     (implement ForwardIterator (Iterator (Set (uq T))))
     (implement ForwardIterator (ReverseIterator (Set (uq T))))
-    (implement SimpleAssociativeContainer (uq typenode))
-    (implement SortedAssociativeContainer (uq typenode))
-    (implement UniqueAssociativeContainer (uq typenode))
+    (implement SimpleAssociativeContainer (Set (uq T)))
+    (implement SortedAssociativeContainer (Set (uq T)))
+    (implement UniqueAssociativeContainer (Set (uq T)))
     ))
 )))
 
