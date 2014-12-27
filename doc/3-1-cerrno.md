@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: cerrno  
-File: cerrno  
+Module: cerrno
 
 ### Description
 
@@ -47,24 +46,13 @@ Provides the `errno` macro, and the standard error constant macros:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 ### Macros
 
 #### `errno`
 
-Linkage: `extern`  
-Parameters: `void`
-
+Linkage: `extern`
+Parameters: N/A
 
 Expands to the current error number.
+
+

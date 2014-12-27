@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: cfloat  
-File: cfloat  
+Module: cfloat
 
 ### Description
 
@@ -34,3 +33,4 @@ Provides the following floating-point macro constants:
   * LDBL-MAX-EXP
   * LDBL-MIN
   * LDBL-MIN-EXP
+
