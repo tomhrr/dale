@@ -34,6 +34,7 @@ nesting.
 The `-nc` versions should only be used when the argument node will not
 be used again.
 
+@linkage extern
 |#
 (def qq (macro extern (frm ...)
     (def arg-count (var auto \ (arg-count mc)))

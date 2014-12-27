@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: macros  
-File: macros  
+Module: macros
 
 ### Description
 
@@ -13,25 +12,12 @@ Provides the quasiquotation macro.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 ### Macros
 
-#### `std.macros.qq`
+#### `qq`
 
-Linkage: `extern`  
-Parameters: `void`
-
+Linkage: `extern`
+Parameters: N/A
 
 The 'general-use' quasiquotation macro. The forms handled specially
 are:
@@ -50,3 +36,5 @@ nesting.
 
 The `-nc` versions should only be used when the argument node will not
 be used again.
+
+

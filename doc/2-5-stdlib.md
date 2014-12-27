@@ -281,7 +281,10 @@ Expands to nothing.
 #### `identity`
 
 Linkage: `extern`
-Parameters: N/A
+Parameters:
+
+  * `frm`: A node.
+
 
 Expands to the argument form.
 
