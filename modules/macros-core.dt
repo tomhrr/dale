@@ -14,7 +14,7 @@ function (not intended for use outside the standard libraries).
 (namespace std (namespace macros
 
 #|
-@fn make-node
+@fn std.macros.make-node
 
 Returns a newly-allocated node.
 
@@ -30,7 +30,7 @@ Returns a newly-allocated node.
     n))
 
 #|
-@fn copy
+@fn std.macros.copy
 
 @param mc An MContext.
 @param follow   Whether to include the nodes that follow `form`.
@@ -63,7 +63,7 @@ Returns a newly-allocated node.
     (return new-node)))
 
 #|
-@fn copy-qstr
+@fn std.macros.copy-qstr
 
 As per `copy`, except that if the first node is a token, it will have
 double-quotations marks added at the start and end of it in the copied
@@ -126,7 +126,7 @@ node.
     (return new-node)))
 
 #|
-@fn copy-to
+@fn std.macros.copy-to
 
 Copy (shallow) the details of the source node to the destination node.
 
@@ -150,7 +150,7 @@ Copy (shallow) the details of the source node to the destination node.
     (return)))
 
 #|
-@fn print
+@fn std.macros.print
 
 Prints the node to `stdout`.
 
@@ -171,7 +171,7 @@ Prints the node to `stdout`.
         true)))
 
 #|
-@fn sprint
+@fn std.macros.sprint
 
 Prints the node to the provided buffer.
 
@@ -202,7 +202,7 @@ Prints the node to the provided buffer.
         true)))
 
 #|
-@fn get-last-node
+@fn std.macros.get-last-node
 
 Returns the last node in the list, by iterating over `next-node`
 (i.e. this does not descend into the `list-node` of the argument
@@ -220,7 +220,7 @@ node).
               (goto begin-loop)))))
 
 #|
-@fn mnfv
+@fn std.macros.mnfv
 
 Short for 'make-node-from-value'. There are several implementations of
 this function: each is similar to `make-node`, except that each takes
@@ -228,7 +228,7 @@ an additional argument, which is used to populate the `token-str` of
 the newly-allocated node. This implementation takes a `(p char)`,
 copies it, and sets it in the new node.
 
-@param mc         An MContext.
+@param mc               An MContext.
 @param token-string     The token string for the new node.
 |#
 (def mnfv
@@ -246,10 +246,10 @@ copies it, and sets it in the new node.
     (return d-node)))
 
 #|
-@fn mnfv
+@fn std.macros.mnfv
 
 @param mc An MContext.
-@param n        An integer.
+@param n  An integer.
 |#
 (def mnfv
   (fn extern (p DNode) ((mc (p MContext))
@@ -259,10 +259,10 @@ copies it, and sets it in the new node.
     (mnfv mc x)))
 
 #|
-@fn mnfv
+@fn std.macros.mnfv
 
 @param mc An MContext.
-@param f        A float.
+@param f  A float.
 |#
 (def mnfv
   (fn extern (p DNode) ((mc (p MContext))
@@ -272,10 +272,10 @@ copies it, and sets it in the new node.
     (mnfv mc x)))
 
 #|
-@fn mnfv
+@fn std.macros.mnfv
 
 @param mc An MContext.
-@param d        A double.
+@param d  A double.
 |#
 (def mnfv
   (fn extern (p DNode) ((mc (p MContext))
@@ -285,10 +285,10 @@ copies it, and sets it in the new node.
     (mnfv mc x)))
 
 #|
-@fn mnfv
+@fn std.macros.mnfv
 
 @param mc An MContext.
-@param ld       A long double.
+@param ld A long double.
 |#
 (def mnfv
   (fn extern (p DNode) ((mc (p MContext))
@@ -298,12 +298,22 @@ copies it, and sets it in the new node.
     (mnfv mc x)))
 
 #|
-@fn mnfv-wp
+@fn std.macros.mnfv-wp
 
 Short for 'make-node-from-value-with-position'. Takes additional node
 position arguments, and sets them accordingly on the new node. Only
 implemented for `(p char)` values.
 
+@param mc                   An MContext.
+@param token-string         A string.
+@param begin-line           The beginning line number for the node.
+@param begin-column         The beginning column number for the node.
+@param end-line             The ending line number for the node.
+@param end-column           The ending column number for the node.
+@param macro-begin-line     The beginning macro line number.
+@param macro-begin-column   The beginning macro column number.
+@param macro-end-line       The ending macro line number.
+@param macro-end-column     The ending macro column number.
 |#
 (def mnfv-wp
   (fn extern (p DNode) ((mc (p MContext))
@@ -328,7 +338,7 @@ implemented for `(p char)` values.
     (return n)))
 
 #|
-@fn link-nodes
+@fn std.macros.link-nodes
 
 Links the provided nodes together, without copying them, and returns
 the first provided node. This is a varargs function. Note that the
@@ -365,12 +375,14 @@ the first provided node. This is a varargs function. Note that the
       (return very-fst-node)))
 
 #|
-@fn link-nodes-list
+@fn std.macros.link-nodes-list
 
 As per `link-nodes`, except that an additional list node is allocated
 and returned. This list node points to the first provided node as its
 `list-node`.
 
+@param mc       An MContext.
+@param argcount The number of varargs being provided.
 |#
 (def link-nodes-list
   (fn extern (p DNode) ((mc (p MContext)) (argcount int) ...)
@@ -405,12 +417,22 @@ and returned. This list node points to the first provided node as its
       (return link-node)))
 
 #|
-@fn link-nodes-list-wp
+@fn std.macros.link-nodes-list-wp
 
 As per `link-nodes-list`, except it also accepts additional node
 position arguments, and sets them accordingly on the newly-allocated
 list node.
 
+@param mc                   An MContext.
+@param argcount             The number of varargs being provided.
+@param begin-line           The beginning line number for the node.
+@param begin-column         The beginning column number for the node.
+@param end-line             The ending line number for the node.
+@param end-column           The ending column number for the node.
+@param macro-begin-line     The beginning macro line number.
+@param macro-begin-column   The beginning macro column number.
+@param macro-end-line       The ending macro line number.
+@param macro-end-column     The ending macro column number.
 |#
 (def link-nodes-list-wp
   (fn extern (p DNode) ((mc (p MContext))
@@ -465,11 +487,13 @@ list node.
       (return link-node)))
 
 #|
-@fn link-nodes-array
+@fn std.macros.link-nodes-array
 
 As per `link-nodes`, except that instead of being a varargs function,
 it takes an array of nodes as its second argument.
 
+@param argcount     The number of arguments in the array.
+@param arg-array    The argument array.
 |#
 (def link-nodes-array
   (fn extern (p DNode) ((argcount int) (arg-array (p (p DNode))))
@@ -502,7 +526,11 @@ it takes an array of nodes as its second argument.
       (return very-fst-node)))
 
 #|
-@fn valist-to-dnode-array
+@fn std.macros.valist-to-dnode-array
+
+@param arglist      An argument list.
+@param argcount     The number of arguments in the list.
+@param arg-array    The array into which the arguments will be put.
 |#
 (def valist-to-dnode-array
   (fn extern int ((arglist   (p (p void)))
@@ -521,22 +549,23 @@ it takes an array of nodes as its second argument.
     (label end-loop)
       (return 0)))
 
+(def var-marker (var intern int 0))
 #|
-@fn gensym-var
+@fn std.macros.gensym-var
 
 Prints a new, unused variable name to the provided buffer.
 
 @param buf      The buffer for the variable name.
 |#
-(def var-marker (var intern int 0))
 (def gensym-var
   (fn extern bool ((buf (p char)))
     (sprintf buf "_dale_internal_var_%d" var-marker)
     (setv var-marker (+ var-marker 1))
     true))
 
+(def label-marker (var intern int 0))
 #|
-@fn gensym-label
+@fn std.macros.gensym-label
 
 Prints a new, unused label name to the provided buffer. The prefix is
 included in the new label name, so that it is a little easier to
@@ -545,7 +574,6 @@ determine what's happening when errors occur in the generated code.
 @param buf      The buffer for the label name.
 @param prefix   The prefix for the label name.
 |#
-(def label-marker (var intern int 0))
 (def gensym-label
   (fn extern bool ((buf (p char)) (prefix (p char)))
     (if (null prefix)
@@ -556,7 +584,7 @@ determine what's happening when errors occur in the generated code.
     true))
 
 #|
-@fn make-gensym-label-node
+@fn std.macros.make-gensym-label-node
 
 Generates a new label name, constructs a token node to suit and
 returns that node.
@@ -573,7 +601,7 @@ returns that node.
     (mnfv mc label-name)))
 
 #|
-@fn make-gensym-label-node
+@fn std.macros.make-gensym-label-node
 
 As per the previous implementation, except that no prefix is required
 (it is set to the empty string).
@@ -585,7 +613,7 @@ As per the previous implementation, except that no prefix is required
     (make-gensym-label-node mc "")))
 
 #|
-@fn is-gensym-label
+@fn std.macros.is-gensym-label
 
 Determines whether the provided label node is a gensym label with the
 specified prefix.
@@ -608,7 +636,7 @@ specified prefix.
     (return true)))
 
 #|
-@fn make-gensym-var-node
+@fn std.macros.make-gensym-var-node
 
 Generates a new variable name, constructs a token node to suit and
 returns that node.
@@ -623,7 +651,7 @@ returns that node.
     (mnfv mc var-name)))
 
 #|
-@fn walk-nodes
+@fn std.macros.walk-nodes
 
 'Walks' through a node, recursively, calling the provided function
 pointer on each node. The provided `data` argument is passed to the
@@ -651,12 +679,13 @@ function pointer on each call.
     true))
 
 #|
-@fn list-count
+@fn std.macros.list-count
 
 Takes a list node, and counts the number of nodes that are within that
 list. This is not recursive: it just counts the top-level nodes from
 the list.
 
+@param form     A list node.
 |#
 (def list-count
   (fn extern int ((form (p DNode)))
@@ -672,13 +701,15 @@ the list.
     (return count)))
 
 #|
-@fn make-node-maker
+@fn std.macros.make-node-maker
 
 Constructs a node that, when evaluated, constructs the provided node.
 For example, if the node is a simple token, then the returned node
 will be `(mnfv mc token-str)`, where `token-str` is the token
 from the provided node.
 
+@param mc       An MContext.
+@param form     A node.
 |#
 (def make-node-maker
   (fn extern (p DNode) ((mc (p MContext)) (form (p DNode)))
@@ -755,13 +786,16 @@ from the provided node.
     (return itoa-str)))
 
 #|
-@fn bqq-helper
+@fn std.macros.bqq-helper
 
 A helper function for `bqq` (bootstrap-qq).
 
+@param frm          A node.
+@param mc           An MContext.
+@param arg-count    The number of elements in the node.
 |#
 (def bqq-helper
-  (fn intern (p DNode) ((frm       (p DNode))
+  (fn intern (p DNode) ((frm (p DNode))
                         (mc  (p MContext))
                         (arg-count int))
     (def nullp (var auto (p DNode) (cast 0 (p DNode))))
@@ -936,7 +970,7 @@ A helper function for `bqq` (bootstrap-qq).
       (return holder)))
 
 #|
-@macro bqq
+@macro std.macros.bqq
 
 The bootstrap quasiquotation macro. The general-use quasiquotation
 macro, `qq`, is in the `macros` module. The forms handled specially
@@ -945,6 +979,7 @@ and `uql-nc` (unquote-list-no-copy). The no-copy versions of these
 forms should only be used when the nodes being unquoted will not be
 used again.
 
+@param frm      A node.
 |#
 (def bqq (macro extern (frm ...)
     (def arg-count (var auto \ (arg-count mc)))
@@ -981,13 +1016,14 @@ used again.
         (return x)))
 
 #|
-@macro get-varargs-array
+@macro std.macros.get-varargs-array
 
 Expands into a form that collects all of the available varargs into an
 array with the name `arg-array-original`. Must be called within the
 body of a macro, and the number of non-varargs arguments must be
 deducted from `arg-count` prior to it being called.
 
+@linkage extern
 |#
 (def get-varargs-array
   (macro extern (void)
@@ -1021,12 +1057,13 @@ deducted from `arg-count` prior to it being called.
         0)))
 
 #|
-@macro get-varargs-list
+@macro std.macros.get-varargs-list
 
 As per `get-varargs-array`, except that the nodes are also linked
 together, as per `link-nodes`. A binding for the first node,
 `varargs-list`, is also introduced.
 
+@linkage extern
 |#
 (def get-varargs-list
   (macro extern (void)
