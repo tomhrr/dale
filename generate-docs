@@ -1,3 +1,5 @@
 #!/bin/sh
+echo "# Dale\n\n## 2.1 introspection\n" > doc/2-1-introspection.md
+./module-to-markdown < modules/introspection.dt >> doc/2-1-introspection.md
 echo "# Dale\n\n## 2.18 array\n" > doc/2-18-array.md
 ./module-to-markdown < modules/array.dt >> doc/2-18-array.md
