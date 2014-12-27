@@ -272,6 +272,12 @@
     (incv c))
   (return c)))
 
+; Return a pointer to the first char within str past any initial whitespace.
+(def remove-whitespace (fn intern (p char) ((str (p (const char))))
+  (while (= (@ str) #\SPACE)
+    (setv str (p+ str 1)))
+  (return str)))
+
 ; Copy the portion of str between the strings begin and end into buf.
 (def get-element (fn intern bool ((str   (p (const char)))
                                   (begin (p (const char)))
@@ -279,7 +285,8 @@
                                   (buf   (p char)))
   (let ((fb \ (if (null begin) str (strstr str begin))))
     (and (null fb) (return false))
-    (let ((fbe \ (p+ fb (if (null begin) (cast 0 size) (strlen begin))))
+    (let ((fbe \ (remove-whitespace
+                   (p+ fb (if (null begin) (cast 0 size) (strlen begin)))))
           (fe  \ (strstr fbe end)))
       (strncpy buf fbe (cast (p- fe fbe) int))
       (setf ($ buf (cast (p- fe fbe) int)) #\NULL)
@@ -308,12 +315,6 @@
           true))
       (strcat buf linebufp))
     (return))))
-
-; Return a pointer to the first char within str past any initial whitespace.
-(def remove-whitespace (fn intern (p char) ((str (p (const char))))
-  (while (= (@ str) #\SPACE)
-    (setv str (p+ str 1)))
-  (return str)))
 
 ;; Structs.
 
@@ -508,9 +509,12 @@
                      (def paramtype (var auto \ (malloc' 255 char)))
                      (def paraminfo (var auto \ (malloc' 255 char)))
                      (strcpy paramname parambuf)
-                     (setv mybufp (p+ (strstr mybufp "@param ")
-                                      (+ (cast 7 size)
-                                         (strlen paramname))))
+                     (setv mybufp (remove-whitespace
+                                    (p+ (strstr mybufp "@param ")
+                                        (cast 7 size))))
+                     (setv mybufp (remove-whitespace
+                                    (p+ mybufp (- (strlen paramname)
+                                                  (cast 1 size)))))
                      (setv n (get-element mybufp " " "\n" paraminfo))
                      (and (not n) (err "no parameter info found"))
                      (setv c (get-line mybuf 255))
@@ -539,8 +543,14 @@
   (and (and (not (is-empty-node fn-node))
             (or (= (proc-type FN)    type)
                 (= (proc-type MACRO) type)))
-       (let ((pname \ (node-to-string (get-node fn-node 1 1))))
-         (and (= 0 (strcmp pname name))
+       (let ((pfirst \ (node-to-string (get-node fn-node 1 0)))
+             (pname  \ (node-to-string (get-node fn-node 1 1)))
+             (lastp  \ (strrchr pname #\.))
+             (last   \ (strrchr name  #\.))
+             (dpname \ (if (not (null lastp)) (p+ lastp 1) pname))
+             (dname  \ (if (not (null last))  (p+ last 1)  name)))
+         (and (and (= 0 (strcmp dpname dname))
+                   (= 0 (strcmp pfirst "def")))
            (do (setv linkage (node-to-string (get-node fn-node 2 2 1)))
                (and (= (proc-type FN) type)
                     (setv returns (node-to-string (get-node fn-node 2 2 2))))

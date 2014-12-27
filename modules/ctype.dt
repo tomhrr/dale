@@ -24,7 +24,7 @@ opposed to the root namespace.
   
   Determine whether a character is alphanumeric.
   
-  @param          c           A character.
+  @param c A character.
   @param-type     char
   @return-type    bool
   @linkage        extern
@@ -152,19 +152,21 @@ opposed to the root namespace.
   (make-ctype-fn isxdigit)
 
   #|
-  @fn tolower
+  @fn std.tolower
 
   Convert a character into a lowercase character, if possible.
 
+  @param c A character.
   |#
   (def tolower
     (fn extern char ((c char))
       (cast (tolower (cast c int)) char)))
   #|
-  @fn toupper
+  @fn std.toupper
   
   Convert a character into an uppercase character, if possible.
 
+  @param c A character.
   |#
   (def toupper
     (fn extern char ((c char))
