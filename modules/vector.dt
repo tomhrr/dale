@@ -97,15 +97,11 @@ must also implement `LessThanComparable`.
 
     Initialise a vector by providing a specific capacity.
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
+    @param vecp     A vector reference.
     @param cap      The capacity of the new vector.
-    @param-type     int
-    @linkage        extern
-    @return-type    bool
     |#
     (def init
-      (fn extern bool ((vecp (ref (uq typenode))) (cap int))
+      (fn extern bool ((vecp (ref (Vector (uq T)))) (cap int))
         (setf (:@ vecp first-element)
               (malloc' cap (uq T)))
         (setf (:@ vecp last-element)  (@:@ vecp first-element))
@@ -118,13 +114,10 @@ must also implement `LessThanComparable`.
 
     Initialise a vector.
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
-    @linkage        extern
-    @return-type    bool
+    @param vecp     A vector reference.
     |#
     (def init
-      (fn extern bool ((vecp (ref (uq typenode))))
+      (fn extern bool ((vecp (ref (Vector (uq T)))))
         (init (@ vecp) 0)))
 
     #|
@@ -132,13 +125,10 @@ must also implement `LessThanComparable`.
 
     Determine whether the vector is empty.
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
-    @linkage        extern
-    @return-type    bool
+    @param vecp     A vector reference.
     |#
     (def empty
-      (fn extern bool ((vecp (ref (const (uq typenode)))))
+      (fn extern bool ((vecp (ref (const (Vector (uq T))))))
         (= (@:@ vecp size) (cast 0 size))))
 
     #|
@@ -146,13 +136,10 @@ must also implement `LessThanComparable`.
 
     Returns the number of elements in the vector.
 
-    @param vecp     A vectorp ointer.
-    @param-type     (p (Vector T))
-    @linkage        extern
-    @return-type    size
+    @param vecp     A vector reference.
     |#
     (def size
-      (fn extern (const size) ((vecp (ref (const (uq typenode)))))
+      (fn extern (const size) ((vecp (ref (const (Vector (uq T))))))
         (@:@ vecp size)))
 
     #|
@@ -161,13 +148,10 @@ must also implement `LessThanComparable`.
     Returns the number of elements that can be accommodated by the
     vector.
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
-    @linkage        extern
-    @return-type    size
+    @param vecp     A vector reference.
     |#
     (def max-size
-      (fn extern size ((vecp (ref (const (uq typenode)))))
+      (fn extern size ((vecp (ref (const (Vector (uq T))))))
         (- (cast 0 size) (cast 1 size))))
 
     #|
@@ -178,11 +162,9 @@ must also implement `LessThanComparable`.
     to call this with e.g. `(nullptr (Vector T))` as the argument.
 
     @param vecp     A type node.
-    @param-type     (p (Vector T))
-    @linkage        extern
     |#
     (def value-type
-      (macro extern ((vecp (p (uq typenode))))
+      (macro extern ((vecp (p (Vector (uq T)))))
         (qq do (uq T))))
 
     #|
@@ -191,11 +173,9 @@ must also implement `LessThanComparable`.
     Expands to the underlying size type of the vector.
 
     @param vecp     A type node.
-    @param-type     (p (Vector T))
-    @linkage        extern
     |#
     (def size-type
-      (macro extern ((vecp (p (uq typenode))))
+      (macro extern ((vecp (p (Vector (uq T)))))
         (qq do size)))
 
     #|
@@ -204,11 +184,9 @@ must also implement `LessThanComparable`.
     Expands to the underlying iterator difference type of the vector.
 
     @param vecp     A type node.
-    @param-type     (p (Vector T))
-    @linkage        extern
     |#
     (def difference-type
-      (macro extern ((vecp (p (uq typenode))))
+      (macro extern ((vecp (p (Vector (uq T)))))
         (qq do ptrdiff)))
 
     #|
@@ -216,13 +194,10 @@ must also implement `LessThanComparable`.
 
     Returns the value of the first element in the vector.
 
-    @param vecp     A vector pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    T
+    @param vecp     A vector reference.
     |#
     (def front
-      (fn extern (uq T) ((vecp (ref (const (uq typenode)))))
+      (fn extern (uq T) ((vecp (ref (const (Vector (uq T))))))
         (@ (@ (:@ vecp first-element)))))
 
     #|
@@ -230,13 +205,10 @@ must also implement `LessThanComparable`.
 
     Returns the value of the last element in the vector.
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
-    @linkage        extern
-    @return-type    T
+    @param vecp     A vector reference.
     |#
     (def back
-      (fn extern (uq T) ((vecp (ref (const (uq typenode)))))
+      (fn extern (uq T) ((vecp (ref (const (Vector (uq T))))))
         (@ (@ (:@ vecp last-element)))))
 
     #|
@@ -244,13 +216,10 @@ must also implement `LessThanComparable`.
 
     Removes an element from the end of the vector.
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
-    @linkage        extern
-    @return-type    void
+    @param vecp     A vector reference.
     |#
     (def pop-back
-      (fn extern void ((vecp (ref (uq typenode))))
+      (fn extern void ((vecp (ref (Vector (uq T)))))
         (let ((value \ (:@ vecp last-element)))
           (destroy value)
           (setf (:@ vecp size) (- (@:@ vecp size) (cast 1 size)))
@@ -263,15 +232,11 @@ must also implement `LessThanComparable`.
 
     Change the vector's capacity.
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
+    @param vecp     A vector reference.
     @param cap      The new capacity for the vector.
-    @param-type     size
-    @linkage        extern
-    @return-type    bool
     |#
     (def resize
-      (fn extern bool ((vecp (ref (uq typenode))) (new-capacity size))
+      (fn extern bool ((vecp (ref (Vector (uq T)))) (new-capacity size))
         (let ((cc \ (@:@ vecp capacity))
               (cs \ (@:@ vecp size)))
           (and (= cc new-capacity)
@@ -296,15 +261,11 @@ must also implement `LessThanComparable`.
 
     Increase the vector's capacity by the specified amount.
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
-    @param extra 
-    @param-type     size
-    @linkage        extern
-    @return-type    bool
+    @param vecp     A vector reference.
+    @param extra    The amount by which the capacity should be increased.
     |#
     (def reserve
-      (fn extern bool ((vecp (ref (uq typenode))) (extra size))
+      (fn extern bool ((vecp (ref (Vector (uq T)))) (extra size))
         (resize (@ vecp) (+ extra (@ (:@ vecp capacity))))))
 
     #|
@@ -312,15 +273,11 @@ must also implement `LessThanComparable`.
 
     Adds an element to the end of the vector.
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
+    @param vecp     A vector reference.
     @param value    The value to add to the vector.
-    @param-type     T
-    @linkage        extern
-    @return-type    bool
     |#
     (def push-back
-      (fn extern bool ((vecp  (ref (uq typenode)))
+      (fn extern bool ((vecp  (ref (Vector (uq T))))
                        (value ((uq tpw) (uq T))))
         (if (= (@:@ vecp capacity) (@:@ vecp size))
             (reserve (@ vecp) (cast 1 size))
@@ -335,29 +292,21 @@ must also implement `LessThanComparable`.
     #|
     @fn $
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
+    @param vecp     A vector reference.
     @param value    The index of the element.
-    @param-type     int
-    @linkage        extern
-    @return-type    (p T)
     |#
     (def $
-      (fn extern (p (uq T)) ((vecp (ref (const (uq typenode)))) (index int))
+      (fn extern (p (uq T)) ((vecp (ref (const (Vector (uq T))))) (index int))
         (cast (p+ (@:@ vecp first-element) index) (p (uq T)))))
 
     #|
     @fn $
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
+    @param vecp     A vector reference.
     @param value    The index of the element.
-    @param-type     size
-    @linkage        extern
-    @return-type    (p T)
     |#
     (def $
-      (fn extern (p (uq T)) ((vecp (ref (const (uq typenode)))) (index size))
+      (fn extern (p (uq T)) ((vecp (ref (const (Vector (uq T))))) (index size))
         (cast (p+ (@:@ vecp first-element) index) (p (uq T)))))
 
     #|
@@ -366,7 +315,7 @@ must also implement `LessThanComparable`.
     @linkage extern
     |#
     (def (Iterator (Vector (uq T)))
-      (struct extern ((parent-vector (p (uq typenode)))
+      (struct extern ((parent-vector (p (Vector (uq T))))
                       (element       (p (uq T))))))
 
     #|
@@ -374,13 +323,10 @@ must also implement `LessThanComparable`.
 
     Returns the iterator for the first vector element.
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
-    @linkage        extern
-    @return-type    (Iterator (Vector T))
+    @param vecp     A vector reference.
     |#
     (def begin
-      (fn extern (Iterator (Vector (uq T))) ((vecp (ref (uq typenode))))
+      (fn extern (Iterator (Vector (uq T))) ((vecp (ref (Vector (uq T)))))
         (def iter (var auto (Iterator (Vector (uq T)))))
         (setf (: iter parent-vector) vecp)
         (setf (: iter element) (@:@ vecp first-element))
@@ -391,13 +337,10 @@ must also implement `LessThanComparable`.
 
     Returns the iterator representing the end of the vector (sentinel).
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
-    @linkage        extern
-    @return-type    (Iterator (Vector T))
+    @param vecp     A vector reference.
     |#
     (def end
-      (fn extern (Iterator (Vector (uq T))) ((vecp (ref (uq typenode))))
+      (fn extern (Iterator (Vector (uq T))) ((vecp (ref (Vector (uq T)))))
         ((Iterator (Vector (uq T))) 
           ((parent-vector vecp)
            (element       (@:@ vecp last-element))))))
@@ -408,8 +351,6 @@ must also implement `LessThanComparable`.
     Expands to the underlying value type (i.e. `T`) of the iterator.
 
     @param iter     A type node.
-    @param-type     (p (Iterator (Vector T)))
-    @linkage        extern
     |#
     (def value-type
       (macro extern ((veciter (p (Iterator (Vector (uq T))))))
@@ -421,8 +362,6 @@ must also implement `LessThanComparable`.
     Expands to the underlying distance type of the iterator.
 
     @param iter     A type node.
-    @param-type     (p (Iterator (Vector T)))
-    @linkage        extern
     |#
     (def distance-type
       (macro extern ((veciter (p (Iterator (Vector (uq T))))))
@@ -434,9 +373,6 @@ must also implement `LessThanComparable`.
     Returns the iterator's value.
 
     @param iter     An iterator.
-    @param-type     (Iterator (Vector T))
-    @linkage        extern
-    @return-type    T
     |#
     (def @source
       (fn extern (uq T) ((iter (Iterator (Vector (uq T)))))
@@ -448,9 +384,6 @@ must also implement `LessThanComparable`.
     Returns a pointer to the iterator's value.
 
     @param iter     An iterator.
-    @param-type     (Iterator (Vector T))
-    @linkage        extern
-    @return-type    (p T)
     |#
     (def source
       (fn extern (p (uq T)) ((iter (Iterator (Vector (uq T)))))
@@ -462,10 +395,7 @@ must also implement `LessThanComparable`.
     Set the given value at the specified position in the vector.
 
     @param iter     An iterator.
-    @param-type     (Iterator (List T))
     @param v        The new value.
-    @param-type     T
-    @return-type    bool
     |#
     (def sink
       (fn extern bool ((iter (Iterator (Vector (uq T))))
@@ -479,9 +409,6 @@ must also implement `LessThanComparable`.
     iterator.
 
     @param iter     An iterator.
-    @param-type     (Iterator (Vector T))
-    @linkage        extern
-    @return-type    (Iterator (Vector T))
     |#
     (def successor         
       (fn extern (Iterator (Vector (uq T))) 
@@ -497,9 +424,6 @@ must also implement `LessThanComparable`.
     iterator.
 
     @param iter     An iterator.
-    @param-type     (Iterator (Vector T))
-    @linkage        extern
-    @return-type    (Iterator (Vector T))
     |#
     (def predecessor
       (fn extern (Iterator (Vector (uq T))) 
@@ -512,11 +436,7 @@ must also implement `LessThanComparable`.
     @fn =
 
     @param iter1    The first iterator.
-    @param-type     (Iterator (Vector T))
     @param iter2    The second iterator.
-    @param-type     (Iterator (Vector T))
-    @linkage        extern
-    @return-type    bool
     |#
     (def =
       (fn extern bool ((iter1 (Iterator (Vector (uq T))))
@@ -531,11 +451,7 @@ must also implement `LessThanComparable`.
     @fn <
 
     @param iter1    The first iterator.
-    @param-type     (Iterator (Vector T))
     @param iter2    The second iterator.
-    @param-type     (Iterator (Vector T))
-    @linkage        extern
-    @return-type    bool
     |#
     (def <
       (fn extern bool ((iter1 (Iterator (Vector (uq T))))
@@ -550,11 +466,7 @@ must also implement `LessThanComparable`.
     @fn +
 
     @param iter1    The first iterator.
-    @param-type     (Iterator (Vector T))
     @param n        The number of steps to advance.
-    @param-type     size
-    @linkage        extern
-    @return-type    (Iterator (Vector T))
     |#
     (def +
       (fn extern (Iterator (Vector (uq T))) 
@@ -567,11 +479,7 @@ must also implement `LessThanComparable`.
     @fn -
 
     @param iter1    The first iterator.
-    @param-type     (Iterator (Vector T))
     @param n        The number of steps by which to move backwards.
-    @param-type     size
-    @linkage        extern
-    @return-type    (Iterator (Vector T))
     |#
     (def -
       (fn extern (Iterator (Vector (uq T))) 
@@ -586,11 +494,7 @@ must also implement `LessThanComparable`.
     Return the distance between the two iterators.
 
     @param iter1    The first iterator.
-    @param-type     (Iterator (Vector T))
     @param iter2    The second iterator.
-    @param-type     (Iterator (Vector T))
-    @linkage        extern
-    @return-type    size
     |#
     (def distance
       (fn extern size ((iter1 (Iterator (Vector (uq T))))
@@ -612,13 +516,10 @@ must also implement `LessThanComparable`.
 
     Returns the iterator for the last vector element.
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
-    @linkage        extern
-    @return-type    (ReverseIterator (Vector T))
+    @param vecp     A vector reference.
     |#
     (def rbegin
-      (fn extern (ReverseIterator (Vector (uq T))) ((vec (ref (uq typenode))))
+      (fn extern (ReverseIterator (Vector (uq T))) ((vec (ref (Vector (uq T)))))
         (let ((thing (ReverseIterator (Vector (uq T))) 
                      ((element (cast (@ (:@ vec last-element)) (p (uq T)))))))
           (if (!= (@:@ vec size) (cast 0 size))
@@ -634,13 +535,10 @@ must also implement `LessThanComparable`.
     Returns the iterator representing the beginning of the vector
     (sentinel).
 
-    @param vecp     A vector pointer.
-    @param-type     (p (Vector T))
-    @linkage        extern
-    @return-type    (ReverseIterator (Vector T))
+    @param vecp     A vector reference.
     |#
     (def rend
-      (fn extern (ReverseIterator (Vector (uq T))) ((vec (ref (uq typenode))))
+      (fn extern (ReverseIterator (Vector (uq T))) ((vec (ref (Vector (uq T)))))
         (let ((thing (ReverseIterator (Vector (uq T))) 
                      ((element (cast (@ (:@ vec first-element)) (p (uq T)))))))
           thing)))
@@ -725,18 +623,13 @@ must also implement `LessThanComparable`.
     Inserts a new element into the vector before the specified position,
     and returns the iterator for the new element.
 
-    @param vecp     The vector pointer.
-    @param-type     (p (Vector T))
+    @param vecp     The vector reference.
     @param iter     The iterator for the position.
-    @param-type     (Iterator (Vector T))
     @param value    The new value.
-    @param-type     T
-    @linkage        extern
-    @return-type    (Iterator (Vector T))
     |#
     (def insert
       (fn extern (Iterator (Vector (uq T))) 
-                        ((unused (ref (const (uq typenode))))
+                        ((unused (ref (const (Vector (uq T)))))
                          (iter   (Iterator (Vector (uq T))))
                          (value  (uq T)))
         (let ((vecp          \ (@: iter parent-vector))
@@ -766,16 +659,12 @@ must also implement `LessThanComparable`.
 
     Remove the element at the specified position from the vector.
 
-    @param vecp     The vector pointer.
-    @param-type     (p (Vector T))
+    @param vecp     The vector reference.
     @param iter     The iterator for the position.
-    @param-type     (Iterator (Vector T))
-    @linkage        extern
-    @return-type    (Iterator (Vector T))
     |#
     (def erase
       (fn extern (Iterator (Vector (uq T))) 
-                        ((unused (ref (const (uq typenode))))
+                        ((unused (ref (const (Vector (uq T)))))
                          (iter   (Iterator (Vector (uq T)))))
         (let ((value \ (@: iter element))
               (nn    (Iterator (Vector (uq T))))
@@ -800,13 +689,10 @@ must also implement `LessThanComparable`.
 
     Remove all of the elements from the vector.
 
-    @param vecp     The vector pointer.
-    @param-type     (p (Vector T))
-    @linkage        extern
-    @return-type    bool
+    @param vecp     The vector reference.
     |#
     (def clear
-      (fn extern bool ((vecp (ref (uq typenode))))
+      (fn extern bool ((vecp (ref (Vector (uq T)))))
         (while (not (empty (@ vecp)))
           (pop-back (@ vecp)))
         true))
@@ -814,24 +700,20 @@ must also implement `LessThanComparable`.
     #|
     @fn swap
 
-    @param vec1     The first vector pointer.
-    @param vec2     The second pointer pointer.
-    @param-type     (p (Vector T))
-    @param-type     (p (Vector T))
-    @linkage        extern
-    @return-type    void
+    @param vec1     The first vector reference.
+    @param vec2     The second vector reference.
     |#
     (def swap
-      (fn extern void ((vec1 (ref (uq typenode)))
-                       (vec2 (ref (uq typenode))))
-        (let ((vec3 (uq typenode)))
+      (fn extern void ((vec1 (ref (Vector (uq T))))
+                       (vec2 (ref (Vector (uq T)))))
+        (let ((vec3 (Vector (uq T))))
           (core setf (# vec3) (@ vec1))
           (core setf vec1     (@ vec2))
           (core setf vec2     vec3)
           (return))))
 
-    (def setf-copy (fn extern bool ((dst (p (uq typenode)))
-                                    (src (p (uq typenode))))
+    (def setf-copy (fn extern bool ((dst (p (Vector (uq T))))
+                                    (src (p (Vector (uq T)))))
       (init (@ dst))
       (let ((b1 \ (begin (@ src)))
             (e1 \ (end   (@ src))))
@@ -839,21 +721,21 @@ must also implement `LessThanComparable`.
           (push-back (@ dst) (@source b1))))
       true))
 
-    (def setf-assign (fn extern bool ((dst (p (uq typenode)))
-                                      (src (p (uq typenode))))
+    (def setf-assign (fn extern bool ((dst (p (Vector (uq T))))
+                                      (src (p (Vector (uq T)))))
       (clear (@ dst))
       (setf-copy dst src)))
 
-    (implement Container (uq typenode))
-    (implement Type (p (uq typenode)))
+    (implement Container (Vector (uq T)))
+    (implement Type (p (Vector (uq T))))
     (mfor F (= != < <= > >=)
-      (instantiate F (uq typenode)))
+      (instantiate F (Vector (uq T))))
 
-    (implement EqualityComparable (uq typenode))
-    (implement LessThanComparable (uq typenode))
+    (implement EqualityComparable (Vector (uq T)))
+    (implement LessThanComparable (Vector (uq T)))
 
     (def destroy
-      (fn extern void ((vecp (p (uq typenode))))
+      (fn extern void ((vecp (p (Vector (uq T)))))
         (clear (@ vecp))
         (return)))
 
@@ -865,8 +747,8 @@ must also implement `LessThanComparable`.
     (implement OutputIterator (ReverseIterator (Vector (uq T))))
     (implement RandomAccessIterator (Iterator (Vector (uq T))))
     (implement RandomAccessIterator (ReverseIterator (Vector (uq T))))
-    (implement BackInsertionSequence (uq typenode))
-    (implement RandomAccessContainer (uq typenode))
+    (implement BackInsertionSequence (Vector (uq T)))
+    (implement RandomAccessContainer (Vector (uq T)))
     ))
    )))
 ))
