@@ -436,15 +436,6 @@ into the cleared container.
           (push-back (@ obj) (@ (source begin))))
         true))))
 
-#|
-@concept-macro foldl
-
-Takes an input iterator type as its arguments.  Expands to a fold-left
-function that takes a binary operation function pointer, an initial
-value, and a pair of input iterators as its arguments.
-
-@param Ti   The input iterator type.
-|#
 (def-concept-macro foldl_ extern ((Ti InputIterator)
                                   (V Type))
   (qq do
@@ -479,6 +470,15 @@ value, and a pair of input iterators as its arguments.
           (setv begin (successor begin)))
         (return)))))
 
+#|
+@concept-macro foldl
+
+Takes an input iterator type as its arguments.  Expands to a fold-left
+function that takes a binary operation function pointer, an initial
+value, and a pair of input iterators as its arguments.
+
+@param Ti   The input iterator type.
+|#
 (def-concept-macro foldl extern ((Ti InputIterator))
   (qq do
     (std.concepts.instantiate foldl_ (uq Ti) (value-type (nullptr (uq Ti))))))
