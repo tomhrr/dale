@@ -215,7 +215,7 @@ Linkage: `extern`
 Returns: `(Iterator (Array T N))`
 Parameters:
 
-  * `(iter1 (Iterator (Array T N)))`: An array iterator.
+  * `(iter (Iterator (Array T N)))`: An array iterator.
   * `(n size)`: The number of steps forward.
 
 
@@ -226,7 +226,7 @@ Linkage: `extern`
 Returns: `(Iterator (Array T N))`
 Parameters:
 
-  * `(iter1 (Iterator (Array T N)))`: An array iterator.
+  * `(iter (Iterator (Array T N)))`: An array iterator.
   * `(n size)`: The number of steps backward.
 
 
@@ -339,7 +339,7 @@ the concept macro.
 Linkage: `extern`
 Parameters:
 
-  * `(lst (p (Array T N)))`: A type node.
+  * `(arrp (p (Array T N)))`: A type node.
 
 
 Expands to the underlying value type (i.e. `T`) of the array. This
@@ -352,7 +352,7 @@ call this with e.g. `(nullptr (Array T N))` as the argument.
 Linkage: `extern`
 Parameters:
 
-  * `(lst (p (Array T N)))`: A type node.
+  * `(arrp (p (Array T N)))`: A type node.
 
 
 Expands to the underlying size type of the array.
@@ -363,7 +363,7 @@ Expands to the underlying size type of the array.
 Linkage: `extern`
 Parameters:
 
-  * `(lst (p (Array T N)))`: A type node.
+  * `(arrp (p (Array T N)))`: A type node.
 
 
 Expands to the underlying iterator difference type of the array.
