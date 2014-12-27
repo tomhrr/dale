@@ -35,3 +35,5 @@ echo "# Dale\n\n## 2.17 map\n" > doc/2-17-map.md
 ./module-to-markdown < modules/map.dt >> doc/2-17-map.md
 echo "# Dale\n\n## 2.18 array\n" > doc/2-18-array.md
 ./module-to-markdown < modules/array.dt >> doc/2-18-array.md
+echo "# Dale\n\n## 2.19 shared-ptr\n" > doc/2-19-shared-ptr.md
+./module-to-markdown < modules/shared-ptr.dt >> doc/2-19-shared-ptr.md

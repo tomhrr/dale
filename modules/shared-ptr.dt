@@ -82,7 +82,7 @@ Expands to a `SharedPtr` definition over the relevant type.
     @return-type    bool
     |#
     (def init
-      (fn extern bool ((loc   (ref (uq snnode)))
+      (fn extern bool ((loc   (ref (SharedPtr (uq T))))
                        (value (p (uq T))))
         (let ((newint (p int) (cast (malloc (sizeof int)) (p int))))
           (setf newint 1)
@@ -101,13 +101,13 @@ Expands to a `SharedPtr` definition over the relevant type.
     @return-type    bool
     |#
     (def init
-      (fn extern bool ((loc (ref (uq snnode))))
+      (fn extern bool ((loc (ref (SharedPtr (uq T)))))
         (setf (:@ loc pointer)  (nullptr (uq T)))
         (setf (:@ loc refcount) (nullptr int))
         true))
 
     (def destroy
-      (fn extern void ((val (p (uq snnode))))
+      (fn extern void ((val (p (SharedPtr (uq T)))))
         (and (or (null val) (or (null (@:@ val pointer))
                                (null (@:@ val refcount))))
              (return))
@@ -131,7 +131,7 @@ Expands to a `SharedPtr` definition over the relevant type.
     @return-type    (p T)
     |#
     (def get
-      (fn extern (p (uq T)) ((mloc (uq snnode)))
+      (fn extern (p (uq T)) ((mloc (SharedPtr (uq T))))
         (@: mloc pointer)))
 
     #|
@@ -146,23 +146,23 @@ Expands to a `SharedPtr` definition over the relevant type.
     @return-type    T
     |#
     (def @
-      (fn extern (uq T) ((mloc (uq snnode)))
+      (fn extern (uq T) ((mloc (SharedPtr (uq T))))
         (@ (@: mloc pointer))))
 
     (def setf-assign
-      (fn extern bool ((loc (p (uq snnode)))
+      (fn extern bool ((loc (p (SharedPtr (uq T))))
                        (val (uq T)))
         (do (setf (core-@:@ loc pointer) val) 0)
         false))
 
     (def setf-copy
-      (fn extern bool ((loc (p (uq snnode)))
+      (fn extern bool ((loc (p (SharedPtr (uq T))))
                        (val (uq T)))
         false))
 
     (def setf-assign
-      (fn extern bool ((loc (p (uq snnode)))
-                       (val (p (uq snnode))))
+      (fn extern bool ((loc (p (SharedPtr (uq T))))
+                       (val (p (SharedPtr (uq T)))))
         (and (not (p= (core @ (: (core @ loc) pointer))
                       (core @ (: (core @ val) pointer))))
              (do (destroy loc)
@@ -175,8 +175,8 @@ Expands to a `SharedPtr` definition over the relevant type.
         true))
 
     (def setf-copy
-      (fn extern bool ((loc (p (uq snnode)))
-                       (val (p (uq snnode))))
+      (fn extern bool ((loc (p (SharedPtr (uq T))))
+                       (val (p (SharedPtr (uq T)))))
         (setf (core-@:@ val refcount)
               (+ (core @ (core-@:@ val refcount)) 1))
         (core setf (: (core @ loc) pointer)  
