@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: concepts-core  
-File: concepts-core  
+Module: concepts-core
 
 ### Description
 
@@ -44,24 +43,17 @@ ones that should be used directly are:
 
 
 
-
-
-
-
-
-
-
-
 ### Functions
 
 #### `std.concepts.exists-concept-fn`
 
-Linkage: `extern`  
-Returns: `bool`  
-Parameters:  
+Linkage: `extern`
+Returns: `bool`
+Parameters:
 
-  * `(mc (p MContext))`: An MContext.  
-  * `(frm (p DNode))`: The node containing the concept name.  
+  * `(mc (p MContext))`: An MContext.
+  * `(frm (p DNode))`: The node containing the concept name.
+
 
 Determines whether the given concept, as described by the node, has
 been defined.
@@ -69,126 +61,174 @@ been defined.
 
 #### `std.concepts.implements-fn`
 
-Linkage: `extern`  
-Returns: `bool`  
-Parameters:  
+Linkage: `extern`
+Returns: `bool`
+Parameters:
 
-  * `(mc (p MContext))`  
-  * `(T (p DNode))`  
-  * `(C (p DNode))`  
-
-
+  * `(mc (p MContext))`: An MContext.
+  * `(T (p DNode))`: A type node.
+  * `(C (p DNode))`: A concept node.
 
 
-#### `std.concepts.get-type-concept-list`
 
-Linkage: `extern`  
-Returns: `(p (p char))`  
-Parameters:  
+#### `std.concepts.get-node-type-concept-list`
 
-  * `(mc (p MContext))`  
-  * `(T (p DNode))`  
+Linkage: `extern`
+Returns: `(p (p char))`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+  * `(T (p DNode))`: A type node.
 
 
+Takes a type DNode as its single argument.  Returns a list of char
+pointers, each being the name of a concept implemented by this type.
+This is recursive, so if the type implements a concept A, which is in
+turn a refinement of concept B, the list will includes entries for
+both A and B.
 
 
 #### `std.concepts.refines`
 
-Linkage: `extern`  
-Returns: `bool`  
-Parameters:  
+Linkage: `extern`
+Returns: `bool`
+Parameters:
 
-  * `(mc (p MContext))`  
-  * `(Tupper (p char))`  
-  * `(Tlower (p char))`  
+  * `(mc (p MContext))`: An MContext.
+  * `(Tupper (p char))`: The possibly-refined type.
+  * `(Tlower (p char))`: The refining type.
 
+
+
+#### `std.concepts.refines-multiple`
+
+Linkage: `extern`
+Returns: `bool`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+  * `(Tupper (p char))`: The possibly-refined type.
+  * `(Tlower (p char))`: The refining type.
 
 
 
 #### `std.concepts.add-refinement`
 
-Linkage: `extern`  
-Returns: `void`  
-Parameters:  
+Linkage: `extern`
+Returns: `void`
+Parameters:
 
-  * `(current-cn (p concept-node))`  
-  * `(refine-cn (p concept-node))`  
-
+  * `(current-cn (p concept-node))`: The current concept node.
+  * `(refine-cn (p concept-node))`: The refinement concept node.
 
 
 
 #### `std.concepts.make-simple-node`
 
-Linkage: `extern`  
-Returns: `(p concept-node)`  
-Parameters:  
+Linkage: `extern`
+Returns: `(p concept-node)`
+Parameters:
 
-  * `(mc (p MContext))`  
-  * `(name (p DNode))`  
+  * `(mc (p MContext))`: An MContext.
+  * `(name (p DNode))`: The name of the concept.
 
 
+
+#### `std.concepts.dump-concept-map`
+
+Linkage: `extern`
+Parameters: N/A
 
 
 #### `std.concepts.get-type-concept-map`
 
-Linkage: `extern`  
-Returns: `(p concept-node)`  
-Parameters:  
-
-  * `(mc (p MContext))`  
-  * `(T (p DNode))`  
-
-
+Linkage: `extern`
+Returns: `(p concept-node)`
+Parameters: N/A
 
 
 #### `std.concepts.get-concept-macro-name`
 
-Linkage: `intern`  
-Returns: `bool`  
-Parameters:  
+Linkage: `intern`
+Returns: `bool`
+Parameters:
 
-  * `(mc (p MContext))`  
-  * `(macro-name (p DNode))`  
-  * `(mt-vl (p DNode))`  
-  * `(tnames bool)`  
-  * `(buf (p char))`  
-
+  * `(mc (p MContext))`: An MContext.
+  * `(macro-name (p DNode))`: The macro name node.
+  * `(mt-vl (p DNode))`: The concept macro type.
+  * `(tnames bool)`: Whether the type is a list or an atom.
+  * `(buf (p char))`: The buffer for the name.
 
 
 
 #### `std.concepts.exists-concept-macro`
 
-Linkage: `extern`  
-Returns: `bool`  
-Parameters:  
+Linkage: `extern`
+Returns: `bool`
+Parameters:
 
-  * `(mc (p MContext))`  
-  * `(macro-name (p DNode))`  
-  * `(macro-types (p DNode))`  
+  * `(mc (p MContext))`: An MContext.
+  * `(macro-name (p DNode))`: The name of the concept macro.
+  * `(macro-types (p DNode))`: The types of the concept macro.
 
 
+
+#### `std.concepts.all-applicable`
+
+Linkage: `intern`
+Returns: `bool`
+Parameters: N/A
+
+Returns true if the list of concept nodes does not contain any
+instances of "not-applicable" (i.e. of the root, unused concept node).
+
+
+#### `std.concepts.get-candidate-toplevel`
+
+Linkage: `intern`
+Returns: `bool`
+Parameters: N/A
+
+Checks at the top-level of the concept list for a candidate that
+matches the requested macro name.  If one exists, writes it to the
+macro buffer and returns true.  Otherwise, returns false.
 
 
 #### `std.concepts.get-candidate`
 
-Linkage: `intern`  
-Returns: `int`  
-Parameters:  
-
-  * `(mc (p MContext))`  
-  * `(errn (p DNode))`  
-  * `(tcl-list (p (p concept-node)))`  
-  * `(tcl-count int)`  
-  * `(arg-cycle int)`  
-  * `(macname (p char))`  
-  * `(macbuf (p char))`  
-  * `(is-error (p int))`  
-  * `(hasbuf bool)`  
-  * `(mybuf2 (p char))`  
+Linkage: `intern`
+Returns: `int`
+Parameters: N/A
 
 
+#### `std.concepts.is-forced-concept`
+
+Linkage: `intern`
+Returns: `bool`
+Parameters: N/A
 
 
+#### `std.concepts.validate-forced-concept`
+
+Linkage: `intern`
+Returns: `bool`
+Parameters: N/A
+
+
+#### `std.concepts.get-type-concept-list`
+
+Linkage: `intern`
+Returns: `bool`
+Parameters: N/A
+
+Takes a list of concept instantiation arguments, except for the
+initial concept name.  Populates the type concept list, being the
+mapping between the parameter and the concept map for the parameter.
+
+Most parameters are plain types, for which see get-type-concept-map.
+The special processing here is for disambiguation (forcing the use of
+a specific concept) and non-types, the latter of which are treated as
+being of the Value concept.
 
 
 
@@ -197,10 +237,11 @@ Parameters:
 
 #### `std.concepts.exists-concept`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `concept-name`: The node containing the concept name.  
+  * `concept-name`: The node containing the concept name.
+
 
 Expands to `true` or `false`, depending on whether the concept, as
 described by the argument node, has been defined.
@@ -208,9 +249,8 @@ described by the argument node, has been defined.
 
 #### `std.concepts.def-concept`
 
-Linkage: `extern`  
-Parameters: `void`
-
+Linkage: `extern`
+Parameters: N/A
 
 Define a new concept. Takes a name, a list of refinements, a list of
 parameters and an arbitrary number of forms representing the body of
@@ -239,9 +279,8 @@ constructed by way of `def-concept-macro`.
 
 #### `std.concepts.implement`
 
-Linkage: `extern`  
-Parameters: `void`
-
+Linkage: `extern`
+Parameters: N/A
 
 Takes a concept name and a list of type arguments. Attempts to
 'implement' the concept for those type arguments, which involves
@@ -253,11 +292,12 @@ body may (generally, will) add errors if its requirements are not met.
 
 #### `std.concepts.implements`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `T`: A type node.  
-  * `C`: A concept node.  
+  * `T`: A type node.
+  * `C`: A concept node.
+
 
 If the type implements the concept, this is a no-op. Otherwise, it
 reports an error about the concept not being implemented.
@@ -265,12 +305,13 @@ reports an error about the concept not being implemented.
 
 #### `std.concepts.def-concept-macro`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `macro-name`: The name of the concept macro.  
-  * `linkage`: The linkage of the concept macro.  
-  * `macro-types`: The parameters (typed) for the macro.  
+  * `macro-name`: The name of the concept macro.
+  * `linkage`: The linkage of the concept macro.
+  * `macro-types`: The parameters (typed) for the macro.
+
 
 Define a new concept macro. Takes a name, a linkage type, a list of
 macro parameters and an arbitrary number of forms (the body of the
@@ -284,21 +325,25 @@ macro to actually run, based on the concepts implemented by the
 arguments.
 
 
-#### `assert-return`
+#### `std.concepts.assert-return`
 
-Linkage: `N/A`  
-Parameters: `void`
-
-
+Linkage: `intern`
+Parameters: N/A
 
 
+#### `std.concepts.assert-return-b`
 
-#### `instantiate`
+Linkage: `intern`
+Parameters: N/A
 
-Linkage: `N/A`  
-Parameters:  
 
-  * `macro-name`: The name of the macro to be instantiated.  
+#### `std.concepts.instantiate`
+
+Linkage: `extern`
+Parameters:
+
+  * `macro-name`: The name of the macro to be instantiated.
+
 
 Takes a concept macro name and a series of arguments for that concept
 macro as its arguments. Determines the most appropriate concrete
@@ -312,3 +357,5 @@ report an error and expand to nothing. Disambiguation is achieved by
 way of the `force` form:
 
         (instantiate MacroName (force ConceptName Type) ...)
+
+

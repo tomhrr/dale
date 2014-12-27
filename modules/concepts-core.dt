@@ -46,7 +46,7 @@ ones that should be used directly are:
 (using-namespace std.macros
 
 #|
-@fn exists-concept-fn
+@fn std.concepts.exists-concept-fn
 
 Determines whether the given concept, as described by the node, has
 been defined.
@@ -63,7 +63,7 @@ been defined.
         (return (exists-fn mc frm))))))
 
 #|
-@macro exists-concept
+@macro std.concepts.exists-concept
 
 Expands to `true` or `false`, depending on whether the concept, as
 described by the argument node, has been defined.
@@ -77,7 +77,7 @@ described by the argument node, has been defined.
         (qq do false))))
 
 #|
-@macro def-concept
+@macro std.concepts.def-concept
 
 Define a new concept. Takes a name, a list of refinements, a list of
 parameters and an arbitrary number of forms representing the body of
@@ -103,6 +103,7 @@ is as per a normal macro, so an `mc` is present.
 Concepts, once defined, can be used to 'tag' the parameters to a macro
 constructed by way of `def-concept-macro`.
 
+@linkage extern
 |#
 (def def-concept
   (macro extern (concept-name-node refinement-list type-arguments ...)
@@ -287,7 +288,7 @@ constructed by way of `def-concept-macro`.
      mine)))
 
 #|
-@macro implement
+@macro std.concepts.implement
 
 Takes a concept name and a list of type arguments. Attempts to
 'implement' the concept for those type arguments, which involves
@@ -296,6 +297,7 @@ marking the type as such if it does. If the type does not satisfy the
 constraints, the expansion is a no-op, though note that the concept
 body may (generally, will) add errors if its requirements are not met.
 
+@linkage extern
 |#
 (def implement
   (macro extern (concept-name-node ...)
@@ -314,7 +316,11 @@ body may (generally, will) add errors if its requirements are not met.
       mine)))
 
 #|
-@fn implements-fn
+@fn std.concepts.implements-fn
+
+@param mc   An MContext.
+@param T    A type node.
+@param C    A concept node.
 |#
 (def implements-fn
   (fn extern bool ((mc (p MContext)) (T (p DNode)) (C (p DNode)))
@@ -325,7 +331,7 @@ body may (generally, will) add errors if its requirements are not met.
         (return (exists-fn mc (qq int (uq fnnode) (uq T))))))))
 
 #|
-@macro implements
+@macro std.concepts.implements
 
 If the type implements the concept, this is a no-op. Otherwise, it
 reports an error about the concept not being implemented.
@@ -346,7 +352,7 @@ reports an error about the concept not being implemented.
         (nullptr DNode)))))
 
 #|
-@fn get-node-type-concept-list
+@fn std.concepts.get-node-type-concept-list
 
 Takes a type DNode as its single argument.  Returns a list of char
 pointers, each being the name of a concept implemented by this type.
@@ -354,6 +360,8 @@ This is recursive, so if the type implements a concept A, which is in
 turn a refinement of concept B, the list will includes entries for
 both A and B.
 
+@param mc   An MContext.
+@param T    A type node.
 |#
 (def get-node-type-concept-list
   (fn extern (p (p char)) ((mc (p MContext)) (T (p DNode)))
@@ -387,7 +395,11 @@ both A and B.
                   (refinements      (p (p concept-node))))))
 
 #|
-@fn refines
+@fn std.concepts.refines
+
+@param mc       An MContext.
+@param Tupper   The possibly-refined type.
+@param Tlower   The refining type.
 |#
 (def refines
   (fn extern bool ((mc (p MContext))
@@ -402,7 +414,11 @@ both A and B.
       res)))
 
 #|
-@fn refines-multiple
+@fn std.concepts.refines-multiple
+
+@param mc       An MContext.
+@param Tupper   The possibly-refined type.
+@param Tlower   The refining type.
 |#
 (def refines-multiple
   (fn extern bool ((mc (p MContext))
@@ -439,11 +455,14 @@ both A and B.
                                           (p+ lowerspace 1))))))))
 
 #|
-@fn add-refinement
+@fn std.concepts.add-refinement
+
+@param current-cn   The current concept node.
+@param refine-cn    The refinement concept node.
 |#
 (def add-refinement
   (fn extern void ((current-cn (p concept-node))
-                       (refine-cn  (p concept-node)))
+                   (refine-cn  (p concept-node)))
     (setf (p+ (@:@ current-cn refinements)
               (@:@ current-cn refinement-count))
           refine-cn)
@@ -451,7 +470,10 @@ both A and B.
     (return)))
 
 #|
-@fn make-simple-node
+@fn std.concepts.make-simple-node
+
+@param mc    An MContext.
+@param name  The name of the concept.
 |#
 (def make-simple-node
   (fn extern (p concept-node) ((mc (p MContext))
@@ -465,7 +487,9 @@ both A and B.
       pcn)))
 
 #|
-@fn dump-concept-map
+@fn std.concepts.dump-concept-map
+
+@linkage extern
 |#
 (def pd (fn intern void ((n int))
   (while (!= n 0) (printf ".") (setv n (- n 1)))
@@ -484,7 +508,9 @@ both A and B.
     (return)))
 
 #|
-@fn get-type-concept-map
+@fn std.concepts.get-type-concept-map
+
+@linkage extern
 |#
 (def get-type-concept-map
   (fn extern (p concept-node) ((mc (p MContext))
@@ -559,7 +585,13 @@ both A and B.
     (return root)))
 
 #|
-@fn get-concept-macro-name
+@fn std.concepts.get-concept-macro-name
+
+@param mc           An MContext.
+@param macro-name   The macro name node.
+@param mt-vl        The concept macro type.
+@param tnames       Whether the type is a list or an atom.
+@param buf          The buffer for the name.
 |#
 (def get-concept-macro-name
   (fn intern bool ((mc   (p MContext))
@@ -597,7 +629,7 @@ both A and B.
       (return true))))
 
 #|
-@macro def-concept-macro
+@macro std.concepts.def-concept-macro
 
 Define a new concept macro. Takes a name, a linkage type, a list of
 macro parameters and an arbitrary number of forms (the body of the
@@ -643,7 +675,11 @@ arguments.
           mine2)))))
 
 #|
-@fn exists-concept-macro
+@fn std.concepts.exists-concept-macro
+
+@param mc           An MContext.
+@param macro-name   The name of the concept macro.
+@param macro-types  The types of the concept macro.
 |#
 (def exists-concept-macro
   (fn extern bool ((mc    (p MContext))
@@ -664,11 +700,12 @@ arguments.
         (return (exists-macro mc macnode))))))
 
 #|
-@fn all-applicable
+@fn std.concepts.all-applicable
 
 Returns true if the list of concept nodes does not contain any
 instances of "not-applicable" (i.e. of the root, unused concept node).
 
+@linkage intern
 |#
 (def all-applicable
   (fn intern bool ((tcl-list  (p (p concept-node)))
@@ -681,12 +718,13 @@ instances of "not-applicable" (i.e. of the root, unused concept node).
     true))
 
 #|
-@fn get-candidate-toplevel
+@fn std.concepts.get-candidate-toplevel
 
 Checks at the top-level of the concept list for a candidate that
 matches the requested macro name.  If one exists, writes it to the
 macro buffer and returns true.  Otherwise, returns false.
 
+@linkage intern
 |#
 (def get-candidate-toplevel
   (fn intern bool ((mc          (p MContext))
@@ -734,7 +772,9 @@ macro buffer and returns true.  Otherwise, returns false.
     false))
 
 #|
-@fn get-candidate
+@fn std.concepts.get-candidate
+
+@linkage intern
 |#
 (def get-candidate
   (fn intern int ((mc          (p MContext))
@@ -854,7 +894,9 @@ macro buffer and returns true.  Otherwise, returns false.
       (return has-last))))
 
 #|
-@macro assert-return
+@macro std.concepts.assert-return
+
+@linkage intern
 |#
 (def assert-return
   (macro intern (error-cond report-error-node report-error-str)
@@ -865,7 +907,9 @@ macro buffer and returns true.  Otherwise, returns false.
            0)))
 
 #|
-@macro assert-return-nn
+@macro std.concepts.assert-return-b
+
+@linkage intern
 |#
 (def assert-return-b
   (macro intern (error-cond report-error-node report-error-str)
@@ -876,7 +920,9 @@ macro buffer and returns true.  Otherwise, returns false.
            0)))
 
 #|
-@fn is-forced-concept
+@fn std.concepts.is-forced-concept
+
+@linkage intern
 |#
 (def is-forced-concept
   (fn intern bool ((node (p DNode)))
@@ -886,7 +932,9 @@ macro buffer and returns true.  Otherwise, returns false.
                            "force"))))))
 
 #|
-@fn validate-forced-concept
+@fn std.concepts.validate-forced-concept
+
+@linkage intern
 |#
 (def validate-forced-concept
   (fn intern bool ((mc   (p MContext))
@@ -906,7 +954,7 @@ macro buffer and returns true.  Otherwise, returns false.
     true))
 
 #|
-@fn get-type-concept-list
+@fn std.concepts.get-type-concept-list
 
 Takes a list of concept instantiation arguments, except for the
 initial concept name.  Populates the type concept list, being the
@@ -917,6 +965,7 @@ The special processing here is for disambiguation (forcing the use of
 a specific concept) and non-types, the latter of which are treated as
 being of the Value concept.
 
+@linkage intern
 |#
 (def get-type-concept-list
   (fn intern bool ((mc                (p MContext))
@@ -957,7 +1006,7 @@ being of the Value concept.
     true))
 
 #|
-@macro instantiate
+@macro std.concepts.instantiate
 
 Takes a concept macro name and a series of arguments for that concept
 macro as its arguments. Determines the most appropriate concrete
