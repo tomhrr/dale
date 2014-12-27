@@ -324,7 +324,7 @@ must also implement `LessThanComparable`.
 
 #### `Array`
 
-Linkage: `N/A`
+Linkage: `extern`
 Parameters:
 
   * `T`: The type node.
@@ -374,7 +374,7 @@ Expands to the underlying iterator difference type of the array.
 Linkage: `extern`
 Parameters:
 
-  * `(iter (p (Iterator (Array T N))))`: A type node.
+  * `(iterp (p (Iterator (Array T N))))`: An iterator pointer.
 
 
 Expands to the underlying value type (i.e. `T`) of the iterator.
@@ -385,7 +385,7 @@ Expands to the underlying value type (i.e. `T`) of the iterator.
 Linkage: `extern`
 Parameters:
 
-  * `(iter (p (Iterator (Array T))))`: A type node.
+  * `(iterp (p (Iterator (Array T N))))`: An iterator pointer.
 
 
 Expands to the underlying distance type of the iterator.

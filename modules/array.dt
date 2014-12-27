@@ -148,8 +148,6 @@ must also implement `LessThanComparable`.
     call this with e.g. `(nullptr (Array T N))` as the argument.
 
     @param arrp     An array pointer.
-    @param-type     (p (Array T N))
-    @linkage        extern
     |#
     (def value-type
       (macro extern ((arrp (p (Array (uq T) (uq N)))))
@@ -161,8 +159,6 @@ must also implement `LessThanComparable`.
     Expands to the underlying size type of the array.
 
     @param arrp     A type node.
-    @param-type     (p (Array T N))
-    @linkage        extern
     |#
     (def size-type
       (macro extern ((arrp (p (Array (uq T) (uq N)))))
@@ -174,8 +170,6 @@ must also implement `LessThanComparable`.
     Expands to the underlying iterator difference type of the array.
 
     @param arrp     A type node.
-    @param-type     (p (Array T N))
-    @linkage        extern
     |#
     (def difference-type
       (macro extern ((arrp (p (Array (uq T) (uq N)))))
@@ -224,12 +218,10 @@ must also implement `LessThanComparable`.
 
     Expands to the underlying value type (i.e. `T`) of the iterator.
 
-    @param iter     A type node.
-    @param-type     (p (Iterator (Array T N)))
-    @linkage        extern
+    @param iterp    An iterator pointer.
     |#
     (def value-type 
-      (macro extern ((arrp (p (Iterator (Array (uq T) (uq N))))))
+      (macro extern ((iterp (p (Iterator (Array (uq T) (uq N))))))
         (qq do (uq T))))
  
     #|
@@ -237,12 +229,10 @@ must also implement `LessThanComparable`.
 
     Expands to the underlying distance type of the iterator.
 
-    @param iter     A type node.
-    @param-type     (p (Iterator (Array T)))
-    @linkage        extern
+    @param iterp    An iterator pointer.
     |#
     (def distance-type 
-      (macro extern ((arrp (p (Iterator (Array (uq T) (uq N))))))
+      (macro extern ((iterp (p (Iterator (Array (uq T) (uq N))))))
         (qq do size)))
 
     #|
