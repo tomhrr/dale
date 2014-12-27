@@ -25,5 +25,7 @@ echo "# Dale\n\n## 2.12 derivations\n" > doc/2-12-derivations.md
 ./module-to-markdown < modules/derivations.dt >> doc/2-12-derivations.md
 echo "# Dale\n\n## 2.13 algorithms\n" > doc/2-13-algorithms.md
 ./module-to-markdown < modules/algorithms.dt >> doc/2-13-algorithms.md
+echo "# Dale\n\n## 2.14 list\n" > doc/2-14-list.md
+./module-to-markdown < modules/list.dt >> doc/2-14-list.md
 echo "# Dale\n\n## 2.18 array\n" > doc/2-18-array.md
 ./module-to-markdown < modules/array.dt >> doc/2-18-array.md

@@ -104,13 +104,10 @@ Expands to a `List` definition over the relevant type.
 
     Initialise a list.
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    bool
+    @param lst      A list reference.
     |#
     (def init
-      (fn extern bool ((lst (ref (uq typenode))))
+      (fn extern bool ((lst (ref (List (uq T)))))
         (setf (:@ lst first) (nullptr (uq nodetypenode)))
         (setf (:@ lst last)  (nullptr (uq nodetypenode)))
         true))
@@ -120,13 +117,10 @@ Expands to a `List` definition over the relevant type.
 
     Determine whether the list is empty.
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    bool
+    @param lst      A list reference.
     |#
     (def empty
-      (fn extern bool ((lst (ref (const (uq typenode)))))
+      (fn extern bool ((lst (ref (const (List (uq T))))))
         (null (@:@ lst first))))
 
     #|
@@ -134,13 +128,10 @@ Expands to a `List` definition over the relevant type.
 
     Returns the number of elements in the list.
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    size
+    @param lst      A list reference.
     |#
     (def size
-      (fn extern size ((lst (ref (const (uq typenode)))))
+      (fn extern size ((lst (ref (const (List (uq T))))))
         (let ((n     size 0)
               (first \ (cast (@:@ lst first) (p (uq nodetypenode)))))
           (while (not (null first))
@@ -154,13 +145,10 @@ Expands to a `List` definition over the relevant type.
     Returns the number of elements that can be accommodated by the
     list.
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    size
+    @param lst      A list reference.
     |#
     (def max-size
-      (fn extern size ((lst (ref (const (uq typenode)))))
+      (fn extern size ((lst (ref (const (List (uq T))))))
         (- (cast 0 size) (cast 1 size))))
 
     #|
@@ -171,11 +159,9 @@ Expands to a `List` definition over the relevant type.
     call this with e.g. `(nullptr (List T))` as the argument.
 
     @param lst      A type node.
-    @param-type     (p (List T))
-    @linkage        extern
     |#
     (def value-type
-      (macro extern ((lst (p (uq typenode))))
+      (macro extern ((lst (p (List (uq T)))))
         (qq do (uq T))))
 
     #|
@@ -184,11 +170,9 @@ Expands to a `List` definition over the relevant type.
     Expands to the underlying size type of the list.
 
     @param lst      A type node.
-    @param-type     (p (List T))
-    @linkage        extern
     |#
     (def size-type
-      (macro extern ((lst (p (uq typenode))))
+      (macro extern ((lst (p (List (uq T)))))
         (qq do size)))
 
     #|
@@ -197,11 +181,9 @@ Expands to a `List` definition over the relevant type.
     Expands to the underlying iterator difference type of the list.
 
     @param lst      A type node.
-    @param-type     (p (List T))
-    @linkage        extern
     |#
     (def difference-type
-      (macro extern ((lst (p (uq typenode))))
+      (macro extern ((lst (p (List (uq T)))))
         (qq do ptrdiff)))
 
     #|
@@ -209,13 +191,10 @@ Expands to a `List` definition over the relevant type.
 
     Returns the value of the first element in the list.
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    T
+    @param lst      A list reference.
     |#
     (def front
-      (fn extern (uq T) ((lst (ref (const (uq typenode)))))
+      (fn extern (uq T) ((lst (ref (const (List (uq T))))))
         (@:@ (@:@ lst first) element)))
 
     #|
@@ -223,13 +202,10 @@ Expands to a `List` definition over the relevant type.
 
     Returns the value of the last element in the list.
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    T
+    @param lst      A list reference.
     |#
     (def back
-      (fn extern (uq T) ((lst (ref (const (uq typenode)))))
+      (fn extern (uq T) ((lst (ref (const (List (uq T))))))
         (@:@ (@:@ lst last) element)))
 
     #|
@@ -237,15 +213,11 @@ Expands to a `List` definition over the relevant type.
 
     Adds an element to the end of the list.
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
+    @param lst      A list reference.
     @param value    The value to add to the list.
-    @param-type     T
-    @linkage        extern
-    @return-type    bool
     |#
     (def push-back
-      (fn extern bool ((lst (ref (uq typenode)))
+      (fn extern bool ((lst (ref (List (uq T))))
                        (value ((uq tpw) (uq T))))
         (let ((new-node \ (malloc' 1 (uq nodetypenode))))
           (setf (:@ new-node element) ((uq tvw) value))
@@ -266,13 +238,10 @@ Expands to a `List` definition over the relevant type.
 
     Removes an element from the end of the list.
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    void
+    @param lst      A list reference.
     |#
     (def pop-back
-      (fn extern void ((lst (ref (uq typenode))))
+      (fn extern void ((lst (ref (List (uq T)))))
         (and (empty (@ lst)) (return))
         (let ((last-node        \ (@:@ lst last))
               (second-last-node \ (@:@ last-node prev))
@@ -293,15 +262,11 @@ Expands to a `List` definition over the relevant type.
 
     Adds an element to the beginning of the list.
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
+    @param lst      A list reference.
     @param value    The value to add to the list.
-    @param-type     T
-    @linkage        extern
-    @return-type    bool
     |#
     (def push-front
-      (fn extern bool ((lst (ref (uq typenode)))
+      (fn extern bool ((lst (ref (List (uq T))))
                        (value ((uq tpw) (uq T))))
         (let ((new-node \ (malloc' 1 (uq nodetypenode))))
           (setf (:@ new-node element) ((uq tvw) value))
@@ -322,13 +287,10 @@ Expands to a `List` definition over the relevant type.
 
     Removes an element from the beginning of the list.
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    void
+    @param lst      A list reference.
     |#
     (def pop-front
-      (fn extern void ((lst (ref (uq typenode))))
+      (fn extern void ((lst (ref (List (uq T)))))
         (and (empty (@ lst)) (return))
         (let ((first-node  \ (@:@ lst first))
               (second-node \ (@:@ first-node next))
@@ -357,13 +319,10 @@ Expands to a `List` definition over the relevant type.
 
     Returns the iterator for the first list element.
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    (Iterator (List T))
+    @param lst      A list reference.
     |#
     (def begin
-      (fn extern (Iterator (List (uq T))) ((lst (ref (uq typenode))))
+      (fn extern (Iterator (List (uq T))) ((lst (ref (List (uq T)))))
         ((Iterator (List (uq T))) ((node (@:@ lst first))))))
 
     #|
@@ -371,13 +330,10 @@ Expands to a `List` definition over the relevant type.
 
     Returns the iterator representing the end of the list (sentinel).
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    (Iterator (List T))
+    @param lst      A list reference.
     |#
     (def end
-      (fn extern (Iterator (List (uq T))) ((lst (ref (uq typenode))))
+      (fn extern (Iterator (List (uq T))) ((lst (ref (List (uq T)))))
         ((Iterator (List (uq T))) ((node (nullptr (uq nodetypenode)))))))
 
     #|
@@ -386,8 +342,6 @@ Expands to a `List` definition over the relevant type.
     Expands to the underlying value type (i.e. `T`) of the iterator.
 
     @param iter     A type node.
-    @param-type     (p (Iterator (List T)))
-    @linkage        extern
     |#
     (def value-type
       (macro extern ((iter (p (Iterator (List (uq T))))))
@@ -399,8 +353,6 @@ Expands to a `List` definition over the relevant type.
     Expands to the underlying distance type of the iterator.
 
     @param iter     A type node.
-    @param-type     (p (Iterator (List T)))
-    @linkage        extern
     |#
     (def distance-type
       (macro extern ((iter (p (Iterator (List (uq T))))))
@@ -412,9 +364,6 @@ Expands to a `List` definition over the relevant type.
     Returns the iterator's value.
 
     @param iter     An iterator.
-    @param-type     (Iterator (List T))
-    @linkage        extern
-    @return-type    T
     |#
     (def @source
       (fn extern (uq T) ((iter (Iterator (List (uq T)))))
@@ -426,9 +375,6 @@ Expands to a `List` definition over the relevant type.
     Returns a pointer to the iterator's value.
 
     @param iter     An iterator.
-    @param-type     (Iterator (List T))
-    @linkage        extern
-    @return-type    (p T)
     |#
     (def source
       (fn extern (p (uq T)) ((iter (Iterator (List (uq T)))))
@@ -440,10 +386,7 @@ Expands to a `List` definition over the relevant type.
     Set the given value at the specified position in the list.
 
     @param iter     An iterator.
-    @param-type     (Iterator (List T))
     @param v        The new value.
-    @param-type     T
-    @return-type    bool
     |#
     (def sink
       (fn extern bool ((iter (Iterator (List (uq T))))
@@ -457,9 +400,6 @@ Expands to a `List` definition over the relevant type.
     iterator.
 
     @param iter     An iterator.
-    @param-type     (Iterator (List T))
-    @linkage        extern
-    @return-type    (Iterator (List T))
     |#
     (def successor
       (fn extern (Iterator (List (uq T))) ((iter (Iterator (List (uq T)))))
@@ -472,9 +412,6 @@ Expands to a `List` definition over the relevant type.
     iterator.
 
     @param iter     An iterator.
-    @param-type     (Iterator (List T))
-    @linkage        extern
-    @return-type    (Iterator (List T))
     |#
     (def predecessor
       (fn extern (Iterator (List (uq T))) ((iter (Iterator (List (uq T)))))
@@ -484,11 +421,7 @@ Expands to a `List` definition over the relevant type.
     @fn =
 
     @param iter1    The first iterator.
-    @param-type     (Iterator (List T))
     @param iter2    The second iterator.
-    @param-type     (Iterator (List T))
-    @linkage        extern
-    @return-type    bool
     |#
     (def =
       (fn extern bool ((iter1 (Iterator (List (uq T))))
@@ -512,13 +445,10 @@ Expands to a `List` definition over the relevant type.
 
     Returns the iterator for the last list element.
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    (ReverseIterator (List T))
+    @param lst      A list reference.
     |#
     (def rbegin
-      (fn extern (ReverseIterator (List (uq T))) ((lst (ref (uq typenode))))
+      (fn extern (ReverseIterator (List (uq T))) ((lst (ref (List (uq T)))))
         ((ReverseIterator (List (uq T)))
          ((node (@:@ lst last))))))
 
@@ -527,13 +457,10 @@ Expands to a `List` definition over the relevant type.
 
     Returns the iterator representing the beginning of the list (sentinel).
 
-    @param lst      A list pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    (ReverseIterator (List T))
+    @param lst      A list reference.
     |#
     (def rend
-      (fn extern (ReverseIterator (List (uq T))) ((lst (ref (uq typenode))))
+      (fn extern (ReverseIterator (List (uq T))) ((lst (ref (List (uq T)))))
         ((ReverseIterator (List (uq T)))
          ((node (nullptr (uq nodetypenode)))))))
 
@@ -586,18 +513,13 @@ Expands to a `List` definition over the relevant type.
     Inserts a new element into the list before the specified position,
     and returns the iterator for the new element.
 
-    @param lst      The list pointer.
-    @param-type     (p (List T))
+    @param lst      The list reference.
     @param iter     The iterator for the position.
-    @param-type     (Iterator (List T))
     @param value    The new value.
-    @param-type     T
-    @linkage        extern
-    @return-type    (Iterator (List T))
     |#
     (def insert
       (fn extern (Iterator (List (uq T)))
-                    ((lst   (ref (uq typenode)))
+                    ((lst   (ref (List (uq T))))
                      (iter  (Iterator (List (uq T))))
                      (value (uq T)))
         (and (empty (@ lst))
@@ -616,16 +538,12 @@ Expands to a `List` definition over the relevant type.
 
     Remove the element at the specified position from the list.
 
-    @param lst      The list pointer.
-    @param-type     (p (List T))
+    @param lst      The list reference.
     @param iter     The iterator for the position.
-    @param-type     (Iterator (List T))
-    @linkage        extern
-    @return-type    (Iterator (List T))
     |#
     (def erase
       (fn extern (Iterator (List (uq T)))
-                    ((lst   (ref (uq typenode)))
+                    ((lst   (ref (List (uq T))))
                      (iter  (Iterator (List (uq T)))))
         (and (empty (@ lst))
              (return iter))
@@ -648,13 +566,10 @@ Expands to a `List` definition over the relevant type.
 
     Remove all of the elements from the list.
 
-    @param lst      The list pointer.
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    bool
+    @param lst      The list reference.
     |#
     (def clear
-      (fn extern bool ((lst (ref (uq typenode))))
+      (fn extern bool ((lst (ref (List (uq T)))))
         (while (not (empty (@ lst)))
           (pop-front (@ lst)))
         true))
@@ -662,16 +577,12 @@ Expands to a `List` definition over the relevant type.
     #|
     @fn swap
 
-    @param lst1     The first list pointer.
-    @param lst2     The second list pointer.
-    @param-type     (p (List T))
-    @param-type     (p (List T))
-    @linkage        extern
-    @return-type    void
+    @param lst1     The first list reference.
+    @param lst2     The second list reference.
     |#
     (def swap
-      (fn extern void ((lst1 (ref (uq typenode)))
-                       (lst2 (ref (uq typenode))))
+      (fn extern void ((lst1 (ref (List (uq T))))
+                       (lst2 (ref (List (uq T)))))
         (let ((first-1 \ (@:@ lst1 first))
               (last-1  \ (@:@ lst1 last))
               (first-2 \ (@:@ lst2 first))
@@ -682,8 +593,8 @@ Expands to a `List` definition over the relevant type.
           (setf (:@ lst2 last)  last-2)
           (return))))
 
-    (def setf-copy (fn extern bool ((dst (p (uq typenode)))
-                                    (src (p (uq typenode))))
+    (def setf-copy (fn extern bool ((dst (p (List (uq T))))
+                                    (src (p (List (uq T)))))
       (init (@ dst))
       (let ((b1 \ (begin (@ src)))
             (e1 \ (end   (@ src)))
@@ -694,21 +605,21 @@ Expands to a `List` definition over the relevant type.
           (sink b2 (@ (source b1)))))
       true))
 
-    (def setf-assign (fn extern bool ((dst (p (uq typenode)))
-                                      (src (p (uq typenode))))
+    (def setf-assign (fn extern bool ((dst (p (List (uq T))))
+                                      (src (p (List (uq T)))))
       (clear (@ dst))
       (setf-copy dst src)))
 
-    (implement Container (uq typenode))
-    (implement Type (uq typenode))
+    (implement Container (List (uq T)))
+    (implement Type (List (uq T)))
     (mfor F (= != < <= > >=)
-      (instantiate F (uq typenode)))
+      (instantiate F (List (uq T))))
 
-    (implement EqualityComparable (uq typenode))
-    (implement LessThanComparable (uq typenode))
+    (implement EqualityComparable (List (uq T)))
+    (implement LessThanComparable (List (uq T)))
 
     (def destroy
-      (fn extern void ((lstp (p (uq typenode))))
+      (fn extern void ((lstp (p (List (uq T)))))
         (clear (@ lstp))
         (return)))
 
@@ -718,7 +629,7 @@ Expands to a `List` definition over the relevant type.
     (implement OutputIterator (ReverseIterator (List (uq T))))
     (implement BidirectionalIterator (Iterator (List (uq T))))
     (implement BidirectionalIterator (ReverseIterator (List (uq T))))
-    (implement FrontInsertionSequence (uq typenode))
-    (implement BackInsertionSequence (uq typenode))
-    (implement ReversibleContainer (uq typenode))))
+    (implement FrontInsertionSequence (List (uq T)))
+    (implement BackInsertionSequence (List (uq T)))
+    (implement ReversibleContainer (List (uq T)))))
 )))))
