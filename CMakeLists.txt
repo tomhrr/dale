@@ -305,7 +305,7 @@ add_custom_command (OUTPUT  module-to-markdown
                             -lm -O4 --static-modules
                             -o module-to-markdown)
 add_custom_target (programs ALL DEPENDS module-to-markdown)
-add_dependencies (programs dalec)
+add_dependencies (programs dalec vector)
 
 # Module documentation.
 
