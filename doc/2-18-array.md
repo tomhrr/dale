@@ -307,7 +307,7 @@ Parameters:
 
 #### `Array`
 
-Linkage: `N/A`
+Linkage: `extern`
 Parameters:
 
   * `(T EqualityComparable)`: The type for the elements of the array.

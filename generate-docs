@@ -19,5 +19,7 @@ echo "# Dale\n\n## 2.9 concept-defs\n" > doc/2-9-concept-defs.md
 ./module-to-markdown < modules/concept-defs.dt >> doc/2-9-concept-defs.md
 echo "# Dale\n\n## 2.10 concepts\n" > doc/2-10-concepts.md
 ./module-to-markdown < modules/concepts.dt >> doc/2-10-concepts.md
+echo "# Dale\n\n## 2.11 utility\n" > doc/2-11-utility.md
+./module-to-markdown < modules/utility.dt >> doc/2-11-utility.md
 echo "# Dale\n\n## 2.18 array\n" > doc/2-18-array.md
 ./module-to-markdown < modules/array.dt >> doc/2-18-array.md

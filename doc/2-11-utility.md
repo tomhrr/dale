@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: utility  
-File: utility  
+Module: utility
 
 ### Description
 
@@ -14,26 +13,19 @@ algorithm modules.
 
 
 
-
-
-
-
-
-
-
-
 ### Functions
 
 #### `make-type-string`
 
-Linkage: `extern`  
-Returns: `bool`  
-Parameters:  
+Linkage: `extern`
+Returns: `bool`
+Parameters:
 
-  * `(mc (p MContext))`: An MContext.  
-  * `(prefix (const (p char)))`: The type string prefix.  
-  * `(T (p DNode))`: The type node.  
-  * `(buf (p char))`: The buffer for the type string.  
+  * `(mc (p MContext))`: An MContext.
+  * `(prefix (const (p char)))`: The type string prefix.
+  * `(T (p DNode))`: The type node.
+  * `(buf (p char))`: The buffer for the type string.
+
 
 Writes the prefix, and the internal string representation of the type
 node, to the provided buffer. If the type node is a token that begins
@@ -43,15 +35,16 @@ instead.
 
 #### `make-type-string`
 
-Linkage: `extern`  
-Returns: `bool`  
-Parameters:  
+Linkage: `extern`
+Returns: `bool`
+Parameters:
 
-  * `(mc (p MContext))`: An MContext.  
-  * `(prefix (const (p char)))`: The type string prefix.  
-  * `T1`: The first type node.  
-  * `T2`: The second type node.  
-  * `(buf (p char))`: The buffer for the type string.  
+  * `(mc (p MContext))`: An MContext.
+  * `(prefix (const (p char)))`: The type string prefix.
+  * `(T1 (p DNode))`: The first type node.
+  * `(T2 (p DNode))`: The second type node.
+  * `(buf (p char))`: The buffer for the type string.
+
 
 As per the earlier implementation, except that it takes two type
 nodes.
@@ -59,16 +52,17 @@ nodes.
 
 #### `make-type-string`
 
-Linkage: `extern`  
-Returns: `bool`  
-Parameters:  
+Linkage: `extern`
+Returns: `bool`
+Parameters:
 
-  * `(mc (p MContext))`: An MContext.  
-  * `(prefix (const (p char)))`: The type string prefix.  
-  * `T1`: The first type node.  
-  * `T2`: The second type node.  
-  * `T3`: The third type node.  
-  * `(buf (p char))`: The buffer for the type string.  
+  * `(mc (p MContext))`: An MContext.
+  * `(prefix (const (p char)))`: The type string prefix.
+  * `(T1 (p DNode))`: The first type node.
+  * `(T2 (p DNode))`: The second type node.
+  * `(T3 (p DNode))`: The third type node.
+  * `(buf (p char))`: The buffer for the type string.
+
 
 As per the earlier implementation, except that it takes three type
 nodes.
@@ -76,14 +70,15 @@ nodes.
 
 #### `make-type-display-string`
 
-Linkage: `extern`  
-Returns: `bool`  
-Parameters:  
+Linkage: `extern`
+Returns: `bool`
+Parameters:
 
-  * `(mc (p MContext))`: An MContext.  
-  * `(prefix (const (p char)))`: The type display string prefix.  
-  * `(T (p DNode))`: The type node.  
-  * `(buf (p char))`: The buffer for the type display string.  
+  * `(mc (p MContext))`: An MContext.
+  * `(prefix (const (p char)))`: The type display string prefix.
+  * `(T (p DNode))`: The type node.
+  * `(buf (p char))`: The buffer for the type display string.
+
 
 Similar to `make-type-string`, except that it adds the display
 representation (i.e. the one set by way of `register-type`, if
@@ -92,15 +87,16 @@ applicable) to the buffer, rather than the internal representation.
 
 #### `make-type-display-string`
 
-Linkage: `extern`  
-Returns: `bool`  
-Parameters:  
+Linkage: `extern`
+Returns: `bool`
+Parameters:
 
-  * `(mc (p MContext))`: An MContext.  
-  * `(prefix (const (p char)))`: The type display string prefix.  
-  * `T1`: The first type node.  
-  * `T2`: The second type node.  
-  * `(buf (p char))`: The buffer for the type display string.  
+  * `(mc (p MContext))`: An MContext.
+  * `(prefix (const (p char)))`: The type display string prefix.
+  * `(T1 (p DNode))`: The first type node.
+  * `(T2 (p DNode))`: The second type node.
+  * `(buf (p char))`: The buffer for the type display string.
+
 
 As per the earlier implementation, except that it takes two type
 nodes.
@@ -108,16 +104,17 @@ nodes.
 
 #### `make-type-display-string`
 
-Linkage: `extern`  
-Returns: `bool`  
-Parameters:  
+Linkage: `extern`
+Returns: `bool`
+Parameters:
 
-  * `(mc (p MContext))`: An MContext.  
-  * `(prefix (const (p char)))`: The type display string prefix.  
-  * `T1`: The first type node.  
-  * `T2`: The second type node.  
-  * `T3`: The third type node.  
-  * `(buf (p char))`: The buffer for the type display string.  
+  * `(mc (p MContext))`: An MContext.
+  * `(prefix (const (p char)))`: The type display string prefix.
+  * `(T1 (p DNode))`: The first type node.
+  * `(T2 (p DNode))`: The second type node.
+  * `(T3 (p DNode))`: The third type node.
+  * `(buf (p char))`: The buffer for the type display string.
+
 
 As per the earlier implementation, except that it takes two type
 nodes.
@@ -129,11 +126,12 @@ nodes.
 
 #### `Pair`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `(T1 Type)`: The first type node.  
-  * `(T2 Type)`: The second type node.  
+  * `(T1 Type)`: The first type node.
+  * `(T2 Type)`: The second type node.
+
 
 Expands to a struct definition with two members, named `first` and
 `second`.
@@ -141,12 +139,13 @@ Expands to a struct definition with two members, named `first` and
 
 #### `Triple`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `(T1 Type)`: The first type node.  
-  * `(T2 Type)`: The second type node.  
-  * `(T3 Type)`: The third type node.  
+  * `(T1 Type)`: The first type node.
+  * `(T2 Type)`: The second type node.
+  * `(T3 Type)`: The third type node.
+
 
 Expands to a struct definition with three members, named `first`,
 `second` and `third`.
@@ -158,10 +157,11 @@ Expands to a struct definition with three members, named `first`,
 
 #### `Iterator`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `T`: The type node.  
+  * `T`: The type node.
+
 
 Expands to a string that can be used as the `Iterator` type name for
 the argument type.
@@ -169,10 +169,11 @@ the argument type.
 
 #### `ReverseIterator`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `T`: The type node.  
+  * `T`: The type node.
+
 
 Expands to a string that can be used as the `Iterator` type name for
 the argument type.
@@ -180,11 +181,12 @@ the argument type.
 
 #### `Pair`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `T1`: The first type node.  
-  * `T2`: The second type node.  
+  * `T1`: The first type node.
+  * `T2`: The second type node.
+
 
 Expands to the concrete type name of the `Pair` generated by way of
 the concept macro.
@@ -192,12 +194,15 @@ the concept macro.
 
 #### `Triple`
 
-Linkage: `extern`  
-Parameters:  
+Linkage: `extern`
+Parameters:
 
-  * `T1`: The first type node.  
-  * `T2`: The second type node.  
-  * `T3`: The third type node.  
+  * `T1`: The first type node.
+  * `T2`: The second type node.
+  * `T3`: The third type node.
+
 
 Expands to the concrete type name of the `Triple` generated by way of
 the concept macro.
+
+
