@@ -15,5 +15,7 @@ echo "# Dale\n\n## 2.7 assert\n" > doc/2-7-assert.md
 ./module-to-markdown < modules/assert.dt >> doc/2-7-assert.md
 echo "# Dale\n\n## 2.8 concepts-core\n" > doc/2-8-concepts-core.md
 ./module-to-markdown < modules/concepts-core.dt >> doc/2-8-concepts-core.md
+echo "# Dale\n\n## 2.9 concept-defs\n" > doc/2-9-concept-defs.md
+./module-to-markdown < modules/concept-defs.dt >> doc/2-9-concept-defs.md
 echo "# Dale\n\n## 2.18 array\n" > doc/2-18-array.md
 ./module-to-markdown < modules/array.dt >> doc/2-18-array.md

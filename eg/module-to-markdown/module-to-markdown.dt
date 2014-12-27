@@ -42,6 +42,33 @@
 (std.concepts.implement LessThanComparable struct-def)
 (std.concepts.instantiate Vector struct-def)
 
+(def concept-def
+  (struct intern ((name    (p char))
+                  (info    (p char)))))
+
+(std.concepts.implement Struct concept-def)
+(std.concepts.implement PreferRefs concept-def)
+(std.concepts.instantiate swap concept-def)
+(std.concepts.implement Assignable concept-def)
+
+(def = (fn intern bool ((a (ref (const concept-def)))
+                        (b (ref (const concept-def))))
+  (p= (@:@ a name) (@:@ b name))))
+
+(std.concepts.instantiate != concept-def)
+
+(def < (fn intern bool ((a (ref (const concept-def)))
+                        (b (ref (const concept-def))))
+  (p< (@:@ a name) (@:@ b name))))
+
+(std.concepts.instantiate <= concept-def)
+(std.concepts.instantiate >  concept-def)
+(std.concepts.instantiate >= concept-def)
+
+(std.concepts.implement EqualityComparable concept-def)
+(std.concepts.implement LessThanComparable concept-def)
+(std.concepts.instantiate Vector concept-def)
+
 (def proc-type
   (enum intern int (FN MACRO CONCEPT-MACRO)))
 
@@ -583,6 +610,45 @@
   (add-proc-def name linkage returns info params type)
   true))
 
+;; Concepts.
+
+(def concept-defs (var intern (Vector concept-def)))
+
+; Add a struct definition to the list of struct definitions.
+(def add-concept-def (fn intern void ((name    (p char))
+                                      (info    (p char)))
+  (let ((cd concept-def ((name    name)
+                         (info    info))))
+    (push-back concept-defs cd)
+    (return))))
+
+; Print a concept definition to standard output.
+(def print-concept (fn intern void ((cd (p concept-def)))
+  (printf "#### `%s`\n\n" (@:@ cd name))
+  (printf "%s\n" (@:@ cd info))
+  (return)))
+
+; Parse a concept definition and add it to the list, beginning with buf
+; and using standard input for the subsequent lines.
+(def parse-concept (fn intern bool ((buf (p (const char))))
+  (def name (var auto (p char) (malloc' 255 char)))
+  (def info (var auto (p char) (malloc' 2048 char)))
+  (setf ($ info 0) #\NULL)
+  (def n (var auto \ (get-element buf "@concept " "\n" name)))
+  (and (not n) (err "no concept name found"))
+
+  (def mybuf (var auto (array-of 255 char)))
+  (def mybufp (var auto (p char) ($ mybuf 0)))
+  (def c (var auto \ 1))
+  (def linecount (var auto \ 0))
+  (def ws (var auto \ 0))
+  (get-line mybuf 255)
+
+  (get-until mybuf info "|#")
+
+  (add-concept-def name info)
+  true))
+
 ;; Main.
 
 (def main (fn extern-c int (void)
@@ -590,6 +656,7 @@
   (init fn-defs 10)
   (init macro-defs 10)
   (init concept-macro-defs 10)
+  (init concept-defs 10)
 
   (def buf (var auto (array-of 255 char)))
   (get-line buf 255)
@@ -615,19 +682,21 @@
     (and (!= c 0)
          (do
             (and (!= #\@ (@ (remove-whitespace buf)))
-                 (do (get-line buf 255) true))
+                 (do (setv c (get-line buf 255)) true))
             (def type (var auto (array-of 255 char)))
             (setv n (get-element buf "@" " " type))
             (and (not n) (err "invalid definition"))
             (if (= 0 (strcmp type "struct"))
                 (parse-struct buf)
+            (if (= 0 (strcmp type "concept"))
+                (parse-concept buf)
             (if (= 0 (strcmp type "fn"))
                 (parse-fn buf (proc-type FN))
             (if (= 0 (strcmp type "macro"))
                 (parse-fn buf (proc-type MACRO))
             (if (= 0 (strcmp type "concept-macro"))
                 (parse-fn buf (proc-type CONCEPT-MACRO))
-                true)))))))
+                true))))))))
 
   (and (not (empty struct-defs))
        (do (printf "\n\n### Structs\n\n")
@@ -635,6 +704,14 @@
                  (e \ (end   struct-defs)))
              (for true (!= b e) (setv b (successor b))
                (print-struct (source b))))
+           true))
+
+  (and (not (empty concept-defs))
+       (do (printf "\n\n### Concepts\n\n")
+           (let ((b \ (begin concept-defs))
+                 (e \ (end   concept-defs)))
+             (for true (!= b e) (setv b (successor b))
+               (print-concept (source b))))
            true))
 
   (and (not (empty fn-defs))
@@ -660,4 +737,6 @@
              (for true (!= b e) (setv b (successor b))
                (print-proc (source b))))
            true))
+
+
   0))

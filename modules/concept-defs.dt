@@ -497,8 +497,7 @@ iterator, in the case of `value-type`).
                         (uq T)))
                   T "source is not defined over this type")
   (concept-assert (exists-fn mc
-                    (qq (value-type (nullptr (uq T)))
-                        @source
+                    (qq (value-type (nullptr (uq T))) @source
                         (uq T)))
                   T "@source is not defined over this type")
   success))

@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: concept-defs  
-File: concept-defs  
+Module: concept-defs
 
 ### Description
 
@@ -26,6 +25,12 @@ this concept being present.
 #### `Type`
 
 Returns true if the argument is a type.
+
+
+#### `PreferRefs`
+
+Returns true if the argument is a type for which references should be
+used where possible.
 
 
 #### `Struct`
@@ -218,3 +223,5 @@ Refines `BidirectionalIterator` and `LessThanComparable`.
 Additionally, `distance-type` must be defined over pointers to the
 type, and `+` and `-` must also be defined, each taking an iterator
 and a value of type `distance-type`, and returning a new iterator.
+
+
