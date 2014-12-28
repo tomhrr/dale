@@ -57,3 +57,5 @@ echo "# Dale\n\n## 3.9 cstdlib\n" > doc/3-9-cstdlib.md
 ./module-to-markdown < modules/cstdlib.dt >> doc/3-9-cstdlib.md
 echo "# Dale\n\n## 3.10 cstring\n" > doc/3-10-cstring.md
 ./module-to-markdown < modules/cstring.dt >> doc/3-10-cstring.md
+echo "# Dale\n\n## 3.11 cctype\n" > doc/3-11-cctype.md
+./module-to-markdown < modules/cctype.dt >> doc/3-11-cctype.md
