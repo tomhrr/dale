@@ -4,13 +4,13 @@
 (def mys 
   (struct intern 
       (
-       (a (p char))
+       (a (p (const char)))
        (b int)
        (c int)
        )))
 
 (def a
-  (var intern (array-of 5 (p char))
+  (var intern (array-of 5 (p (const char)))
     (array "asdf" "zxcv" "qwer" "ghjk" "tyui")))
 
 (def b

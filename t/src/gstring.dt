@@ -1,10 +1,10 @@
 (import cstdio)
 
 (def s
-  (var intern (p char) "asdf"))
+  (var intern (p (const char)) "asdf"))
 
 (def stype
-  (struct extern((a (p char)))))
+  (struct extern ((a (p (const char))))))
 
 (def mys
   (var intern stype ((a "qwer"))))

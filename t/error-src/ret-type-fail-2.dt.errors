@@ -1,1 +1,1 @@
-./t/error-src/ret-type-fail-2.dt:6:5: error: expected return expression with type int (got type (p char) instead)
+./t/error-src/ret-type-fail-2.dt:6:5: error: expected return expression with type int (got type (p (const char)) instead)

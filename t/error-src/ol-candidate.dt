@@ -2,7 +2,7 @@
 (import cstdio)
 
 (def inet_aton
-  (fn extern int ((a (p char)) (b uint32))
+  (fn extern int ((a (p (const char))) (b uint32))
     0))
 
 (def main

@@ -2,7 +2,7 @@
 (import macros)
 
 (def inet_aton
-  (fn extern-c int ((addr (p char)) (num uint32))))
+  (fn extern-c int ((addr (p (const char))) (num uint32))))
 
 (def main
   (fn extern-c int (void)

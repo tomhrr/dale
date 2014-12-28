@@ -1,8 +1,8 @@
 (import cstdio)
 
 (def strtold
-  (fn extern-c long-double ((nptr (p char))
-                                (endptr (p (p char))))))
+  (fn extern-c long-double ((nptr   (p (const char)))
+                            (endptr (p (p char))))))
 
 (def main
   (fn extern-c int (void)
