@@ -58,9 +58,9 @@ directly. Instead, use the functions with the explicit type names: e.g.
   (fn extern-c int ((exit-code int))))
 
 #|
-@fn abort 
+@fn abort
 |#
-(def abort 
+(def abort
   (fn extern-c void (void)))
 
 #|

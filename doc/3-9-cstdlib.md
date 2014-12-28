@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: cstdlib  
-File: cstdlib  
+Module: cstdlib
 
 ### Description
 
@@ -17,297 +16,265 @@ directly. Instead, use the functions with the explicit type names: e.g.
 
 
 
-
-
-
-
-
-
-
-
 ### Functions
 
 #### `atexit`
 
-Linkage: `extern-c`  
-Returns: `int`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `int`
+Parameters:
 
-  * `(fcn (p (fn void (void))))`  
-
+  * `(fcn (p (fn void (void))))`
 
 
 
 #### `system`
 
-Linkage: `extern-c`  
-Returns: `int`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `int`
+Parameters:
 
-  * `(s (p char))`  
-
+  * `(s (p char))`
 
 
 
 #### `getenv`
 
-Linkage: `extern-c`  
-Returns: `(p char)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(p char)`
+Parameters:
 
-  * `(s (p char))`  
-
+  * `(s (p char))`
 
 
 
 #### `bsearch`
 
-Linkage: `extern-c`  
-Returns: `(p void)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(p void)`
+Parameters:
 
-  * `(key (p void))`  
-  * `(base (p void))`  
-  * `(n size)`  
-  * `(size size)`  
-  * `(cmp (p (fn int ((keyval (p void)) (datum (p void))))))`  
-
+  * `(key (p void))`
+  * `(base (p void))`
+  * `(n size)`
+  * `(size size)`
+  * `(cmp (p (fn int ((keyval (p void)) (datum (p void))))))`
 
 
 
 #### `qsort`
 
-Linkage: `extern-c`  
-Returns: `void`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `void`
+Parameters:
 
-  * `(base (p void))`  
-  * `(n size)`  
-  * `(size size)`  
-  * `(cmp (p (fn int ((keyval (p void)) (datum (p void))))))`  
-
+  * `(base (p void))`
+  * `(n size)`
+  * `(size size)`
+  * `(cmp (p (fn int ((keyval (p void)) (datum (p void))))))`
 
 
 
 #### `exit`
 
-Linkage: `extern-c`  
-Returns: `int`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `int`
+Parameters:
 
-  * `(exit-code int)`  
-
+  * `(exit-code int)`
 
 
 
 #### `abort`
 
-Linkage: `extern-c`  
-Returns: `void`  
-Parameters: `void`
-
-
-
+Linkage: `extern-c`
+Returns: `void`
+Parameters: N/A
 
 
 #### `malloc`
 
-Linkage: `extern-c`  
-Returns: `(p void)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(p void)`
+Parameters:
 
-  * `(num size)`  
-
+  * `(num size)`
 
 
 
 #### `free`
 
-Linkage: `extern-c`  
-Returns: `void`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `void`
+Parameters:
 
-  * `(ptr (p void))`  
-
+  * `(ptr (p void))`
 
 
 
 #### `calloc`
 
-Linkage: `extern-c`  
-Returns: `(p void)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(p void)`
+Parameters:
 
-  * `(num size)`  
-  * `(size size)`  
-
+  * `(num size)`
+  * `(size size)`
 
 
 
 #### `realloc`
 
-Linkage: `extern-c`  
-Returns: `(p void)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(p void)`
+Parameters:
 
-  * `(ptr (p void))`  
-  * `(size size)`  
-
+  * `(ptr (p void))`
+  * `(size size)`
 
 
 
 #### `atoi`
 
-Linkage: `extern-c`  
-Returns: `int`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `int`
+Parameters:
 
-  * `(str (p char))`  
-
+  * `(str (p char))`
 
 
 
 #### `atof`
 
-Linkage: `extern-c`  
-Returns: `double`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `double`
+Parameters:
 
-  * `(str (p char))`  
-
+  * `(str (p char))`
 
 
 
 #### `strtod`
 
-Linkage: `extern-c`  
-Returns: `double`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `double`
+Parameters:
 
-  * `(str (p char))`  
-  * `(endp (p (p char)))`  
-
+  * `(str (p char))`
+  * `(endp (p (p char)))`
 
 
 
 #### `strtol`
 
-Linkage: `extern-c`  
-Returns: `(long-type)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(long-type)`
+Parameters:
 
-  * `(str (p char))`  
-  * `(endp (p (p char)))`  
-  * `(base int)`  
-
+  * `(str (p char))`
+  * `(endp (p (p char)))`
+  * `(base int)`
 
 
 
 #### `strtoul`
 
-Linkage: `extern-c`  
-Returns: `(ulong-type)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(ulong-type)`
+Parameters:
 
-  * `(str (p char))`  
-  * `(endp (p (p char)))`  
-  * `(base int)`  
-
+  * `(str (p char))`
+  * `(endp (p (p char)))`
+  * `(base int)`
 
 
 
 #### `strtoll`
 
-Linkage: `extern-c`  
-Returns: `(long-long-type)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(long-long-type)`
+Parameters:
 
-  * `(str (p char))`  
-  * `(endp (p (p char)))`  
-  * `(base int)`  
-
+  * `(str (p char))`
+  * `(endp (p (p char)))`
+  * `(base int)`
 
 
 
 #### `strtoull`
 
-Linkage: `extern-c`  
-Returns: `(ulong-long-type)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(ulong-long-type)`
+Parameters:
 
-  * `(str (p char))`  
-  * `(endp (p (p char)))`  
-  * `(base int)`  
-
+  * `(str (p char))`
+  * `(endp (p (p char)))`
+  * `(base int)`
 
 
 
 #### `strtoi32`
 
-Linkage: `extern`  
-Returns: `int32`  
-Parameters:  
+Linkage: `extern`
+Returns: `int32`
+Parameters:
 
-  * `(str (p char))`  
-  * `(endp (p (p char)))`  
-  * `(base int)`  
-
+  * `(str (p char))`
+  * `(endp (p (p char)))`
+  * `(base int)`
 
 
 
 #### `strtoi64`
 
-Linkage: `extern`  
-Returns: `int64`  
-Parameters:  
+Linkage: `extern`
+Returns: `int64`
+Parameters:
 
-  * `(str (p char))`  
-  * `(endp (p (p char)))`  
-  * `(base int)`  
-
+  * `(str (p char))`
+  * `(endp (p (p char)))`
+  * `(base int)`
 
 
 
 #### `strtoui32`
 
-Linkage: `extern`  
-Returns: `uint32`  
-Parameters:  
+Linkage: `extern`
+Returns: `uint32`
+Parameters:
 
-  * `(str (p char))`  
-  * `(endp (p (p char)))`  
-  * `(base int)`  
-
+  * `(str (p char))`
+  * `(endp (p (p char)))`
+  * `(base int)`
 
 
 
 #### `strtoui64`
 
-Linkage: `extern`  
-Returns: `uint64`  
-Parameters:  
+Linkage: `extern`
+Returns: `uint64`
+Parameters:
 
-  * `(str (p char))`  
-  * `(endp (p (p char)))`  
-  * `(base int)`  
-
+  * `(str (p char))`
+  * `(endp (p (p char)))`
+  * `(base int)`
 
 
 
 #### `rand`
 
-Linkage: `extern-c`  
-Returns: `int`  
-Parameters: `void`
-
-
-
+Linkage: `extern-c`
+Returns: `int`
+Parameters: N/A
 
 
 #### `srand`
 
-Linkage: `extern-c`  
-Returns: `void`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `void`
+Parameters:
 
-  * `(seed uint)`  
+  * `(seed uint)`
+
+
+
