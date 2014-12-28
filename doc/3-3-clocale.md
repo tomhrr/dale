@@ -55,6 +55,10 @@ Parameters: N/A
 
 Linkage: `extern-c`
 Returns: `(p char)`
-Parameters: N/A
+Parameters:
+
+  * `(category int)`: A category.
+  * `(locale (p char))`: A locale.
+
 
 

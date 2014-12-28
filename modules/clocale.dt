@@ -35,7 +35,6 @@ Bindings from `locale.h`.
 #|
 @fn localeconv
 
-@linkage extern-c
 |#
 (def localeconv
   (fn extern-c (p lconv) (void)))
@@ -43,7 +42,6 @@ Bindings from `locale.h`.
 #|
 @fn setlocale
 
-@linkage extern-c
 |#
 (def setlocale
   (fn extern-c (p char) ((category int)

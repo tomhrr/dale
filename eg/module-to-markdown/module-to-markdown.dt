@@ -497,13 +497,15 @@
 ; Print a procedure parameter to standard output.
 (def print-param (fn intern void ((param (p param-def)))
   (if (not (null (@:@ param type)))
-      (printf "  * `(%s %s)`: %s\n"
+      (printf "  * `(%s %s)`"
               (@:@ param name)
-              (remove-whitespace (@:@ param type))
-              (remove-whitespace (@:@ param info)))
-      (printf "  * `%s`: %s\n"
-              (@:@ param name)
-              (remove-whitespace (@:@ param info))))
+              (remove-whitespace (@:@ param type)))
+      (printf "  * `%s`"
+              (@:@ param name)))
+  (let ((info \ (remove-whitespace (@:@ param info)))
+        (pres \ (> (strlen info) (cast 0 size))))
+    (and pres (do (printf ": %s" info) true)))
+  (printf "\n")
   (return)))
 
 ; Print a procedure to standard output.
@@ -521,12 +523,14 @@
   (printf "Parameters:")
   (if (or (null params) (null (@:@ params name)))
       (printf " N/A\n")
-      (do (printf "\n\n")
-          (while (and (not (null params))
-                      (not (null (@:@ params name))))
-            (print-param params)
-            (setv params (p+ params 1)))
-          (printf "\n")))
+      (if (= 0 (strcmp (@:@ params name) "void"))
+          (printf " N/A\n")
+          (do (printf "\n\n")
+              (while (and (not (null params))
+                          (not (null (@:@ params name))))
+                (print-param params)
+                (setv params (p+ params 1)))
+              (printf "\n"))))
   (printf "\n")
   (printf "%s\n" (@:@ fnd info))
   (return)))
@@ -640,6 +644,7 @@
                      (incv pc))))
                true))))
 
+  (def realparami (var auto int 0))
   (and (and (not (is-empty-node fn-node))
             (or (= (proc-type FN)    type)
                 (= (proc-type MACRO) type)))
@@ -664,19 +669,26 @@
                        (op (p param-def)))
                    (for true (!= b e) (setv b (successor b))
                      (setv op ($ params pc))
-                     (and (not (null op))
-                          (if (@:@ (source b) is-list)
-                              (do (setf (:@ op name)
-                                        (node-to-string
-                                          (get-node (source b) 1 0)))
-                                  (setf (:@ op type)
-                                          (node-to-string
-                                          (get-node (source b) 1 1))))
-                              (do (setf (:@ op name)
-                                        (node-to-string (source b))))))
+                     (printf "%d %d\n" pc parami)
+                     (and (> (+ pc 1) parami)
+                          (do (printf "found a null param\n")
+                              (setf ($ params pc) ((name "")
+                                                   (type "")
+                                                   (info "")))))
+                     (incv realparami)
+                     (if (@:@ (source b) is-list)
+                         (do (setf (:@ op name)
+                                   (node-to-string
+                                     (get-node (source b) 1 0)))
+                             (setf (:@ op type)
+                                   (node-to-string
+                                     (get-node (source b) 1 1))))
+                         (do (setf (:@ op name)
+                                   (node-to-string (source b)))))
                      (incv pc))))
                true))))
 
+  (and (> realparami 0) (setv parami realparami))
   (setf (: (@$ params parami) name) (nullptr char))
 
   (add-proc-def name linkage returns info params type)
