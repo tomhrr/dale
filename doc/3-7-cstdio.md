@@ -67,6 +67,32 @@ Members:
 
 
 
+### Enums
+
+#### `buffer-mode`
+
+Linkage: `extern`
+Type: `int`
+Members:
+
+  * `_IOFBF`
+  * `_IOLBF`
+  * `_IONBF`
+
+
+#### `fseekorigin`
+
+Linkage: `extern`
+Type: `int`
+Members:
+
+  * `SET`
+  * `CUR`
+  * `END`
+
+
+
+
 ### Functions
 
 #### `fdopen`

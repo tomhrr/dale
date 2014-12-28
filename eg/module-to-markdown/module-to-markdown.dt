@@ -99,6 +99,15 @@
 
 (standard-type variable-def)
 
+(def enum-def
+  (struct intern ((name    (p char))
+                  (type    (p char))
+                  (linkage (p char))
+                  (info    (p char))
+                  (members (p (p char))))))
+
+(standard-type enum-def)
+
 ;; S-expression parsing.
 
 ; Print str to stderr and exit.
@@ -766,6 +775,92 @@
   (add-variable-def name type linkage info)
   true))
 
+;; Enums.
+
+(def enum-defs (var intern (Vector enum-def)))
+
+; Add an enum definition to the list of enum definitions.
+(def add-enum-def (fn intern void ((name    (p char))
+                                   (type    (p char))
+                                   (linkage (p char))
+                                   (info    (p char))
+                                   (members (p (p char))))
+  (let ((ed enum-def ((name    name)
+                      (type    type)
+                      (linkage linkage)
+                      (info    info)
+                      (members members))))
+    (push-back enum-defs ed)
+    (return))))
+
+; Print an enum definition to standard output.
+(def print-enum (fn intern void ((ed (p enum-def)))
+  (printf "#### `%s`\n\n" (@:@ ed name))
+  (printf "Linkage: `%s`\n" (@:@ ed linkage))
+  (printf "Type: `%s`\n" (@:@ ed type))
+  (let ((members \ (@:@ ed members)))
+    (and (not (null members))
+      (do (printf "Members:\n\n")
+          (while (and (not (null members))
+                      (not (null (@ members))))
+            (printf "  * `%s`\n" (remove-whitespace (@ members)))
+            (setv members (p+ members 1)))
+          true)))
+  (printf "\n")
+  (printf "%s\n" (@:@ ed info))
+  (return)))
+
+; Parse an enum definition and add it to the list, beginning with buf
+; and using standard input for the subsequent lines.
+(def parse-enum (fn intern bool ((buf (p (const char))))
+  (def name (var auto (p char) (malloc' 255 char)))
+  (def info (var auto (p char) (malloc' 2048 char)))
+  (setf ($ info 0) #\NULL)
+  (def n (var auto \ (get-element buf "@enum " "\n" name)))
+  (and (not n) (err "no enum name found"))
+
+  (def mybuf (var auto (array-of 255 char)))
+  (def mybufp (var auto (p char) ($ mybuf 0)))
+  (def c (var auto \ 1))
+  (def linecount (var auto \ 0))
+  (def ws (var auto \ 0))
+  (get-line mybuf 255)
+
+  (get-until mybuf info "|#" "|#")
+
+  (def linkage (var auto \ ""))
+  (def type (var auto \ ""))
+
+  (def params (var auto \ (malloc' 10 (p char))))
+  (def parami (var auto \ 0))
+  (def parambuf (var auto (array-of 255 char)))
+
+  (def enum-node (var auto (p node) (malloc' 1 node)))
+  (parse-s-expressions enum-node 0)
+  (and (not (is-empty-node enum-node))
+       (let ((pfirst \ (node-to-string (get-node enum-node 1 0)))
+             (pname  \ (node-to-string (get-node enum-node 1 1)))
+             (lastp  \ (strrchr pname #\.))
+             (last   \ (strrchr name  #\.))
+             (dpname \ (if (not (null lastp)) (p+ lastp 1) pname))
+             (dname  \ (if (not (null last))  (p+ last  1) name)))
+         (and (and (= dpname dname)
+                   (= pfirst "def"))
+           (do (setv linkage (node-to-string (get-node enum-node 2 2 1)))
+               (setv type (node-to-string (get-node enum-node 2 2 2)))
+               (let ((eparams \ (@:@ (get-node enum-node 2 2 3) list-node)))
+                 (let ((b  \ (begin (@ eparams)))
+                       (e  \ (end   (@ eparams))))
+                   (for true (!= b e) (setv b (successor b))
+                     (setf ($ params parami) (node-to-string (source b)))
+                     (incv parami))))
+               true))
+          true))
+
+  (setf ($ params parami) (nullptr char))
+  (add-enum-def name type linkage info params)
+  true))
+
 ;; Main.
 
 (def main (fn extern-c int (void)
@@ -774,6 +869,8 @@
   (init macro-defs 10)
   (init concept-macro-defs 10)
   (init concept-defs 10)
+  (init variable-defs 10)
+  (init enum-defs 10)
 
   (def buf (var auto (array-of 255 char)))
   (get-line buf 255)
@@ -809,13 +906,15 @@
                 (parse-concept buf)
             (if (= type "var")
                 (parse-variable buf)
+            (if (= type "enum")
+                (parse-enum buf)
             (if (= type "fn")
                 (parse-fn buf (proc-type FN))
             (if (= type "macro")
                 (parse-fn buf (proc-type MACRO))
             (if (= type "concept-macro")
                 (parse-fn buf (proc-type CONCEPT-MACRO))
-                true)))))))))
+                true))))))))))
 
   (and (not (empty variable-defs))
        (do (printf "\n\n### Variables\n\n")
@@ -831,6 +930,14 @@
                  (e \ (end   struct-defs)))
              (for true (!= b e) (setv b (successor b))
                (print-struct (source b))))
+           true))
+
+  (and (not (empty enum-defs))
+       (do (printf "\n\n### Enums\n\n")
+           (let ((b \ (begin enum-defs))
+                 (e \ (end   enum-defs)))
+             (for true (!= b e) (setv b (successor b))
+               (print-enum (source b))))
            true))
 
   (and (not (empty concept-defs))
