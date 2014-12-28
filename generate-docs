@@ -59,3 +59,5 @@ echo "# Dale\n\n## 3.10 cstring\n" > doc/3-10-cstring.md
 ./module-to-markdown < modules/cstring.dt >> doc/3-10-cstring.md
 echo "# Dale\n\n## 3.11 cctype\n" > doc/3-11-cctype.md
 ./module-to-markdown < modules/cctype.dt >> doc/3-11-cctype.md
+echo "# Dale\n\n## 3.12 csetjmp\n" > doc/3-12-csetjmp.md
+./module-to-markdown < modules/csetjmp.dt >> doc/3-12-csetjmp.md

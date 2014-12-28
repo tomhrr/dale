@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: csetjmp  
-File: csetjmp  
+Module: csetjmp
 
 ### Description
 
@@ -16,21 +15,14 @@ are used.
 
 
 
-
-
-
-
 ### Structs
 
 #### `jmpbuf`
 
-Linkage: `extern`  
-Members:  
+Linkage: `extern`
+Members:
 
   * `(a (array-of (MJMP_BUF_SIZE) char))`
-
-
-
 
 
 
@@ -40,20 +32,22 @@ Members:
 
 #### `setjmp`
 
-Linkage: `extern-c`  
-Returns: `int`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `int`
+Parameters:
 
-  * `(a (p jmpbuf))`  
-
+  * `(a (p jmpbuf))`
 
 
 
 #### `longjmp`
 
-Linkage: `extern-c`  
-Returns: `int`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `int`
+Parameters:
 
-  * `(a (p jmpbuf))`  
-  * `(b int)`  
+  * `(a (p jmpbuf))`
+  * `(b int)`
+
+
+
