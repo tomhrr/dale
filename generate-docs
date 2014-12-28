@@ -41,3 +41,5 @@ echo "# Dale\n\n## 3.1 cerrno\n" > doc/3-1-cerrno.md
 ./module-to-markdown < modules/cerrno.dt >> doc/3-1-cerrno.md
 echo "# Dale\n\n## 3.2 cfloat\n" > doc/3-2-cfloat.md
 ./module-to-markdown < modules/cfloat.dt >> doc/3-2-cfloat.md
+echo "# Dale\n\n## 3.3 clocale\n" > doc/3-3-clocale.md
+./module-to-markdown < modules/clocale.dt >> doc/3-3-clocale.md

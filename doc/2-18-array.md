@@ -25,7 +25,10 @@ implement `OutputIterator` and `RandomAccessIterator`.
 #### `(Array T N)`
 
 Linkage: `extern`
-Members: N/A
+Members:
+
+  * `(elements (array-of N T))`
+
 
 The core array structure type.
 
@@ -33,13 +36,21 @@ The core array structure type.
 #### `(Iterator (Array T N))`
 
 Linkage: `extern`
-Members: N/A
+Members:
+
+  * `(element (p T))`
+  * `(arrp (p (Array T N)))`
+
 
 
 #### `(ReverseIterator (Array T N))`
 
 Linkage: `extern`
-Members: N/A
+Members:
+
+  * `(element (p T))`
+  * `(arrp (p (Array T N)))`
+
 
 
 

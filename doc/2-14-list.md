@@ -39,13 +39,19 @@ The core list structure type.
 #### `(Iterator (List T))`
 
 Linkage: `extern`
-Members: N/A
+Members:
+
+  * `(node (p nodetypenode))`
+
 
 
 #### `(ReverseIterator (List T))`
 
 Linkage: `extern`
-Members: N/A
+Members:
+
+  * `(node (p nodetypenode))`
+
 
 
 

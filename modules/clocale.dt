@@ -8,6 +8,8 @@ Bindings from `locale.h`.
 
 #|
 @struct lconv
+
+@linkage extern
 |#
 (def lconv
   (struct extern
@@ -32,12 +34,16 @@ Bindings from `locale.h`.
 
 #|
 @fn localeconv
+
+@linkage extern-c
 |#
 (def localeconv
   (fn extern-c (p lconv) (void)))
 
 #|
 @fn setlocale
+
+@linkage extern-c
 |#
 (def setlocale
   (fn extern-c (p char) ((category int)

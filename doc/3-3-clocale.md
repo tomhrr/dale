@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: clocale  
-File: clocale  
+Module: clocale
 
 ### Description
 
@@ -13,16 +12,12 @@ Bindings from `locale.h`.
 
 
 
-
-
-
-
 ### Structs
 
 #### `lconv`
 
-Linkage: `extern`  
-Members:  
+Linkage: `extern`
+Members:
 
   * `(decimal-point (p char))`
   * `(grouping (p char))`
@@ -47,26 +42,19 @@ Members:
 
 
 
-
-
-
 ### Functions
 
 #### `localeconv`
 
-Linkage: `extern-c`  
-Returns: `(p lconv)`  
-Parameters: `void`
-
-
-
+Linkage: `extern-c`
+Returns: `(p lconv)`
+Parameters: N/A
 
 
 #### `setlocale`
 
-Linkage: `extern-c`  
-Returns: `(p char)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(p char)`
+Parameters: N/A
 
-  * `(category int)`  
-  * `(locale (p char))`  
+

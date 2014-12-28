@@ -35,13 +35,20 @@ The core vector structure type.
 #### `(Iterator (Vector T))`
 
 Linkage: `extern`
-Members: N/A
+Members:
+
+  * `(parent-vector (p (Vector T)))`
+  * `(element (p T))`
+
 
 
 #### `(ReverseIterator (Vector T))`
 
 Linkage: `extern`
-Members: N/A
+Members:
+
+  * `(element (p T))`
+
 
 
 
