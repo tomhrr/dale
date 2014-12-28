@@ -51,3 +51,5 @@ echo "# Dale\n\n## 3.6 cstdio-core\n" > doc/3-6-cstdio-core.md
 ./module-to-markdown < modules/cstdio-core.dt >> doc/3-6-cstdio-core.md
 echo "# Dale\n\n## 3.7 cstdio\n" > doc/3-7-cstdio.md
 ./module-to-markdown < modules/cstdio.dt >> doc/3-7-cstdio.md
+echo "# Dale\n\n## 3.8 ctime\n" > doc/3-8-ctime.md
+./module-to-markdown < modules/ctime.dt >> doc/3-8-ctime.md

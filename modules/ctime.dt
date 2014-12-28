@@ -58,9 +58,9 @@ Macro constant for CLOCK_T.
   (fn extern-c clock (void)))
 
 #|
-@fn time      
+@fn time
 |#
-(def time      
+(def time
   (fn extern-c (p time) ((t (p time)))))
 
 #|
@@ -88,9 +88,9 @@ Macro constant for CLOCK_T.
   (fn extern-c (p char) ((tp (p time)))))
 
 #|
-@fn localtime 
+@fn localtime
 |#
-(def localtime 
+(def localtime
   (fn extern-c (p tm) ((t (p time)))))
 
 #|
@@ -100,9 +100,9 @@ Macro constant for CLOCK_T.
   (fn extern-c (p tm) ((t (p time)))))
 
 #|
-@fn strftime  
+@fn strftime
 |#
-(def strftime  
+(def strftime
   (fn extern-c int ((b (p char))
                         (s size)
                         (f (p char))

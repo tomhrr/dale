@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: ctime  
-File: ctime  
+Module: ctime
 
 ### Description
 
@@ -13,36 +12,30 @@ Bindings to `time.h`.
 
 
 
-
-
-
-
 ### Structs
 
 #### `time`
 
-Linkage: `extern`  
-Members:  
+Linkage: `extern`
+Members:
 
   * `(n (array-of (MTIME_T) char))`
 
 
 
-
 #### `clock`
 
-Linkage: `extern`  
-Members:  
+Linkage: `extern`
+Members:
 
   * `(n (array-of (MCLOCK_T) char))`
 
 
 
-
 #### `tm`
 
-Linkage: `extern`  
-Members:  
+Linkage: `extern`
+Members:
 
   * `(sec int)`
   * `(min int)`
@@ -58,112 +51,96 @@ Members:
 
 
 
-
-
-
 ### Functions
 
 #### `clock`
 
-Linkage: `extern-c`  
-Returns: `clock`  
-Parameters: `void`
-
-
-
+Linkage: `extern-c`
+Returns: `clock`
+Parameters: N/A
 
 
 #### `time`
 
-Linkage: `extern-c`  
-Returns: `(p time)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(p time)`
+Parameters:
 
-  * `(t (p time))`  
-
+  * `(t (p time))`
 
 
 
 #### `difftime`
 
-Linkage: `extern-c`  
-Returns: `double`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `double`
+Parameters:
 
-  * `(time2 time)`  
-  * `(time1 time)`  
-
+  * `(time2 time)`
+  * `(time1 time)`
 
 
 
 #### `mktime`
 
-Linkage: `extern-c`  
-Returns: `time`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `time`
+Parameters:
 
-  * `(tp (p tm))`  
-
+  * `(tp (p tm))`
 
 
 
 #### `asctime`
 
-Linkage: `extern-c`  
-Returns: `(p char)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(p char)`
+Parameters:
 
-  * `(tp (p tm))`  
-
+  * `(tp (p tm))`
 
 
 
 #### `ctime`
 
-Linkage: `extern-c`  
-Returns: `(p char)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(p char)`
+Parameters:
 
-  * `(tp (p time))`  
-
+  * `(tp (p time))`
 
 
 
 #### `localtime`
 
-Linkage: `extern-c`  
-Returns: `(p tm)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(p tm)`
+Parameters:
 
-  * `(t (p time))`  
-
+  * `(t (p time))`
 
 
 
 #### `gmtime`
 
-Linkage: `extern-c`  
-Returns: `(p tm)`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(p tm)`
+Parameters:
 
-  * `(t (p time))`  
-
+  * `(t (p time))`
 
 
 
 #### `strftime`
 
-Linkage: `extern-c`  
-Returns: `int`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `int`
+Parameters:
 
-  * `(b (p char))`  
-  * `(s size)`  
-  * `(f (p char))`  
-  * `(t (p tm))`  
-
-
-
+  * `(b (p char))`
+  * `(s size)`
+  * `(f (p char))`
+  * `(t (p tm))`
 
 
 
@@ -173,17 +150,17 @@ Parameters:
 
 #### `MTIME_T`
 
-Linkage: `extern`  
-Parameters: `void`
-
+Linkage: `extern`
+Parameters: N/A
 
 Macro constant for TIME_T.
 
 
 #### `MCLOCK_T`
 
-Linkage: `extern`  
-Parameters: `void`
-
+Linkage: `extern`
+Parameters: N/A
 
 Macro constant for CLOCK_T.
+
+
