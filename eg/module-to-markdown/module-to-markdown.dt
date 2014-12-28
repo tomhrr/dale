@@ -6,12 +6,50 @@
 (import vector)
 (import derivations)
 (import algorithms)
+(import macros)
+
+(def standard-type
+  (macro intern (T)
+    (std.macros.qq do
+      (std.concepts.implement Struct (uq T))
+      (std.concepts.implement PreferRefs (uq T))
+      (std.concepts.instantiate swap (uq T))
+      (std.concepts.implement Assignable (uq T))
+
+      (def = (fn intern bool ((a (ref (const (uq T))))
+                              (b (ref (const (uq T)))))
+      (p= (@:@ a name) (@:@ b name))))
+
+      (std.concepts.instantiate != (uq T))
+
+      (def < (fn intern bool ((a (ref (const (uq T))))
+                              (b (ref (const (uq T)))))
+      (p< (@:@ a name) (@:@ b name))))
+
+      (std.concepts.instantiate <= (uq T))
+      (std.concepts.instantiate >  (uq T))
+      (std.concepts.instantiate >= (uq T))
+
+      (std.concepts.implement EqualityComparable (uq T))
+      (std.concepts.implement LessThanComparable (uq T))
+      (std.concepts.instantiate Vector (uq T)))))
 
 ;; Types and instantiations.
+
+(def = (fn intern bool ((a (p (const char)))
+                        (b (p (const char))))
+  (= 0 (strcmp a b))))
+
+(def < (fn intern bool ((a (p (const char)))
+                        (b (p (const char))))
+  (< 0 (strcmp a b))))
 
 (def member-def
   (struct intern ((name (p char))
                   (type (p char)))))
+
+(std.concepts.implement Struct member-def)
+(std.concepts.instantiate relations member-def)
 
 (def struct-def
   (struct intern ((name    (p char))
@@ -19,55 +57,13 @@
                   (info    (p char))
                   (members (p member-def)))))
 
-(std.concepts.implement Struct struct-def)
-(std.concepts.implement PreferRefs struct-def)
-(std.concepts.instantiate swap struct-def)
-(std.concepts.implement Assignable struct-def)
-
-(def = (fn intern bool ((a (ref (const struct-def)))
-                        (b (ref (const struct-def))))
-  (p= (@:@ a name) (@:@ b name))))
-
-(std.concepts.instantiate != struct-def)
-
-(def < (fn intern bool ((a (ref (const struct-def)))
-                        (b (ref (const struct-def))))
-  (p< (@:@ a name) (@:@ b name))))
-
-(std.concepts.instantiate <= struct-def)
-(std.concepts.instantiate >  struct-def)
-(std.concepts.instantiate >= struct-def)
-
-(std.concepts.implement EqualityComparable struct-def)
-(std.concepts.implement LessThanComparable struct-def)
-(std.concepts.instantiate Vector struct-def)
+(standard-type struct-def)
 
 (def concept-def
   (struct intern ((name    (p char))
                   (info    (p char)))))
 
-(std.concepts.implement Struct concept-def)
-(std.concepts.implement PreferRefs concept-def)
-(std.concepts.instantiate swap concept-def)
-(std.concepts.implement Assignable concept-def)
-
-(def = (fn intern bool ((a (ref (const concept-def)))
-                        (b (ref (const concept-def))))
-  (p= (@:@ a name) (@:@ b name))))
-
-(std.concepts.instantiate != concept-def)
-
-(def < (fn intern bool ((a (ref (const concept-def)))
-                        (b (ref (const concept-def))))
-  (p< (@:@ a name) (@:@ b name))))
-
-(std.concepts.instantiate <= concept-def)
-(std.concepts.instantiate >  concept-def)
-(std.concepts.instantiate >= concept-def)
-
-(std.concepts.implement EqualityComparable concept-def)
-(std.concepts.implement LessThanComparable concept-def)
-(std.concepts.instantiate Vector concept-def)
+(standard-type concept-def)
 
 (def proc-type
   (enum intern int (FN MACRO CONCEPT-MACRO)))
@@ -83,58 +79,17 @@
                   (info    (p char))
                   (params  (p param-def)))))
 
-(std.concepts.implement Struct proc-def)
-(std.concepts.implement PreferRefs proc-def)
-(std.concepts.instantiate swap proc-def)
-(std.concepts.implement Assignable proc-def)
-
-(def = (fn intern bool ((a (ref (const proc-def)))
-                        (b (ref (const proc-def))))
-  (p= (@:@ a name) (@:@ b name))))
-
-(std.concepts.instantiate != proc-def)
-
-(def < (fn intern bool ((a (ref (const proc-def)))
-                        (b (ref (const proc-def))))
-  (p< (@:@ a name) (@:@ b name))))
-
-(std.concepts.instantiate <= proc-def)
-(std.concepts.instantiate >  proc-def)
-(std.concepts.instantiate >= proc-def)
-
-(std.concepts.implement EqualityComparable proc-def)
-(std.concepts.implement LessThanComparable proc-def)
-(std.concepts.instantiate Vector proc-def)
+(standard-type proc-def)
 
 (def node (struct opaque))
 (def (Vector node) (struct opaque))
 (def node
-  (struct intern ((is-list   bool)
+  (struct intern ((name      (p char))
+                  (is-list   bool)
                   (token-str (p char))
                   (list-node (p (Vector node))))))
 
-(std.concepts.implement Struct node)
-(std.concepts.implement PreferRefs node)
-(std.concepts.instantiate swap node)
-(std.concepts.implement Assignable node)
-
-(def = (fn intern bool ((a (ref (const node)))
-                        (b (ref (const node))))
-  (p= (@:@ a token-str) (@:@ b token-str))))
-
-(std.concepts.instantiate != node)
-
-(def < (fn intern bool ((a (ref (const node)))
-                        (b (ref (const node))))
-  (p< (@:@ a token-str) (@:@ b token-str))))
-
-(std.concepts.instantiate <= node)
-(std.concepts.instantiate >  node)
-(std.concepts.instantiate >= node)
-
-(std.concepts.implement EqualityComparable node)
-(std.concepts.implement LessThanComparable node)
-(std.concepts.instantiate Vector node)
+(standard-type node)
 
 ;; S-expression parsing.
 
