@@ -47,3 +47,5 @@ echo "# Dale\n\n## 3.4 cmath\n" > doc/3-4-cmath.md
 ./module-to-markdown < modules/cmath.dt >> doc/3-4-cmath.md
 echo "# Dale\n\n## 3.5 csignal\n" > doc/3-5-csignal.md
 ./module-to-markdown < modules/csignal.dt >> doc/3-5-csignal.md
+echo "# Dale\n\n## 3.6 cstdio-core\n" > doc/3-6-cstdio-core.md
+./module-to-markdown < modules/cstdio-core.dt >> doc/3-6-cstdio-core.md

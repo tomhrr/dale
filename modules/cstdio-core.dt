@@ -10,6 +10,8 @@ depend in turn on `macros`.
 
 #|
 @struct file
+
+@linkage extern
 |#
 (def file (struct extern))
 
