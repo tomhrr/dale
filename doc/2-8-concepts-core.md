@@ -138,14 +138,24 @@ Parameters:
 
 Linkage: `extern`
 Returns: `void`
-Parameters: N/A
+Parameters:
+
+  * `(mc (p MContext))`
+  * `(mapp (p concept-node))`
+  * `(mlist bool)`
+  * `(n int)`
+
 
 
 #### `std.concepts.get-type-concept-map`
 
 Linkage: `extern`
 Returns: `(p concept-node)`
-Parameters: N/A
+Parameters:
+
+  * `(mc (p MContext))`
+  * `(T (p DNode))`
+
 
 
 #### `std.concepts.get-concept-macro-name`
@@ -178,7 +188,11 @@ Parameters:
 
 Linkage: `intern`
 Returns: `bool`
-Parameters: N/A
+Parameters:
+
+  * `(tcl-list (p (p concept-node)))`
+  * `(tcl-count int)`
+
 
 Returns true if the list of concept nodes does not contain any
 instances of "not-applicable" (i.e. of the root, unused concept node).
@@ -188,7 +202,16 @@ instances of "not-applicable" (i.e. of the root, unused concept node).
 
 Linkage: `intern`
 Returns: `bool`
-Parameters: N/A
+Parameters:
+
+  * `(mc (p MContext))`
+  * `(tcl-list (p (p concept-node)))`
+  * `(tcl-count int)`
+  * `(macname (p char))`
+  * `(macbuf (p char))`
+  * `(hascnamebuf bool)`
+  * `(cname (p char))`
+
 
 Checks at the top-level of the concept list for a candidate that
 matches the requested macro name.  If one exists, writes it to the
@@ -199,28 +222,54 @@ macro buffer and returns true.  Otherwise, returns false.
 
 Linkage: `intern`
 Returns: `int`
-Parameters: N/A
+Parameters:
+
+  * `(mc (p MContext))`
+  * `(errn (p DNode))`
+  * `(tcl-list (p (p concept-node)))`
+  * `(tcl-count int)`
+  * `(arg-cycle int)`
+  * `(macname (p char))`
+  * `(macbuf (p char))`
+  * `(is-error (p int))`
+  * `(hascnamebuf bool)`
+  * `(cname (p char))`
+
 
 
 #### `std.concepts.is-forced-concept`
 
 Linkage: `intern`
 Returns: `bool`
-Parameters: N/A
+Parameters:
+
+  * `(node (p DNode))`
+
 
 
 #### `std.concepts.validate-forced-concept`
 
 Linkage: `intern`
 Returns: `bool`
-Parameters: N/A
+Parameters:
+
+  * `(mc (p MContext))`
+  * `(node (p DNode))`
+
 
 
 #### `std.concepts.get-type-concept-list`
 
 Linkage: `intern`
 Returns: `bool`
-Parameters: N/A
+Parameters:
+
+  * `(mc (p MContext))`
+  * `(varargs-list (p DNode))`
+  * `(varargs-count int)`
+  * `(type-concept-list (p (p concept-node)))`
+  * `(type-list (p (p DNode)))`
+
 
 Takes a list of concept instantiation arguments, except for the
 initial concept name.  Populates the type concept list, being the
@@ -251,7 +300,13 @@ described by the argument node, has been defined.
 #### `std.concepts.def-concept`
 
 Linkage: `extern`
-Parameters: N/A
+Parameters:
+
+  * `concept-name-node`
+  * `refinement-list`
+  * `type-arguments`
+  * `...`
+
 
 Define a new concept. Takes a name, a list of refinements, a list of
 parameters and an arbitrary number of forms representing the body of
@@ -281,7 +336,11 @@ constructed by way of `def-concept-macro`.
 #### `std.concepts.implement`
 
 Linkage: `extern`
-Parameters: N/A
+Parameters:
+
+  * `concept-name-node`
+  * `...`
+
 
 Takes a concept name and a list of type arguments. Attempts to
 'implement' the concept for those type arguments, which involves
@@ -312,6 +371,7 @@ Parameters:
   * `macro-name`: The name of the concept macro.
   * `linkage`: The linkage of the concept macro.
   * `macro-types`: The parameters (typed) for the macro.
+  * `...`
 
 
 Define a new concept macro. Takes a name, a linkage type, a list of
@@ -329,13 +389,23 @@ arguments.
 #### `std.concepts.assert-return`
 
 Linkage: `intern`
-Parameters: N/A
+Parameters:
+
+  * `error-cond`
+  * `report-error-node`
+  * `report-error-str`
+
 
 
 #### `std.concepts.assert-return-b`
 
 Linkage: `intern`
-Parameters: N/A
+Parameters:
+
+  * `error-cond`
+  * `report-error-node`
+  * `report-error-str`
+
 
 
 #### `std.concepts.instantiate`
@@ -344,6 +414,7 @@ Linkage: `extern`
 Parameters:
 
   * `macro-name`: The name of the macro to be instantiated.
+  * `...`
 
 
 Takes a concept macro name and a series of arguments for that concept

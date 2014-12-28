@@ -200,6 +200,7 @@ Returns: `(p DNode)`
 Parameters:
 
   * `(argcount int)`: The number of nodes being provided.
+  * `...`
 
 
 Links the provided nodes together, without copying them, and returns
@@ -215,6 +216,7 @@ Parameters:
 
   * `(mc (p MContext))`: An MContext.
   * `(argcount int)`: The number of varargs being provided.
+  * `...`
 
 
 As per `link-nodes`, except that an additional list node is allocated
@@ -238,6 +240,7 @@ Parameters:
   * `(macro-begin-column int)`: The beginning macro column number.
   * `(macro-end-line int)`: The ending macro line number.
   * `(macro-end-column int)`: The ending macro column number.
+  * `...`
 
 
 As per `link-nodes-list`, except it also accepts additional node
@@ -423,6 +426,7 @@ Linkage: `extern`
 Parameters:
 
   * `frm`: A node.
+  * `...`
 
 
 The bootstrap quasiquotation macro. The general-use quasiquotation

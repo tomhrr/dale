@@ -23,6 +23,7 @@ Parameters:
 
   * `structp`: The struct pointer argument.
   * `member`: The first member's name.
+  * `...`
 
 
 Takes a struct pointer and one or more struct member names as its
@@ -69,6 +70,7 @@ Linkage: `extern`
 Parameters:
 
   * `condition`: The condition expression form.
+  * `...`
 
 
 Takes a condition expression and an arbitrary number of other forms as
@@ -132,6 +134,7 @@ Parameters:
   * `init-form`: The initialisation form.
   * `condition`: The condition expression.
   * `loop-entry`: The loop entry form.
+  * `...`
 
 
 Takes an initialisation form, a condition expression, a loop entry
@@ -145,7 +148,11 @@ expression evaluates to true.
 #### `let`
 
 Linkage: `extern`
-Parameters: N/A
+Parameters:
+
+  * `new-vars`
+  * `...`
+
 
 A form for introducing local (automatic storage) variables. It's
 easier to explain by example.
@@ -191,13 +198,21 @@ cast to a void pointer, is passed.
 #### `p<=`
 
 Linkage: `extern`
-Parameters: N/A
+Parameters:
+
+  * `ptr1`
+  * `ptr2`
+
 
 
 #### `p>=`
 
 Linkage: `extern`
-Parameters: N/A
+Parameters:
+
+  * `ptr1`
+  * `ptr2`
+
 
 
 #### `make-macro-constant`
@@ -252,7 +267,12 @@ writing C bindings.
 #### `mfor`
 
 Linkage: `extern`
-Parameters: N/A
+Parameters:
+
+  * `value-name`
+  * `value-list`
+  * `...`
+
 
 Short for 'macro for', but more akin to a 'foreach'. Takes a
 value-name form, a value-list form and an arbitrary number of other

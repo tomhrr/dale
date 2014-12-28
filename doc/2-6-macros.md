@@ -17,7 +17,11 @@ Provides the quasiquotation macro.
 #### `qq`
 
 Linkage: `extern`
-Parameters: N/A
+Parameters:
+
+  * `frm`
+  * `...`
+
 
 The 'general-use' quasiquotation macro. The forms handled specially
 are:

@@ -25,7 +25,10 @@ over the built-in integral types, as well as `char`, `size` and
 #### `refconst`
 
 Linkage: `extern`
-Parameters: N/A
+Parameters:
+
+  * `frm`
+
 
 Expands a form `frm` into `(ref (const frm))`.
 
@@ -33,7 +36,10 @@ Expands a form `frm` into `(ref (const frm))`.
 #### `prefer-ref-bindings`
 
 Linkage: `extern`
-Parameters: N/A
+Parameters:
+
+  * `T2`
+
 
 Takes a type as its single argument.  Expands into a series of `def`
 forms: the first is `prefer-refs`, being a boolean indicating whether

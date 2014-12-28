@@ -496,7 +496,8 @@
 
 ; Print a procedure parameter to standard output.
 (def print-param (fn intern void ((param (p param-def)))
-  (if (not (null (@:@ param type)))
+  (if (and (not (null (@:@ param type)))
+           (> (strlen (@:@ param type)) (cast 0 size)))
       (printf "  * `(%s %s)`"
               (@:@ param name)
               (remove-whitespace (@:@ param type)))
@@ -669,10 +670,8 @@
                        (op (p param-def)))
                    (for true (!= b e) (setv b (successor b))
                      (setv op ($ params pc))
-                     (printf "%d %d\n" pc parami)
                      (and (> (+ pc 1) parami)
-                          (do (printf "found a null param\n")
-                              (setf ($ params pc) ((name "")
+                          (do (setf ($ params pc) ((name "")
                                                    (type "")
                                                    (info "")))))
                      (incv realparami)

@@ -82,7 +82,7 @@ Bindings to `string.h`.
 @fn strlen
 |#
 (def strlen
-  (fn extern-c size ((str (const (p char))))))
+  (fn extern-c size ((str (p (const char))))))
 
 #|
 @fn strerror
