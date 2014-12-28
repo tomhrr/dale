@@ -41,7 +41,7 @@ instead.
 |#
 (def make-type-string
   (fn extern bool ((mc (p MContext))
-                   (prefix (const (p char)))
+                   (prefix (p (const char)))
                    (T (p DNode))
                    (buf (p char)))
     (let ((tstr1 (array-of 250 char)))
@@ -65,7 +65,7 @@ nodes.
 |#
 (def make-type-string
   (fn extern bool ((mc (p MContext))
-                   (prefix (const (p char)))
+                   (prefix (p (const char)))
                    (T1 (p DNode))
                    (T2 (p DNode))
                    (buf (p char)))
@@ -95,7 +95,7 @@ nodes.
 |#
 (def make-type-string
   (fn extern bool ((mc (p MContext))
-                   (prefix (const (p char)))
+                   (prefix (p (const char)))
                    (T1 (p DNode))
                    (T2 (p DNode))
                    (T3 (p DNode))
@@ -129,7 +129,7 @@ applicable) to the buffer, rather than the internal representation.
 |#
 (def make-type-display-string
   (fn extern bool ((mc (p MContext))
-                   (prefix (const (p char)))
+                   (prefix (p (const char)))
                    (T (p DNode))
                    (buf (p char)))
     (let ((tstr1 (array-of 250 char)))
@@ -153,7 +153,7 @@ nodes.
 |#
 (def make-type-display-string
   (fn extern bool ((mc (p MContext))
-                   (prefix (const (p char)))
+                   (prefix (p (const char)))
                    (T1 (p DNode))
                    (T2 (p DNode))
                    (buf (p char)))
@@ -183,7 +183,7 @@ nodes.
 |#
 (def make-type-display-string
   (fn extern bool ((mc (p MContext))
-                   (prefix (const (p char)))
+                   (prefix (p (const char)))
                    (T1 (p DNode))
                    (T2 (p DNode))
                    (T3 (p DNode))

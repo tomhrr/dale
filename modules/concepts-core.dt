@@ -401,8 +401,8 @@ both A and B.
 |#
 (def refines
   (fn extern bool ((mc (p MContext))
-                   (Tupper (p char))
-                   (Tlower (p char)))
+                   (Tupper (p (const char)))
+                   (Tlower (p (const char))))
     (def tnode   (var auto \ (mnfv mc Tlower)))
     (def fnname  (var auto (array-of 255 char)))
     (sprintf fnname "_refines-%s" Tupper)
@@ -420,10 +420,10 @@ both A and B.
 |#
 (def refines-multiple
   (fn extern bool ((mc (p MContext))
-                   (Tupper (p char))
-                   (Tlower (p char)))
-    (def upperspace (var auto \ (strchr Tupper #\SPACE)))
-    (def lowerspace (var auto \ (strchr Tlower #\SPACE)))
+                   (Tupper (p (const char)))
+                   (Tlower (p (const char))))
+    (def upperspace (var auto \ (strchr Tupper (cast #\SPACE int))))
+    (def lowerspace (var auto \ (strchr Tlower (cast #\SPACE int))))
     (and (p= (nullptr char) upperspace)
          (do (return (refines mc Tupper Tlower))))
     (def upperone (var auto (array-of 255 char)))

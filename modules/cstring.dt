@@ -16,13 +16,13 @@ Bindings to `string.h`.
 @fn strncpy
 |#
 (def strncpy
-  (fn extern-c (p char) ((dest (p char)) (source (p char)) (size size))))
+  (fn extern-c (p char) ((dest (p char)) (source (p (const char))) (size size))))
 
 #|
 @fn strcat
 |#
 (def strcat
-  (fn extern-c int ((str (p char)) (str2 (const (p char))))))
+  (fn extern-c int ((str (p char)) (str2 (p (const char))))))
 
 #|
 @fn strncat
@@ -46,13 +46,13 @@ Bindings to `string.h`.
 @fn strchr
 |#
 (def strchr
-  (fn extern-c (p char) ((str (p char)) (c int))))
+  (fn extern-c (p (const char)) ((str (p (const char))) (c int))))
 
 #|
 @fn strrchr
 |#
 (def strrchr
-  (fn extern-c (p char) ((str (p char)) (c int))))
+  (fn extern-c (p (const char)) ((str (p (const char))) (c int))))
 
 #|
 @fn strspn
@@ -76,7 +76,7 @@ Bindings to `string.h`.
 @fn strstr
 |#
 (def strstr
-  (fn extern-c (p char) ((str (p (const char))) (str2 (p (const char))))))
+  (fn extern-c (p (const char)) ((str (p (const char))) (str2 (p (const char))))))
 
 #|
 @fn strlen

@@ -102,7 +102,7 @@ Returns: `(p file)`
 Parameters:
 
   * `(fd int)`
-  * `(mode (p char))`
+  * `(mode (p (const char)))`
 
 
 
@@ -128,8 +128,8 @@ Linkage: `extern-c`
 Returns: `(p file)`
 Parameters:
 
-  * `(filename (p char))`
-  * `(mode (p char))`
+  * `(filename (p (const char)))`
+  * `(mode (p (const char)))`
 
 
 
@@ -139,8 +139,8 @@ Linkage: `extern-c`
 Returns: `(p file)`
 Parameters:
 
-  * `(filename (p char))`
-  * `(mode (p char))`
+  * `(filename (p (const char)))`
+  * `(mode (p (const char)))`
   * `(stream (p file))`
 
 
@@ -171,7 +171,7 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(filename (p char))`
+  * `(filename (p (const char)))`
 
 
 
@@ -181,8 +181,8 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(old-name (p char))`
-  * `(new-name (p char))`
+  * `(old-name (p (const char)))`
+  * `(new-name (p (const char)))`
 
 
 
@@ -234,7 +234,7 @@ Returns: `int`
 Parameters:
 
   * `(stream (p file))`
-  * `(str (p char))`
+  * `(str (p (const char)))`
   * `...`
 
 
@@ -245,7 +245,7 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
   * `...`
 
 
@@ -257,7 +257,7 @@ Returns: `int`
 Parameters:
 
   * `(str (p char))`
-  * `(fmt (p char))`
+  * `(fmt (p (const char)))`
   * `...`
 
 
@@ -268,7 +268,7 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
   * `(arg va-list)`
 
 
@@ -280,7 +280,7 @@ Returns: `int`
 Parameters:
 
   * `(stream (p file))`
-  * `(str (p char))`
+  * `(str (p (const char)))`
   * `(arg va-list)`
 
 
@@ -291,8 +291,8 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(stream (p file))`
   * `(str (p char))`
+  * `(fmt (p (const char)))`
   * `(arg va-list)`
 
 
@@ -336,7 +336,7 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
   * `(stream (p file))`
 
 
@@ -398,7 +398,7 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
 
 
 
@@ -529,7 +529,7 @@ Linkage: `extern-c`
 Returns: `void`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
 
 
 

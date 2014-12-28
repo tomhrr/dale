@@ -1,0 +1,2 @@
+./t/error-src/const-string.dt:8:3: error: overloaded function/macro not in scope: 'myfn' (parameters are (p (const char)), closest candidate expects (p char))
+./t/error-src/const-string.dt:9:3: error: expected expression with type (p char) (got type (p (const char)) instead)

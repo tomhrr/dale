@@ -2,7 +2,7 @@
 @module cstdio
 
 Bindings to `stdio.h`. Provides the following macro constants:
-  
+
   * L-tmpnam
   * TMP-MAX
   * FILENAME-MAX
@@ -49,7 +49,7 @@ The standard error handle.
 @fn fdopen
 |#
 (def fdopen
-  (fn extern-c (p file) ((fd int) (mode (p char)))))
+  (fn extern-c (p file) ((fd int) (mode (p (const char))))))
 
 #|
 @fn init-channels
@@ -66,7 +66,7 @@ does not require the same.
 |#
 (def init-channels
   (fn extern int (void)
-    0)) 
+    0))
 
 #|
 @enum buffer-mode
@@ -78,14 +78,15 @@ does not require the same.
 @fn fopen
 |#
 (def fopen
-  (fn extern-c (p file) ((filename (p char)) (mode (p char)))))
+  (fn extern-c (p file) ((filename (p (const char)))
+                         (mode     (p (const char))))))
 
 #|
 @fn freopen
 |#
 (def freopen
-  (fn extern-c (p file) ((filename (p char)) 
-                         (mode     (p char))
+  (fn extern-c (p file) ((filename (p (const char)))
+                         (mode     (p (const char)))
                          (stream   (p file)))))
 
 #|
@@ -104,14 +105,14 @@ does not require the same.
 @fn remove
 |#
 (def remove
-  (fn extern-c int ((filename (p char)))))
+  (fn extern-c int ((filename (p (const char))))))
 
 #|
 @fn rename
 |#
 (def rename
-  (fn extern-c int ((old-name (p char))
-                        (new-name (p char)))))
+  (fn extern-c int ((old-name (p (const char)))
+                    (new-name (p (const char))))))
 
 #|
 @fn tmpfile
@@ -139,46 +140,46 @@ does not require the same.
 |#
 (def setbuf
   (fn extern-c void ((stream (p file))
-                         (buf    (p char)))))
+                     (buf    (p char)))))
 
 #|
 @fn fprintf
 |#
 (def fprintf
-  (fn extern-c int ((stream (p file)) (str (p char)) ...)))
+  (fn extern-c int ((stream (p file)) (str (p (const char))) ...)))
 
 #|
 @fn printf
 |#
 (def printf
-  (fn extern-c int ((str (p char)) ...)))
+  (fn extern-c int ((str (p (const char))) ...)))
 
 #|
 @fn sprintf
 |#
 (def sprintf
-  (fn extern-c int ((str (p char)) (fmt (p char)) ...)))
+  (fn extern-c int ((str (p char)) (fmt (p (const char))) ...)))
 
 #|
 @fn vprintf
 |#
 (def vprintf
-  (fn extern-c int ((str (p char)) (arg va-list))))
+  (fn extern-c int ((str (p (const char))) (arg va-list))))
 
 #|
 @fn vfprintf
 |#
 (def vfprintf
-  (fn extern-c int ((stream (p file)) 
-                    (str    (p char)) 
+  (fn extern-c int ((stream (p file))
+                    (str    (p (const char)))
                     (arg    va-list))))
 
 #|
 @fn vsprintf
 |#
 (def vsprintf
-  (fn extern-c int ((stream (p file)) 
-                    (str    (p char)) 
+  (fn extern-c int ((str    (p char))
+                    (fmt    (p (const char)))
                     (arg    va-list))))
 
 #|
@@ -205,7 +206,7 @@ does not require the same.
 @fn fputs
 |#
 (def fputs
-  (fn extern-c int ((str (p char)) (stream (p file)))))
+  (fn extern-c int ((str (p (const char))) (stream (p file)))))
 
 #|
 @fn getc
@@ -241,7 +242,7 @@ does not require the same.
 @fn puts
 |#
 (def puts
-  (fn extern-c int ((str (p char)))))
+  (fn extern-c int ((str (p (const char))))))
 
 #|
 @fn ungetc
@@ -253,9 +254,9 @@ does not require the same.
 @fn fread
 |#
 (def fread
-  (fn extern-c int ((ptr (p void)) 
+  (fn extern-c int ((ptr (p void))
                         (size  size)
-                        (count size) 
+                        (count size)
                         (stream (p file)))))
 
 #|
@@ -276,8 +277,8 @@ does not require the same.
 @fn fseek
 |#
 (def fseek
-  (fn extern-c int ((stream (p file)) 
-                    (offset int) 
+  (fn extern-c int ((stream (p file))
+                    (offset int)
                     (origin fseekorigin))))
 
 #|
@@ -340,7 +341,7 @@ does not require the same.
 @fn perror
 |#
 (def perror
-  (fn extern-c void ((str  (p char)))))
+  (fn extern-c void ((str  (p (const char))))))
 
 (make-macro-constant L-tmpnam     L_tmpnam)
 (make-macro-constant TMP-MAX      TMP_MAX)

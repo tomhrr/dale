@@ -101,7 +101,7 @@ parse(Generator *gen,
         if (!mres) {
             return false;
         }
-        if (!newvalue.type->isEqualTo(nametype)) {
+        if (!newvalue.type->isEqualTo(nametype, 1)) {
             if ((nametype->isIntegerType()
                     && newvalue.type->isIntegerType())
                     || (nametype->isFloatingPointType()

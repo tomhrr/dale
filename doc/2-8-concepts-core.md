@@ -95,8 +95,8 @@ Returns: `bool`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
-  * `(Tupper (p char))`: The possibly-refined type.
-  * `(Tlower (p char))`: The refining type.
+  * `(Tupper (p (const char)))`: The possibly-refined type.
+  * `(Tlower (p (const char)))`: The refining type.
 
 
 
@@ -107,8 +107,8 @@ Returns: `bool`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
-  * `(Tupper (p char))`: The possibly-refined type.
-  * `(Tlower (p char))`: The refining type.
+  * `(Tupper (p (const char)))`: The possibly-refined type.
+  * `(Tlower (p (const char)))`: The refining type.
 
 
 

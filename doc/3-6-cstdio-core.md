@@ -32,7 +32,7 @@ Linkage: `extern-c`
 Returns: `size`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
 
 
 
@@ -43,7 +43,7 @@ Returns: `(p char)`
 Parameters:
 
   * `(dest (p char))`
-  * `(source (p char))`
+  * `(source (p (const char)))`
   * `(size size)`
 
 
@@ -55,7 +55,7 @@ Returns: `int`
 Parameters:
 
   * `(stream (p file))`
-  * `(str (p char))`
+  * `(str (p (const char)))`
   * `...`
 
 
@@ -66,7 +66,7 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
   * `...`
 
 
@@ -78,7 +78,7 @@ Returns: `int`
 Parameters:
 
   * `(str (p char))`
-  * `(fmt (p char))`
+  * `(fmt (p (const char)))`
   * `...`
 
 
@@ -86,10 +86,10 @@ Parameters:
 #### `strchr`
 
 Linkage: `extern-c`
-Returns: `(p char)`
+Returns: `(p (const char))`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
   * `(c int)`
 
 
@@ -112,8 +112,8 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(str (p char))`
-  * `(str2 (p char))`
+  * `(str (p (const char)))`
+  * `(str2 (p (const char)))`
 
 
 
@@ -123,8 +123,8 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(str (p char))`
-  * `(str2 (p char))`
+  * `(str (p (const char)))`
+  * `(str2 (p (const char)))`
   * `(n size)`
 
 

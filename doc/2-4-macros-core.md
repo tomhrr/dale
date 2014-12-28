@@ -116,7 +116,7 @@ Returns: `(p DNode)`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
-  * `(token-string (p char))`: The token string for the new node.
+  * `(token-string (p (const char)))`: The token string for the new node.
 
 
 Short for 'make-node-from-value'. There are several implementations of
@@ -177,7 +177,7 @@ Returns: `(p DNode)`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
-  * `(token-string (p char))`: A string.
+  * `(token-string (p (const char)))`: A string.
   * `(begin-line int)`: The beginning line number for the node.
   * `(begin-column int)`: The beginning column number for the node.
   * `(end-line int)`: The ending line number for the node.
@@ -293,7 +293,7 @@ Returns: `bool`
 Parameters:
 
   * `(buf (p char))`: The buffer for the label name.
-  * `(prefix (p char))`: The prefix for the label name.
+  * `(prefix (p (const char)))`: The prefix for the label name.
 
 
 Prints a new, unused label name to the provided buffer. The prefix is
@@ -308,7 +308,7 @@ Returns: `(p DNode)`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
-  * `(prefix (p char))`: The prefix for the label name.
+  * `(prefix (p (const char)))`: The prefix for the label name.
 
 
 Generates a new label name, constructs a token node to suit and
@@ -335,7 +335,7 @@ Returns: `bool`
 Parameters:
 
   * `(label-node (p DNode))`: The label node.
-  * `(prefix (p char))`: The prefix for which to check in the label node.
+  * `(prefix (p (const char)))`: The prefix for which to check in the label node.
 
 
 Determines whether the provided label node is a gensym label with the

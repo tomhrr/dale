@@ -240,9 +240,11 @@ TypeRegister::getType(Element::Type *type)
     if (type->is_const) {
         type->is_const = 0;
         final = getConstType(getType(type));
+        type->is_const = 1;
     } else if (type->is_reference) {
         type->is_reference = 0;
         final = getReferenceType(getType(type));
+        type->is_reference = 1;
     } else if (type->is_array) {
         final = getArrayType(getType(type->array_type), type->array_size);
     } else if (type->points_to) {
@@ -263,6 +265,7 @@ TypeRegister::getType(Element::Type *type)
         size_t bitfield_size = type->bitfield_size;
         type->bitfield_size = 0;
         final = getBitfieldType(getType(type), bitfield_size);
+        type->bitfield_size = bitfield_size;
     } else if (type->base_type) {
         final = getBasicType(type->base_type);
     }

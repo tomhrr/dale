@@ -32,7 +32,7 @@ Returns: `(p char)`
 Parameters:
 
   * `(dest (p char))`
-  * `(source (p char))`
+  * `(source (p (const char)))`
   * `(size size)`
 
 
@@ -44,7 +44,7 @@ Returns: `int`
 Parameters:
 
   * `(str (p char))`
-  * `(str2 (const (p char)))`
+  * `(str2 (p (const char)))`
 
 
 
@@ -86,10 +86,10 @@ Parameters:
 #### `strchr`
 
 Linkage: `extern-c`
-Returns: `(p char)`
+Returns: `(p (const char))`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
   * `(c int)`
 
 
@@ -97,10 +97,10 @@ Parameters:
 #### `strrchr`
 
 Linkage: `extern-c`
-Returns: `(p char)`
+Returns: `(p (const char))`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
   * `(c int)`
 
 
@@ -141,7 +141,7 @@ Parameters:
 #### `strstr`
 
 Linkage: `extern-c`
-Returns: `(p char)`
+Returns: `(p (const char))`
 Parameters:
 
   * `(str (p (const char)))`

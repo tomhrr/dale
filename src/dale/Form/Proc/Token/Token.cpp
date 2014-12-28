@@ -18,7 +18,7 @@ llvm::Constant *
 parseStringLiteral(Generator *gen,
                    Element::Type *type,
                    Node *top,
-                   int *size) 
+                   int *size)
 {
     Context *ctx = gen->ctx;
 
@@ -124,8 +124,9 @@ bool parse(Generator *gen,
 {
     Context *ctx = gen->ctx;
     NativeTypes *nt = ctx->nt;
-    Element::Type *type_char  = ctx->tr->type_char;
-    Element::Type *type_pchar = ctx->tr->type_pchar;
+    Element::Type *type_char   = ctx->tr->type_char;
+    Element::Type *type_cchar  = ctx->tr->getConstType(type_char);
+    Element::Type *type_pcchar = ctx->tr->getPointerType(type_cchar);
     std::vector<llvm::Value *> two_zero_indices;
     stl::push_back2(&two_zero_indices,
                     nt->getLLVMZero(), nt->getLLVMZero());
@@ -366,12 +367,16 @@ tryvar:
         /* Add the variable to the module. */
 
         int size = 0;
-        llvm::Constant *init = parseStringLiteral(gen, type_pchar, 
+        llvm::Constant *init = parseStringLiteral(gen, type_pcchar,
                                                   node, &size);
         if (!init) {
             return false;
         }
-        Element::Type *temp = ctx->tr->getArrayType(type_char, size);
+        Element::Type *temp =
+            ctx->tr->getArrayType(
+                ctx->tr->getConstType(type_char),
+                size
+            );
 
         llvm::Type *llvm_type =
             ctx->toLLVMType(temp, NULL, false);
@@ -423,7 +428,7 @@ tryvar:
 
         pr->set(
                     block,
-                    type_pchar,
+                    type_pcchar,
                     charpointer
                 );
         return true;

@@ -22,7 +22,7 @@ Returns: `bool`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
-  * `(prefix (const (p char)))`: The type string prefix.
+  * `(prefix (p (const char)))`: The type string prefix.
   * `(T (p DNode))`: The type node.
   * `(buf (p char))`: The buffer for the type string.
 
@@ -40,7 +40,7 @@ Returns: `bool`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
-  * `(prefix (const (p char)))`: The type string prefix.
+  * `(prefix (p (const char)))`: The type string prefix.
   * `(T1 (p DNode))`: The first type node.
   * `(T2 (p DNode))`: The second type node.
   * `(buf (p char))`: The buffer for the type string.
@@ -57,7 +57,7 @@ Returns: `bool`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
-  * `(prefix (const (p char)))`: The type string prefix.
+  * `(prefix (p (const char)))`: The type string prefix.
   * `(T1 (p DNode))`: The first type node.
   * `(T2 (p DNode))`: The second type node.
   * `(T3 (p DNode))`: The third type node.
@@ -75,7 +75,7 @@ Returns: `bool`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
-  * `(prefix (const (p char)))`: The type display string prefix.
+  * `(prefix (p (const char)))`: The type display string prefix.
   * `(T (p DNode))`: The type node.
   * `(buf (p char))`: The buffer for the type display string.
 
@@ -92,7 +92,7 @@ Returns: `bool`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
-  * `(prefix (const (p char)))`: The type display string prefix.
+  * `(prefix (p (const char)))`: The type display string prefix.
   * `(T1 (p DNode))`: The first type node.
   * `(T2 (p DNode))`: The second type node.
   * `(buf (p char))`: The buffer for the type display string.
@@ -109,7 +109,7 @@ Returns: `bool`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
-  * `(prefix (const (p char)))`: The type display string prefix.
+  * `(prefix (p (const char)))`: The type display string prefix.
   * `(T1 (p DNode))`: The first type node.
   * `(T2 (p DNode))`: The second type node.
   * `(T3 (p DNode))`: The third type node.

@@ -156,7 +156,7 @@ numbers and the filename in the error message.
 @param err      The error string.
 |#
 (def report-error
-  (fn extern-c void ((mc (p MContext)) (frm (p DNode)) (err (p char)))))
+  (fn extern-c void ((mc (p MContext)) (frm (p DNode)) (err (p (const char))))))
 
 #|
 @fn register-type
@@ -329,7 +329,7 @@ types, which list is used by `fn-by-args-name`.
 |#
 (def fn-by-args-count (fn extern-c int ((mc     (p MContext))
                                         (frm    (p DNode))
-                                        (prefix (p char)))))
+                                        (prefix (p (const char))))))
 
 #|
 @fn fn-by-args-name
@@ -343,7 +343,7 @@ to `fn-by-args-count` that uses the same set of parameter types.
 @param frm      A list of parameter types.
 @param n        The function list index.
 |#
-(def fn-by-args-name (fn extern-c (const (p char)) 
+(def fn-by-args-name (fn extern-c (p (const char))
                                   ((mc (p MContext)) 
                                    (frm (p DNode)) (n int))))
 

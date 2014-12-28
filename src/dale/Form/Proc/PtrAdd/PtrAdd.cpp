@@ -117,7 +117,7 @@ bool parse(Generator *gen,
     val.block = temp.block;
     gen->destructIfApplicable(&val, NULL, &temp);
     final_res.block = temp.block;
-    pr->set(final_res.block, final_res.type, final_res.value);
+    pr->set(final_res.block, ptr.type, final_res.value);
 
     return true;
 }

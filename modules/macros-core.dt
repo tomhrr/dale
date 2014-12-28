@@ -183,13 +183,13 @@ Prints the node to the provided buffer.
     (def cc (var auto (p char) buf))
     (if (= 0 (@:@ form is-list))
         (do (sprintf buf "%s" (@:@ form token-str))
-            (setv buf (strchr buf #\NULL))
+            (setv buf (strchr buf (cast #\NULL int)))
             true)
         (do (setf ($ buf 0) (cast 40 char))
             (setv buf (p+ buf 1))
             (setf buf #\NULL)
             (sprint buf (@:@ form list-node))
-            (setv buf (strchr buf #\NULL))
+            (setv buf (strchr buf (cast #\NULL int)))
             (setf ($ buf 0) (cast 41 char))
             (setv buf (p+ buf 1))
             (setf buf #\NULL)
@@ -233,7 +233,7 @@ copies it, and sets it in the new node.
 |#
 (def mnfv
   (fn extern (p DNode) ((mc (p MContext))
-                        (token-string (p char)))
+                        (token-string (p (const char))))
     (def d-node (var auto (p DNode) (make-node mc)))
     (def nullp  (var auto (p DNode) (nullptr DNode)))
     (def charp  (var auto (p char) 
@@ -317,7 +317,7 @@ implemented for `(p char)` values.
 |#
 (def mnfv-wp
   (fn extern (p DNode) ((mc (p MContext))
-                        (token-string (p char))
+                        (token-string (p (const char)))
                         (begin-line int)
                         (begin-column int)
                         (end-line int)
@@ -575,7 +575,7 @@ determine what's happening when errors occur in the generated code.
 @param prefix   The prefix for the label name.
 |#
 (def gensym-label
-  (fn extern bool ((buf (p char)) (prefix (p char)))
+  (fn extern bool ((buf (p char)) (prefix (p (const char))))
     (if (null prefix)
         (setv prefix "na")
         true)
@@ -593,7 +593,7 @@ returns that node.
 @param prefix   The prefix for the label name.
 |#
 (def make-gensym-label-node
-  (fn extern (p DNode) ((mc (p MContext)) (prefix (p char)))
+  (fn extern (p DNode) ((mc (p MContext)) (prefix (p (const char))))
     (def label-name
         (var auto (p char) 
                   (cast (pool-malloc mc (cast 150 size)) (p char))))
@@ -622,7 +622,7 @@ specified prefix.
 @param prefix       The prefix for which to check in the label node.
 |#
 (def is-gensym-label
-  (fn extern bool ((label-node (p DNode)) (prefix (p char)))
+  (fn extern bool ((label-node (p DNode)) (prefix (p (const char))))
     (if (null (@:@ label-node token-str))
         (return false)
         0)

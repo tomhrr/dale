@@ -189,7 +189,7 @@ Parameters:
 
   * `(mc (p MContext))`: An MContext.
   * `(frm (p DNode))`: The node that 'caused' the error.
-  * `(err (p char))`: The error string.
+  * `(err (p (const char)))`: The error string.
 
 
 Adds an error message to the compiler's internal error buffer. The
@@ -382,7 +382,7 @@ Parameters:
 
   * `(mc (p MContext))`: An MContext.
   * `(frm (p DNode))`: A list of parameter types.
-  * `(prefix (p char))`: An optional function name prefix.
+  * `(prefix (p (const char)))`: An optional function name prefix.
 
 
 Takes a form (list node) of parameter types and a function prefix
@@ -397,7 +397,7 @@ types, which list is used by `fn-by-args-name`.
 #### `fn-by-args-name`
 
 Linkage: `extern-c`
-Returns: `(const (p char))`
+Returns: `(p (const char))`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.

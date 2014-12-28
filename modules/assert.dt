@@ -76,7 +76,7 @@ subsequent calls to this macro will expand to no-ops.
     (setf ($ cond-str 1) #\NULL)
     (std.macros.sprint (p+ cond-str 1) condition)
 
-    (setv last-charp (strchr cond-str #\NULL))
+    (setv last-charp (strchr cond-str (cast #\NULL int)))
     (setf last-charp #\")
     (setf (p+ last-charp 1) #\NULL)
     (setv cond-str-node (std.macros.mnfv mc cond-str))

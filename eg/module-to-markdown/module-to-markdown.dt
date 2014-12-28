@@ -45,15 +45,15 @@
   (< 0 (strcmp a b))))
 
 (def member-def
-  (struct intern ((name (p char))
-                  (type (p char)))))
+  (struct intern ((name (p (const char)))
+                  (type (p (const char))))))
 
 (std.concepts.implement Struct member-def)
 (std.concepts.instantiate relations member-def)
 
 (def struct-def
   (struct intern ((name    (p char))
-                  (linkage (p char))
+                  (linkage (p (const char)))
                   (info    (p char))
                   (members (p member-def)))))
 
@@ -69,13 +69,13 @@
   (enum intern int (FN MACRO CONCEPT-MACRO)))
 
 (def param-def
-  (struct intern ((name (p char))
-                  (type (p char))
-                  (info (p char)))))
+  (struct intern ((name (p (const char)))
+                  (type (p (const char)))
+                  (info (p (const char))))))
 (def proc-def
   (struct intern ((name    (p char))
-                  (linkage (p char))
-                  (returns (p char))
+                  (linkage (p (const char)))
+                  (returns (p (const char)))
                   (info    (p char))
                   (params  (p param-def)))))
 
@@ -86,23 +86,23 @@
 (def node
   (struct intern ((name      (p char))
                   (is-list   bool)
-                  (token-str (p char))
+                  (token-str (p (const char)))
                   (list-node (p (Vector node))))))
 
 (standard-type node)
 
 (def variable-def
   (struct intern ((name    (p char))
-                  (type    (p char))
-                  (linkage (p char))
+                  (type    (p (const char)))
+                  (linkage (p (const char)))
                   (info    (p char)))))
 
 (standard-type variable-def)
 
 (def enum-def
   (struct intern ((name    (p char))
-                  (type    (p char))
-                  (linkage (p char))
+                  (type    (p (const char)))
+                  (linkage (p (const char)))
                   (info    (p char))
                   (members (p (p char))))))
 
@@ -140,7 +140,7 @@
 ; Set the node to be a token node, using the provided string.
 (def set-to-string (fn intern void ((nd  (p node))
                                     (buf (p char)))
-  (setf (:@ nd token-str) buf)
+  (setf (:@ nd token-str) (cast buf (p (const char))))
   (setf (:@ nd is-list) false)
   (setf (:@ nd list-node) (nullptr (Vector node)))
   (return)))
@@ -166,19 +166,19 @@
   (return nd)))
 
 ; Stringify the given node.
-(def node-to-string (fn intern (p char) ((nd (p node)))
+(def node-to-string (fn intern (p (const char)) ((nd (p node)))
   (and (not (null (@:@ nd token-str)))
        (return (@:@ nd token-str)))
   (def buf (var auto \ (malloc' 255 char)))
   (setf buf #\NULL)
   (and (is-empty-node nd)
-       (do (strcat buf "N/A") (return buf)))
+       (do (strcat buf "N/A") (return (cast buf (p (const char))))))
   (and (and (= (cast 2 size)
                (size (@ (@:@ nd list-node))))
             (or (= "uq"  (node-to-string (get-node nd 1 0)))
                 (= "tpw" (node-to-string (get-node nd 1 0)))))
        (do (strcat buf (node-to-string (get-node nd 1 1)))
-           (return buf)))
+           (return (cast buf (p (const char))))))
   (strcat buf "(")
   (let ((v \ (@:@ nd list-node))
         (b \ (begin (@ v)))
@@ -189,7 +189,7 @@
       (and (!= e (successor b))
            (do (strcat buf " ") true)))))
   (strcat buf ")")
-  (return buf)))
+  (return (cast buf (p (const char))))))
 
 ; Parse s-expressions and return a node.
 (def parse-s-expressions
@@ -236,7 +236,7 @@
                         (return 1)))
                (setv bp (p+ bp 1)))
              true))
-    (setf (:@ retval token-str) (nullptr char))
+    (setf (:@ retval token-str) (cast (nullptr char) (p (const char))))
     (setf (:@ retval is-list) true)
     (setf (:@ retval list-node) (malloc' 1 (Vector node)))
     (init (@ (@:@ retval list-node)) 10)
@@ -272,7 +272,7 @@
   (return c)))
 
 ; Return a pointer to the first char within str past any initial whitespace.
-(def remove-whitespace (fn intern (p char) ((str (p (const char))))
+(def remove-whitespace (fn intern (p (const char)) ((str (p (const char))))
   (while (= (@ str) #\SPACE)
     (setv str (p+ str 1)))
   (return str)))
@@ -330,7 +330,7 @@
 
 ; Add a struct definition to the list of struct definitions.
 (def add-struct-def (fn intern void ((name    (p char))
-                                     (linkage (p char))
+                                     (linkage (p (const char)))
                                      (info    (p char))
                                      (members (p member-def)))
   (let ((nsd struct-def ((name    name)
@@ -420,10 +420,14 @@
   (and (not (is-empty-node struct-node))
        (let ((pfirst \ (node-to-string (get-node struct-node 1 0)))
              (pname  \ (node-to-string (get-node struct-node 1 1)))
-             (lastp  \ (strrchr pname #\.))
-             (last   \ (strrchr name  #\.))
-             (dpname \ (if (not (null lastp)) (p+ lastp 1) pname))
-             (dname  \ (if (not (null last))  (p+ last  1) name)))
+             (lastp  \ (strrchr pname (cast #\. int)))
+             (last   \ (strrchr name  (cast #\. int)))
+             (dpname \ (if (not (null lastp))
+                           (cast (p+ lastp 1) (p (const char)))
+                           pname))
+             (dname  \ (if (not (null last))
+                           (cast (p+ last  1) (p (const char)))
+                           (cast name (p (const char))))))
          (and (and (= dpname dname)
                    (= pfirst "def"))
            (do (setv linkage (node-to-string (get-node struct-node 2 2 1)))
@@ -442,7 +446,7 @@
                       true))
                true))))
 
-  (setf (: (@$ members memberi) name) (nullptr char))
+  (setf (: (@$ members memberi) name) (cast (nullptr char) (p (const char))))
 
   (add-struct-def name linkage info members)
   true))
@@ -455,8 +459,8 @@
 
 ; Add a procedure definition to a list of procedure definitions.
 (def add-proc-def (fn intern void ((name    (p char))
-                                   (linkage (p char))
-                                   (returns (p char))
+                                   (linkage (p (const char)))
+                                   (returns (p (const char)))
                                    (info    (p char))
                                    (params  (p param-def))
                                    (type    proc-type))
@@ -598,10 +602,14 @@
             (= (proc-type CONCEPT-MACRO) type))
        (let ((pfirst \ (node-to-string (get-node fn-node 1 0)))
              (pname  \ (node-to-string (get-node fn-node 1 1)))
-             (lastp  \ (strrchr pname #\.))
-             (last   \ (strrchr name  #\.))
-             (dpname \ (if (not (null lastp)) (p+ lastp 1) pname))
-             (dname  \ (if (not (null last))  (p+ last  1) name)))
+             (lastp  \ (strrchr pname (cast #\. int)))
+             (last   \ (strrchr name  (cast #\. int)))
+             (dpname \ (if (not (null lastp))
+                           (cast (p+ lastp 1) (p (const char)))
+                           pname))
+             (dname  \ (if (not (null last))
+                           (cast (p+ last  1) (p (const char)))
+                           (cast name (p (const char))))))
          (and (and (= dpname dname)
                    (= pfirst "def-concept-macro"))
            (do (setv linkage (node-to-string (get-node fn-node 1 2)))
@@ -631,10 +639,14 @@
                 (= (proc-type MACRO) type)))
        (let ((pfirst \ (node-to-string (get-node fn-node 1 0)))
              (pname  \ (node-to-string (get-node fn-node 1 1)))
-             (lastp  \ (strrchr pname #\.))
-             (last   \ (strrchr name  #\.))
-             (dpname \ (if (not (null lastp)) (p+ lastp 1) pname))
-             (dname  \ (if (not (null last))  (p+ last  1) name)))
+             (lastp  \ (strrchr pname (cast #\. int)))
+             (last   \ (strrchr name  (cast #\. int)))
+             (dpname \ (if (not (null lastp))
+                           (cast (p+ lastp 1) (p (const char)))
+                           pname))
+             (dname  \ (if (not (null last))
+                           (cast (p+ last  1) (p (const char)))
+                           (cast name (p (const char))))))
          (and (and (= dpname dname)
                    (= pfirst "def"))
            (do (setv linkage (node-to-string (get-node fn-node 2 2 1)))
@@ -668,7 +680,7 @@
                true))))
 
   (and (> realparami 0) (setv parami realparami))
-  (setf (: (@$ params parami) name) (nullptr char))
+  (setf (: (@$ params parami) name) (cast (nullptr char) (p (const char))))
 
   (add-proc-def name linkage returns info params type)
   true))
@@ -718,8 +730,8 @@
 
 ; Add a variable definition to the list of variable definitions.
 (def add-variable-def (fn intern void ((name    (p char))
-                                       (type    (p char))
-                                       (linkage (p char))
+                                       (type    (p (const char)))
+                                       (linkage (p (const char)))
                                        (info    (p char)))
   (let ((cd variable-def ((name    name)
                           (type    type)
@@ -762,10 +774,14 @@
   (and (not (is-empty-node var-node))
        (let ((pfirst \ (node-to-string (get-node var-node 1 0)))
              (pname  \ (node-to-string (get-node var-node 1 1)))
-             (lastp  \ (strrchr pname #\.))
-             (last   \ (strrchr name  #\.))
-             (dpname \ (if (not (null lastp)) (p+ lastp 1) pname))
-             (dname  \ (if (not (null last))  (p+ last  1) name)))
+             (lastp  \ (strrchr pname (cast #\. int)))
+             (last   \ (strrchr name  (cast #\. int)))
+             (dpname \ (if (not (null lastp))
+                           (cast (p+ lastp 1) (p (const char)))
+                           pname))
+             (dname  \ (if (not (null last))
+                           (cast (p+ last  1) (p (const char)))
+                           (cast name (p (const char))))))
          (and (and (= dpname dname)
                    (= pfirst "def"))
            (do (setv linkage (node-to-string (get-node var-node 2 2 1)))
@@ -781,8 +797,8 @@
 
 ; Add an enum definition to the list of enum definitions.
 (def add-enum-def (fn intern void ((name    (p char))
-                                   (type    (p char))
-                                   (linkage (p char))
+                                   (type    (p (const char)))
+                                   (linkage (p (const char)))
                                    (info    (p char))
                                    (members (p (p char))))
   (let ((ed enum-def ((name    name)
@@ -840,10 +856,14 @@
   (and (not (is-empty-node enum-node))
        (let ((pfirst \ (node-to-string (get-node enum-node 1 0)))
              (pname  \ (node-to-string (get-node enum-node 1 1)))
-             (lastp  \ (strrchr pname #\.))
-             (last   \ (strrchr name  #\.))
-             (dpname \ (if (not (null lastp)) (p+ lastp 1) pname))
-             (dname  \ (if (not (null last))  (p+ last  1) name)))
+             (lastp  \ (strrchr pname (cast #\. int)))
+             (last   \ (strrchr name  (cast #\. int)))
+             (dpname \ (if (not (null lastp))
+                           (cast (p+ lastp 1) (p (const char)))
+                           pname))
+             (dname  \ (if (not (null last))
+                           (cast (p+ last  1) (p (const char)))
+                           (cast name (p (const char))))))
          (and (and (= dpname dname)
                    (= pfirst "def"))
            (do (setv linkage (node-to-string (get-node enum-node 2 2 1)))

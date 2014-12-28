@@ -269,7 +269,8 @@ bool Type::isEqualTo(Type *other_type,
             if (DEBUG)  printf("ERR: one has array type, one does not\n");
             return false;
         }
-        return array_type->isEqualTo(other_type->array_type);
+        return array_type->isEqualTo(other_type->array_type,
+                                     ignore_arg_constness);
     }
 
 

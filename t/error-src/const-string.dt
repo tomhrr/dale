@@ -1,0 +1,10 @@
+(import cstring)
+
+(def myfn (fn intern bool ((str (p char)))
+  true))
+
+(def main (fn extern-c int (void)
+  (def mystr (var auto (p (const char)) "asdf"))
+  (myfn mystr)
+  (def mystr2 (var auto (p char) "asdf"))
+  0))
