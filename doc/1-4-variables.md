@@ -29,10 +29,6 @@ procedure-scoped variables.
 
         (setf {pointer-to-variable} {new-value})
 
-`setf` takes a pointer as its first argument so that it can be
-overridden for specific types by user-level functions. (References, in
-the C++ sense of the word, are not supported.)
-
 `setv` is an additional core form that can be used for setting
 variables. It is provided by the compiler, but operates as a macro:
 
