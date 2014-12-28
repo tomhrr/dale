@@ -45,3 +45,5 @@ echo "# Dale\n\n## 3.3 clocale\n" > doc/3-3-clocale.md
 ./module-to-markdown < modules/clocale.dt >> doc/3-3-clocale.md
 echo "# Dale\n\n## 3.4 cmath\n" > doc/3-4-cmath.md
 ./module-to-markdown < modules/cmath.dt >> doc/3-4-cmath.md
+echo "# Dale\n\n## 3.5 csignal\n" > doc/3-5-csignal.md
+./module-to-markdown < modules/csignal.dt >> doc/3-5-csignal.md

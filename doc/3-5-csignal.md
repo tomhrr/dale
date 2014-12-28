@@ -4,8 +4,7 @@
 
 ### Details
 
-Module: csignal  
-File: csignal  
+Module: csignal
 
 ### Description
 
@@ -47,32 +46,26 @@ Bindings to `signal.h`. Provides the following signal macro constants:
   * SIGUNUSED
 
 
-
-
-
-
-
-
-
-
 ### Functions
 
 #### `signal`
 
-Linkage: `extern-c`  
-Returns: `(p (fn (p void) ((n int))))`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `(p (fn (p void) ((n int))))`
+Parameters:
 
-  * `(sig int)`  
-  * `(handler (p (fn (p void) ((n int)))))`  
-
+  * `(sig int)`
+  * `(handler (p (fn (p void) ((n int)))))`
 
 
 
 #### `raise`
 
-Linkage: `extern-c`  
-Returns: `int`  
-Parameters:  
+Linkage: `extern-c`
+Returns: `int`
+Parameters:
 
-  * `(sig int)`  
+  * `(sig int)`
+
+
+
