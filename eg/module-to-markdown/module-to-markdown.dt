@@ -455,7 +455,7 @@
          (and (and (= 0 (strcmp dpname dname))
                    (= 0 (strcmp pfirst "def")))
            (do (setv linkage (node-to-string (get-node struct-node 2 2 1)))
-               (and (> (cast 2 size)
+               (and (< (cast 2 size)
                        (size (@ (@:@ (get-node struct-node 1 2) list-node))))
                     (let ((sparams \ (@:@ (get-node struct-node 2 2 2) list-node)))
                       (let ((b  \ (begin (@ sparams)))
