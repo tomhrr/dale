@@ -2613,7 +2613,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
             while (miter != myarg_types->end()
                     && citer != call_args.end()
                     && caiter != call_arg_types.end()) {
-                if ((*miter)->type->isEqualTo((*caiter))) {
+                if ((*caiter)->isEqualTo((*miter)->type, 1)) {
                     call_args_newer.push_back((*citer));
                     call_arg_types_newer.push_back((*caiter));
                     ++miter;
