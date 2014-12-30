@@ -1,0 +1,14 @@
+(import cstdio)
+(import cstring)
+(import stdlib)
+
+(def mys (struct intern ((a int) (b (p (const char))))))
+
+(def main (fn extern-c int (void)
+  (let ((ms  mys)
+        (str \ (malloc' 100 char)))
+    (setf ($ str 0) #\NULL)
+    (strcat str "asdf")
+    (setf (: ms b) str)
+    (printf "%s\n" (@: ms b))
+    0)))
