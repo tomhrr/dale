@@ -1,0 +1,4 @@
+(def myfn (fn intern int (void)
+  (def mystr (var auto (p char)))
+  (setv mystr "")
+  0))

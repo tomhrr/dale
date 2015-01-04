@@ -3,7 +3,7 @@
 (def st (struct extern((a int))))
 
 (namespace test1
-  (def st (struct extern((a (p char)))))
+  (def st (struct extern((a (p (const char))))))
   (def myfn (fn extern int (void)    100))
   (def myfn (fn extern int ((a int)) 200))
   (def myfn (fn extern int ((a st))  1000)))

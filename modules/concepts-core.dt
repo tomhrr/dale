@@ -388,7 +388,7 @@ both A and B.
         cnamesp))))
 
 (def concept-node
-  (struct extern ((name             (p char))
+  (struct extern ((name             (p (const char)))
                   (refinement-count int)
                   (refinements      (p (p concept-node))))))
 

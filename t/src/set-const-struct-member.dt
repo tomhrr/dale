@@ -2,7 +2,7 @@
 (import cstring)
 (import stdlib)
 
-(def mys (struct intern ((a int) (b (p (const char))))))
+(def mys  (struct intern ((a int) (b (p (const char))))))
 
 (def main (fn extern-c int (void)
   (let ((ms  mys)

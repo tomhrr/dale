@@ -390,7 +390,7 @@ standard_library (modules/vector.dt      vector        utility math)
 standard_library (modules/list.dt        list          algorithms utility math)
 standard_library (modules/set.dt         set           algorithms utility math)
 standard_library (modules/map.dt         map           utility math set derivations)
-standard_library (modules/array.dt       array         utility math derivations)
+standard_library (modules/array.dt       array         algorithms utility math derivations)
 standard_library (modules/algorithms.dt  algorithms    utility)
 standard_library (modules/derivations.dt derivations   utility)
 

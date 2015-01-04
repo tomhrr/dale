@@ -454,6 +454,21 @@ Context::isOverloadedFunction(const char *name)
 }
 
 Element::Function *
+getFunction_(Namespace *ns,
+             const char *name,
+             std::vector<Element::Type *> *types,
+             Element::Function **closest_fn,
+             bool is_macro)
+{
+    Element::Function *fn =
+        ns->getFunction(name, types, closest_fn, is_macro, false);
+    if (fn) {
+        return fn;
+    }
+    return ns->getFunction(name, types, closest_fn, is_macro, true);
+}
+
+Element::Function *
 Context::getFunction(const char *name,
                      std::vector<Element::Type *> *types,
                      Element::Function **closest_fn,
@@ -465,7 +480,7 @@ Context::getFunction(const char *name,
             return NULL;
         }
         const char *fn_name = strrchr(name, '.') + 1;
-        return ns->getFunction(fn_name, types, closest_fn, is_macro);
+        return getFunction_(ns, fn_name, types, closest_fn, is_macro);
     }
 
     for (std::vector<NSNode *>::reverse_iterator
@@ -473,8 +488,8 @@ Context::getFunction(const char *name,
             re = used_ns_nodes.rend();
             rb != re;
             ++rb) {
-        Element::Function *fn = 
-            (*rb)->ns->getFunction(name, types, closest_fn, is_macro);
+        Element::Function *fn =
+            getFunction_((*rb)->ns, name, types, closest_fn, is_macro);
         if (fn) {
             return fn;
         }

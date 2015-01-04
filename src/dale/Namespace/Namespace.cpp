@@ -239,7 +239,8 @@ Element::Function *
 Namespace::getFunction(const char *name,
                        std::vector<Element::Type *> *types,
                        Element::Function **pclosest_fn,
-                       bool is_macro)
+                       bool is_macro,
+                       bool ignore_arg_constness)
 {
     std::string ss_name(name);
 
@@ -352,7 +353,7 @@ Namespace::getFunction(const char *name,
             // If it doesn't, go to the next function.
             if ((*arg_type_iter)->isEqualTo(
                         (*fn_arg_type_iter)->type,
-                        IGNORE_ARG_CONSTNESS)) {
+                        (ignore_arg_constness ? 1 : 0))) {
                 ++arg_type_iter;
                 ++fn_arg_type_iter;
                 ++matched_arg_count;

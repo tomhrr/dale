@@ -50,7 +50,11 @@ depend in turn on `macros`.
 @fn strchr
 |#
 (def strchr
-  (fn extern-c (p (const char)) ((str (p (const char))) (c int))))
+  (fn extern-c (p char) ((str (p char)) (c int))))
+
+(def strchr
+  (fn extern (p (const char)) ((str (p (const char))) (c int))
+    (cast (strchr (cast str (p char)) c) (p (const char)))))
 
 #|
 @fn memset

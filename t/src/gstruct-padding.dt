@@ -1,6 +1,6 @@
 (import cstdio)
 
-(def ss (struct extern ((c char) (b (p char)))))
+(def ss (struct extern ((c char) (b (p (const char))))))
 
 (def otherfn
   (fn extern ss (void)

@@ -13,6 +13,17 @@ namespace Proc
 {
 namespace Setf
 {
+bool canBeSetBy(Generator *gen,
+                Element::Type *variable_type,
+                Element::Type *value_type)
+{
+    if (variable_type->points_to && value_type->points_to) {
+        return value_type->isEqualTo(variable_type, 1);
+    } else {
+        return variable_type->isEqualTo(value_type, 1);
+    }
+}
+
 bool parse(Generator *gen,
            Element::Function *fn,
            llvm::BasicBlock *block,
@@ -130,8 +141,7 @@ bool parse(Generator *gen,
      * place. */
 
     if (!prefixed_with_core
-            //&& pr_value.type->isEqualTo(pr_variable.type->points_to, 1)) {
-            && pr_variable.type->points_to->isEqualTo(pr_value.type, 1)) {
+            && canBeSetBy(gen, pr_variable.type->points_to, pr_value.type)) {
         std::vector<Element::Type *> types;
         types.push_back(pr_variable.type);
         types.push_back(pr_variable.type);
@@ -227,8 +237,7 @@ cont2:
         }
     }
 
-    //if (pr_value.type->isEqualTo(pr_variable.type->points_to, 1)) {
-    if (pr_variable.type->points_to->isEqualTo(pr_value.type, 1)) {
+    if (canBeSetBy(gen, pr_variable.type->points_to, pr_value.type)) {
         builder.CreateStore(pr_value.value, pr_variable.value);
 
         ParseResult temp;

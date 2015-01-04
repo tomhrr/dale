@@ -142,7 +142,8 @@ public:
     Element::Function *getFunction(const char *name,
                                    std::vector<Element::Type *> *types,
                                    Element::Function **pclosest_fn,
-                                   bool is_macro);
+                                   bool is_macro,
+                                   bool ignore_arg_constness = true);
     /*! Get a variable from this namespace.
      *  @param name The variable name. */
     Element::Variable *getVariable(const char *name);

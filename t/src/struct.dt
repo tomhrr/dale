@@ -1,6 +1,6 @@
 (import cstdio)
 
-(def my-struct (struct extern((a int) (b int) (c (p char)) (d int))))
+(def my-struct (struct extern((a int) (b int) (c (p (const char))) (d int))))
 
 (def main
   (fn extern-c int (void)

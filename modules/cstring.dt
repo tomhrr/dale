@@ -46,7 +46,10 @@ Bindings to `string.h`.
 @fn strchr
 |#
 (def strchr
-  (fn extern-c (p (const char)) ((str (p (const char))) (c int))))
+  (fn extern-c (p char) ((str (p char)) (c int))))
+
+(def strchr
+  (fn extern (p (const char)) ((str (p (const char))) (c int))))
 
 #|
 @fn strrchr
