@@ -71,6 +71,10 @@ public:
 
     bool isEqualTo(Element::Type *other_type,
                   int ignore_arg_constness = 0);
+    bool canBeSetFrom(Element::Type *other_type,
+                      bool ignore_arg_constness = true);
+    bool canBePassedFrom(Element::Type *other_type,
+                         bool ignore_arg_constness = true);
     void toEncStr(std::string *newstr);
 
     Element::Type *makeCopy(void);

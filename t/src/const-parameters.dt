@@ -1,0 +1,20 @@
+(def strcpy
+  (fn extern-c int ((dest (p char)) (source (p (const char))))))
+
+(def strcat
+  (fn extern-c int ((str (p char)) (str2 (p (const char))))))
+
+(def puts
+  (fn extern-c int ((str (p (const char))))))
+
+(def main (fn extern-c int (void)
+  (def buf1 (var auto (array-of 100 char)))
+  (def buf2 (var auto (array-of 100 char)))
+  (setf ($ buf1 0) #\NULL)
+  (setf ($ buf2 0) #\NULL)
+  (def pbuf2 (var auto (const (p (const char))) ($ buf2 0)))
+  (strcat buf1 "qwer")
+  (strcat buf2 "asdf")
+  (strcpy buf1 pbuf2)
+  (puts buf1)
+  0))

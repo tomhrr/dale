@@ -351,9 +351,13 @@ Namespace::getFunction(const char *name,
 
             // If an element matches, keep going.
             // If it doesn't, go to the next function.
-            if ((*arg_type_iter)->isEqualTo(
-                        (*fn_arg_type_iter)->type,
-                        (ignore_arg_constness ? 1 : 0))) {
+            bool result =
+                (*fn_arg_type_iter)->type->canBePassedFrom(
+                    (*arg_type_iter),
+                    ignore_arg_constness
+                );
+
+            if (result) {
                 ++arg_type_iter;
                 ++fn_arg_type_iter;
                 ++matched_arg_count;

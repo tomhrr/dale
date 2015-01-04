@@ -309,6 +309,32 @@ bool Type::isEqualTo(Type *other_type,
                                 ignore_arg_constness);
 }
 
+bool
+Type::canBeSetFrom(Element::Type *value_type,
+                   bool ignore_arg_constness)
+{
+    int iac = (ignore_arg_constness ? 1 : 0);
+    int prev_const = value_type->is_const;
+    value_type->is_const = 0;
+    bool result =
+        (points_to && value_type->points_to)
+            ? value_type->isEqualTo(this, iac)
+            : this->isEqualTo(value_type, iac);
+    value_type->is_const = prev_const;
+    return result;
+}
+
+bool
+Type::canBePassedFrom(Element::Type *value_type,
+                      bool ignore_arg_constness)
+{
+    int prev_const = is_const;
+    is_const = 0;
+    bool result = canBeSetFrom(value_type, ignore_arg_constness);
+    is_const = prev_const;
+    return result;
+}
+
 /* todo: this doesn't handle namespaces! */
 Node *Type::toNode(void)
 {
