@@ -1,0 +1,9 @@
+(import cstdio)
+
+(def main (fn extern-c int (void)
+  (let ((pn  (p int))
+        (n   int 10)
+        (pn2 (const (p int)) (# n)))
+    (setv pn (p+ (p- pn2 1) 1))
+    (printf "%d\n" (@ pn)))
+  0))

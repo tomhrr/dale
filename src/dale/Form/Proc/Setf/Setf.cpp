@@ -17,11 +17,16 @@ bool canBeSetBy(Generator *gen,
                 Element::Type *variable_type,
                 Element::Type *value_type)
 {
+    bool result;
+    int prev_const = value_type->is_const;
+    value_type->is_const = 0;
     if (variable_type->points_to && value_type->points_to) {
-        return value_type->isEqualTo(variable_type, 1);
+        result = value_type->isEqualTo(variable_type, 1);
     } else {
-        return variable_type->isEqualTo(value_type, 1);
+        result = variable_type->isEqualTo(value_type, 1);
     }
+    value_type->is_const = prev_const;
+    return result;
 }
 
 bool parse(Generator *gen,
