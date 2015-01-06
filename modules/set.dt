@@ -562,6 +562,35 @@ must also implement `LessThanComparable`.
             (return ((Iterator (Set (uq T))) ((element cn)
                                         (setp setp)))))))
 
+    (def node-to-pointer-to-node
+      (fn intern (p (p (uq nodetypenode))) ((node (p (uq nodetypenode))))
+        (let ((up \ (@:@ node up)))
+          (if (null up)
+              (nullptr (p (uq nodetypenode)))
+              (if (p= node (@:@ up left))
+                  (:@ up left)
+                  (:@ up right))))))
+
+    (def is-root-node
+      (fn intern bool ((node (p (uq nodetypenode))))
+        (null (@:@ node up))))
+
+    (def is-empty-root-node
+      (fn intern bool ((node (p (uq nodetypenode))))
+        (p= (@:@ node up) node)))
+
+    (def is-leaf-node
+      (fn intern bool ((node (p (uq nodetypenode))))
+        (and (null (@:@ node left))
+             (null (@:@ node right)))))
+
+    (def free-node
+      (fn intern void ((node (p (uq nodetypenode))))
+        (let ((value \ (:@ node value)))
+          (destroy value)
+          (free' node)
+          (return))))
+
     #|
     @fn erase
 
@@ -575,61 +604,49 @@ must also implement `LessThanComparable`.
     |#
     (def erase
       (fn extern bool ((iter (Iterator (Set (uq T)))))
-        (let ((node  \ (@: iter element))
-              (setp  \ (@: iter setp))
-              (up    \ (@:@ node up))
-              (left  \ (@:@ node left))
-              (right \ (@:@ node right))
-              (nullp \ (nullptr (uq nodetypenode)))
-              (pptr  \ (if (not (null up))
-                           (if (p= node (@:@ up left))
-                               (:@ up left)
-                               (:@ up right))
-                           (nullptr (p (uq nodetypenode)))))
-              (has-pptr \ (not (null pptr)))
-              (is-root  \ (null up)))
-          ; If this is the root element, and it's already empty, then
-          ; return false.
-          (if (p= up node)
-              (return false)
-              0)
+        (let ((node    \ (@: iter element))
+              (setp    \ (@: iter setp))
+              (up      \ (@:@ node up))
+              (left    \ (@:@ node left))
+              (right   \ (@:@ node right))
+              (nullp   \ (nullptr (uq nodetypenode)))
+              (ptn     \ (node-to-pointer-to-node node))
+              (has-ptn \ (not (null ptn)))
+              (is-root \ (is-root-node node)))
+          (and (is-empty-root-node node)
+               (return false))
           ; If this element has nothing underneath it, then destroy
           ; the element (if required) and null the relevant pointer
           ; in the next-highest node. If it's the root node as well,
           ; then set its up pointer to itself, to indicate that it
           ; is empty.
-          (if (and (null left) (null right))
-              (do (if has-pptr (setf pptr nullp) true)
-                  (if is-root (setf (:@ node up) node) true)
-                  (let ((value \ (:@ node value)))
-                    (destroy value)
-                    (if (not is-root) (do (free' node) 0) 0)
-                    (goto end)))
-              0)
+          (and (is-leaf-node node)
+               (do (and has-ptn (setf ptn nullp))
+                   (and is-root (setf (:@ node up) node))
+                   (let ((value \ (:@ node value)))
+                     (destroy value)
+                     (if (not is-root) (do (free' node) 0) 0)
+                     (goto end))))
           ; If there is a left element or a right element, but not
           ; both, then make the parent point to that element and
           ; destroy the value.
           (if (and (null left) (not (null right)))
-              (do (if has-pptr (do (setf pptr right)
+              (do (if has-ptn (do (setf ptn right)
                                    (setf (:@ right up) up))
                                (setf (:@ right up) nullp))
-                  (let ((value \ (:@ node value)))
-                    (destroy value)
-                    (free' node)
-                    (goto end)))
+                  (free-node node)
+                  (goto end))
               0)
           (if (and (null right) (not (null left)))
-              (do (if has-pptr (do (setf pptr left)
+              (do (if has-ptn (do (setf ptn left)
                                    (setf (:@ left up) up))
                                (setf (:@ left up) nullp))
-                  (let ((value \ (:@ node value)))
-                    (destroy value)
-                    (free' node)
-                    (goto end)))
+                  (free-node node)
+                  (goto end))
               0)
           ; Make the parent link to this node's left node (LN).
-          (if has-pptr
-              (do (setf pptr left)
+          (if has-ptn
+              (do (setf ptn left)
                   (setf (:@ left up) up))
               (setf (:@ left up) nullp))
           ; Find the rightmost leaf node of LN (RLN).
@@ -639,19 +656,17 @@ must also implement `LessThanComparable`.
           ; Make RLN point rightwards to this node's right node.
           (setf (:@ rln right) right)
           ; Destroy the node.
-          (let ((value \ (:@ node value)))
-            (destroy value)
-            (free' node))
-          
+          (free-node node)
+
           (label end)
-          
+
           ; Final part: if the node being removed was the root node,
           ; update the root node pointer in the set. It will be
           ; left, if left exists, otherwise it will be right. (If
           ; the root has nothing underneath it, then do not change
           ; the root node pointer: its 'up' pointer will point to
           ; itself so as to indicate that the set is empty.)
-            (if (and is-root (not (and (null left) (null right))))
+            (if (and is-root (not (is-leaf-node node)))
                 (setf (@:@ setp begin-node)
                       (if (not (null left))
                           left
@@ -659,7 +674,7 @@ must also implement `LessThanComparable`.
                 true)
 
           (return true))))
-      
+
     #|
     @fn erase
 
