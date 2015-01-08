@@ -90,10 +90,11 @@ must also implement `LessThanComparable`.
 
     (def (uq nodetypenode)
       (struct extern
-              ((value (uq T))
-               (up    (p (uq nodetypenode)))
-               (left  (p (uq nodetypenode)))
-               (right (p (uq nodetypenode))))))
+              ((value  (uq T))
+               (height int)
+               (up     (p (uq nodetypenode)))
+               (left   (p (uq nodetypenode)))
+               (right  (p (uq nodetypenode))))))
 
     #|
     @struct (Set T)
@@ -117,9 +118,10 @@ must also implement `LessThanComparable`.
       (fn extern bool ((setp (ref (uq typenode))))
         (let ((bn  \ (malloc' 1 (uq nodetypenode)))
               (bnp \ (malloc' 1 (p (uq nodetypenode)))))
-          (setf (:@ bn up)    bn)
-          (setf (:@ bn left)  (nullptr (uq nodetypenode)))
-          (setf (:@ bn right) (nullptr (uq nodetypenode)))
+          (setf (:@ bn up)     bn)
+          (setf (:@ bn height) 1)
+          (setf (:@ bn left)   (nullptr (uq nodetypenode)))
+          (setf (:@ bn right)  (nullptr (uq nodetypenode)))
           (setf bnp bn)
           (setf (:@ setp begin-node) bnp)
           (return true)))) 
@@ -492,6 +494,27 @@ must also implement `LessThanComparable`.
       (instantiate F (ReverseIterator (Set (uq T)))))
     (implement LessThanComparable (ReverseIterator (Set (uq T))))
 
+    (def adjust-heights
+      (fn intern void ((node (p (uq nodetypenode))))
+        (while (not (null node))
+          (let ((node-height   \ (@:@ node height))
+                (left-height   \ (if (null (@:@ node left))
+                                     0
+                                     (@:@ (@:@ node left) height)))
+                (right-height  \ (if (null (@:@ node right))
+                                     0
+                                     (@:@ (@:@ node right) height)))
+                (new-height    \ (+ 1 (if (< left-height right-height)
+                                          right-height
+                                          left-height))))
+            (and (= node-height new-height)
+                 (break))
+            (setf (:@ node height) new-height)
+            (and (p= node (@:@ node up))
+                 (break))
+            (setv node (@:@ node up))))
+        (return)))
+
     #|
     @fn insert
 
@@ -517,6 +540,7 @@ must also implement `LessThanComparable`.
               (let ((cn    \ (@ (@:@ setp begin-node)))
                     (newnp \ (nullptr (p (uq nodetypenode)))))
                 (while (!= ((uq tvw) newval) (@:@ cn value))
+                  (setf (:@ cn height) (+ 1 (@:@ cn height)))
                   (if (< ((uq tvw) newval) (@:@ cn value))
                       (do (if (null (@:@ cn left))
                               (do (setv newnp (:@ cn left))
@@ -526,10 +550,12 @@ must also implement `LessThanComparable`.
                               (do (setv newnp (:@ cn right))
                                   (break))
                               (setv cn (@:@ cn right))))))
-                
                 (if (not (null newnp))
                     (do (setf newnp newnodep)
-                        (setf (:@ newnodep up) cn) 0)
+                        (setf (:@ newnodep up) cn)
+                        (setf (:@ newnodep height) 1)
+                        (adjust-heights cn)
+                        0)
                     (do (setf (:@ cn value) ((uq tvw) newval)) 0))
                 (return true))))))
 
@@ -599,13 +625,33 @@ must also implement `LessThanComparable`.
               (right \ (height (@:@ node right))))
           (+ 1 (if (> left right) left right)))))
 
+    (def iheight
+      (fn intern int ((node (p (uq nodetypenode))))
+        (and (null node) (return 0))
+        (@:@ node height)))
+
     (def is-avl-balanced
       (fn intern bool ((node (p (uq nodetypenode))))
         (and (is-leaf-node node) (return true))
-        (let ((left  \ (height (@:@ node left)))
-              (right \ (height (@:@ node right)))
-              (diff  \ (abs (- left right))))
-          (printf "L %d R %d D %d\n" left right diff)
+        (let ((left   \ (height (@:@ node left)))
+              (right  \ (height (@:@ node right)))
+              (diff   \ (abs (- left right)))
+              (ileft  \ (iheight (@:@ node left)))
+              (iright \ (iheight (@:@ node right)))
+              (idiff  \ (abs (- ileft iright))))
+          (and (not (= left ileft))
+               (do (fprintf stderr "Left is invalid (%d %d)\n"
+                                   left ileft)
+                   (abort)
+                   true))
+          (and (not (= right iright))
+               (do (fprintf stderr "Right is invalid (%d %d)\n"
+                                   right iright)
+                   (abort)
+                   true))
+          (printf "L %d R %d D %d\n"
+                  left right diff
+                  ileft iright idiff)
           (<= diff 1))))
 
     (def is-avl-balanced
@@ -638,7 +684,8 @@ must also implement `LessThanComparable`.
               (nullp   \ (nullptr (uq nodetypenode)))
               (ptn     \ (node-to-pointer-to-node node))
               (has-ptn \ (not (null ptn)))
-              (is-root \ (is-root-node node)))
+              (is-root \ (is-root-node node))
+              (is-leaf \ (is-leaf-node node)))
           (and (is-empty-root-node node)
                (return false))
           ; If this element has nothing underneath it, then destroy
@@ -646,7 +693,7 @@ must also implement `LessThanComparable`.
           ; in the next-highest node. If it's the root node as well,
           ; then set its up pointer to itself, to indicate that it
           ; is empty.
-          (and (is-leaf-node node)
+          (and is-leaf
                (do (and has-ptn (setf ptn nullp))
                    (and is-root (setf (:@ node up) node))
                    (let ((value \ (:@ node value)))
@@ -686,19 +733,21 @@ must also implement `LessThanComparable`.
 
           (label end)
 
-          ; Final part: if the node being removed was the root node,
+          ; If the node being removed was the root node,
           ; update the root node pointer in the set. It will be
           ; left, if left exists, otherwise it will be right. (If
           ; the root has nothing underneath it, then do not change
           ; the root node pointer: its 'up' pointer will point to
           ; itself so as to indicate that the set is empty.)
-            (if (and is-root (not (is-leaf-node node)))
+            (if (and is-root (not is-leaf))
                 (setf (@:@ setp begin-node)
                       (if (not (null left))
                           left
                           right))
                 true)
 
+          ; Finally, work up the tree and adjust heights.
+            (adjust-heights up)
           (return true))))
 
     #|
