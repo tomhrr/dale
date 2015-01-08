@@ -591,6 +591,32 @@ must also implement `LessThanComparable`.
           (free' node)
           (return))))
 
+    (def height
+      (fn intern int ((node (p (uq nodetypenode))))
+        (and (null node) (return 0))
+        (and (is-leaf-node node) (return 1))
+        (let ((left  \ (height (@:@ node left)))
+              (right \ (height (@:@ node right))))
+          (+ 1 (if (> left right) left right)))))
+
+    (def is-avl-balanced
+      (fn intern bool ((node (p (uq nodetypenode))))
+        (and (is-leaf-node node) (return true))
+        (let ((left  \ (height (@:@ node left)))
+              (right \ (height (@:@ node right)))
+              (diff  \ (abs (- left right))))
+          (printf "L %d R %d D %d\n" left right diff)
+          (<= diff 1))))
+
+    (def is-avl-balanced
+      (fn intern bool ((setp (ref (const (Set (uq T))))))
+        (let ((b \ (begin (@ setp)))
+              (e \ (end   (@ setp))))
+          (for true (!= b e) (setv b (successor b))
+            (and (not (is-avl-balanced (@: b element)))
+                 (return false))))
+        (return true)))
+
     #|
     @fn erase
 
