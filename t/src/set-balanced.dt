@@ -1,0 +1,41 @@
+(import cstdio)
+
+(import macros)
+(import utility)
+(import set)
+
+(std.concepts.instantiate Set int)
+(def debug (var auto bool true))
+
+(def dump-nodes
+  (fn intern void ((sp (ref (Set int))))
+    (if (not debug) (return) 0)
+    (let ((b \ (begin (@ sp)))
+          (e \ (end   (@ sp))))
+      (for true (!= b e) (setv b (successor b))
+        (printf "%d (%p, %p %p %p)\n" (@source b)
+            (@: b element)
+            (@:@ (@: b element) left)
+            (@:@ (@: b element) up)
+            (@:@ (@: b element) right))))
+    (printf "\n")
+    (return)))
+
+(def check-balanced
+  (fn intern void ((setp (ref (Set int))))
+    (if (is-avl-balanced (@ setp)) (printf "bal\n") (printf "not bal\n"))
+    (return)))
+
+(def main (fn extern-c int (void)
+  (def myset (var auto (Set int)))
+  (insert myset 3)
+  (check-balanced myset)
+  (insert myset 2)
+  (check-balanced myset)
+  (insert myset 1)
+  (check-balanced myset)
+  (insert myset 4)
+  (check-balanced myset)
+  (insert myset 5)
+  (check-balanced myset)
+  0))

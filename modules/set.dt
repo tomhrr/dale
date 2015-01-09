@@ -239,6 +239,9 @@ must also implement `LessThanComparable`.
           (if (null (@: thing element))
               (do (return thing))
               0)
+          (while (not (null (@:@ (@: thing element) up)))
+              (setf (: thing element)
+                    (@:@ (@: thing element) up)))
           (while (not (null (@:@ (@: thing element) left)))
               (setf (: thing element)
                     (@:@ (@: thing element) left)))
@@ -494,6 +497,57 @@ must also implement `LessThanComparable`.
       (instantiate F (ReverseIterator (Set (uq T)))))
     (implement LessThanComparable (ReverseIterator (Set (uq T))))
 
+    (def is-leaf-node
+      (fn intern bool ((node (p (uq nodetypenode))))
+        (and (null (@:@ node left))
+             (null (@:@ node right)))))
+
+    (def height
+      (fn intern int ((node (p (uq nodetypenode))))
+        (and (null node) (return 0))
+        (and (is-leaf-node node) (return 1))
+        (let ((left  \ (height (@:@ node left)))
+              (right \ (height (@:@ node right))))
+          (+ 1 (if (> left right) left right)))))
+
+    (def iheight
+      (fn intern int ((node (p (uq nodetypenode))))
+        (and (null node) (return 0))
+        (@:@ node height)))
+
+    (def is-avl-balanced
+      (fn intern bool ((node (p (uq nodetypenode))))
+        (and (is-leaf-node node) (return true))
+        (let ((left   \ (height (@:@ node left)))
+              (right  \ (height (@:@ node right)))
+              (diff   \ (abs (- left right)))
+              (ileft  \ (iheight (@:@ node left)))
+              (iright \ (iheight (@:@ node right)))
+              (idiff  \ (abs (- ileft iright))))
+;          (printf "%d %d %d - %d %d %d\n"
+;                  left right diff
+;                  ileft iright idiff)
+;          (and (not (= left ileft))
+;               (do (fprintf stderr "Left is invalid (%d %d)\n"
+;                                   left ileft)
+;                   (abort)
+;                   true))
+;          (and (not (= right iright))
+;               (do (fprintf stderr "Right is invalid (%d %d)\n"
+;                                   right iright)
+;                   (abort)
+;                   true))
+          (<= diff 1))))
+
+    (def is-avl-balanced
+      (fn intern bool ((setp (ref (const (Set (uq T))))))
+        (let ((b \ (begin (@ setp)))
+              (e \ (end   (@ setp))))
+          (for true (!= b e) (setv b (successor b))
+            (and (not (is-avl-balanced (@: b element)))
+                 (return false))))
+        (return true)))
+
     (def adjust-heights
       (fn intern void ((node (p (uq nodetypenode))))
         (while (not (null node))
@@ -514,6 +568,88 @@ must also implement `LessThanComparable`.
                  (break))
             (setv node (@:@ node up))))
         (return)))
+
+    (def rotate-left
+      (fn intern (p (uq nodetypenode)) ((node (p (uq nodetypenode))))
+        (let ((right    \ (@:@ node right))
+              (up       \ (@:@ node up))
+              (is-left  \ (if (not (null up))
+                              (p= (@:@ up left) node)
+                              false))
+              (is-right \ (if (not (null up))
+                              (p= (@:@ up right) node)
+                              false)))
+          (setf (:@ node right) (@:@ right left))
+          (setf (:@ right left) node)
+          (setf (:@ right up) up)
+          (if is-left
+              (setf (:@ up left) right)
+          (if is-right
+              (setf (:@ up right) right)
+              true))
+          (setf (:@ node up) right)
+          (setf (:@ node height) (height node))
+          (setf (:@ right height) (height right))
+          (return right))))
+
+    (def rotate-right
+      (fn intern (p (uq nodetypenode)) ((node (p (uq nodetypenode))))
+        (let ((left    \ (@:@ node left))
+              (up      \ (@:@ node up))
+              (is-left  \ (if (not (null up))
+                              (p= (@:@ up left) node)
+                              false))
+              (is-right \ (if (not (null up))
+                              (p= (@:@ up right) node)
+                              false)))
+          (setf (:@ node left) (@:@ left right))
+          (setf (:@ left right) node)
+          (setf (:@ left up) up)
+          (if is-left
+              (setf (:@ up left) left)
+          (if is-right
+              (setf (:@ up right) left)
+              true))
+          (setf (:@ node up) left)
+          (setf (:@ node height) (height node))
+          (setf (:@ left height) (height left))
+          (return left))))
+
+    (def rebalance
+      (fn intern void ((node (p (uq nodetypenode))))
+        (and (null node)
+             (return))
+        (and (is-avl-balanced node)
+             (return (rebalance (@:@ node up))))
+        (def new-parent (var auto \ node))
+        (let ((left-height   \ (if (null (@:@ node left))
+                                   0
+                                   (@:@ (@:@ node left) height)))
+              (right-height  \ (if (null (@:@ node right))
+                                   0
+                                   (@:@ (@:@ node right) height)))
+              (higher \ (if (> left-height right-height)
+                               (@:@ node left)
+                               (@:@ node right))))
+          (let ((subleft-height \ (if (null (@:@ higher left))
+                                      0
+                                      (@:@ (@:@ higher left) height)))
+                (subright-height \ (if (null (@:@ higher right))
+                                       0
+                                       (@:@ (@:@ higher right) height)))
+                (subhigher \ (if (> subleft-height subright-height)
+                                 (@:@ higher left)
+                                 (@:@ higher right))))
+            (if (and (p= higher    (@:@ node left))
+                     (p= subhigher (@:@ higher left)))
+                (do (setv new-parent (rotate-right node))
+                    true)
+            (if (and (p= higher    (@:@ node right))
+                     (p= subhigher (@:@ higher right)))
+                (do (setv new-parent (rotate-left node) )
+                    true)
+                true))))
+        (return (rebalance (@:@ node up)))))
 
     #|
     @fn insert
@@ -555,6 +691,7 @@ must also implement `LessThanComparable`.
                         (setf (:@ newnodep up) cn)
                         (setf (:@ newnodep height) 1)
                         (adjust-heights cn)
+                        (rebalance cn)
                         0)
                     (do (setf (:@ cn value) ((uq tvw) newval)) 0))
                 (return true))))))
@@ -605,63 +742,12 @@ must also implement `LessThanComparable`.
       (fn intern bool ((node (p (uq nodetypenode))))
         (p= (@:@ node up) node)))
 
-    (def is-leaf-node
-      (fn intern bool ((node (p (uq nodetypenode))))
-        (and (null (@:@ node left))
-             (null (@:@ node right)))))
-
     (def free-node
       (fn intern void ((node (p (uq nodetypenode))))
         (let ((value \ (:@ node value)))
           (destroy value)
           (free' node)
           (return))))
-
-    (def height
-      (fn intern int ((node (p (uq nodetypenode))))
-        (and (null node) (return 0))
-        (and (is-leaf-node node) (return 1))
-        (let ((left  \ (height (@:@ node left)))
-              (right \ (height (@:@ node right))))
-          (+ 1 (if (> left right) left right)))))
-
-    (def iheight
-      (fn intern int ((node (p (uq nodetypenode))))
-        (and (null node) (return 0))
-        (@:@ node height)))
-
-    (def is-avl-balanced
-      (fn intern bool ((node (p (uq nodetypenode))))
-        (and (is-leaf-node node) (return true))
-        (let ((left   \ (height (@:@ node left)))
-              (right  \ (height (@:@ node right)))
-              (diff   \ (abs (- left right)))
-              (ileft  \ (iheight (@:@ node left)))
-              (iright \ (iheight (@:@ node right)))
-              (idiff  \ (abs (- ileft iright))))
-          (and (not (= left ileft))
-               (do (fprintf stderr "Left is invalid (%d %d)\n"
-                                   left ileft)
-                   (abort)
-                   true))
-          (and (not (= right iright))
-               (do (fprintf stderr "Right is invalid (%d %d)\n"
-                                   right iright)
-                   (abort)
-                   true))
-          (printf "L %d R %d D %d\n"
-                  left right diff
-                  ileft iright idiff)
-          (<= diff 1))))
-
-    (def is-avl-balanced
-      (fn intern bool ((setp (ref (const (Set (uq T))))))
-        (let ((b \ (begin (@ setp)))
-              (e \ (end   (@ setp))))
-          (for true (!= b e) (setv b (successor b))
-            (and (not (is-avl-balanced (@: b element)))
-                 (return false))))
-        (return true)))
 
     #|
     @fn erase
