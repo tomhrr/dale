@@ -126,6 +126,15 @@ must also implement `LessThanComparable`.
           (setf (:@ setp begin-node) bnp)
           (return true)))) 
 
+    (def get-root-node
+      (fn intern (p (uq nodetypenode)) ((setp (ref (Set (uq T)))))
+        (let ((node \ (@ (@:@ setp begin-node))))
+          (while (not (null (@:@ node up)))
+            (and (p= node (@:@ node up))
+              (break))
+            (setv node (@:@ node up)))
+          node)))
+
     #|
     @fn empty
 
@@ -135,7 +144,7 @@ must also implement `LessThanComparable`.
     |#
     (def empty
       (fn extern bool ((setp (ref (const (Set (uq T))))))
-        (let ((bn \ (@ (@:@ setp begin-node))))
+        (let ((bn \ (get-root-node (@ setp))))
           (p= (@:@ bn up) bn))))
 
     #|
@@ -231,7 +240,7 @@ must also implement `LessThanComparable`.
     (def begin
       (fn extern (Iterator (Set (uq T))) ((setp (ref (Set (uq T)))))
         (let ((thing (Iterator (Set (uq T))) 
-                        ((element (@ (@:@ setp begin-node)))
+                        ((element (get-root-node (@ setp)))
                          (setp    setp))))
           (if (empty (@ setp))
               (do (return (end (@ setp))))
@@ -239,9 +248,6 @@ must also implement `LessThanComparable`.
           (if (null (@: thing element))
               (do (return thing))
               0)
-          (while (not (null (@:@ (@: thing element) up)))
-              (setf (: thing element)
-                    (@:@ (@: thing element) up)))
           (while (not (null (@:@ (@: thing element) left)))
               (setf (: thing element)
                     (@:@ (@: thing element) left)))
@@ -413,7 +419,7 @@ must also implement `LessThanComparable`.
     (def rbegin
       (fn extern (ReverseIterator (Set (uq T))) ((setp (ref (Set (uq T)))))
         (let ((thing (ReverseIterator (Set (uq T))) 
-                        ((element (@ (@:@ setp begin-node)))
+                        ((element (get-root-node (@ setp)))
                          (setp    setp))))
           (if (null (@: thing element))
               (return thing)
@@ -580,6 +586,8 @@ must also implement `LessThanComparable`.
                               (p= (@:@ up right) node)
                               false)))
           (setf (:@ node right) (@:@ right left))
+          (and (not (null (@:@ right left)))
+               (setf (:@ (@:@ right left) up) node))
           (setf (:@ right left) node)
           (setf (:@ right up) up)
           (if is-left
@@ -603,6 +611,8 @@ must also implement `LessThanComparable`.
                               (p= (@:@ up right) node)
                               false)))
           (setf (:@ node left) (@:@ left right))
+          (and (not (null (@:@ left right)))
+               (setf (:@ (@:@ left right) up) node))
           (setf (:@ left right) node)
           (setf (:@ left up) up)
           (if is-left
@@ -618,6 +628,8 @@ must also implement `LessThanComparable`.
     (def rebalance
       (fn intern void ((node (p (uq nodetypenode))))
         (and (null node)
+             (return))
+        (and (p= (@:@ node up) node)
              (return))
         (and (is-avl-balanced node)
              (return (rebalance (@:@ node up))))
@@ -673,7 +685,7 @@ must also implement `LessThanComparable`.
               (setf (:@ newnodep up)    (nullptr (uq nodetypenode)))
               (setf (:@ newnodep left)  (nullptr (uq nodetypenode)))
               (setf (:@ newnodep right) (nullptr (uq nodetypenode)))
-              (let ((cn    \ (@ (@:@ setp begin-node)))
+              (let ((cn    \ (get-root-node (@ setp)))
                     (newnp \ (nullptr (p (uq nodetypenode)))))
                 (while (!= ((uq tvw) newval) (@:@ cn value))
                   (setf (:@ cn height) (+ 1 (@:@ cn height)))
@@ -709,7 +721,7 @@ must also implement `LessThanComparable`.
       (fn extern (Iterator (Set (uq T))) 
                           ((setp   (ref (Set (uq T))))
                            (value  ((uq tpw) (uq T))))
-        (let ((cn \ (@ (@:@ setp begin-node))))
+        (let ((cn \ (get-root-node (@ setp))))
             (and (null cn)
                  (return (end (@ setp))))
             (while (!= ((uq tvw) value) (@:@ cn value))
@@ -864,7 +876,7 @@ must also implement `LessThanComparable`.
       (fn extern (Iterator (Set (uq T))) 
                         ((setp (ref (Set (uq T))))
                          (value ((uq tpw) (uq T))))
-        (let ((cn \ (@ (@:@ setp begin-node))))
+        (let ((cn \ (get-root-node (@ setp))))
             (and (null cn)
                  (return (end (@ setp))))
             (while (!= ((uq tvw) value) (@:@ cn value))
@@ -953,8 +965,8 @@ must also implement `LessThanComparable`.
     |#
     (def clear
       (fn extern void ((setp (ref (Set (uq T)))))
-        (if (not (null (@ (@:@ setp begin-node))))
-            (do (clear (@ (@ (@:@ setp begin-node)))) 0)
+        (if (not (null (get-root-node (@ setp))))
+            (do (clear (@ (get-root-node (@ setp)))) 0)
             0)
         (init (@ setp))
         (return)))
