@@ -1,0 +1,73 @@
+(import cstdio)
+
+(import macros)
+(import utility)
+(import set)
+(import vector)
+(import ctime)
+
+(std.concepts.instantiate Set int)
+(std.concepts.instantiate Vector int)
+(def debug (var auto bool false))
+
+(def print-set
+  (fn intern void ((sp (ref (Set int))))
+    (let ((b \ (begin (@ sp)))
+          (e \ (end   (@ sp))))
+      (for true (!= b e) (setv b (successor b))
+        (printf "%d " (@source b))))
+    (printf "\n")
+    (return)))
+
+(def dump-nodes
+  (fn intern void ((sp (ref (Set int))))
+    (if (not debug) (return) 0)
+    (let ((b \ (begin (@ sp)))
+          (e \ (end   (@ sp))))
+      (for true (!= b e) (setv b (successor b))
+      (printf "%d (%p, %p %p %p)\n" (@source b)
+            (@: b element)
+            (@:@ (@: b element) left)
+            (@:@ (@: b element) up)
+            (@:@ (@: b element) right))))
+    (printf "\n")
+    (return)))
+
+(def check-balanced
+  (fn intern void ((setp (ref (const (Set int)))))
+    (and (not (is-avl-balanced (@ setp)))
+         (do (printf "not bal\n") (abort) true))
+    (return)))
+
+(def main (fn extern-c int (void)
+  (def myvec (var auto (Vector int) (init myvec 1000)))
+  (def myset (var auto (Set int)))
+  (srand (cast (time (nullptr time)) uint))
+  (let ((j \ 1))
+    (for true (< j 100) (incv j)
+    
+      (def limit (var auto \ j))
+      (clear myset)
+      (clear myvec)
+  
+      (let ((i \ 0))
+        (for true (< i limit) (incv i)
+          (insert myvec (begin myvec) (rand))))
+  
+      (let ((b \ (begin myvec))
+            (e \ (end   myvec)))
+        (for true (!= b e) (setv b (successor b))
+          (insert myset (@source b))
+          (dump-nodes myset)
+          (check-balanced myset)))
+  
+      (let ((b \ (begin myvec))
+            (e \ (end   myvec)))
+        (for true (!= b e) (setv b (successor b))
+          (erase myset (@source b))
+          (dump-nodes myset)
+          (check-balanced myset)))))
+
+  (printf "complete\n")
+
+  0))
