@@ -820,30 +820,6 @@ must also implement `LessThanComparable`.
                   (free-node node)
                   (goto end))
               0)
-          ; If the left node has no right node, then shift it upwards.
-          (if (null (@:@ left right))
-              (do (if has-ptn
-                      (do (setf ptn left)
-                          (setf (:@ left up) up))
-                      (setf (:@ left up) nullp))
-                  (setf (:@ left right) right)
-                  (setf (:@ right up) left)
-                  (setv newn left)
-                  (free-node node)
-                  (goto end))
-              0)
-          ; And vice-versa.
-          (if (null (@:@ right left))
-              (do (if has-ptn
-                      (do (setf ptn right)
-                          (setf (:@ right up) up))
-                      (setf (:@ right up) nullp))
-                  (setf (:@ right left) left)
-                  (setf (:@ left up) right)
-                  (setv newn right)
-                  (free-node node)
-                  (goto end))
-              0)
 
           (setv right-height (height right))
           (setv left-height  (height left))
