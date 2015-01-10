@@ -2,6 +2,7 @@
 
 use warnings;
 use strict;
+$ENV{"DALE_TEST_ARGS"} ||= "";
 my $test_dir = $ENV{"DALE_TEST_DIR"} || ".";
 $ENV{PATH} .= ":.";
 
