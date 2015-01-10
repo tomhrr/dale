@@ -660,7 +660,15 @@ must also implement `LessThanComparable`.
                      (p= subhigher (@:@ higher right)))
                 (do (setv new-parent (rotate-left node) )
                     true)
-                true))))
+            (if (and (p= higher    (@:@ node left))
+                     (p= subhigher (@:@ higher right)))
+                (do (rotate-left higher)
+                    (setv new-parent (rotate-right node)))
+            (if (and (p= higher    (@:@ node right))
+                     (p= subhigher (@:@ higher left)))
+                (do (rotate-right higher)
+                    (setv new-parent (rotate-left node)))
+                    true))))))
         (return (rebalance (@:@ node up)))))
 
     #|
@@ -845,8 +853,10 @@ must also implement `LessThanComparable`.
                           right))
                 true)
 
-          ; Finally, work up the tree and adjust heights.
+          ; Finally, work up the tree, adjusting heights and
+          ; rebalancing.
             (adjust-heights up)
+            (rebalance up)
           (return true))))
 
     #|

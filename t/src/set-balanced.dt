@@ -7,13 +7,22 @@
 (std.concepts.instantiate Set int)
 (def debug (var auto bool true))
 
+(def print-set
+  (fn intern void ((sp (ref (Set int))))
+    (let ((b \ (begin (@ sp)))
+          (e \ (end   (@ sp))))
+      (for true (!= b e) (setv b (successor b))
+        (printf "%d " (@source b))))
+    (printf "\n")
+    (return)))
+
 (def dump-nodes
   (fn intern void ((sp (ref (Set int))))
     (if (not debug) (return) 0)
     (let ((b \ (begin (@ sp)))
           (e \ (end   (@ sp))))
       (for true (!= b e) (setv b (successor b))
-        (printf "%d (%p, %p %p %p)\n" (@source b)
+      (printf "%d (%p, %p %p %p)\n" (@source b)
             (@: b element)
             (@:@ (@: b element) left)
             (@:@ (@: b element) up)
@@ -22,12 +31,15 @@
     (return)))
 
 (def check-balanced
-  (fn intern void ((setp (ref (Set int))))
+  (fn intern void ((setp (ref (const (Set int)))))
     (if (is-avl-balanced (@ setp)) (printf "bal\n") (printf "not bal\n"))
     (return)))
 
 (def main (fn extern-c int (void)
   (def myset (var auto (Set int)))
+
+  (printf "first set\n")
+
   (insert myset 3)
   (check-balanced myset)
   (insert myset 2)
@@ -38,4 +50,39 @@
   (check-balanced myset)
   (insert myset 5)
   (check-balanced myset)
+
+  (printf "second set\n")
+
+  (clear myset)
+  (insert myset 7)
+  (insert myset 2)
+  (insert myset 9)
+  (insert myset 1)
+  (insert myset 8)
+  (insert myset 5)
+  (insert myset 10)
+  (insert myset 0)
+  (insert myset 3)
+  (insert myset 6)
+  (check-balanced myset)
+  (insert myset 4)
+  (check-balanced myset)
+
+  (printf "third set\n")
+
+  (clear myset)
+  (insert myset 7)
+  (insert myset 2)
+  (insert myset 9)
+  (insert myset 1)
+  (insert myset 8)
+  (insert myset 4)
+  (insert myset 10)
+  (insert myset 0)
+  (insert myset 3)
+  (insert myset 6)
+  (check-balanced myset)
+  (insert myset 5)
+  (check-balanced myset)
+
   0))

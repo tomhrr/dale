@@ -16,9 +16,16 @@ is($?, 0, 'Program executed successfully');
 chomp for @res;
 
 is_deeply(\@res, [
+'first set',
 'bal',
 'bal',
 'bal',
+'bal',
+'bal',
+'second set',
+'bal',
+'bal',
+'third set',
 'bal',
 'bal',
 ],
