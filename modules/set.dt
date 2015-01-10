@@ -855,8 +855,12 @@ must also implement `LessThanComparable`.
 
           ; Finally, work up the tree, adjusting heights and
           ; rebalancing.
-            (adjust-heights up)
-            (rebalance up)
+            (def target (var auto \ (if (not (null up))   up
+                                    (if (not (null left)) left
+                                                          right))))
+
+            (adjust-heights target)
+            (rebalance target)
           (return true))))
 
     #|

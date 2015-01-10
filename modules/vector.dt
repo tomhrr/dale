@@ -245,7 +245,7 @@ must also implement `LessThanComparable`.
             (pop-back (@ vecp))
             (setv cs (- cs (cast 1 size))))
           (setf (:@ vecp first-element)
-                (cast (realloc (cast (@ (:@ vecp first-element)) (p void))
+                (cast (realloc (cast (@:@ vecp first-element) (p void))
                                (* (cast new-capacity size) 
                                   (sizeof (uq T)))) 
                       (p (uq T))))
