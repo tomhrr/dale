@@ -17,9 +17,6 @@ The `Set` type implements the following concepts:
 
 Its iterators implement `ForwardIterator`.
 
-Note that this implementation uses a non-self-balancing tree, so it's
-pretty much for demonstration purposes only.
-
 |#
 (module set (attr cto))
 
@@ -671,28 +668,31 @@ must also implement `LessThanComparable`.
             (if (and (p= higher    (@:@ node left))
                      (p= subhigher (@:@ higher left)))
                 (do (setv new-parent (rotate-right node))
+                    (rebalance node)
                     true)
             (if (and (p= higher    (@:@ node right))
                      (p= subhigher (@:@ higher right)))
                 (do (setv new-parent (rotate-left node))
+                    (rebalance node)
                     ;(printf "post rotate-left 1\n")
                     true)
             (if (and (p= higher    (@:@ node left))
                      (p= subhigher (@:@ higher right)))
                 (do (rotate-left higher)
                     ;(printf "post rotate-left 2\n")
-                    (setv new-parent (rotate-right node)))
+                    (setv new-parent (rotate-right node))
+                    (rebalance higher)
+                    (rebalance node)
+                    true)
             (if (and (p= higher    (@:@ node right))
                      (p= subhigher (@:@ higher left)))
                 (do (rotate-right higher)
                     (setv new-parent (rotate-left node))
+                    (rebalance higher)
+                    (rebalance node)
                     ;(printf "post rotate-left 3\n")
                     true)
                     true))))))
-        (and (not (null higher))
-             (do (rebalance higher) true))
-        (and (not (null node))
-             (do (rebalance node) true))
         (return)))
 
     #|
@@ -913,15 +913,6 @@ must also implement `LessThanComparable`.
 
           (label end)
 
-          (and (not (null rln))
-               (do (setf (:@ rln height) (height rln)) true))
-          (and (not (null right))
-               (do (setf (:@ right height) (height right)) true))
-          (and (not (null left))
-               (do (setf (:@ left height) (height left)) true))
-          (and (not (null up))
-               (do (setf (:@ up height) (height up)) true))
-
           ; If the node being removed was the root node,
           ; update the root node pointer in the set. It will be
           ; left, if left exists, otherwise it will be right. (If
@@ -937,18 +928,12 @@ must also implement `LessThanComparable`.
 
           ; Finally, work up the tree, adjusting heights and
           ; rebalancing.
-            (def target (var auto \ (if (not (null up))   up
-                                    (if (not (null left)) left
-                                                          right))))
-
-            (adjust-heights target)
+            (and (not (null up)) (do (adjust-heights up) true))
             (and (not (null left)) (do (adjust-heights left) true))
             (and (not (null right)) (do (adjust-heights right) true))
-            (and (not (null rln)) (do (adjust-heights rln) true))
-            (and (not (null rln)) (do (rebalance rln) true))
-            (and (not (null right)) (do (rebalance right) true))
-            (and (not (null left)) (do (rebalance left) true))
             (and (not (null up)) (do (rebalance up) true))
+            (and (not (null left)) (do (rebalance left) true))
+            (and (not (null right)) (do (rebalance right) true))
           (return true))))
 
     #|
