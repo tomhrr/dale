@@ -801,28 +801,9 @@ must also implement `LessThanComparable`.
                      (destroy value)
                      (if (not is-root) (do (free' node) 0) 0)
                      (goto end))))
-          ; If there is a left element or a right element, but not
-          ; both, then make the parent point to that element and
-          ; destroy the value.
-          (if (and (null left) (not (null right)))
-              (do (if has-ptn (do (setf ptn right)
-                                  (setf (:@ right up) up))
-                              (setf (:@ right up) nullp))
-                  (setv newn right)
-                  (free-node node)
-                  (goto end))
-              0)
-          (if (and (null right) (not (null left)))
-              (do (if has-ptn (do (setf ptn left)
-                                  (setf (:@ left up) up))
-                              (setf (:@ left up) nullp))
-                  (setv newn left)
-                  (free-node node)
-                  (goto end))
-              0)
 
-          (setv right-height (height right))
-          (setv left-height  (height left))
+          (setv right-height (if (null right) 0 (height right)))
+          (setv left-height  (if (null left)  0 (height left)))
 
           ; If the left tree is longer, then bring it up.
           (if (> left-height right-height)
@@ -836,8 +817,10 @@ must also implement `LessThanComparable`.
                   (while (not (null (@:@ rln right)))
                     (setv rln (@:@ rln right)))
                   ; Make RLN point rightwards to this node's right node.
-                  (setf (:@ rln right) right)
-                  (setf (:@ right up) rln)
+                  (and (not (null right))
+                       (do (setf (:@ rln right) right)
+                           (setf (:@ right up) rln)
+                           true))
                   (setv newn left)
                   (free-node node)
                   true)
@@ -851,8 +834,10 @@ must also implement `LessThanComparable`.
                   (while (not (null (@:@ rln left)))
                     (setv rln (@:@ rln left)))
                   ; Make RLN point leftwards to this node's left node.
-                  (setf (:@ rln left) left)
-                  (setf (:@ left up) rln)
+                  (and (not (null left))
+                       (do (setf (:@ rln left) left)
+                           (setf (:@ left up) rln)
+                           true))
                   (setv newn right)
                   (free-node node)
                   true))
