@@ -125,12 +125,7 @@ must also implement `LessThanComparable`.
 
     (def get-root-node
       (fn intern (p (uq nodetypenode)) ((setp (ref (Set (uq T)))))
-        (let ((node \ (@ (@:@ setp begin-node))))
-          (while (not (null (@:@ node up)))
-            (and (p= node (@:@ node up))
-              (break))
-            (setv node (@:@ node up)))
-          node)))
+        (@ (@:@ setp begin-node))))
 
     #|
     @fn empty
@@ -581,7 +576,8 @@ must also implement `LessThanComparable`.
         (return)))
 
     (def rotate-left
-      (fn intern (p (uq nodetypenode)) ((node (p (uq nodetypenode))))
+      (fn intern (p (uq nodetypenode)) ((setp (p (Set (uq T))))
+                                        (node (p (uq nodetypenode))))
         (let ((right    \ (@:@ node right))
               (up       \ (@:@ node up))
               (is-left  \ (is-left-of  up node))
@@ -591,11 +587,14 @@ must also implement `LessThanComparable`.
           (if is-left
               (do (set-left-of up right) true)
               (do (set-right-of up right) true))
+          (and (null up)
+               (setf (@:@ setp begin-node) right))
           (adjust-heights node)
           (return right))))
 
     (def rotate-right
-      (fn intern (p (uq nodetypenode)) ((node (p (uq nodetypenode))))
+      (fn intern (p (uq nodetypenode)) ((setp (p (Set (uq T))))
+                                        (node (p (uq nodetypenode))))
         (let ((left     \ (@:@ node left))
               (up       \ (@:@ node up))
               (is-right \ (is-right-of up node))
@@ -605,6 +604,8 @@ must also implement `LessThanComparable`.
           (if is-right
               (do (set-right-of up left) true)
               (do (set-left-of up left) true))
+          (and (null up)
+               (setf (@:@ setp begin-node) left))
           (adjust-heights node)
           (return left))))
 
@@ -621,13 +622,14 @@ must also implement `LessThanComparable`.
         (@:@ node up)))
 
     (def rebalance
-      (fn intern void ((node (p (uq nodetypenode))))
+      (fn intern void ((setp (p (Set (uq T))))
+                       (node (p (uq nodetypenode))))
         (and (null node)
              (return))
         (and (p= (up-of node) node)
              (return))
         (and (is-avl-balanced node)
-             (return (rebalance (up-of node))))
+             (return (rebalance setp (up-of node))))
         (def higher     (var auto \ node))
         (def new-parent (var auto \ node))
         (let ((left-height   \ (height (left-of node)))
@@ -642,22 +644,22 @@ must also implement `LessThanComparable`.
                                      (right-of higher))))
             (if (p= higher (left-of node))
                 (if (p= subhigher (left-of higher))
-                    (do (setv new-parent (rotate-right node))
-                        (rebalance node)
+                    (do (setv new-parent (rotate-right setp node))
+                        (rebalance setp node)
                         true)
-                    (do (rotate-left higher)
-                        (setv new-parent (rotate-right node))
-                        (rebalance higher)
-                        (rebalance node)
+                    (do (rotate-left setp higher)
+                        (setv new-parent (rotate-right setp node))
+                        (rebalance setp higher)
+                        (rebalance setp node)
                         true))
                 (if (p= subhigher (right-of higher))
-                    (do (setv new-parent (rotate-left node))
-                        (rebalance node)
+                    (do (setv new-parent (rotate-left setp node))
+                        (rebalance setp node)
                         true)
-                    (do (rotate-right higher)
-                        (setv new-parent (rotate-left node))
-                        (rebalance higher)
-                        (rebalance node)
+                    (do (rotate-right setp higher)
+                        (setv new-parent (rotate-left setp node))
+                        (rebalance setp higher)
+                        (rebalance setp node)
                         true))))
         (return)))
 
@@ -700,7 +702,7 @@ must also implement `LessThanComparable`.
                         (setf (:@ newnodep up) cn)
                         (setf (:@ newnodep height) 1)
                         (adjust-heights cn)
-                        (rebalance cn)
+                        (rebalance setp cn)
                         0)
                     (do (setf (:@ cn value) ((uq tvw) newval)) 0))
                 (return true))))))
@@ -776,6 +778,7 @@ must also implement `LessThanComparable`.
               (up      \ (@:@ node up))
               (left    \ (@:@ node left))
               (right   \ (@:@ node right))
+              (newn    \ (nullptr (uq nodetypenode)))
               (rln     \ (nullptr (uq nodetypenode)))
               (nullp   \ (nullptr (uq nodetypenode)))
               (ptn     \ (node-to-pointer-to-node node))
@@ -805,6 +808,7 @@ must also implement `LessThanComparable`.
               (do (if has-ptn (do (setf ptn right)
                                   (setf (:@ right up) up))
                               (setf (:@ right up) nullp))
+                  (setv newn right)
                   (free-node node)
                   (goto end))
               0)
@@ -812,21 +816,11 @@ must also implement `LessThanComparable`.
               (do (if has-ptn (do (setf ptn left)
                                   (setf (:@ left up) up))
                               (setf (:@ left up) nullp))
+                  (setv newn left)
                   (free-node node)
                   (goto end))
               0)
-          ; If the right node has no left node, then shift it upwards.
-          (if (null (@:@ right left))
-              (do (if has-ptn
-                      (do (setf ptn right)
-                          (setf (:@ right up) up))
-                      (setf (:@ right up) nullp))
-                  (setf (:@ right left) left)
-                  (setf (:@ left up) right)
-                  (free-node node)
-                  (goto end))
-              0)
-          ; And vice-versa.
+          ; If the left node has no right node, then shift it upwards.
           (if (null (@:@ left right))
               (do (if has-ptn
                       (do (setf ptn left)
@@ -834,6 +828,19 @@ must also implement `LessThanComparable`.
                       (setf (:@ left up) nullp))
                   (setf (:@ left right) right)
                   (setf (:@ right up) left)
+                  (setv newn left)
+                  (free-node node)
+                  (goto end))
+              0)
+          ; And vice-versa.
+          (if (null (@:@ right left))
+              (do (if has-ptn
+                      (do (setf ptn right)
+                          (setf (:@ right up) up))
+                      (setf (:@ right up) nullp))
+                  (setf (:@ right left) left)
+                  (setf (:@ left up) right)
+                  (setv newn right)
                   (free-node node)
                   (goto end))
               0)
@@ -855,6 +862,7 @@ must also implement `LessThanComparable`.
                   ; Make RLN point rightwards to this node's right node.
                   (setf (:@ rln right) right)
                   (setf (:@ right up) rln)
+                  (setv newn left)
                   (free-node node)
                   true)
               ; Make the parent link to this node's right node (RN).
@@ -869,6 +877,7 @@ must also implement `LessThanComparable`.
                   ; Make RLN point leftwards to this node's left node.
                   (setf (:@ rln left) left)
                   (setf (:@ left up) rln)
+                  (setv newn right)
                   (free-node node)
                   true))
 
@@ -881,10 +890,7 @@ must also implement `LessThanComparable`.
           ; the root node pointer: its 'up' pointer will point to
           ; itself so as to indicate that the set is empty.)
             (if (and is-root (not is-leaf))
-                (setf (@:@ setp begin-node)
-                      (if (not (null left))
-                          left
-                          right))
+                (setf (@:@ setp begin-node) newn)
                 true)
 
           ; Finally, work up the tree, adjusting heights and
@@ -892,9 +898,9 @@ must also implement `LessThanComparable`.
             (adjust-heights up)
             (adjust-heights left)
             (adjust-heights right)
-            (rebalance up)
-            (rebalance left)
-            (rebalance right)
+            (rebalance setp up)
+            (rebalance setp left)
+            (rebalance setp right)
           (return true))))
 
     #|
