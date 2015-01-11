@@ -922,9 +922,10 @@ must also implement `LessThanComparable`.
                          (value ((uq tpw) (uq T))))
         (let ((lb \ (lower-bound (@ setp) ((uq tvw) value))))
           (if (= lb (end (@ setp)))                   lb
+          (if (> (@source lb) ((uq tvw) value))       lb
           (if (and (!= ((uq tvw) value) (@source lb))
                    (= (successor lb) (end (@ setp)))) (end (@ setp))
-                                                      (successor lb))))))
+                                                      (successor lb)))))))
 
     #|
     @fn count
