@@ -539,8 +539,6 @@ must also implement `LessThanComparable`.
                 (new-height    \ (+ 1 (if (< left-height right-height)
                                           right-height
                                           left-height))))
-            (and (= new-height node-height)
-                 (break))
             (setf (:@ node height) new-height)
             (and (p= node (@:@ node up))
                  (break))
@@ -910,7 +908,7 @@ must also implement `LessThanComparable`.
             (let ((iter \ ((Iterator (Set (uq T)))
                            ((element cn)
                             (setp setp)))))
-              (if (= ((uq tvw) value) (@:@ cn value))
+              (if (not (< (@:@ cn value) ((uq tvw) value)))
                   (return iter)
                   (return (successor iter)))))))
 
