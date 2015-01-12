@@ -500,6 +500,11 @@ must also implement `LessThanComparable`.
         (and (null (@:@ node left))
              (null (@:@ node right)))))
 
+    (def height
+      (fn intern int ((node (p (uq nodetypenode))))
+        (and (null node) (return 0))
+        (@:@ node height)))
+
     (def calculated-height
       (fn intern int ((node (p (uq nodetypenode))))
         (and (null node) (return 0))
@@ -507,11 +512,6 @@ must also implement `LessThanComparable`.
         (let ((left  \ (calculated-height (@:@ node left)))
               (right \ (calculated-height (@:@ node right))))
           (+ 1 (if (> left right) left right)))))
-
-    (def height
-      (fn intern int ((node (p (uq nodetypenode))))
-        (and (null node) (return 0))
-        (@:@ node height)))
 
     (def is-avl-balanced
       (fn intern bool ((node (p (uq nodetypenode))))
@@ -527,6 +527,23 @@ must also implement `LessThanComparable`.
               (e \ (end   (@ setp))))
           (for true (!= b e) (setv b (successor b))
             (and (not (is-avl-balanced (@: b element)))
+                 (return false))))
+        (return true)))
+
+    (def calculated-is-avl-balanced
+      (fn intern bool ((node (p (uq nodetypenode))))
+        (and (is-leaf-node node) (return true))
+        (let ((left   \ (calculated-height (@:@ node left)))
+              (right  \ (calculated-height (@:@ node right)))
+              (diff   \ (abs (- left right))))
+          (<= diff 1))))
+
+    (def calculated-is-avl-balanced
+      (fn intern bool ((setp (ref (const (Set (uq T))))))
+        (let ((b \ (begin (@ setp)))
+              (e \ (end   (@ setp))))
+          (for true (!= b e) (setv b (successor b))
+            (and (not (calculated-is-avl-balanced (@: b element)))
                  (return false))))
         (return true)))
 

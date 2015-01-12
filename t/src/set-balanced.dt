@@ -32,7 +32,12 @@
 
 (def check-balanced
   (fn intern void ((setp (ref (const (Set int)))))
-    (if (is-avl-balanced (@ setp)) (printf "bal\n") (printf "not bal\n"))
+    (if (is-avl-balanced (@ setp)) 
+        (printf "bal\n") 
+        (printf "not bal\n"))
+    (if (calculated-is-avl-balanced (@ setp)) 
+        (printf "cbal\n") 
+        (printf "not cbal\n"))
     (return)))
 
 (def main (fn extern-c int (void)

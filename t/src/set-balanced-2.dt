@@ -37,6 +37,8 @@
   (fn intern void ((setp (ref (const (Set int)))))
     (and (not (is-avl-balanced (@ setp)))
          (do (printf "not bal\n") (abort) true))
+    (and (not (calculated-is-avl-balanced (@ setp)))
+         (do (printf "not cbal\n") (abort) true))
     (return)))
 
 (def main (fn extern-c int (void)
