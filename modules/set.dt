@@ -818,7 +818,8 @@ must also implement `LessThanComparable`.
           ; then set its up pointer to itself, to indicate that it
           ; is empty.
           (and is-leaf
-               (do (and has-ptn (setf ptn nullp))
+               (do (setv subn up)
+                   (and has-ptn (setf ptn nullp))
                    (and is-root (setf (:@ node up) node))
                    (let ((value \ (:@ node value)))
                      (destroy value)
@@ -883,8 +884,8 @@ must also implement `LessThanComparable`.
           ; rebalancing.
             (adjust-heights subn)
             (adjust-heights up)
+
             (rebalance setp subn)
-            (rebalance setp up)
           (return true))))
 
     #|
