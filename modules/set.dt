@@ -830,16 +830,17 @@ must also implement `LessThanComparable`.
 
           ; If the left tree is longer, then bring it up.
           (if (> left-height right-height)
-              ; Make the parent link to this node's left node (LN).
+              ; Make the parent link to this node's left node.
               (do (if has-ptn
                       (do (setf ptn left)
                           (setf (:@ left up) up))
                       (setf (:@ left up) nullp))
-                  ; Find the rightmost leaf node of LN (RLN).
+                  ; Find the rightmost leaf node of the left node.
                   (setv subn left)
                   (while (not (null (@:@ subn right)))
                     (setv subn (@:@ subn right)))
-                  ; Make RLN point rightwards to this node's right node.
+                  ; Make that leaf node point rightwards to this node's
+                  ; right node.
                   (and (not (null right))
                        (do (setf (:@ subn right) right)
                            (setf (:@ right up) subn)
@@ -847,16 +848,17 @@ must also implement `LessThanComparable`.
                   (setv newn left)
                   (free-node node)
                   true)
-              ; Make the parent link to this node's right node (RN).
+              ; Make the parent link to this node's right node.
               (do (if has-ptn
                       (do (setf ptn right)
                           (setf (:@ right up) up))
                       (setf (:@ right up) nullp))
-                  ; Find the leftmost leaf node of RN (RLN).
+                  ; Find the leftmost leaf node of the right node.
                   (setv subn right)
                   (while (not (null (@:@ subn left)))
                     (setv subn (@:@ subn left)))
-                  ; Make RLN point leftwards to this node's left node.
+                  ; Make the leaf node point leftwards to this node's
+                  ; left node.
                   (and (not (null left))
                        (do (setf (:@ subn left) left)
                            (setf (:@ left up) subn)
@@ -881,9 +883,8 @@ must also implement `LessThanComparable`.
           ; rebalancing.
             (adjust-heights subn)
             (adjust-heights up)
+            (rebalance setp subn)
             (rebalance setp up)
-            (rebalance setp left)
-            (rebalance setp right)
           (return true))))
 
     #|
