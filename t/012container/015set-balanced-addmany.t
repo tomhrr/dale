@@ -9,9 +9,9 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 3;
 
-my @res = `dalec $ENV{"DALE_TEST_ARGS"} -lm $test_dir/t/src/set-balanced-2.dt -o set-balanced-2 `;
+my @res = `dalec $ENV{"DALE_TEST_ARGS"} -lm $test_dir/t/src/set-balanced-addmany.dt -o set-balanced-addmany `;
 is_deeply(\@res, [], 'No compilation errors');
-@res = `./set-balanced-2`;
+@res = `./set-balanced-addmany`;
 is($?, 0, 'Program executed successfully');
 
 chomp for @res;
@@ -21,6 +21,6 @@ is_deeply(\@res, [
 ],
     'Got correct results');
 
-`rm set-balanced-2`;
+`rm set-balanced-addmany`;
 
 1;
