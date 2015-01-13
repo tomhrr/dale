@@ -556,6 +556,8 @@ must also implement `LessThanComparable`.
                 (new-height    \ (+ 1 (if (< left-height right-height)
                                           right-height
                                           left-height))))
+            (and (= new-height node-height)
+                 (break))
             (setf (:@ node height) new-height)
             (and (p= node (@:@ node up))
                  (break))
@@ -607,6 +609,8 @@ must also implement `LessThanComparable`.
           (and (null up)
                (setf (@:@ setp begin-node) right))
           (adjust-heights node)
+          (adjust-heights right)
+          (adjust-heights up)
           (return right))))
 
     (def rotate-right
@@ -624,6 +628,8 @@ must also implement `LessThanComparable`.
           (and (null up)
                (setf (@:@ setp begin-node) left))
           (adjust-heights node)
+          (adjust-heights left)
+          (adjust-heights up)
           (return left))))
 
     (def left-of
@@ -796,7 +802,7 @@ must also implement `LessThanComparable`.
               (left    \ (@:@ node left))
               (right   \ (@:@ node right))
               (newn    \ (nullptr (uq nodetypenode)))
-              (rln     \ (nullptr (uq nodetypenode)))
+              (subn    \ (nullptr (uq nodetypenode)))
               (nullp   \ (nullptr (uq nodetypenode)))
               (ptn     \ (node-to-pointer-to-node node))
               (has-ptn \ (not (null ptn)))
@@ -830,13 +836,13 @@ must also implement `LessThanComparable`.
                           (setf (:@ left up) up))
                       (setf (:@ left up) nullp))
                   ; Find the rightmost leaf node of LN (RLN).
-                  (setv rln left)
-                  (while (not (null (@:@ rln right)))
-                    (setv rln (@:@ rln right)))
+                  (setv subn left)
+                  (while (not (null (@:@ subn right)))
+                    (setv subn (@:@ subn right)))
                   ; Make RLN point rightwards to this node's right node.
                   (and (not (null right))
-                       (do (setf (:@ rln right) right)
-                           (setf (:@ right up) rln)
+                       (do (setf (:@ subn right) right)
+                           (setf (:@ right up) subn)
                            true))
                   (setv newn left)
                   (free-node node)
@@ -847,13 +853,13 @@ must also implement `LessThanComparable`.
                           (setf (:@ right up) up))
                       (setf (:@ right up) nullp))
                   ; Find the leftmost leaf node of RN (RLN).
-                  (setv rln right)
-                  (while (not (null (@:@ rln left)))
-                    (setv rln (@:@ rln left)))
+                  (setv subn right)
+                  (while (not (null (@:@ subn left)))
+                    (setv subn (@:@ subn left)))
                   ; Make RLN point leftwards to this node's left node.
                   (and (not (null left))
-                       (do (setf (:@ rln left) left)
-                           (setf (:@ left up) rln)
+                       (do (setf (:@ subn left) left)
+                           (setf (:@ left up) subn)
                            true))
                   (setv newn right)
                   (free-node node)
@@ -862,20 +868,19 @@ must also implement `LessThanComparable`.
           (label end)
 
           ; If the node being removed was the root node,
-          ; update the root node pointer in the set. It will be
-          ; left, if left exists, otherwise it will be right. (If
+          ; update the root node pointer in the set to newn. (If
           ; the root has nothing underneath it, then do not change
           ; the root node pointer: its 'up' pointer will point to
           ; itself so as to indicate that the set is empty.)
+
             (if (and is-root (not is-leaf))
                 (setf (@:@ setp begin-node) newn)
                 true)
 
           ; Finally, work up the tree, adjusting heights and
           ; rebalancing.
+            (adjust-heights subn)
             (adjust-heights up)
-            (adjust-heights left)
-            (adjust-heights right)
             (rebalance setp up)
             (rebalance setp left)
             (rebalance setp right)
