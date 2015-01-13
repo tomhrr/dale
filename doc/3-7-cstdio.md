@@ -9,7 +9,7 @@ Module: cstdio
 ### Description
 
 Bindings to `stdio.h`. Provides the following macro constants:
-  
+
   * L-tmpnam
   * TMP-MAX
   * FILENAME-MAX

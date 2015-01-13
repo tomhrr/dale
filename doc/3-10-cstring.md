@@ -86,10 +86,10 @@ Parameters:
 #### `strchr`
 
 Linkage: `extern-c`
-Returns: `(p (const char))`
+Returns: `(p char)`
 Parameters:
 
-  * `(str (p (const char)))`
+  * `(str (p char))`
   * `(c int)`
 
 
