@@ -646,13 +646,14 @@ must also implement `LessThanComparable`.
 
     (def rebalance
       (fn intern void ((setp (p (Set (uq T))))
-                       (node (p (uq nodetypenode))))
+                       (node (p (uq nodetypenode)))
+                       (upwards bool))
         (and (null node)
              (return))
         (and (p= (up-of node) node)
              (return))
         (and (is-avl-balanced node)
-             (return (rebalance setp (up-of node))))
+             (return (rebalance setp (up-of node) upwards)))
         (def higher     (var auto \ node))
         (def new-parent (var auto \ node))
         (let ((left-height   \ (height (left-of node)))
@@ -668,21 +669,29 @@ must also implement `LessThanComparable`.
             (if (p= higher (left-of node))
                 (if (p= subhigher (left-of higher))
                     (do (setv new-parent (rotate-right setp node))
-                        (rebalance setp node)
+                        (and upwards
+                             (do (rebalance setp node true)
+                                 true))
                         true)
                     (do (rotate-left setp higher)
                         (setv new-parent (rotate-right setp node))
-                        (rebalance setp higher)
-                        (rebalance setp node)
+                        (and upwards
+                            (do (rebalance setp higher true)
+                                (rebalance setp node true)
+                                true))
                         true))
                 (if (p= subhigher (right-of higher))
                     (do (setv new-parent (rotate-left setp node))
-                        (rebalance setp node)
+                        (and upwards
+                             (do (rebalance setp node true)
+                                 true))
                         true)
                     (do (rotate-right setp higher)
                         (setv new-parent (rotate-left setp node))
-                        (rebalance setp higher)
-                        (rebalance setp node)
+                        (and upwards
+                             (do (rebalance setp higher true)
+                                 (rebalance setp node true)
+                                 true))
                         true))))
         (return)))
 
@@ -725,7 +734,7 @@ must also implement `LessThanComparable`.
                         (setf (:@ newnodep up) cn)
                         (setf (:@ newnodep height) 1)
                         (adjust-heights cn)
-                        (rebalance setp cn)
+                        (rebalance setp cn false)
                         0)
                     (do (setf (:@ cn value) ((uq tvw) newval)) 0))
                 (return true))))))
@@ -885,7 +894,7 @@ must also implement `LessThanComparable`.
             (adjust-heights subn)
             (adjust-heights up)
 
-            (rebalance setp subn)
+            (rebalance setp subn true)
           (return true))))
 
     #|
