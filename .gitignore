@@ -26,3 +26,6 @@ dalec.core
 build.ninja
 rules.ninja
 module-to-markdown
+src/doxygen_sqlite3.db
+src/html
+src/latex
