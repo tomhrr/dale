@@ -78,6 +78,7 @@ must also implement `LessThanComparable`.
     (import derivations)
     (import algorithms)
     (instantiate min size)
+    (instantiate max size)
 
     #|
     @struct (Vector T)
@@ -266,7 +267,8 @@ must also implement `LessThanComparable`.
     |#
     (def reserve
       (fn extern bool ((vecp (ref (Vector (uq T)))) (extra size))
-        (resize (@ vecp) (+ extra (@ (:@ vecp capacity))))))
+        (resize (@ vecp) (max (cast 1 size)
+                              (+ extra (@ (:@ vecp capacity)))))))
 
     #|
     @fn push-back
@@ -280,7 +282,7 @@ must also implement `LessThanComparable`.
       (fn extern bool ((vecp  (ref (Vector (uq T))))
                        (value ((uq tpw) (uq T))))
         (if (= (@:@ vecp capacity) (@:@ vecp size))
-            (reserve (@ vecp) (cast 1 size))
+            (reserve (@ vecp) (@:@ vecp capacity))
             true)
         (setf (@:@ vecp last-element) ((uq tvw) value))
         (setf (:@ vecp last-element)
@@ -631,16 +633,20 @@ must also implement `LessThanComparable`.
       (fn extern (Iterator (Vector (uq T))) 
                         ((unused (ref (const (Vector (uq T)))))
                          (iter   (Iterator (Vector (uq T))))
-                         (value  (uq T)))
+                         (value  ((uq tpw) (uq T))))
         (let ((vecp          \ (@: iter parent-vector))
               (original-iter \ iter)
               (next1         \ (@source iter))
               (next2         \ (@source iter)))
           (if (<= (@:@ vecp capacity) (size (@ vecp)))
-              (reserve (@ vecp) (@:@ vecp capacity))
+              (do (let ((dist \ (distance iter (begin (@ vecp)))))
+                    (reserve (@ vecp) (@:@ vecp capacity))
+                    (setv iter (+ (begin (@ vecp)) dist))
+                    (setv original-iter iter)
+                    true))
               true)
           (if (= (cast 0 size) (size (@ vecp)))
-              (do (push-back (@ vecp) value)
+              (do (push-back (@ vecp) ((uq tvw) value))
                   (return iter))
               0)
           (setf (:@ vecp size) (+ (@ (:@ vecp size)) (cast 1 size)))
@@ -651,7 +657,7 @@ must also implement `LessThanComparable`.
             (setv next2 next1))
           (setv iter (successor iter))
           (setf (:@ vecp last-element) (@: iter element))
-          (sink original-iter value)
+          (sink original-iter ((uq tvw) value))
           (return (successor original-iter)))))
 
     #|
