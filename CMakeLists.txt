@@ -47,14 +47,6 @@ message (STATUS "System name: ${CMAKE_SYSTEM_NAME}")
 message (STATUS "System processor: ${CMAKE_SYSTEM_PROCESSOR}")
 message (STATUS "System version: ${CMAKE_SYSTEM_VERSION}")
 
-set (BUILD_BINDGEN False)
-# Temporarily disabling.
-#if (CLANG)
-#    set (BUILD_BINDGEN True)
-#else ()
-#    message("-- Clang not found. dale-bindgen will not be built")
-#endif ()
-
 # Get LLVM configuration details.
 
 execute_process (COMMAND ${LLVM_CONFIG} --libs
@@ -271,28 +263,6 @@ set_target_properties (dalec PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS} -I.")
 set_target_properties (dalec PROPERTIES LINK_FLAGS "${DALEC_LINK_FLAGS} ${LLVM_LINK_FLAGS}")
 target_link_libraries (dalec ${LLVM_LIBS} ${DALEC_LINK_FLAGS})
 install (TARGETS dalec DESTINATION bin)
-
-# Compile the binding generator.
-
-if (BUILD_BINDGEN)
-    add_executable (dale-bindgen src/dale/dale-bindgen.cpp
-                                src/dale/BindingsConverter.cpp)
-    set_target_properties (dale-bindgen PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS}")
-    set_target_properties (dale-bindgen PROPERTIES LINK_FLAGS    "${LLVM_LINK_FLAGS}")
-    target_link_libraries (dale-bindgen "clangFrontend"
-                                        "clangParse"
-                                        "clangSema"
-                                        "clangAnalysis"
-                                        "clangIndex"
-                                        "clangAST"
-                                        "clangLex"
-                                        "clangBasic"
-                                        "clangDriver"
-                                        "clangFrontendTool"
-                                        "clangSerialization"
-                                        ${LLVM_LIBS})
-    install (TARGETS dale-bindgen DESTINATION bin)
-endif ()
 
 # Run tests.
 
