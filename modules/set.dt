@@ -82,8 +82,11 @@ must also implement `LessThanComparable`.
     (qq do
 
     (import derivations)
+    (import algorithms)
     (using-namespace std.macros
     (using-namespace std.concepts
+
+    (instantiate max int)
 
     (def (uq nodetypenode)
       (struct extern
@@ -511,7 +514,7 @@ must also implement `LessThanComparable`.
         (and (is-leaf-node node) (return 1))
         (let ((left  \ (calculated-height (@:@ node left)))
               (right \ (calculated-height (@:@ node right))))
-          (+ 1 (if (> left right) left right)))))
+          (+ 1 (max left right)))))
 
     (def is-avl-balanced
       (fn intern bool ((node (p (uq nodetypenode))))
@@ -553,9 +556,7 @@ must also implement `LessThanComparable`.
           (let ((node-height   \ (@:@ node height))
                 (left-height   \ (height (@:@ node left)))
                 (right-height  \ (height (@:@ node right)))
-                (new-height    \ (+ 1 (if (< left-height right-height)
-                                          right-height
-                                          left-height))))
+                (new-height    \ (+ 1 (max left-height right-height))))
             (and (= new-height node-height)
                  (break))
             (setf (:@ node height) new-height)
