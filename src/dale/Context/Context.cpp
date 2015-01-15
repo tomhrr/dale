@@ -808,6 +808,66 @@ regetFunctionPointers(llvm::Module *mod, NSNode *nsnode)
 }
 
 bool
+Context::rebuildFunction(Element::Function *fn, const char *name,
+                         llvm::Module *mod)
+{
+    std::vector<llvm::Type*> types;
+
+    for (std::vector<Element::Variable *>::iterator
+            vb = fn->parameter_types->begin(),
+            ve = fn->parameter_types->end();
+            vb != ve;
+            ++vb) {
+        Element::Variable *var = (*vb);
+        Element::Type *var_type = var->type;
+        if (var_type->is_reference) {
+            var_type = tr->getPointerType(var_type);
+        }
+        if (var_type->base_type == Type::VarArgs) {
+            break;
+        }
+        llvm::Type *llvm_type =
+            toLLVMType(var_type, NULL, false, false);
+        if (!llvm_type) {
+            er->flush();
+            fprintf(stderr, "Failed conversion (%s).\n", name);
+            abort();
+        }
+        types.push_back(llvm_type);
+    }
+
+    llvm::Type *llvm_return_type =
+        toLLVMType(fn->return_type, NULL, true, false);
+    if (!llvm_return_type) {
+        er->flush();
+        fprintf(stderr, "Failed conversion (%s).\n", name);
+        abort();
+    }
+
+    bool varargs = fn->isVarArgs();
+
+    llvm::FunctionType *ft =
+        llvm::FunctionType::get(
+            llvm_return_type,
+            llvm::ArrayRef<llvm::Type*>(types),
+            varargs
+        );
+    
+    fn->llvm_function =
+        llvm::dyn_cast<llvm::Function>(
+            mod->getOrInsertFunction(fn->internal_name->c_str(), ft)
+        );
+    if (!fn->llvm_function) {
+        fprintf(stderr, "Internal error: unable to re-get "
+                "function (%s).\n",
+                fn->internal_name->c_str());
+        abort();
+    }
+
+    return true;
+}
+
+bool
 Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
 {
     for (std::map<std::string, NSNode *>::iterator
@@ -830,70 +890,48 @@ Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
                 fb != fe;
                 ++fb) {
             Element::Function *fn = (*fb);
-
             fn->llvm_function = mod->getFunction(fn->internal_name->c_str());
             if (fn->llvm_function) {
                 continue;
             }
-            
-            std::vector<llvm::Type*> types;
-
-            for (std::vector<Element::Variable *>::iterator
-                    vb = fn->parameter_types->begin(),
-                    ve = fn->parameter_types->end();
-                    vb != ve;
-                    ++vb) {
-                Element::Variable *var = (*vb);
-                Element::Type *var_type = var->type;
-                if (var_type->is_reference) {
-                    var_type = tr->getPointerType(var_type);
-                }
-                if (var_type->base_type == Type::VarArgs) {
-                    break;
-                }
-                llvm::Type *llvm_type =
-                    toLLVMType(var_type, NULL, false, false);
-                if (!llvm_type) {
-                    er->flush();
-                    fprintf(stderr, "Failed conversion 1 (%s).\n",
-                            b->first.c_str());
-                    abort();
-                }
-                types.push_back(llvm_type);
-            }
-
-            llvm::Type *llvm_return_type =
-                toLLVMType(fn->return_type, NULL, true, false);
-            if (!llvm_return_type) {
-                er->flush();
-                fprintf(stderr, "Failed conversion 2 (RT) (%s).\n",
-                        b->first.c_str());
-                abort();
-            }
-
-            bool varargs = fn->isVarArgs();
-
-            llvm::FunctionType *ft =
-                llvm::FunctionType::get(
-                    llvm_return_type,
-                    llvm::ArrayRef<llvm::Type*>(types),
-                    varargs
-                );
-            
-            fn->llvm_function =
-                llvm::dyn_cast<llvm::Function>(
-                    mod->getOrInsertFunction(fn->internal_name->c_str(), 
-                                             ft)
-                );
-            if (!fn->llvm_function) {
-                fprintf(stderr, "Internal error: unable to re-get "
-                        "function ('%s').\n",
-                        fn->internal_name->c_str());
-                abort();
-            }
+            rebuildFunction(fn, b->first.c_str(), mod);
         }
     }
     
+    return true;
+}
+
+bool
+Context::rebuildVariable(Element::Variable *var, const char *name,
+                         llvm::Module *mod)
+{
+    /* internal_name is only set when the variable's value
+     * pointer needs to be updated after module linkage. */
+
+    const char *variable_name =
+        (var->internal_name.size() > 0)
+            ? var->internal_name.c_str()
+            : name;
+
+    var->value =
+        llvm::cast<llvm::Value>(
+            mod->getOrInsertGlobal(
+                variable_name,
+                llvm::cast<llvm::PointerType>(
+                    toLLVMType(
+                        tr->getPointerType(var->type),
+                        NULL, true, true
+                    )
+                )->getElementType()
+            )
+        );
+    if (!var->value) {
+        fprintf(stderr, "Internal error: unable to re-get "
+                "global variable (%s, %s).\n",
+                name, var->internal_name.c_str());
+        abort();
+    }
+
     return true;
 }
 
@@ -915,63 +953,8 @@ Context::rebuildVariables(llvm::Module *mod, NSNode *nsnode)
             e = ns->variables.end();
             b != e;
             ++b) {
-        /* todo: feels like a horrible hack. How does an empty-string
-         * variable get into this map? */
-        if (!b->first.compare("")) {
-            continue;
-        }
         Element::Variable *var = b->second;
-        /* internal_name is only set when the variable's value
-         * pointer needs to be updated after module linkage. */
-        if (var->internal_name.size() > 0) {
-            Element::Type *pptype = tr->getPointerType(var->type);
-            llvm::Type *tt = toLLVMType(pptype, NULL, true, true);
-            if (!tt) {
-                fprintf(stderr, "Unable to perform type conversion.\n");
-                abort();
-            }
-            llvm::PointerType *pt =
-                llvm::cast<llvm::PointerType>(tt);
-            llvm::Type *elt = pt->getElementType();
-            if (!elt) {
-                fprintf(stderr, "Unable to get element type.\n");
-                abort();
-            }
-
-            var->value =
-                llvm::cast<llvm::Value>(
-                    mod->getOrInsertGlobal(
-                        var->internal_name.c_str(),
-                        elt
-                    )
-                );
-            if (!var->value) {
-                fprintf(stderr, "Internal error: unable to re-get "
-                        "global variable ('%s').\n",
-                        var->internal_name.c_str());
-                abort();
-            }
-        } else {
-            var->value =
-                llvm::cast<llvm::Value>(
-                    mod->getOrInsertGlobal(
-                        (*b).first.c_str(),
-                        llvm::cast<llvm::PointerType>(toLLVMType(
-                                    new
-                                    Element::Type(var->type
-                                                     ->makeCopy()),
-                                    NULL, true, true))->getElementType()
-
-                    )
-                );
-            if (!var->value) {
-                fprintf(stderr, "Internal error: unable to re-get "
-                        "global variable ('%s', '%s').\n",
-                        (*b).first.c_str(),
-                        var->internal_name.c_str());
-                abort();
-            }
-        }
+        rebuildVariable(var, b->first.c_str(), mod);
     }
 
     return true;
@@ -980,18 +963,20 @@ Context::rebuildVariables(llvm::Module *mod, NSNode *nsnode)
 llvm::GlobalValue::LinkageTypes 
 Context::toLLVMLinkage(int linkage)
 {
-    return
-        (linkage == dale::Linkage::Auto)
-        ? llvm::GlobalValue::InternalLinkage
-        : (linkage == dale::Linkage::Intern)
-        ? llvm::GlobalValue::InternalLinkage
-        : (linkage == dale::Linkage::Extern)
-        ? llvm::GlobalValue::ExternalLinkage
-        : (linkage == dale::Linkage::Extern_C)
-        ? llvm::GlobalValue::ExternalLinkage
-        : (linkage == dale::Linkage::Extern_Weak)
-        ? llvm::GlobalValue::LinkOnceODRLinkage
-        : llvm::GlobalValue::ExternalLinkage;
+    llvm::GlobalValue::LinkageTypes lt;
+    switch (linkage) {
+        case dale::Linkage::Auto:
+        case dale::Linkage::Intern:
+            lt = llvm::GlobalValue::InternalLinkage;    break;
+        case dale::Linkage::Extern_Weak:
+            lt = llvm::GlobalValue::LinkOnceODRLinkage; break;
+        case dale::Linkage::Extern:
+        case dale::Linkage::Extern_C:
+        default:
+            lt = llvm::GlobalValue::ExternalLinkage;    break;
+    };
+
+    return lt;
 }
 
 bool

@@ -274,7 +274,7 @@ TypeRegister::getType(Element::Type *type)
 }
 
 void
-TypeRegister::dump(void)
+TypeRegister::print(void)
 {
     fprintf(stderr, "Pointer type count: %lu\n", pointer_types.size());
     fprintf(stderr, "Const type count:   %lu\n", const_types.size());

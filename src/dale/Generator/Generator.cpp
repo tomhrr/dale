@@ -881,7 +881,7 @@ int Generator::run(std::vector<const char *> *filenames,
     }
  
     if (DALE_DEBUG) {
-        tr->dump();
+        tr->print();
     }
 
     return 1;

@@ -102,7 +102,7 @@ public:
     Element::Type *type_pvoid;
 
     /*! Dump debugging information to stderr. */
-    void dump(void);
+    void print(void);
 };
 }
 

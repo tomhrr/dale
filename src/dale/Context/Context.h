@@ -291,6 +291,13 @@ public:
      *  context.
      */
     bool regetPointersForNewModule(llvm::Module *mod);
+    /*! Rebuilds a single LLVM function.
+     *  @param fn The function to rebuild.
+     *  @param name The function's name (unmangled).
+     *  @param mod The LLVM module.
+     */
+    bool rebuildFunction(Element::Function *fn, const char *name,
+                         llvm::Module *mod);
     /*! Rebuilds LLVM functions, where required.
      *  @param mod The LLVM module.
      *  @param node The namespace node.
@@ -300,8 +307,16 @@ public:
      *  appropriate.
      */
     bool rebuildFunctions(llvm::Module *mod, NSNode *node);
+
+    /*! Rebuilds a single LLVM variable.
+     *  @param fn The function to rebuild.
+     *  @param mod The LLVM module.
+     */
+    bool rebuildVariable(Element::Variable *var, const char *name,
+                         llvm::Module *mod);
     /*! Rebuilds LLVM variables, where required.
      *  @param mod The LLVM module.
+     *  @param name The variable's name (unmangled).
      *  @param node The namespace node.
      *
      *  As per rebuildFunctions, this only retrieves/constructs
