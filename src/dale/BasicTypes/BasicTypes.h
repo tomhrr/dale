@@ -64,46 +64,6 @@ addSimpleBinaryFunction(Context *ctx,
                         Element::Type *type1,
                         Element::Type *type2);
 
-/*! Add a binary function, mapping to an IRBuilder instruction.
- *  @param ctx The context.
- *  @param mod The LLVM module.
- *  @param once_tag The current once tag, if applicable.
- *  @param name The name of the function.
- *  @param method_name An IRBuilder method pointer.
- *  @param return_type The return type for the new function.
- *  @param type The type of the two parameters of the new function.
- */
-void
-makeFunction(Context *ctx,
-             llvm::Module *mod,
-             std::string *once_tag,
-             const char *name,
-             llvm::Value* (llvm::IRBuilder<>:: *method_name)
-                (llvm::Value*, llvm::Value*, const llvm::Twine &),
-             Element::Type *return_type,
-             Element::Type *type);
-
-/*! Add a binary function for an enum type, mapping to an IRBuilder instruction.
- *  @param ctx The context.
- *  @param mod The LLVM module.
- *  @param once_tag The current once tag, if applicable.
- *  @param name The name of the function.
- *  @param method_name An IRBuilder method pointer.
- *  @param return_type The return type for the new function.
- *  @param type The type (an enum) of the two parameters of the new function.
- *  @param linkage The linkage for the new function.
- */
-void
-makeEnumFunction(Context *ctx,
-                 llvm::Module *mod,
-                 std::string *once_tag,
-                 const char *name,
-                 llvm::Value* (llvm::IRBuilder<>:: *method_name)
-                     (llvm::Value*, llvm::Value*, const llvm::Twine &),
-                 Element::Type *ret_type,
-                 Element::Type *type,
-                 int linkage);
-
 /*! Instantiate the functions required for the given signed integer type.
  *  @param ctx The context.
  *  @param mod The LLVM module.

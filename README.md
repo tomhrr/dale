@@ -17,7 +17,7 @@ See the /doc directory ([index](./doc/index.md)).
 
 #### Dependencies
 
-  * LLVM (3.0-3.5)
+  * LLVM (3.2-3.5)
   * libffi
 
 #### Out-of-tree (recommended)
