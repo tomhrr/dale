@@ -289,7 +289,7 @@ bool parse(Generator *gen,
          * allowing the variable to be fully initialised once the
          * define is complete. */
 
-        if (!(type->isIntegerType()) && (type->base_type != dale::Type::Bool)) {
+        if (!(type->isIntegerType()) && (type->base_type != dale::BaseType::Bool)) {
             if (llvm::ConstantInt *temp =
                         llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
                 if (temp->getValue().getLimitedValue() == 0) {
@@ -484,7 +484,7 @@ bool parse(Generator *gen,
             }
         }
 
-        if (!(type->isIntegerType()) && (type->base_type != dale::Type::Bool)) {
+        if (!(type->isIntegerType()) && (type->base_type != dale::BaseType::Bool)) {
             if (llvm::ConstantInt *temp =
                         llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
                 if (temp->getValue().getLimitedValue() == 0) {

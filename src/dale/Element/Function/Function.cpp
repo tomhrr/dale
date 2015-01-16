@@ -76,7 +76,7 @@ int Function::isVarArgs(void)
 
     Element::Variable *back = parameter_types->back();
 
-    return (back->type->base_type == dale::Type::VarArgs) ? 1 : 0;
+    return (back->type->base_type == dale::BaseType::VarArgs) ? 1 : 0;
 }
 
 unsigned int Function::numberOfRequiredArgs(void)

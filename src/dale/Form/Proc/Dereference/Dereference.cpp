@@ -55,7 +55,7 @@ bool parse(Generator *gen,
         return false;
     }
 
-    if (p.type->points_to->base_type == Type::Void) {
+    if (p.type->points_to->base_type == BaseType::Void) {
         Error *e = new Error(
             ErrorInst::Generator::CannotDereferenceVoidPointer,
             node

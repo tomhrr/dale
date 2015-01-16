@@ -188,7 +188,7 @@ parse(Generator *gen,
             return false;
         }
 
-        if (var->type->base_type == dale::Type::Void) {
+        if (var->type->base_type == dale::BaseType::Void) {
             delete var;
             if (args->size() != 1) {
                 Error *e = new Error(
@@ -202,7 +202,7 @@ parse(Generator *gen,
         }
 
         /* Have to check that none comes after this. */
-        if (var->type->base_type == dale::Type::VarArgs) {
+        if (var->type->base_type == dale::BaseType::VarArgs) {
             if ((args->end() - node_iter) != 1) {
                 delete var;
                 Error *e = new Error(
@@ -244,7 +244,7 @@ parse(Generator *gen,
         if (type->is_reference) {
             type = ctx->tr->getPointerType(type);
         }
-        if (type->base_type == dale::Type::VarArgs) {
+        if (type->base_type == dale::BaseType::VarArgs) {
             break;
         }
         llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
@@ -304,7 +304,7 @@ parse(Generator *gen,
         fn_args.push_back(ctx->toLLVMType(ctx->tr->getPointerType(r_type),
                                           NULL, true));
         llvm_r_type =
-            ctx->toLLVMType(ctx->tr->getBasicType(dale::Type::Void),
+            ctx->toLLVMType(ctx->tr->getBasicType(dale::BaseType::Void),
                             NULL, true);
     }
 
@@ -424,7 +424,7 @@ parse(Generator *gen,
 
     iter = fn_args_internal->begin();
     while (iter != fn_args_internal->end()) {
-        if ((*iter)->type->base_type == dale::Type::VarArgs) {
+        if ((*iter)->type->base_type == dale::BaseType::VarArgs) {
             break;
         }
 

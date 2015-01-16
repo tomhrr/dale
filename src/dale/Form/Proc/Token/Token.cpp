@@ -22,7 +22,7 @@ parseStringLiteral(Generator *gen,
 {
     Context *ctx = gen->ctx;
 
-    if (type->base_type == Type::Int) {
+    if (type->base_type == BaseType::Int) {
         if (!top->is_token) {
             Error *e = new Error(
                 ErrorInst::Generator::UnexpectedElement,
@@ -62,7 +62,7 @@ parseStringLiteral(Generator *gen,
         : (type->is_array)                      ? type->array_type->base_type
         : 0;
 
-    if (underlying_type == Type::Char) {
+    if (underlying_type == BaseType::Char) {
         if (!top->is_token) {
             Error *e = new Error(
                 ErrorInst::Generator::UnexpectedElement,
@@ -203,7 +203,7 @@ bool parse(Generator *gen,
         }
     } else if (t->type == TokenType::FloatingPoint) {
         if (wanted_type
-                && wanted_type->base_type == Type::Float) {
+                && wanted_type->base_type == BaseType::Float) {
             pr->set(
                         block,
                         ctx->tr->type_float,
@@ -214,7 +214,7 @@ bool parse(Generator *gen,
                     );
             return true;
         } else if (wanted_type
-                    && wanted_type->base_type == Type::Double) {
+                    && wanted_type->base_type == BaseType::Double) {
             pr->set(
                         block,
                         ctx->tr->type_double,
@@ -225,7 +225,7 @@ bool parse(Generator *gen,
                     );
             return true;
         } else if (wanted_type
-                    && wanted_type->base_type == Type::LongDouble) {
+                    && wanted_type->base_type == BaseType::LongDouble) {
             pr->set(
                         block,
                         ctx->tr->type_longdouble,

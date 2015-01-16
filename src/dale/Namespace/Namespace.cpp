@@ -332,7 +332,7 @@ Namespace::getFunction(const char *name,
             // function.
 
             if ((*fn_arg_type_iter)->type->base_type
-                    == Type::VarArgs) {
+                    == BaseType::VarArgs) {
                 if (matched_arg_count > best_va_count) {
                     best_va_count = matched_arg_count;
                     best_va_fn = (*fn_iter);

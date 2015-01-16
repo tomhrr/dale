@@ -823,7 +823,7 @@ Context::rebuildFunction(Element::Function *fn, const char *name,
         if (var_type->is_reference) {
             var_type = tr->getPointerType(var_type);
         }
-        if (var_type->base_type == Type::VarArgs) {
+        if (var_type->base_type == BaseType::VarArgs) {
             break;
         }
         llvm::Type *llvm_type =
@@ -1009,7 +1009,7 @@ Context::toLLVMTypeFunction(Element::Type *type,
     iter = type->parameter_types->begin();
 
     while (iter != type->parameter_types->end()) {
-        if ((*iter)->base_type == Type::VarArgs) {
+        if ((*iter)->base_type == BaseType::VarArgs) {
             is_varargs = true;
         } else {
             /* Parameter references should always be converted to
@@ -1033,7 +1033,7 @@ Context::toLLVMTypeFunction(Element::Type *type,
                        NULL, true)
         );
         llvm_r_type =
-            toLLVMType(tr->getBasicType(dale::Type::Void),
+            toLLVMType(tr->getBasicType(dale::BaseType::Void),
                        NULL, true);
     } else {
         llvm_r_type = toLLVMType(r_type, NULL);
@@ -1101,27 +1101,27 @@ Context::toLLVMTypeBase(Element::Type *type,
     llvm::Type *lbt = NULL;
 
     switch (base_type) {
-        case Type::Int:        lbt = nt->getNativeIntType();          break;
-        case Type::UInt:       lbt = nt->getNativeUIntType();         break;
-        case Type::Char:       lbt = nt->getNativeCharType();         break;
-        case Type::Void:       lbt = llvm::Type::getVoidTy(lc);       break;
-        case Type::Bool:       lbt = llvm::Type::getInt1Ty(lc);       break;
-        case Type::Float:      lbt = llvm::Type::getFloatTy(lc);      break;
-        case Type::Double:     lbt = llvm::Type::getDoubleTy(lc);     break;
-        case Type::LongDouble: lbt = nt->getNativeLongDoubleType();   break;
-        case Type::Int8:       lbt = llvm::Type::getInt8Ty(lc);       break;
-        case Type::UInt8:      lbt = llvm::Type::getInt8Ty(lc);       break;
-        case Type::Int16:      lbt = llvm::Type::getInt16Ty(lc);      break;
-        case Type::UInt16:     lbt = llvm::Type::getInt16Ty(lc);      break;
-        case Type::Int32:      lbt = llvm::Type::getInt32Ty(lc);      break;
-        case Type::UInt32:     lbt = llvm::Type::getInt32Ty(lc);      break;
-        case Type::Int64:      lbt = llvm::Type::getInt64Ty(lc);      break;
-        case Type::UInt64:     lbt = llvm::Type::getInt64Ty(lc);      break;
-        case Type::IntPtr:     lbt = nt->getNativeIntptrType();       break;
-        case Type::Size:       lbt = nt->getNativeSizeType();         break;
-        case Type::PtrDiff:    lbt = nt->getNativePtrDiffType();      break;
-        case Type::Int128:     lbt = llvm::IntegerType::get(lc, 128); break;
-        case Type::UInt128:    lbt = llvm::IntegerType::get(lc, 128); break;
+        case BaseType::Int:        lbt = nt->getNativeIntType();          break;
+        case BaseType::UInt:       lbt = nt->getNativeUIntType();         break;
+        case BaseType::Char:       lbt = nt->getNativeCharType();         break;
+        case BaseType::Void:       lbt = llvm::Type::getVoidTy(lc);       break;
+        case BaseType::Bool:       lbt = llvm::Type::getInt1Ty(lc);       break;
+        case BaseType::Float:      lbt = llvm::Type::getFloatTy(lc);      break;
+        case BaseType::Double:     lbt = llvm::Type::getDoubleTy(lc);     break;
+        case BaseType::LongDouble: lbt = nt->getNativeLongDoubleType();   break;
+        case BaseType::Int8:       lbt = llvm::Type::getInt8Ty(lc);       break;
+        case BaseType::UInt8:      lbt = llvm::Type::getInt8Ty(lc);       break;
+        case BaseType::Int16:      lbt = llvm::Type::getInt16Ty(lc);      break;
+        case BaseType::UInt16:     lbt = llvm::Type::getInt16Ty(lc);      break;
+        case BaseType::Int32:      lbt = llvm::Type::getInt32Ty(lc);      break;
+        case BaseType::UInt32:     lbt = llvm::Type::getInt32Ty(lc);      break;
+        case BaseType::Int64:      lbt = llvm::Type::getInt64Ty(lc);      break;
+        case BaseType::UInt64:     lbt = llvm::Type::getInt64Ty(lc);      break;
+        case BaseType::IntPtr:     lbt = nt->getNativeIntptrType();       break;
+        case BaseType::Size:       lbt = nt->getNativeSizeType();         break;
+        case BaseType::PtrDiff:    lbt = nt->getNativePtrDiffType();      break;
+        case BaseType::Int128:     lbt = llvm::IntegerType::get(lc, 128); break;
+        case BaseType::UInt128:    lbt = llvm::IntegerType::get(lc, 128); break;
     }
 
     return lbt;

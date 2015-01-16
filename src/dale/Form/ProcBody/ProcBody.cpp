@@ -48,7 +48,7 @@ parse(Generator *gen,
     int mcount = 0;
 
     while (fn_args_iter != dfn->parameter_types->end()) {
-        if ((*fn_args_iter)->type->base_type == dale::Type::VarArgs) {
+        if ((*fn_args_iter)->type->base_type == dale::BaseType::VarArgs) {
             break;
         }
         int avres;
@@ -423,7 +423,7 @@ parse(Generator *gen,
                         res = 0;
                         goto finish;
                     }
-                    if (dfn->return_type->base_type == dale::Type::Void) {
+                    if (dfn->return_type->base_type == dale::BaseType::Void) {
                         gen->scopeClose(dfn, i, NULL, true);
                         builder.CreateRetVoid();
                     } else {

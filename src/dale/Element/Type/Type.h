@@ -1,7 +1,7 @@
 #ifndef DALE_ELEMENT_TYPE
 #define DALE_ELEMENT_TYPE
 
-#include "../../Type/Type.h"
+#include "../../BaseType/BaseType.h"
 #include "../../Node/Node.h"
 #include "../../Linkage/Linkage.h"
 #include <cstddef>

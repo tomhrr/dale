@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Element/Function/Function.h"
+#include "../../../BaseType/BaseType.h"
 #include "../../Type/Type.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"

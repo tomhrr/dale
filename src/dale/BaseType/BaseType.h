@@ -5,7 +5,7 @@
 
 namespace dale
 {
-namespace Type
+namespace BaseType
 {
 enum
 {

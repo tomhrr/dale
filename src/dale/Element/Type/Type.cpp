@@ -42,22 +42,22 @@ int getSignedIntegerType(int size)
     int type;
     switch (size) {
     case 8:
-        type = Type::Int8;
+        type = BaseType::Int8;
         break;
     case 16:
-        type = Type::Int16;
+        type = BaseType::Int16;
         break;
     case 32:
-        type = Type::Int32;
+        type = BaseType::Int32;
         break;
     case 64:
-        type = Type::Int64;
+        type = BaseType::Int64;
         break;
     case 128:
-        type = Type::Int128;
+        type = BaseType::Int128;
         break;
     default:
-        type = Type::Int;
+        type = BaseType::Int;
     }
     return type;
 }
@@ -67,22 +67,22 @@ int getUnsignedIntegerType(int size)
     int type;
     switch (size) {
     case 8:
-        type = Type::UInt8;
+        type = BaseType::UInt8;
         break;
     case 16:
-        type = Type::UInt16;
+        type = BaseType::UInt16;
         break;
     case 32:
-        type = Type::UInt32;
+        type = BaseType::UInt32;
         break;
     case 64:
-        type = Type::UInt64;
+        type = BaseType::UInt64;
         break;
     case 128:
-        type = Type::UInt128;
+        type = BaseType::UInt128;
         break;
     default:
-        type = Type::UInt;
+        type = BaseType::UInt;
     }
     return type;
 }
@@ -613,75 +613,75 @@ void Type::toEncStr(std::string *newstr)
     if (base_type) {
         char c = '?';
         switch (base_type) {
-        case dale::Type::Null:
+        case dale::BaseType::Null:
             if (DEBUG)  printf("ERROR: base "
                                    "type is null, cannot encode\n");
             break;
-        case dale::Type::Void:
+        case dale::BaseType::Void:
             c = 'v';
             break;
-        case dale::Type::Bool:
+        case dale::BaseType::Bool:
             c = 'b';
             break;
-        case dale::Type::Char:
+        case dale::BaseType::Char:
             c = 'c';
             break;
-        case dale::Type::Int:
+        case dale::BaseType::Int:
             c = 'i';
             break;
-        case dale::Type::VarArgs:
+        case dale::BaseType::VarArgs:
             c = 'z';
             break;
-        case dale::Type::UInt:
+        case dale::BaseType::UInt:
             c = 'j';
             break;
-        case dale::Type::IntPtr:
+        case dale::BaseType::IntPtr:
             c = 'l';
             break;
-        case dale::Type::Int8:
+        case dale::BaseType::Int8:
             c = 'y';
             break;
-        case dale::Type::UInt8:
+        case dale::BaseType::UInt8:
             c = 'm';
             break;
 
-        case dale::Type::Int16:
+        case dale::BaseType::Int16:
             c = 'n';
             break;
-        case dale::Type::UInt16:
+        case dale::BaseType::UInt16:
             c = 'o';
             break;
-        case dale::Type::Int32:
+        case dale::BaseType::Int32:
             c = 'p';
             break;
-        case dale::Type::UInt32:
+        case dale::BaseType::UInt32:
             c = 'q';
             break;
-        case dale::Type::Int64:
+        case dale::BaseType::Int64:
             c = 'r';
             break;
-        case dale::Type::UInt64:
+        case dale::BaseType::UInt64:
             c = 's';
             break;
-        case dale::Type::Int128:
+        case dale::BaseType::Int128:
             c = 't';
             break;
-        case dale::Type::UInt128:
+        case dale::BaseType::UInt128:
             c = 'u';
             break;
-        case dale::Type::Float:
+        case dale::BaseType::Float:
             c = 'f';
             break;
-        case dale::Type::Double:
+        case dale::BaseType::Double:
             c = 'd';
             break;
-        case dale::Type::LongDouble:
+        case dale::BaseType::LongDouble:
             c = 'a';
             break;
-        case dale::Type::Size:
+        case dale::BaseType::Size:
             c = 'w';
             break;
-        case dale::Type::PtrDiff:
+        case dale::BaseType::PtrDiff:
             c = 'x';
             break;
         default:
@@ -741,33 +741,33 @@ void Type::toEncStr(std::string *newstr)
 
 bool Type::isIntegerType(void)
 {
-    return (   base_type == dale::Type::Int
-               || base_type == dale::Type::Char
-               || base_type == dale::Type::UInt
-               || base_type == dale::Type::IntPtr
-               || base_type == dale::Type::Size
-               || base_type == dale::Type::PtrDiff
-               || base_type == dale::Type::Int8
-               || base_type == dale::Type::UInt8
-               || base_type == dale::Type::Int16
-               || base_type == dale::Type::UInt16
-               || base_type == dale::Type::Int32
-               || base_type == dale::Type::UInt32
-               || base_type == dale::Type::Int64
-               || base_type == dale::Type::UInt64
-               || base_type == dale::Type::Int128
-               || base_type == dale::Type::UInt128);
+    return (   base_type == dale::BaseType::Int
+               || base_type == dale::BaseType::Char
+               || base_type == dale::BaseType::UInt
+               || base_type == dale::BaseType::IntPtr
+               || base_type == dale::BaseType::Size
+               || base_type == dale::BaseType::PtrDiff
+               || base_type == dale::BaseType::Int8
+               || base_type == dale::BaseType::UInt8
+               || base_type == dale::BaseType::Int16
+               || base_type == dale::BaseType::UInt16
+               || base_type == dale::BaseType::Int32
+               || base_type == dale::BaseType::UInt32
+               || base_type == dale::BaseType::Int64
+               || base_type == dale::BaseType::UInt64
+               || base_type == dale::BaseType::Int128
+               || base_type == dale::BaseType::UInt128);
 }
 
 bool Type::isSignedIntegerType(void)
 {
-    return (   base_type == dale::Type::Int
-               || base_type == dale::Type::Char
-               || base_type == dale::Type::Int8
-               || base_type == dale::Type::Int16
-               || base_type == dale::Type::Int32
-               || base_type == dale::Type::Int64
-               || base_type == dale::Type::Int128);
+    return (   base_type == dale::BaseType::Int
+               || base_type == dale::BaseType::Char
+               || base_type == dale::BaseType::Int8
+               || base_type == dale::BaseType::Int16
+               || base_type == dale::BaseType::Int32
+               || base_type == dale::BaseType::Int64
+               || base_type == dale::BaseType::Int128);
 }
 
 /* 1 == getNativeIntegerSize */
@@ -785,40 +785,40 @@ int Type::getIntegerSize(void)
     }
 
     switch (base_type) {
-    case dale::Type::Char:
+    case dale::BaseType::Char:
         size = 8;
         break;
-    case dale::Type::Int:
-    case dale::Type::UInt:
+    case dale::BaseType::Int:
+    case dale::BaseType::UInt:
         size = 1;
         break;
-    case dale::Type::IntPtr:
+    case dale::BaseType::IntPtr:
         size = 2;
         break;
-    case dale::Type::Size:
+    case dale::BaseType::Size:
         size = 3;
         break;
-    case dale::Type::PtrDiff:
+    case dale::BaseType::PtrDiff:
         size = 4;
         break;
-    case dale::Type::Int8:
-    case dale::Type::UInt8:
+    case dale::BaseType::Int8:
+    case dale::BaseType::UInt8:
         size = 8;
         break;
-    case dale::Type::Int16:
-    case dale::Type::UInt16:
+    case dale::BaseType::Int16:
+    case dale::BaseType::UInt16:
         size = 16;
         break;
-    case dale::Type::Int32:
-    case dale::Type::UInt32:
+    case dale::BaseType::Int32:
+    case dale::BaseType::UInt32:
         size = 32;
         break;
-    case dale::Type::Int64:
-    case dale::Type::UInt64:
+    case dale::BaseType::Int64:
+    case dale::BaseType::UInt64:
         size = 64;
         break;
-    case dale::Type::Int128:
-    case dale::Type::UInt128:
+    case dale::BaseType::Int128:
+    case dale::BaseType::UInt128:
         size = 128;
         break;
     default:
@@ -833,13 +833,13 @@ int Type::getFPRelativeSize(void)
     int size;
 
     switch (base_type) {
-    case dale::Type::Float:
+    case dale::BaseType::Float:
         size = 1;
         break;
-    case dale::Type::Double:
+    case dale::BaseType::Double:
         size = 2;
         break;
-    case dale::Type::LongDouble:
+    case dale::BaseType::LongDouble:
         size = 3;
         break;
     default:
@@ -851,9 +851,9 @@ int Type::getFPRelativeSize(void)
 
 bool Type::isFloatingPointType(void)
 {
-    return (   base_type == dale::Type::Float
-               || base_type == dale::Type::Double
-               || base_type == dale::Type::LongDouble);
+    return (   base_type == dale::BaseType::Float
+               || base_type == dale::BaseType::Double
+               || base_type == dale::BaseType::LongDouble);
 }
 
 bool Type::isVarArgs(void)
@@ -864,7 +864,7 @@ bool Type::isVarArgs(void)
 
     Element::Type *back = parameter_types->back();
 
-    return (back->base_type == dale::Type::VarArgs);
+    return (back->base_type == dale::BaseType::VarArgs);
 }
 
 unsigned int Type::numberOfRequiredArgs(void)
@@ -887,70 +887,70 @@ const char *baseTypeToString(int base_type)
     const char *ret;
 
     switch (base_type) {
-    case dale::Type::Void:
+    case dale::BaseType::Void:
         ret = "void";
         break;
-    case dale::Type::Bool:
+    case dale::BaseType::Bool:
         ret = "bool";
         break;
-    case dale::Type::Char:
+    case dale::BaseType::Char:
         ret = "char";
         break;
-    case dale::Type::VarArgs:
+    case dale::BaseType::VarArgs:
         ret = "...";
         break;
-    case dale::Type::Int:
+    case dale::BaseType::Int:
         ret = "int";
         break;
-    case dale::Type::UInt:
+    case dale::BaseType::UInt:
         ret = "uint";
         break;
-    case dale::Type::IntPtr:
+    case dale::BaseType::IntPtr:
         ret = "intptr";
         break;
-    case dale::Type::Size:
+    case dale::BaseType::Size:
         ret = "size"  ;
         break;
-    case dale::Type::PtrDiff:
+    case dale::BaseType::PtrDiff:
         ret = "ptrdiff";
         break;
-    case dale::Type::Int8:
+    case dale::BaseType::Int8:
         ret = "int8";
         break;
-    case dale::Type::UInt8:
+    case dale::BaseType::UInt8:
         ret = "uint8";
         break;
-    case dale::Type::Int16:
+    case dale::BaseType::Int16:
         ret = "int16";
         break;
-    case dale::Type::UInt16:
+    case dale::BaseType::UInt16:
         ret = "uint16";
         break;
-    case dale::Type::Int32:
+    case dale::BaseType::Int32:
         ret = "int32";
         break;
-    case dale::Type::UInt32:
+    case dale::BaseType::UInt32:
         ret = "uint32";
         break;
-    case dale::Type::Int64:
+    case dale::BaseType::Int64:
         ret = "int64";
         break;
-    case dale::Type::UInt64:
+    case dale::BaseType::UInt64:
         ret = "uint64";
         break;
-    case dale::Type::Int128:
+    case dale::BaseType::Int128:
         ret = "int128";
         break;
-    case dale::Type::UInt128:
+    case dale::BaseType::UInt128:
         ret = "uint128";
         break;
-    case dale::Type::Float:
+    case dale::BaseType::Float:
         ret = "float";
         break;
-    case dale::Type::Double:
+    case dale::BaseType::Double:
         ret = "double";
         break;
-    case dale::Type::LongDouble:
+    case dale::BaseType::LongDouble:
         ret = "long-double";
         break;
     default:

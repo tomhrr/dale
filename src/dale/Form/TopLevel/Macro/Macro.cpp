@@ -161,7 +161,7 @@ bool parse(Generator *gen,
 
     int count = 0;
     while (iter != mc_args_internal->end()) {
-        if ((*iter)->type->base_type == Type::VarArgs) {
+        if ((*iter)->type->base_type == BaseType::VarArgs) {
             /* Varargs - finish. */
             varargs = true;
             break;
@@ -243,7 +243,7 @@ bool parse(Generator *gen,
 
     iter = mc_args_internal->begin();
     while (iter != mc_args_internal->end()) {
-        if ((*iter)->type->base_type == Type::VarArgs) {
+        if ((*iter)->type->base_type == BaseType::VarArgs) {
             break;
         }
 

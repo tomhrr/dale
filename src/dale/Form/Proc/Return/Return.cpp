@@ -50,7 +50,7 @@ bool parse(Generator *gen,
         return false;
     }
     Element::Type *real_return_type =
-        (fn->hasRetval() ? ctx->tr->getBasicType(Type::Void)
+        (fn->hasRetval() ? ctx->tr->getBasicType(BaseType::Void)
                          : fn->return_type);
     if (!ctx->er->assertTypeEquality("return", node, p.type,
                                      real_return_type, false)) {
@@ -68,7 +68,7 @@ bool parse(Generator *gen,
      * last part isn't correct - see e.g. the call to CreateCondBr
      * in parseIf. So, return the proper value in the second
      * branch.) */
-    if (p.type->base_type == Type::Void) {
+    if (p.type->base_type == BaseType::Void) {
         gen->scopeClose(fn, block, NULL, true);
         builder.SetInsertPoint(block);
         builder.CreateRetVoid();

@@ -40,7 +40,7 @@ bool parse(Generator *gen,
         return false;
     }
 
-    if (pr_cond.type->base_type != Type::Bool) {
+    if (pr_cond.type->base_type != BaseType::Bool) {
         std::string temp;
         pr->type->toStringProper(&temp);
         Error *e = new Error(

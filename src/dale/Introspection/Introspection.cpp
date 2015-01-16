@@ -745,7 +745,7 @@ extern "C" {
                 g->ctx->er->popErrors(original_error_count);
                 return false;
             }
-            if (ptype->base_type == Type::Void) {
+            if (ptype->base_type == BaseType::Void) {
                 break;
             }
             parameter_types.push_back(ptype);
@@ -820,7 +820,7 @@ extern "C" {
                 g->ctx->er->popErrors(original_error_count);
                 return false;
             }
-            if (ptype->base_type == Type::Void) {
+            if (ptype->base_type == BaseType::Void) {
                 break;
             }
             parameter_types.push_back(ptype);
@@ -870,7 +870,7 @@ extern "C" {
                 g->ctx->er->popErrors(original_error_count);
                 return false;
             }
-            if (ptype->base_type == Type::Void) {
+            if (ptype->base_type == BaseType::Void) {
                 break;
             }
             parameter_types.push_back(ptype);
@@ -961,7 +961,7 @@ extern "C" {
                 g->ctx->er->popErrors(original_error_count);
                 return NULL;
             }
-            if (ptype->base_type == Type::Void) {
+            if (ptype->base_type == BaseType::Void) {
                 break;
             }
             parameter_types.push_back(ptype);

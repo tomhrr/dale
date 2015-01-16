@@ -117,7 +117,7 @@ bool parse(Generator *gen,
         }
         if (pr_value.retval_used) {
             pr->block = pr_value.block;
-            pr->type = ctx->tr->getBasicType(Type::Void);
+            pr->type = ctx->tr->getBasicType(BaseType::Void);
             return true;
         }
     }

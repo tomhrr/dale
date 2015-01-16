@@ -109,7 +109,7 @@ bool ErrorReporter::assertIsIntegerType(const char *form_name,
                                         Element::Type *type,
                                         const char *arg_number)
 {
-    if (type->base_type == Type::Int) {
+    if (type->base_type == BaseType::Int) {
         return true;
     }
 

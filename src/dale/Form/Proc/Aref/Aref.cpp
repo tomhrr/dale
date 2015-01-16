@@ -63,7 +63,7 @@ bool parse(Generator *gen,
     /* Attempt to cast pr_index to a size type, if it is not such
      * a type already. */
 
-    if (pr_index.type->base_type != Type::Size) {
+    if (pr_index.type->base_type != BaseType::Size) {
         ParseResult newt;
         bool res =
             Operation::Cast::execute(ctx,

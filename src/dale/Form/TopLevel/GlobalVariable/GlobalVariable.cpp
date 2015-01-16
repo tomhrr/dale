@@ -39,7 +39,7 @@ parseLiteralElement(Generator *gen,
     std::string t;
     type->toStringProper(&t);
 
-    if (type->base_type == dale::Type::Bool) {
+    if (type->base_type == dale::BaseType::Bool) {
         llvm::APInt myint(1,
                           *thing);
         llvm::ConstantInt *myconstint =
@@ -48,7 +48,7 @@ parseLiteralElement(Generator *gen,
         return llvm::cast<llvm::Constant>(myconstint);
     }
 
-    if (type->base_type == dale::Type::Char) {
+    if (type->base_type == dale::BaseType::Char) {
         llvm::APInt myint(8,
                           *thing);
         llvm::ConstantInt *myconstint =
@@ -97,7 +97,7 @@ parseLiteralElement(Generator *gen,
         }
     }
 
-    if (type->base_type == dale::Type::Float) {
+    if (type->base_type == dale::BaseType::Float) {
         union float_hex {
             unsigned char udata[4];
             float         fvalue;
@@ -113,7 +113,7 @@ parseLiteralElement(Generator *gen,
         return llvm::cast<llvm::Constant>(myconstfloat);
     }
 
-    if (type->base_type == dale::Type::Double) {
+    if (type->base_type == dale::BaseType::Double) {
         union double_hex {
             unsigned char udata[8];
             double        dvalue;
@@ -212,7 +212,7 @@ parseLiteralElement(Generator *gen,
         return init;
     }
 
-    if (type->points_to && (type->points_to->base_type == dale::Type::Char)) {
+    if (type->points_to && (type->points_to->base_type == dale::BaseType::Char)) {
         char *temp =
             *(char**)
             (((uintptr_t) thing));

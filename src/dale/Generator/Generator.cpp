@@ -60,7 +60,7 @@
 #include "../BasicTypes/BasicTypes.h"
 #include "../Utils/Utils.h"
 #include "../Linkage/Linkage.h"
-#include "../Type/Type.h"
+#include "../BaseType/BaseType.h"
 #include "../Lexer/Lexer.h"
 #include "../STLUtils/STLUtils.h"
 #include "../Serialise/Serialise.h"
@@ -1688,7 +1688,7 @@ bool Generator::parseFuncallInternal(
 
         if ((param_iter != fn_ptr->type->points_to->parameter_types->end())
                 && (!(p.type->isEqualTo((*param_iter), 1)))
-                && ((*param_iter)->base_type != Type::VarArgs)) {
+                && ((*param_iter)->base_type != BaseType::VarArgs)) {
 
             llvm::Value *new_val = coerceValue(p.getValue(ctx),
                                                p.type,
@@ -1726,7 +1726,7 @@ bool Generator::parseFuncallInternal(
             // Skip the varargs type.
             if (param_iter !=
                     fn_ptr->type->points_to->parameter_types->end()) {
-                if ((*param_iter)->base_type == Type::VarArgs) {
+                if ((*param_iter)->base_type == BaseType::VarArgs) {
                     ++param_iter;
                 }
             }
@@ -1996,7 +1996,7 @@ Node *Generator::parseMacroCall(Node *n,
         Node *ni = (*node_iter);
         ni->addMacroPosition(n);
 
-        if ((*var_iter)->type->base_type == Type::VarArgs) {
+        if ((*var_iter)->type->base_type == BaseType::VarArgs) {
             /* Into varargs - always pointers to DNodes. */
             DNode *new_dnode = (*node_iter)->toDNode();
             myargs[myargs_count++] = new_dnode;
@@ -2622,7 +2622,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
                     continue;
                 }
                 if (!(*miter)->type->isIntegerType()
-                        and (*miter)->type->base_type != Type::Bool) {
+                        and (*miter)->type->base_type != BaseType::Bool) {
                     Error *e = new Error(
                         ErrorInst::Generator::FunctionNotInScope,
                         n,
@@ -2634,7 +2634,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
                     return false;
                 }
                 if (!(*caiter)->isIntegerType()
-                        and (*caiter)->base_type != Type::Bool) {
+                        and (*caiter)->base_type != BaseType::Bool) {
                     Error *e = new Error(
                         ErrorInst::Generator::FunctionNotInScope,
                         n,
@@ -2763,7 +2763,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
             ++call_arg_types_iter;
         }
         while (call_args_iter != call_args.end()) {
-            if ((*call_arg_types_iter)->base_type == Type::Float) {
+            if ((*call_arg_types_iter)->base_type == BaseType::Float) {
                 (*call_args_iter) =
                     builder.CreateFPExt(
                         (*call_args_iter),
@@ -2994,8 +2994,8 @@ llvm::Value *Generator::coerceValue(llvm::Value *from_value,
     Element::Type *fp = from_type->points_to;
     Element::Type *tp = to_type->points_to;
 
-    if (fb == Type::Char && fa && !fp) {
-        if (tp && tp->base_type == Type::Char && !tp->points_to) {
+    if (fb == BaseType::Char && fa && !fp) {
+        if (tp && tp->base_type == BaseType::Char && !tp->points_to) {
             llvm::IRBuilder<> builder(block);
 
             llvm::Value *charpointer =

@@ -1,7 +1,7 @@
 #ifndef DALE_TYPEREGISTER
 #define DALE_TYPEREGISTER
 
-#include "../Type/Type.h"
+#include "../BaseType/BaseType.h"
 #include "../Element/Type/Type.h"
 
 #include <map>
@@ -43,7 +43,7 @@ public:
     ~TypeRegister();
     
     /*! Return an instance of a basic type.
-     *  @param type The basic type enum (see dale::Type). */
+     *  @param type The basic type enum (see dale::BaseType). */
     Element::Type *getBasicType(int type);
     /*! Return an instance of a pointer to a type.
      *  @param type The pointee type object. */

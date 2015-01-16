@@ -61,10 +61,10 @@ bool execute(Context *ctx,
             res = builder.CreateUIToFP(value, llvm_to_type);
         }
     } else if ((from_type->isIntegerType() && to_type->isIntegerType())
-               || (from_type->base_type == Type::Bool
+               || (from_type->base_type == BaseType::Bool
                    && to_type->isIntegerType())
                || (from_type->isIntegerType()
-                   && to_type->base_type == Type::Bool)) {
+                   && to_type->base_type == BaseType::Bool)) {
         int pr_size =
             ctx->nt->internalSizeToRealSize(from_type->getIntegerSize());
         int ta_size =

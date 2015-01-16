@@ -32,27 +32,27 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
         const char *typs = t->str_value.c_str();
 
         int bmt =
-              (!strcmp(typs, "int" ))        ? dale::Type::Int
-            : (!strcmp(typs, "void"))        ? dale::Type::Void
-            : (!strcmp(typs, "char"))        ? dale::Type::Char
-            : (!strcmp(typs, "bool"))        ? dale::Type::Bool
-            : (!strcmp(typs, "uint" ))       ? dale::Type::UInt
-            : (!strcmp(typs, "int8"))        ? dale::Type::Int8
-            : (!strcmp(typs, "uint8"))       ? dale::Type::UInt8
-            : (!strcmp(typs, "int16"))       ? dale::Type::Int16
-            : (!strcmp(typs, "uint16"))      ? dale::Type::UInt16
-            : (!strcmp(typs, "int32"))       ? dale::Type::Int32
-            : (!strcmp(typs, "uint32"))      ? dale::Type::UInt32
-            : (!strcmp(typs, "int64"))       ? dale::Type::Int64
-            : (!strcmp(typs, "uint64"))      ? dale::Type::UInt64
-            : (!strcmp(typs, "int128"))      ? dale::Type::Int128
-            : (!strcmp(typs, "uint128"))     ? dale::Type::UInt128
-            : (!strcmp(typs, "intptr"))      ? dale::Type::IntPtr
-            : (!strcmp(typs, "size"))        ? dale::Type::Size
-            : (!strcmp(typs, "ptrdiff"))     ? dale::Type::PtrDiff
-            : (!strcmp(typs, "float"))       ? dale::Type::Float
-            : (!strcmp(typs, "double"))      ? dale::Type::Double
-            : (!strcmp(typs, "long-double")) ? dale::Type::LongDouble
+              (!strcmp(typs, "int" ))        ? dale::BaseType::Int
+            : (!strcmp(typs, "void"))        ? dale::BaseType::Void
+            : (!strcmp(typs, "char"))        ? dale::BaseType::Char
+            : (!strcmp(typs, "bool"))        ? dale::BaseType::Bool
+            : (!strcmp(typs, "uint" ))       ? dale::BaseType::UInt
+            : (!strcmp(typs, "int8"))        ? dale::BaseType::Int8
+            : (!strcmp(typs, "uint8"))       ? dale::BaseType::UInt8
+            : (!strcmp(typs, "int16"))       ? dale::BaseType::Int16
+            : (!strcmp(typs, "uint16"))      ? dale::BaseType::UInt16
+            : (!strcmp(typs, "int32"))       ? dale::BaseType::Int32
+            : (!strcmp(typs, "uint32"))      ? dale::BaseType::UInt32
+            : (!strcmp(typs, "int64"))       ? dale::BaseType::Int64
+            : (!strcmp(typs, "uint64"))      ? dale::BaseType::UInt64
+            : (!strcmp(typs, "int128"))      ? dale::BaseType::Int128
+            : (!strcmp(typs, "uint128"))     ? dale::BaseType::UInt128
+            : (!strcmp(typs, "intptr"))      ? dale::BaseType::IntPtr
+            : (!strcmp(typs, "size"))        ? dale::BaseType::Size
+            : (!strcmp(typs, "ptrdiff"))     ? dale::BaseType::PtrDiff
+            : (!strcmp(typs, "float"))       ? dale::BaseType::Float
+            : (!strcmp(typs, "double"))      ? dale::BaseType::Double
+            : (!strcmp(typs, "long-double")) ? dale::BaseType::LongDouble
                                              : -1;
 
         if (bmt != -1) {
@@ -60,8 +60,8 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
 
             if (mt) {
                 if (!gen->is_x86_64
-                        && (mt->base_type == dale::Type::Int128
-                            || mt->base_type == dale::Type::UInt128)) {
+                        && (mt->base_type == dale::BaseType::Int128
+                            || mt->base_type == dale::BaseType::UInt128)) {
                     Error *e = new Error(
                         ErrorInst::Generator::TypeNotSupported,
                         top,
@@ -408,7 +408,7 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
                 return NULL;
             }
 
-            if (var->type->base_type == dale::Type::Void) {
+            if (var->type->base_type == dale::BaseType::Void) {
                 delete var;
                 if (plst->size() != 1) {
                     Error *e = new Error(
@@ -422,7 +422,7 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
             }
 
             /* Have to check that none come after this. */
-            if (var->type->base_type == dale::Type::VarArgs) {
+            if (var->type->base_type == dale::BaseType::VarArgs) {
                 if ((plst->end() - node_iter) != 1) {
                     delete var;
                     Error *e = new Error(

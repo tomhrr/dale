@@ -52,7 +52,7 @@ bool parse(Generator *gen,
     res = Operation::Cast::execute(ctx, pr_valist.block,
                 pr_valist.value,
                 pr_valist.type,
-                ctx->tr->getPointerType(ctx->tr->getBasicType(Type::Char)),
+                ctx->tr->getPointerType(ctx->tr->getBasicType(BaseType::Char)),
                 node, 0, &to_pchar);
     if (!res) {
         return false;
