@@ -24,8 +24,7 @@ parse(Generator *gen,
         return false;
     }
 
-    int num = myenum->nameToIndex(n->token->str_value.c_str());
-    if (num == ENUM_NOTFOUND) {
+    if (!myenum->existsMember(n->token->str_value.c_str())) {
         Error *e = new Error(
             ErrorInst::Generator::EnumValueDoesNotExist,
             n,
@@ -34,6 +33,7 @@ parse(Generator *gen,
         ctx->er->addError(e);
         return false;
     }
+    int num = myenum->memberToIndex(n->token->str_value.c_str());
 
     llvm::IRBuilder<> builder(block);
 

@@ -8,51 +8,49 @@ Enum::Enum()
 {
     last_index = -1;
     type = NULL;
-    name_to_index = new std::map<std::string, int64_t>;
+    member_to_index = new std::map<std::string, int64_t>;
     linkage = 0;
     serialise = true;
 }
 
 Enum::~Enum()
 {
-    delete name_to_index;
+    delete member_to_index;
+}
+
+bool
+Enum::existsMember(const char *name)
+{
+    std::map<std::string, int64_t>::iterator iter;
+    iter = member_to_index->find(name);
+    return (iter != member_to_index->end());
+}
+
+int64_t
+Enum::memberToIndex(const char *name)
+{
+    std::map<std::string, int64_t>::iterator iter;
+    iter = member_to_index->find(name);
+    return iter->second;
 }
 
 int
-Enum::addElement(const char *name, int64_t number)
+Enum::addMember(const char *name, int64_t number)
 {
-    if (nameToIndex(name) != ENUM_NOTFOUND) {
+    if (existsMember(name)) {
         return 0;
     }
 
-    name_to_index->insert(
-        std::pair<std::string, int64_t>(
-            name, number
-        )
-    );
-
+    member_to_index->insert(std::pair<std::string, int64_t>(name, number));
     last_index = number;
 
     return 1;
 }
 
 int
-Enum::addElement(const char *name)
+Enum::addMember(const char *name)
 {
-    return addElement(name, ++last_index);
-}
-
-int64_t
-Enum::nameToIndex(const char *name)
-{
-    std::map<std::string, int64_t>::iterator iter;
-    iter = name_to_index->find(name);
-
-    if (iter == name_to_index->end()) {
-        return ENUM_NOTFOUND;
-    } else {
-        return iter->second;
-    }
+    return addMember(name, ++last_index);
 }
 }
 }

@@ -6,7 +6,7 @@
 
 #include "../../llvm_Module.h"
 
-#define ENUM_NOTFOUND -1000000
+#define ENUM_NOTFOUND -2
 
 namespace dale
 {
@@ -22,10 +22,10 @@ class Enum
 public:
     /* The enumerated type's integral type. */
     llvm::Type *type;
-    /* The index of the last enumerated element. */
+    /* The index of the last member. */
     int last_index;
-    /* A map from enumerated element name to index. */
-    std::map<std::string, int64_t> *name_to_index;
+    /* A map from member name to index. */
+    std::map<std::string, int64_t> *member_to_index;
     /* The once tag of this type. */
     std::string once_tag;
     /* The linkage of this type. */
@@ -36,19 +36,23 @@ public:
     Enum();
     ~Enum();
 
-    /*! Add a new element to the enumerated type.
-     *  @param name The name for the new element.
+    /*! Check whether a given member exists.
+     *  @param name The name of the potential member.
      */
-    int addElement(const char *name);
-    /*! Add a new element to the enumerated type at a specific index.
-     *  @param name The name of the new element.
-     *  @param index The index of the new element.
+    bool existsMember(const char *name);
+    /*! Add a new member to the enumerated type.
+     *  @param name The name of the new member.
      */
-    int addElement(const char *name, int64_t index);
-    /*! Retrieve the index of the element with the given name.
-     *  @param name The name of the element.
+    int addMember(const char *name);
+    /*! Add a new member to the enumerated type at a specific index.
+     *  @param name The name of the new member.
+     *  @param index The index of the new member.
      */
-    int64_t nameToIndex(const char *name);
+    int addMember(const char *name, int64_t index);
+    /*! Retrieve the index of the member with the given name.
+     *  @param name The name of the member.
+     */
+    int64_t memberToIndex(const char *name);
 };
 }
 }

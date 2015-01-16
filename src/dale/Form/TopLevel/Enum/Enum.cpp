@@ -107,7 +107,7 @@ bool parse(Generator *gen,
                 return false;
             }
             int res =
-                enm->addElement(n->token->str_value.c_str());
+                enm->addMember(n->token->str_value.c_str());
             if (!res) {
                 Error *e = new Error(
                     ErrorInst::Generator::RedeclarationOfEnumElement,
@@ -177,7 +177,7 @@ bool parse(Generator *gen,
                                    num->token->str_value.c_str());
             int index = (int) c->getLimitedValue();
             int res =
-                enm->addElement(tn->token->str_value.c_str(),
+                enm->addMember(tn->token->str_value.c_str(),
                                 index);
             if (!res) {
                 fprintf(stderr,
