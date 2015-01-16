@@ -24,7 +24,7 @@ parse(Generator *gen,
         return false;
     }
 
-    int num = myenum->nameToNumber(n->token->str_value.c_str());
+    int num = myenum->nameToIndex(n->token->str_value.c_str());
     if (num == ENUM_NOTFOUND) {
         Error *e = new Error(
             ErrorInst::Generator::EnumValueDoesNotExist,
