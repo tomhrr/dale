@@ -7,7 +7,7 @@ namespace dale
 {
 NamespaceSavePoint::NamespaceSavePoint(Namespace *ns)
 {
-    for (std::map<std::string, std::vector<Element::Function *>* >::iterator
+    for (std::map<std::string, std::vector<Function *>* >::iterator
             b = ns->functions.begin(),
             e = ns->functions.end();
             b != e;
@@ -31,7 +31,7 @@ NamespaceSavePoint::~NamespaceSavePoint(void)
 
 bool NamespaceSavePoint::restore(void)
 {
-    std::map<std::string, std::vector<Element::Function *>*>::iterator
+    std::map<std::string, std::vector<Function *>*>::iterator
         fb;
 
     for (std::map<std::string, int>::iterator

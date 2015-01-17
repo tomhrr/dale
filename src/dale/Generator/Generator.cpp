@@ -119,7 +119,7 @@ int isValidModuleName(std::string *str)
     return 1;
 }
 
-Element::Type *type_dnode = NULL;
+Type *type_dnode = NULL;
 llvm::Function *pool_free_fn = NULL;
 void (*pool_free_fptr)(MContext *) = NULL;
 
@@ -596,7 +596,7 @@ int Generator::run(std::vector<const char *> *filenames,
                 }
                 break;
             }
-            Form::TopLevel::Inst::parse(this, top);
+            FormTopLevelInstParse(this, top);
             erep->flush();
         } while (1);
 
@@ -1247,7 +1247,7 @@ bool Generator::destructIfApplicable(ParseResult *pr,
     /* If it's an array with a known size, call this function for
      * each element in the array in order from last to first. */
     if (pr->type->is_array && pr->type->array_size) {
-        Element::Type *mine =
+        Type *mine =
             pr->type->array_type;
         llvm::BasicBlock   *mbl  = pr->block;
         int i = pr->type->array_size;
@@ -1271,10 +1271,10 @@ bool Generator::destructIfApplicable(ParseResult *pr,
             return true;
         }
 
-        std::vector<Element::Type *> types;
+        std::vector<Type *> types;
         if (!mine->is_array) {
             types.push_back(tr->getPointerType(mine));
-            Element::Function *fn = ctx->getFunction("destroy", &types,
+            Function *fn = ctx->getFunction("destroy", &types,
                                     NULL, 0);
             if (!fn) {
                 return true;
@@ -1357,19 +1357,19 @@ bool Generator::destructIfApplicable(ParseResult *pr,
         return true;
     }
 
-    std::vector<Element::Type *> types;
+    std::vector<Type *> types;
     types.push_back(tr->getPointerType(pr->type));
-    Element::Function *fn = ctx->getFunction("destroy", &types,
+    Function *fn = ctx->getFunction("destroy", &types,
                             NULL, 0);
     if (!fn) {
         /* If this is a struct, call destructIfApplicable on each of
          * the elements, in the absence of a destructor for the struct
          * as a whole. */
-        Element::Type *type = pr->type;
+        Type *type = pr->type;
         if (type->struct_name) {
-            Element::Struct *st = ctx->getStruct(type->struct_name->c_str(),
+            Struct *st = ctx->getStruct(type->struct_name->c_str(),
                                                  type->namespaces);
-            std::vector<Element::Type*> *st_types = &(st->element_types);
+            std::vector<Type*> *st_types = &(st->element_types);
             int i = 0;
             llvm::Value *actual_value = pr->value;
 
@@ -1392,7 +1392,7 @@ bool Generator::destructIfApplicable(ParseResult *pr,
                 }
             }
 
-            for (std::vector<Element::Type*>::iterator
+            for (std::vector<Type*>::iterator
                     b = st_types->begin(),
                     e = st_types->end();
                     b != e;
@@ -1466,7 +1466,7 @@ bool Generator::destructIfApplicable(ParseResult *pr,
 }
 
 bool Generator::copyWithSetfIfApplicable(
-    Element::Function *dfn,
+    Function *dfn,
     ParseResult *pr,
     ParseResult *pr_res
 ) {
@@ -1490,11 +1490,11 @@ bool Generator::copyWithSetfIfApplicable(
     if (pr->freshly_copied) {
         return true;
     }
-    std::vector<Element::Type *> types;
-    Element::Type *copy_type = tr->getPointerType(pr->type);
+    std::vector<Type *> types;
+    Type *copy_type = tr->getPointerType(pr->type);
     types.push_back(copy_type);
     types.push_back(copy_type);
-    Element::Function *over_setf =
+    Function *over_setf =
         ctx->getFunction("setf-copy", &types, NULL, 0);
     if (!over_setf) {
         return true;
@@ -1524,12 +1524,12 @@ bool Generator::copyWithSetfIfApplicable(
     return true;
 }
 
-bool Generator::scopeClose(Element::Function *dfn,
+bool Generator::scopeClose(Function *dfn,
                            llvm::BasicBlock *block,
                            llvm::Value *no_destruct,
                            bool entire_function)
 {
-    std::vector<Element::Variable *> stack_vars;
+    std::vector<Variable *> stack_vars;
     if (entire_function) {
         ctx->ns()->getVarsAfterIndex(dfn->index, &stack_vars);
     } else {
@@ -1539,7 +1539,7 @@ bool Generator::scopeClose(Element::Function *dfn,
     ParseResult mnew;
     mnew.block = block;
 
-    for (std::vector<Element::Variable *>::iterator
+    for (std::vector<Variable *>::iterator
             b = stack_vars.begin(),
             e = stack_vars.end();
             b != e;
@@ -1556,7 +1556,7 @@ bool Generator::scopeClose(Element::Function *dfn,
     return true;
 }
 
-void Generator::processRetval(Element::Type *return_type,
+void Generator::processRetval(Type *return_type,
                               llvm::BasicBlock *block, 
                               ParseResult *pr,
                               std::vector<llvm::Value*> *call_args)
@@ -1590,7 +1590,7 @@ void Generator::processRetval(Element::Type *return_type,
 }
 
 bool Generator::parseFuncallInternal(
-    Element::Function *dfn,
+    Function *dfn,
     Node *n,
     bool getAddress,
     ParseResult *fn_ptr,
@@ -1656,7 +1656,7 @@ bool Generator::parseFuncallInternal(
             call_args.push_back((*b));
         }
     }
-    std::vector<Element::Type *>::iterator param_iter;
+    std::vector<Type *>::iterator param_iter;
 
     while (skip--) {
         ++symlist_iter;
@@ -1674,7 +1674,7 @@ bool Generator::parseFuncallInternal(
     }
     while (symlist_iter != lst->end()) {
         ParseResult p;
-        bool res = Form::Proc::Inst::parse(this, 
+        bool res = FormProcInstParse(this, 
             dfn, block, (*symlist_iter), getAddress, false, NULL, &p,
             true
         );
@@ -1746,7 +1746,7 @@ bool Generator::parseFuncallInternal(
     ParseResult refpr;
     int start = (extra_call_args ? extra_call_args->size() : 0);
     for (int i = start; i < limit; i++) {
-        Element::Type *pt = 
+        Type *pt = 
             fn_ptr->type->points_to->parameter_types->at(i);
         ParseResult *arg_refpr = &(call_arg_prs.at(i));
         if (pt->is_reference) {
@@ -1799,8 +1799,8 @@ bool Generator::parseFuncallInternal(
 void Generator::setPdnode()
 {
     if (!type_dnode) {
-        Element::Type *st = tr->getStructType("DNode");
-        Element::Type *tt = tr->getPointerType(st);
+        Type *st = tr->getStructType("DNode");
+        Type *tt = tr->getPointerType(st);
 
         llvm::Type *dnode =
             ctx->toLLVMType(st, NULL, false);
@@ -1888,7 +1888,7 @@ DNode *callmacro(int arg_count, void *gen, void *mac, DNode **dnodes,
 
 Node *Generator::parseMacroCall(Node *n,
                                 const char *name,
-                                Element::Function *macro_to_call)
+                                Function *macro_to_call)
 {
     if (DALE_DEBUG) {
         fprintf(stderr, "Calling macro '%s'\n", name);
@@ -1923,7 +1923,7 @@ Node *Generator::parseMacroCall(Node *n,
     /* Have to expand this to handle overloading itself
      * (macro_to_call is provided by PFBI, where applicable). */
 
-    Element::Function *mc =
+    Function *mc =
         macro_to_call
         ? macro_to_call
         : ctx->getFunction(t->str_value.c_str(), NULL, NULL, 1);
@@ -1976,7 +1976,7 @@ Node *Generator::parseMacroCall(Node *n,
         fprintf(stderr, "Macro flag 1\n");
     }
 
-    std::vector<Element::Variable *>::iterator var_iter;
+    std::vector<Variable *>::iterator var_iter;
     var_iter = mc->parameter_types->begin();
     // Skip implicit MContext arg. */
     ++var_iter;
@@ -2086,11 +2086,11 @@ Node *Generator::parseOptionalMacroCall(Node *n)
 
     Node* (*core_mac)(Context *ctx, Node *n);
 
-    core_mac =   (eq("setv"))   ? &Form::Macro::Setv::parse
-               : (eq("@$"))     ? &Form::Macro::ArrayDeref::parse
-               : (eq(":@"))     ? &Form::Macro::DerefStruct::parse
-               : (eq("@:"))     ? &Form::Macro::StructDeref::parse
-               : (eq("@:@"))    ? &Form::Macro::DerefStructDeref::parse
+    core_mac =   (eq("setv"))   ? &FormMacroSetvParse
+               : (eq("@$"))     ? &FormMacroArrayDerefParse
+               : (eq(":@"))     ? &FormMacroDerefStructParse
+               : (eq("@:"))     ? &FormMacroStructDerefParse
+               : (eq("@:@"))    ? &FormMacroDerefStructDerefParse
                : NULL;
 
     if (core_mac) {
@@ -2102,7 +2102,7 @@ Node *Generator::parseOptionalMacroCall(Node *n)
         return new_node;
     }
 
-    Element::Function *ffn =
+    Function *ffn =
         ctx->getFunction(t->str_value.c_str(), NULL, 1);
     if (!ffn) {
         return n;
@@ -2156,10 +2156,10 @@ Node *Generator::parseOptionalMacroCall(Node *n)
         abort();
     }
 
-    std::vector<Element::Variable *> vars;
+    std::vector<Variable *> vars;
 
-    Element::Function *dfn =
-        new Element::Function(ctx->tr->type_int,
+    Function *dfn =
+        new Function(ctx->tr->type_int,
                               &vars,
                               fn,
                               0,
@@ -2181,7 +2181,7 @@ Node *Generator::parseOptionalMacroCall(Node *n)
     /* Iterate over the arguments and collect the types. Make
      * backups of the existing state first. */
 
-    std::vector<Element::Type *> types;
+    std::vector<Type *> types;
 
     int error_count = erep->getErrorTypeCount(ErrorType::Error);
 
@@ -2199,7 +2199,7 @@ Node *Generator::parseOptionalMacroCall(Node *n)
             ++b) {
         ParseResult mine;
         bool res =
-            Form::Proc::Inst::parse(this, dfn, block, *b, false, false, NULL,
+            FormProcInstParse(this, dfn, block, *b, false, false, NULL,
                                    &mine);
         if (res) {
             /* Add the type. */
@@ -2262,13 +2262,13 @@ Node *Generator::parseOptionalMacroCall(Node *n)
     }
 }
 
-bool Generator::parseFunctionCall(Element::Function *dfn,
+bool Generator::parseFunctionCall(Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
         const char *name,
         bool getAddress,
         bool prefixed_with_core,
-        Element::Function **macro_to_call,
+        Function **macro_to_call,
         ParseResult *pr)
 {
     if (DALE_DEBUG) {
@@ -2317,10 +2317,10 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
     std::vector<llvm::Value *> call_args;
     std::vector<Node *> call_arg_nodes;
     std::vector<ParseResult> call_arg_prs;
-    std::vector<Element::Type *> call_arg_types;
+    std::vector<Type *> call_arg_types;
 
     std::vector<llvm::Value *> call_args_newer;
-    std::vector<Element::Type *> call_arg_types_newer;
+    std::vector<Type *> call_arg_types_newer;
 
     if (!strcmp(name, "setf")) {
         /* Add a bool argument and type to the front of the
@@ -2339,9 +2339,9 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
      * */
 
     if (!ctx->isOverloadedFunction(t->str_value.c_str())) {
-        std::map<std::string, std::vector<Element::Function *> *>::iterator
+        std::map<std::string, std::vector<Function *> *>::iterator
             iter;
-        Element::Function *fn = NULL;
+        Function *fn = NULL;
         for (std::vector<NSNode *>::reverse_iterator
                 rb = ctx->used_ns_nodes.rbegin(),
                 re = ctx->used_ns_nodes.rend();
@@ -2359,7 +2359,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
              * DNode) (because typed arguments must appear before the
              * first (p DNode) argument), then short-circuit, so long
              * as the argument count is ok. */
-            std::vector<Element::Variable*>::iterator
+            std::vector<Variable*>::iterator
                 b = (fn->parameter_types->begin() + 1);
             if ((b == fn->parameter_types->end())
                     || (*b)->type->isEqualTo(type_pdnode)) {
@@ -2382,7 +2382,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
     std::vector<Error*> errors;
 
     /* Record the number of blocks and the instruction index in the
-     * current block. If the underlying Element::Function to call
+     * current block. If the underlying Function to call
      * is a function, then there's no problem with using the
      * modifications caused by the repeated PFBI calls below. If
      * it's a macro, however, anything that occurred needs to be
@@ -2391,7 +2391,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
     int current_block_count = dfn->llvm_function->size();
     int current_instr_index = block->size();
     int current_dgcount = dfn->defgotos->size();
-    std::map<std::string, Element::Label *> labels = *(dfn->labels);
+    std::map<std::string, Label *> labels = *(dfn->labels);
     llvm::BasicBlock *original_block = block;
     ContextSavePoint *csp = new ContextSavePoint(ctx);
 
@@ -2402,7 +2402,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
 
         ParseResult p;
         bool res = 
-            Form::Proc::Inst::parse(this, dfn, block, (*symlist_iter),
+            FormProcInstParse(this, dfn, block, (*symlist_iter),
                                     false, false, NULL,
                                     &p, true);
 
@@ -2443,9 +2443,9 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
     /* Now have all the argument types. Get the function out of
      * the context. */
 
-    Element::Function *closest_fn = NULL;
+    Function *closest_fn = NULL;
 
-    Element::Function *fn =
+    Function *fn =
         ctx->getFunction(t->str_value.c_str(),
                          &call_arg_types,
                          &closest_fn,
@@ -2548,14 +2548,14 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
             fn = ctx->getFunction(t->str_value.c_str(),
                                   NULL, NULL, 0);
 
-            std::vector<Element::Variable *> *myarg_types =
+            std::vector<Variable *> *myarg_types =
                 fn->parameter_types;
-            std::vector<Element::Variable *>::iterator miter =
+            std::vector<Variable *>::iterator miter =
                 myarg_types->begin();
 
             std::vector<llvm::Value *>::iterator citer =
                 call_args.begin();
-            std::vector<Element::Type *>::iterator caiter =
+            std::vector<Type *>::iterator caiter =
                 call_arg_types.begin();
 
             /* Create strings describing the types, for use in a
@@ -2687,7 +2687,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
                 return true;
             }
 
-            std::vector<Element::Type *>::iterator titer =
+            std::vector<Type *>::iterator titer =
                 call_arg_types.begin();
 
             std::string args;
@@ -2701,7 +2701,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
 
             if (closest_fn) {
                 std::string expected;
-                std::vector<Element::Variable *>::iterator viter;
+                std::vector<Variable *>::iterator viter;
                 viter = closest_fn->parameter_types->begin();
                 if (closest_fn->is_macro) {
                     ++viter;
@@ -2755,7 +2755,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
 
         std::vector<llvm::Value *>::iterator call_args_iter
         = call_args.begin();
-        std::vector<Element::Type *>::iterator call_arg_types_iter
+        std::vector<Type *>::iterator call_arg_types_iter
         = call_arg_types.begin();
 
         while (n--) {
@@ -2811,7 +2811,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
     int limit = (caps > pts ? pts : caps);
     ParseResult refpr;
     for (int i = 0; i < limit; i++) {
-        Element::Type *pt = fn->parameter_types->at(i)->type;
+        Type *pt = fn->parameter_types->at(i)->type;
         ParseResult *arg_refpr = &(call_arg_prs.at(i));
         if (pt->is_reference) {
             if (!pt->is_const && !arg_refpr->value_is_lvalue) {
@@ -2859,7 +2859,7 @@ bool Generator::parseFunctionCall(Element::Function *dfn,
     return true;
 }
 
-void Generator::parseArgument(Element::Variable *var, Node *top,
+void Generator::parseArgument(Variable *var, Node *top,
                               bool allow_anon_structs,
                               bool allow_bitfields,
                               bool allow_refs)
@@ -2939,7 +2939,7 @@ void Generator::parseArgument(Element::Variable *var, Node *top,
     var->name.clear();
     var->name.append(tname->str_value.c_str());
 
-    Element::Type *type = Form::Type::parse(this, (*lst)[1], allow_anon_structs,
+    Type *type = FormTypeParse(this, (*lst)[1], allow_anon_structs,
                                     allow_bitfields, allow_refs);
     var->type = type;
 
@@ -2985,14 +2985,14 @@ int Generator::parseInteger(Node *n)
 }
 
 llvm::Value *Generator::coerceValue(llvm::Value *from_value,
-                                    Element::Type *from_type,
-                                    Element::Type *to_type,
+                                    Type *from_type,
+                                    Type *to_type,
                                     llvm::BasicBlock *block)
 {
     int fa = from_type->is_array;
     int fb = (fa) ? from_type->array_type->base_type : 0;
-    Element::Type *fp = from_type->points_to;
-    Element::Type *tp = to_type->points_to;
+    Type *fp = from_type->points_to;
+    Type *tp = to_type->points_to;
 
     if (fb == BaseType::Char && fa && !fp) {
         if (tp && tp->base_type == BaseType::Char && !tp->points_to) {

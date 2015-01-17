@@ -5,9 +5,9 @@
 
 static int anonstructcount = 0;
 
-namespace dale { namespace Form { namespace Type {
-Element::Type *
-parse(Generator *gen, Node *top, bool allow_anon_structs,
+namespace dale {
+Type *
+FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
       bool allow_bitfields, bool allow_refs, bool allow_retvals)
 {
     if (!top) {
@@ -56,7 +56,7 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
                                              : -1;
 
         if (bmt != -1) {
-            Element::Type *mt = gen->ctx->tr->getBasicType(bmt);
+            dale::Type *mt = gen->ctx->tr->getBasicType(bmt);
 
             if (mt) {
                 if (!gen->is_x86_64
@@ -76,7 +76,7 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
 
         /* Not a simple type - check if it is a struct. */
 
-        Element::Struct *temp_struct;
+        dale::Struct *temp_struct;
 
         if ((temp_struct = ctx->getStruct(typs))) {
             std::string fqsn;
@@ -103,7 +103,7 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
     Node *newtop = gen->parseOptionalMacroCall(top);
 
     if (newtop != top) {
-        return parse(gen, newtop, allow_anon_structs,
+        return FormTypeParse(gen, newtop, allow_anon_structs,
                          allow_bitfields, allow_refs, allow_retvals);
     }
 
@@ -138,7 +138,7 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
         templist.assign(lst->begin() + 1, lst->end());
         lst = &templist;
         if (lst->size() == 1) {
-            return parse(gen, lst->at(0), allow_anon_structs,
+            return FormTypeParse(gen, lst->at(0), allow_anon_structs,
                              allow_bitfields);
         }
     }
@@ -163,8 +163,8 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
 
         /* Reference types are only permitted at the 'top level' of
          * the type. */
-        Element::Type *reference_type =
-            parse(gen, (*lst)[1], allow_anon_structs,
+        dale::Type *reference_type =
+            FormTypeParse(gen, (*lst)[1], allow_anon_structs,
                   allow_bitfields);
 
         if (reference_type == NULL) {
@@ -194,8 +194,8 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
 
         /* Retval types are only permitted at the 'top level' of
          * the type. */
-        Element::Type *retval_type =
-            parse(gen, (*lst)[1], allow_anon_structs,
+        dale::Type *retval_type =
+            FormTypeParse(gen, (*lst)[1], allow_anon_structs,
                   allow_bitfields);
 
         if (retval_type == NULL) {
@@ -224,7 +224,7 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
         int error_count =
             ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Form::Struct::parse(gen, new Node(lst), buf);
+        FormStructParse(gen, new Node(lst), buf);
 
         int error_post_count =
             ctx->er->getErrorTypeCount(ErrorType::Error);
@@ -234,7 +234,7 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
 
         Token *name = new Token(TokenType::String,0,0,0,0);
         name->str_value.append(buf);
-        Element::Type *myst = parse(gen, new Node(name), false,
+        dale::Type *myst = FormTypeParse(gen, new Node(name), false,
                                         false);
         if (!myst) {
             fprintf(stderr, "Unable to retrieve anonymous struct.\n");
@@ -251,8 +251,8 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
             && lst->size() == 3
             && lst->at(0)->is_token
             && !(lst->at(0)->token->str_value.compare("bf"))) {
-        Element::Type *bf_type =
-            parse(gen, lst->at(1), false, false);
+        dale::Type *bf_type =
+            FormTypeParse(gen, lst->at(1), false, false);
         if (!(bf_type->isIntegerType())) {
             Error *e = new Error(
                 ErrorInst::Generator::BitfieldMustHaveIntegerType,
@@ -287,8 +287,8 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        Element::Type *const_type =
-            parse(gen, (*lst)[1], allow_anon_structs,
+        dale::Type *const_type =
+            FormTypeParse(gen, (*lst)[1], allow_anon_structs,
                       allow_bitfields);
 
         if (const_type == NULL) {
@@ -322,15 +322,15 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        Element::Type *array_type =
-            parse(gen, (*lst)[2], allow_anon_structs,
+        dale::Type *array_type =
+            FormTypeParse(gen, (*lst)[2], allow_anon_structs,
                       allow_bitfields);
 
         if (array_type == NULL) {
             return NULL;
         }
 
-        Element::Type *type = ctx->tr->getArrayType(array_type, size);
+        dale::Type *type = ctx->tr->getArrayType(array_type, size);
 
         return type;
     }
@@ -340,8 +340,8 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        Element::Type *points_to_type =
-            parse(gen, (*lst)[1], allow_anon_structs,
+        dale::Type *points_to_type =
+            FormTypeParse(gen, (*lst)[1], allow_anon_structs,
                       allow_bitfields);
 
         if (points_to_type == NULL) {
@@ -356,8 +356,8 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        Element::Type *ret_type =
-            parse(gen, (*lst)[1], allow_anon_structs,
+        dale::Type *ret_type =
+            FormTypeParse(gen, (*lst)[1], allow_anon_structs,
                       allow_bitfields, false, true);
 
         if (ret_type == NULL) {
@@ -386,16 +386,16 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
 
         symlist *plst = params->list;
 
-        Element::Variable *var;
+        Variable *var;
 
-        std::vector<Element::Type *> *parameter_types =
-            new std::vector<Element::Type *>;
+        std::vector<dale::Type *> *parameter_types =
+            new std::vector<dale::Type *>;
 
         std::vector<Node *>::iterator node_iter;
         node_iter = plst->begin();
 
         while (node_iter != plst->end()) {
-            var = new Element::Variable();
+            var = new Variable();
             var->type = NULL;
 
             gen->parseArgument(var, (*node_iter),
@@ -451,7 +451,7 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
             ++node_iter;
         }
 
-        Element::Type *type = new Element::Type();
+        dale::Type *type = new dale::Type();
         type->is_function     = 1;
         type->return_type     = ret_type;
         type->parameter_types = parameter_types;
@@ -466,4 +466,4 @@ parse(Generator *gen, Node *top, bool allow_anon_structs,
 
     return NULL;
 }
-}}}
+}

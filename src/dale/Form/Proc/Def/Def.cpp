@@ -1,7 +1,7 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../Linkage/Linkage.h"
 #include "../../Type/Type.h"
 #include "../../Struct/Struct.h"
@@ -10,25 +10,21 @@
 
 namespace dale
 {
-namespace Form
+Function *
+get_init_fn(Context *ctx,
+            dale::Type *type)
 {
-namespace Proc
-{
-namespace Def
-{
-Element::Function *get_init_fn(Context *ctx,
-                               Element::Type *type)
-{
-    std::vector<Element::Type *> init_arg_types;
+    std::vector<dale::Type *> init_arg_types;
     init_arg_types.push_back(type);
     return ctx->getFunction("init", &init_arg_types, NULL, 0);
 }
 
-bool initialise(Context *ctx,
+bool
+initialise(Context *ctx,
                 llvm::IRBuilder<> *builder,
-                Element::Type *type,
+                dale::Type *type,
                 llvm::Value *value,
-                Element::Function *init_fn)
+                Function *init_fn)
 {
     if (!init_fn) {
         init_fn = get_init_fn(ctx, type);
@@ -74,7 +70,7 @@ bool initialise(Context *ctx,
     }
 
     if (type->struct_name) {
-        Element::Struct *sp =
+        dale::Struct *sp =
             ctx->getStruct(
                 type->struct_name->c_str(),
                 type->namespaces
@@ -82,12 +78,12 @@ bool initialise(Context *ctx,
         int i = 0;
         std::vector<llvm::Value *> indices;
         indices.push_back(ctx->nt->getLLVMZero());
-        for (std::vector<Element::Type *>::iterator
+        for (std::vector<dale::Type *>::iterator
                 b = sp->element_types.begin(),
                 e = sp->element_types.end();
                 b != e;
                 ++b) {
-            Element::Type *t = (*b);
+            dale::Type *t = (*b);
             indices.push_back(
                 llvm::cast<llvm::Value>(
                     ctx->nt->getNativeInt(i)
@@ -110,8 +106,9 @@ bool initialise(Context *ctx,
     return true;
 }
 
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcDefParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -164,7 +161,7 @@ bool parse(Generator *gen,
     }
 
     if (!(nvar->token->str_value.compare("struct"))) {
-        Form::Struct::parse(gen, ndef, name);
+        FormStructParse(gen, ndef, name);
         pr->set(block, ctx->tr->type_int,
               llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
         return true;
@@ -175,7 +172,7 @@ bool parse(Generator *gen,
 
     /* Parse linkage. */
 
-    int linkage = Form::Linkage::parse(ctx, (*newlist)[1]);
+    int linkage = FormLinkageParse(ctx, (*newlist)[1]);
     if (!linkage) {
         return false;
     }
@@ -200,7 +197,7 @@ bool parse(Generator *gen,
     pr->do_not_destruct       = 1;
     pr->do_not_copy_with_setf = 1;
 
-    Element::Type *type;
+    dale::Type *type;
 
     if ((*newlist)[2]->is_token &&
             !(*newlist)[2]->token->str_value.compare("\\")) {
@@ -216,7 +213,7 @@ bool parse(Generator *gen,
         ParseResult p;
         Node *last = (*newlist)[3];
         symlist *vlst = last->list;
-        Element::Variable *var_value = NULL;
+        Variable *var_value = NULL;
         llvm::IRBuilder<> builder(block);
         if (last->is_token
                 && (var_value = ctx->getVariable(
@@ -238,7 +235,7 @@ bool parse(Generator *gen,
             p.block = block;
         } else {
             bool res =
-                Form::Proc::Inst::parse(gen,
+                FormProcInstParse(gen,
                     fn, block, last, get_address, false, NULL, &p
                 );
             if (!res) {
@@ -259,7 +256,7 @@ bool parse(Generator *gen,
         llvm::Value *new_ptr = llvm::cast<llvm::Value>(
                                    builder.CreateAlloca(et)
                                );
-        Element::Variable *var2 = new Element::Variable();
+        Variable *var2 = new Variable();
         var2->name.append(name);
         var2->type = type;
         var2->value = new_ptr;
@@ -303,10 +300,10 @@ bool parse(Generator *gen,
             return false;
         }
 
-        std::vector<Element::Type *> call_arg_types;
+        std::vector<dale::Type *> call_arg_types;
         call_arg_types.push_back(ctx->tr->getPointerType(type));
         call_arg_types.push_back(ctx->tr->getPointerType(type));
-        Element::Function *or_setf =
+        Function *or_setf =
             ctx->getFunction("setf-copy", &call_arg_types,
                              NULL, 0);
         if (or_setf && type->isEqualTo(p.type)) {
@@ -325,7 +322,7 @@ bool parse(Generator *gen,
         } else {
             call_arg_types.pop_back();
             call_arg_types.push_back(p.type);
-            Element::Function *or_setf2 =
+            Function *or_setf2 =
                 ctx->getFunction("setf-copy", &call_arg_types,
                                  NULL, 0);
             if (or_setf2) {
@@ -349,20 +346,20 @@ bool parse(Generator *gen,
         return true;
     } else {
         /* Parse the type. */
-        type = Form::Type::parse(gen, (*newlist)[2], false, false);
+        type = FormTypeParse(gen, (*newlist)[2], false, false);
         if (!type) {
             return false;
         }
         
         /* Find the init function, if it exists. */
-        std::vector<Element::Type *> init_arg_types;
+        std::vector<dale::Type *> init_arg_types;
         init_arg_types.push_back(type);
-        Element::Function *init_fn =
+        Function *init_fn =
             ctx->getFunction("init", &init_arg_types, NULL, 0);
 
         /* If it's a struct, check if it's must-init. */
         if (type->struct_name) {
-            Element::Struct *mine =
+            dale::Struct *mine =
                 ctx->getStruct(
                     type->struct_name->c_str(),
                     type->namespaces
@@ -392,7 +389,7 @@ bool parse(Generator *gen,
         llvm::Value *new_ptr = llvm::cast<llvm::Value>(
                                    builder.CreateAlloca(et)
                                );
-        Element::Variable *var2 = new Element::Variable();
+        Variable *var2 = new Variable();
         var2->name.append(name);
         var2->type = type;
         var2->value = new_ptr;
@@ -429,7 +426,7 @@ bool parse(Generator *gen,
         ParseResult p;
         Node *last = (*newlist)[3];
         symlist *vlst = last->list;
-        Element::Variable *var_value = NULL;
+        Variable *var_value = NULL;
         /* Add the pointer as the retval. */
         p.retval      = new_ptr;
         p.retval_type = ctx->tr->getPointerType(type);
@@ -453,7 +450,7 @@ bool parse(Generator *gen,
             p.block = block;
         } else {
             bool res =
-                Form::Proc::Inst::parse(gen,
+                FormProcInstParse(gen,
                     fn, block, last, get_address, false, type, &p
                 );
             if (!res) {
@@ -507,10 +504,10 @@ bool parse(Generator *gen,
 
         llvm::IRBuilder<> builder2(p.block);
 
-        std::vector<Element::Type *> call_arg_types;
+        std::vector<dale::Type *> call_arg_types;
         call_arg_types.push_back(ctx->tr->getPointerType(type));
         call_arg_types.push_back(ctx->tr->getPointerType(type));
-        Element::Function *or_setf =
+        Function *or_setf =
             ctx->getFunction("setf-copy", &call_arg_types,
                              NULL, 0);
         if (or_setf && type->isEqualTo(p.type)) {
@@ -530,7 +527,7 @@ bool parse(Generator *gen,
             call_arg_types.clear();
             call_arg_types.push_back(ctx->tr->getPointerType(type));
             call_arg_types.push_back(p.type);
-            Element::Function *or_setf2 =
+            Function *or_setf2 =
                 ctx->getFunction("setf-copy", &call_arg_types,
                                  NULL, 0);
             if (or_setf2) {
@@ -561,8 +558,5 @@ bool parse(Generator *gen,
         pr->block = temp.block;
         return true;
     }
-}
-}
-}
 }
 }

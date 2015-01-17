@@ -4,20 +4,18 @@
 #include "../Type/Type.h"
 #include "../Variable/Variable.h"
 #include "../Label/Label.h"
-#include "../../DeferredGoto/DeferredGoto.h"
+#include "../DeferredGoto/DeferredGoto.h"
 #include <vector>
 
 namespace dale
 {
-namespace Element
-{
 class Function
 {
 public:
-    Element::Type *return_type;
-    std::vector<Element::Variable *> *parameter_types;
+    Type *return_type;
+    std::vector<Variable *> *parameter_types;
     std::vector<DeferredGoto *> *defgotos;
-    std::map<std::string, Element::Label *> *labels;
+    std::map<std::string, Label *> *labels;
     llvm::Function *llvm_function;
     int is_macro;
     std::string *internal_name;
@@ -31,8 +29,8 @@ public:
     bool serialise;
 
     Function();
-    Function(Element::Type *return_type,
-             std::vector<Element::Variable *> *parameter_types,
+    Function(Type *return_type,
+             std::vector<Variable *> *parameter_types,
              llvm::Function *llvm_function,
              int is_macro,
              std::string *internal_name,
@@ -41,14 +39,13 @@ public:
 
     int isVarArgs(void);
     unsigned int numberOfRequiredArgs(void);
-    int isEqualTo(Element::Function *fn);
-    int attrsAreEqual(Element::Function *fn);
-    Element::Label *getLabel(const char *str);
-    bool addLabel(const char *str, Element::Label *label);
+    int isEqualTo(Function *fn);
+    int attrsAreEqual(Function *fn);
+    Label *getLabel(const char *str);
+    bool addLabel(const char *str, Label *label);
     bool isDeclaration(void);
     bool hasRetval(void);
 };
-}
 }
 
 #endif

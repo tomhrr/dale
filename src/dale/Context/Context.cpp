@@ -287,9 +287,9 @@ Context::eraseLLVMMacrosAndCTOFunctions(void)
 }
 
 bool
-existsNonExternCFunctionInList(std::vector<Element::Function *> *fn_list)
+existsNonExternCFunctionInList(std::vector<Function *> *fn_list)
 {
-    for (std::vector<Element::Function *>::iterator
+    for (std::vector<Function *>::iterator
             b = fn_list->begin(),
             e = fn_list->end();
             b != e;
@@ -304,7 +304,7 @@ existsNonExternCFunctionInList(std::vector<Element::Function *> *fn_list)
 bool
 Context::existsNonExternCFunction(const char *name)
 {
-    std::map<std::string, std::vector<Element::Function *> *>::iterator 
+    std::map<std::string, std::vector<Function *> *>::iterator 
         iter;
 
     const char *fn_name;
@@ -340,9 +340,9 @@ Context::existsNonExternCFunction(const char *name)
 }
 
 bool
-existsExternCFunctionInList(std::vector<Element::Function *> *fn_list)
+existsExternCFunctionInList(std::vector<Function *> *fn_list)
 {
-    for (std::vector<Element::Function *>::iterator
+    for (std::vector<Function *>::iterator
             b = fn_list->begin(),
             e = fn_list->end();
             b != e;
@@ -357,7 +357,7 @@ existsExternCFunctionInList(std::vector<Element::Function *> *fn_list)
 bool
 Context::existsExternCFunction(const char *name)
 {
-    std::map<std::string, std::vector<Element::Function *> *>::iterator 
+    std::map<std::string, std::vector<Function *> *>::iterator 
         iter;
 
     const char *fn_name;
@@ -393,10 +393,10 @@ Context::existsExternCFunction(const char *name)
 }
 
 bool
-isOverloadedFunctionInList(Element::Function *fn,
-                           std::vector<Element::Function *> *fn_list)
+isOverloadedFunctionInList(Function *fn,
+                           std::vector<Function *> *fn_list)
 {
-    for (std::vector<Element::Function *>::iterator
+    for (std::vector<Function *>::iterator
             b = fn_list->begin(),
             e = fn_list->end();
             b != e;
@@ -411,7 +411,7 @@ isOverloadedFunctionInList(Element::Function *fn,
 bool
 Context::isOverloadedFunction(const char *name)
 {
-    std::map<std::string, std::vector<Element::Function *> *>::iterator 
+    std::map<std::string, std::vector<Function *> *>::iterator 
         iter;
 
     if (strchr(name, '.')) {
@@ -431,7 +431,7 @@ Context::isOverloadedFunction(const char *name)
         return false;
     }
 
-    Element::Function *check_fn = NULL;
+    Function *check_fn = NULL;
 
     for (std::vector<NSNode *>::reverse_iterator
             rb = used_ns_nodes.rbegin(),
@@ -453,14 +453,14 @@ Context::isOverloadedFunction(const char *name)
     return false;
 }
 
-Element::Function *
+Function *
 getFunction_(Namespace *ns,
              const char *name,
-             std::vector<Element::Type *> *types,
-             Element::Function **closest_fn,
+             std::vector<Type *> *types,
+             Function **closest_fn,
              bool is_macro)
 {
-    Element::Function *fn =
+    Function *fn =
         ns->getFunction(name, types, closest_fn, is_macro, false);
     if (fn) {
         return fn;
@@ -468,10 +468,10 @@ getFunction_(Namespace *ns,
     return ns->getFunction(name, types, closest_fn, is_macro, true);
 }
 
-Element::Function *
+Function *
 Context::getFunction(const char *name,
-                     std::vector<Element::Type *> *types,
-                     Element::Function **closest_fn,
+                     std::vector<Type *> *types,
+                     Function **closest_fn,
                      bool is_macro)
 {
     if (strchr(name, '.')) {
@@ -488,7 +488,7 @@ Context::getFunction(const char *name,
             re = used_ns_nodes.rend();
             rb != re;
             ++rb) {
-        Element::Function *fn =
+        Function *fn =
             getFunction_((*rb)->ns, name, types, closest_fn, is_macro);
         if (fn) {
             return fn;
@@ -498,15 +498,15 @@ Context::getFunction(const char *name,
     return NULL;
 }
 
-Element::Function *
+Function *
 Context::getFunction(const char *name,
-                     std::vector<Element::Type *> *types,
+                     std::vector<Type *> *types,
                      bool is_macro)
 {
     return getFunction(name, types, NULL, is_macro);
 }
 
-Element::Variable *
+Variable *
 Context::getVariable(const char *name)
 {
     if (strchr(name, '.')) {
@@ -523,7 +523,7 @@ Context::getVariable(const char *name)
             re = used_ns_nodes.rend();
             rb != re;
             ++rb) {
-        Element::Variable *var = (*rb)->ns->getVariable(name);
+        Variable *var = (*rb)->ns->getVariable(name);
         if (var) {
             return var;
         }
@@ -532,7 +532,7 @@ Context::getVariable(const char *name)
     return NULL;
 }
 
-Element::Struct *
+Struct *
 Context::getStruct(const char *name)
 {
     if (strchr(name, '.')) {
@@ -549,7 +549,7 @@ Context::getStruct(const char *name)
             re = used_ns_nodes.rend();
             rb != re;
             ++rb) {
-        Element::Struct *st = (*rb)->ns->getStruct(name);
+        Struct *st = (*rb)->ns->getStruct(name);
         if (st) {
             return st;
         }
@@ -558,7 +558,7 @@ Context::getStruct(const char *name)
     return NULL;
 }
 
-Element::Struct *
+Struct *
 Context::getStruct(const char *name,
                    std::vector<std::string> *namespaces)
 {
@@ -584,7 +584,7 @@ Context::getStruct(const char *name,
     return getStruct(full_name.c_str());
 }
 
-Element::Enum *
+Enum *
 Context::getEnum(const char *name)
 {
     if (strchr(name, '.')) {
@@ -601,7 +601,7 @@ Context::getEnum(const char *name)
             re = used_ns_nodes.rend();
             rb != re;
             ++rb) {
-        Element::Enum *en = (*rb)->ns->getEnum(name);
+        Enum *en = (*rb)->ns->getEnum(name);
         if (en) {
             return en;
         }
@@ -635,7 +635,7 @@ Context::setNamespacesForStruct(const char *name,
             re = used_ns_nodes.rend();
             rb != re;
             ++rb) {
-        Element::Struct *st = (*rb)->ns->getStruct(name);
+        Struct *st = (*rb)->ns->getStruct(name);
         if (st) {
             (*rb)->ns->setNamespaces(namespaces);
             return true;
@@ -667,7 +667,7 @@ Context::setFullyQualifiedStructName(const char *name,
             re = used_ns_nodes.rend();
             rb != re;
             ++rb) {
-        Element::Struct *st = (*rb)->ns->getStruct(name);
+        Struct *st = (*rb)->ns->getStruct(name);
         if (st) {
             std::vector<std::string> nss;
             (*rb)->ns->setNamespaces(&nss);
@@ -711,7 +711,7 @@ Context::setNamespacesForEnum(const char *name,
             re = used_ns_nodes.rend();
             rb != re;
             ++rb) {
-        Element::Enum *en = (*rb)->ns->getEnum(name);
+        Enum *en = (*rb)->ns->getEnum(name);
         if (en) {
             (*rb)->ns->setNamespaces(namespaces);
             return true;
@@ -808,18 +808,18 @@ regetFunctionPointers(llvm::Module *mod, NSNode *nsnode)
 }
 
 bool
-Context::rebuildFunction(Element::Function *fn, const char *name,
+Context::rebuildFunction(Function *fn, const char *name,
                          llvm::Module *mod)
 {
     std::vector<llvm::Type*> types;
 
-    for (std::vector<Element::Variable *>::iterator
+    for (std::vector<Variable *>::iterator
             vb = fn->parameter_types->begin(),
             ve = fn->parameter_types->end();
             vb != ve;
             ++vb) {
-        Element::Variable *var = (*vb);
-        Element::Type *var_type = var->type;
+        Variable *var = (*vb);
+        Type *var_type = var->type;
         if (var_type->is_reference) {
             var_type = tr->getPointerType(var_type);
         }
@@ -880,16 +880,16 @@ Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
 
     Namespace *ns = nsnode->ns; 
 
-    std::map<std::string, std::vector<Element::Function *>* >::iterator
+    std::map<std::string, std::vector<Function *>* >::iterator
         b, e;
 
     for (b = ns->functions.begin(), e = ns->functions.end(); b != e; ++b) {
-        for (std::vector<Element::Function *>::iterator
+        for (std::vector<Function *>::iterator
                 fb = b->second->begin(),
                 fe = b->second->end();
                 fb != fe;
                 ++fb) {
-            Element::Function *fn = (*fb);
+            Function *fn = (*fb);
             fn->llvm_function = mod->getFunction(fn->internal_name->c_str());
             if (fn->llvm_function) {
                 continue;
@@ -902,7 +902,7 @@ Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
 }
 
 bool
-Context::rebuildVariable(Element::Variable *var, const char *name,
+Context::rebuildVariable(Variable *var, const char *name,
                          llvm::Module *mod)
 {
     /* internal_name is only set when the variable's value
@@ -948,12 +948,12 @@ Context::rebuildVariables(llvm::Module *mod, NSNode *nsnode)
 
     Namespace *ns = nsnode->ns;
 
-    for (std::map<std::string, Element::Variable *>::iterator
+    for (std::map<std::string, Variable *>::iterator
             b = ns->variables.begin(),
             e = ns->variables.end();
             b != e;
             ++b) {
-        Element::Variable *var = b->second;
+        Variable *var = b->second;
         rebuildVariable(var, b->first.c_str(), mod);
     }
 
@@ -998,14 +998,14 @@ Context::regetPointersForNewModule(llvm::Module *mod)
 }
 
 llvm::Type *
-Context::toLLVMTypeFunction(Element::Type *type,
+Context::toLLVMTypeFunction(Type *type,
                             Node *n,
                             bool refs_to_pointers)
 {
     std::vector<llvm::Type*> llvm_fn_params;
     bool is_varargs = 0;
 
-    std::vector<Element::Type*>::iterator iter;
+    std::vector<Type*>::iterator iter;
     iter = type->parameter_types->begin();
 
     while (iter != type->parameter_types->end()) {
@@ -1024,7 +1024,7 @@ Context::toLLVMTypeFunction(Element::Type *type,
         ++iter;
     }
 
-    Element::Type *r_type = type->return_type;
+    Type *r_type = type->return_type;
     llvm::Type *llvm_r_type = NULL;
 
     if (r_type->is_retval) {
@@ -1049,7 +1049,7 @@ Context::toLLVMTypeFunction(Element::Type *type,
 }
 
 llvm::Type *
-Context::toLLVMTypeArray(Element::Type *type,
+Context::toLLVMTypeArray(Type *type,
                          Node *n)
 {
     llvm::Type *new_type =
@@ -1061,7 +1061,7 @@ Context::toLLVMTypeArray(Element::Type *type,
 }
 
 llvm::Type *
-Context::toLLVMTypePointer(Element::Type *type,
+Context::toLLVMTypePointer(Type *type,
                            Node *n,
                            bool refs_to_pointers)
 {
@@ -1075,7 +1075,7 @@ Context::toLLVMTypePointer(Element::Type *type,
     /* If this is a pointer to void, then return a _vp struct
         * instead. */
     if (temp_type->isVoidTy()) {
-        Element::Struct *structp = getStruct("_vp", NULL);
+        Struct *structp = getStruct("_vp", NULL);
         if (!structp) {
             fprintf(stderr, "Internal error: no _vp struct.\n");
             abort();
@@ -1092,7 +1092,7 @@ Context::toLLVMTypePointer(Element::Type *type,
 }
 
 llvm::Type *
-Context::toLLVMTypeBase(Element::Type *type,
+Context::toLLVMTypeBase(Type *type,
                         Node *n)
 {
     llvm::LLVMContext &lc = llvm::getGlobalContext();
@@ -1128,10 +1128,10 @@ Context::toLLVMTypeBase(Element::Type *type,
 }
 
 llvm::Type *
-Context::toLLVMTypeStruct(Element::Type *type,
+Context::toLLVMTypeStruct(Type *type,
                           Node *n)
 {
-    Element::Struct *structp =
+    Struct *structp =
         getStruct(type->struct_name->c_str(), type->namespaces);
 
     if (structp) {
@@ -1148,7 +1148,7 @@ Context::toLLVMTypeStruct(Element::Type *type,
 }
 
 llvm::Type *
-Context::toLLVMType_(Element::Type *type,
+Context::toLLVMType_(Type *type,
                      Node *n,
                      bool refs_to_pointers)
 {
@@ -1202,7 +1202,7 @@ Context::toLLVMType_(Element::Type *type,
 }
 
 llvm::Type *
-Context::toLLVMType(Element::Type *type,
+Context::toLLVMType(Type *type,
                     Node *n,
                     bool allow_non_first_class,
                     bool externally_defined,
@@ -1215,7 +1215,7 @@ Context::toLLVMType(Element::Type *type,
      * instantiation. */
     if (!allow_non_first_class) {
         if (type->struct_name) {
-            Element::Struct *structp =
+            Struct *structp =
                 getStruct(type->struct_name->c_str(),
                           type->namespaces);
             if (structp) {

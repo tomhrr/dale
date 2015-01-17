@@ -1,20 +1,15 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Null
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcNullParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -59,7 +54,7 @@ bool parse(Generator *gen,
 
     ParseResult pr_value;
     bool res = 
-        Form::Proc::Inst::parse(gen, fn, block, arg, false, 
+        FormProcInstParse(gen, fn, block, arg, false, 
                                     false, NULL, &pr_value);
 
     if (!res) {
@@ -87,8 +82,5 @@ bool parse(Generator *gen,
     pr->block = temp.block;
 
     return true;
-}
-}
-}
 }
 }

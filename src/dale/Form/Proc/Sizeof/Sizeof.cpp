@@ -1,7 +1,7 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../../Operation/Sizeof/Sizeof.h"
 #include "../../Type/Type.h"
 #include "../Inst/Inst.h"
@@ -9,14 +9,9 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Sizeof
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcSizeofParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -41,7 +36,7 @@ bool parse(Generator *gen,
         return false;
     }
 
-    Element::Type *type = Form::Type::parse(gen, (*lst)[1], false, false);
+    dale::Type *type = FormTypeParse(gen, (*lst)[1], false, false);
 
     if (!type) {
         ctx->er->popLastError();
@@ -50,7 +45,7 @@ bool parse(Generator *gen,
 
         ParseResult expr_res;
         bool res =
-            Form::Proc::Inst::parse(gen, 
+            FormProcInstParse(gen, 
                 fn, block, (*lst)[1], true, false, NULL, &expr_res
             );
 
@@ -58,7 +53,7 @@ bool parse(Generator *gen,
             ctx->er->popErrors(error_count);
 
             bool res =
-                Form::Proc::Inst::parse(gen, 
+                FormProcInstParse(gen, 
                     fn, block, (*lst)[1], false, false, NULL, &expr_res
                 );
             if (!res) {
@@ -92,8 +87,5 @@ bool parse(Generator *gen,
     bool res = Operation::Sizeof::execute(ctx, block, type, pr);
 
     return res;
-}
-}
-}
 }
 }

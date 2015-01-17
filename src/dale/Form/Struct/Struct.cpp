@@ -2,7 +2,7 @@
 #include "../../Generator/Generator.h"
 #include "../../Node/Node.h"
 #include "../../ParseResult/ParseResult.h"
-#include "../../Element/Function/Function.h"
+#include "../../Function/Function.h"
 #include "../../CoreForms/CoreForms.h"
 #include "../Linkage/Linkage.h"
 #include "../Linkage/Struct/Struct.h"
@@ -12,13 +12,9 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace Struct
-{
 static int anonstructcount = 0;
 
-llvm::FunctionType *
+static llvm::FunctionType *
 getFunctionType(llvm::Type *t,
                 std::vector<llvm::Type*> &v,
                 bool b) {
@@ -47,7 +43,7 @@ addOpaqueStruct(Generator *gen, const char *name, Node *top,
 
     sty->setName(name2.c_str());
 
-    Element::Struct *new_struct = new Element::Struct();
+    Struct *new_struct = new Struct();
     new_struct->must_init = must_init;
     new_struct->type = sty;
     new_struct->is_opaque = 1;
@@ -60,7 +56,7 @@ addOpaqueStruct(Generator *gen, const char *name, Node *top,
          * used to add an error message if the struct had already
          * been fully defined, but that is not an error in C, so
          * it won't be here, either. */
-        Element::Struct *temp = ctx->getStruct(name);
+        Struct *temp = ctx->getStruct(name);
         if (!temp) {
             Error *e = new Error(
                 ErrorInst::Generator::UnableToParseForm,
@@ -100,7 +96,7 @@ addOpaqueStruct(Generator *gen, const char *name, Node *top,
 }
 
 bool 
-parse(Generator *gen,
+FormStructParse(Generator *gen,
       Node *top,
       const char *name)
 {
@@ -150,7 +146,7 @@ parse(Generator *gen,
         ++next_index;
     }
 
-    int linkage = Form::Linkage::Struct::parse(ctx, (*lst)[next_index]);
+    int linkage = FormLinkageStructParse(ctx, (*lst)[next_index]);
     if (!linkage) {
         return false;
     }
@@ -185,17 +181,17 @@ parse(Generator *gen,
 
     symlist *elements = nelements->list;
 
-    Element::Variable *var;
+    Variable *var;
 
-    std::vector<Element::Variable *> *elements_internal =
-        new std::vector<Element::Variable *>;
+    std::vector<Variable *> *elements_internal =
+        new std::vector<Variable *>;
 
     std::vector<Node *>::iterator node_iter;
     node_iter = elements->begin();
 
     while (node_iter != elements->end()) {
 
-        var = new Element::Variable();
+        var = new Variable();
         var->type = NULL;
 
         gen->parseArgument(var, (*node_iter), true, true, false);
@@ -243,7 +239,7 @@ parse(Generator *gen,
 
     std::vector<llvm::Type*> elements_llvm;
 
-    std::vector<Element::Variable *>::iterator iter;
+    std::vector<Variable *>::iterator iter;
     iter = elements_internal->begin();
     llvm::Type *temp;
 
@@ -264,12 +260,12 @@ parse(Generator *gen,
 
     bool already_exists = true;
 
-    Element::Struct *new_struct;
+    Struct *new_struct;
 
     if (already_exists) {
         /* If the struct does not already exist in context, then
          * there has been some strange error. */
-        Element::Struct *temp = ctx->getStruct(name);
+        Struct *temp = ctx->getStruct(name);
         if (!temp) {
             Error *e = new Error(
                 ErrorInst::Generator::UnableToParseForm,
@@ -303,7 +299,7 @@ parse(Generator *gen,
         new_struct = temp;
         new_struct->is_opaque = 0;
     } else {
-        new_struct = new Element::Struct();
+        new_struct = new Struct();
     }
 
     /* Re-get the type from the module, because the type in
@@ -343,7 +339,5 @@ parse(Generator *gen,
     }
 
     return true;
-}
-}
 }
 }

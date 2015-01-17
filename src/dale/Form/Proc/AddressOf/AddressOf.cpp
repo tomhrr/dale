@@ -1,7 +1,7 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../../BaseType/BaseType.h"
 #include "../../Type/Type.h"
 #include "../Inst/Inst.h"
@@ -9,14 +9,9 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace AddressOf
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcAddressOfParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -36,7 +31,7 @@ bool parse(Generator *gen,
      * designates a variable, then return the address directly. */
     Node *nn = (*lst)[1];
     if (nn->is_token) {
-        Element::Variable *var =
+        Variable *var =
             ctx->getVariable(nn->token->str_value.c_str());
         if (var) {
             pr->set(block,
@@ -53,7 +48,7 @@ bool parse(Generator *gen,
      * setf). (todo: this comment does not appear to be correct.) */
 
     bool res =
-        Form::Proc::Inst::parse(gen, 
+        FormProcInstParse(gen, 
             fn, block, (*lst)[1], false, false, NULL, pr
         );
 
@@ -70,7 +65,7 @@ bool parse(Generator *gen,
          * of a function. If it is, return a pointer to that
          * function. */
 
-        Element::Function *fn;
+        Function *fn;
 
         if (((*lst)[1])->is_token &&
                 (fn =
@@ -96,13 +91,13 @@ bool parse(Generator *gen,
                 /* Parse each type, add it to a vector of types, get
                  * the relevant function, return it. */
 
-                std::vector<Element::Type *> types;
+                std::vector<dale::Type *> types;
                 std::vector<Node *>::iterator iter = lst->begin();
                 ++iter;
                 ++iter;
                 while (iter != lst->end()) {
-                    Element::Type *type = Form::Type::parse(gen, (*iter),
-                                                    false, false);
+                    dale::Type *type = FormTypeParse(gen, (*iter),
+                                                         false, false);
                     if (!type) {
                         return false;
                     }
@@ -113,7 +108,7 @@ bool parse(Generator *gen,
                     types.push_back(ctx->tr->type_void);
                 }
 
-                Element::Function *closest_fn = NULL;
+                Function *closest_fn = NULL;
 
                 fn =
                     ctx->getFunction(((*lst)[1])->token->str_value.c_str(),
@@ -121,7 +116,7 @@ bool parse(Generator *gen,
                                      &closest_fn,
                                      0);
 
-                std::vector<Element::Type *>::iterator titer =
+                std::vector<dale::Type *>::iterator titer =
                     types.begin();
 
                 std::string args;
@@ -136,7 +131,7 @@ bool parse(Generator *gen,
                     Error *e;
                     if (closest_fn) {
                         std::string expected;
-                        std::vector<Element::Variable *>::iterator viter;
+                        std::vector<Variable *>::iterator viter;
                         viter = closest_fn->parameter_types->begin();
                         if (closest_fn->is_macro) {
                             ++viter;
@@ -170,14 +165,14 @@ bool parse(Generator *gen,
                 }
             }
 
-            Element::Type *type = new Element::Type();
+            dale::Type *type = new dale::Type();
             type->is_function = 1;
             type->return_type = fn->return_type;
 
-            std::vector<Element::Type *> *parameter_types =
-                new std::vector<Element::Type *>;
+            std::vector<dale::Type *> *parameter_types =
+                new std::vector<dale::Type *>;
 
-            std::vector<Element::Variable *>::iterator iter;
+            std::vector<Variable *>::iterator iter;
 
             iter = fn->parameter_types->begin();
 
@@ -223,8 +218,5 @@ bool parse(Generator *gen,
     pr->type_of_address_of_value = NULL;
 
     return true;
-}
-}
-}
 }
 }

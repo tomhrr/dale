@@ -5,13 +5,8 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace TopLevel
-{
-namespace Namespace
-{
-bool parse(Generator *gen,
+bool
+FormTopLevelNamespaceParse(Generator *gen,
            Node *node)
 {
     Context *ctx = gen->ctx;
@@ -52,7 +47,7 @@ bool parse(Generator *gen,
     ++symlist_iter;
 
     while (symlist_iter != lst->end()) {
-        Form::TopLevel::Inst::parse(gen, (*symlist_iter));
+        FormTopLevelInstParse(gen, (*symlist_iter));
         ctx->er->flush();
         ++symlist_iter;
     }
@@ -60,8 +55,5 @@ bool parse(Generator *gen,
     ctx->deactivateNamespace(t->str_value.c_str());
 
     return true;
-}
-}
-}
 }
 }

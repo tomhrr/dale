@@ -11,7 +11,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 
-#include "../Element/Type/Type.h"
+#include "../Type/Type.h"
 #include "../Context/Context.h"
 
 namespace dale
@@ -19,8 +19,8 @@ namespace dale
 class ParseResult
 {
 public:
-    Element::Type *type;
-    Element::Type *type_of_address_of_value;
+    Type *type;
+    Type *type_of_address_of_value;
     llvm::BasicBlock *block;
     llvm::Value *value;
     llvm::Value *address_of_value;
@@ -31,18 +31,18 @@ public:
     int value_is_lvalue;
 
     llvm::Value *retval;
-    Element::Type *retval_type;
+    Type *retval_type;
     bool retval_used;
 
     ParseResult();
     ParseResult(llvm::BasicBlock *new_block,
-                Element::Type *new_type,
+                Type *new_type,
                 llvm::Value *new_value);
     ~ParseResult();
 
     int copyTo(ParseResult *x);
     void set(llvm::BasicBlock *new_block,
-            Element::Type *new_type,
+            Type *new_type,
             llvm::Value *new_value);
     bool getAddressOfValue(Context *ctx, ParseResult *pr);
     bool setAddressOfValue(Context *ctx);

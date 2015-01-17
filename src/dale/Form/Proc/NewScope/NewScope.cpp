@@ -1,21 +1,16 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../Inst/Inst.h"
 #include "../Do/Do.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace NewScope
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcNewScopeParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -31,7 +26,7 @@ bool parse(Generator *gen,
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;
 
-    bool success = Form::Proc::Do::parse(gen, fn, block, node,
+    bool success = FormProcDoParse(gen, fn, block, node,
                                          get_address,
                                          prefixed_with_core,
                                          pr);
@@ -40,8 +35,5 @@ bool parse(Generator *gen,
     ctx->deactivateNamespace(anon_name.c_str());
 
     return success;
-}
-}
-}
 }
 }

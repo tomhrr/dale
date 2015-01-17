@@ -4,8 +4,8 @@
 #include <cstdio>
 #include <string>
 #include <vector>
-#include "../Element/Type/Type.h"
-#include "../Element/Variable/Variable.h"
+#include "../Type/Type.h"
+#include "../Variable/Variable.h"
 #include "../Context/Context.h"
 #include "../Namespace/Namespace.h"
 #include "../TypeRegister/TypeRegister.h"
@@ -16,7 +16,7 @@ template<typename T>
 void serialise(FILE *out, std::vector<T> *x);
 
 char *deserialise_type_vector(TypeRegister *tr, char *in, 
-                              std::vector<Element::Type *> *x);
+                              std::vector<Type *> *x);
 
 template<typename T>
 char *deserialise(TypeRegister *tr, char *in, std::vector<T> *x);
@@ -65,41 +65,41 @@ void serialise(FILE *out, std::string *x);
 
 char *deserialise(TypeRegister *tr, char *in, std::string *x);
 
-void serialise(FILE *out, Element::Type *t);
+void serialise(FILE *out, Type *t);
 
-char *deserialise(TypeRegister *tr, char *in, Element::Type **t);
+char *deserialise(TypeRegister *tr, char *in, Type **t);
 
-void serialise(FILE *out, Element::Variable *v);
+void serialise(FILE *out, Variable *v);
 
-void serialise(FILE *out, Element::Variable **v);
+void serialise(FILE *out, Variable **v);
 
-char *deserialise(TypeRegister *tr, char *in, Element::Variable *v);
+char *deserialise(TypeRegister *tr, char *in, Variable *v);
 
-char *deserialise(TypeRegister *tr, char *in, Element::Variable **v);
+char *deserialise(TypeRegister *tr, char *in, Variable **v);
 
-void serialise(FILE *out, Element::Function *fn);
+void serialise(FILE *out, Function *fn);
 
-void serialise(FILE *out, Element::Function **fn);
+void serialise(FILE *out, Function **fn);
 
-char *deserialise(TypeRegister *tr, char *in, Element::Function *fn);
+char *deserialise(TypeRegister *tr, char *in, Function *fn);
 
-char *deserialise(TypeRegister *tr, char *in, Element::Function **fn);
+char *deserialise(TypeRegister *tr, char *in, Function **fn);
 
-void serialise(FILE *out, Element::Struct *st);
+void serialise(FILE *out, Struct *st);
 
-void serialise(FILE *out, Element::Struct **st);
+void serialise(FILE *out, Struct **st);
 
-char *deserialise(TypeRegister *tr, char *in, Element::Struct *st);
+char *deserialise(TypeRegister *tr, char *in, Struct *st);
 
-char *deserialise(TypeRegister *tr, char *in, Element::Struct **st);
+char *deserialise(TypeRegister *tr, char *in, Struct **st);
 
-void serialise(FILE *out, Element::Enum *en);
+void serialise(FILE *out, Enum *en);
 
-void serialise(FILE *out, Element::Enum **en);
+void serialise(FILE *out, Enum **en);
 
-char *deserialise(TypeRegister *tr, char *in, Element::Enum *en);
+char *deserialise(TypeRegister *tr, char *in, Enum *en);
 
-char *deserialise(TypeRegister *tr, char *in, Element::Enum **en);
+char *deserialise(TypeRegister *tr, char *in, Enum **en);
 
 void serialise(FILE *out, Namespace *ns);
 
@@ -140,7 +140,7 @@ void serialise(FILE *out, std::vector<T> **x)
 }
 
 char *deserialise_type_vector(TypeRegister *tr, char *in, 
-                              std::vector<Element::Type *> *x);
+                              std::vector<Type *> *x);
 
 template<typename T>
 char *deserialise(TypeRegister *tr, char *in, std::vector<T> *x)

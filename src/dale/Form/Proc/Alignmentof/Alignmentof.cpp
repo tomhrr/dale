@@ -1,21 +1,16 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../../Operation/Alignmentof/Alignmentof.h"
 #include "../../Type/Type.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Alignmentof
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcAlignmentOfParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -37,16 +32,13 @@ bool parse(Generator *gen,
     if (!mytype) {
         return false;
     }
-    Element::Type *type = Form::Type::parse(gen, mytype, false,
-                                    false);
+    dale::Type *type = FormTypeParse(gen, mytype, false,
+                                         false);
     if (!type) {
         return false;
     }
 
     bool res = Operation::Alignmentof::execute(ctx, block, type, pr);
     return res;
-}
-}
-}
 }
 }

@@ -3,23 +3,15 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Token
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcTokenParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
            bool prefixed_with_core,
-           Element::Type *wanted_type,
+           dale::Type *wanted_type,
            ParseResult *pr);
-}
-}
-}
 }
 
 #endif

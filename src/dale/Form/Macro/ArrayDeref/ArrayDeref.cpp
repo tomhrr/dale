@@ -1,8 +1,8 @@
 #include "ArrayDeref.h"
 
-namespace dale { namespace Form { namespace Macro { namespace ArrayDeref {
+namespace dale {
 Node *
-parse(Context *ctx, Node *n)
+FormMacroArrayDerefParse(Context *ctx, Node *n)
 {
     assert(n->list && "parseArrayDeref must receive a list!");
 
@@ -34,4 +34,4 @@ parse(Context *ctx, Node *n)
 
     return n; 
 }
-}}}}
+}

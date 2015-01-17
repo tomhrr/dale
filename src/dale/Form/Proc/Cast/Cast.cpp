@@ -1,7 +1,7 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../../Operation/Cast/Cast.h"
 #include "../../Type/Type.h"
 #include "../Inst/Inst.h"
@@ -9,14 +9,9 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Cast
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcCastParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -37,7 +32,7 @@ bool parse(Generator *gen,
 
     ParseResult pr_value;
     bool res =
-        Form::Proc::Inst::parse(gen, fn, block, (*lst)[1], false, 
+        FormProcInstParse(gen, fn, block, (*lst)[1], false, 
                                     false, NULL,
                                     &pr_value);
 
@@ -49,7 +44,7 @@ bool parse(Generator *gen,
      * cast to a bitfield type, because there's no other way to
      * set a bitfield value.) */
 
-    Element::Type *type = Form::Type::parse(gen, (*lst)[2], false, true);
+    dale::Type *type = FormTypeParse(gen, (*lst)[2], false, true);
     if (!type) {
         return false;
     }
@@ -81,8 +76,5 @@ bool parse(Generator *gen,
 
     pr->set(temp.block, temp.type, temp.value);
     return true;
-}
-}
-}
 }
 }

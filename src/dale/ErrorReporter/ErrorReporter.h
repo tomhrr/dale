@@ -4,7 +4,7 @@
 #include <vector>
 #include "../Position/Position.h"
 #include "../Error/Error.h"
-#include "../Element/Type/Type.h"
+#include "../Type/Type.h"
 #include "../Node/Node.h"
 
 namespace dale
@@ -28,20 +28,20 @@ public:
     
     bool assertIsIntegerType(const char *form_name,
                              Node *n,
-                             Element::Type *type,
+                             Type *type,
                              const char *arg_number);
     bool assertIsPointerOrIntegerType(const char *form_name,
                                       Node *n,
-                                      Element::Type *type,
+                                      Type *type,
                                       const char *arg_number);
     bool assertIsPointerType(const char *form_name,
                              Node *n,
-                             Element::Type *type,
+                             Type *type,
                              const char *arg_number);
     bool assertTypeEquality(const char *form_name,
                             Node *n,
-                            Element::Type *got,
-                            Element::Type *expected,
+                            Type *got,
+                            Type *expected,
                             int ignore_arg_constness);
     bool assertAtomIsStringLiteral(const char *form_name,
                                    Node *n,

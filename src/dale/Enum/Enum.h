@@ -4,13 +4,12 @@
 #include <string>
 #include <map>
 
-#include "../../llvm_Module.h"
+#include "../llvm_Module.h"
+#include "../Type/Type.h"
 
 #define ENUM_NOTFOUND -2
 
 namespace dale
-{
-namespace Element
 {
 /*! Enum
 
@@ -54,7 +53,6 @@ public:
      */
     int64_t memberToIndex(const char *name);
 };
-}
 }
 
 #endif

@@ -3,7 +3,7 @@
 
 #include "../../ParseResult/ParseResult.h"
 #include "../../Context/Context.h"
-#include "../../Element/Type/Type.h"
+#include "../../Type/Type.h"
 #include "../../Node/Node.h"
 
 #include "../../llvm_Module.h"
@@ -19,8 +19,8 @@ namespace Cast
 bool execute(Context *ctx,
             llvm::BasicBlock *block,
             llvm::Value *value,
-            Element::Type *from_type,
-            Element::Type *to_type,
+            Type *from_type,
+            Type *to_type,
             Node *n,
             bool implicit,
             ParseResult *pr);

@@ -2,8 +2,6 @@
 
 namespace dale
 {
-namespace Element
-{
 Enum::Enum()
 {
     last_index = -1;
@@ -51,6 +49,5 @@ int
 Enum::addMember(const char *name)
 {
     return addMember(name, ++last_index);
-}
 }
 }

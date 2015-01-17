@@ -11,29 +11,29 @@ namespace dale
 {
 TypeRegister::TypeRegister(void)
 {
-    basic_types[BaseType::Bool]       = new Element::Type(BaseType::Bool);
-    basic_types[BaseType::Void]       = new Element::Type(BaseType::Void);
-    basic_types[BaseType::VarArgs]    = new Element::Type(BaseType::VarArgs);
-    basic_types[BaseType::Int]        = new Element::Type(BaseType::Int);
-    basic_types[BaseType::IntPtr]     = new Element::Type(BaseType::IntPtr);
-    basic_types[BaseType::Size]       = new Element::Type(BaseType::Size);
-    basic_types[BaseType::PtrDiff]    = new Element::Type(BaseType::PtrDiff);
-    basic_types[BaseType::UInt]       = new Element::Type(BaseType::UInt);
-    basic_types[BaseType::Char]       = new Element::Type(BaseType::Char);
-    basic_types[BaseType::Float]      = new Element::Type(BaseType::Float);
-    basic_types[BaseType::Double]     = new Element::Type(BaseType::Double);
-    basic_types[BaseType::LongDouble] = new Element::Type(BaseType::LongDouble);
+    basic_types[BaseType::Bool]       = new Type(BaseType::Bool);
+    basic_types[BaseType::Void]       = new Type(BaseType::Void);
+    basic_types[BaseType::VarArgs]    = new Type(BaseType::VarArgs);
+    basic_types[BaseType::Int]        = new Type(BaseType::Int);
+    basic_types[BaseType::IntPtr]     = new Type(BaseType::IntPtr);
+    basic_types[BaseType::Size]       = new Type(BaseType::Size);
+    basic_types[BaseType::PtrDiff]    = new Type(BaseType::PtrDiff);
+    basic_types[BaseType::UInt]       = new Type(BaseType::UInt);
+    basic_types[BaseType::Char]       = new Type(BaseType::Char);
+    basic_types[BaseType::Float]      = new Type(BaseType::Float);
+    basic_types[BaseType::Double]     = new Type(BaseType::Double);
+    basic_types[BaseType::LongDouble] = new Type(BaseType::LongDouble);
 
-    basic_types[BaseType::Int8]       = new Element::Type(BaseType::Int8);
-    basic_types[BaseType::UInt8]      = new Element::Type(BaseType::UInt8);
-    basic_types[BaseType::Int16]      = new Element::Type(BaseType::Int16);
-    basic_types[BaseType::UInt16]     = new Element::Type(BaseType::UInt16);
-    basic_types[BaseType::Int32]      = new Element::Type(BaseType::Int32);
-    basic_types[BaseType::UInt32]     = new Element::Type(BaseType::UInt32);
-    basic_types[BaseType::Int64]      = new Element::Type(BaseType::Int64);
-    basic_types[BaseType::UInt64]     = new Element::Type(BaseType::UInt64);
-    basic_types[BaseType::Int128]     = new Element::Type(BaseType::Int128);
-    basic_types[BaseType::UInt128]    = new Element::Type(BaseType::UInt128);
+    basic_types[BaseType::Int8]       = new Type(BaseType::Int8);
+    basic_types[BaseType::UInt8]      = new Type(BaseType::UInt8);
+    basic_types[BaseType::Int16]      = new Type(BaseType::Int16);
+    basic_types[BaseType::UInt16]     = new Type(BaseType::UInt16);
+    basic_types[BaseType::Int32]      = new Type(BaseType::Int32);
+    basic_types[BaseType::UInt32]     = new Type(BaseType::UInt32);
+    basic_types[BaseType::Int64]      = new Type(BaseType::Int64);
+    basic_types[BaseType::UInt64]     = new Type(BaseType::UInt64);
+    basic_types[BaseType::Int128]     = new Type(BaseType::Int128);
+    basic_types[BaseType::UInt128]    = new Type(BaseType::UInt128);
 
     type_bool        = getBasicType(BaseType::Bool);
     type_void        = getBasicType(BaseType::Void);
@@ -78,141 +78,141 @@ TypeRegister::~TypeRegister(void)
     stl::deleteNestedMapElements(&bitfield_types);
 }
 
-Element::Type*
+Type*
 TypeRegister::getBasicType(int type)
 {
     return basic_types[type];
 }
 
-Element::Type*
-TypeRegister::getPointerType(Element::Type *type)
+Type*
+TypeRegister::getPointerType(Type *type)
 {
-    std::map<Element::Type*, Element::Type*>::iterator
+    std::map<Type*, Type*>::iterator
         b = pointer_types.find(type), e = pointer_types.end();
     if (b != e) {
         return b->second;
     }
 
-    Element::Type *pointer_type = new Element::Type(type);
+    Type *pointer_type = new Type(type);
     pointer_types.insert(
-        std::pair<Element::Type*, Element::Type*>(type, pointer_type)
+        std::pair<Type*, Type*>(type, pointer_type)
     );
     return pointer_type;
 }
 
-Element::Type*
-TypeRegister::getArrayType(Element::Type *type, size_t size)
+Type*
+TypeRegister::getArrayType(Type *type, size_t size)
 {
-    std::map<Element::Type*, std::map<size_t, Element::Type*> >::iterator
+    std::map<Type*, std::map<size_t, Type*> >::iterator
         b = array_types.find(type), e = array_types.end();
     if (b != e) {
-        std::map<size_t, Element::Type*>::iterator
+        std::map<size_t, Type*>::iterator
             ab = b->second.find(size), ae = b->second.end();
         if (ab != ae) {
             return ab->second;
         } else {
-            Element::Type *array_type = new Element::Type();
+            Type *array_type = new Type();
             array_type->is_array = 1;
             array_type->array_type = type;
             array_type->array_size = size;
             b->second.insert(
-                std::pair<size_t, Element::Type*>(size, array_type)
+                std::pair<size_t, Type*>(size, array_type)
             );
             return array_type;
         }
     }
 
     array_types.insert(
-        std::pair<Element::Type*, std::map<size_t, Element::Type*> >(
-            type, std::map<size_t, Element::Type*>()
+        std::pair<Type*, std::map<size_t, Type*> >(
+            type, std::map<size_t, Type*>()
         )
     );
     return getArrayType(type, size);
 }
 
-Element::Type*
-TypeRegister::getBitfieldType(Element::Type *type, size_t size)
+Type*
+TypeRegister::getBitfieldType(Type *type, size_t size)
 {
-    std::map<Element::Type*, std::map<size_t, Element::Type*> >::iterator
+    std::map<Type*, std::map<size_t, Type*> >::iterator
         b = bitfield_types.find(type), e = bitfield_types.end();
     if (b != e) {
-        std::map<size_t, Element::Type*>::iterator
+        std::map<size_t, Type*>::iterator
             ab = b->second.find(size), ae = b->second.end();
         if (ab != ae) {
             return ab->second;
         } else {
-            Element::Type *bitfield_type = type->makeCopy();
+            Type *bitfield_type = type->makeCopy();
             bitfield_type->bitfield_size = size;
             b->second.insert(
-                std::pair<size_t, Element::Type*>(size, bitfield_type)
+                std::pair<size_t, Type*>(size, bitfield_type)
             );
             return bitfield_type;
         }
     }
 
     bitfield_types.insert(
-        std::pair<Element::Type*, std::map<size_t, Element::Type*> >(
-            type, std::map<size_t, Element::Type*>()
+        std::pair<Type*, std::map<size_t, Type*> >(
+            type, std::map<size_t, Type*>()
         )
     );
     return getBitfieldType(type, size);
 }
 
-Element::Type*
-TypeRegister::getConstType(Element::Type *type)
+Type*
+TypeRegister::getConstType(Type *type)
 {
-    std::map<Element::Type*, Element::Type*>::iterator
+    std::map<Type*, Type*>::iterator
         b = const_types.find(type), e = const_types.end();
     if (b != e) {
         return b->second;
     }
 
-    Element::Type *const_type = type->makeCopy();
+    Type *const_type = type->makeCopy();
     const_type->is_const = 1;
     const_types.insert(
-        std::pair<Element::Type*, Element::Type*>(type, const_type)
+        std::pair<Type*, Type*>(type, const_type)
     );
     return const_type;
 }
 
-Element::Type*
-TypeRegister::getReferenceType(Element::Type *type)
+Type*
+TypeRegister::getReferenceType(Type *type)
 {
-    std::map<Element::Type*, Element::Type*>::iterator
+    std::map<Type*, Type*>::iterator
         b = reference_types.find(type), e = reference_types.end();
     if (b != e) {
         return b->second;
     }
 
-    Element::Type *reference_type = type->makeCopy();
+    Type *reference_type = type->makeCopy();
     reference_type->is_reference = 1;
     reference_types.insert(
-        std::pair<Element::Type*, Element::Type*>(type, reference_type)
+        std::pair<Type*, Type*>(type, reference_type)
     );
     return reference_type;
 }
 
-Element::Type*
-TypeRegister::getRetvalType(Element::Type *type)
+Type*
+TypeRegister::getRetvalType(Type *type)
 {
-    std::map<Element::Type*, Element::Type*>::iterator
+    std::map<Type*, Type*>::iterator
         b = retval_types.find(type), e = retval_types.end();
     if (b != e) {
         return b->second;
     }
 
-    Element::Type *retval_type = type->makeCopy();
+    Type *retval_type = type->makeCopy();
     retval_type->is_retval = 1;
     retval_types.insert(
-        std::pair<Element::Type*, Element::Type*>(type, retval_type)
+        std::pair<Type*, Type*>(type, retval_type)
     );
     return retval_type;
 }
 
-Element::Type*
+Type*
 TypeRegister::getStructType(std::string name)
 {
-    std::map<std::string, Element::Type*>::iterator
+    std::map<std::string, Type*>::iterator
         b = struct_types.find(name), e = struct_types.end();
     if (b != e) {
         return b->second;
@@ -220,22 +220,22 @@ TypeRegister::getStructType(std::string name)
 
     std::vector<std::string> name_parts;
     splitString(&name, &name_parts, '.');
-    Element::Type *struct_type = new Element::Type(); 
+    Type *struct_type = new Type(); 
     struct_type->struct_name = new std::string(name_parts.back());
     name_parts.pop_back();
 
     struct_type->namespaces = new std::vector<std::string>(name_parts);
 
     struct_types.insert(
-        std::pair<std::string, Element::Type*>(name, struct_type)
+        std::pair<std::string, Type*>(name, struct_type)
     );
     return struct_type;
 }
 
-Element::Type*
-TypeRegister::getType(Element::Type *type)
+Type*
+TypeRegister::getType(Type *type)
 {
-    Element::Type *final = NULL;
+    Type *final = NULL;
 
     if (type->is_const) {
         type->is_const = 0;

@@ -1,21 +1,16 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../Type/Type.h"
 #include "../../Literal/Array/Array.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace ArrayOf
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcArrayOfParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -42,16 +37,16 @@ bool parse(Generator *gen,
         return false;
     }
 
-    Element::Type *type = Form::Type::parse(gen, (*lst)[2], false, false);
+    dale::Type *type = FormTypeParse(gen, (*lst)[2], false, false);
     if (!type) {
         return false;
     }
 
-    Element::Type *arrtype = ctx->tr->getArrayType(type, size);
+    dale::Type *arrtype = ctx->tr->getArrayType(type, size);
 
     int size2;
     return
-        Form::Literal::Array::parse(
+        FormLiteralArrayParse(
             gen,
             fn,
             block,
@@ -62,8 +57,5 @@ bool parse(Generator *gen,
             &size2,
             pr
         );
-}
-}
-}
 }
 }

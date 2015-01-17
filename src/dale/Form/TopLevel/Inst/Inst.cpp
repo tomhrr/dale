@@ -21,14 +21,8 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace TopLevel
-{
-namespace Inst
-{
-bool parse(Generator *gen,
-           Node *node)
+bool
+FormTopLevelInstParse(Generator *gen, Node *node)
 {
     Context *ctx = gen->ctx;
 
@@ -96,14 +90,14 @@ bool parse(Generator *gen,
     bool (*toplevel_form)(Generator *gen, Node *n);
 
     toplevel_form =
-        (eq("do"))              ? &Form::TopLevel::Do::parse
-      : (eq("def"))             ? &Form::TopLevel::Def::parse
-      : (eq("namespace"))       ? &Form::TopLevel::Namespace::parse
-      : (eq("using-namespace")) ? &Form::TopLevel::UsingNamespace::parse
-      : (eq("include"))         ? &Form::TopLevel::Include::parse
-      : (eq("module"))          ? &Form::TopLevel::Module::parse
-      : (eq("import"))          ? &Form::TopLevel::Import::parse
-      : (eq("once"))            ? &Form::TopLevel::Once::parse
+        (eq("do"))              ? &FormTopLevelDoParse
+      : (eq("def"))             ? &FormTopLevelDefParse
+      : (eq("namespace"))       ? &FormTopLevelNamespaceParse
+      : (eq("using-namespace")) ? &FormTopLevelUsingNamespaceParse
+      : (eq("include"))         ? &FormTopLevelIncludeParse
+      : (eq("module"))          ? &FormTopLevelModuleParse
+      : (eq("import"))          ? &FormTopLevelImportParse
+      : (eq("once"))            ? &FormTopLevelOnceParse
                                 : NULL;
 
     if (toplevel_form) {
@@ -116,7 +110,7 @@ bool parse(Generator *gen,
         return false;
     }
     if (newtop != top) {
-        return parse(gen, newtop);
+        return FormTopLevelInstParse(gen, newtop);
     }
     Error *e = new Error(
         ErrorInst::Generator::NotInScope,
@@ -125,8 +119,5 @@ bool parse(Generator *gen,
     );
     ctx->er->addError(e);
     return false;
-}
-}
-}
 }
 }

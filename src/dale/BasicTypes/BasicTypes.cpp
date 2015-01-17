@@ -19,23 +19,23 @@ setStandardAttributes(llvm::Function *fn)
 #endif
 }
 
-Element::Function *
+Function *
 addSimpleUnaryFunction(Context *ctx,
                        llvm::Module *mod,
                        std::string *once_tag,
                        const char *name,
-                       Element::Type *return_type,
-                       Element::Type *type1)
+                       Type *return_type,
+                       Type *type1)
 {
     int linkage = Linkage::Extern;
 
     type1 = ctx->tr->getConstType(type1);
 
-    std::vector<Element::Variable*> *new_args_ctx =
-        new std::vector<Element::Variable*>;
+    std::vector<Variable*> *new_args_ctx =
+        new std::vector<Variable*>;
 
     new_args_ctx->push_back(
-        new Element::Variable((char *) "a", type1));
+        new Variable((char *) "a", type1));
 
     std::vector<llvm::Type*> new_args;
 
@@ -74,8 +74,8 @@ addSimpleUnaryFunction(Context *ctx,
     new_fn->setLinkage(llvm::GlobalValue::LinkOnceAnyLinkage);
     setStandardAttributes(new_fn);
 
-    Element::Function *myfn =
-        new Element::Function(
+    Function *myfn =
+        new Function(
         return_type,
         new_args_ctx,
         new_fn,
@@ -88,7 +88,7 @@ addSimpleUnaryFunction(Context *ctx,
     ctx->ns()->addFunction(name, myfn, NULL);
 
     llvm::Function::arg_iterator largs = new_fn->arg_begin();
-    std::vector<Element::Variable *>::iterator iter;
+    std::vector<Variable *>::iterator iter;
     iter = new_args_ctx->begin();
 
     while (iter != new_args_ctx->end()) {
@@ -102,28 +102,28 @@ addSimpleUnaryFunction(Context *ctx,
     return myfn;
 }
 
-Element::Function *
+Function *
 addSimpleBinaryFunction(Context *ctx,
                         llvm::Module *mod,
                         std::string *once_tag,
                         const char *name,
-                        Element::Type *return_type,
-                        Element::Type *type1,
-                        Element::Type *type2)
+                        Type *return_type,
+                        Type *type1,
+                        Type *type2)
 {
     int linkage = Linkage::Extern;
 
     type1 = ctx->tr->getConstType(type1);
     type2 = ctx->tr->getConstType(type2);
 
-    std::vector<Element::Variable*> *new_args_ctx =
-        new std::vector<Element::Variable*>;
+    std::vector<Variable*> *new_args_ctx =
+        new std::vector<Variable*>;
     new_args_ctx->reserve(2);
 
     new_args_ctx->push_back(
-        new Element::Variable((char *) "a", type1));
+        new Variable((char *) "a", type1));
     new_args_ctx->push_back(
-        new Element::Variable((char *) "b", type2));
+        new Variable((char *) "b", type2));
 
     std::vector<llvm::Type*> new_args;
     new_args.reserve(2);
@@ -168,8 +168,8 @@ addSimpleBinaryFunction(Context *ctx,
     new_fn->setLinkage(llvm::GlobalValue::LinkOnceAnyLinkage);
     setStandardAttributes(new_fn);
 
-    Element::Function *myfn =
-        new Element::Function(
+    Function *myfn =
+        new Function(
             return_type,
             new_args_ctx,
             new_fn,
@@ -182,7 +182,7 @@ addSimpleBinaryFunction(Context *ctx,
     ctx->ns()->addFunction(name, myfn, NULL);
 
     llvm::Function::arg_iterator largs = new_fn->arg_begin();
-    std::vector<Element::Variable *>::iterator iter;
+    std::vector<Variable *>::iterator iter;
     iter = new_args_ctx->begin();
 
     while (iter != new_args_ctx->end()) {
@@ -207,14 +207,14 @@ makeFloatFunction(Context *ctx,
                       , llvm::MDNode *
 #endif
                       ),
-                  Element::Type *ret_type,
-                  Element::Type *type)
+                  Type *ret_type,
+                  Type *type)
 {
-    Element::Function *fn =
+    Function *fn =
         addSimpleBinaryFunction(ctx, mod, once_tag,
                                 name, ret_type, type, type);
 
-    std::vector<Element::Variable *>::iterator iter;
+    std::vector<Variable *>::iterator iter;
     iter = fn->parameter_types->begin();
 
     llvm::BasicBlock *block =
@@ -241,14 +241,14 @@ makeFunction(Context *ctx,
              const char *name,
              llvm::Value* (llvm::IRBuilder<>:: *method_name)
                 (llvm::Value*, llvm::Value*, const llvm::Twine &),
-             Element::Type *ret_type,
-             Element::Type *type)
+             Type *ret_type,
+             Type *type)
 {
-    Element::Function *fn =
+    Function *fn =
         addSimpleBinaryFunction(ctx, mod, once_tag,
                                 name, ret_type, type, type);
 
-    std::vector<Element::Variable *>::iterator iter;
+    std::vector<Variable *>::iterator iter;
     iter = fn->parameter_types->begin();
 
     llvm::BasicBlock *block =
@@ -270,14 +270,14 @@ makeFunction(Context *ctx,
              const char *name,
              llvm::Value* (llvm::IRBuilder<>:: *method_name)
                 (llvm::Value*, llvm::Value*, const llvm::Twine &, bool),
-             Element::Type *ret_type,
-             Element::Type *type)
+             Type *ret_type,
+             Type *type)
 {
-    Element::Function *fn =
+    Function *fn =
         addSimpleBinaryFunction(ctx, mod, once_tag,
                                 name, ret_type, type, type);
 
-    std::vector<Element::Variable *>::iterator iter;
+    std::vector<Variable *>::iterator iter;
     iter = fn->parameter_types->begin();
 
     llvm::BasicBlock *block =
@@ -299,14 +299,14 @@ makeFunction(Context *ctx,
              const char *name,
              llvm::Value* (llvm::IRBuilder<>:: *method_name)
                 (llvm::Value*, llvm::Value*, const llvm::Twine &, bool, bool),
-             Element::Type *ret_type,
-             Element::Type *type)
+             Type *ret_type,
+             Type *type)
 {
-    Element::Function *fn =
+    Function *fn =
         addSimpleBinaryFunction(ctx, mod, once_tag,
                                 name, ret_type, type, type);
 
-    std::vector<Element::Variable *>::iterator iter;
+    std::vector<Variable *>::iterator iter;
     iter = fn->parameter_types->begin();
 
     llvm::BasicBlock *block =
@@ -328,15 +328,15 @@ makeFunction(Context *ctx,
              const char *name,
              llvm::Value* (llvm::IRBuilder<>:: *method_name)
                 (llvm::Value*, llvm::Value*, const llvm::Twine &, bool, bool),
-             Element::Type *ret_type,
-             Element::Type *type1,
-             Element::Type *type2)
+             Type *ret_type,
+             Type *type1,
+             Type *type2)
 {
-    Element::Function *fn =
+    Function *fn =
         addSimpleBinaryFunction(ctx, mod, once_tag,
                                 name, ret_type, type1, type2);
 
-    std::vector<Element::Variable *>::iterator iter;
+    std::vector<Variable *>::iterator iter;
     iter = fn->parameter_types->begin();
 
     llvm::BasicBlock *block =
@@ -358,8 +358,8 @@ makeEnumFunction(Context *ctx,
                  const char *name,
                  llvm::Value* (llvm::IRBuilder<>:: *method_name)
                      (llvm::Value*, llvm::Value*, const llvm::Twine &),
-                 Element::Type *ret_type,
-                 Element::Type *type,
+                 Type *ret_type,
+                 Type *type,
                  int mylinkage)
 {
     std::vector<llvm::Value *> two_zero_indices;
@@ -367,7 +367,7 @@ makeEnumFunction(Context *ctx,
     two_zero_indices.push_back(llvm_native_zero);
     two_zero_indices.push_back(llvm_native_zero);
 
-    Element::Function *fn =
+    Function *fn =
         addSimpleBinaryFunction(ctx, mod, once_tag, name,
                                 ret_type, type, type);
     fn->linkage = mylinkage;
@@ -375,7 +375,7 @@ makeEnumFunction(Context *ctx,
         ctx->toLLVMLinkage(mylinkage)
     );
 
-    std::vector<Element::Variable *>::iterator iter;
+    std::vector<Variable *>::iterator iter;
     iter = fn->parameter_types->begin();
 
     llvm::BasicBlock *block =
@@ -444,10 +444,10 @@ void
 addSignedInt(Context *ctx,
              llvm::Module *mod,
              std::string *once_tag,
-             Element::Type *type)
+             Type *type)
 {
-    Element::Type *type_bool = ctx->tr->type_bool;
-    Element::Type *type_int  = ctx->tr->type_int;
+    Type *type_bool = ctx->tr->type_bool;
+    Type *type_int  = ctx->tr->type_int;
 
     makeFunction(ctx, mod, once_tag, "+",
                  &llvm::IRBuilder<>::CreateAdd,  type, type);
@@ -477,11 +477,11 @@ addSignedInt(Context *ctx,
                  &llvm::IRBuilder<>::CreateXor,     type,      type);
 
     {
-        Element::Function *fn =
+        Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag,
                                     "<<", type, type, type_int);
 
-        std::vector<Element::Variable *>::iterator iter;
+        std::vector<Variable *>::iterator iter;
         iter = fn->parameter_types->begin();
 
         llvm::BasicBlock *block =
@@ -501,11 +501,11 @@ addSignedInt(Context *ctx,
         builder.CreateRet(res);
     }
     {
-        Element::Function *fn =
+        Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag,
                                     ">>", type, type, type_int);
 
-        std::vector<Element::Variable *>::iterator iter;
+        std::vector<Variable *>::iterator iter;
         iter = fn->parameter_types->begin();
 
         llvm::BasicBlock *block =
@@ -531,9 +531,9 @@ void
 addFloatingPoint(Context *ctx,
                  llvm::Module *mod,
                  std::string *once_tag,
-                 Element::Type *type)
+                 Type *type)
 {
-    Element::Type *type_bool = ctx->tr->type_bool;
+    Type *type_bool = ctx->tr->type_bool;
 
     makeFloatFunction(ctx, mod, once_tag, "+",
                       &llvm::IRBuilder<>::CreateFAdd, type, type);
@@ -562,10 +562,10 @@ void
 addUnsignedInt(Context *ctx,
                llvm::Module *mod,
                std::string *once_tag,
-               Element::Type *type)
+               Type *type)
 {
-    Element::Type *type_bool = ctx->tr->type_bool;
-    Element::Type *type_int  = ctx->tr->type_int;
+    Type *type_bool = ctx->tr->type_bool;
+    Type *type_int  = ctx->tr->type_int;
 
     makeFunction(ctx, mod, once_tag, "+",
                  &llvm::IRBuilder<>::CreateAdd,  type, type);
@@ -588,10 +588,10 @@ addUnsignedInt(Context *ctx,
     makeFunction(ctx, mod, once_tag, ">=",
                  &llvm::IRBuilder<>::CreateICmpUGE, type_bool, type);
     {
-        Element::Function *fn =
+        Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "<<", type, type, type_int);
 
-        std::vector<Element::Variable *>::iterator iter;
+        std::vector<Variable *>::iterator iter;
         iter = fn->parameter_types->begin();
 
         llvm::BasicBlock *block =
@@ -611,10 +611,10 @@ addUnsignedInt(Context *ctx,
         builder.CreateRet(res);
     }
     {
-        Element::Function *fn =
+        Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, ">>", type, type, type_int);
 
-        std::vector<Element::Variable *>::iterator iter;
+        std::vector<Variable *>::iterator iter;
         iter = fn->parameter_types->begin();
 
         llvm::BasicBlock *block =
@@ -638,10 +638,10 @@ addUnsignedInt(Context *ctx,
     makeFunction(ctx, mod, once_tag, "^",  &llvm::IRBuilder<>::CreateXor,     type,      type);
 
     {
-        Element::Function *fn =
+        Function *fn =
             addSimpleUnaryFunction(ctx, mod, once_tag, "~", type, type);
 
-        std::vector<Element::Variable *>::iterator iter;
+        std::vector<Variable *>::iterator iter;
         iter = fn->parameter_types->begin();
 
         llvm::BasicBlock *block =
@@ -677,8 +677,8 @@ void
 addEnum(Context *ctx,
         llvm::Module *mod,
         std::string *once_tag,
-        Element::Type *enum_type,
-        Element::Type *enum_int_type,
+        Type *enum_type,
+        Type *enum_int_type,
         llvm::Type *llvm_enum_int_type,
         int flinkage)
 {
@@ -688,14 +688,14 @@ addEnum(Context *ctx,
     two_zero_indices.push_back(llvm_native_zero);
 
     {
-        Element::Function *fn =
+        Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "+", enum_type, enum_type, enum_type);
         fn->linkage = flinkage;
         fn->llvm_function->setLinkage(
             ctx->toLLVMLinkage(flinkage)
         );
 
-        std::vector<Element::Variable *>::iterator iter;
+        std::vector<Variable *>::iterator iter;
         iter = fn->parameter_types->begin();
 
         llvm::BasicBlock *block =
@@ -752,14 +752,14 @@ addEnum(Context *ctx,
     }
 
     {
-        Element::Function *fn =
+        Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "-", enum_type, enum_type, enum_type);
         fn->linkage = flinkage;
         fn->llvm_function->setLinkage(
             ctx->toLLVMLinkage(flinkage)
         );
 
-        std::vector<Element::Variable *>::iterator iter;
+        std::vector<Variable *>::iterator iter;
         iter = fn->parameter_types->begin();
 
         llvm::BasicBlock *block =
@@ -815,14 +815,14 @@ addEnum(Context *ctx,
     }
 
     {
-        Element::Function *fn =
+        Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "*", enum_type, enum_type, enum_type);
         fn->linkage = flinkage;
         fn->llvm_function->setLinkage(
             ctx->toLLVMLinkage(flinkage)
         );
 
-        std::vector<Element::Variable *>::iterator iter;
+        std::vector<Variable *>::iterator iter;
         iter = fn->parameter_types->begin();
 
         llvm::BasicBlock *block =
@@ -878,14 +878,14 @@ addEnum(Context *ctx,
     }
 
     {
-        Element::Function *fn =
+        Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "/", enum_type, enum_type, enum_type);
         fn->linkage = flinkage;
         fn->llvm_function->setLinkage(
             ctx->toLLVMLinkage(flinkage)
         );
 
-        std::vector<Element::Variable *>::iterator iter;
+        std::vector<Variable *>::iterator iter;
         iter = fn->parameter_types->begin();
 
         llvm::BasicBlock *block =
@@ -940,23 +940,23 @@ addEnum(Context *ctx,
             builder.CreateLoad(sp);
         builder.CreateRet(newint);
     }
-    Element::Type *type_bool = ctx->tr->type_bool;
+    Type *type_bool = ctx->tr->type_bool;
     makeEnumFunction(ctx, mod, once_tag, "=",  &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, "!=", &llvm::IRBuilder<>::CreateICmpNE,  type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, "<",  &llvm::IRBuilder<>::CreateICmpULT, type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, "<=", &llvm::IRBuilder<>::CreateICmpULE, type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, ">",  &llvm::IRBuilder<>::CreateICmpUGT, type_bool, enum_type, flinkage);
     makeEnumFunction(ctx, mod, once_tag, ">=", &llvm::IRBuilder<>::CreateICmpUGE, type_bool, enum_type, flinkage);
-    Element::Type *type_int = ctx->tr->type_int;
+    Type *type_int = ctx->tr->type_int;
     {
-        Element::Function *fn =
+        Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "<<", enum_type, enum_type, type_int);
         fn->linkage = flinkage;
         fn->llvm_function->setLinkage(
             ctx->toLLVMLinkage(flinkage)
         );
 
-        std::vector<Element::Variable *>::iterator iter;
+        std::vector<Variable *>::iterator iter;
         iter = fn->parameter_types->begin();
 
         llvm::BasicBlock *block =
@@ -1005,14 +1005,14 @@ addEnum(Context *ctx,
     }
 
     {
-        Element::Function *fn =
+        Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, ">>", enum_type, enum_type, type_int);
         fn->linkage = flinkage;
         fn->llvm_function->setLinkage(
             ctx->toLLVMLinkage(flinkage)
         );
 
-        std::vector<Element::Variable *>::iterator iter;
+        std::vector<Variable *>::iterator iter;
         iter = fn->parameter_types->begin();
 
         llvm::BasicBlock *block =

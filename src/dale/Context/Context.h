@@ -3,10 +3,10 @@
 
 #include "../Namespace/Namespace.h"
 #include "../Linkage/Linkage.h"
-#include "../Element/Function/Function.h"
-#include "../Element/Variable/Variable.h"
-#include "../Element/Struct/Struct.h"
-#include "../Element/Enum/Enum.h"
+#include "../Function/Function.h"
+#include "../Variable/Variable.h"
+#include "../Struct/Struct.h"
+#include "../Enum/Enum.h"
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../Node/Node.h"
 #include "../NativeTypes/NativeTypes.h"
@@ -173,34 +173,34 @@ public:
      *  same.  This iterates over the used namespaces, calling that
      *  method.
      */
-    Element::Function *getFunction(const char *name,
-                                   std::vector<Element::Type *> *types,
-                                   Element::Function **closest_fn,
+    Function *getFunction(const char *name,
+                                   std::vector<Type *> *types,
+                                   Function **closest_fn,
                                    bool is_macro);
     /*! Get the function with the given name and arguments.
      *
      *  This is an overloaded version of getFunction, omitting
      *  closest_fn.
      */
-    Element::Function *getFunction(const char *name,
-                                   std::vector<Element::Type *> *types,
+    Function *getFunction(const char *name,
+                                   std::vector<Type *> *types,
                                    bool is_macro);
     /*! Get the variable with the given name.
      *
      *  See Namespace::getVariable.  As per getFunction, this iterates
      *  over the used namespaces, calling that method.
      */
-    Element::Variable *getVariable(const char *name);
+    Variable *getVariable(const char *name);
     /*! Get the struct with the given name.
      */
-    Element::Struct *getStruct(const char *name);
+    Struct *getStruct(const char *name);
     /*! Get the struct with the given name.
      */
-    Element::Struct *getStruct(const char *name,
+    Struct *getStruct(const char *name,
                                std::vector<std::string> *namespaces);
     /*! Get the enum with the given name.
      */
-    Element::Enum *getEnum(const char *name);
+    Enum *getEnum(const char *name);
 
     /*! Get the function names from all namespaces.
      *
@@ -254,25 +254,25 @@ public:
      *
      *  The other toLLVMType functions should not be used externally.
      */
-    llvm::Type *toLLVMType(Element::Type *type,
+    llvm::Type *toLLVMType(Type *type,
                            Node *n,
                            bool allow_non_first_class = true,
                            bool externally_defined = false,
                            bool refs_to_pointers = false);
-    llvm::Type *toLLVMType_(Element::Type *type,
+    llvm::Type *toLLVMType_(Type *type,
                             Node *n,
                             bool refs_to_pointers);
-    llvm::Type *toLLVMTypeStruct(Element::Type *type,
+    llvm::Type *toLLVMTypeStruct(Type *type,
                                  Node *n);
-    llvm::Type *toLLVMTypeBase(Element::Type *type,
+    llvm::Type *toLLVMTypeBase(Type *type,
                                Node *n);
-    llvm::Type *toLLVMTypeFunction(Element::Type *type,
+    llvm::Type *toLLVMTypeFunction(Type *type,
                                    Node *n,
                                    bool refs_to_pointers);
-    llvm::Type *toLLVMTypePointer(Element::Type *type,
+    llvm::Type *toLLVMTypePointer(Type *type,
                                   Node *n,
                                   bool refs_to_pointers);
-    llvm::Type *toLLVMTypeArray(Element::Type *type,
+    llvm::Type *toLLVMTypeArray(Type *type,
                                 Node *n);
 
     /*! Convert a Dale linkage into an LLVM linkage.
@@ -296,7 +296,7 @@ public:
      *  @param name The function's name (unmangled).
      *  @param mod The LLVM module.
      */
-    bool rebuildFunction(Element::Function *fn, const char *name,
+    bool rebuildFunction(Function *fn, const char *name,
                          llvm::Module *mod);
     /*! Rebuilds LLVM functions, where required.
      *  @param mod The LLVM module.
@@ -312,7 +312,7 @@ public:
      *  @param fn The function to rebuild.
      *  @param mod The LLVM module.
      */
-    bool rebuildVariable(Element::Variable *var, const char *name,
+    bool rebuildVariable(Variable *var, const char *name,
                          llvm::Module *mod);
     /*! Rebuilds LLVM variables, where required.
      *  @param mod The LLVM module.

@@ -8,10 +8,10 @@ namespace Offsetof
 {
 int
 nameToIndex(Context *ctx,
-            Element::Type *type,
+            Type *type,
             const char *field_name)
 {
-    Element::Struct *structp =
+    Struct *structp =
         ctx->getStruct(
             type->struct_name->c_str(),
             type->namespaces
@@ -35,7 +35,7 @@ nameToIndex(Context *ctx,
 bool 
 execute(Context *ctx,
         llvm::BasicBlock *block,
-        Element::Type *type,
+        Type *type,
         const char *field_name,
         ParseResult *pr)
 {
@@ -46,7 +46,7 @@ execute(Context *ctx,
 bool 
 executeByIndex(Context *ctx,
                llvm::BasicBlock *block,
-               Element::Type *type,
+               Type *type,
                int index,
                ParseResult *pr)
 {
@@ -89,7 +89,7 @@ static int function_count = 0;
 
 size_t 
 get(Unit *unit,
-    Element::Type *type,
+    Type *type,
     const char *field_name)
 {
     return getByIndex(unit, type, nameToIndex(unit->ctx, type, field_name));
@@ -97,7 +97,7 @@ get(Unit *unit,
 
 size_t
 getByIndex(Unit *unit,
-           Element::Type *type,
+           Type *type,
            int index)
 {
     Context *ctx = unit->ctx;
@@ -135,7 +135,7 @@ getByIndex(Unit *unit,
             ft
         );
 
-    std::vector<Element::Variable*> args;
+    std::vector<Variable*> args;
 
     llvm::Function *fn = llvm::cast<llvm::Function>(fnc);
 

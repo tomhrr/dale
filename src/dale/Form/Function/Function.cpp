@@ -2,7 +2,7 @@
 #include "../../Generator/Generator.h"
 #include "../../Node/Node.h"
 #include "../../ParseResult/ParseResult.h"
-#include "../../Element/Function/Function.h"
+#include "../../Function/Function.h"
 #include "../../CoreForms/CoreForms.h"
 #include "../Linkage/Linkage.h"
 #include "../Type/Type.h"
@@ -12,11 +12,7 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace Function
-{
-llvm::FunctionType *
+static llvm::FunctionType *
 getFunctionType(llvm::Type *t,
                 std::vector<llvm::Type*> &v,
                 bool b) {
@@ -25,10 +21,10 @@ getFunctionType(llvm::Type *t,
 }
 
 bool 
-parse(Generator *gen,
+FormFunctionParse(Generator *gen,
       Node *n,
       const char *name,
-      Element::Function **new_function,
+      dale::Function **new_function,
       int override_linkage,
       int is_anonymous)
 {
@@ -124,7 +120,7 @@ parse(Generator *gen,
     int linkage =
         (override_linkage)
         ? override_linkage
-        : Form::Linkage::parse(ctx, (*lst)[next_index]);
+        : FormLinkageParse(ctx, (*lst)[next_index]);
 
     if (!linkage) {
         return false;
@@ -155,10 +151,10 @@ parse(Generator *gen,
 
     symlist *args = nargs->list;
 
-    Element::Variable *var;
+    Variable *var;
 
-    std::vector<Element::Variable *> *fn_args_internal =
-        new std::vector<Element::Variable *>;
+    std::vector<Variable *> *fn_args_internal =
+        new std::vector<Variable *>;
 
     /* Parse argument - need to keep names. */
 
@@ -168,7 +164,7 @@ parse(Generator *gen,
     bool varargs = false;
 
     while (node_iter != args->end()) {
-        var = new Element::Variable();
+        var = new Variable();
         var->type = NULL;
 
         gen->parseArgument(var, (*node_iter), false, false, true);
@@ -236,11 +232,11 @@ parse(Generator *gen,
 
     /* Convert to llvm args. */
 
-    std::vector<Element::Variable *>::iterator iter;
+    std::vector<Variable *>::iterator iter;
     iter = fn_args_internal->begin();
 
     while (iter != fn_args_internal->end()) {
-        Element::Type *type = (*iter)->type;
+        dale::Type *type = (*iter)->type;
         if (type->is_reference) {
             type = ctx->tr->getPointerType(type);
         }
@@ -263,7 +259,7 @@ parse(Generator *gen,
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;
 
-    for (std::vector<Element::Variable *>::iterator
+    for (std::vector<Variable *>::iterator
             b = fn_args_internal->begin(),
             e = fn_args_internal->end();
             b != e;
@@ -271,8 +267,8 @@ parse(Generator *gen,
         ctx->ns()->addVariable((*b)->name.c_str(), (*b));
     }
 
-    Element::Type *r_type = 
-        Form::Type::parse(gen, (*lst)[return_type_index], false,
+    dale::Type *r_type = 
+        FormTypeParse(gen, (*lst)[return_type_index], false,
                           false, false, true);
 
     ctx->deactivateNamespace(anon_name.c_str());
@@ -323,8 +319,8 @@ parse(Generator *gen,
 
     /* todo: extern_c functions in namespaces. */
 
-    Element::Function *dfn =
-        new Element::Function(r_type, fn_args_internal, NULL, 0,
+    dale::Function *dfn =
+        new dale::Function(r_type, fn_args_internal, NULL, 0,
                               &new_name, always_inline);
     dfn->linkage = linkage;
     dfn->cto = my_cto;
@@ -355,7 +351,7 @@ parse(Generator *gen,
 
     llvm::Function *temp23;
     if ((temp23 = gen->mod->getFunction(new_name.c_str()))) {
-        Element::Function *temp25 =
+        dale::Function *temp25 =
             ctx->getFunction(new_name.c_str(), NULL,
                              NULL, 0);
         if (temp25 && !temp25->isEqualTo(dfn)) {
@@ -473,7 +469,7 @@ parse(Generator *gen,
     gen->global_functions.push_back(dfn);
     gen->global_function = dfn;
 
-    Form::ProcBody::parse(gen, n, dfn, fn, (next_index + 2),
+    FormProcBodyParse(gen, n, dfn, fn, (next_index + 2),
                           is_anonymous, lv_return_value);
 
     gen->global_functions.pop_back();
@@ -489,8 +485,8 @@ parse(Generator *gen,
             && ctx->getVariable("stderr")) {
 
         std::vector<llvm::Value *> call_args;
-        std::vector<Element::Type *> tempparams;
-        Element::Function *ic =
+        std::vector<dale::Type *> tempparams;
+        dale::Function *ic =
             ctx->getFunction("init-channels", &tempparams,
                              NULL, 0);
         if (!ic or !ic->llvm_function) {
@@ -533,7 +529,5 @@ parse(Generator *gen,
     ctx->deactivateNamespace(anon_name2.c_str());
 
     return true;
-}
-}
 }
 }

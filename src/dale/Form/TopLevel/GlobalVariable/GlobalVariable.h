@@ -5,17 +5,8 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace TopLevel
-{
-namespace GlobalVariable
-{
-bool parse(Generator *gen,
-           Node *node);
-}
-}
-}
+bool
+FormTopLevelGlobalVariableParse(Generator *gen, Node *node);
 }
 
 #endif

@@ -1,10 +1,8 @@
 #include "Function.h"
 
-#include "../../STLUtils/STLUtils.h"
+#include "../STLUtils/STLUtils.h"
 
 namespace dale
-{
-namespace Element
 {
 Function::Function()
 {
@@ -15,13 +13,13 @@ Function::Function()
     is_destructor = 0;
     is_setf_fn    = 0;
     defgotos      = new std::vector<DeferredGoto *>;
-    labels        = new std::map<std::string, Element::Label *>;
+    labels        = new std::map<std::string, Label *>;
     serialise     = true;
 }
 
 Function::Function(
-    Element::Type *return_type,
-    std::vector<Element::Variable *> *parameter_types,
+    Type *return_type,
+    std::vector<Variable *> *parameter_types,
     llvm::Function *llvm_function,
     int is_macro,
     std::string *internal_name,
@@ -39,7 +37,7 @@ Function::Function(
     serialise     = true;
 
     defgotos      = new std::vector<DeferredGoto *>;
-    labels        = new std::map<std::string, Element::Label *>;
+    labels        = new std::map<std::string, Label *>;
 }
 
 Function::~Function()
@@ -53,18 +51,18 @@ Function::~Function()
     }
 }
 
-Element::Label *Function::getLabel(const char *str)
+Label *Function::getLabel(const char *str)
 {
-    std::map<std::string, Element::Label*>::iterator b = labels->find(str);
+    std::map<std::string, Label*>::iterator b = labels->find(str);
     if (b == labels->end()) {
         return NULL;
     }
     return b->second;
 }
 
-bool Function::addLabel(const char *str, Element::Label *label)
+bool Function::addLabel(const char *str, Label *label)
 {
-    labels->insert(std::pair<std::string, Element::Label *>(str, label));
+    labels->insert(std::pair<std::string, Label *>(str, label));
     return true;
 }
 
@@ -74,7 +72,7 @@ int Function::isVarArgs(void)
         return 0;
     }
 
-    Element::Variable *back = parameter_types->back();
+    Variable *back = parameter_types->back();
 
     return (back->type->base_type == dale::BaseType::VarArgs) ? 1 : 0;
 }
@@ -94,7 +92,7 @@ unsigned int Function::numberOfRequiredArgs(void)
     return num_of_args;
 }
 
-int Function::isEqualTo(Element::Function *other_fn)
+int Function::isEqualTo(Function *other_fn)
 {
     if (!return_type->isEqualTo(other_fn->return_type)) {
         return 0;
@@ -106,7 +104,7 @@ int Function::isEqualTo(Element::Function *other_fn)
            );
 }
 
-int Function::attrsAreEqual(Element::Function *other_fn)
+int Function::attrsAreEqual(Function *other_fn)
 {
     if (always_inline ^ other_fn->always_inline) {
         return 0;
@@ -123,7 +121,5 @@ bool Function::isDeclaration(void)
 bool Function::hasRetval(void)
 {
     return (return_type->is_retval != 0);
-}
-
 }
 }

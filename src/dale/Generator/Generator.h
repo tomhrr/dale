@@ -6,17 +6,17 @@
 #include <map>
 #include <string>
 
-#include "../Element/Label/Label.h"
+#include "../Label/Label.h"
 #include "../Context/Context.h"
-#include "../Element/Function/Function.h"
-#include "../Element/Variable/Variable.h"
-#include "../Element/Type/Type.h"
-#include "../Element/Struct/Struct.h"
+#include "../Function/Function.h"
+#include "../Variable/Variable.h"
+#include "../Type/Type.h"
+#include "../Struct/Struct.h"
 #include "../ParseResult/ParseResult.h"
 #include "../Parser/Parser.h"
 #include "../Node/Node.h"
 #include "../ErrorReporter/ErrorReporter.h"
-#include "../Element/Enum/Enum.h"
+#include "../Enum/Enum.h"
 #include "../TypeRegister/TypeRegister.h"
 #include "../UnitStack/UnitStack.h"
 #include "../llvm_IRBuilder.h"
@@ -89,8 +89,8 @@ private:
     );
 
     llvm::Value *coerceValue(llvm::Value *from_value,
-                             Element::Type *from_type,
-                             Element::Type *to_type,
+                             Type *from_type,
+                             Type *to_type,
                              llvm::BasicBlock *block);
 
     void regetPointersForFVDM(Context *newctx);
@@ -99,7 +99,7 @@ private:
     void removeMacroTemporaries(void);
 
     void popErrors(int original_count);
-    void processRetval(Element::Type *et,
+    void processRetval(Type *et,
                        llvm::BasicBlock *block,
                        ParseResult *pr,
                        std::vector<llvm::Value*> *call_args);
@@ -128,14 +128,14 @@ public:
                 int add_nm_to_so_paths);
 
     bool copyWithSetfIfApplicable(
-        Element::Function *dfn,
+        Function *dfn,
         ParseResult *pr, ParseResult *pr2);
 
     void setPoolfree();
 
     int prefunction_ctx_index;
    
-    bool scopeClose(Element::Function *dfn,
+    bool scopeClose(Function *dfn,
                    llvm::BasicBlock *block,
                    llvm::Value *no_destruct,
                    bool entire_function);
@@ -146,9 +146,9 @@ public:
     llvm::Module          *mod;
     bool is_x86_64;
     llvm::Value *IntNodeToStaticDNode(Node *node, llvm::Value *next_node);
-    Element::Type *type_pdnode;
+    Type *type_pdnode;
     bool parseFuncallInternal(
-        Element::Function *dfn,
+        Function *dfn,
         Node *n,
         bool getAddress,
         ParseResult *fn_ptr,
@@ -158,10 +158,10 @@ public:
 
     int parseInteger(Node *n);
 
-    std::vector<dale::Element::Function*> global_functions;
+    std::vector<dale::Function*> global_functions;
     std::vector<llvm::BasicBlock*>        global_blocks;
 
-    dale::Element::Function *global_function;
+    dale::Function *global_function;
     llvm::BasicBlock        *global_block;
 
     /* Function name lists will be stored here by fnByArgsCount, keyed on
@@ -169,7 +169,7 @@ public:
      * turn, be used by fnByArgsName. */
     std::map<std::string, std::vector<std::string>*> fn_by_args;
 
-    void parseArgument(Element::Variable *var, Node *n,
+    void parseArgument(Variable *var, Node *n,
                        bool allow_anon_structs,
                        bool allow_bitfields,
                        bool allow_refs);
@@ -179,12 +179,12 @@ public:
     Node *parseMacroCall(
         Node *n,
         const char *name,
-        Element::Function *macro_to_call);
-    bool parseFunctionCall(Element::Function *dfn,
+        Function *macro_to_call);
+    bool parseFunctionCall(Function *dfn,
                                    llvm::BasicBlock *block, Node *n, const char* fn_name,
                                    bool getAddress, bool
                                    prefixed_with_core,
-                                   Element::Function
+                                   Function
                                    **macro_to_call, ParseResult *pr);
     Parser                *prsr;
     llvm::Linker          *linker;

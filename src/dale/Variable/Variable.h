@@ -6,24 +6,22 @@
 #include <string>
 #include <cstdlib>
 
-#include "../../llvm_Module.h"
-#include "../../llvm_Function.h"
+#include "../llvm_Module.h"
+#include "../llvm_Function.h"
 #include "llvm/PassManager.h"
-#include "../../llvm_CallingConv.h"
-#include "../../llvm_AnalysisVerifier.h"
-#include "../../llvm_AssemblyPrintModulePass.h"
-#include "../../llvm_IRBuilder.h"
+#include "../llvm_CallingConv.h"
+#include "../llvm_AnalysisVerifier.h"
+#include "../llvm_AssemblyPrintModulePass.h"
+#include "../llvm_IRBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 
 namespace dale
 {
-namespace Element
-{
 class Variable
 {
 public:
-    Element::Type *type;
+    Type *type;
     std::string   name;
     std::string   internal_name;
     llvm::Value   *value;
@@ -38,13 +36,12 @@ public:
     bool serialise;
 
     Variable();
-    Variable(char *new_name, Element::Type *new_type);
+    Variable(char *new_name, Type *new_type);
 
     ~Variable();
 
-    bool isEqualTo(Element::Variable *other_var);
+    bool isEqualTo(Variable *other_var);
 };
-}
 }
 
 #endif

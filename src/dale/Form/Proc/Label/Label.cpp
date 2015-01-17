@@ -1,19 +1,14 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Label
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcLabelParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -66,7 +61,7 @@ bool parse(Generator *gen,
     }
 
     int index = ++(ctx->ns()->lv_index);
-    Element::Label *my_label = new Element::Label();
+    dale::Label *my_label = new dale::Label();
     my_label->block = new_block;
     my_label->ns = ctx->ns();
     my_label->index = index;
@@ -76,8 +71,5 @@ bool parse(Generator *gen,
             ctx->nt->getNativeInt(0));
 
     return true;
-}
-}
-}
 }
 }

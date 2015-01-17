@@ -1,7 +1,7 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../../Operation/Cast/Cast.h"
 #include "../../../Operation/Sizeof/Sizeof.h"
 #include "../Inst/Inst.h"
@@ -9,14 +9,9 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace PtrAdd
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcPtrAddParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -34,7 +29,7 @@ bool parse(Generator *gen,
     symlist *lst = node->list;
 
     ParseResult ptr;
-    bool mres = Form::Proc::Inst::parse(gen, 
+    bool mres = FormProcInstParse(gen, 
                          fn, block, (*lst)[1], get_address, false, NULL, &ptr
                      );
     if (!mres) {
@@ -45,7 +40,7 @@ bool parse(Generator *gen,
     }
 
     ParseResult val;
-    mres = Form::Proc::Inst::parse(gen, 
+    mres = FormProcInstParse(gen, 
                  fn, ptr.block, (*lst)[2], get_address, false, NULL, &val
           );
     if (!mres) {
@@ -120,8 +115,5 @@ bool parse(Generator *gen,
     pr->set(final_res.block, ptr.type, final_res.value);
 
     return true;
-}
-}
-}
 }
 }

@@ -11,7 +11,7 @@ static int alignment_structs = 0;
 bool 
 execute(Context *ctx,
         llvm::BasicBlock *block,
-        Element::Type *type,
+        Type *type,
         ParseResult *pr)
 {
     std::vector<llvm::Type*> elements_llvm;

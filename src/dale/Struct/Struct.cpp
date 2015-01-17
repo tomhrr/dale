@@ -1,10 +1,8 @@
 #include "Struct.h"
 
-#include "../../STLUtils/STLUtils.h"
+#include "../STLUtils/STLUtils.h"
 
 namespace dale
-{
-namespace Element
 {
 Struct::Struct()
 {
@@ -18,7 +16,7 @@ Struct::~Struct()
 {
 }
 
-int Struct::addElement(const char *name, Element::Type *type)
+int Struct::addElement(const char *name, Type *type)
 {
     /* Name already exists, return 0 and let caller deal with
      * it. */
@@ -39,7 +37,7 @@ int Struct::addElement(const char *name, Element::Type *type)
     return 1;
 }
 
-Element::Type *Struct::nameToType(const char *name)
+Type *Struct::nameToType(const char *name)
 {
     int index = nameToIndex(name);
 
@@ -49,7 +47,7 @@ Element::Type *Struct::nameToType(const char *name)
         : element_types[index];
 }
 
-Element::Type *Struct::indexToType(int index)
+Type *Struct::indexToType(int index)
 {
     return element_types[index];
 }
@@ -81,6 +79,5 @@ const char *Struct::indexToName(int index)
     }
 
     return NULL;
-}
 }
 }

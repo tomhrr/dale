@@ -1,7 +1,7 @@
 #ifndef DALE_BASICTYPES
 #define DALE_BASICTYPES
 
-#include "../Element/Type/Type.h"
+#include "../Type/Type.h"
 #include "../Context/Context.h"
 #include "../ParseResult/ParseResult.h"
 #include "../Operation/Cast/Cast.h"
@@ -35,13 +35,13 @@ namespace BasicTypes
  *  The caller has to add instructions to the body of the function, if
  *  required.
  */
-Element::Function *
+Function *
 addSimpleUnaryFunction(Context *ctx,
                        llvm::Module *mod,
                        std::string *once_tag,
                        const char *name,
-                       Element::Type *return_type,
-                       Element::Type *type1);
+                       Type *return_type,
+                       Type *type1);
 
 /*! Add a binary function to the context and module.
  *  @param ctx The context.
@@ -55,14 +55,14 @@ addSimpleUnaryFunction(Context *ctx,
  *  As with addSimpleUnaryFunction, the caller has to add instructions
  *  to the body of the function, if required.
  */
-Element::Function *
+Function *
 addSimpleBinaryFunction(Context *ctx,
                         llvm::Module *mod,
                         std::string *once_tag,
                         const char *name,
-                        Element::Type *return_type,
-                        Element::Type *type1,
-                        Element::Type *type2);
+                        Type *return_type,
+                        Type *type1,
+                        Type *type2);
 
 /*! Instantiate the functions required for the given signed integer type.
  *  @param ctx The context.
@@ -77,7 +77,7 @@ void
 addSignedInt(Context *ctx,
              llvm::Module *mod,
              std::string *once_tag,
-             Element::Type *type);
+             Type *type);
 
 /*! Instantiate the functions required for the given floating point type.
  *  @param ctx The context.
@@ -92,7 +92,7 @@ void
 addFloatingPoint(Context *ctx,
                  llvm::Module *mod,
                  std::string *once_tag,
-                 Element::Type *type);
+                 Type *type);
 
 /*! Instantiate the functions required for the given unsigned integer type.
  *  @param ctx The context.
@@ -107,7 +107,7 @@ void
 addUnsignedInt(Context *ctx,
                llvm::Module *mod,
                std::string *once_tag,
-               Element::Type *type);
+               Type *type);
 
 /*! Instantiate the functions required for the given enum type.
  *  @param ctx The context.
@@ -121,8 +121,8 @@ void
 addEnum(Context *ctx,
         llvm::Module *mod,
         std::string *once_tag,
-        Element::Type *enum_type,
-        Element::Type *enum_int_type,
+        Type *enum_type,
+        Type *enum_int_type,
         llvm::Type *llvm_enum_int_type,
         int flinkage);
 }

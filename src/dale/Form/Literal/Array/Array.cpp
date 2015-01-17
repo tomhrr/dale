@@ -3,14 +3,14 @@
 #include "../../../Error/Error.h"
 #include "../../Proc/Inst/Inst.h"
 
-namespace dale { namespace Form { namespace Literal { namespace Array {
+namespace dale {
 bool 
-parse(Generator *gen,
-      Element::Function *dfn,
+FormLiteralArrayParse(Generator *gen,
+      Function *dfn,
       llvm::BasicBlock *block,
       Node *n,
       const char *name,
-      Element::Type *array_type,
+      Type *array_type,
       bool getAddress,
       int *size,
       ParseResult *pr)
@@ -38,7 +38,7 @@ parse(Generator *gen,
     while (iter != lst->end()) {
         ParseResult *el = new ParseResult();
         bool res =
-            Form::Proc::Inst::parse(
+            FormProcInstParse(
                 gen,
                 dfn,
                 block,
@@ -143,4 +143,4 @@ parse(Generator *gen,
 
     return true;
 }
-}}}}
+}

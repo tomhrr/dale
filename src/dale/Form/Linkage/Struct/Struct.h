@@ -4,9 +4,9 @@
 #include "../../../Context/Context.h"
 #include "../../../Node/Node.h"
 
-namespace dale { namespace Form { namespace Linkage { namespace Struct {
-int parse(Context *ctx,
-          Node *n);
-}}}}
+namespace dale {
+int
+FormLinkageStructParse(Context *ctx, Node *n);
+}
 
 #endif

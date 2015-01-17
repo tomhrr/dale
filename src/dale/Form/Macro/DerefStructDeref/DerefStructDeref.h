@@ -4,9 +4,9 @@
 #include "../../../Node/Node.h"
 #include "../../../Context/Context.h"
 
-namespace dale { namespace Form { namespace Macro { namespace DerefStructDeref {
+namespace dale {
 Node *
-parse(Context *ctx, Node *node);
-}}}}
+FormMacroDerefStructDerefParse(Context *ctx, Node *node);
+}
 
 #endif

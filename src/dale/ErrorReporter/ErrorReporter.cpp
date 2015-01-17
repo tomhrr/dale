@@ -106,7 +106,7 @@ void ErrorReporter::popErrors(int original_count)
 
 bool ErrorReporter::assertIsIntegerType(const char *form_name,
                                         Node *n,
-                                        Element::Type *type,
+                                        Type *type,
                                         const char *arg_number)
 {
     if (type->base_type == BaseType::Int) {
@@ -126,7 +126,7 @@ bool ErrorReporter::assertIsIntegerType(const char *form_name,
 
 bool ErrorReporter::assertIsPointerOrIntegerType(const char *form_name,
                                                  Node *n,
-                                                 Element::Type *type,
+                                                 Type *type,
                                                  const char *arg_number)
 {
     if (type->points_to || type->isIntegerType()) {
@@ -146,7 +146,7 @@ bool ErrorReporter::assertIsPointerOrIntegerType(const char *form_name,
 
 bool ErrorReporter::assertIsPointerType(const char *form_name,
                                         Node *n,
-                                        Element::Type *type,
+                                        Type *type,
                                         const char *arg_number)
 {
     if (type->points_to) {
@@ -166,8 +166,8 @@ bool ErrorReporter::assertIsPointerType(const char *form_name,
 
 bool ErrorReporter::assertTypeEquality(const char *form_name,
                                        Node *n,
-                                       Element::Type *got,
-                                       Element::Type *expected,
+                                       Type *got,
+                                       Type *expected,
                                        int ignore_arg_constness)
 {
     if (got->isEqualTo(expected, ignore_arg_constness)) {

@@ -2,8 +2,6 @@
 
 namespace dale
 {
-namespace Element
-{
 Variable::Variable()
 {
     has_initialiser = 0;
@@ -12,7 +10,7 @@ Variable::Variable()
     linkage         = Linkage::Auto;
 }
 
-Variable::Variable(char *new_name, Element::Type *new_type)
+Variable::Variable(char *new_name, Type *new_type)
 {
     name.append(new_name);
     type = new_type;
@@ -25,9 +23,8 @@ Variable::~Variable()
 {
 }
 
-bool Variable::isEqualTo(Element::Variable *other_var)
+bool Variable::isEqualTo(Variable *other_var)
 {
     return type->isEqualTo(other_var->type);
-}
 }
 }

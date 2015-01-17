@@ -22,7 +22,7 @@ ParseResult::ParseResult()
 
 ParseResult::ParseResult(
     llvm::BasicBlock *new_block,
-    Element::Type *new_type,
+    Type *new_type,
     llvm::Value *new_value
 )
 {
@@ -65,7 +65,7 @@ int ParseResult::copyTo(ParseResult *x)
 }
 
 void ParseResult::set(llvm::BasicBlock *new_block,
-                      Element::Type *new_type,
+                      Type *new_type,
                       llvm::Value *new_value) {
     block = new_block;
     type  = new_type;
@@ -96,7 +96,7 @@ bool ParseResult::getAddressOfValue(Context *ctx, ParseResult *pr)
     if (!res) {
         return false;
     }
-    Element::Type *new_type =
+    Type *new_type =
         (type_of_address_of_value)
             ? type_of_address_of_value
             : ctx->tr->getPointerType(type);

@@ -1,20 +1,15 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace If
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcIfParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -33,7 +28,7 @@ bool parse(Generator *gen,
 
     ParseResult pr_cond;
     bool res =
-        Form::Proc::Inst::parse(gen, fn, block, (*lst)[1], get_address,
+        FormProcInstParse(gen, fn, block, (*lst)[1], get_address,
                                false,
                                NULL, &pr_cond);
     if (!res) {
@@ -72,7 +67,7 @@ bool parse(Generator *gen,
     ctx->activateAnonymousNamespace();
     ParseResult pr_then;
     res =
-        Form::Proc::Inst::parse(gen, fn, then_block, (*lst)[2], get_address,
+        FormProcInstParse(gen, fn, then_block, (*lst)[2], get_address,
                                 false,
                                NULL, &pr_then);
     gen->scopeClose(fn, then_block, NULL, false);
@@ -84,7 +79,7 @@ bool parse(Generator *gen,
     ctx->activateAnonymousNamespace();
     ParseResult pr_else;
     res =
-        Form::Proc::Inst::parse(gen, fn, else_block, (*lst)[3], get_address,
+        FormProcInstParse(gen, fn, else_block, (*lst)[3], get_address,
                                 false,
                                NULL, &pr_else);
     gen->scopeClose(fn, else_block, NULL, false);
@@ -210,8 +205,5 @@ bool parse(Generator *gen,
     pr->freshly_copied = 1;
 
     return true;
-}
-}
-}
 }
 }

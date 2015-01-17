@@ -5,17 +5,9 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace TopLevel
-{
-namespace Def
-{
-bool parse(Generator *gen,
+bool
+FormTopLevelDefParse(Generator *gen,
            Node *node);
-}
-}
-}
 }
 
 #endif

@@ -1,20 +1,15 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Setf
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcSetfParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -37,7 +32,7 @@ bool parse(Generator *gen,
 
     ParseResult pr_variable;
     bool res =
-        Form::Proc::Inst::parse(gen, fn, block, (*lst)[1], false, 
+        FormProcInstParse(gen, fn, block, (*lst)[1], false, 
                                     false, NULL,
                                     &pr_variable);
 
@@ -78,7 +73,7 @@ bool parse(Generator *gen,
     ParseResult pr_value;
     pr_value.retval = pr_variable.value;
     pr_value.retval_type = pr_variable.type;
-    Element::Variable *var_value = NULL;
+    Variable *var_value = NULL;
     symlist *vlst = val_node->list;
 
     /* If the value is a variable, or a variable dereference, load the
@@ -105,7 +100,7 @@ bool parse(Generator *gen,
         pr_value.block = pr_variable.block;
     } else {
         res =
-            Form::Proc::Inst::parse(gen, 
+            FormProcInstParse(gen, 
                 fn, pr_variable.block, val_node, false,
                 false,
                 pr_variable.type->points_to,
@@ -131,10 +126,10 @@ bool parse(Generator *gen,
 
     if (!prefixed_with_core
             && pr_variable.type->points_to->canBeSetFrom(pr_value.type)) {
-        std::vector<Element::Type *> types;
+        std::vector<Type *> types;
         types.push_back(pr_variable.type);
         types.push_back(pr_variable.type);
-        Element::Function *over_setf =
+        Function *over_setf =
             ctx->getFunction("setf-assign", &types, NULL, 0);
         if (!over_setf) {
             goto cont1;
@@ -175,10 +170,10 @@ cont1:
      * the arguments exactly, then use it. */
 
     if (!prefixed_with_core) {
-        std::vector<Element::Type *> types;
+        std::vector<Type *> types;
         types.push_back(pr_variable.type);
         types.push_back(pr_value.type);
-        Element::Function *over_setf =
+        Function *over_setf =
             ctx->getFunction("setf-assign", &types, NULL, 0);
         if (!over_setf) {
             goto cont2;
@@ -214,7 +209,7 @@ cont2:
 
     if (var_value) {
         res =
-            Form::Proc::Inst::parse(gen, 
+            FormProcInstParse(gen, 
                 fn, pr_value.block, val_node, false,
                 false,
                 pr_variable.type->points_to,
@@ -257,8 +252,5 @@ cont2:
                             false);
 
     return false;
-}
-}
-}
 }
 }

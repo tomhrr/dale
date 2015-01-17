@@ -1,10 +1,10 @@
 #ifndef DALE_NAMESPACE
 #define DALE_NAMESPACE
 
-#include "../Element/Function/Function.h"
-#include "../Element/Variable/Variable.h"
-#include "../Element/Struct/Struct.h"
-#include "../Element/Enum/Enum.h"
+#include "../Function/Function.h"
+#include "../Variable/Variable.h"
+#include "../Struct/Struct.h"
+#include "../Enum/Enum.h"
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../Linkage/Linkage.h"
 #include "../Node/Node.h"
@@ -40,15 +40,15 @@ public:
     /*! A map from function name to function list. The list is
      *  necessary because functions may be overloaded. Note that both
      *  macros and functions are stored in this map.*/
-    std::map<std::string, std::vector<Element::Function *>* > functions;
+    std::map<std::string, std::vector<Function *>* > functions;
     /*! A map from variable name to variable. */
-    std::map<std::string, Element::Variable *> variables;
+    std::map<std::string, Variable *> variables;
     /*! A map from struct name to struct. */
-    std::map<std::string, Element::Struct *> structs;
+    std::map<std::string, Struct *> structs;
     /*! A map from enum name to enum. */
-    std::map<std::string, Element::Enum *> enums;
+    std::map<std::string, Enum *> enums;
     /*! The functions in order of addition. */
-    std::vector<Element::Function *> functions_ordered;
+    std::vector<Function *> functions_ordered;
     /*! The variable names in order of addition. */
     std::vector<std::string> variables_ordered;
     /*! The struct names in order of addition. */
@@ -104,23 +104,23 @@ public:
      *  this namespace.
      */
     bool addFunction(const char *name,
-                     Element::Function *function,
+                     Function *function,
                      Node *n);
     /*! Add a variable to the namespace.
      *  @param name The bare name of the variable.
      *  @param variable The variable object. */
     bool addVariable(const char *name, 
-                     Element::Variable *variable);
+                     Variable *variable);
     /*! Add a struct to the namespace.
      *  @param name The bare name of the struct.
      *  @param element_struct The struct object. */
     bool addStruct(const char *name, 
-                   Element::Struct *element_struct);
+                   Struct *element_struct);
     /*! Add an enum to the namespace.
      *  @param name The bare name of the enum.
      *  @param element_enum The enum object. */
     bool addEnum(const char *name, 
-                 Element::Enum *element_enum);
+                 Enum *element_enum);
 
     /*! Get a function from this namespace.
      *  @param name The bare name of the function.
@@ -139,26 +139,26 @@ public:
      *  only, because there is no instance where only functions are
      *  relevant.
      */
-    Element::Function *getFunction(const char *name,
-                                   std::vector<Element::Type *> *types,
-                                   Element::Function **pclosest_fn,
+    Function *getFunction(const char *name,
+                                   std::vector<Type *> *types,
+                                   Function **pclosest_fn,
                                    bool is_macro,
                                    bool ignore_arg_constness = true);
     /*! Get a variable from this namespace.
      *  @param name The variable name. */
-    Element::Variable *getVariable(const char *name);
+    Variable *getVariable(const char *name);
     /*! Get a struct from this namespace.
      *  @param name The struct name. */
-    Element::Struct *getStruct(const char *name);
+    Struct *getStruct(const char *name);
     /*! Get an enum from this namespace.
      *  @param name The enum name. */
-    Element::Enum *getEnum(const char *name); 
+    Enum *getEnum(const char *name); 
 
     /*! Get all of the variables from this namespace.
      *  @param vars A vector to which the variables will be added.
      *
      *  The variables are added to the vector in reverse order. */
-    void getVariables(std::vector<Element::Variable *> *vars);
+    void getVariables(std::vector<Variable *> *vars);
     /*! Get all of the function names from this namespace.
      *  @param names A set to which the function names will be added.
      *  @param prefix An optional function name prefix. */
@@ -172,7 +172,7 @@ public:
      *  'index' in this context means a label-variable index. This function
      *  recurses upwards. */
     void getVarsAfterIndex(int index,
-                           std::vector<Element::Variable *> *vars);
+                           std::vector<Variable *> *vars);
     /*! Get all of the variables before a certain index.
      *  @param index The upper-bound for the index.
      *  @param vars A vector to which the variables will be added.
@@ -182,7 +182,7 @@ public:
      *  used only for determining the set of variables that need to be
      *  destructed as at a particular point. */
     void getVarsBeforeIndex(int index,
-                           std::vector<Element::Variable *> *vars);
+                           std::vector<Variable *> *vars);
 
     /*! Construct a symbol name for a given name.
      *  @param name The bare name.
@@ -206,7 +206,7 @@ public:
      */
     void functionNameToSymbol(const char *name, std::string *new_name,
                               int linkage,
-                              std::vector<Element::Variable *> *types);
+                              std::vector<Variable *> *types);
 
     /*! Erase all LLVM macros from the namespace.
      *

@@ -3,7 +3,7 @@
 
 #include "../../ParseResult/ParseResult.h"
 #include "../../Context/Context.h"
-#include "../../Element/Type/Type.h"
+#include "../../Type/Type.h"
 #include "../../Node/Node.h"
 #include "../../Unit/Unit.h"
 
@@ -19,19 +19,19 @@ namespace Offsetof
 {
 bool execute(Context *ctx,
              llvm::BasicBlock *block,
-             Element::Type *type,
+             Type *type,
              const char *field_name,
              ParseResult *pr);
 bool executeByIndex(Context *ctx,
                     llvm::BasicBlock *block,
-                    Element::Type *type,
+                    Type *type,
                     int index,
                     ParseResult *pr);
 size_t get(Unit *unit,
-           Element::Type *type,
+           Type *type,
            const char *field_name);
 size_t getByIndex(Unit *unit,
-                  Element::Type *type,
+                  Type *type,
                   int index);
 }
 }

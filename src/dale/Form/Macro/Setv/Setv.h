@@ -4,9 +4,9 @@
 #include "../../../Node/Node.h"
 #include "../../../Context/Context.h"
 
-namespace dale { namespace Form { namespace Macro { namespace Setv {
+namespace dale {
 Node *
-parse(Context *ctx, Node *node);
-}}}}
+FormMacroSetvParse(Context *ctx, Node *node);
+}
 
 #endif

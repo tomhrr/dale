@@ -9,8 +9,8 @@ namespace Cast
 bool execute(Context *ctx,
                      llvm::BasicBlock *block,
                      llvm::Value *value,
-                     Element::Type *from_type,
-                     Element::Type *to_type,
+                     Type *from_type,
+                     Type *to_type,
                      Node *n,
                      bool implicit,
                      ParseResult *pr)
@@ -96,9 +96,9 @@ bool execute(Context *ctx,
                && (to_type->isIntegerType())
                && (ctx->getEnum(struct_name->c_str()))) {
 
-        Element::Struct *mystruct =
+        Struct *mystruct =
             ctx->getStruct(from_type->struct_name->c_str());
-        Element::Type *temp_to_type = mystruct->element_types.at(0);
+        Type *temp_to_type = mystruct->element_types.at(0);
 
         // Store the struct.
         llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
@@ -113,7 +113,7 @@ bool execute(Context *ctx,
                               llvm::ArrayRef<llvm::Value*>(two_zero_indices));
 
         // Bitcast the pointer to an int pointer of the right size.
-        Element::Type *ptemp_to_type = ctx->tr->getPointerType(temp_to_type);
+        Type *ptemp_to_type = ctx->tr->getPointerType(temp_to_type);
         llvm::Value *intptr =
             builder.CreateBitCast(
                 one, ctx->toLLVMType(ptemp_to_type,
@@ -144,8 +144,8 @@ bool execute(Context *ctx,
                && (from_type->isIntegerType())
                && (ctx->getEnum(struct_name->c_str()))) {
 
-        Element::Struct *mystruct = ctx->getStruct(to_type->struct_name->c_str());
-        Element::Type *to_type_temp = mystruct->element_types.at(0);
+        Struct *mystruct = ctx->getStruct(to_type->struct_name->c_str());
+        Type *to_type_temp = mystruct->element_types.at(0);
 
         ParseResult temp;
         bool mres = execute(ctx, block,
@@ -168,7 +168,7 @@ bool execute(Context *ctx,
                             new_ptr1);
 
         // Bitcast the int pointer to a struct pointer.
-        Element::Type *pto_type = ctx->tr->getPointerType(to_type);
+        Type *pto_type = ctx->tr->getPointerType(to_type);
         llvm::Value *sp =
             builder.CreateBitCast(
                 new_ptr1, ctx->toLLVMType(pto_type,
@@ -187,7 +187,7 @@ bool execute(Context *ctx,
                                     builder.CreateAlloca(llvm_from_type)
                                 );
         builder.CreateStore(value, new_ptr1);
-        Element::Type *pto_type = ctx->tr->getPointerType(to_type);
+        Type *pto_type = ctx->tr->getPointerType(to_type);
         llvm::Value *sp =
             builder.CreateBitCast(
                 new_ptr1, ctx->toLLVMType(pto_type, NULL, false)

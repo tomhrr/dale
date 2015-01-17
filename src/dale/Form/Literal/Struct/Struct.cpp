@@ -4,15 +4,15 @@
 #include "../../../Operation/Cast/Cast.h"
 #include "../../Proc/Inst/Inst.h"
 
-namespace dale { namespace Form { namespace Literal { namespace Struct {
-bool 
-parse(Generator *gen,
-      Element::Function *dfn,
+namespace dale {
+bool
+FormLiteralStructParse(Generator *gen,
+      Function *dfn,
       llvm::BasicBlock *block,
       Node *n,
       const char *struct_name,
-      Element::Struct *str,
-      Element::Type *structtype,
+      Struct *str,
+      Type *structtype,
       bool get_address,
       ParseResult *pr)
 {
@@ -70,7 +70,7 @@ parse(Generator *gen,
             return false;
         }
 
-        Element::Type *nametype =
+        Type *nametype =
             str->nameToType(name->token->str_value.c_str());
 
         if (!nametype) {
@@ -95,7 +95,7 @@ parse(Generator *gen,
 
         ParseResult newvalue;
         bool mres =
-            Form::Proc::Inst::parse(gen, dfn, block, namevalue, false,
+            FormProcInstParse(gen, dfn, block, namevalue, false,
                                    false, NULL, &newvalue);
 
         if (!mres) {
@@ -156,4 +156,4 @@ parse(Generator *gen,
     }
     return true;
 }
-}}}}
+}

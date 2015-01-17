@@ -5,15 +5,8 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace TopLevel
-{
-namespace Import
-{
 bool
-parse(Generator *gen,
-      Node *node)
+FormTopLevelImportParse(Generator *gen, Node *node)
 {
     Context *ctx = gen->ctx;
     Node *top = node;
@@ -66,8 +59,5 @@ parse(Generator *gen,
     }
 
     return true;
-}
-}
-}
 }
 }

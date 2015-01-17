@@ -11,13 +11,7 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace TopLevel
-{
-namespace GlobalVariable
-{
-llvm::FunctionType *
+static llvm::FunctionType *
 getFunctionType(llvm::Type *t,
                 std::vector<llvm::Type*> &v,
                 bool b) {
@@ -29,7 +23,7 @@ llvm::Constant *
 parseLiteralElement(Generator *gen,
                     Node *top,
                     char *thing,
-                    Element::Type *type,
+                    Type *type,
                     int *size)
 {
     Context *ctx = gen->ctx;
@@ -137,7 +131,7 @@ parseLiteralElement(Generator *gen,
     if (type->struct_name) {
         std::vector<llvm::Constant *> constants;
 
-        Element::Struct *str =
+        Struct *str =
             ctx->getStruct(
                 type->struct_name->c_str(),
                 type->namespaces
@@ -147,7 +141,7 @@ parseLiteralElement(Generator *gen,
             abort();
         }
 
-        std::vector<Element::Type *>::iterator begin =
+        std::vector<Type *>::iterator begin =
             str->element_types.begin();
 
         int i = 0;
@@ -156,7 +150,7 @@ parseLiteralElement(Generator *gen,
         int incr = 0;
 
         while (begin != str->element_types.end()) {
-            Element::Type *current = (*begin);
+            Type *current = (*begin);
             size_t el_size =
                 Operation::Sizeof::get(gen->unit_stack->top(), current);
             size_t offset =
@@ -232,7 +226,7 @@ parseLiteralElement(Generator *gen,
         std::string varname2;
         gen->getUnusedVarname(&varname2);
 
-        Element::Type *archar =
+        Type *archar =
             tr->getArrayType(tr->type_char, *size);
 
         if (gen->mod->getGlobalVariable(llvm::StringRef(varname2.c_str()))) {
@@ -356,7 +350,7 @@ static int myn = 0;
  * will contain the final size of the returned array. */
 llvm::Constant *
 parseLiteral(Generator *gen,
-             Element::Type *type,
+             Type *type,
              Node *top,
              int *size)
 {
@@ -379,7 +373,7 @@ parseLiteral(Generator *gen,
         Node *var = top->list->at(1);
         var = gen->parseOptionalMacroCall(var);
         if (var && var->is_token) {
-            Element::Variable *gv =
+            Variable *gv =
                 ctx->getVariable(var->token->str_value.c_str());
             if (!(type->points_to->isEqualTo(gv->type))) {
                 std::string want;
@@ -440,7 +434,7 @@ parseLiteral(Generator *gen,
             ft
         );
 
-    std::vector<Element::Variable*> args;
+    std::vector<Variable*> args;
 
     llvm::Function *fn = llvm::cast<llvm::Function>(fnc);
 
@@ -448,8 +442,8 @@ parseLiteral(Generator *gen,
 
     fn->setLinkage(ctx->toLLVMLinkage(dale::Linkage::Extern_C));
 
-    Element::Function *dfn =
-        new Element::Function(type, &args, fn, 0,
+    Function *dfn =
+        new Function(type, &args, fn, 0,
                               &new_name);
     dfn->linkage = dale::Linkage::Intern;
     int error_count =
@@ -459,7 +453,7 @@ parseLiteral(Generator *gen,
     nodes.push_back(top);
     Node *topwrapper = new Node(&nodes);
 
-    Form::ProcBody::parse(gen, topwrapper, dfn, fn, 0, 0);
+    FormProcBodyParse(gen, topwrapper, dfn, fn, 0, 0);
     int error_post_count =
         ctx->er->getErrorTypeCount(ErrorType::Error);
     if (error_count != error_post_count) {
@@ -514,14 +508,14 @@ parseLiteral(Generator *gen,
                          );
     builder.CreateStore(ret, reta2);
 
-    std::vector<Element::Type *> call_arg_types;
-    Element::Type *ptype = ctx->tr->getPointerType(type);
+    std::vector<Type *> call_arg_types;
+    Type *ptype = ctx->tr->getPointerType(type);
     stl::push_back2(&call_arg_types, ptype, ptype);
 
     std::vector<llvm::Value *> call_args2;
     stl::push_back2(&call_args2, reta, reta2);
 
-    if (Element::Function *or_setf =
+    if (Function *or_setf =
                 ctx->getFunction("setf-assign", &call_arg_types, NULL, 0)) {
         builder.CreateCall(
             or_setf->llvm_function,
@@ -576,7 +570,7 @@ parseLiteral(Generator *gen,
     }
     llvm::Value *store = storeor.value;
     builder.SetInsertPoint(storeor.block);
-    Element::Function *memcpy = ctx->getFunction("memcpy", NULL,
+    Function *memcpy = ctx->getFunction("memcpy", NULL,
                                 NULL, 0);
     if (!memcpy) {
         fprintf(stderr,
@@ -639,8 +633,8 @@ parseLiteral(Generator *gen,
     return NULL;
 }
 
-bool parse(Generator *gen,
-           Node *node)
+bool
+FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
 {
     Context *ctx = gen->ctx;
 
@@ -679,9 +673,9 @@ bool parse(Generator *gen,
         return false;
     }
 
-    int linkage = Form::Linkage::parse(ctx, (*lst)[1]);
+    int linkage = FormLinkageParse(ctx, (*lst)[1]);
 
-    Element::Type *r_type = Form::Type::parse(gen, (*lst)[2], false, false);
+    Type *r_type = FormTypeParse(gen, (*lst)[2], false, false);
     if (r_type == NULL) {
         return false;
     }
@@ -720,7 +714,7 @@ bool parse(Generator *gen,
         ctx->ns()->nameToSymbol(name, &new_name);
     }
 
-    Element::Variable *check = ctx->getVariable(name);
+    Variable *check = ctx->getVariable(name);
     if (check
             && check->type->isEqualTo(r_type)
             && (check->linkage == linkage)
@@ -731,7 +725,7 @@ bool parse(Generator *gen,
 
     /* Add the variable to the context. */
 
-    Element::Variable *var2 = new Element::Variable();
+    Variable *var2 = new Variable();
     var2->name.append(name);
     var2->type = r_type;
     var2->internal_name.append(new_name);
@@ -822,8 +816,5 @@ bool parse(Generator *gen,
     var2->value = llvm::cast<llvm::Value>(var);
 
     return true;
-}
-}
-}
 }
 }

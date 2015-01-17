@@ -2,9 +2,9 @@
 #include "../../../Linkage/Linkage.h"
 #include "../../../Error/Error.h"
 
-namespace dale { namespace Form { namespace Linkage { namespace Enum {
-int parse(Context *ctx,
-          Node *n)
+namespace dale {
+int
+FormLinkageEnumParse(Context *ctx, Node *n)
 {
     if (!n->is_token) {
         Error *e = new Error(
@@ -46,4 +46,4 @@ int parse(Context *ctx,
     ctx->er->addError(e);
     return 0; 
 }
-}}}}
+}

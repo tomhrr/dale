@@ -12,13 +12,7 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace TopLevel
-{
-namespace Enum
-{
-llvm::FunctionType *
+static llvm::FunctionType *
 getFunctionType(llvm::Type *t,
                 std::vector<llvm::Type*> &v,
                 bool b) {
@@ -26,8 +20,8 @@ getFunctionType(llvm::Type *t,
     return llvm::FunctionType::get(t, temp, b);
 }
 
-bool parse(Generator *gen,
-           Node *node)
+bool
+FormTopLevelEnumParse(Generator *gen, Node *node)
 {
     Context *ctx = gen->ctx;
 
@@ -47,14 +41,14 @@ bool parse(Generator *gen,
     }
 
     Node *lnk = (*lst)[1];
-    int linkage = Form::Linkage::Enum::parse(ctx, lnk);
+    int linkage = FormLinkageEnumParse(ctx, lnk);
     if (!linkage) {
         return false;
     }
 
     Node *enumtypen = (*lst)[2];
 
-    Element::Type *enumtype = Form::Type::parse(gen, enumtypen, false, false);
+    Type *enumtype = FormTypeParse(gen, enumtypen, false, false);
     if (!enumtype) {
         return false;
     }
@@ -86,7 +80,7 @@ bool parse(Generator *gen,
         return false;
     }
 
-    Element::Enum *enm = new Element::Enum();
+    Enum *enm = new Enum();
     enm->once_tag = gen->current_once_tag;
     enm->linkage = linkage;
 
@@ -200,7 +194,7 @@ bool parse(Generator *gen,
         return false;
     }
 
-    Element::Struct *enum_str = new Element::Struct();
+    Struct *enum_str = new Struct();
     enum_str->addElement("_enum_value", enumtype);
     enum_str->once_tag = gen->current_once_tag;
     enum_str->linkage =
@@ -248,7 +242,7 @@ bool parse(Generator *gen,
     }
 
     /* Got a struct type - return it. */
-    Element::Type *ttt = new Element::Type();
+    Type *ttt = new Type();
     ttt->struct_name = new std::string(name);
 
     std::vector<std::string> *new_namespaces =
@@ -265,8 +259,5 @@ bool parse(Generator *gen,
                         enumtype, d_enumtype, flinkage);
 
     return true;
-}
-}
-}
 }
 }

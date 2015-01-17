@@ -1,8 +1,8 @@
 #include "DerefStructDeref.h"
 
-namespace dale { namespace Form { namespace Macro { namespace DerefStructDeref {
+namespace dale {
 Node *
-parse(Context *ctx, Node *n)
+FormMacroDerefStructDerefParse(Context *ctx, Node *n)
 {
     assert(n->list && "parseDerefStructDeref must receive a list!");
 
@@ -50,4 +50,4 @@ parse(Context *ctx, Node *n)
 
     return n;
 }
-}}}}
+}

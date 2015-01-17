@@ -9,7 +9,7 @@ namespace Sizeof
 bool 
 execute(Context *ctx,
         llvm::BasicBlock *block,
-        Element::Type *type,
+        Type *type,
         ParseResult *pr)
 {
     llvm::IRBuilder<> builder(block);
@@ -48,7 +48,7 @@ static int function_count = 0;
 
 size_t 
 get(Unit *unit,
-    Element::Type *type)
+    Type *type)
 {
     Context *ctx = unit->ctx;
 
@@ -85,7 +85,7 @@ get(Unit *unit,
             ft
         );
 
-    std::vector<Element::Variable*> args;
+    std::vector<Variable*> args;
 
     llvm::Function *fn = llvm::cast<llvm::Function>(fnc);
 

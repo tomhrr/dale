@@ -1,21 +1,16 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../../Operation/Offsetof/Offsetof.h"
 #include "../../Type/Type.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Offsetof
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcOffsetOfParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -40,7 +35,7 @@ bool parse(Generator *gen,
         return false;
     }
 
-    Element::Type *mytype = Form::Type::parse(gen, struct_name,
+    dale::Type *mytype = FormTypeParse(gen, struct_name,
                                            false,
                                            false);
     if (!mytype) {
@@ -56,7 +51,7 @@ bool parse(Generator *gen,
         return false;
     }
 
-    Element::Struct *str =
+    Struct *str =
         ctx->getStruct(
             mytype->struct_name->c_str(),
             mytype->namespaces
@@ -73,8 +68,5 @@ bool parse(Generator *gen,
                            (*lst)[2]->token->str_value.c_str(),
                            pr);
     return res;
-}
-}
-}
 }
 }

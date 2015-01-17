@@ -1,19 +1,14 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Goto
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcGotoParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -40,7 +35,7 @@ bool parse(Generator *gen,
 
     Token *t = lname->token;
 
-    Element::Label *mylabel = fn->getLabel(t->str_value.c_str());
+    Label *mylabel = fn->getLabel(t->str_value.c_str());
 
     if (!mylabel) {
         /* Block does not exist - add to defgotos. Also add a
@@ -81,16 +76,16 @@ bool parse(Generator *gen,
          * scope and have an index greater than the label's index.
          * Add a destructIfApplicable call for each of these
          * variables. */
-        std::vector<Element::Variable *> myvars;
+        std::vector<Variable *> myvars;
         ctx->ns()->getVarsAfterIndex(mylabel->index, &myvars);
         ParseResult myp;
         myp.block = block;
-        for (std::vector<Element::Variable *>::iterator
+        for (std::vector<Variable *>::iterator
                 b = myvars.begin(),
                 e = myvars.end();
                 b != e;
                 ++b) {
-            Element::Variable *v = (*b);
+            Variable *v = (*b);
             myp.type  = v->type;
             llvm::IRBuilder<> builder(myp.block);
             /* hasRelevantDestructor does not depend on value
@@ -124,8 +119,5 @@ bool parse(Generator *gen,
     pr->treat_as_terminator = 1;
 
     return true;
-}
-}
-}
 }
 }

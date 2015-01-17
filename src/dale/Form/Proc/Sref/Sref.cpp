@@ -1,20 +1,15 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Sref
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcSrefParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -38,7 +33,7 @@ bool parse(Generator *gen,
 
     ParseResult pr_struct;
     bool res =
-        Form::Proc::Inst::parse(gen, fn, block, (*lst)[1], get_address,
+        FormProcInstParse(gen, fn, block, (*lst)[1], get_address,
                                false,
                                NULL, &pr_struct);
 
@@ -51,7 +46,7 @@ bool parse(Generator *gen,
             if (e->instance ==
                     ErrorInst::Generator::CannotTakeAddressOfNonLvalue) {
                 res =
-                    Form::Proc::Inst::parse(gen, 
+                    FormProcInstParse(gen, 
                         fn, block, (*lst)[1], false, 
                         false, NULL, &pr_struct
                     );
@@ -128,7 +123,7 @@ bool parse(Generator *gen,
 
     Token *t = ref->token;
 
-    Element::Struct *structp =
+    Struct *structp =
         ctx->getStruct(
             pr_struct.type->points_to->struct_name->c_str(),
             pr_struct.type->points_to->namespaces
@@ -157,7 +152,7 @@ bool parse(Generator *gen,
         return false;
     }
 
-    Element::Type *eltype = structp->indexToType(index);
+    Type *eltype = structp->indexToType(index);
     if (is_const) {
         eltype = ctx->tr->getConstType(eltype);
     }
@@ -185,8 +180,5 @@ bool parse(Generator *gen,
     pr->block = temp.block;
 
     return true;
-}
-}
-}
 }
 }

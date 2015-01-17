@@ -113,7 +113,7 @@ char *deserialise(TypeRegister *tr, char *in, std::string *x)
     return in + s;
 }
 
-void serialise(FILE *out, Element::Type *t)
+void serialise(FILE *out, Type *t)
 {
     /* Shortcut for simple types. */
     char c;
@@ -184,7 +184,7 @@ void serialise(FILE *out, Element::Type *t)
     }
 }
 
-char *deserialise(TypeRegister *tr, char *in, Element::Type **t)
+char *deserialise(TypeRegister *tr, char *in, Type **t)
 {
     char c;
     in = deserialise(tr, in, &c);
@@ -201,7 +201,7 @@ char *deserialise(TypeRegister *tr, char *in, Element::Type **t)
         abort();
     }
 
-    Element::Type temp;
+    Type temp;
 
     in = deserialise(tr, in, &(temp.base_type));
     in = deserialise(tr, in, &(temp.is_array));
@@ -213,7 +213,7 @@ char *deserialise(TypeRegister *tr, char *in, Element::Type **t)
     int is_present;
     in = deserialise(tr, in, &is_present);
     if (is_present) {
-        Element::Type *at;
+        Type *at;
         in = deserialise(tr, in, &at);
         temp.array_type = at;
     }
@@ -233,31 +233,31 @@ char *deserialise(TypeRegister *tr, char *in, Element::Type **t)
     }
     in = deserialise(tr, in, &is_present);
     if (is_present) {
-        Element::Type *pt;
+        Type *pt;
         in = deserialise(tr, in, &pt);
         temp.points_to = pt;
     }
     in = deserialise(tr, in, &is_present);
     if (is_present) {
-        Element::Type *rt;
+        Type *rt;
         in = deserialise(tr, in, &rt);
         temp.return_type = rt;
     }
     in = deserialise(tr, in, &is_present);
     if (is_present) {
-        std::vector<Element::Type*> *vt =
-            new std::vector<Element::Type*>();
+        std::vector<Type*> *vt =
+            new std::vector<Type*>();
         in = deserialise_type_vector(tr, in, vt);
         temp.parameter_types = vt;
     }
 
-    Element::Type *final = tr->getType(&temp);
+    Type *final = tr->getType(&temp);
     *t = final;
 
     return in;
 }
 
-void serialise(FILE *out, Element::Variable *v)
+void serialise(FILE *out, Variable *v)
 {
     serialise(out, v->type);
     serialise(out, &(v->name));
@@ -271,14 +271,14 @@ void serialise(FILE *out, Element::Variable *v)
     serialise(out, v->once_tag);
 }
 
-void serialise(FILE *out, Element::Variable **v)
+void serialise(FILE *out, Variable **v)
 {
     serialise(out, *v);
 }
 
-char *deserialise(TypeRegister *tr, char *in, Element::Variable *v)
+char *deserialise(TypeRegister *tr, char *in, Variable *v)
 {
-    Element::Type *vt;
+    Type *vt;
     in = deserialise(tr, in, &vt);
     v->type = vt;
 
@@ -298,15 +298,15 @@ char *deserialise(TypeRegister *tr, char *in, Element::Variable *v)
     return in;
 }
 
-char *deserialise(TypeRegister *tr, char *in, Element::Variable **v)
+char *deserialise(TypeRegister *tr, char *in, Variable **v)
 {
-    Element::Variable *vv = new Element::Variable();
+    Variable *vv = new Variable();
     vv->serialise = false;
     *v = vv;
     return deserialise(tr, in, vv);
 }
 
-void serialise(FILE *out, Element::Function *fn)
+void serialise(FILE *out, Function *fn)
 {
     serialise(out, fn->return_type);
     serialise(out, fn->parameter_types);
@@ -320,19 +320,19 @@ void serialise(FILE *out, Element::Function *fn)
     return;
 }
 
-void serialise(FILE *out, Element::Function **fn)
+void serialise(FILE *out, Function **fn)
 {
     serialise(out, *fn);
 }
 
-char *deserialise(TypeRegister *tr, char *in, Element::Function *fn)
+char *deserialise(TypeRegister *tr, char *in, Function *fn)
 {
-    Element::Type *rt;
+    Type *rt;
     in = deserialise(tr, in, &rt);
     fn->return_type = rt;
 
-    std::vector<Element::Variable *> *params =
-        new std::vector<Element::Variable *>;
+    std::vector<Variable *> *params =
+        new std::vector<Variable *>;
     in = deserialise(tr, in, params);
     fn->parameter_types = params;
 
@@ -352,15 +352,15 @@ char *deserialise(TypeRegister *tr, char *in, Element::Function *fn)
     return in;
 }
 
-char *deserialise(TypeRegister *tr, char *in, Element::Function **fn)
+char *deserialise(TypeRegister *tr, char *in, Function **fn)
 {
-    Element::Function *ff = new Element::Function();
+    Function *ff = new Function();
     ff->serialise = false;
     *fn = ff;
     return deserialise(tr, in, ff);
 }
 
-void serialise(FILE *out, Element::Struct *st)
+void serialise(FILE *out, Struct *st)
 {
     serialise(out, &(st->is_opaque));
     serialise(out, &(st->element_types));
@@ -373,12 +373,12 @@ void serialise(FILE *out, Element::Struct *st)
     return;
 }
 
-void serialise(FILE *out, Element::Struct **st)
+void serialise(FILE *out, Struct **st)
 {
     serialise(out, *st);
 }
 
-char *deserialise(TypeRegister *tr, char *in, Element::Struct *st)
+char *deserialise(TypeRegister *tr, char *in, Struct *st)
 {
     st->type = NULL;
     in = deserialise(tr, in, &(st->is_opaque));
@@ -392,15 +392,15 @@ char *deserialise(TypeRegister *tr, char *in, Element::Struct *st)
     return in;
 }
 
-char *deserialise(TypeRegister *tr, char *in, Element::Struct **st)
+char *deserialise(TypeRegister *tr, char *in, Struct **st)
 {
-    Element::Struct *stt = new Element::Struct();
+    Struct *stt = new Struct();
     stt->serialise = false;
     *st = stt;
     return deserialise(tr, in, stt);
 }
 
-void serialise(FILE *out, Element::Enum *en)
+void serialise(FILE *out, Enum *en)
 {
     serialise(out, &(en->last_index));
     serialise(out, en->member_to_index);
@@ -410,12 +410,12 @@ void serialise(FILE *out, Element::Enum *en)
     return;
 }
 
-void serialise(FILE *out, Element::Enum **en)
+void serialise(FILE *out, Enum **en)
 {
     serialise(out, *en);
 }
 
-char *deserialise(TypeRegister *tr, char *in, Element::Enum *en)
+char *deserialise(TypeRegister *tr, char *in, Enum *en)
 {
     en->type = NULL;
     in = deserialise(tr, in, &(en->last_index));
@@ -429,9 +429,9 @@ char *deserialise(TypeRegister *tr, char *in, Element::Enum *en)
     return in;
 }
 
-char *deserialise(TypeRegister *tr, char *in, Element::Enum **en)
+char *deserialise(TypeRegister *tr, char *in, Enum **en)
 {
-    Element::Enum *enn = new Element::Enum();
+    Enum *enn = new Enum();
     enn->serialise = false;
     *en = enn;
     return deserialise(tr, in, enn);
@@ -539,13 +539,13 @@ char *deserialise(TypeRegister *tr, char *in, Context **ctx)
 }
 
 char *deserialise_type_vector(TypeRegister *tr, char *in,
-                              std::vector<Element::Type *> *x)
+                              std::vector<Type *> *x)
 {
     size_t s;
     in = deserialise(tr, in, &s);
     x->reserve(s);
     for (size_t i = 0; i < s; i++) {
-        Element::Type *t;
+        Type *t;
         in = deserialise(tr, in, &t);
         x->push_back(t);
     }

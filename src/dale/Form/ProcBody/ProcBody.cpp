@@ -2,7 +2,7 @@
 #include "../../Generator/Generator.h"
 #include "../../Node/Node.h"
 #include "../../ParseResult/ParseResult.h"
-#include "../../Element/Function/Function.h"
+#include "../../Function/Function.h"
 #include "../../CoreForms/CoreForms.h"
 #include "../Linkage/Linkage.h"
 #include "../Type/Type.h"
@@ -11,14 +11,10 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace ProcBody
-{
 bool
-parse(Generator *gen,
+FormProcBodyParse(Generator *gen,
       Node *n,
-      Element::Function *dfn,
+      Function *dfn,
       llvm::Function *fn,
       int skip,
       int is_anonymous,
@@ -39,7 +35,7 @@ parse(Generator *gen,
 
     /* Add 'define' calls for the args to the function. */
 
-    std::vector<Element::Variable *>::iterator fn_args_iter;
+    std::vector<Variable *>::iterator fn_args_iter;
     fn_args_iter = dfn->parameter_types->begin();
 
     /* Add the variables to the context, once confirmed that it is
@@ -52,8 +48,8 @@ parse(Generator *gen,
             break;
         }
         int avres;
-        Element::Variable *myvart = (*fn_args_iter);
-        Element::Variable *myvar = new Element::Variable();
+        Variable *myvart = (*fn_args_iter);
+        Variable *myvar = new Variable();
         if (myvart->type->is_reference) {
             myvar->type = ctx->tr->getPointerType(myvart->type);
         } else {
@@ -70,7 +66,7 @@ parse(Generator *gen,
         if (mcount >= 1 && dfn->is_macro) {
             /* Macro arguments, past the first, always have a type of
              * (p DNode), notwithstanding that the type in the
-             * Element::Function can be anything (to support
+             * Function can be anything (to support
              * overloading). */
             std::string mtype;
             myvar->type->toStringProper(&mtype);
@@ -116,7 +112,7 @@ parse(Generator *gen,
     }
 
     if (dfn->hasRetval()) {
-        Element::Variable *myvar = new Element::Variable();
+        Variable *myvar = new Variable();
         myvar->type            = ctx->tr->getPointerType(dfn->return_type);
         myvar->name            = "retval";
         myvar->internal_name   = "retval";
@@ -158,7 +154,7 @@ parse(Generator *gen,
     iter = lst->begin();
 
     llvm::Value *last_value = NULL;
-    Element::Type *last_type = NULL;
+    dale::Type *last_type = NULL;
     Node *last_position = NULL;
 
     /* Skip the fn token, the linkage, the return type and the
@@ -173,13 +169,13 @@ parse(Generator *gen,
     }
 
     while (iter != lst->end()) {
-        Element::Type *wanted_type = NULL;
+        dale::Type *wanted_type = NULL;
         if ((count + 1) == size) {
             wanted_type = dfn->return_type;
         }
         ParseResult p;
         bool res =
-            Form::Proc::Inst::parse(gen, dfn, next, (*iter), false, false,
+            FormProcInstParse(gen, dfn, next, (*iter), false, false,
             wanted_type, &p);
         if (!res) {
             /* Add an option to stop on first error, which would
@@ -226,7 +222,7 @@ parse(Generator *gen,
 
         while (dgiter != dfn->defgotos->end()) {
             std::string *ln     = (*dgiter)->label_name;
-            Element::Label *ell = dfn->getLabel(ln->c_str());
+            Label *ell = dfn->getLabel(ln->c_str());
             if (!ell) {
                 Error *e = new Error(
                     ErrorInst::Generator::LabelNotInScope,
@@ -310,7 +306,7 @@ parse(Generator *gen,
              * and upwards, until either null (top of function) or
              * the other context is hit. Variables in the other
              * context are excluded. */
-            std::vector<Element::Variable *> variables;
+            std::vector<Variable *> variables;
             Namespace *current_ns = goto_ns;
             while (current_ns != ell->ns) {
                 current_ns->getVariables(&variables);
@@ -332,14 +328,14 @@ parse(Generator *gen,
                  * declaration may result in a destructor being
                  * called on scope close, and the variable may not be
                  * initialised when the goto is reached.) */
-                std::vector<Element::Variable *> vars_before;
-                std::vector<Element::Variable *> real_vars_before;
+                std::vector<Variable *> vars_before;
+                std::vector<Variable *> real_vars_before;
                 while (ell_ns) {
                     vars_before.clear();
                     ell_ns->getVarsBeforeIndex(ell->index, &vars_before);
                     if (vars_before.size() > 0) {
                         for
-                        (std::vector<Element::Variable*>::iterator
+                        (std::vector<Variable*>::iterator
                                 vvb = vars_before.begin(),
                                 vve = vars_before.end();
                                 vvb != vve;
@@ -363,12 +359,12 @@ parse(Generator *gen,
             }
 
             /* Add the destructors for the collected variables. */
-            for (std::vector<Element::Variable *>::iterator
+            for (std::vector<Variable *>::iterator
                     vb = variables.begin(),
                     ve = variables.end();
                     vb != ve;
                     ++vb) {
-                Element::Variable *v = (*vb);
+                Variable *v = (*vb);
                 ParseResult pr_variable;
                 ParseResult temp;
                 pr_variable.set(NULL, v->type, v->value);
@@ -407,7 +403,7 @@ parse(Generator *gen,
              * last_value. */
             if ((bcount == bmax) && !dfn->hasRetval()) {
                 if (last_value) {
-                    Element::Type *got_type = last_type;
+                    dale::Type *got_type = last_type;
 
                     if (!dfn->return_type->isEqualTo(got_type)) {
                         std::string gotstr;
@@ -483,7 +479,7 @@ parse(Generator *gen,
 finish:
 
     /* Clear deferred gotos and labels. For anonymous functions,
-     * these are saved and restored in Form::Proc::Inst::parse. */
+     * these are saved and restored in FormProcInstParse. */
 
     dfn->defgotos->clear();
     dfn->labels->clear();
@@ -496,7 +492,5 @@ finish:
     }
 
     return res;
-}
-}
 }
 }

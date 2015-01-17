@@ -3,7 +3,7 @@
 
 #include "../../ParseResult/ParseResult.h"
 #include "../../Context/Context.h"
-#include "../../Element/Type/Type.h"
+#include "../../Type/Type.h"
 #include "../../Node/Node.h"
 #include "../../Unit/Unit.h"
 
@@ -19,10 +19,10 @@ namespace Sizeof
 {
 bool execute(Context *ctx,
              llvm::BasicBlock *block,
-             Element::Type *type,
+             Type *type,
              ParseResult *pr);
 size_t get(Unit *unit,
-           Element::Type *type);
+           Type *type);
 }
 }
 }

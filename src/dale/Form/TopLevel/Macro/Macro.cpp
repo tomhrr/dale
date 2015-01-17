@@ -9,13 +9,7 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace TopLevel
-{
-namespace Macro
-{
-llvm::FunctionType *
+static llvm::FunctionType *
 getFunctionType(llvm::Type *t,
                 std::vector<llvm::Type*> &v,
                 bool b) {
@@ -23,8 +17,8 @@ getFunctionType(llvm::Type *t,
     return llvm::FunctionType::get(t, temp, b);
 }
 
-bool parse(Generator *gen,
-           Node *node)
+bool
+FormTopLevelMacroParse(Generator *gen, Node *node)
 {
     Context *ctx = gen->ctx;
 
@@ -54,12 +48,12 @@ bool parse(Generator *gen,
         return false;
     }
 
-    int linkage = Form::Linkage::parse(ctx, (*lst)[1]);
+    int linkage = FormLinkageParse(ctx, (*lst)[1]);
     if (!linkage) {
         return false;
     }
 
-    Element::Type *r_type =
+    Type *r_type =
         ctx->tr->getPointerType(ctx->tr->getStructType("DNode"));
 
     /* Parse arguments - push onto the list that gets created. */
@@ -78,10 +72,10 @@ bool parse(Generator *gen,
 
     symlist *args = nargs->list;
 
-    Element::Variable *var;
+    Variable *var;
 
-    std::vector<Element::Variable *> *mc_args_internal =
-        new std::vector<Element::Variable *>;
+    std::vector<Variable *> *mc_args_internal =
+        new std::vector<Variable *>;
 
     /* Parse argument - need to keep names. */
 
@@ -92,10 +86,10 @@ bool parse(Generator *gen,
 
     /* An implicit MContext argument is added to every macro. */
 
-    Element::Type *pst = ctx->tr->getStructType("MContext");
-    Element::Type *ptt = ctx->tr->getPointerType(pst);
+    Type *pst = ctx->tr->getStructType("MContext");
+    Type *ptt = ctx->tr->getPointerType(pst);
 
-    Element::Variable *var1 = new Element::Variable(
+    Variable *var1 = new Variable(
         (char*)"mc", ptt
     );
     var1->linkage = dale::Linkage::Auto;
@@ -105,7 +99,7 @@ bool parse(Generator *gen,
 
     while (node_iter != args->end()) {
         if (!(*node_iter)->is_token) {
-            var = new Element::Variable();
+            var = new Variable();
             gen->parseArgument(var, (*node_iter), false, false, false);
             if (!var->type) {
                 return false;
@@ -133,13 +127,13 @@ bool parse(Generator *gen,
                     ctx->er->addError(e);
                     return false;
                 }
-                var = new Element::Variable();
+                var = new Variable();
                 var->type = ctx->tr->type_varargs;
                 var->linkage = dale::Linkage::Auto;
                 mc_args_internal->push_back(var);
                 break;
             }
-            var = new Element::Variable();
+            var = new Variable();
             var->type = r_type;
             var->linkage = dale::Linkage::Auto;
             var->name.append((*node_iter)->token->str_value);
@@ -155,7 +149,7 @@ bool parse(Generator *gen,
      * its actual type. The remaining arguments, notwithstanding the
      * macro argument's 'actual' type, will always be (p DNode)s. */
 
-    std::vector<Element::Variable *>::iterator iter;
+    std::vector<Variable *>::iterator iter;
     iter = mc_args_internal->begin();
     llvm::Type *temp;
 
@@ -255,8 +249,8 @@ bool parse(Generator *gen,
     }
 
     /* Add the macro to the context. */
-    Element::Function *dfn =
-        new Element::Function(r_type, mc_args_internal, fn, 1,
+    Function *dfn =
+        new Function(r_type, mc_args_internal, fn, 1,
                               &new_name);
     dfn->linkage = linkage;
 
@@ -294,7 +288,7 @@ bool parse(Generator *gen,
     gen->global_functions.push_back(dfn);
     gen->global_function = dfn;
 
-    Form::ProcBody::parse(gen, top, dfn, fn, 3, 0);
+    FormProcBodyParse(gen, top, dfn, fn, 3, 0);
 
     gen->global_functions.pop_back();
     if (gen->global_functions.size()) {
@@ -308,10 +302,10 @@ bool parse(Generator *gen,
     int error_post_count =
         ctx->er->getErrorTypeCount(ErrorType::Error);
     if (error_count != error_post_count) {
-        std::map<std::string, std::vector<Element::Function*>*
+        std::map<std::string, std::vector<Function*>*
         >::iterator i = ctx->ns()->functions.find(name);
         if (i != ctx->ns()->functions.end()) {
-            for (std::vector<Element::Function *>::iterator
+            for (std::vector<Function *>::iterator
                     j = i->second->begin(),
                     k = i->second->end();
                     j != k;
@@ -325,8 +319,5 @@ bool parse(Generator *gen,
     }
 
     return true;
-}
-}
-}
 }
 }

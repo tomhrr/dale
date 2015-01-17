@@ -2,7 +2,7 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../Token/Token.h"
 #include "../../Type/Type.h"
 #include "../../../llvm_Function.h"
@@ -47,33 +47,30 @@
 #include "../../Literal/Enum/Enum.h"
 #include "../../Literal/Array/Array.h"
 
+using namespace dale;
+
 #define eq(str) !strcmp(t->str_value.c_str(), str)
 
 #define DALE_DEBUG 0
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Inst
-{
 static int anoncount = 0;
 
-bool parseInternal(Generator *gen,
-                   Element::Function *fn,
+bool
+parseInternal(Generator *gen,
+                   Function *fn,
                    llvm::BasicBlock *block,
                    Node *n,
                    bool get_address,
                    bool prefixed_with_core,
-                   Element::Type *wanted_type,
+                   Type *wanted_type,
                    ParseResult *pr)
 {
     Context *ctx = gen->ctx;
 
     if (DALE_DEBUG) {
-        printf("Called Form::Proc::Inst::parse: ");
+        printf("Called FormProcInstParse: ");
         n->print();
         printf("\n");
     }
@@ -81,7 +78,7 @@ bool parseInternal(Generator *gen,
     gen->global_block = block;
 
     if (n->is_token) {
-        return Form::Proc::Token::parse(
+        return FormProcTokenParse(
             gen, fn, block, n, get_address, prefixed_with_core,
             wanted_type, pr
         );
@@ -119,10 +116,10 @@ bool parseInternal(Generator *gen,
 
         char buf[255];
         sprintf(buf, "_anon_%d", anoncount++);
-        Element::Function *myanonfn = NULL;
+        Function *myanonfn = NULL;
         int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Form::Function::parse(gen, n, buf, &myanonfn, Linkage::Intern, 1);
+        FormFunctionParse(gen, n, buf, &myanonfn, Linkage::Intern, 1);
 
         int diff = ctx->er->getErrorTypeCount(ErrorType::Error)
                    - error_count;
@@ -133,14 +130,14 @@ bool parseInternal(Generator *gen,
             return false;
         }
 
-        Element::Type *fntype = new Element::Type();
+        Type *fntype = new Type();
         fntype->is_function = 1;
         fntype->return_type = myanonfn->return_type;
 
-        std::vector<Element::Type *> *parameter_types =
-            new std::vector<Element::Type *>;
+        std::vector<Type *> *parameter_types =
+            new std::vector<Type *>;
 
-        std::vector<Element::Variable *>::iterator iter;
+        std::vector<Variable *>::iterator iter;
 
         iter = myanonfn->parameter_types->begin();
 
@@ -157,9 +154,9 @@ bool parseInternal(Generator *gen,
             llvm::cast<llvm::Value>(myanonfn->llvm_function)
         );
 
-        std::vector<Element::Variable *> myvars;
+        std::vector<Variable *> myvars;
         ctx->ns()->getVarsAfterIndex(preindex, &myvars);
-        for (std::vector<Element::Variable *>::iterator
+        for (std::vector<Variable *>::iterator
                 b = myvars.begin(),
                 e = myvars.end();
                 b != e;
@@ -174,14 +171,14 @@ bool parseInternal(Generator *gen,
     }
 
     /* If wanted_type is present and is a struct, then use
-     * Form::Literal::Struct::parse, if the first list element is a
+     * FormLiteralStructParse, if the first list element is a
      * list. */
 
     if (wanted_type
             && (wanted_type->struct_name)
             && (!first->is_token)) {
 
-        Element::Struct *str =
+        Struct *str =
             ctx->getStruct(wanted_type->struct_name->c_str(),
                            wanted_type->namespaces);
 
@@ -193,7 +190,7 @@ bool parseInternal(Generator *gen,
         }
 
         bool res =
-            Form::Literal::Struct::parse(
+            FormLiteralStructParse(
                                gen, fn, block, n,
                                wanted_type->struct_name->c_str(),
                                str,
@@ -227,14 +224,14 @@ bool parseInternal(Generator *gen,
      * enum literal (a struct literal) from the remainder of the
      * form. */
 
-    Element::Enum *myenum =
+    Enum *myenum =
         ctx->getEnum(t->str_value.c_str());
 
     if (myenum) {
         if (lst->size() != 2) {
             goto past_en_parse;
         }
-        Element::Struct *myenumstruct =
+        Struct *myenumstruct =
             ctx->getStruct(t->str_value.c_str());
 
         if (!myenumstruct) {
@@ -244,8 +241,8 @@ bool parseInternal(Generator *gen,
             abort();
         }
 
-        Element::Type *myenumtype =
-            Form::Type::parse(gen, (*lst)[0], false, false);
+        Type *myenumtype =
+            FormTypeParse(gen, (*lst)[0], false, false);
 
         if (!myenumtype) {
             fprintf(stderr,
@@ -257,7 +254,7 @@ bool parseInternal(Generator *gen,
         int original_error_count =
             ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        bool res = Form::Literal::Enum::parse(gen, block, (*lst)[1],
+        bool res = FormLiteralEnumParse(gen, block, (*lst)[1],
                                              myenum,
                                              myenumtype,
                                              myenumstruct,
@@ -274,7 +271,7 @@ past_en_parse:
     /* If the first element matches a struct name, then make a
      * struct literal from the remainder of the form. */
 
-    Element::Struct *mystruct =
+    Struct *mystruct =
         ctx->getStruct(t->str_value.c_str());
 
     if (mystruct) {
@@ -283,7 +280,7 @@ past_en_parse:
         }
 
         Node *struct_name = (*lst)[0];
-        Element::Struct *str =
+        Struct *str =
             ctx->getStruct(t->str_value.c_str());
         if (!str) {
             fprintf(stderr,
@@ -292,8 +289,8 @@ past_en_parse:
             abort();
         }
 
-        Element::Type *structtype =
-            Form::Type::parse(gen, (*lst)[0], false, false);
+        Type *structtype =
+            FormTypeParse(gen, (*lst)[0], false, false);
 
         if (!structtype) {
             fprintf(stderr,
@@ -306,7 +303,7 @@ past_en_parse:
         int original_error_count =
             ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        bool res = Form::Literal::Struct::parse(gen, fn, block, (*lst)[1],
+        bool res = FormLiteralStructParse(gen, fn, block, (*lst)[1],
                                                 "asdf",
                                                 str,
                                                 structtype,
@@ -327,7 +324,7 @@ past_sl_parse:
             && wanted_type->is_array
             && (!strcmp(t->str_value.c_str(), "array"))) {
         int size;
-        bool res = Form::Literal::Array::parse(
+        bool res = FormLiteralArrayParse(
                                 gen,
                                 fn, block, n,
                                 "array literal",
@@ -354,9 +351,9 @@ past_sl_parse:
     prefixed_with_core = !(t->str_value.compare("core"));
 
     if (!prefixed_with_core) {
-        Element::Function *fn_exists =
+        Function *fn_exists =
             ctx->getFunction(t->str_value.c_str(), NULL, NULL, 0);
-        Element::Function *mac_exists =
+        Function *mac_exists =
             ctx->getFunction(t->str_value.c_str(), NULL, NULL, 1);
 
         if (fn_exists || mac_exists) {
@@ -368,8 +365,8 @@ past_sl_parse:
              * is one error, and it's related to an overloaded
              * function not being present. */
 
-            Element::Function *macro_to_call_real;
-            Element::Function **macro_to_call = &macro_to_call_real;
+            Function *macro_to_call_real;
+            Function **macro_to_call = &macro_to_call_real;
             *macro_to_call = NULL;
 
             bool res = gen->parseFunctionCall(fn, block, n,
@@ -387,7 +384,7 @@ past_sl_parse:
                     return false;
                 }
                 bool res =
-                    parse(
+                    FormProcInstParse(
                         gen, fn, block, mac_node, get_address, false, wanted_type, pr
                     );
 
@@ -455,7 +452,7 @@ past_sl_parse:
     /* Core forms (at least at this point). */
 
     bool (* core_fn)(Generator *gen,
-                     Element::Function *fn,
+                     Function *fn,
                      llvm::BasicBlock *block,
                      Node *node,
                      bool get_address,
@@ -463,36 +460,36 @@ past_sl_parse:
                      ParseResult *pr);
 
     core_fn =
-          (eq("goto"))            ? &Form::Proc::Goto::parse
-        : (eq("if"))              ? &Form::Proc::If::parse
-        : (eq("label"))           ? &Form::Proc::Label::parse
-        : (eq("return"))          ? &Form::Proc::Return::parse
-        : (eq("setf"))            ? &Form::Proc::Setf::parse
-        : (eq("@"))               ? &Form::Proc::Dereference::parse
-        : (eq(":"))               ? &Form::Proc::Sref::parse
-        : (eq("#"))               ? &Form::Proc::AddressOf::parse
-        : (eq("$"))               ? &Form::Proc::Aref::parse
-        : (eq("p="))              ? &Form::Proc::PtrEquals::parse
-        : (eq("p+"))              ? &Form::Proc::PtrAdd::parse
-        : (eq("p-"))              ? &Form::Proc::PtrSubtract::parse
-        : (eq("p<"))              ? &Form::Proc::PtrLessThan::parse
-        : (eq("p>"))              ? &Form::Proc::PtrGreaterThan::parse
-        : (eq("va-arg"))          ? &Form::Proc::VaArg::parse
-        : (eq("va-start"))        ? &Form::Proc::VaStart::parse
-        : (eq("va-end"))          ? &Form::Proc::VaEnd::parse
-        : (eq("null"))            ? &Form::Proc::Null::parse
-        : (eq("get-dnodes"))      ? &Form::Proc::GetDNodes::parse
-        : (eq("def"))             ? &Form::Proc::Def::parse
-        : (eq("nullptr"))         ? &Form::Proc::NullPtr::parse
-        : (eq("do"))              ? &Form::Proc::Do::parse
-        : (eq("cast"))            ? &Form::Proc::Cast::parse
-        : (eq("sizeof"))          ? &Form::Proc::Sizeof::parse
-        : (eq("offsetof"))        ? &Form::Proc::Offsetof::parse
-        : (eq("alignmentof"))     ? &Form::Proc::Alignmentof::parse
-        : (eq("funcall"))         ? &Form::Proc::Funcall::parse
-        : (eq("using-namespace")) ? &Form::Proc::UsingNamespace::parse
-        : (eq("new-scope"))       ? &Form::Proc::NewScope::parse
-        : (eq("array-of"))        ? &Form::Proc::ArrayOf::parse
+          (eq("goto"))            ? &FormProcGotoParse
+        : (eq("if"))              ? &FormProcIfParse
+        : (eq("label"))           ? &FormProcLabelParse
+        : (eq("return"))          ? &FormProcReturnParse
+        : (eq("setf"))            ? &FormProcSetfParse
+        : (eq("@"))               ? &FormProcDereferenceParse
+        : (eq(":"))               ? &FormProcSrefParse
+        : (eq("#"))               ? &FormProcAddressOfParse
+        : (eq("$"))               ? &FormProcArefParse
+        : (eq("p="))              ? &FormProcPtrEqualsParse
+        : (eq("p+"))              ? &FormProcPtrAddParse
+        : (eq("p-"))              ? &FormProcPtrSubtractParse
+        : (eq("p<"))              ? &FormProcPtrLessThanParse
+        : (eq("p>"))              ? &FormProcPtrGreaterThanParse
+        : (eq("va-arg"))          ? &FormProcVaArgParse
+        : (eq("va-start"))        ? &FormProcVaStartParse
+        : (eq("va-end"))          ? &FormProcVaEndParse
+        : (eq("null"))            ? &FormProcNullParse
+        : (eq("get-dnodes"))      ? &FormProcGetDNodesParse
+        : (eq("def"))             ? &FormProcDefParse
+        : (eq("nullptr"))         ? &FormProcNullPtrParse
+        : (eq("do"))              ? &FormProcDoParse
+        : (eq("cast"))            ? &FormProcCastParse
+        : (eq("sizeof"))          ? &FormProcSizeofParse
+        : (eq("offsetof"))        ? &FormProcOffsetOfParse
+        : (eq("alignmentof"))     ? &FormProcAlignmentOfParse
+        : (eq("funcall"))         ? &FormProcFuncallParse
+        : (eq("using-namespace")) ? &FormProcUsingNamespaceParse
+        : (eq("new-scope"))       ? &FormProcNewScopeParse
+        : (eq("array-of"))        ? &FormProcArrayOfParse
                                   : NULL;
 
     if (core_fn) {
@@ -504,11 +501,11 @@ past_sl_parse:
 
     Node* (*core_mac)(Context *ctx, Node *n);
 
-    core_mac =   (eq("setv"))   ? &Form::Macro::Setv::parse
-               : (eq("@$"))     ? &Form::Macro::ArrayDeref::parse
-               : (eq(":@"))     ? &Form::Macro::DerefStruct::parse
-               : (eq("@:"))     ? &Form::Macro::StructDeref::parse
-               : (eq("@:@"))    ? &Form::Macro::DerefStructDeref::parse
+    core_mac =   (eq("setv"))   ? &FormMacroSetvParse
+               : (eq("@$"))     ? &FormMacroArrayDerefParse
+               : (eq(":@"))     ? &FormMacroDerefStructParse
+               : (eq("@:"))     ? &FormMacroStructDerefParse
+               : (eq("@:@"))    ? &FormMacroDerefStructDerefParse
                : NULL;
 
     if (core_mac) {
@@ -517,7 +514,7 @@ past_sl_parse:
         if (!new_node) {
             return false;
         }
-        return parse(gen, fn, block, new_node,
+        return FormProcInstParse(gen, fn, block, new_node,
                                       get_address, false, wanted_type, pr);
     }
 
@@ -543,7 +540,7 @@ past_sl_parse:
     int last_error_count =
         ctx->er->getErrorTypeCount(ErrorType::Error);
     ParseResult try_fnp;
-    bool res = parse(gen,
+    bool res = FormProcInstParse(gen,
                                fn, block, (*lst)[0], get_address,
                                false, wanted_type, &try_fnp
                            );
@@ -575,7 +572,7 @@ past_sl_parse:
         funcall_str_node->filename = ctx->er->current_filename;
         lst->insert(lst->begin(), funcall_str_node);
         bool res =
-            Form::Proc::Funcall::parse(
+            FormProcFuncallParse(
                          gen,
                          fn,
                          block,
@@ -585,7 +582,7 @@ past_sl_parse:
                          pr);
         return res;
     }
-    res = parse(gen,
+    res = FormProcInstParse(gen,
                   fn, try_fnp.block, (*lst)[0], true, false, wanted_type,
                   &try_fnp
               );
@@ -596,21 +593,21 @@ past_sl_parse:
             && try_fnp.type->points_to->struct_name) {
         /* Struct must implement 'apply' to be considered a
          * function object. */
-        Element::Type *try_fnp_inner_type = try_fnp.type->points_to;
-        Element::Struct *mystruct =
+        Type *try_fnp_inner_type = try_fnp.type->points_to;
+        Struct *mystruct =
             ctx->getStruct(
                 try_fnp_inner_type->struct_name->c_str(),
                 try_fnp_inner_type->namespaces
             );
         if (mystruct) {
-            Element::Type *apply =
+            Type *apply =
                 mystruct->nameToType("apply");
             if (apply
                     && apply->points_to
                     && apply->points_to->is_function) {
                 /* The first argument of this function must be a
                  * pointer to this particular struct type. */
-                Element::Type *applyfn = apply->points_to;
+                Type *applyfn = apply->points_to;
                 if (!(applyfn->parameter_types->size())) {
                     Error *e = new Error(
                         ErrorInst::Generator::ApplyMustTakePointerToStructAsFirstArgument,
@@ -677,13 +674,14 @@ past_sl_parse:
     return false;
 }
 
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcInstParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
            bool prefixed_with_core,
-           Element::Type *wanted_type,
+           Type *wanted_type,
            ParseResult *pr,
            bool no_copy)
 {
@@ -707,8 +705,5 @@ bool parse(Generator *gen,
     }
 
     return true;
-}
-}
-}
 }
 }

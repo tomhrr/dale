@@ -1,17 +1,11 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../../llvm_Function.h"
 #include "Config.h"
 
 namespace dale
-{
-namespace Form
-{
-namespace Proc
-{
-namespace GetDNodes
 {
 std::map<std::string, llvm::GlobalVariable*> string_cache;
 
@@ -87,7 +81,7 @@ IntNodeToStaticDNode(Generator *gen,
             std::string varname2;
             gen->getUnusedVarname(&varname2);
 
-            Element::Type *archar =
+            Type *archar =
                 ctx->tr->getArrayType(ctx->tr->type_char,
                                  t->str_value.size() + 1);
 
@@ -216,8 +210,9 @@ IntNodeToStaticDNode(Generator *gen,
     return llvm::cast<llvm::Value>(var);
 }
 
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcGetDNodesParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -236,8 +231,5 @@ bool parse(Generator *gen,
 
     pr->set(block, gen->type_pdnode, v);
     return true;
-}
-}
-}
 }
 }

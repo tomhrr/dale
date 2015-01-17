@@ -6,14 +6,8 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace TopLevel
-{
-namespace Include
-{
-bool parse(Generator *gen,
-           Node *node)
+bool
+FormTopLevelIncludeParse(Generator *gen, Node *node)
 {
     Context *ctx = gen->ctx;
 
@@ -112,8 +106,5 @@ bool parse(Generator *gen,
     gen->ctx->regetPointers(gen->mod);
 
     return true;
-}
-}
-}
 }
 }

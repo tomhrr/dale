@@ -1,21 +1,16 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../Type/Type.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace VaArg
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcVaArgParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -35,7 +30,7 @@ bool parse(Generator *gen,
     /* Get the arglist. */
 
     ParseResult pr_arglist;
-    bool res = Form::Proc::Inst::parse(gen, fn, block, (*lst)[1], false,
+    bool res = FormProcInstParse(gen, fn, block, (*lst)[1], false,
                                       false,
                                       NULL, &pr_arglist);
     if (!res) {
@@ -44,7 +39,7 @@ bool parse(Generator *gen,
 
     /* Get the type to which it is being cast. */
 
-    Element::Type *type = Form::Type::parse(gen, (*lst)[2], false, false);
+    dale::Type *type = FormTypeParse(gen, (*lst)[2], false, false);
 
     if (!type) {
         return false;
@@ -336,8 +331,5 @@ bool parse(Generator *gen,
 
         return true;
     }
-}
-}
-}
 }
 }

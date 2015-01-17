@@ -5,18 +5,12 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace Function
-{
-bool parse(Generator *gen,
+bool FormFunctionParse(Generator *gen,
            Node *n,
            const char *name,
-           Element::Function **new_function,
+           dale::Function **new_function,
            int override_linkage,
            int is_anonymous);
-}
-}
 }
 
 #endif

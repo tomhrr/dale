@@ -2,14 +2,14 @@
 #include "../../../Linkage/Linkage.h"
 #include "../../../Error/Error.h"
 
-namespace dale { namespace Form { namespace Literal { namespace Enum {
+namespace dale {
 bool 
-parse(Generator *gen,
+FormLiteralEnumParse(Generator *gen,
       llvm::BasicBlock *block,
       Node *n,
-      Element::Enum *myenum,
-      Element::Type *myenumtype,
-      Element::Struct *myenumstructtype,
+      Enum *myenum,
+      Type *myenumtype,
+      Struct *myenumstructtype,
       bool getAddress,
       ParseResult *pr)
 {
@@ -69,4 +69,5 @@ parse(Generator *gen,
         pr->set(block, myenumtype, final_value);
         return true;
     }
-}}}}}
+}
+}

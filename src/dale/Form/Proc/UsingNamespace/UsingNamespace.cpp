@@ -1,20 +1,15 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace UsingNamespace
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcUsingNamespaceParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -62,7 +57,7 @@ bool parse(Generator *gen,
 
     pr->block = block;
     while (node_iter != lst->end()) {
-        bool res = Form::Proc::Inst::parse(gen, 
+        bool res = FormProcInstParse(gen, 
                        fn, pr->block, (*node_iter), get_address, 
                        false, NULL, pr
                    );
@@ -75,8 +70,5 @@ bool parse(Generator *gen,
     ctx->unuseNamespace();
 
     return true;
-}
-}
-}
 }
 }

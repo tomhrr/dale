@@ -1,8 +1,8 @@
 #include "Setv.h"
 
-namespace dale { namespace Form { namespace Macro { namespace Setv {
+namespace dale {
 Node *
-parse(Context *ctx, Node *n)
+FormMacroSetvParse(Context *ctx, Node *n)
 {
     assert(n->list && "parseSetv must receive a list!");
 
@@ -36,4 +36,4 @@ parse(Context *ctx, Node *n)
 
     return n;
 }
-}}}}
+}

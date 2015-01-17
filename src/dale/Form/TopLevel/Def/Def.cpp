@@ -18,13 +18,7 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace TopLevel
-{
-namespace Def
-{
-llvm::FunctionType *
+static llvm::FunctionType *
 getFunctionType(llvm::Type *t,
                 std::vector<llvm::Type*> &v,
                 bool b) {
@@ -32,7 +26,8 @@ getFunctionType(llvm::Type *t,
     return llvm::FunctionType::get(t, temp, b);
 }
 
-bool parse(Generator *gen,
+bool
+FormTopLevelDefParse(Generator *gen,
            Node *top)
 {
     Context *ctx = gen->ctx;
@@ -121,15 +116,15 @@ bool parse(Generator *gen,
     }
 
     if (!subt->str_value.compare("fn")) {
-        Form::TopLevel::Function::parse(gen, top);
+        FormTopLevelFunctionParse(gen, top);
     } else if (!subt->str_value.compare("var")) {
-        Form::TopLevel::GlobalVariable::parse(gen, top);
+        FormTopLevelGlobalVariableParse(gen, top);
     } else if (!subt->str_value.compare("struct")) {
-        Form::TopLevel::Struct::parse(gen, top);
+        FormTopLevelStructParse(gen, top);
     } else if (!subt->str_value.compare("macro")) {
-        Form::TopLevel::Macro::parse(gen, top);
+        FormTopLevelMacroParse(gen, top);
     } else if (!subt->str_value.compare("enum")) {
-        Form::TopLevel::Enum::parse(gen, top);
+        FormTopLevelEnumParse(gen, top);
     } else {
         Error *e = new Error(
             ErrorInst::Generator::IncorrectArgType,
@@ -147,8 +142,5 @@ bool parse(Generator *gen,
     }
 
     return true;
-}
-}
-}
 }
 }

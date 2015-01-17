@@ -10,13 +10,8 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace TopLevel
-{
-namespace Once
-{
-bool parse(Generator *gen,
+bool
+FormTopLevelOnceParse(Generator *gen,
            Node *top)
 {
     Context *ctx = gen->ctx;
@@ -60,8 +55,5 @@ bool parse(Generator *gen,
     gen->unit_stack->top()->setOnceTag(once_tag);
 
     return true;
-}
-}
-}
 }
 }

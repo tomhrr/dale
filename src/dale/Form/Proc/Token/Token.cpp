@@ -1,22 +1,16 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../Literal/Enum/Enum.h"
 #include "../../../llvm_Function.h"
 #include "Config.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Token
-{
 llvm::Constant *
 parseStringLiteral(Generator *gen,
-                   Element::Type *type,
+                   Type *type,
                    Node *top,
                    int *size)
 {
@@ -113,20 +107,21 @@ parseStringLiteral(Generator *gen,
     return NULL;
 }
 
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcTokenParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
            bool prefixed_with_core,
-           Element::Type *wanted_type,
+           Type *wanted_type,
            ParseResult *pr)
 {
     Context *ctx = gen->ctx;
     NativeTypes *nt = ctx->nt;
-    Element::Type *type_char   = ctx->tr->type_char;
-    Element::Type *type_cchar  = ctx->tr->getConstType(type_char);
-    Element::Type *type_pcchar = ctx->tr->getPointerType(type_cchar);
+    Type *type_char   = ctx->tr->type_char;
+    Type *type_cchar  = ctx->tr->getConstType(type_char);
+    Type *type_pcchar = ctx->tr->getPointerType(type_cchar);
     std::vector<llvm::Value *> two_zero_indices;
     stl::push_back2(&two_zero_indices,
                     nt->getLLVMZero(), nt->getLLVMZero());
@@ -135,13 +130,13 @@ bool parse(Generator *gen,
 
     /* Check if we are expecting an enum. */
 
-    Element::Enum *myenum2;
+    dale::Enum *myenum2;
     if (wanted_type
             && (wanted_type->struct_name)
             && (myenum2 =
                     ctx->getEnum(wanted_type->struct_name->c_str()))) {
 
-        Element::Struct *myenumstruct2 =
+        Struct *myenumstruct2 =
             ctx->getStruct(wanted_type->struct_name->c_str());
 
         if (!myenumstruct2) {
@@ -159,7 +154,7 @@ bool parse(Generator *gen,
             * (token could be a var name). */
 
         bool res =
-            Form::Literal::Enum::parse(
+            FormLiteralEnumParse(
                                 gen, block, node,
                                 myenum2,
                                 wanted_type,
@@ -306,7 +301,7 @@ tryvar:
         }
 
         /* Plain string - has to be variable. */
-        Element::Variable *var =
+        Variable *var =
             ctx->getVariable(t->str_value.c_str());
 
         if (!var) {
@@ -372,7 +367,7 @@ tryvar:
         if (!init) {
             return false;
         }
-        Element::Type *temp =
+        Type *temp =
             ctx->tr->getArrayType(
                 ctx->tr->getConstType(type_char),
                 size
@@ -401,7 +396,7 @@ tryvar:
         var->setInitializer(init);
         var->setConstant(true);
 
-        Element::Variable *var2 = new Element::Variable();
+        Variable *var2 = new Variable();
         var2->name.append(varname.c_str());
         var2->internal_name.append(varname);
         var2->type = temp;
@@ -440,8 +435,5 @@ tryvar:
         ctx->er->addError(e);
         return false;
     }
-}
-}
-}
 }
 }

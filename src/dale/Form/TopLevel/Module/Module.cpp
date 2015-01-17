@@ -5,13 +5,7 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace TopLevel
-{
-namespace Module
-{
-int 
+static int 
 isValidModuleName(std::string *str)
 {
     int i;
@@ -25,8 +19,7 @@ isValidModuleName(std::string *str)
 }
 
 bool
-parse(Generator *gen,
-      Node *node)
+FormTopLevelModuleParse(Generator *gen, Node *node)
 {
     Node *top = node;
     Context *ctx = gen->ctx;
@@ -116,8 +109,5 @@ parse(Generator *gen,
     gen->set_module_name = 1;
 
     return true;
-}
-}
-}
 }
 }

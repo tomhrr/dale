@@ -5,20 +5,14 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace ProcBody
-{
 bool
-parse(Generator *gen,
+FormProcBodyParse(Generator *gen,
       Node *n,
-      Element::Function *dfn,
+      dale::Function *dfn,
       llvm::Function *fn,
       int skip,
       int is_anonymous,
       llvm::Value *return_value = NULL);
-}
-}
 }
 
 #endif

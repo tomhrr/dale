@@ -5,17 +5,17 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 
-namespace dale { namespace Form { namespace Literal { namespace Struct {
+namespace dale {
 bool
-parse(Generator *gen,
-      Element::Function *dfn,
+FormLiteralStructParse(Generator *gen,
+      Function *dfn,
       llvm::BasicBlock *block,
       Node *n,
       const char *struct_name,
-      Element::Struct *str,
-      Element::Type *structtype,
+      Struct *str,
+      Type *structtype,
       bool get_address,
       ParseResult *pr);
-}}}}
+}
 
 #endif

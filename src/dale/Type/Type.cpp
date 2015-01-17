@@ -1,7 +1,7 @@
 #include "Type.h"
 
-#include "../../STLUtils/STLUtils.h"
-#include "../../Utils/Utils.h"
+#include "../STLUtils/STLUtils.h"
+#include "../Utils/Utils.h"
 
 #define DEBUG 0
 
@@ -87,9 +87,6 @@ int getUnsignedIntegerType(int size)
     return type;
 }
 
-namespace Element
-{
-
 Type::Type()
 {
     base_type       = 0;
@@ -134,7 +131,7 @@ Type::Type(int new_base_type,
     is_retval       = 0;
 }
 
-Type::Type(Element::Type *new_points_to,
+Type::Type(Type *new_points_to,
            int new_is_array,
            int new_array_size)
 {
@@ -310,7 +307,7 @@ bool Type::isEqualTo(Type *other_type,
 }
 
 bool
-Type::canBeSetFrom(Element::Type *value_type,
+Type::canBeSetFrom(Type *value_type,
                    bool ignore_arg_constness)
 {
     int iac = (ignore_arg_constness ? 1 : 0);
@@ -325,7 +322,7 @@ Type::canBeSetFrom(Element::Type *value_type,
 }
 
 bool
-Type::canBePassedFrom(Element::Type *value_type,
+Type::canBePassedFrom(Type *value_type,
                       bool ignore_arg_constness)
 {
     int prev_const = is_const;
@@ -423,7 +420,7 @@ Node *Type::toNode(void)
 
         std::vector<Node *> *pnodes = new std::vector<Node*>;
 
-        std::vector<Element::Type *>::iterator iter =
+        std::vector<Type *>::iterator iter =
             parameter_types->begin();
         char c[] = "a";
 
@@ -527,7 +524,7 @@ void Type::toStringProper(std::string *str)
         return_type->toStringProper(str);
         str->append(" (");
 
-        std::vector<Element::Type *>::iterator iter =
+        std::vector<Type *>::iterator iter =
             parameter_types->begin();
         while (iter != parameter_types->end()) {
             (*iter)->toStringProper(str);
@@ -541,9 +538,9 @@ void Type::toStringProper(std::string *str)
     return;
 }
 
-Element::Type *Type::makeCopy(void)
+Type *Type::makeCopy(void)
 {
-    Element::Type *new_type = new Element::Type();
+    Type *new_type = new Type();
 
     new_type->base_type     = base_type;
     new_type->is_array      = is_array;
@@ -567,10 +564,10 @@ Element::Type *Type::makeCopy(void)
     if (is_function) {
         new_type->return_type = return_type->makeCopy();
 
-        std::vector<Element::Type *> *new_types =
-            new std::vector<Element::Type *>;
+        std::vector<Type *> *new_types =
+            new std::vector<Type *>;
 
-        std::vector<Element::Type *>::iterator iter;
+        std::vector<Type *>::iterator iter;
 
         iter = parameter_types->begin();
 
@@ -726,7 +723,7 @@ void Type::toEncStr(std::string *newstr)
     if (is_function) {
         newstr->append("F");
         return_type->toEncStr(newstr);
-        std::vector<Element::Type *>::iterator iter =
+        std::vector<Type *>::iterator iter =
             parameter_types->begin();
         while (iter != parameter_types->end()) {
             (*iter)->toEncStr(newstr);
@@ -862,7 +859,7 @@ bool Type::isVarArgs(void)
         return false;
     }
 
-    Element::Type *back = parameter_types->back();
+    Type *back = parameter_types->back();
 
     return (back->base_type == dale::BaseType::VarArgs);
 }
@@ -958,6 +955,5 @@ const char *baseTypeToString(int base_type)
     }
 
     return ret;
-}
 }
 }

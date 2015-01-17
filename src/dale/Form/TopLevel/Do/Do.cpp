@@ -6,14 +6,8 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace TopLevel
-{
-namespace Do
-{
-bool parse(Generator *gen,
-           Node *node)
+bool
+FormTopLevelDoParse(Generator *gen, Node *node)
 {
     Context *ctx = gen->ctx; 
 
@@ -34,14 +28,11 @@ bool parse(Generator *gen,
     ++node_iter;
 
     while (node_iter != lst->end()) {
-        Form::TopLevel::Inst::parse(gen, (*node_iter));
+        FormTopLevelInstParse(gen, (*node_iter));
         ctx->er->flush();
         ++node_iter;
     }
 
     return true;
-}
-}
-}
 }
 }

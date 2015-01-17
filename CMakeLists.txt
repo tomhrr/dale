@@ -186,11 +186,11 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Error/Error.cpp
                       src/dale/ErrorReporter/ErrorReporter.cpp
                       src/dale/ParseResult/ParseResult.cpp
-                      src/dale/Element/Enum/Enum.cpp
-                      src/dale/Element/Function/Function.cpp
-                      src/dale/Element/Type/Type.cpp
-                      src/dale/Element/Variable/Variable.cpp
-                      src/dale/Element/Struct/Struct.cpp
+                      src/dale/Enum/Enum.cpp
+                      src/dale/Function/Function.cpp
+                      src/dale/Type/Type.cpp
+                      src/dale/Variable/Variable.cpp
+                      src/dale/Struct/Struct.cpp
                       src/dale/NativeTypes/NativeTypes.cpp
                       src/dale/TypeRegister/TypeRegister.cpp
                       src/dale/Form/Proc/Goto/Goto.cpp
@@ -255,7 +255,7 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/Literal/Enum/Enum.cpp
                       src/dale/Form/Literal/Array/Array.cpp
                       src/dale/CoreForms/CoreForms.cpp
-                      src/dale/Element/Label/Label.cpp
+                      src/dale/Label/Label.cpp
                       src/dale/CommonDecl/CommonDecl.cpp
                       src/dale/Unit/Unit.cpp
                       src/dale/UnitStack/UnitStack.cpp)

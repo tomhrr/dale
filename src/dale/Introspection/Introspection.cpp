@@ -1,5 +1,5 @@
 #include "Introspection.h"
-#include "../Element/Type/Type.h"
+#include "../Type/Type.h"
 #include "../Generator/Generator.h"
 #include "../Form/Type/Type.h"
 #include "../Form/Proc/Inst/Inst.h"
@@ -21,7 +21,7 @@ static int myn = 0;
 bool makeTemporaryGlobalFunction(
     Generator *gen,
     std::vector<DeferredGoto*> *dgs,
-    std::map<std::string, Element::Label*> *mls
+    std::map<std::string, Label*> *mls
 )
 {
     Context *ctx = gen->ctx;
@@ -74,10 +74,10 @@ bool makeTemporaryGlobalFunction(
         abort();
     }
 
-    std::vector<Element::Variable *> vars;
+    std::vector<Variable *> vars;
 
-    Element::Function *dfn =
-        new Element::Function(ctx->tr->type_int,
+    Function *dfn =
+        new Function(ctx->tr->type_int,
                               &vars,
                               fn,
                               0,
@@ -113,7 +113,7 @@ void removeTemporaryGlobalFunction(
     Generator *gen,
     int error_count,
     std::vector<DeferredGoto*> *dgs,
-    std::map<std::string, Element::Label*> *mls
+    std::map<std::string, Label*> *mls
 )
 {
     Context *ctx = gen->ctx;
@@ -123,7 +123,7 @@ void removeTemporaryGlobalFunction(
     }
 
     ctx->deactivateAnonymousNamespace();
-    Element::Function *current = gen->global_function;
+    Function *current = gen->global_function;
 
     gen->global_functions.pop_back();
     if (gen->global_functions.size()) {
@@ -172,8 +172,8 @@ extern "C" {
         int original_error_count =
             g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Element::Type *thetype  = Form::Type::parse(g, n,  false, false);
-        Element::Type *thetype2 = Form::Type::parse(g, n2, false, false);
+        Type *thetype  = FormTypeParse(g, n,  false, false);
+        Type *thetype2 = FormTypeParse(g, n2, false, false);
 
         g->ctx->er->popErrors(original_error_count);
         if (!thetype || !thetype2) {
@@ -199,7 +199,7 @@ extern "C" {
         return true;
     }
 
-    static bool get_type(MContext *mc, DNode *dnode, Element::Type **type)
+    static bool get_type(MContext *mc, DNode *dnode, Type **type)
     {
         Generator *g = (dale::Generator*) mc->generator;
         Node *n = g->DNodeToIntNode(dnode);
@@ -211,7 +211,7 @@ extern "C" {
         int original_error_count =
             g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        *type = Form::Type::parse(g, n, false, false);
+        *type = FormTypeParse(g, n, false, false);
 
         g->ctx->er->popErrors(original_error_count);
         if (!*type) {
@@ -223,7 +223,7 @@ extern "C" {
 
     bool is_2D_integer_2D_type(MContext *mc, DNode *dnode)
     {
-        Element::Type *type;
+        Type *type;
         bool res = get_type(mc, dnode, &type);
         if (!res) {
             return false;
@@ -233,7 +233,7 @@ extern "C" {
 
     bool is_2D_signed_2D_integer_2D_type(MContext *mc, DNode *dnode)
     {
-        Element::Type *type;
+        Type *type;
         bool res = get_type(mc, dnode, &type);
         if (!res) {
             return false;
@@ -243,7 +243,7 @@ extern "C" {
 
     bool is_2D_unsigned_2D_integer_2D_type(MContext *mc, DNode *dnode)
     {
-        Element::Type *type;
+        Type *type;
         bool res = get_type(mc, dnode, &type);
         if (!res) {
             return false;
@@ -253,7 +253,7 @@ extern "C" {
 
     bool is_2D_floating_2D_point_2D_type(MContext *mc, DNode *dnode)
     {
-        Element::Type *type;
+        Type *type;
         bool res = get_type(mc, dnode, &type);
         if (!res) {
             return false;
@@ -263,7 +263,7 @@ extern "C" {
 
     bool is_2D_pointer_2D_type(MContext *mc, DNode *dnode)
     {
-        Element::Type *type;
+        Type *type;
         bool res = get_type(mc, dnode, &type);
         if (!res) {
             return false;
@@ -290,8 +290,8 @@ extern "C" {
         int original_error_count =
             g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Element::Type *thetype  = Form::Type::parse(g, n,  false, false);
-        Element::Type *thetype2 = Form::Type::parse(g, n2, false, false);
+        Type *thetype  = FormTypeParse(g, n,  false, false);
+        Type *thetype2 = FormTypeParse(g, n2, false, false);
 
         g->ctx->er->popErrors(original_error_count);
         if (!thetype || !thetype2) {
@@ -302,7 +302,7 @@ extern "C" {
 
     DNode *pointee_2D_type(MContext *mc, DNode *dnode)
     {
-        Element::Type *type;
+        Type *type;
         bool res = get_type(mc, dnode, &type);
         if (!res) {
             return NULL;
@@ -326,7 +326,7 @@ extern "C" {
 
         int made_temp = 0;
         std::vector<DeferredGoto*> dgs;
-        std::map<std::string, Element::Label*> mls;
+        std::map<std::string, Label*> mls;
         if (!g->global_function) {
             makeTemporaryGlobalFunction(g, &dgs, &mls);
             made_temp = 1;
@@ -338,7 +338,7 @@ extern "C" {
          * null DNode pointer. This is not necessarily an error. */
         n = g->parseOptionalMacroCall(n);
         if (n) {
-            Form::Proc::Inst::parse(
+            FormProcInstParse(
                 g,
                 g->global_function,
                 g->global_block,
@@ -372,7 +372,7 @@ extern "C" {
         int original_error_count =
             g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Element::Type *ptype = Form::Type::parse(g, n, false, false);
+        Type *ptype = FormTypeParse(g, n, false, false);
         if (!ptype) {
             g->ctx->er->popErrors(original_error_count);
             return false;
@@ -382,7 +382,7 @@ extern "C" {
             return true;
         }
         if (ptype->struct_name) {
-            Element::Struct *structp =
+            Struct *structp =
                 g->ctx->getStruct(
                     ptype->struct_name->c_str(),
                     ptype->namespaces
@@ -401,7 +401,7 @@ extern "C" {
         int original_error_count =
             g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Element::Type *ptype = Form::Type::parse(g, n, false, false);
+        Type *ptype = FormTypeParse(g, n, false, false);
         if (!ptype) {
             g->ctx->er->popErrors(original_error_count);
             return false;
@@ -436,9 +436,9 @@ extern "C" {
         int c = 0;
 
         std::string map_key;
-        std::vector<Element::Type *> parameter_types;
+        std::vector<Type *> parameter_types;
         while (iter != lst->end()) {
-            Element::Type *ptype = Form::Type::parse(g, (*iter), false,
+            Type *ptype = FormTypeParse(g, (*iter), false,
                                                 false);
             if (!ptype) {
                 g->ctx->er->popErrors(original_error_count);
@@ -478,7 +478,7 @@ extern "C" {
                 e = function_names.end();
                 b != e;
                 ++b) {
-            Element::Function *thefn =
+            Function *thefn =
                 g->ctx->getFunction(b->c_str(),
                                     &parameter_types,
                                     NULL,
@@ -520,7 +520,7 @@ extern "C" {
 
         std::string map_key;
         while (iter != lst->end()) {
-            Element::Type *ptype = Form::Type::parse(g, (*iter), false,
+            Type *ptype = FormTypeParse(g, (*iter), false,
                                                 false);
             if (!ptype) {
                 g->ctx->er->popErrors(original_error_count);
@@ -571,7 +571,7 @@ extern "C" {
 
         ParseResult *p = new ParseResult();
         bool res =
-            Form::Proc::Inst::parse(
+            FormProcInstParse(
                 g,
                 g->global_function,
                 g->global_block,
@@ -651,7 +651,7 @@ extern "C" {
 
         Node *n = WrapNode(g->DNodeToIntNode(dnode));
 
-        Element::Type *type = Form::Type::parse(g, (*(n->list))[0], false,
+        Type *type = FormTypeParse(g, (*(n->list))[0], false,
                                            false);
         if (!type) {
             return false;
@@ -677,7 +677,7 @@ extern "C" {
 
         Node *n = WrapNode(g->DNodeToIntNode(dnode));
 
-        Element::Type *type = Form::Type::parse(g, (*(n->list))[0], false,
+        Type *type = FormTypeParse(g, (*(n->list))[0], false,
                                            false);
         if (!type) {
             return false;
@@ -728,7 +728,7 @@ extern "C" {
         int original_error_count =
             g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Element::Type *ret_type = Form::Type::parse(g, nret_type, false,
+        Type *ret_type = FormTypeParse(g, nret_type, false,
                                                false);
         if (!ret_type) {
             g->ctx->er->popErrors(original_error_count);
@@ -737,9 +737,9 @@ extern "C" {
 
         int c = 0;
 
-        std::vector<Element::Type *> parameter_types;
+        std::vector<Type *> parameter_types;
         while (iter != lst->end()) {
-            Element::Type *ptype = Form::Type::parse(g, (*iter), false,
+            Type *ptype = FormTypeParse(g, (*iter), false,
                                                 false);
             if (!ptype) {
                 g->ctx->er->popErrors(original_error_count);
@@ -753,7 +753,7 @@ extern "C" {
             ++c;
         }
 
-        Element::Function *thefn =
+        Function *thefn =
             g->ctx->getFunction(nfn_name->token->str_value.c_str(),
                                 &parameter_types,
                                 NULL,
@@ -779,7 +779,7 @@ extern "C" {
 
         int error_count = g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Element::Type *type = Form::Type::parse(g, (*lst)[0], false,
+        Type *type = FormTypeParse(g, (*lst)[0], false,
                                            false);
         g->ctx->er->popErrors(error_count);
 
@@ -812,9 +812,9 @@ extern "C" {
 
         int c = 0;
 
-        std::vector<Element::Type *> parameter_types;
+        std::vector<Type *> parameter_types;
         while (iter != lst->end()) {
-            Element::Type *ptype = Form::Type::parse(g, (*iter), false,
+            Type *ptype = FormTypeParse(g, (*iter), false,
                                                 false);
             if (!ptype) {
                 g->ctx->er->popErrors(original_error_count);
@@ -828,7 +828,7 @@ extern "C" {
             ++c;
         }
 
-        Element::Function *thefn =
+        Function *thefn =
             g->ctx->getFunction(nfn_name->token->str_value.c_str(),
                                 &parameter_types,
                                 NULL,
@@ -862,9 +862,9 @@ extern "C" {
 
         int c = 0;
 
-        std::vector<Element::Type *> parameter_types;
+        std::vector<Type *> parameter_types;
         while (iter != lst->end()) {
-            Element::Type *ptype = Form::Type::parse(g, (*iter), false,
+            Type *ptype = FormTypeParse(g, (*iter), false,
                                                 false);
             if (!ptype) {
                 g->ctx->er->popErrors(original_error_count);
@@ -878,7 +878,7 @@ extern "C" {
             ++c;
         }
 
-        Element::Function *thefn =
+        Function *thefn =
             g->ctx->getFunction(nfn_name->token->str_value.c_str(),
                                 &parameter_types,
                                 NULL,
@@ -890,8 +890,8 @@ extern "C" {
             return false;
         }
 
-        std::vector<Element::Type *> types;
-        for (std::vector<Element::Variable *>::iterator
+        std::vector<Type *> types;
+        for (std::vector<Variable *>::iterator
                 b = thefn->parameter_types->begin(),
                 e = thefn->parameter_types->end();
                 b != e;
@@ -922,7 +922,7 @@ extern "C" {
         int original_error_count =
             g->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        Element::Variable *thevar =
+        Variable *thevar =
             g->ctx->getVariable(n->token->str_value.c_str());
 
         g->ctx->er->popErrors(original_error_count);
@@ -953,9 +953,9 @@ extern "C" {
 
         int c = 0;
 
-        std::vector<Element::Type *> parameter_types;
+        std::vector<Type *> parameter_types;
         while (iter != lst->end()) {
-            Element::Type *ptype = Form::Type::parse(g, (*iter), false,
+            Type *ptype = FormTypeParse(g, (*iter), false,
                                                 false);
             if (!ptype) {
                 g->ctx->er->popErrors(original_error_count);
@@ -969,7 +969,7 @@ extern "C" {
             ++c;
         }
 
-        Element::Function *thefn =
+        Function *thefn =
             g->ctx->getFunction(nfn_name->token->str_value.c_str(),
                                 &parameter_types,
                                 NULL,
@@ -997,7 +997,7 @@ extern "C" {
         }
         const char *fn_name = fn_node->token->str_value.c_str();
 
-        Element::Function *fn = g->ctx->getFunction(fn_name, NULL,
+        Function *fn = g->ctx->getFunction(fn_name, NULL,
                                                     NULL, 0);
         if (!fn) {
             return NULL;
@@ -1025,7 +1025,7 @@ extern "C" {
         }
         const char *struct_name = s_node->token->str_value.c_str();
 
-        Element::Struct *st = g->ctx->getStruct(struct_name);
+        Struct *st = g->ctx->getStruct(struct_name);
         if (!st) {
             return NULL;
         }
@@ -1049,7 +1049,7 @@ extern "C" {
         }
         const char *struct_name = s_node->token->str_value.c_str();
 
-        Element::Struct *st = g->ctx->getStruct(struct_name);
+        Struct *st = g->ctx->getStruct(struct_name);
         if (!st) {
             return NULL;
         }
@@ -1070,7 +1070,7 @@ extern "C" {
         }
         const char *fn_name = fn_node->token->str_value.c_str();
 
-        Element::Function *fn = g->ctx->getFunction(fn_name, NULL, NULL,
+        Function *fn = g->ctx->getFunction(fn_name, NULL, NULL,
                                                     0);
         if (!fn) {
             return -1;
@@ -1092,7 +1092,7 @@ extern "C" {
         }
         const char *struct_name = s_node->token->str_value.c_str();
 
-        Element::Struct *st = g->ctx->getStruct(struct_name);
+        Struct *st = g->ctx->getStruct(struct_name);
         if (!st) {
             return -1;
         }

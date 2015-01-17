@@ -1,21 +1,16 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../../../Operation/Cast/Cast.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Aref
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcArefParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -33,7 +28,7 @@ bool parse(Generator *gen,
     symlist *lst = node->list;
     ParseResult pr_array;
     bool res = 
-        Form::Proc::Inst::parse(gen, fn, block, (*lst)[1], true,
+        FormProcInstParse(gen, fn, block, (*lst)[1], true,
                                     false, 
                                     NULL, &pr_array);
     if (!res) {
@@ -54,7 +49,7 @@ bool parse(Generator *gen,
 
     ParseResult pr_index;
     res =
-        Form::Proc::Inst::parse(gen, fn, pr_array.block, (*lst)[2], false,
+        FormProcInstParse(gen, fn, pr_array.block, (*lst)[2], false,
                                false, NULL, &pr_index);
     if (!res) {
         return false;
@@ -160,8 +155,5 @@ bool parse(Generator *gen,
     pr->block = temp.block;
 
     return true;
-}
-}
-}
 }
 }

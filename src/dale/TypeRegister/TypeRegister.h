@@ -2,7 +2,7 @@
 #define DALE_TYPEREGISTER
 
 #include "../BaseType/BaseType.h"
-#include "../Element/Type/Type.h"
+#include "../Type/Type.h"
 
 #include <map>
 
@@ -13,7 +13,7 @@ namespace dale
 
     A class for generating and caching types.
 
-    All returned Element::Types should be treated as const. This will
+    All returned Types should be treated as const. This will
     be fixed properly later.
 */
 
@@ -21,21 +21,21 @@ class TypeRegister
 {
 private:
     /*! An array containing instances of all the basic types. */
-    Element::Type *basic_types[BASIC_TYPE_COUNT];
+    Type *basic_types[BASIC_TYPE_COUNT];
     /*! A map from type to pointer type. */
-    std::map<Element::Type*, Element::Type*> pointer_types;
+    std::map<Type*, Type*> pointer_types;
     /*! A map from type to const type. */
-    std::map<Element::Type*, Element::Type*> const_types;
+    std::map<Type*, Type*> const_types;
     /*! A map from type to reference type. */
-    std::map<Element::Type*, Element::Type*> reference_types;
+    std::map<Type*, Type*> reference_types;
     /*! A map from type to retval type. */
-    std::map<Element::Type*, Element::Type*> retval_types;
+    std::map<Type*, Type*> retval_types;
     /*! A map from type, to size, to array type. */
-    std::map<Element::Type*, std::map<size_t, Element::Type*> > array_types;
+    std::map<Type*, std::map<size_t, Type*> > array_types;
     /*! A map from type, to size, to bitfield type. */
-    std::map<Element::Type*, std::map<size_t, Element::Type*> > bitfield_types;
+    std::map<Type*, std::map<size_t, Type*> > bitfield_types;
     /*! A map from fully-qualified struct name to struct type. */
-    std::map<std::string, Element::Type*> struct_types;
+    std::map<std::string, Type*> struct_types;
 
 public:
     /*! The standard constructor. Initialises the basic types. */
@@ -44,62 +44,62 @@ public:
     
     /*! Return an instance of a basic type.
      *  @param type The basic type enum (see dale::BaseType). */
-    Element::Type *getBasicType(int type);
+    Type *getBasicType(int type);
     /*! Return an instance of a pointer to a type.
      *  @param type The pointee type object. */
-    Element::Type *getPointerType(Element::Type *type);
+    Type *getPointerType(Type *type);
     /*! Return an instance of a const type.
      *  @param type The type to 'make const'. */
-    Element::Type *getConstType(Element::Type *type);
+    Type *getConstType(Type *type);
     /*! Return an instance of a reference type.
      *  @param type The type to make into a reference type. */
-    Element::Type *getReferenceType(Element::Type *type);
+    Type *getReferenceType(Type *type);
     /*! Return an instance of a retval type.
      *  @param type The type to make into a retval type. */
-    Element::Type *getRetvalType(Element::Type *type);
+    Type *getRetvalType(Type *type);
     /*! Return an instance of an array type.
      *  @param type The array element type.
      *  @param size The size of the array. */
-    Element::Type *getArrayType(Element::Type *type, size_t size);
+    Type *getArrayType(Type *type, size_t size);
     /*! Return an instance of a bitfield type.
      *  @param type The underlying integer type.
      *  @param size The size of the bitfield. */
-    Element::Type *getBitfieldType(Element::Type *type, size_t size);
+    Type *getBitfieldType(Type *type, size_t size);
     /*! Return an instance of a struct type.
      *  @param name The fully-qualified name of the struct. */
-    Element::Type *getStructType(std::string name);
+    Type *getStructType(std::string name);
 
     /*! Takes a type, and returns a previously-generated type object,
      *  if possible. Otherwise, stores the type in the appropriate
      *  place and returns it. The argument type continues to be owned
      *  by the caller after this function has been executed.
      *  @param type The type. */
-    Element::Type *getType(Element::Type *type);
+    Type *getType(Type *type);
     /*! Variables for common types. */
-    Element::Type *type_bool;
-    Element::Type *type_void;
-    Element::Type *type_varargs;
-    Element::Type *type_int;
-    Element::Type *type_intptr;
-    Element::Type *type_size;
-    Element::Type *type_ptrdiff;
-    Element::Type *type_uint;
-    Element::Type *type_char;
-    Element::Type *type_float;
-    Element::Type *type_double;
-    Element::Type *type_longdouble;
-    Element::Type *type_int8;
-    Element::Type *type_uint8;
-    Element::Type *type_int16;
-    Element::Type *type_uint16;
-    Element::Type *type_int32;
-    Element::Type *type_uint32;
-    Element::Type *type_int64;
-    Element::Type *type_uint64;
-    Element::Type *type_int128;
-    Element::Type *type_uint128;
-    Element::Type *type_pchar;
-    Element::Type *type_pvoid;
+    Type *type_bool;
+    Type *type_void;
+    Type *type_varargs;
+    Type *type_int;
+    Type *type_intptr;
+    Type *type_size;
+    Type *type_ptrdiff;
+    Type *type_uint;
+    Type *type_char;
+    Type *type_float;
+    Type *type_double;
+    Type *type_longdouble;
+    Type *type_int8;
+    Type *type_uint8;
+    Type *type_int16;
+    Type *type_uint16;
+    Type *type_int32;
+    Type *type_uint32;
+    Type *type_int64;
+    Type *type_uint64;
+    Type *type_int128;
+    Type *type_uint128;
+    Type *type_pchar;
+    Type *type_pvoid;
 
     /*! Dump debugging information to stderr. */
     void print(void);

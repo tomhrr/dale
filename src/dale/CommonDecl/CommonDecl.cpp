@@ -26,13 +26,13 @@ getFunctionType(llvm::Type *t,
 bool
 addVariable(Unit *unit,
             const char *name,
-            Element::Type *type,
+            Type *type,
             llvm::Constant *init)
 {
     Context *ctx      = unit->ctx;
     llvm::Module *mod = unit->module;
 
-    Element::Variable *var = new Element::Variable();
+    Variable *var = new Variable();
     var->name.append(name);
     var->type = type;
     var->internal_name.append(name);
@@ -67,7 +67,7 @@ addVarargsFunctions(Unit *unit)
 {
     llvm::Module *mod = unit->module;
     Context *ctx = unit->ctx;
-    Element::Type *type_pchar = ctx->tr->type_pchar;
+    Type *type_pchar = ctx->tr->type_pchar;
 
     std::vector<llvm::Type*> va_start_args;
     va_start_args.push_back(ctx->toLLVMType(type_pchar, NULL, false));
@@ -166,10 +166,10 @@ addStandardVariables(Unit *unit)
     Context *ctx = unit->ctx;
     NativeTypes *nt = ctx->nt;
     
-    Element::Type *type_int        = ctx->tr->type_int;
-    Element::Type *type_float      = ctx->tr->type_float;
-    Element::Type *type_double     = ctx->tr->type_double;
-    Element::Type *type_longdouble = ctx->tr->type_longdouble;
+    Type *type_int        = ctx->tr->type_int;
+    Type *type_float      = ctx->tr->type_float;
+    Type *type_double     = ctx->tr->type_double;
+    Type *type_longdouble = ctx->tr->type_longdouble;
 
     AV_INT("JMP_BUF_SIZE",     sizeof (jmp_buf));
     AV_INT("FPOS_T",           sizeof (fpos_t));

@@ -1,20 +1,15 @@
 #include "../../../Generator/Generator.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Element/Function/Function.h"
+#include "../../../Function/Function.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
 {
-namespace Form
-{
-namespace Proc
-{
-namespace Return
-{
-bool parse(Generator *gen,
-           Element::Function *fn,
+bool
+FormProcReturnParse(Generator *gen,
+           Function *fn,
            llvm::BasicBlock *block,
            Node *node,
            bool get_address,
@@ -43,13 +38,13 @@ bool parse(Generator *gen,
 
     ParseResult p;
     bool res =
-        Form::Proc::Inst::parse(gen, 
+        FormProcInstParse(gen, 
             fn, block, (*lst)[1], get_address, false, NULL, &p
         );
     if (!res) {
         return false;
     }
-    Element::Type *real_return_type =
+    Type *real_return_type =
         (fn->hasRetval() ? ctx->tr->getBasicType(BaseType::Void)
                          : fn->return_type);
     if (!ctx->er->assertTypeEquality("return", node, p.type,
@@ -87,8 +82,5 @@ bool parse(Generator *gen,
         pr->treat_as_terminator   = 1;
         return true;
     }
-}
-}
-}
 }
 }

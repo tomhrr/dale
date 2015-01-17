@@ -6,19 +6,10 @@
 
 namespace dale
 {
-namespace Form
+bool
+FormTopLevelFunctionParse(Generator *gen, Node *node)
 {
-namespace TopLevel
-{
-namespace Function
-{
-bool parse(Generator *gen,
-           Node *node)
-{
-    return dale::Form::Function::parse(gen, node, NULL, NULL,
+    return FormFunctionParse(gen, node, NULL, NULL,
                                        Linkage::Null, 0);
-}
-}
-}
 }
 }

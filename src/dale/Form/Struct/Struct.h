@@ -5,15 +5,9 @@
 
 namespace dale
 {
-namespace Form
-{
-namespace Struct
-{
-bool parse(Generator *gen,
+bool FormStructParse(Generator *gen,
            Node *n,
            const char *name);
-}
-}
 }
 
 #endif
