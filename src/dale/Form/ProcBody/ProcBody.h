@@ -8,7 +8,7 @@ namespace dale
 bool
 FormProcBodyParse(Generator *gen,
       Node *n,
-      dale::Function *dfn,
+      Function *dfn,
       llvm::Function *fn,
       int skip,
       int is_anonymous,

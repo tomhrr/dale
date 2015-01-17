@@ -36,7 +36,7 @@ FormProcSizeofParse(Generator *gen,
         return false;
     }
 
-    dale::Type *type = FormTypeParse(gen, (*lst)[1], false, false);
+    Type *type = FormTypeParse(gen, (*lst)[1], false, false);
 
     if (!type) {
         ctx->er->popLastError();

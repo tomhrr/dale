@@ -37,12 +37,12 @@ FormProcArrayOfParse(Generator *gen,
         return false;
     }
 
-    dale::Type *type = FormTypeParse(gen, (*lst)[2], false, false);
+    Type *type = FormTypeParse(gen, (*lst)[2], false, false);
     if (!type) {
         return false;
     }
 
-    dale::Type *arrtype = ctx->tr->getArrayType(type, size);
+    Type *arrtype = ctx->tr->getArrayType(type, size);
 
     int size2;
     return

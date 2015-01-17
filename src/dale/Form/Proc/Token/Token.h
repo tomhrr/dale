@@ -10,7 +10,7 @@ FormProcTokenParse(Generator *gen,
            Node *node,
            bool get_address,
            bool prefixed_with_core,
-           dale::Type *wanted_type,
+           Type *wanted_type,
            ParseResult *pr);
 }
 

@@ -8,7 +8,7 @@ namespace dale
 bool FormFunctionParse(Generator *gen,
            Node *n,
            const char *name,
-           dale::Function **new_function,
+           Function **new_function,
            int override_linkage,
            int is_anonymous);
 }

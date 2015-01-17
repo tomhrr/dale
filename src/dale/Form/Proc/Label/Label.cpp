@@ -61,7 +61,7 @@ FormProcLabelParse(Generator *gen,
     }
 
     int index = ++(ctx->ns()->lv_index);
-    dale::Label *my_label = new dale::Label();
+    Label *my_label = new Label();
     my_label->block = new_block;
     my_label->ns = ctx->ns();
     my_label->index = index;

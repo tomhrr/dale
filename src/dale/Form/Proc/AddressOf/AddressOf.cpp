@@ -91,12 +91,12 @@ FormProcAddressOfParse(Generator *gen,
                 /* Parse each type, add it to a vector of types, get
                  * the relevant function, return it. */
 
-                std::vector<dale::Type *> types;
+                std::vector<Type *> types;
                 std::vector<Node *>::iterator iter = lst->begin();
                 ++iter;
                 ++iter;
                 while (iter != lst->end()) {
-                    dale::Type *type = FormTypeParse(gen, (*iter),
+                    Type *type = FormTypeParse(gen, (*iter),
                                                          false, false);
                     if (!type) {
                         return false;
@@ -116,7 +116,7 @@ FormProcAddressOfParse(Generator *gen,
                                      &closest_fn,
                                      0);
 
-                std::vector<dale::Type *>::iterator titer =
+                std::vector<Type *>::iterator titer =
                     types.begin();
 
                 std::string args;
@@ -165,12 +165,12 @@ FormProcAddressOfParse(Generator *gen,
                 }
             }
 
-            dale::Type *type = new dale::Type();
+            Type *type = new Type();
             type->is_function = 1;
             type->return_type = fn->return_type;
 
-            std::vector<dale::Type *> *parameter_types =
-                new std::vector<dale::Type *>;
+            std::vector<Type *> *parameter_types =
+                new std::vector<Type *>;
 
             std::vector<Variable *>::iterator iter;
 

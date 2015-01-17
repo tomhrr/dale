@@ -32,7 +32,7 @@ FormProcAlignmentOfParse(Generator *gen,
     if (!mytype) {
         return false;
     }
-    dale::Type *type = FormTypeParse(gen, mytype, false,
+    Type *type = FormTypeParse(gen, mytype, false,
                                          false);
     if (!type) {
         return false;

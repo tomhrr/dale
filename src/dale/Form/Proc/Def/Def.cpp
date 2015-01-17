@@ -12,9 +12,9 @@ namespace dale
 {
 Function *
 get_init_fn(Context *ctx,
-            dale::Type *type)
+            Type *type)
 {
-    std::vector<dale::Type *> init_arg_types;
+    std::vector<Type *> init_arg_types;
     init_arg_types.push_back(type);
     return ctx->getFunction("init", &init_arg_types, NULL, 0);
 }
@@ -22,7 +22,7 @@ get_init_fn(Context *ctx,
 bool
 initialise(Context *ctx,
                 llvm::IRBuilder<> *builder,
-                dale::Type *type,
+                Type *type,
                 llvm::Value *value,
                 Function *init_fn)
 {
@@ -70,7 +70,7 @@ initialise(Context *ctx,
     }
 
     if (type->struct_name) {
-        dale::Struct *sp =
+        Struct *sp =
             ctx->getStruct(
                 type->struct_name->c_str(),
                 type->namespaces
@@ -78,12 +78,12 @@ initialise(Context *ctx,
         int i = 0;
         std::vector<llvm::Value *> indices;
         indices.push_back(ctx->nt->getLLVMZero());
-        for (std::vector<dale::Type *>::iterator
+        for (std::vector<Type *>::iterator
                 b = sp->element_types.begin(),
                 e = sp->element_types.end();
                 b != e;
                 ++b) {
-            dale::Type *t = (*b);
+            Type *t = (*b);
             indices.push_back(
                 llvm::cast<llvm::Value>(
                     ctx->nt->getNativeInt(i)
@@ -177,8 +177,8 @@ FormProcDefParse(Generator *gen,
         return false;
     }
 
-    if ((linkage != dale::Linkage::Auto)
-            && (linkage != dale::Linkage::Intern)
+    if ((linkage != Linkage::Auto)
+            && (linkage != Linkage::Intern)
             && (newlist->size() > 3)) {
         Error *e = new Error(
             ErrorInst::Generator::HasBothExternAndInitialiser,
@@ -197,7 +197,7 @@ FormProcDefParse(Generator *gen,
     pr->do_not_destruct       = 1;
     pr->do_not_copy_with_setf = 1;
 
-    dale::Type *type;
+    Type *type;
 
     if ((*newlist)[2]->is_token &&
             !(*newlist)[2]->token->str_value.compare("\\")) {
@@ -260,7 +260,7 @@ FormProcDefParse(Generator *gen,
         var2->name.append(name);
         var2->type = type;
         var2->value = new_ptr;
-        var2->linkage = dale::Linkage::Auto;
+        var2->linkage = Linkage::Auto;
         int avres = ctx->ns()->addVariable(name, var2);
 
         if (!avres) {
@@ -286,7 +286,7 @@ FormProcDefParse(Generator *gen,
          * allowing the variable to be fully initialised once the
          * define is complete. */
 
-        if (!(type->isIntegerType()) && (type->base_type != dale::BaseType::Bool)) {
+        if (!(type->isIntegerType()) && (type->base_type != BaseType::Bool)) {
             if (llvm::ConstantInt *temp =
                         llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
                 if (temp->getValue().getLimitedValue() == 0) {
@@ -300,7 +300,7 @@ FormProcDefParse(Generator *gen,
             return false;
         }
 
-        std::vector<dale::Type *> call_arg_types;
+        std::vector<Type *> call_arg_types;
         call_arg_types.push_back(ctx->tr->getPointerType(type));
         call_arg_types.push_back(ctx->tr->getPointerType(type));
         Function *or_setf =
@@ -352,14 +352,14 @@ FormProcDefParse(Generator *gen,
         }
         
         /* Find the init function, if it exists. */
-        std::vector<dale::Type *> init_arg_types;
+        std::vector<Type *> init_arg_types;
         init_arg_types.push_back(type);
         Function *init_fn =
             ctx->getFunction("init", &init_arg_types, NULL, 0);
 
         /* If it's a struct, check if it's must-init. */
         if (type->struct_name) {
-            dale::Struct *mine =
+            Struct *mine =
                 ctx->getStruct(
                     type->struct_name->c_str(),
                     type->namespaces
@@ -481,7 +481,7 @@ FormProcDefParse(Generator *gen,
             }
         }
 
-        if (!(type->isIntegerType()) && (type->base_type != dale::BaseType::Bool)) {
+        if (!(type->isIntegerType()) && (type->base_type != BaseType::Bool)) {
             if (llvm::ConstantInt *temp =
                         llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
                 if (temp->getValue().getLimitedValue() == 0) {
@@ -504,7 +504,7 @@ FormProcDefParse(Generator *gen,
 
         llvm::IRBuilder<> builder2(p.block);
 
-        std::vector<dale::Type *> call_arg_types;
+        std::vector<Type *> call_arg_types;
         call_arg_types.push_back(ctx->tr->getPointerType(type));
         call_arg_types.push_back(ctx->tr->getPointerType(type));
         Function *or_setf =

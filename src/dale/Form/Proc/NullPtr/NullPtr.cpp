@@ -26,12 +26,12 @@ FormProcNullPtrParse(Generator *gen,
 
     symlist *lst = node->list;
 
-    dale::Type *type = FormTypeParse(gen, (*lst)[1], false, false);
+    Type *type = FormTypeParse(gen, (*lst)[1], false, false);
     if (!type) {
         return false;
     }
     /* Create a pointer to the provided type. */
-    dale::Type *ptype = ctx->tr->getPointerType(type);
+    Type *ptype = ctx->tr->getPointerType(type);
 
     llvm::IRBuilder<> builder(block);
     llvm::Type *llvm_ptype =

@@ -24,7 +24,7 @@ bool
 FormFunctionParse(Generator *gen,
       Node *n,
       const char *name,
-      dale::Function **new_function,
+      Function **new_function,
       int override_linkage,
       int is_anonymous)
 {
@@ -184,7 +184,7 @@ FormFunctionParse(Generator *gen,
             return false;
         }
 
-        if (var->type->base_type == dale::BaseType::Void) {
+        if (var->type->base_type == BaseType::Void) {
             delete var;
             if (args->size() != 1) {
                 Error *e = new Error(
@@ -198,7 +198,7 @@ FormFunctionParse(Generator *gen,
         }
 
         /* Have to check that none comes after this. */
-        if (var->type->base_type == dale::BaseType::VarArgs) {
+        if (var->type->base_type == BaseType::VarArgs) {
             if ((args->end() - node_iter) != 1) {
                 delete var;
                 Error *e = new Error(
@@ -236,11 +236,11 @@ FormFunctionParse(Generator *gen,
     iter = fn_args_internal->begin();
 
     while (iter != fn_args_internal->end()) {
-        dale::Type *type = (*iter)->type;
+        Type *type = (*iter)->type;
         if (type->is_reference) {
             type = ctx->tr->getPointerType(type);
         }
-        if (type->base_type == dale::BaseType::VarArgs) {
+        if (type->base_type == BaseType::VarArgs) {
             break;
         }
         llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
@@ -267,7 +267,7 @@ FormFunctionParse(Generator *gen,
         ctx->ns()->addVariable((*b)->name.c_str(), (*b));
     }
 
-    dale::Type *r_type = 
+    Type *r_type = 
         FormTypeParse(gen, (*lst)[return_type_index], false,
                           false, false, true);
 
@@ -300,7 +300,7 @@ FormFunctionParse(Generator *gen,
         fn_args.push_back(ctx->toLLVMType(ctx->tr->getPointerType(r_type),
                                           NULL, true));
         llvm_r_type =
-            ctx->toLLVMType(ctx->tr->getBasicType(dale::BaseType::Void),
+            ctx->toLLVMType(ctx->tr->getBasicType(BaseType::Void),
                             NULL, true);
     }
 
@@ -319,8 +319,8 @@ FormFunctionParse(Generator *gen,
 
     /* todo: extern_c functions in namespaces. */
 
-    dale::Function *dfn =
-        new dale::Function(r_type, fn_args_internal, NULL, 0,
+    Function *dfn =
+        new Function(r_type, fn_args_internal, NULL, 0,
                               &new_name, always_inline);
     dfn->linkage = linkage;
     dfn->cto = my_cto;
@@ -351,7 +351,7 @@ FormFunctionParse(Generator *gen,
 
     llvm::Function *temp23;
     if ((temp23 = gen->mod->getFunction(new_name.c_str()))) {
-        dale::Function *temp25 =
+        Function *temp25 =
             ctx->getFunction(new_name.c_str(), NULL,
                              NULL, 0);
         if (temp25 && !temp25->isEqualTo(dfn)) {
@@ -420,7 +420,7 @@ FormFunctionParse(Generator *gen,
 
     iter = fn_args_internal->begin();
     while (iter != fn_args_internal->end()) {
-        if ((*iter)->type->base_type == dale::BaseType::VarArgs) {
+        if ((*iter)->type->base_type == BaseType::VarArgs) {
             break;
         }
 
@@ -485,8 +485,8 @@ FormFunctionParse(Generator *gen,
             && ctx->getVariable("stderr")) {
 
         std::vector<llvm::Value *> call_args;
-        std::vector<dale::Type *> tempparams;
-        dale::Function *ic =
+        std::vector<Type *> tempparams;
+        Function *ic =
             ctx->getFunction("init-channels", &tempparams,
                              NULL, 0);
         if (!ic or !ic->llvm_function) {

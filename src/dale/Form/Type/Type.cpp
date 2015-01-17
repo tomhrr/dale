@@ -32,36 +32,36 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
         const char *typs = t->str_value.c_str();
 
         int bmt =
-              (!strcmp(typs, "int" ))        ? dale::BaseType::Int
-            : (!strcmp(typs, "void"))        ? dale::BaseType::Void
-            : (!strcmp(typs, "char"))        ? dale::BaseType::Char
-            : (!strcmp(typs, "bool"))        ? dale::BaseType::Bool
-            : (!strcmp(typs, "uint" ))       ? dale::BaseType::UInt
-            : (!strcmp(typs, "int8"))        ? dale::BaseType::Int8
-            : (!strcmp(typs, "uint8"))       ? dale::BaseType::UInt8
-            : (!strcmp(typs, "int16"))       ? dale::BaseType::Int16
-            : (!strcmp(typs, "uint16"))      ? dale::BaseType::UInt16
-            : (!strcmp(typs, "int32"))       ? dale::BaseType::Int32
-            : (!strcmp(typs, "uint32"))      ? dale::BaseType::UInt32
-            : (!strcmp(typs, "int64"))       ? dale::BaseType::Int64
-            : (!strcmp(typs, "uint64"))      ? dale::BaseType::UInt64
-            : (!strcmp(typs, "int128"))      ? dale::BaseType::Int128
-            : (!strcmp(typs, "uint128"))     ? dale::BaseType::UInt128
-            : (!strcmp(typs, "intptr"))      ? dale::BaseType::IntPtr
-            : (!strcmp(typs, "size"))        ? dale::BaseType::Size
-            : (!strcmp(typs, "ptrdiff"))     ? dale::BaseType::PtrDiff
-            : (!strcmp(typs, "float"))       ? dale::BaseType::Float
-            : (!strcmp(typs, "double"))      ? dale::BaseType::Double
-            : (!strcmp(typs, "long-double")) ? dale::BaseType::LongDouble
+              (!strcmp(typs, "int" ))        ? BaseType::Int
+            : (!strcmp(typs, "void"))        ? BaseType::Void
+            : (!strcmp(typs, "char"))        ? BaseType::Char
+            : (!strcmp(typs, "bool"))        ? BaseType::Bool
+            : (!strcmp(typs, "uint" ))       ? BaseType::UInt
+            : (!strcmp(typs, "int8"))        ? BaseType::Int8
+            : (!strcmp(typs, "uint8"))       ? BaseType::UInt8
+            : (!strcmp(typs, "int16"))       ? BaseType::Int16
+            : (!strcmp(typs, "uint16"))      ? BaseType::UInt16
+            : (!strcmp(typs, "int32"))       ? BaseType::Int32
+            : (!strcmp(typs, "uint32"))      ? BaseType::UInt32
+            : (!strcmp(typs, "int64"))       ? BaseType::Int64
+            : (!strcmp(typs, "uint64"))      ? BaseType::UInt64
+            : (!strcmp(typs, "int128"))      ? BaseType::Int128
+            : (!strcmp(typs, "uint128"))     ? BaseType::UInt128
+            : (!strcmp(typs, "intptr"))      ? BaseType::IntPtr
+            : (!strcmp(typs, "size"))        ? BaseType::Size
+            : (!strcmp(typs, "ptrdiff"))     ? BaseType::PtrDiff
+            : (!strcmp(typs, "float"))       ? BaseType::Float
+            : (!strcmp(typs, "double"))      ? BaseType::Double
+            : (!strcmp(typs, "long-double")) ? BaseType::LongDouble
                                              : -1;
 
         if (bmt != -1) {
-            dale::Type *mt = gen->ctx->tr->getBasicType(bmt);
+            Type *mt = gen->ctx->tr->getBasicType(bmt);
 
             if (mt) {
                 if (!gen->is_x86_64
-                        && (mt->base_type == dale::BaseType::Int128
-                            || mt->base_type == dale::BaseType::UInt128)) {
+                        && (mt->base_type == BaseType::Int128
+                            || mt->base_type == BaseType::UInt128)) {
                     Error *e = new Error(
                         ErrorInst::Generator::TypeNotSupported,
                         top,
@@ -76,7 +76,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
 
         /* Not a simple type - check if it is a struct. */
 
-        dale::Struct *temp_struct;
+        Struct *temp_struct;
 
         if ((temp_struct = ctx->getStruct(typs))) {
             std::string fqsn;
@@ -163,7 +163,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
 
         /* Reference types are only permitted at the 'top level' of
          * the type. */
-        dale::Type *reference_type =
+        Type *reference_type =
             FormTypeParse(gen, (*lst)[1], allow_anon_structs,
                   allow_bitfields);
 
@@ -194,7 +194,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
 
         /* Retval types are only permitted at the 'top level' of
          * the type. */
-        dale::Type *retval_type =
+        Type *retval_type =
             FormTypeParse(gen, (*lst)[1], allow_anon_structs,
                   allow_bitfields);
 
@@ -234,7 +234,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
 
         Token *name = new Token(TokenType::String,0,0,0,0);
         name->str_value.append(buf);
-        dale::Type *myst = FormTypeParse(gen, new Node(name), false,
+        Type *myst = FormTypeParse(gen, new Node(name), false,
                                         false);
         if (!myst) {
             fprintf(stderr, "Unable to retrieve anonymous struct.\n");
@@ -251,7 +251,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             && lst->size() == 3
             && lst->at(0)->is_token
             && !(lst->at(0)->token->str_value.compare("bf"))) {
-        dale::Type *bf_type =
+        Type *bf_type =
             FormTypeParse(gen, lst->at(1), false, false);
         if (!(bf_type->isIntegerType())) {
             Error *e = new Error(
@@ -287,7 +287,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        dale::Type *const_type =
+        Type *const_type =
             FormTypeParse(gen, (*lst)[1], allow_anon_structs,
                       allow_bitfields);
 
@@ -322,7 +322,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        dale::Type *array_type =
+        Type *array_type =
             FormTypeParse(gen, (*lst)[2], allow_anon_structs,
                       allow_bitfields);
 
@@ -330,7 +330,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        dale::Type *type = ctx->tr->getArrayType(array_type, size);
+        Type *type = ctx->tr->getArrayType(array_type, size);
 
         return type;
     }
@@ -340,7 +340,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        dale::Type *points_to_type =
+        Type *points_to_type =
             FormTypeParse(gen, (*lst)[1], allow_anon_structs,
                       allow_bitfields);
 
@@ -356,7 +356,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        dale::Type *ret_type =
+        Type *ret_type =
             FormTypeParse(gen, (*lst)[1], allow_anon_structs,
                       allow_bitfields, false, true);
 
@@ -388,8 +388,8 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
 
         Variable *var;
 
-        std::vector<dale::Type *> *parameter_types =
-            new std::vector<dale::Type *>;
+        std::vector<Type *> *parameter_types =
+            new std::vector<Type *>;
 
         std::vector<Node *>::iterator node_iter;
         node_iter = plst->begin();
@@ -408,7 +408,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
                 return NULL;
             }
 
-            if (var->type->base_type == dale::BaseType::Void) {
+            if (var->type->base_type == BaseType::Void) {
                 delete var;
                 if (plst->size() != 1) {
                     Error *e = new Error(
@@ -422,7 +422,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             }
 
             /* Have to check that none come after this. */
-            if (var->type->base_type == dale::BaseType::VarArgs) {
+            if (var->type->base_type == BaseType::VarArgs) {
                 if ((plst->end() - node_iter) != 1) {
                     delete var;
                     Error *e = new Error(
@@ -451,7 +451,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             ++node_iter;
         }
 
-        dale::Type *type = new dale::Type();
+        Type *type = new Type();
         type->is_function     = 1;
         type->return_type     = ret_type;
         type->parameter_types = parameter_types;

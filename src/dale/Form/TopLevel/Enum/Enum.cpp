@@ -12,14 +12,6 @@
 
 namespace dale
 {
-static llvm::FunctionType *
-getFunctionType(llvm::Type *t,
-                std::vector<llvm::Type*> &v,
-                bool b) {
-    llvm::ArrayRef<llvm::Type*> temp(v);
-    return llvm::FunctionType::get(t, temp, b);
-}
-
 bool
 FormTopLevelEnumParse(Generator *gen, Node *node)
 {
@@ -252,8 +244,8 @@ FormTopLevelEnumParse(Generator *gen, Node *node)
     ttt->namespaces = new_namespaces;
 
     int flinkage = (linkage == EnumLinkage::Extern)
-                   ? dale::Linkage::Extern
-                   : dale::Linkage::Intern;
+                   ? Linkage::Extern
+                   : Linkage::Intern;
 
     BasicTypes::addEnum(ctx, gen->mod, &(gen->current_once_tag), ttt,
                         enumtype, d_enumtype, flinkage);

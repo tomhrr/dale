@@ -33,7 +33,7 @@ parseLiteralElement(Generator *gen,
     std::string t;
     type->toStringProper(&t);
 
-    if (type->base_type == dale::BaseType::Bool) {
+    if (type->base_type == BaseType::Bool) {
         llvm::APInt myint(1,
                           *thing);
         llvm::ConstantInt *myconstint =
@@ -42,7 +42,7 @@ parseLiteralElement(Generator *gen,
         return llvm::cast<llvm::Constant>(myconstint);
     }
 
-    if (type->base_type == dale::BaseType::Char) {
+    if (type->base_type == BaseType::Char) {
         llvm::APInt myint(8,
                           *thing);
         llvm::ConstantInt *myconstint =
@@ -91,7 +91,7 @@ parseLiteralElement(Generator *gen,
         }
     }
 
-    if (type->base_type == dale::BaseType::Float) {
+    if (type->base_type == BaseType::Float) {
         union float_hex {
             unsigned char udata[4];
             float         fvalue;
@@ -107,7 +107,7 @@ parseLiteralElement(Generator *gen,
         return llvm::cast<llvm::Constant>(myconstfloat);
     }
 
-    if (type->base_type == dale::BaseType::Double) {
+    if (type->base_type == BaseType::Double) {
         union double_hex {
             unsigned char udata[8];
             double        dvalue;
@@ -206,7 +206,7 @@ parseLiteralElement(Generator *gen,
         return init;
     }
 
-    if (type->points_to && (type->points_to->base_type == dale::BaseType::Char)) {
+    if (type->points_to && (type->points_to->base_type == BaseType::Char)) {
         char *temp =
             *(char**)
             (((uintptr_t) thing));
@@ -245,7 +245,7 @@ parseLiteralElement(Generator *gen,
 
         svar2->setInitializer(myconststr);
         svar2->setConstant(true);
-        svar2->setLinkage(ctx->toLLVMLinkage(dale::Linkage::Intern));
+        svar2->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
         llvm::Value *temps[2];
         temps[0] = nt->getLLVMZero();
@@ -440,12 +440,12 @@ parseLiteral(Generator *gen,
 
     fn->setCallingConv(llvm::CallingConv::C);
 
-    fn->setLinkage(ctx->toLLVMLinkage(dale::Linkage::Extern_C));
+    fn->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_C));
 
     Function *dfn =
         new Function(type, &args, fn, 0,
                               &new_name);
-    dfn->linkage = dale::Linkage::Intern;
+    dfn->linkage = Linkage::Intern;
     int error_count =
         ctx->er->getErrorTypeCount(ErrorType::Error);
 
@@ -708,7 +708,7 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
     }
 
     std::string new_name;
-    if (linkage == dale::Linkage::Extern_C) {
+    if (linkage == Linkage::Extern_C) {
         new_name.append(name);
     } else {
         ctx->ns()->nameToSymbol(name, &new_name);
@@ -745,8 +745,8 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
 
     /* todo: an 'is_extern_linkage' function. */
     int has_extern_linkage =
-        ((linkage != dale::Linkage::Auto)
-         && (linkage != dale::Linkage::Intern));
+        ((linkage != Linkage::Auto)
+         && (linkage != Linkage::Intern));
 
     llvm::Type *rdttype =
         ctx->toLLVMType(r_type, top, false,
@@ -776,9 +776,9 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
     if (init) {
         var->setInitializer(init);
     } else {
-        if ((linkage != dale::Linkage::Extern)
-                && (linkage != dale::Linkage::Extern_C)
-                && (linkage != dale::Linkage::Extern_Weak)) {
+        if ((linkage != Linkage::Extern)
+                && (linkage != Linkage::Extern_C)
+                && (linkage != Linkage::Extern_Weak)) {
             has_initialiser = 1;
             if (r_type->points_to) {
                 llvm::ConstantPointerNull *mynullptr =

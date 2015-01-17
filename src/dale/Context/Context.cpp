@@ -965,13 +965,13 @@ Context::toLLVMLinkage(int linkage)
 {
     llvm::GlobalValue::LinkageTypes lt;
     switch (linkage) {
-        case dale::Linkage::Auto:
-        case dale::Linkage::Intern:
+        case Linkage::Auto:
+        case Linkage::Intern:
             lt = llvm::GlobalValue::InternalLinkage;    break;
-        case dale::Linkage::Extern_Weak:
+        case Linkage::Extern_Weak:
             lt = llvm::GlobalValue::LinkOnceODRLinkage; break;
-        case dale::Linkage::Extern:
-        case dale::Linkage::Extern_C:
+        case Linkage::Extern:
+        case Linkage::Extern_C:
         default:
             lt = llvm::GlobalValue::ExternalLinkage;    break;
     };
@@ -1033,7 +1033,7 @@ Context::toLLVMTypeFunction(Type *type,
                        NULL, true)
         );
         llvm_r_type =
-            toLLVMType(tr->getBasicType(dale::BaseType::Void),
+            toLLVMType(tr->getBasicType(BaseType::Void),
                        NULL, true);
     } else {
         llvm_r_type = toLLVMType(r_type, NULL);

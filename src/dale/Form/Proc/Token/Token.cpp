@@ -26,7 +26,7 @@ parseStringLiteral(Generator *gen,
             ctx->er->addError(e);
             return NULL;
         }
-        dale::Token *t = top->token;
+        Token *t = top->token;
 
         if (t->type != TokenType::Int) {
             Error *e = new Error(
@@ -66,7 +66,7 @@ parseStringLiteral(Generator *gen,
             ctx->er->addError(e);
             return NULL;
         }
-        dale::Token *t = top->token;
+        Token *t = top->token;
 
         if (t->type != TokenType::StringLiteral) {
             Error *e = new Error(
@@ -126,11 +126,11 @@ FormProcTokenParse(Generator *gen,
     stl::push_back2(&two_zero_indices,
                     nt->getLLVMZero(), nt->getLLVMZero());
 
-    dale::Token *t = node->token;
+    Token *t = node->token;
 
     /* Check if we are expecting an enum. */
 
-    dale::Enum *myenum2;
+    Enum *myenum2;
     if (wanted_type
             && (wanted_type->struct_name)
             && (myenum2 =

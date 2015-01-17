@@ -11,9 +11,9 @@ bool
 FormLiteralEnumParse(Generator *gen,
       llvm::BasicBlock *block,
       Node *n,
-      dale::Enum *myenum,
-      dale::Type *myenumtype,
-      dale::Struct *myenumstructtype,
+      Enum *myenum,
+      Type *myenumtype,
+      Struct *myenumstructtype,
       bool getAddress,
       ParseResult *pr);
 }

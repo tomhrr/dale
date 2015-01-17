@@ -29,19 +29,19 @@ FormLinkageParse(Context *ctx, Node *n)
     const char *lnk = n->token->str_value.c_str();
 
     if (!strcmp(lnk, "extern"))       {
-        return dale::Linkage::Extern;
+        return Linkage::Extern;
     }
     else if (!strcmp(lnk, "intern"))       {
-        return dale::Linkage::Intern;
+        return Linkage::Intern;
     }
     else if (!strcmp(lnk, "auto"))         {
-        return dale::Linkage::Auto;
+        return Linkage::Auto;
     }
     else if (!strcmp(lnk, "extern-c"))     {
-        return dale::Linkage::Extern_C;
+        return Linkage::Extern_C;
     }
     else if (!strcmp(lnk, "_extern-weak")) {
-        return dale::Linkage::Extern_Weak;
+        return Linkage::Extern_Weak;
     }
 
     std::string temp;

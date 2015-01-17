@@ -92,7 +92,7 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
     Variable *var1 = new Variable(
         (char*)"mc", ptt
     );
-    var1->linkage = dale::Linkage::Auto;
+    var1->linkage = Linkage::Auto;
     mc_args_internal->push_back(var1);
 
     int past_first = 0;
@@ -129,13 +129,13 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
                 }
                 var = new Variable();
                 var->type = ctx->tr->type_varargs;
-                var->linkage = dale::Linkage::Auto;
+                var->linkage = Linkage::Auto;
                 mc_args_internal->push_back(var);
                 break;
             }
             var = new Variable();
             var->type = r_type;
-            var->linkage = dale::Linkage::Auto;
+            var->linkage = Linkage::Auto;
             var->name.append((*node_iter)->token->str_value);
             past_first = 1;
             mc_args_internal->push_back(var);
@@ -275,7 +275,7 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
      * runtime. This also allows createConstantMergePass to run,
      * since it doesn't work if the macro content is not removed,
      * for some reason. */
-    if (linkage == dale::Linkage::Extern) {
+    if (linkage == Linkage::Extern) {
         gen->has_defined_extern_macro = 1;
     }
 

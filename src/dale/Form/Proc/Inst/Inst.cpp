@@ -209,7 +209,7 @@ parseInternal(Generator *gen,
         return false;
     }
 
-    dale::Token *t = first->token;
+    Token *t = first->token;
 
     if (t->type != TokenType::String) {
         Error *e = new Error(
@@ -564,8 +564,8 @@ past_sl_parse:
     block = try_fnp.block;
     if (try_fnp.type->points_to
             && try_fnp.type->points_to->is_function) {
-        dale::Token *funcall_str_tok = 
-            new dale::Token(TokenType::String, 0,0,0,0);
+        Token *funcall_str_tok = 
+            new Token(TokenType::String, 0,0,0,0);
         funcall_str_tok->str_value.clear();
         funcall_str_tok->str_value.append("funcall");
         Node *funcall_str_node = new Node(funcall_str_tok);

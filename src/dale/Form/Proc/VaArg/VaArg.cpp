@@ -39,7 +39,7 @@ FormProcVaArgParse(Generator *gen,
 
     /* Get the type to which it is being cast. */
 
-    dale::Type *type = FormTypeParse(gen, (*lst)[2], false, false);
+    Type *type = FormTypeParse(gen, (*lst)[2], false, false);
 
     if (!type) {
         return false;

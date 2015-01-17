@@ -44,7 +44,7 @@ FormProcCastParse(Generator *gen,
      * cast to a bitfield type, because there's no other way to
      * set a bitfield value.) */
 
-    dale::Type *type = FormTypeParse(gen, (*lst)[2], false, true);
+    Type *type = FormTypeParse(gen, (*lst)[2], false, true);
     if (!type) {
         return false;
     }

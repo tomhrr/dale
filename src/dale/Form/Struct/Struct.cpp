@@ -206,7 +206,7 @@ FormStructParse(Generator *gen,
         }
 
         /* Can't have non-pointer void. */
-        if (var->type->base_type == dale::BaseType::Void) {
+        if (var->type->base_type == BaseType::Void) {
             Error *e = new Error(
                 ErrorInst::Generator::TypeNotAllowedInStruct,
                 (*node_iter),
@@ -219,7 +219,7 @@ FormStructParse(Generator *gen,
 
         /* This code can't be hit at the moment, but is left here
          * just in case. */
-        if (var->type->base_type == dale::BaseType::VarArgs) {
+        if (var->type->base_type == BaseType::VarArgs) {
             Error *e = new Error(
                 ErrorInst::Generator::TypeNotAllowedInStruct,
                 (*node_iter),

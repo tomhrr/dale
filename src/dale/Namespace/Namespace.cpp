@@ -573,7 +573,7 @@ Namespace::functionNameToSymbol(const char *name,
                                 int linkage,
                                 std::vector<Variable *> *types)
 {
-    if (linkage == dale::Linkage::Extern_C) {
+    if (linkage == Linkage::Extern_C) {
         /* Handle hyphens. */
         char buf[5];
         std::string ss_name(name);

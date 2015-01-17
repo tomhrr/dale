@@ -158,10 +158,10 @@ public:
 
     int parseInteger(Node *n);
 
-    std::vector<dale::Function*> global_functions;
+    std::vector<Function*> global_functions;
     std::vector<llvm::BasicBlock*>        global_blocks;
 
-    dale::Function *global_function;
+    Function *global_function;
     llvm::BasicBlock        *global_block;
 
     /* Function name lists will be stored here by fnByArgsCount, keyed on

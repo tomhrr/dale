@@ -35,7 +35,7 @@ FormProcOffsetOfParse(Generator *gen,
         return false;
     }
 
-    dale::Type *mytype = FormTypeParse(gen, struct_name,
+    Type *mytype = FormTypeParse(gen, struct_name,
                                            false,
                                            false);
     if (!mytype) {

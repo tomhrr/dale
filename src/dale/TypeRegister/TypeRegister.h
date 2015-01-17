@@ -43,7 +43,7 @@ public:
     ~TypeRegister();
     
     /*! Return an instance of a basic type.
-     *  @param type The basic type enum (see dale::BaseType). */
+     *  @param type The basic type enum (see BaseType). */
     Type *getBasicType(int type);
     /*! Return an instance of a pointer to a type.
      *  @param type The pointee type object. */

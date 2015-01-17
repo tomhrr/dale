@@ -44,7 +44,7 @@ FormProcBodyParse(Generator *gen,
     int mcount = 0;
 
     while (fn_args_iter != dfn->parameter_types->end()) {
-        if ((*fn_args_iter)->type->base_type == dale::BaseType::VarArgs) {
+        if ((*fn_args_iter)->type->base_type == BaseType::VarArgs) {
             break;
         }
         int avres;
@@ -61,7 +61,7 @@ FormProcBodyParse(Generator *gen,
         myvar->has_initialiser = myvart->has_initialiser;
         myvar->once_tag = myvart->once_tag;
         myvar->index = myvart->index;
-        myvar->linkage = dale::Linkage::Auto;
+        myvar->linkage = Linkage::Auto;
 
         if (mcount >= 1 && dfn->is_macro) {
             /* Macro arguments, past the first, always have a type of
@@ -119,7 +119,7 @@ FormProcBodyParse(Generator *gen,
         myvar->has_initialiser = 0;
         myvar->once_tag        = "";
         myvar->index           = 0;
-        myvar->linkage         = dale::Linkage::Auto;
+        myvar->linkage         = Linkage::Auto;
         int avres = 
             ctx->ns()->addVariable(
                 myvar->name.c_str(), myvar
@@ -154,7 +154,7 @@ FormProcBodyParse(Generator *gen,
     iter = lst->begin();
 
     llvm::Value *last_value = NULL;
-    dale::Type *last_type = NULL;
+    Type *last_type = NULL;
     Node *last_position = NULL;
 
     /* Skip the fn token, the linkage, the return type and the
@@ -169,7 +169,7 @@ FormProcBodyParse(Generator *gen,
     }
 
     while (iter != lst->end()) {
-        dale::Type *wanted_type = NULL;
+        Type *wanted_type = NULL;
         if ((count + 1) == size) {
             wanted_type = dfn->return_type;
         }
@@ -403,7 +403,7 @@ FormProcBodyParse(Generator *gen,
              * last_value. */
             if ((bcount == bmax) && !dfn->hasRetval()) {
                 if (last_value) {
-                    dale::Type *got_type = last_type;
+                    Type *got_type = last_type;
 
                     if (!dfn->return_type->isEqualTo(got_type)) {
                         std::string gotstr;
@@ -419,7 +419,7 @@ FormProcBodyParse(Generator *gen,
                         res = 0;
                         goto finish;
                     }
-                    if (dfn->return_type->base_type == dale::BaseType::Void) {
+                    if (dfn->return_type->base_type == BaseType::Void) {
                         gen->scopeClose(dfn, i, NULL, true);
                         builder.CreateRetVoid();
                     } else {
