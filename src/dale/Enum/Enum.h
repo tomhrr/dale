@@ -13,7 +13,7 @@ namespace dale
 {
 /*! Enum
 
-    A class for storing the details of an enumerated type.  Element
+    A class for storing the details of an enumerated type.  Member
     indices begin at zero.
 */
 class Enum
