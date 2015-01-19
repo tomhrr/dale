@@ -1977,7 +1977,7 @@ Node *Generator::parseMacroCall(Node *n,
     }
 
     std::vector<Variable *>::iterator var_iter;
-    var_iter = mc->parameter_types->begin();
+    var_iter = mc->parameter_types.begin();
     // Skip implicit MContext arg. */
     ++var_iter;
 
@@ -2360,8 +2360,8 @@ bool Generator::parseFunctionCall(Function *dfn,
              * first (p DNode) argument), then short-circuit, so long
              * as the argument count is ok. */
             std::vector<Variable*>::iterator
-                b = (fn->parameter_types->begin() + 1);
-            if ((b == fn->parameter_types->end())
+                b = (fn->parameter_types.begin() + 1);
+            if ((b == fn->parameter_types.end())
                     || (*b)->type->isEqualTo(type_pdnode)) {
                 bool use = false;
                 if (fn->isVarArgs()) {
@@ -2390,8 +2390,8 @@ bool Generator::parseFunctionCall(Function *dfn,
 
     int current_block_count = dfn->llvm_function->size();
     int current_instr_index = block->size();
-    int current_dgcount = dfn->defgotos->size();
-    std::map<std::string, Label *> labels = *(dfn->labels);
+    int current_dgcount = dfn->deferred_gotos.size();
+    std::map<std::string, Label *> labels = dfn->labels;
     llvm::BasicBlock *original_block = block;
     ContextSavePoint *csp = new ContextSavePoint(ctx);
 
@@ -2489,11 +2489,11 @@ bool Generator::parseFunctionCall(Function *dfn,
             bl->eraseFromParent();
         }
 
-        int dg_to_pop_back = dfn->defgotos->size() - current_dgcount;
+        int dg_to_pop_back = dfn->deferred_gotos.size() - current_dgcount;
         while (dg_to_pop_back--) {
-            dfn->defgotos->pop_back();
+            dfn->deferred_gotos.pop_back();
         }
-        *dfn->labels = labels;
+        dfn->labels = labels;
 
         csp->restore();
         delete csp;
@@ -2548,10 +2548,10 @@ bool Generator::parseFunctionCall(Function *dfn,
             fn = ctx->getFunction(t->str_value.c_str(),
                                   NULL, NULL, 0);
 
-            std::vector<Variable *> *myarg_types =
+            std::vector<Variable *> myarg_types =
                 fn->parameter_types;
             std::vector<Variable *>::iterator miter =
-                myarg_types->begin();
+                myarg_types.begin();
 
             std::vector<llvm::Value *>::iterator citer =
                 call_args.begin();
@@ -2563,7 +2563,7 @@ bool Generator::parseFunctionCall(Function *dfn,
 
             std::string expected_args;
             std::string provided_args;
-            while (miter != myarg_types->end()) {
+            while (miter != myarg_types.end()) {
                 (*miter)->type->toStringProper(&expected_args);
                 expected_args.append(" ");
                 ++miter;
@@ -2583,7 +2583,7 @@ bool Generator::parseFunctionCall(Function *dfn,
             } else {
                 provided_args.erase(provided_args.size() - 1, 1);
             }
-            miter = myarg_types->begin();
+            miter = myarg_types.begin();
             caiter = call_arg_types.begin();
 
             if (call_args.size() < fn->numberOfRequiredArgs()) {
@@ -2610,7 +2610,7 @@ bool Generator::parseFunctionCall(Function *dfn,
                 return false;
             }
 
-            while (miter != myarg_types->end()
+            while (miter != myarg_types.end()
                     && citer != call_args.end()
                     && caiter != call_arg_types.end()) {
                 if ((*caiter)->isEqualTo((*miter)->type, 1)) {
@@ -2702,11 +2702,11 @@ bool Generator::parseFunctionCall(Function *dfn,
             if (closest_fn) {
                 std::string expected;
                 std::vector<Variable *>::iterator viter;
-                viter = closest_fn->parameter_types->begin();
+                viter = closest_fn->parameter_types.begin();
                 if (closest_fn->is_macro) {
                     ++viter;
                 }
-                while (viter != closest_fn->parameter_types->end()) {
+                while (viter != closest_fn->parameter_types.end()) {
                     (*viter)->type->toStringProper(&expected);
                     expected.append(" ");
                     ++viter;
@@ -2807,11 +2807,11 @@ bool Generator::parseFunctionCall(Function *dfn,
     
     std::vector<llvm::Value *> call_args_final = call_args;
     int caps = call_arg_prs.size();
-    int pts  = fn->parameter_types->size();
+    int pts  = fn->parameter_types.size();
     int limit = (caps > pts ? pts : caps);
     ParseResult refpr;
     for (int i = 0; i < limit; i++) {
-        Type *pt = fn->parameter_types->at(i)->type;
+        Type *pt = fn->parameter_types.at(i)->type;
         ParseResult *arg_refpr = &(call_arg_prs.at(i));
         if (pt->is_reference) {
             if (!pt->is_const && !arg_refpr->value_is_lvalue) {

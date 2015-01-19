@@ -35,6 +35,12 @@ char *deserialise(TypeRegister *tr, char *in, std::map<T1, T2> *x);
 
 void xfwrite(const void *a, size_t b, size_t c, FILE *d);
 
+void serialise(FILE *out, bool a);
+
+void serialise(FILE *out, bool *a);
+
+char *deserialise(TypeRegister *tr, char *in, bool *a);
+
 void serialise(FILE *out, int64_t a);
 
 void serialise(FILE *out, int64_t *a);

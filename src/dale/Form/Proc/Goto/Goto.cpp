@@ -64,7 +64,7 @@ FormProcGotoParse(Generator *gen,
             dg->marker = tinstr;
         }
 
-        fn->defgotos->push_back(dg);
+        fn->deferred_gotos.push_back(dg);
 
         llvm::IRBuilder<> builder(block);
         builder.CreateBitCast(

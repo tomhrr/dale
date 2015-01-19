@@ -137,10 +137,10 @@ Namespace::addFunction(const char *name,
             }
         } else {
             std::vector<Variable *>::iterator 
-                fn_pt_begin       = fn->parameter_types->begin(),
-                fn_pt_end         = fn->parameter_types->end(),
-                function_pt_begin = function->parameter_types->begin(),
-                function_pt_end   = function->parameter_types->end();
+                fn_pt_begin       = fn->parameter_types.begin(),
+                fn_pt_end         = fn->parameter_types.end(),
+                function_pt_begin = function->parameter_types.begin(),
+                function_pt_end   = function->parameter_types.end();
             if (fn->is_macro) {
                 std::advance(fn_pt_begin, 1);
             } else {
@@ -307,7 +307,7 @@ Namespace::getFunction(const char *name,
 
         // Iterate over the function's arg types and the
         // provided types.
-        fn_arg_type_iter = (*fn_iter)->parameter_types->begin();
+        fn_arg_type_iter = (*fn_iter)->parameter_types.begin();
         arg_type_iter    = types->begin();
         int matched_arg_count = 0;
         int broke_on_va       = 0;
@@ -321,7 +321,7 @@ Namespace::getFunction(const char *name,
         }
 
         while (fn_arg_type_iter
-                != (*fn_iter)->parameter_types->end()) {
+                != (*fn_iter)->parameter_types.end()) {
 
             // If the function's current element is
             // varargs, then record the number of real
@@ -648,7 +648,7 @@ Namespace::eraseLLVMMacrosAndCTOFunctions(void)
         if (erased.find(lfn) == erased.end()) {
             erased.insert(lfn);
             llvm::Module *m = lfn->getParent();
-            llvm::StringRef x(fn->internal_name->c_str());
+            llvm::StringRef x(fn->internal_name.c_str());
             if (m->getFunction(x)) {
                 lfn->eraseFromParent();
             }
@@ -882,7 +882,7 @@ Namespace::regetFunctionPointers(llvm::Module *mod)
                 ++fb) {
             Function *fn = (*fb);
             fn->llvm_function =
-                mod->getFunction(fn->internal_name->c_str());
+                mod->getFunction(fn->internal_name.c_str());
         }
     }
 
@@ -912,12 +912,12 @@ Namespace::eraseOnceFunctions(std::set<std::string> *once_tags,
                 fb != fe;
                 ++fb) {
             Function *fn = (*fb);
-            if (!fn->internal_name) {
+            if (!strcmp(fn->internal_name.c_str(), "")) {
                 continue;
             }
             if (once_tags->find(fn->once_tag) != once_tags->end()) {
                 llvm::Function *fn_to_remove =
-                    mod->getFunction(fn->internal_name->c_str());
+                    mod->getFunction(fn->internal_name.c_str());
                 if (fn_to_remove) {
                     fn_to_remove->deleteBody();
                 }

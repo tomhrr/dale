@@ -132,11 +132,11 @@ FormProcAddressOfParse(Generator *gen,
                     if (closest_fn) {
                         std::string expected;
                         std::vector<Variable *>::iterator viter;
-                        viter = closest_fn->parameter_types->begin();
+                        viter = closest_fn->parameter_types.begin();
                         if (closest_fn->is_macro) {
                             ++viter;
                         }
-                        while (viter != closest_fn->parameter_types->end()) {
+                        while (viter != closest_fn->parameter_types.end()) {
                             (*viter)->type->toStringProper(&expected);
                             expected.append(" ");
                             ++viter;
@@ -174,9 +174,9 @@ FormProcAddressOfParse(Generator *gen,
 
             std::vector<Variable *>::iterator iter;
 
-            iter = fn->parameter_types->begin();
+            iter = fn->parameter_types.begin();
 
-            while (iter != fn->parameter_types->end()) {
+            while (iter != fn->parameter_types.end()) {
                 parameter_types->push_back((*iter)->type);
                 ++iter;
             }

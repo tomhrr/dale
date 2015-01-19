@@ -892,8 +892,8 @@ extern "C" {
 
         std::vector<Type *> types;
         for (std::vector<Variable *>::iterator
-                b = thefn->parameter_types->begin(),
-                e = thefn->parameter_types->end();
+                b = thefn->parameter_types.begin(),
+                e = thefn->parameter_types.end();
                 b != e;
                 ++b) {
             types.push_back((*b)->type);
@@ -1005,12 +1005,11 @@ extern "C" {
         if (fn->linkage != Linkage::Extern_C) {
             return NULL;
         }
-        if ((int) (fn->parameter_types->size() - 1) < arg_count) {
+        if ((int) (fn->parameter_types.size() - 1) < arg_count) {
             return NULL;
         }
 
-        return
-            fn->parameter_types->at(arg_count)->type->toNode()->toDNode();
+        return fn->parameter_types.at(arg_count)->type->toNode()->toDNode();
     }
 
     DNode *struct_2D_member_2D_type(MContext *mc,

@@ -13,28 +13,28 @@ class Function
 {
 public:
     Type *return_type;
-    std::vector<Variable *> *parameter_types;
-    std::vector<DeferredGoto *> *defgotos;
-    std::map<std::string, Label *> *labels;
+    std::vector<Variable *> parameter_types;
+    std::vector<DeferredGoto *> deferred_gotos;
+    std::map<std::string, Label *> labels;
     llvm::Function *llvm_function;
-    int is_macro;
-    std::string *internal_name;
-    int always_inline;
+    std::string internal_name;
     std::string once_tag;
-    int cto;
-    int is_destructor;
-    int is_setf_fn;
+    bool always_inline;
+    bool is_macro;
+    bool cto;
+    bool is_destructor;
+    bool is_setf_fn;
+    bool serialise;
     int linkage;
     int index;
-    bool serialise;
 
     Function();
     Function(Type *return_type,
              std::vector<Variable *> *parameter_types,
              llvm::Function *llvm_function,
-             int is_macro,
+             bool is_macro,
              std::string *internal_name,
-             int always_inline = 0);
+             bool always_inline = false);
     ~Function();
 
     int isVarArgs(void);

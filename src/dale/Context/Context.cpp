@@ -814,8 +814,8 @@ Context::rebuildFunction(Function *fn, const char *name,
     std::vector<llvm::Type*> types;
 
     for (std::vector<Variable *>::iterator
-            vb = fn->parameter_types->begin(),
-            ve = fn->parameter_types->end();
+            vb = fn->parameter_types.begin(),
+            ve = fn->parameter_types.end();
             vb != ve;
             ++vb) {
         Variable *var = (*vb);
@@ -855,12 +855,12 @@ Context::rebuildFunction(Function *fn, const char *name,
     
     fn->llvm_function =
         llvm::dyn_cast<llvm::Function>(
-            mod->getOrInsertFunction(fn->internal_name->c_str(), ft)
+            mod->getOrInsertFunction(fn->internal_name.c_str(), ft)
         );
     if (!fn->llvm_function) {
         fprintf(stderr, "Internal error: unable to re-get "
                 "function (%s).\n",
-                fn->internal_name->c_str());
+                fn->internal_name.c_str());
         abort();
     }
 
@@ -890,7 +890,7 @@ Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
                 fb != fe;
                 ++fb) {
             Function *fn = (*fb);
-            fn->llvm_function = mod->getFunction(fn->internal_name->c_str());
+            fn->llvm_function = mod->getFunction(fn->internal_name.c_str());
             if (fn->llvm_function) {
                 continue;
             }

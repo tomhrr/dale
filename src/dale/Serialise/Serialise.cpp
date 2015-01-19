@@ -11,6 +11,22 @@ void xfwrite(const void *a, size_t b, size_t c, FILE *d)
     }
 }
 
+void serialise(FILE *out, bool a)
+{
+    xfwrite(&a, sizeof(bool), 1, out);
+}
+
+void serialise(FILE *out, bool *a)
+{
+    serialise(out, *a);
+}
+
+char *deserialise(TypeRegister *tr, char *in, bool *a)
+{
+    *a = *(bool*) in;
+    return in + sizeof(bool);
+}
+
 void serialise(FILE *out, int64_t a)
 {
     xfwrite(&a, sizeof(int64_t), 1, out);
@@ -309,7 +325,7 @@ char *deserialise(TypeRegister *tr, char *in, Variable **v)
 void serialise(FILE *out, Function *fn)
 {
     serialise(out, fn->return_type);
-    serialise(out, fn->parameter_types);
+    serialise(out, &(fn->parameter_types));
     serialise(out, fn->is_macro);
     serialise(out, fn->internal_name);
     serialise(out, fn->always_inline);
@@ -330,20 +346,11 @@ char *deserialise(TypeRegister *tr, char *in, Function *fn)
     Type *rt;
     in = deserialise(tr, in, &rt);
     fn->return_type = rt;
-
-    std::vector<Variable *> *params =
-        new std::vector<Variable *>;
-    in = deserialise(tr, in, params);
-    fn->parameter_types = params;
-
     fn->llvm_function = NULL;
 
+    in = deserialise(tr, in, &(fn->parameter_types));
     in = deserialise(tr, in, &(fn->is_macro));
-
-    std::string *name = new std::string();
-    in = deserialise(tr, in, name);
-    fn->internal_name = name;
-
+    in = deserialise(tr, in, &(fn->internal_name));
     in = deserialise(tr, in, &(fn->always_inline));
     in = deserialise(tr, in, &(fn->once_tag));
     in = deserialise(tr, in, &(fn->cto));

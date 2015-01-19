@@ -36,14 +36,14 @@ FormProcBodyParse(Generator *gen,
     /* Add 'define' calls for the args to the function. */
 
     std::vector<Variable *>::iterator fn_args_iter;
-    fn_args_iter = dfn->parameter_types->begin();
+    fn_args_iter = dfn->parameter_types.begin();
 
     /* Add the variables to the context, once confirmed that it is
      * not just a declaration. */
 
     int mcount = 0;
 
-    while (fn_args_iter != dfn->parameter_types->end()) {
+    while (fn_args_iter != dfn->parameter_types.end()) {
         if ((*fn_args_iter)->type->base_type == BaseType::VarArgs) {
             break;
         }
@@ -215,12 +215,12 @@ FormProcBodyParse(Generator *gen,
     int bcount;
     int bmax;
 
-    if (dfn->defgotos->size() > 0) {
+    if (dfn->deferred_gotos.size() > 0) {
         /* Have got deferred gotos - try to resolve. */
         std::vector<DeferredGoto *>::iterator dgiter =
-            dfn->defgotos->begin();
+            dfn->deferred_gotos.begin();
 
-        while (dgiter != dfn->defgotos->end()) {
+        while (dgiter != dfn->deferred_gotos.end()) {
             std::string *ln     = (*dgiter)->label_name;
             Label *ell = dfn->getLabel(ln->c_str());
             if (!ell) {
@@ -481,8 +481,8 @@ finish:
     /* Clear deferred gotos and labels. For anonymous functions,
      * these are saved and restored in FormProcInstParse. */
 
-    dfn->defgotos->clear();
-    dfn->labels->clear();
+    dfn->deferred_gotos.clear();
+    dfn->labels.clear();
 
     gen->global_blocks.pop_back();
     if (gen->global_blocks.size()) {

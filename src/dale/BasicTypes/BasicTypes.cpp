@@ -215,7 +215,7 @@ makeFloatFunction(Context *ctx,
                                 name, ret_type, type, type);
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types->begin();
+    iter = fn->parameter_types.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -249,7 +249,7 @@ makeFunction(Context *ctx,
                                 name, ret_type, type, type);
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types->begin();
+    iter = fn->parameter_types.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -278,7 +278,7 @@ makeFunction(Context *ctx,
                                 name, ret_type, type, type);
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types->begin();
+    iter = fn->parameter_types.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -307,7 +307,7 @@ makeFunction(Context *ctx,
                                 name, ret_type, type, type);
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types->begin();
+    iter = fn->parameter_types.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -337,7 +337,7 @@ makeFunction(Context *ctx,
                                 name, ret_type, type1, type2);
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types->begin();
+    iter = fn->parameter_types.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -376,7 +376,7 @@ makeEnumFunction(Context *ctx,
     );
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types->begin();
+    iter = fn->parameter_types.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -482,7 +482,7 @@ addSignedInt(Context *ctx,
                                     "<<", type, type, type_int);
 
         std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
+        iter = fn->parameter_types.begin();
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -506,7 +506,7 @@ addSignedInt(Context *ctx,
                                     ">>", type, type, type_int);
 
         std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
+        iter = fn->parameter_types.begin();
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -592,7 +592,7 @@ addUnsignedInt(Context *ctx,
             addSimpleBinaryFunction(ctx, mod, once_tag, "<<", type, type, type_int);
 
         std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
+        iter = fn->parameter_types.begin();
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -615,7 +615,7 @@ addUnsignedInt(Context *ctx,
             addSimpleBinaryFunction(ctx, mod, once_tag, ">>", type, type, type_int);
 
         std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
+        iter = fn->parameter_types.begin();
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -642,7 +642,7 @@ addUnsignedInt(Context *ctx,
             addSimpleUnaryFunction(ctx, mod, once_tag, "~", type, type);
 
         std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
+        iter = fn->parameter_types.begin();
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -696,7 +696,7 @@ addEnum(Context *ctx,
         );
 
         std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
+        iter = fn->parameter_types.begin();
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -760,7 +760,7 @@ addEnum(Context *ctx,
         );
 
         std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
+        iter = fn->parameter_types.begin();
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -823,7 +823,7 @@ addEnum(Context *ctx,
         );
 
         std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
+        iter = fn->parameter_types.begin();
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -886,7 +886,7 @@ addEnum(Context *ctx,
         );
 
         std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
+        iter = fn->parameter_types.begin();
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -957,7 +957,7 @@ addEnum(Context *ctx,
         );
 
         std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
+        iter = fn->parameter_types.begin();
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -1013,7 +1013,7 @@ addEnum(Context *ctx,
         );
 
         std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types->begin();
+        iter = fn->parameter_types.begin();
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",

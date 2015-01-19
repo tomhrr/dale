@@ -6,14 +6,11 @@ namespace dale
 {
 Function::Function()
 {
-    is_macro      = 0;
-    always_inline = 0;
-    internal_name = new std::string;
-    cto           = 0;
-    is_destructor = 0;
-    is_setf_fn    = 0;
-    defgotos      = new std::vector<DeferredGoto *>;
-    labels        = new std::map<std::string, Label *>;
+    is_macro      = false;
+    always_inline = false;
+    cto           = false;
+    is_destructor = false;
+    is_setf_fn    = false;
     serialise     = true;
 }
 
@@ -21,40 +18,34 @@ Function::Function(
     Type *return_type,
     std::vector<Variable *> *parameter_types,
     llvm::Function *llvm_function,
-    int is_macro,
+    bool is_macro,
     std::string *internal_name,
-    int always_inline)
+    bool always_inline)
 {
     this->return_type     = return_type;
-    this->parameter_types = parameter_types;
+    this->parameter_types = *parameter_types;
     this->llvm_function   = llvm_function;
     this->is_macro        = is_macro;
-    this->internal_name   = new std::string(*internal_name);
+    this->internal_name   = *internal_name;
     this->always_inline   = always_inline;
-    cto = 0;
-    is_destructor = 0;
-    is_setf_fn    = 0;
-    serialise     = true;
 
-    defgotos      = new std::vector<DeferredGoto *>;
-    labels        = new std::map<std::string, Label *>;
+    cto           = false;
+    is_destructor = false;
+    is_setf_fn    = false;
+    serialise     = true;
 }
 
 Function::~Function()
 {
-    delete internal_name;
-    delete defgotos;
-    delete labels;
-    if (parameter_types) {
-        stl::deleteElements(parameter_types);
-        delete parameter_types;
+    if (parameter_types.size()) {
+        stl::deleteElements(&parameter_types);
     }
 }
 
 Label *Function::getLabel(const char *str)
 {
-    std::map<std::string, Label*>::iterator b = labels->find(str);
-    if (b == labels->end()) {
+    std::map<std::string, Label*>::iterator b = labels.find(str);
+    if (b == labels.end()) {
         return NULL;
     }
     return b->second;
@@ -62,28 +53,28 @@ Label *Function::getLabel(const char *str)
 
 bool Function::addLabel(const char *str, Label *label)
 {
-    labels->insert(std::pair<std::string, Label *>(str, label));
+    labels.insert(std::pair<std::string, Label *>(str, label));
     return true;
 }
 
 int Function::isVarArgs(void)
 {
-    if (parameter_types->size() == 0) {
+    if (parameter_types.size() == 0) {
         return 0;
     }
 
-    Variable *back = parameter_types->back();
+    Variable *back = parameter_types.back();
 
     return (back->type->base_type == BaseType::VarArgs) ? 1 : 0;
 }
 
 unsigned int Function::numberOfRequiredArgs(void)
 {
-    if (parameter_types->size() == 0) {
+    if (parameter_types.size() == 0) {
         return 0;
     }
 
-    unsigned int num_of_args = parameter_types->size();
+    unsigned int num_of_args = parameter_types.size();
 
     if (isVarArgs()) {
         num_of_args -= 1;
@@ -99,9 +90,9 @@ int Function::isEqualTo(Function *other_fn)
     }
 
     return dale::stl::isEqualTo(
-               parameter_types,
-               other_fn->parameter_types
-           );
+        &parameter_types,
+        &(other_fn->parameter_types)
+    );
 }
 
 int Function::attrsAreEqual(Function *other_fn)

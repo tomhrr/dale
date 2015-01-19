@@ -139,9 +139,9 @@ parseInternal(Generator *gen,
 
         std::vector<Variable *>::iterator iter;
 
-        iter = myanonfn->parameter_types->begin();
+        iter = myanonfn->parameter_types.begin();
 
-        while (iter != myanonfn->parameter_types->end()) {
+        while (iter != myanonfn->parameter_types.end()) {
             parameter_types->push_back((*iter)->type);
             ++iter;
         }
