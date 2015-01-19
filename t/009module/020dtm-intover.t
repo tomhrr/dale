@@ -33,5 +33,6 @@ is_deeply(\@res,
 `rm libdtm-noimport-intover.bc`;
 `rm libdtm-noimport-intover-nomacros.bc`;
 `rm dtm-intover-user`;
+`rm t.dtm-intover.o`;
 
 1;

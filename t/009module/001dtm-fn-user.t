@@ -30,5 +30,6 @@ is_deeply(\@res,
 `rm libdtm-fn.bc`;
 `rm libdtm-fn-nomacros.bc`;
 `rm dtm-fn-user`;
+`rm t.dtm-fn-user.o`;
 
 1;

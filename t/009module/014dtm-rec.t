@@ -47,5 +47,6 @@ is_deeply(\@res,
 `rm libmodp2.so`;
 `rm libmodp2-nomacros.so`;
 `rm modp-user`;
+`rm t.dtm-rec.o`;
 
 1;

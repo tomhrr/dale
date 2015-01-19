@@ -27,5 +27,6 @@ is_deeply(\@res,
 `rm libdtm-opstruct.bc`;
 `rm libdtm-opstruct-nomacros.bc`;
 `rm libdtm-opstruct.dtm`;
+`rm t.dtm-opstruct.o`;
 
 1;

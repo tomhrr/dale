@@ -23,5 +23,9 @@ is_deeply(\@res,
 
 `rm libdtm-noimport-int.bc`;
 `rm libdtm-noimport-int.dtm`;
+`rm libdtm-noimport-int.so`;
+`rm libdtm-noimport-int-nomacros.bc`;
+`rm libdtm-noimport-int-nomacros.so`;
+`rm t.dtm-noimport-int.o`;
 
 1;

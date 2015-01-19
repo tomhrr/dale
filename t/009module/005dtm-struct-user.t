@@ -30,5 +30,6 @@ is_deeply(\@res,
 `rm libdtm-struct.bc`;
 `rm libdtm-struct-nomacros.bc`;
 `rm dtm-struct-user`;
+`rm t.dtm-struct-user.o`;
 
 1;

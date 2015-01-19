@@ -24,6 +24,7 @@ is_deeply(\@res,
           [ "$test_dir/t/src/dtm-typemap-user-dashm.dt:11:5: error: overloaded function/macro not in scope: 'myfn' (parameters are int, closest candidate expects (Pair int int))"], 
           'Got expected compilation error (typemap restored)');
 
+`rm t.dash-M.o`;
 `rm -rf moddir`;
 
 1;

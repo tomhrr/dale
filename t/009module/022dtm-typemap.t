@@ -21,5 +21,8 @@ is_deeply(\@res,
 `rm libpairintint.dtm`;
 `rm libpairintint-nomacros.bc`;
 `rm libpairintint.bc`;
+`rm libpairintint.so`;
+`rm libpairintint-nomacros.so`;
+`rm t.dtm-typemap.o`;
 
 1;

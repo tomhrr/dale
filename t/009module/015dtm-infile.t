@@ -33,5 +33,6 @@ is_deeply(\@res,
 `rm libmodp-infile.bc`;
 `rm libmodp-infile-nomacros.bc`;
 `rm modp-infile-user`;
+`rm t.dtm-infile.o`;
 
 1;

@@ -309,7 +309,7 @@ install (FILES          ${CMAKE_BINARY_DIR}/libdrt.so
 
 # Extra 'make clean' files.
 
-set (CLEAN_FILES "libdrt.so;libdrt.bc;libdrt.dtm;libdrt-nomacros.bc;libdrt-nomacros.so")
+set (CLEAN_FILES "libdrt.so;libdrt.bc;libdrt.dtm;libdrt-nomacros.bc;libdrt-nomacros.so;drt.dt.s")
 
 macro (standard_library path name)
     add_custom_command(OUTPUT  lib${name}.so
@@ -326,7 +326,7 @@ macro (standard_library path name)
                             ${CMAKE_BINARY_DIR}/lib${name}.bc
                             ${CMAKE_BINARY_DIR}/lib${name}-nomacros.bc
              DESTINATION    lib/dale)
-    set (CLEAN_FILES "${CLEAN_FILES};lib${name}.so;lib${name}-nomacros.so;lib${name}.dtm;lib${name}.bc;lib${name}-nomacros.bc")
+    set (CLEAN_FILES "${CLEAN_FILES};lib${name}.so;lib${name}-nomacros.so;lib${name}.dtm;lib${name}.bc;lib${name}-nomacros.bc;${name}.dt.s")
 endmacro ()
 
 standard_library (modules/cstdio.dt  cstdio  drt macros)

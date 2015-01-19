@@ -30,5 +30,6 @@ is_deeply(\@res,
 `rm libdtm-enum.bc`;
 `rm libdtm-enum-nomacros.bc`;
 `rm dtm-enum-user`;
+`rm t.dtm-enum-user.o`;
 
 1;

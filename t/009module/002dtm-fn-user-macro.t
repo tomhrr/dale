@@ -31,5 +31,6 @@ is_deeply(\@res,
 `rm libdtm-fn-macro.bc`;
 `rm libdtm-fn-macro-nomacros.bc`;
 `rm dtm-fn-user-macro`;
+`rm t.dtm-fn-user-macro.o`;
 
 1;

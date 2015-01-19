@@ -35,5 +35,6 @@ is_deeply(\@res,
 `rm libmod-importforms.bc`;
 `rm libmod-importforms-nomacros.bc`;
 `rm dtm-importforms-user`;
+`rm t.dtm-importforms.o`;
 
 1;

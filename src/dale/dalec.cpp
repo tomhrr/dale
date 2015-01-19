@@ -458,7 +458,12 @@ int main(int argc, char **argv)
             exit(1);
         }
     }
-    remove(temp_output_path);
+    int rres = remove(temp_output_path);
+    if (rres) {
+        fprintf(stderr, "Internal error: unable to remove "
+                "temporary file (%s).\n",
+                temp_output_path);
+    }
 
     return 0;
 }

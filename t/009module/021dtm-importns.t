@@ -34,5 +34,6 @@ is_deeply(\@res,
 `rm libdtm-nsimport.bc`;
 `rm libdtm-nsimport-nomacros.bc`;
 `rm dtm-nsimport-user`;
+`rm t.dtm-importns.o`;
 
 1;

@@ -40,5 +40,6 @@ is_deeply(\@res,
 `rm libmod2.bc`;
 `rm libmod2-nomacros.bc`;
 `rm dtm-mulinc`;
+`rm t.dtm-mulinc.o`;
 
 1;

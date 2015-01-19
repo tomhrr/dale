@@ -33,5 +33,6 @@ is_deeply(\@res,
 `rm libdtm-inc-pre.bc`;
 `rm libdtm-inc-pre-nomacros.bc`;
 `rm dtm-inc-pre-user`;
+`rm t.dtm-inc-pre-user.o`;
 
 1;
