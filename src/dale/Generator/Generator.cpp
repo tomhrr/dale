@@ -1942,11 +1942,13 @@ Node *Generator::parseMacroCall(Node *n,
      * because of the implicit MContext variable that is passed
      * to each macro. */
 
+    int size = lst->size();
+
     if (mc->isVarArgs()) {
-        if ((lst->size()) < mc->numberOfRequiredArgs()) {
+        if (size < mc->numberOfRequiredArgs()) {
             char buf1[100];
             char buf2[100];
-            sprintf(buf1, "%d", (int) (lst->size()));
+            sprintf(buf1, "%d", size);
             sprintf(buf2, "%d", (mc->numberOfRequiredArgs() - 1));
             Error *e = new Error(
                 ErrorInst::Generator::IncorrectMinimumNumberOfArgs,
@@ -1957,10 +1959,10 @@ Node *Generator::parseMacroCall(Node *n,
             return NULL;
         }
     } else {
-        if ((lst->size()) != mc->numberOfRequiredArgs()) {
+        if (size != mc->numberOfRequiredArgs()) {
             char buf1[100];
             char buf2[100];
-            sprintf(buf1, "%d", (int) (lst->size()));
+            sprintf(buf1, "%d", size);
             sprintf(buf2, "%d", (mc->numberOfRequiredArgs() - 1));
             Error *e = new Error(
                 ErrorInst::Generator::IncorrectNumberOfArgs,
@@ -2364,12 +2366,13 @@ bool Generator::parseFunctionCall(Function *dfn,
             if ((b == fn->parameter_types.end())
                     || (*b)->type->isEqualTo(type_pdnode)) {
                 bool use = false;
+                int size = lst->size();
                 if (fn->isVarArgs()) {
                     use = ((fn->numberOfRequiredArgs() - 1)
-                            <= (lst->size() - 1));
+                            <= (size - 1));
                 } else {
                     use = ((fn->numberOfRequiredArgs() - 1)
-                            == (lst->size() - 1));
+                            == (size - 1));
                 }
                 if (use) {
                     *macro_to_call = fn;
@@ -2585,8 +2588,9 @@ bool Generator::parseFunctionCall(Function *dfn,
             }
             miter = myarg_types.begin();
             caiter = call_arg_types.begin();
+            int size = call_args.size();
 
-            if (call_args.size() < fn->numberOfRequiredArgs()) {
+            if (size < fn->numberOfRequiredArgs()) {
                 Error *e = new Error(
                     ErrorInst::Generator::FunctionNotInScope,
                     n,
@@ -2598,7 +2602,7 @@ bool Generator::parseFunctionCall(Function *dfn,
                 return false;
             }
             if (!fn->isVarArgs()
-                    && call_args.size() != fn->numberOfRequiredArgs()) {
+                    && size != fn->numberOfRequiredArgs()) {
                 Error *e = new Error(
                     ErrorInst::Generator::FunctionNotInScope,
                     n,

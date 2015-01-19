@@ -37,7 +37,7 @@ public:
         whether space has been set aside for it (extern variables work
         in the same way here as they do in C). */
     int has_initialiser;
-    /*! The once tag of the variable. */
+    /*! The variable's once tag. */
     std::string once_tag;
     /*! The variable's index.  This is set by Namespace on variable
      *  insertion. */
