@@ -182,7 +182,7 @@ public:
      *  used only for determining the set of variables that need to be
      *  destructed as at a particular point. */
     void getVarsBeforeIndex(int index,
-                           std::vector<Variable *> *vars);
+                            std::vector<Variable *> *vars);
 
     /*! Construct a symbol name for a given name.
      *  @param name The bare name.

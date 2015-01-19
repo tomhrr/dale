@@ -10,10 +10,11 @@ Variable::Variable()
     linkage         = Linkage::Auto;
 }
 
-Variable::Variable(char *new_name, Type *new_type)
+Variable::Variable(const char *name, Type *type)
 {
-    name.append(new_name);
-    type = new_type;
+    this->name.append(name);
+    this->type = type;
+
     has_initialiser = 0;
     index           = 0;
     linkage         = Linkage::Auto;
@@ -23,7 +24,8 @@ Variable::~Variable()
 {
 }
 
-bool Variable::isEqualTo(Variable *other_var)
+bool
+Variable::isEqualTo(Variable *other_var)
 {
     return type->isEqualTo(other_var->type);
 }

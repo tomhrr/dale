@@ -18,29 +18,53 @@
 
 namespace dale
 {
+/*! Variable
+
+    A class for storing the details of a variable.
+*/
 class Variable
 {
 public:
+    /*! The variable's type. */
     Type *type;
-    std::string   name;
-    std::string   internal_name;
-    llvm::Value   *value;
-    /* For a variable with one of the extern linkages,
-     * this indicates whether space has been set aside for
-     * it (extern variables work in the same way here as
-     * they do in C). */
-    int           has_initialiser;
+    /*! The variable's name (unqualified, unmangled). */
+    std::string name;
+    /*! The variable's internal name (qualified, mangled). */
+    std::string internal_name;
+    /*! The variable's value. */
+    llvm::Value *value;
+    /*! For a variable with one of the extern linkages, this indicates
+        whether space has been set aside for it (extern variables work
+        in the same way here as they do in C). */
+    int has_initialiser;
+    /*! The once tag of the variable. */
     std::string once_tag;
+    /*! The variable's index.  This is set by Namespace on variable
+     *  insertion. */
     int index;
+    /*! The variable's linkage. */
     int linkage;
+    /*! Whether the variable should be serialised. */
     bool serialise;
 
     Variable();
-    Variable(char *new_name, Type *new_type);
+    /*! Construct a new variable with the given name and type.
+     *  @param name The variable's name (unqualified, unmangled).
+     *  @param type The variable's type.
+     *
+     *  name is copied.  type is not copied.
+     */
+    Variable(const char *name, Type *type);
 
     ~Variable();
 
-    bool isEqualTo(Variable *other_var);
+    /*! Check whether a variable is equal to another variable.
+     *  @param var The other variable.
+     *
+     *  Two variables are considered equal if their types compare
+     *  equal, as per dale::Type::isEqualTo.
+     */
+    bool isEqualTo(Variable *var);
 };
 }
 
