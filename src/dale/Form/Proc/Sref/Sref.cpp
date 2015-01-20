@@ -139,7 +139,7 @@ FormProcSrefParse(Generator *gen,
         return false;
     }
 
-    int index = structp->nameToIndex(t->str_value.c_str());
+    int index = structp->memberToIndex(t->str_value.c_str());
 
     if (index == -1) {
         Error *e = new Error(

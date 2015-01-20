@@ -1028,11 +1028,11 @@ extern "C" {
         if (!st) {
             return NULL;
         }
-        if ((int) st->element_types.size() < arg_count) {
+        if ((int) st->member_types.size() < arg_count) {
             return NULL;
         }
         return
-            st->element_types.at(arg_count)->toNode()->toDNode();
+            st->member_types.at(arg_count)->toNode()->toDNode();
     }
 
     const char *struct_2D_member_2D_name(MContext *mc,
@@ -1052,10 +1052,10 @@ extern "C" {
         if (!st) {
             return NULL;
         }
-        if ((int) st->element_types.size() < arg_count) {
+        if ((int) st->member_types.size() < arg_count) {
             return NULL;
         }
-        return st->indexToName(arg_count);
+        return st->indexToMember(arg_count);
     }
 
     int arity(MContext *mc, DNode *fn_name_nd)
@@ -1095,7 +1095,7 @@ extern "C" {
         if (!st) {
             return -1;
         }
-        return st->element_types.size();
+        return st->member_types.size();
     }
 
     void *find_introspection_function(const char *name)

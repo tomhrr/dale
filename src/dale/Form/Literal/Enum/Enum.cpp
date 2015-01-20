@@ -49,7 +49,7 @@ FormLiteralEnumParse(Generator *gen,
                           llvm::ArrayRef<llvm::Value*>(two_zero_indices));
 
     llvm::Type *llvm_type =
-        ctx->toLLVMType(myenumstructtype->element_types.at(0),
+        ctx->toLLVMType(myenumstructtype->member_types.at(0),
                        NULL, false);
     if (!llvm_type) {
         return false;

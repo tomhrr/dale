@@ -42,7 +42,8 @@ Function::~Function()
     }
 }
 
-Label *Function::getLabel(const char *name)
+Label *
+Function::getLabel(const char *name)
 {
     std::map<std::string, Label*>::iterator b = labels.find(name);
     if (b == labels.end()) {
@@ -51,13 +52,15 @@ Label *Function::getLabel(const char *name)
     return b->second;
 }
 
-bool Function::addLabel(const char *name, Label *label)
+bool
+Function::addLabel(const char *name, Label *label)
 {
     labels.insert(std::pair<std::string, Label *>(name, label));
     return true;
 }
 
-bool Function::isVarArgs(void)
+bool
+Function::isVarArgs(void)
 {
     if (parameter_types.size() == 0) {
         return false;
@@ -68,7 +71,8 @@ bool Function::isVarArgs(void)
     return (back->type->base_type == BaseType::VarArgs);
 }
 
-int Function::numberOfRequiredArgs(void)
+int
+Function::numberOfRequiredArgs(void)
 {
     if (parameter_types.size() == 0) {
         return 0;
@@ -83,7 +87,8 @@ int Function::numberOfRequiredArgs(void)
     return num_of_args;
 }
 
-bool Function::isEqualTo(Function *other_fn)
+bool
+Function::isEqualTo(Function *other_fn)
 {
     if (!return_type->isEqualTo(other_fn->return_type)) {
         return false;
@@ -95,18 +100,21 @@ bool Function::isEqualTo(Function *other_fn)
     );
 }
 
-bool Function::attrsAreEqual(Function *other_fn)
+bool
+Function::attrsAreEqual(Function *other_fn)
 {
     return !((always_inline ^ other_fn->always_inline)
             || (cto ^ other_fn->cto));
 }
 
-bool Function::isDeclaration(void)
+bool
+Function::isDeclaration(void)
 {
     return (!llvm_function || (llvm_function->size() == 0));
 }
 
-bool Function::hasRetval(void)
+bool
+Function::hasRetval(void)
 {
     return (return_type->is_retval != 0);
 }

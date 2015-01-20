@@ -71,7 +71,7 @@ FormLiteralStructParse(Generator *gen,
         }
 
         Type *nametype =
-            str->nameToType(name->token->str_value.c_str());
+            str->memberToType(name->token->str_value.c_str());
 
         if (!nametype) {
             Error *e = new Error(
@@ -83,7 +83,7 @@ FormLiteralStructParse(Generator *gen,
             return false;
         }
 
-        int index = str->nameToIndex(name->token->str_value.c_str());
+        int index = str->memberToIndex(name->token->str_value.c_str());
 
         std::vector<llvm::Value *> indices;
         stl::push_back2(&indices, ctx->nt->getLLVMZero(),

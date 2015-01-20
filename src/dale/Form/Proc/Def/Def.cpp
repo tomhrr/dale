@@ -79,8 +79,8 @@ initialise(Context *ctx,
         std::vector<llvm::Value *> indices;
         indices.push_back(ctx->nt->getLLVMZero());
         for (std::vector<Type *>::iterator
-                b = sp->element_types.begin(),
-                e = sp->element_types.end();
+                b = sp->member_types.begin(),
+                e = sp->member_types.end();
                 b != e;
                 ++b) {
             Type *t = (*b);

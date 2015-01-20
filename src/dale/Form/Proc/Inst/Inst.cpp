@@ -601,7 +601,7 @@ past_sl_parse:
             );
         if (mystruct) {
             Type *apply =
-                mystruct->nameToType("apply");
+                mystruct->memberToType("apply");
             if (apply
                     && apply->points_to
                     && apply->points_to->is_function) {
@@ -630,7 +630,7 @@ past_sl_parse:
                 stl::push_back2(&indices,
                                 ctx->nt->getLLVMZero(),
                                 ctx->nt->getNativeInt(
-                                    mystruct->nameToIndex("apply")));
+                                    mystruct->memberToIndex("apply")));
 
                 llvm::IRBuilder<> builder(block);
                 llvm::Value *res =

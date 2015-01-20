@@ -187,7 +187,7 @@ FormTopLevelEnumParse(Generator *gen, Node *node)
     }
 
     Struct *enum_str = new Struct();
-    enum_str->addElement("_enum_value", enumtype);
+    enum_str->addMember("_enum_value", enumtype);
     enum_str->once_tag = gen->current_once_tag;
     enum_str->linkage =
         (linkage == EnumLinkage::Extern) ? StructLinkage::Extern

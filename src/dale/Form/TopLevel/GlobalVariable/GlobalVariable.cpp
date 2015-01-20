@@ -142,14 +142,14 @@ parseLiteralElement(Generator *gen,
         }
 
         std::vector<Type *>::iterator begin =
-            str->element_types.begin();
+            str->member_types.begin();
 
         int i = 0;
         int last_el_size = -1;
         int last_offset = -1;
         int incr = 0;
 
-        while (begin != str->element_types.end()) {
+        while (begin != str->member_types.end()) {
             Type *current = (*begin);
             size_t el_size =
                 Operation::Sizeof::get(gen->unit_stack->top(), current);

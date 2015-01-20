@@ -22,7 +22,7 @@ nameToIndex(Context *ctx,
         abort();
     }
 
-    int index = structp->nameToIndex(field_name);
+    int index = structp->memberToIndex(field_name);
     if (index == -1) {
         fprintf(stderr, "Internal error: invalid struct field"
                 "name.\n");

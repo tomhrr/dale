@@ -370,8 +370,8 @@ char *deserialise(TypeRegister *tr, char *in, Function **fn)
 void serialise(FILE *out, Struct *st)
 {
     serialise(out, &(st->is_opaque));
-    serialise(out, &(st->element_types));
-    serialise(out, &(st->names_to_numbers));
+    serialise(out, &(st->member_types));
+    serialise(out, &(st->member_to_index));
     serialise(out, &(st->internal_name));
     serialise(out, st->once_tag);
     serialise(out, st->linkage);
@@ -389,8 +389,8 @@ char *deserialise(TypeRegister *tr, char *in, Struct *st)
 {
     st->type = NULL;
     in = deserialise(tr, in, &(st->is_opaque));
-    in = deserialise(tr, in, &(st->element_types));
-    in = deserialise(tr, in, &(st->names_to_numbers));
+    in = deserialise(tr, in, &(st->member_types));
+    in = deserialise(tr, in, &(st->member_to_index));
     in = deserialise(tr, in, &(st->internal_name));
     in = deserialise(tr, in, &(st->once_tag));
     in = deserialise(tr, in, &(st->linkage));

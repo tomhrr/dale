@@ -1220,7 +1220,7 @@ Context::toLLVMType(Type *type,
                           type->namespaces);
             if (structp) {
                 if (((structp->linkage == StructLinkage::Opaque)
-                        || (structp->element_types.size() == 0))
+                        || (structp->member_types.size() == 0))
                         && !externally_defined) {
                     Error *e = new Error(
                         ErrorInst::Generator::CannotInstantiateOpaqueStruct,

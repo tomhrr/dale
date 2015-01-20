@@ -316,8 +316,8 @@ FormStructParse(Generator *gen,
     iter = elements_internal->begin();
 
     while (iter != elements_internal->end()) {
-        new_struct->addElement((*iter)->name.c_str(),
-                               (*iter)->type);
+        new_struct->addMember((*iter)->name.c_str(),
+                              (*iter)->type);
         delete (*iter);
         ++iter;
     }

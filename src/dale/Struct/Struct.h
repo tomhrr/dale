@@ -3,46 +3,78 @@
 
 #include "../Type/Type.h"
 #include "../Linkage/Linkage.h"
+#include "../llvm_Module.h"
 
-#include <cstddef>
 #include <string>
 #include <vector>
 #include <map>
-#include <cstdlib>
-
-#include "../llvm_Module.h"
-#include "../llvm_Function.h"
-#include "llvm/PassManager.h"
-#include "../llvm_CallingConv.h"
-#include "../llvm_AnalysisVerifier.h"
-#include "../llvm_AssemblyPrintModulePass.h"
-#include "../llvm_IRBuilder.h"
-#include "llvm/Support/raw_ostream.h"
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
 
 namespace dale
 {
+/*! Struct
+
+    A class for storing the details of a struct definition.  Member
+    indices begin at zero.
+*/
 class Struct
 {
 public:
+    /* The struct's LLVM struct type. */
     llvm::StructType *type;
-    int is_opaque;
+    /* The struct's internal name (mangled, qualified). */
     std::string internal_name;
-    std::vector<Type *> element_types;
-    std::map<std::string, int> names_to_numbers;
+    /* The types of the struct's members. */
+    std::vector<Type *> member_types;
+    /* A map from member name to index. */
+    std::map<std::string, int> member_to_index;
+    /* The struct's once tag. */
     std::string once_tag;
+    /* The struct's linkage. */
     int linkage;
-    int must_init;
+    /* Whether the struct is opaque.  An opaque struct is one whose
+     * members are defined elsewhere. */
+    bool is_opaque;
+    /* Whether instances of the struct must be initialised when they
+     * are declared. */
+    bool must_init;
+    /* Whether the struct should be serialised. */
     bool serialise;
 
     Struct();
     ~Struct();
 
-    int addElement(const char *name, Type *type);
-    Type* nameToType(const char *name);
+    /*! Add a member to the struct.
+     *  @param name The member's name.
+     *  @param type The member's type.
+     *
+     *  Returns false if a member with the given name already exists.
+     *  Otherwise, returns true.  name is copied, while type is not.
+     */
+    bool addMember(const char *name, Type *type);
+    /*! Get the type of a given member.
+     *  @param name The member's name.
+     *
+     *  Returns null if no member with the given name exists.
+     */
+    Type* memberToType(const char *name);
+    /*! Get the index of a given member.
+     *  @param name The member's name.
+     *
+     *  Returns -1 if no member with the given name exists.
+     */
+    int memberToIndex(const char *name);
+    /*! Get the type at a given index.
+     *  @param index The index.
+     *
+     *  Returns null if the index is invalid.
+     */
     Type* indexToType(int index);
-    int nameToIndex(const char *name);
-    const char *indexToName(int index);
+    /*! Get the member at a given index.
+     *  @param index The index.
+     *
+     *  Returns null if no member with the given name exists.
+     */
+    const char *indexToMember(int index);
 };
 }
 

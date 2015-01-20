@@ -1369,7 +1369,7 @@ bool Generator::destructIfApplicable(ParseResult *pr,
         if (type->struct_name) {
             Struct *st = ctx->getStruct(type->struct_name->c_str(),
                                                  type->namespaces);
-            std::vector<Type*> *st_types = &(st->element_types);
+            std::vector<Type*> *st_types = &(st->member_types);
             int i = 0;
             llvm::Value *actual_value = pr->value;
 

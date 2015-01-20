@@ -6,9 +6,9 @@ namespace dale
 {
 Struct::Struct()
 {
-    is_opaque = 0;
     linkage   = 0;
-    must_init = 0;
+    is_opaque = false;
+    must_init = false;
     serialise = true;
 }
 
@@ -16,62 +16,56 @@ Struct::~Struct()
 {
 }
 
-int Struct::addElement(const char *name, Type *type)
+bool
+Struct::addMember(const char *name, Type *type)
 {
-    /* Name already exists, return 0 and let caller deal with
-     * it. */
-    if (nameToType(name)) {
-        return 0;
+    if (memberToType(name)) {
+        return false;
     }
 
-    std::string temp_name(name);
-
-    names_to_numbers.insert(
-        std::pair<std::string, int>(
-            temp_name, element_types.size()
-        )
+    member_to_index.insert(
+        std::pair<std::string, int>(name, member_types.size())
     );
 
-    element_types.push_back(type);
+    member_types.push_back(type);
 
-    return 1;
+    return true;
 }
 
-Type *Struct::nameToType(const char *name)
+Type *
+Struct::memberToType(const char *name)
 {
-    int index = nameToIndex(name);
+    int index = memberToIndex(name);
 
-    return
-        (index == -1)
-        ? NULL
-        : element_types[index];
+    return (index == -1) ? NULL : member_types[index];
 }
 
-Type *Struct::indexToType(int index)
+Type *
+Struct::indexToType(int index)
 {
-    return element_types[index];
+    return member_types[index];
 }
 
-int Struct::nameToIndex(const char *name)
+int
+Struct::memberToIndex(const char *name)
 {
-    std::map<std::string, int>::iterator iter;
-    std::string temp_name(name);
+    std::map<std::string, int>::iterator iter =
+        member_to_index.find(name);
 
-    iter = names_to_numbers.find(temp_name);
-
-    if (iter == names_to_numbers.end()) {
+    if (iter == member_to_index.end()) {
         return -1;
     } else {
         return iter->second;
     }
 }
 
-const char *Struct::indexToName(int index)
+const char *
+Struct::indexToMember(int index)
 {
     std::map<std::string, int>::iterator iter;
 
-    iter = names_to_numbers.begin();
-    while (iter != names_to_numbers.end()) {
+    iter = member_to_index.begin();
+    while (iter != member_to_index.end()) {
         if (iter->second == index) {
             return iter->first.c_str();
         }

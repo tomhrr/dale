@@ -98,7 +98,7 @@ bool execute(Context *ctx,
 
         Struct *mystruct =
             ctx->getStruct(from_type->struct_name->c_str());
-        Type *temp_to_type = mystruct->element_types.at(0);
+        Type *temp_to_type = mystruct->member_types.at(0);
 
         // Store the struct.
         llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
@@ -145,7 +145,7 @@ bool execute(Context *ctx,
                && (ctx->getEnum(struct_name->c_str()))) {
 
         Struct *mystruct = ctx->getStruct(to_type->struct_name->c_str());
-        Type *to_type_temp = mystruct->element_types.at(0);
+        Type *to_type_temp = mystruct->member_types.at(0);
 
         ParseResult temp;
         bool mres = execute(ctx, block,
