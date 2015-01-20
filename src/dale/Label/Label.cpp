@@ -2,9 +2,11 @@
 
 namespace dale
 {
-Label::Label()
+Label::Label(llvm::BasicBlock *block, Namespace *ns, int index)
 {
-    index = 0;
+    this->index = index;
+    this->block = block;
+    this->ns = ns;
 }
 
 Label::~Label()

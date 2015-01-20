@@ -61,10 +61,7 @@ FormProcLabelParse(Generator *gen,
     }
 
     int index = ++(ctx->ns()->lv_index);
-    Label *my_label = new Label();
-    my_label->block = new_block;
-    my_label->ns = ctx->ns();
-    my_label->index = index;
+    Label *my_label = new Label(new_block, ctx->ns(), index);
     fn->addLabel(t->str_value.c_str(), my_label);
     
     pr->set(new_block, ctx->tr->type_int,

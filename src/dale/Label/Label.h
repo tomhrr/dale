@@ -1,31 +1,37 @@
 #ifndef DALE_ELEMENT_LABEL
 #define DALE_ELEMENT_LABEL
 
-#include <string>
 #include <cstdlib>
 
 #include "llvm/PassManager.h"
-#include "llvm/Support/raw_ostream.h"
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "../llvm_IRBuilder.h"
-#include "../llvm_Module.h"
-#include "../llvm_Function.h"
-#include "../llvm_CallingConv.h"
-#include "../llvm_AnalysisVerifier.h"
-#include "../llvm_AssemblyPrintModulePass.h"
 
 namespace dale
 {
 class Namespace;
 
+/*! Label
+
+    A class for storing the details of a label.
+*/
 class Label
 {
 public:
+    /*! The basic block at which this label begins. */
     llvm::BasicBlock *block;
-    int              index;
-    Namespace        *ns;
+    /*! The namespace active when the label was defined. */
+    Namespace *ns;
+    /*! The label's index.  See Namespace::lv_index. */
+    int index;
 
-    Label();
+    /*! Construct a new label using the given parameters.
+     *  @param block The basic block.
+     *  @param ns The namespace.
+     *  @param index The index.
+     *
+     *  Neither block nor ns are copied.  This does not take ownership
+     *  of them, either.
+     */
+    Label(llvm::BasicBlock *block, Namespace *ns, int index);
     ~Label();
 };
 }
