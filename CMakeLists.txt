@@ -189,6 +189,7 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Enum/Enum.cpp
                       src/dale/Function/Function.cpp
                       src/dale/Type/Type.cpp
+                      src/dale/TypeMap/TypeMap.cpp
                       src/dale/Variable/Variable.cpp
                       src/dale/Struct/Struct.cpp
                       src/dale/NativeTypes/NativeTypes.cpp

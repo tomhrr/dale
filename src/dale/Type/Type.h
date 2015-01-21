@@ -4,13 +4,17 @@
 #include "../BaseType/BaseType.h"
 #include "../Node/Node.h"
 #include "../Linkage/Linkage.h"
-#include <cstddef>
+#include "../TypeMap/TypeMap.h"
+
 #include <string>
 #include <vector>
-#include <cstdlib>
-#include <cstdio>
 #include <map>
+#include <cstdlib>
 
+#define IGNORE_ARG_CONSTNESS 1
+
+namespace dale
+{
 /*
 
 Will have a series of constructors later, or some other more
@@ -24,18 +28,8 @@ applies only to 'chief' types.  If this is a pointer, contains the
 type to which it points.
 
 */
-
-#define IGNORE_ARG_CONSTNESS 1
-
-namespace dale
-{
-extern std::map<std::string, std::string> dale_typemap;
-
 int getSignedIntegerType(int size);
 int getUnsignedIntegerType(int size);
-
-int addTypeMapEntry(const char *from, const char *to);
-int getTypeMapEntry(const char *from, std::string *to);
 
 class Type
 {

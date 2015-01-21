@@ -7,8 +7,6 @@
 #include "../llvm_Module.h"
 #include "../Type/Type.h"
 
-#define ENUM_NOTFOUND -2
-
 namespace dale
 {
 /*! Enum

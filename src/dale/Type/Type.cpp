@@ -10,33 +10,6 @@
 
 namespace dale
 {
-std::map<std::string, std::string> dale_typemap;
-
-int addTypeMapEntry(const char *from, const char *to)
-{
-    std::string sfrom(from);
-    std::string sto(to);
-    dale_typemap.insert(
-        std::pair<std::string, std::string>(
-            sfrom, sto
-        )
-    );
-    return 1;
-}
-
-int getTypeMapEntry(const char *from, std::string *to)
-{
-    std::string sfrom(from);
-    std::map<std::string, std::string>::iterator iter
-    = dale_typemap.find(sfrom);
-    if (iter != dale_typemap.end()) {
-        to->append(iter->second);
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
 int getSignedIntegerType(int size)
 {
     int type;
