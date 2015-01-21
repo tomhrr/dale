@@ -381,11 +381,11 @@ extern "C" {
         if (ptype->is_const) {
             return true;
         }
-        if (ptype->struct_name) {
+        if (ptype->struct_name.size()) {
             Struct *structp =
                 g->ctx->getStruct(
-                    ptype->struct_name->c_str(),
-                    ptype->namespaces
+                    ptype->struct_name.c_str(),
+                    &(ptype->namespaces)
                 );
             return !!(structp->must_init);
         }

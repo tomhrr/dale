@@ -137,11 +137,11 @@ void serialise(FILE *out, Type *t)
             && !t->array_size
             && !t->array_type
             && !t->is_function
-            && !t->struct_name
-            && !t->namespaces
+            && !(t->struct_name.size())
+            && !(t->namespaces.size())
             && !t->points_to
             && !t->return_type
-            && !t->parameter_types
+            && !(t->parameter_types.size())
             && !t->is_const
             && !t->is_reference
             && !t->bitfield_size
@@ -168,17 +168,17 @@ void serialise(FILE *out, Type *t)
         serialise(out, t->array_type);
     }
     serialise(out, &(t->is_function));
-    if (!t->struct_name) {
+    if (!t->struct_name.size()) {
         serialise(out, 0);
     } else {
         serialise(out, 1);
-        serialise(out, t->struct_name);
+        serialise(out, &(t->struct_name));
     }
-    if (!t->namespaces) {
+    if (!t->namespaces.size()) {
         serialise(out, 0);
     } else {
         serialise(out, 1);
-        serialise(out, t->namespaces);
+        serialise(out, &(t->namespaces));
     }
     if (!t->points_to) {
         serialise(out, 0);
@@ -192,11 +192,11 @@ void serialise(FILE *out, Type *t)
         serialise(out, 1);
         serialise(out, t->return_type);
     }
-    if (!t->parameter_types) {
+    if (!t->parameter_types.size()) {
         serialise(out, 0);
     } else {
         serialise(out, 1);
-        serialise(out, t->parameter_types);
+        serialise(out, &(t->parameter_types));
     }
 }
 
@@ -236,16 +236,11 @@ char *deserialise(TypeRegister *tr, char *in, Type **t)
     in = deserialise(tr, in, &(temp.is_function));
     in = deserialise(tr, in, &is_present);
     if (is_present) {
-        std::string *sn = new std::string();
-        in = deserialise(tr, in, sn);
-        temp.struct_name = sn;
+        in = deserialise(tr, in, &temp.struct_name);
     }
     in = deserialise(tr, in, &is_present);
     if (is_present) {
-        std::vector<std::string> *ns =
-            new std::vector<std::string>();
-        in = deserialise(tr, in, ns);
-        temp.namespaces = ns;
+        in = deserialise(tr, in, &temp.namespaces);
     }
     in = deserialise(tr, in, &is_present);
     if (is_present) {
@@ -261,10 +256,7 @@ char *deserialise(TypeRegister *tr, char *in, Type **t)
     }
     in = deserialise(tr, in, &is_present);
     if (is_present) {
-        std::vector<Type*> *vt =
-            new std::vector<Type*>();
-        in = deserialise_type_vector(tr, in, vt);
-        temp.parameter_types = vt;
+        in = deserialise_type_vector(tr, in, &temp.parameter_types);
     }
 
     Type *final = tr->getType(&temp);

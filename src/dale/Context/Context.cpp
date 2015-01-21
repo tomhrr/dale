@@ -1006,9 +1006,9 @@ Context::toLLVMTypeFunction(Type *type,
     bool is_varargs = 0;
 
     std::vector<Type*>::iterator iter;
-    iter = type->parameter_types->begin();
+    iter = type->parameter_types.begin();
 
-    while (iter != type->parameter_types->end()) {
+    while (iter != type->parameter_types.end()) {
         if ((*iter)->base_type == BaseType::VarArgs) {
             is_varargs = true;
         } else {
@@ -1083,7 +1083,7 @@ Context::toLLVMTypePointer(Type *type,
         if (!structp->type) {
             fprintf(stderr, "Internal error: found vp struct, "
                     "but it doesn't have a type. (%s)\n",
-                    type->struct_name->c_str());
+                    type->struct_name.c_str());
             abort();
         }
         return llvm::PointerType::getUnqual(structp->type);
@@ -1132,13 +1132,13 @@ Context::toLLVMTypeStruct(Type *type,
                           Node *n)
 {
     Struct *structp =
-        getStruct(type->struct_name->c_str(), type->namespaces);
+        getStruct(type->struct_name.c_str(), &(type->namespaces));
 
     if (structp) {
         if (!structp->type) {
             fprintf(stderr, "Internal error: found struct, "
                     "but it doesn't have a type. (%s)\n",
-                    type->struct_name->c_str());
+                    type->struct_name.c_str());
             abort();
         }
         return structp->type;
@@ -1182,7 +1182,7 @@ Context::toLLVMType_(Type *type,
         return base_type;
     }
 
-    if (type->struct_name != NULL) {
+    if (type->struct_name.size()) {
         llvm::Type *struct_type = toLLVMTypeStruct(type, n);
         if (struct_type) {
             return struct_type;
@@ -1214,10 +1214,10 @@ Context::toLLVMType(Type *type,
     /* If type designates an opaque struct, then disallow
      * instantiation. */
     if (!allow_non_first_class) {
-        if (type->struct_name) {
+        if (type->struct_name.size()) {
             Struct *structp =
-                getStruct(type->struct_name->c_str(),
-                          type->namespaces);
+                getStruct(type->struct_name.c_str(),
+                          &(type->namespaces));
             if (structp) {
                 if (((structp->linkage == StructLinkage::Opaque)
                         || (structp->member_types.size() == 0))
@@ -1240,7 +1240,7 @@ Context::toLLVMType(Type *type,
     }
 
     if (!allow_non_first_class && !llvm_type->isFirstClassType()) {
-        if (type->struct_name && externally_defined) {
+        if (type->struct_name.size() && externally_defined) {
             /* Even when allow_non_first_class is specified, if
              * this is an externally defined struct, then return
              * the type (see e.g. _IO_2_1_stdin_). */

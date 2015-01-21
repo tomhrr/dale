@@ -13,8 +13,8 @@ nameToIndex(Context *ctx,
 {
     Struct *structp =
         ctx->getStruct(
-            type->struct_name->c_str(),
-            type->namespaces
+            type->struct_name.c_str(),
+            &(type->namespaces)
         );
 
     if (!structp) {

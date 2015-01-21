@@ -134,15 +134,13 @@ parseInternal(Generator *gen,
         fntype->is_function = 1;
         fntype->return_type = myanonfn->return_type;
 
-        std::vector<Type *> *parameter_types =
-            new std::vector<Type *>;
-
+        std::vector<Type *> parameter_types;
         std::vector<Variable *>::iterator iter;
 
         iter = myanonfn->parameter_types.begin();
 
         while (iter != myanonfn->parameter_types.end()) {
-            parameter_types->push_back((*iter)->type);
+            parameter_types.push_back((*iter)->type);
             ++iter;
         }
 
@@ -175,24 +173,24 @@ parseInternal(Generator *gen,
      * list. */
 
     if (wanted_type
-            && (wanted_type->struct_name)
+            && (wanted_type->struct_name.size())
             && (!first->is_token)) {
 
         Struct *str =
-            ctx->getStruct(wanted_type->struct_name->c_str(),
-                           wanted_type->namespaces);
+            ctx->getStruct(wanted_type->struct_name.c_str(),
+                           &(wanted_type->namespaces));
 
         if (!str) {
             fprintf(stderr,
                     "Internal error: cannot load struct '%s'.\n",
-                    wanted_type->struct_name->c_str());
+                    wanted_type->struct_name.c_str());
             abort();
         }
 
         bool res =
             FormLiteralStructParse(
                                gen, fn, block, n,
-                               wanted_type->struct_name->c_str(),
+                               wanted_type->struct_name.c_str(),
                                str,
                                wanted_type,
                                get_address,
@@ -590,14 +588,14 @@ past_sl_parse:
         return false;
     }
     if (try_fnp.type->points_to
-            && try_fnp.type->points_to->struct_name) {
+            && try_fnp.type->points_to->struct_name.size()) {
         /* Struct must implement 'apply' to be considered a
          * function object. */
         Type *try_fnp_inner_type = try_fnp.type->points_to;
         Struct *mystruct =
             ctx->getStruct(
-                try_fnp_inner_type->struct_name->c_str(),
-                try_fnp_inner_type->namespaces
+                try_fnp_inner_type->struct_name.c_str(),
+                &(try_fnp_inner_type->namespaces)
             );
         if (mystruct) {
             Type *apply =
@@ -608,7 +606,7 @@ past_sl_parse:
                 /* The first argument of this function must be a
                  * pointer to this particular struct type. */
                 Type *applyfn = apply->points_to;
-                if (!(applyfn->parameter_types->size())) {
+                if (!(applyfn->parameter_types.size())) {
                     Error *e = new Error(
                         ErrorInst::Generator::ApplyMustTakePointerToStructAsFirstArgument,
                         (*lst)[0]
@@ -616,7 +614,7 @@ past_sl_parse:
                     ctx->er->addError(e);
                     return false;
                 }
-                if (!(applyfn->parameter_types->at(0)->isEqualTo(
+                if (!(applyfn->parameter_types.at(0)->isEqualTo(
                             try_fnp.type))) {
                     Error *e = new Error(
                         ErrorInst::Generator::ApplyMustTakePointerToStructAsFirstArgument,

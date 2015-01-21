@@ -92,12 +92,13 @@ bool execute(Context *ctx,
         res = builder.CreatePtrToInt(value, llvm_to_type);
     } else if (from_type->points_to && to_type->points_to) {
         res = builder.CreateBitCast(value, llvm_to_type);
-    } else if ((struct_name = from_type->struct_name)
+    } else if ((struct_name = &(from_type->struct_name))
+               && struct_name->size()
                && (to_type->isIntegerType())
                && (ctx->getEnum(struct_name->c_str()))) {
 
         Struct *mystruct =
-            ctx->getStruct(from_type->struct_name->c_str());
+            ctx->getStruct(from_type->struct_name.c_str());
         Type *temp_to_type = mystruct->member_types.at(0);
 
         // Store the struct.
@@ -140,11 +141,12 @@ bool execute(Context *ctx,
 
         block = temp.block;
         res   = temp.value;
-    } else if ((struct_name = to_type->struct_name)
+    } else if ((struct_name = &(to_type->struct_name))
+               && struct_name->size()
                && (from_type->isIntegerType())
                && (ctx->getEnum(struct_name->c_str()))) {
 
-        Struct *mystruct = ctx->getStruct(to_type->struct_name->c_str());
+        Struct *mystruct = ctx->getStruct(to_type->struct_name.c_str());
         Type *to_type_temp = mystruct->member_types.at(0);
 
         ParseResult temp;

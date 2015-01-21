@@ -221,10 +221,10 @@ TypeRegister::getStructType(std::string name)
     std::vector<std::string> name_parts;
     splitString(&name, &name_parts, '.');
     Type *struct_type = new Type(); 
-    struct_type->struct_name = new std::string(name_parts.back());
+    struct_type->struct_name = name_parts.back();
     name_parts.pop_back();
 
-    struct_type->namespaces = new std::vector<std::string>(name_parts);
+    struct_type->namespaces = name_parts;
 
     struct_types.insert(
         std::pair<std::string, Type*>(name, struct_type)
@@ -249,17 +249,17 @@ TypeRegister::getType(Type *type)
         final = getArrayType(getType(type->array_type), type->array_size);
     } else if (type->points_to) {
         final = getPointerType(getType(type->points_to));
-    } else if (type->struct_name) {
+    } else if (type->struct_name.size()) {
         std::string name;
         for (std::vector<std::string>::iterator
-                b = type->namespaces->begin(),
-                e = type->namespaces->end();
+                b = type->namespaces.begin(),
+                e = type->namespaces.end();
                 b != e;
                 ++b) {
             name.append((*b));
             name.append(".");
         }
-        name.append(*(type->struct_name));
+        name.append(type->struct_name);
         final = getStructType(name);
     } else if (type->bitfield_size) {
         size_t bitfield_size = type->bitfield_size;

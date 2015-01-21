@@ -17,17 +17,17 @@ namespace dale
 class Enum
 {
 public:
-    /* The enumerated type's integral type. */
+    /*! The enumerated type's integral type. */
     llvm::Type *type;
-    /* The index of the last member. */
+    /*! The index of the last member. */
     int last_index;
-    /* A map from member name to index. */
+    /*! A map from member name to index. */
     std::map<std::string, int64_t> *member_to_index;
-    /* The once tag of this type. */
+    /*! The once tag of this type. */
     std::string once_tag;
-    /* The linkage of this type. */
+    /*! The linkage of this type. */
     int linkage;
-    /* Whether the type should be serialised. */
+    /*! Whether the type should be serialised. */
     bool serialise;
 
     Enum();

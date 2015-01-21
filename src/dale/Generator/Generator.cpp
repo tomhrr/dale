@@ -1366,9 +1366,9 @@ bool Generator::destructIfApplicable(ParseResult *pr,
          * the elements, in the absence of a destructor for the struct
          * as a whole. */
         Type *type = pr->type;
-        if (type->struct_name) {
-            Struct *st = ctx->getStruct(type->struct_name->c_str(),
-                                                 type->namespaces);
+        if (type->struct_name.size()) {
+            Struct *st = ctx->getStruct(type->struct_name.c_str(),
+                                                 &(type->namespaces));
             std::vector<Type*> *st_types = &(st->member_types);
             int i = 0;
             llvm::Value *actual_value = pr->value;
@@ -1662,7 +1662,7 @@ bool Generator::parseFuncallInternal(
         ++symlist_iter;
     }
 
-    param_iter = fn_ptr->type->points_to->parameter_types->begin();
+    param_iter = fn_ptr->type->points_to->parameter_types.begin();
     bool args_cast = false;
     int arg_count = 1;
     int size = 0;
@@ -1686,7 +1686,7 @@ bool Generator::parseFuncallInternal(
         call_arg_nodes.push_back(*symlist_iter);
         block = p.block;
 
-        if ((param_iter != fn_ptr->type->points_to->parameter_types->end())
+        if ((param_iter != fn_ptr->type->points_to->parameter_types.end())
                 && (!(p.type->isEqualTo((*param_iter), 1)))
                 && ((*param_iter)->base_type != BaseType::VarArgs)) {
 
@@ -1721,11 +1721,11 @@ bool Generator::parseFuncallInternal(
 
         ++symlist_iter;
 
-        if (param_iter != fn_ptr->type->points_to->parameter_types->end()) {
+        if (param_iter != fn_ptr->type->points_to->parameter_types.end()) {
             ++param_iter;
             // Skip the varargs type.
             if (param_iter !=
-                    fn_ptr->type->points_to->parameter_types->end()) {
+                    fn_ptr->type->points_to->parameter_types.end()) {
                 if ((*param_iter)->base_type == BaseType::VarArgs) {
                     ++param_iter;
                 }
@@ -1741,13 +1741,13 @@ bool Generator::parseFuncallInternal(
 
     std::vector<llvm::Value *> call_args_final = call_args;
     int caps = call_arg_prs.size();
-    int pts  = fn_ptr->type->points_to->parameter_types->size();
+    int pts  = fn_ptr->type->points_to->parameter_types.size();
     int limit = (caps > pts ? pts : caps);
     ParseResult refpr;
     int start = (extra_call_args ? extra_call_args->size() : 0);
     for (int i = start; i < limit; i++) {
         Type *pt = 
-            fn_ptr->type->points_to->parameter_types->at(i);
+            fn_ptr->type->points_to->parameter_types.at(i);
         ParseResult *arg_refpr = &(call_arg_prs.at(i));
         if (pt->is_reference) {
             if (!pt->is_const && !arg_refpr->value_is_lvalue) {

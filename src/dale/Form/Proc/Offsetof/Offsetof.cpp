@@ -42,7 +42,7 @@ FormProcOffsetOfParse(Generator *gen,
         return false;
     }
 
-    if (!mytype->struct_name) {
+    if (!mytype->struct_name.size()) {
         Error *e = new Error(
             ErrorInst::Generator::UnexpectedElement, node,
             "struct", "offsetof", "not a struct"
@@ -53,8 +53,8 @@ FormProcOffsetOfParse(Generator *gen,
 
     Struct *str =
         ctx->getStruct(
-            mytype->struct_name->c_str(),
-            mytype->namespaces
+            mytype->struct_name.c_str(),
+            &(mytype->namespaces)
         );
 
     if (!str) {

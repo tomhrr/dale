@@ -128,13 +128,13 @@ parseLiteralElement(Generator *gen,
         return llvm::cast<llvm::Constant>(myconstdouble);
     }
 
-    if (type->struct_name) {
+    if (type->struct_name.size()) {
         std::vector<llvm::Constant *> constants;
 
         Struct *str =
             ctx->getStruct(
-                type->struct_name->c_str(),
-                type->namespaces
+                type->struct_name.c_str(),
+                &(type->namespaces)
             );
         if (!str) {
             fprintf(stderr, "Internal error: invalid struct.\n");
@@ -786,7 +786,7 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
                         llvm::cast<llvm::PointerType>(rdttype)
                     );
                 var->setInitializer(mynullptr);
-            } else if (r_type->struct_name) {
+            } else if (r_type->struct_name.size()) {
                 llvm::ConstantAggregateZero* const_values_init =
                     llvm::ConstantAggregateZero::get(rdttype);
                 var->setInitializer(const_values_init);

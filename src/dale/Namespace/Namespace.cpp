@@ -426,11 +426,11 @@ Namespace::getFunction(const char *name,
         Type *temp = *rarg_type_iter;
         if (!( temp->points_to
                 &&
-                temp->points_to->struct_name
+                temp->points_to->struct_name.size()
                 &&
                 !(temp->points_to
                     ->struct_name
-                    ->compare("DNode")))) {
+                    .compare("DNode")))) {
             break;
         }
         ++rarg_type_iter;

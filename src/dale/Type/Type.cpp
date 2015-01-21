@@ -12,82 +12,41 @@ namespace dale
 {
 Type::Type()
 {
+    this->reset();
+}
+
+Type::Type(int new_base_type)
+{
+    this->reset();
+    base_type = new_base_type;
+}
+
+Type::Type(Type *new_points_to)
+{
+    this->reset();
+    points_to = new_points_to;
+}
+
+Type::~Type()
+{
+}
+
+void
+Type::reset(void)
+{
     base_type       = 0;
-    is_array        = 0;
+    is_array        = false;
     array_size      = 0;
     points_to       = NULL;
     array_type      = NULL;
     bitfield_size   = 0;
 
-    is_function     = 0;
+    is_function     = false;
     return_type     = NULL;
-    parameter_types = NULL;
 
-    struct_name = NULL;
-    namespaces  = NULL;
-
-    is_const     = 0;
-    is_reference = 0;
-    is_retval       = 0;
-}
-
-Type::Type(int new_base_type,
-           int new_is_array,
-           int new_array_size)
-{
-    base_type  = new_base_type;
-    is_array   = new_is_array;
-    array_size = new_array_size;
-    bitfield_size = 0;
-    points_to  = NULL;
-    array_type      = NULL;
-
-    is_function     = 0;
-    return_type     = NULL;
-    parameter_types = NULL;
-
-    struct_name = NULL;
-    namespaces  = NULL;
-    
-    is_const     = 0;
-    is_reference = 0;
-    is_retval       = 0;
-}
-
-Type::Type(Type *new_points_to,
-           int new_is_array,
-           int new_array_size)
-{
-    base_type  = 0;
-    is_array   = new_is_array;
-    array_size = new_array_size;
-    points_to  = new_points_to;
-    array_type      = NULL;
-    bitfield_size = 0;
-
-    is_function     = 0;
-    return_type     = NULL;
-    parameter_types = NULL;
-
-    struct_name = NULL;
-    namespaces  = NULL;
-
-    is_const     = 0;
-    is_reference = 0;
-    is_retval       = 0;
-}
-
-Type::~Type()
-{
-    if (struct_name) {
-        delete struct_name;
-    }
-    if (namespaces) {
-        delete namespaces;
-    }
-    if (parameter_types) {
-        delete parameter_types;
-    }
+    is_const        = false;
+    is_reference    = false;
+    is_retval       = false;
 }
 
 /* pretty horrid, will tidy up later - linkage is not taken
@@ -143,31 +102,32 @@ bool Type::isEqualTo(Type *other_type,
     }
 
     /* Namespace checking. */
-    if ((namespaces == NULL) ^ (other_type->namespaces == NULL)) {
+    if ((namespaces.size() == 0) ^ (other_type->namespaces.size() == 0)) {
         if (DEBUG)  printf("namespaces is set in one but not the other\n");
-        if (DEBUG)  printf("(%p) (%p)\n", namespaces, other_type->namespaces);
+        if (DEBUG)  printf("(%p) (%p)\n", &(namespaces),
+                                          &(other_type->namespaces));
         return false;
     } else {
         if (DEBUG)  printf("namespaces set in both\n");
     }
 
-    if (namespaces != NULL) {
-        if (*namespaces != *(other_type->namespaces)) {
+    if (namespaces.size()) {
+        if (namespaces != other_type->namespaces) {
             return false;
         }
     }
 
     if (DEBUG)  printf("namespaces are fine, part 2\n");
 
-    if ((struct_name == NULL) ^ (other_type->struct_name == NULL)) {
+    if ((struct_name.size()) ^ (other_type->struct_name.size())) {
         if (DEBUG)  printf("struct name is set in one but not the other\n");
         return false;
     } else {
         if (DEBUG)  printf("no struct name problems\n");
     }
 
-    if (struct_name != NULL) {
-        if (*struct_name != *(other_type->struct_name)) {
+    if (struct_name.size()) {
+        if (struct_name != other_type->struct_name) {
             return false;
         }
     }
@@ -204,8 +164,8 @@ bool Type::isEqualTo(Type *other_type,
             return false;
         }
         return dale::stl::isEqualTo(
-                   parameter_types,
-                   other_type->parameter_types
+                   &(parameter_types),
+                   &(other_type->parameter_types)
                );
     }
 
@@ -258,20 +218,20 @@ Type::canBePassedFrom(Type *value_type,
 /* todo: this doesn't handle namespaces! */
 Node *Type::toNode(void)
 {
-    if (struct_name) {
+    if (struct_name.size()) {
         Token *t = new Token(TokenType::String, 0,0,0,0);
         char tb[1024];
         tb[0] = '\0';
-        if (namespaces) {
+        if (namespaces.size()) {
             std::vector<std::string>::iterator iter =
-                namespaces->begin();
-            while (iter != namespaces->end()) {
+                namespaces.begin();
+            while (iter != namespaces.end()) {
                 strcat(tb, (*iter).c_str());
                 strcat(tb, ".");
                 ++iter;
             }
         }
-        strcat(tb, (*struct_name).c_str());
+        strcat(tb, struct_name.c_str());
         std::string myns;
         if (getTypeMapEntry(tb, &myns)) {
             t->str_value.append(myns);
@@ -344,10 +304,10 @@ Node *Type::toNode(void)
         std::vector<Node *> *pnodes = new std::vector<Node*>;
 
         std::vector<Type *>::iterator iter =
-            parameter_types->begin();
+            parameter_types.begin();
         char c[] = "a";
 
-        while (iter != parameter_types->end()) {
+        while (iter != parameter_types.end()) {
             std::vector<Node *> *anode = new std::vector<Node*>;
             Token *tnn = new Token(TokenType::String,0,0,0,0);
             tnn->str_value.append(c);
@@ -386,19 +346,19 @@ void Type::toStringProper(std::string *str)
         return;
     }
 
-    if (struct_name) {
+    if (struct_name.size()) {
         char tb[1024];
         tb[0] = '\0';
-        if (namespaces) {
+        if (namespaces.size()) {
             std::vector<std::string>::iterator iter =
-                namespaces->begin();
-            while (iter != namespaces->end()) {
+                namespaces.begin();
+            while (iter != namespaces.end()) {
                 strcat(tb, (*iter).c_str());
                 strcat(tb, ".");
                 ++iter;
             }
         }
-        strcat(tb, (*struct_name).c_str());
+        strcat(tb, struct_name.c_str());
         std::string myns;
         if (getTypeMapEntry(tb, &myns)) {
             str->append(myns);
@@ -448,8 +408,8 @@ void Type::toStringProper(std::string *str)
         str->append(" (");
 
         std::vector<Type *>::iterator iter =
-            parameter_types->begin();
-        while (iter != parameter_types->end()) {
+            parameter_types.begin();
+        while (iter != parameter_types.end()) {
             (*iter)->toStringProper(str);
             ++iter;
         }
@@ -486,28 +446,19 @@ Type *Type::makeCopy(void)
 
     if (is_function) {
         new_type->return_type = return_type->makeCopy();
-
-        std::vector<Type *> *new_types =
-            new std::vector<Type *>;
-
-        std::vector<Type *>::iterator iter;
-
-        iter = parameter_types->begin();
-
-        while (iter != parameter_types->end()) {
-            new_types->push_back((*iter)->makeCopy());
-            iter++;
+        std::vector<Type *>::iterator iter = parameter_types.begin();
+        while (iter != parameter_types.end()) {
+            new_type->parameter_types.push_back((*iter)->makeCopy());
+            ++iter;
         }
-
-        new_type->parameter_types = new_types;
         return new_type;
     }
 
-    if (struct_name) {
-        new_type->struct_name = new std::string(*struct_name);
+    if (struct_name.size()) {
+        new_type->struct_name = struct_name;
     }
-    if (namespaces) {
-        new_type->namespaces = new std::vector<std::string>(*namespaces);
+    if (namespaces.size()) {
+        new_type->namespaces = namespaces;
     }
 
     return new_type;
@@ -619,13 +570,13 @@ void Type::toEncStr(std::string *newstr)
         return;
     }
 
-    if (struct_name) {
+    if (struct_name.size()) {
         newstr->append("Z");
-        if (namespaces && namespaces->size()) {
+        if (namespaces.size()) {
             newstr->append("N");
             std::vector<std::string>::iterator iter;
-            iter = namespaces->begin();
-            while (iter != namespaces->end()) {
+            iter = namespaces.begin();
+            while (iter != namespaces.end()) {
                 int len = (*iter).length();
                 char num[255];
                 sprintf(num, "%d", len);
@@ -635,11 +586,11 @@ void Type::toEncStr(std::string *newstr)
             }
             newstr->append("E");
         }
-        int len = struct_name->length();
+        int len = struct_name.size();
         char num[255];
         sprintf(num, "%d", len);
         newstr->append(num);
-        encodeStandard(struct_name, newstr);
+        encodeStandard(&struct_name, newstr);
         return;
     }
 
@@ -647,8 +598,8 @@ void Type::toEncStr(std::string *newstr)
         newstr->append("F");
         return_type->toEncStr(newstr);
         std::vector<Type *>::iterator iter =
-            parameter_types->begin();
-        while (iter != parameter_types->end()) {
+            parameter_types.begin();
+        while (iter != parameter_types.end()) {
             (*iter)->toEncStr(newstr);
             ++iter;
         }
@@ -778,22 +729,22 @@ bool Type::isFloatingPointType(void)
 
 bool Type::isVarArgs(void)
 {
-    if (parameter_types->size() == 0) {
+    if (parameter_types.size() == 0) {
         return false;
     }
 
-    Type *back = parameter_types->back();
+    Type *back = parameter_types.back();
 
     return (back->base_type == BaseType::VarArgs);
 }
 
 unsigned int Type::numberOfRequiredArgs(void)
 {
-    if (parameter_types->size() == 0) {
+    if (parameter_types.size() == 0) {
         return 0;
     }
 
-    unsigned int num_of_args = parameter_types->size();
+    unsigned int num_of_args = parameter_types.size();
 
     if (isVarArgs()) {
         num_of_args -= 1;

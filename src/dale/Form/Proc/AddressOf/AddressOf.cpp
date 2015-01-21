@@ -169,15 +169,13 @@ FormProcAddressOfParse(Generator *gen,
             type->is_function = 1;
             type->return_type = fn->return_type;
 
-            std::vector<Type *> *parameter_types =
-                new std::vector<Type *>;
-
+            std::vector<Type *> parameter_types;
             std::vector<Variable *>::iterator iter;
 
             iter = fn->parameter_types.begin();
 
             while (iter != fn->parameter_types.end()) {
-                parameter_types->push_back((*iter)->type);
+                parameter_types.push_back((*iter)->type);
                 ++iter;
             }
 

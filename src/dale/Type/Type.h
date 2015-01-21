@@ -15,49 +15,69 @@
 
 namespace dale
 {
-/*
+/*! Type
 
-Will have a series of constructors later, or some other more
-high-level way of making types.
+    A class for storing the details of a type.  (This should probably
+    be an abstract base class with subclasses for each 'type' of
+    type.)
 
-The 'core' type of the variable.  The array size of the variable (if
-it is an array).  The reason for having is_array and array_size is
-that an array size of 0 indicates an array with no predefined size (as
-in LLVM), so it can't be used to indicate 'not an array'.  Linkage
-applies only to 'chief' types.  If this is a pointer, contains the
-type to which it points.
-
+    Putting aside function types, there should generally only be one
+    instance for a given type.  See TypeRegister.
 */
 class Type
 {
 public:
-    int            base_type;
-    int            is_array;
-    int64_t        array_size;
-    Type  *array_type;
-    int            is_function;
-    int            bitfield_size;
-    int            is_const;
-    int            is_reference;
-    std::string    *struct_name;
-    std::vector<std::string> *namespaces;
-    int            is_retval;
+    /*! The base type (see BaseType) of the type. */
+    int base_type;
 
-    Type     *points_to;
+    /*! Whether the type is an array. */
+    bool is_array;
+    /*! The array element type, for an array type. */
+    Type *array_type;
+    /*! The size of the array. */
+    int64_t array_size;
 
-    Type        *return_type;
-    std::vector<Type*> *parameter_types;
+    /*! The size of the bitfield.  If non-zero, implies that the type
+     *  is a bitfield type. */
+    int bitfield_size;
+
+    /*! Whether the type is a constant type. */
+    bool is_const;
+    /*! Whether the type is a reference type. */
+    bool is_reference;
+    /*! Whether the type is a retval type. */
+    bool is_retval;
+
+    /*! For a struct type, the name (unqualified, unmangled) of the
+     *  struct. */
+    std::string struct_name;
+    /*! For a struct type, the namespaces of the struct. */
+    std::vector<std::string> namespaces;
+
+    /*! For a pointer type, the type to which this points. */
+    Type *points_to;
+
+    /*! Whether the type is a function type. */
+    bool is_function;
+    /*! For a function type, the return type. */
+    Type *return_type;
+    /*! For a function type, the parameter types. */
+    std::vector<Type*> parameter_types;
 
     Type();
-    Type(int new_base_type,
-         int new_is_array = 0,
-         int new_array_size = 0);
-    Type(Type *new_points_to,
-         int new_is_array = 0,
-         int new_array_size = 0);
-
+    /*! Construct a new type with the given base type.
+     *  @param base_type The new base type.
+     */
+    Type(int base_type);
+    /*! Construct a new pointer type with the given type.
+     *  @param points_to The type to which the new type will point.
+     */
+    Type(Type *points_to);
     ~Type();
 
+    /*! Reset all fields of the type.
+     */
+    void reset(void);
     bool isEqualTo(Type *other_type,
                   int ignore_arg_constness = 0);
     bool canBeSetFrom(Type *other_type,

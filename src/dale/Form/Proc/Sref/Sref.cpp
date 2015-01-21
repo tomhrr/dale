@@ -87,7 +87,7 @@ FormProcSrefParse(Generator *gen,
 
     int is_const = pr_struct.type->points_to->is_const;
 
-    if (pr_struct.type->points_to->struct_name == NULL) {
+    if (pr_struct.type->points_to->struct_name.size() == 0) {
         std::string temp;
         pr_struct.type->points_to->toStringProper(&temp);
         Error *e = new Error(
@@ -99,7 +99,7 @@ FormProcSrefParse(Generator *gen,
         return false;
     }
 
-    if (ctx->getEnum(pr_struct.type->points_to->struct_name->c_str())) {
+    if (ctx->getEnum(pr_struct.type->points_to->struct_name.c_str())) {
         Error *e = new Error(
             ErrorInst::Generator::IncorrectArgType,
             ((*lst)[1]),
@@ -125,15 +125,15 @@ FormProcSrefParse(Generator *gen,
 
     Struct *structp =
         ctx->getStruct(
-            pr_struct.type->points_to->struct_name->c_str(),
-            pr_struct.type->points_to->namespaces
+            pr_struct.type->points_to->struct_name.c_str(),
+            &(pr_struct.type->points_to->namespaces)
         );
 
     if (!structp) {
         Error *e = new Error(
             ErrorInst::Generator::NotInScope,
             ((*lst)[1]),
-            pr_struct.type->points_to->struct_name->c_str()
+            pr_struct.type->points_to->struct_name.c_str()
         );
         ctx->er->addError(e);
         return false;
@@ -146,7 +146,7 @@ FormProcSrefParse(Generator *gen,
             ErrorInst::Generator::FieldDoesNotExistInStruct,
             ((*lst)[2]),
             t->str_value.c_str(),
-            pr_struct.type->points_to->struct_name->c_str()
+            pr_struct.type->points_to->struct_name.c_str()
         );
         ctx->er->addError(e);
         return false;

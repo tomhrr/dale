@@ -69,11 +69,11 @@ initialise(Context *ctx,
         return true;
     }
 
-    if (type->struct_name) {
+    if (type->struct_name.size()) {
         Struct *sp =
             ctx->getStruct(
-                type->struct_name->c_str(),
-                type->namespaces
+                type->struct_name.c_str(),
+                &(type->namespaces)
             );
         int i = 0;
         std::vector<llvm::Value *> indices;
@@ -358,11 +358,11 @@ FormProcDefParse(Generator *gen,
             ctx->getFunction("init", &init_arg_types, NULL, 0);
 
         /* If it's a struct, check if it's must-init. */
-        if (type->struct_name) {
+        if (type->struct_name.size()) {
             Struct *mine =
                 ctx->getStruct(
-                    type->struct_name->c_str(),
-                    type->namespaces
+                    type->struct_name.c_str(),
+                    &(type->namespaces)
                 );
             if (mine->must_init && (newlist->size() == 3) && !init_fn) {
                 Error *e = new Error(

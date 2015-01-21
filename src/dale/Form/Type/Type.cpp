@@ -388,8 +388,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
 
         Variable *var;
 
-        std::vector<Type *> *parameter_types =
-            new std::vector<Type *>;
+        std::vector<Type *> parameter_types;
 
         std::vector<Node *>::iterator node_iter;
         node_iter = plst->begin();
@@ -432,7 +431,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
                     ctx->er->addError(e);
                     return NULL;
                 }
-                parameter_types->push_back(var->type);
+                parameter_types.push_back(var->type);
                 break;
             }
 
@@ -446,7 +445,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
                 return NULL;
             }
 
-            parameter_types->push_back(var->type);
+            parameter_types.push_back(var->type);
 
             ++node_iter;
         }

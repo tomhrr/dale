@@ -132,12 +132,12 @@ FormProcTokenParse(Generator *gen,
 
     Enum *myenum2;
     if (wanted_type
-            && (wanted_type->struct_name)
+            && (wanted_type->struct_name.size())
             && (myenum2 =
-                    ctx->getEnum(wanted_type->struct_name->c_str()))) {
+                    ctx->getEnum(wanted_type->struct_name.c_str()))) {
 
         Struct *myenumstruct2 =
-            ctx->getStruct(wanted_type->struct_name->c_str());
+            ctx->getStruct(wanted_type->struct_name.c_str());
 
         if (!myenumstruct2) {
             fprintf(stderr,

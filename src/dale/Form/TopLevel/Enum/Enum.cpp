@@ -235,13 +235,13 @@ FormTopLevelEnumParse(Generator *gen, Node *node)
 
     /* Got a struct type - return it. */
     Type *ttt = new Type();
-    ttt->struct_name = new std::string(name);
+    ttt->struct_name = name;
 
     std::vector<std::string> *new_namespaces =
         new std::vector<std::string>;
 
     ctx->setNamespacesForEnum(name, new_namespaces);
-    ttt->namespaces = new_namespaces;
+    ttt->namespaces = *new_namespaces;
 
     int flinkage = (linkage == EnumLinkage::Extern)
                    ? Linkage::Extern
