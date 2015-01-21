@@ -7,9 +7,9 @@ namespace dale
 {
 /*! BaseType
 
-    Contains the base type enums.  Base types are generally primitive
-    types, though there are definitions for Void and VarArgs here as
-    well.
+    Contains the base type enums and a few functions for dealing with
+    them.  Base types are generally primitive types, though there are
+    definitions for Void and VarArgs here as well.
 */
 namespace BaseType
 {
@@ -65,6 +65,26 @@ enum
     IntPtr
 };
 }
+
+/*! Get the signed integer base type for the given size.
+ *  @param size The size of the type in bits.
+ *
+ *  If the size is not one with an associated type, Int is returned.
+ */
+int getSignedIntegerType(int size);
+/*! Get the unsigned integer base type for the given size.
+ *  @param size The size of the type in bits.
+ *
+ *  If the size is not one with an associated type, UInt is returned.
+ */
+int getUnsignedIntegerType(int size);
+/*! Get the base type as a string.
+ *  @param base_type The base type.
+ *
+ *  If the base type is invalid, the string "[unknown]" will be
+ *  returned.
+ */
+const char *baseTypeToString(int base_type);
 }
 
 #endif

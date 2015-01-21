@@ -28,9 +28,6 @@ applies only to 'chief' types.  If this is a pointer, contains the
 type to which it points.
 
 */
-int getSignedIntegerType(int size);
-int getUnsignedIntegerType(int size);
-
 class Type
 {
 public:
@@ -81,8 +78,6 @@ public:
     unsigned int numberOfRequiredArgs(void);
     Node *toNode(void);
 };
-
-const char *baseTypeToString(int base_type);
 }
 
 #endif
