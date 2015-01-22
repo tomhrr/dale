@@ -52,7 +52,7 @@ Type::reset(void)
 /* pretty horrid, will tidy up later - linkage is not taken
  * into account when doing comparisons */
 bool Type::isEqualTo(Type *other_type,
-                     int ignore_arg_constness)
+                     bool ignore_arg_constness)
 {
     if (DEBUG)  printf("Called type::isEqualTo\n");
 
@@ -464,20 +464,20 @@ Type *Type::makeCopy(void)
     return new_type;
 }
 
-void Type::toEncStr(std::string *newstr)
+void Type::toSymbolString(std::string *to)
 {
     if (points_to) {
-        newstr->append("P");
-        points_to->toEncStr(newstr);
+        to->append("P");
+        points_to->toSymbolString(to);
         return;
     }
 
     if (is_array) {
-        newstr->append("A");
+        to->append("A");
         char buf[100];
         sprintf(buf, "%d", (int) array_size);
-        newstr->append(buf);
-        array_type->toEncStr(newstr);
+        to->append(buf);
+        array_type->toSymbolString(to);
         return;
     }
 
@@ -566,44 +566,44 @@ void Type::toEncStr(std::string *newstr)
         char buf[2];
         buf[0] = c;
         buf[1] = 0;
-        newstr->append(buf);
+        to->append(buf);
         return;
     }
 
     if (struct_name.size()) {
-        newstr->append("Z");
+        to->append("Z");
         if (namespaces.size()) {
-            newstr->append("N");
+            to->append("N");
             std::vector<std::string>::iterator iter;
             iter = namespaces.begin();
             while (iter != namespaces.end()) {
                 int len = (*iter).length();
                 char num[255];
                 sprintf(num, "%d", len);
-                newstr->append(num);
-                newstr->append((*iter));
+                to->append(num);
+                to->append((*iter));
                 ++iter;
             }
-            newstr->append("E");
+            to->append("E");
         }
         int len = struct_name.size();
         char num[255];
         sprintf(num, "%d", len);
-        newstr->append(num);
-        encodeStandard(&struct_name, newstr);
+        to->append(num);
+        encodeStandard(&struct_name, to);
         return;
     }
 
     if (is_function) {
-        newstr->append("F");
-        return_type->toEncStr(newstr);
+        to->append("F");
+        return_type->toSymbolString(to);
         std::vector<Type *>::iterator iter =
             parameter_types.begin();
         while (iter != parameter_types.end()) {
-            (*iter)->toEncStr(newstr);
+            (*iter)->toSymbolString(to);
             ++iter;
         }
-        newstr->append("E");
+        to->append("E");
         return;
     }
 

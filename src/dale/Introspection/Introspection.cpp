@@ -658,7 +658,7 @@ extern "C" {
         }
 
         std::string temp;
-        type->toEncStr(&temp);
+        type->toSymbolString(&temp);
         if (temp.size() > 255) {
             fprintf(stderr, "Internal error: encoded type "
                     "string is too long (>255 "

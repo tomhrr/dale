@@ -78,14 +78,49 @@ public:
     /*! Reset all fields of the type.
      */
     void reset(void);
+    /*! Check whether a type is equal to another type.
+     *  @param other type The other type.
+     *  @param ignore_arg_constness
+     *
+     *  ignore_arg_constness defaults to false.  If it is true, then
+     *  the fact that the current type is not const while the
+     *  other_type is will not cause the types to be considered
+     *  unequal.
+     */
     bool isEqualTo(Type *other_type,
-                  int ignore_arg_constness = 0);
+                   bool ignore_arg_constness = false);
+    /*! Check whether a variable with this type can be set based on a
+     *  value of another type.
+     *  @param other type The other type.
+     *  @param ignore_arg_constness
+     *
+     *  ignore_arg_constness has the same semantics as in isEqualTo,
+     *  except that it defaults to true.
+     */
     bool canBeSetFrom(Type *other_type,
                       bool ignore_arg_constness = true);
+    /*! Check whether a parameter with this type can be set based on a
+     *  value of another type.
+     *  @param other type The other type.
+     *  @param ignore_arg_constness
+     *
+     *  ignore_arg_constness has the same semantics as in
+     *  canBeSetFrom.
+     */
     bool canBePassedFrom(Type *other_type,
                          bool ignore_arg_constness = true);
-    void toEncStr(std::string *newstr);
+    /*! Convert a type into a symbol string.
+     *  @param to The buffer for the symbol string.
+     *
+     *  Type symbol strings are used mainly for function name
+     *  mangling.  See Namespace.
+     */
+    void toSymbolString(std::string *to);
 
+    /*! Make a deep copy of the type.
+     *
+     *  TypeRegister should be the only client for this method.
+     */
     Type *makeCopy(void);
 
     bool isIntegerType(void);

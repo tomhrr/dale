@@ -595,7 +595,7 @@ Namespace::functionNameToSymbol(const char *name,
             e = types->end();
             b != e;
             ++b) {
-        (*b)->type->toEncStr(new_name);
+        (*b)->type->toSymbolString(new_name);
     }
 
     return;
