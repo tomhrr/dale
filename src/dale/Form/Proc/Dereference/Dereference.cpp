@@ -40,7 +40,7 @@ FormProcDereferenceParse(Generator *gen,
 
     if (!(p.type->points_to)) {
         std::string temp;
-        p.type->toStringProper(&temp);
+        p.type->toString(&temp);
         Error *e = new Error(
             ErrorInst::Generator::CannotDereferenceNonPointer,
             node,

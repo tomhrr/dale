@@ -1229,7 +1229,7 @@ bool Generator::destructIfApplicable(ParseResult *pr,
 
     if (DALE_DEBUG) {
         std::string mytype;
-        pr->type->toStringProper(&mytype);
+        pr->type->toString(&mytype);
         if (mytype.size() == 0) {
             fprintf(stderr, "Internal error: trying to destroy "
                     "ParseResult, but the type is empty.");
@@ -1400,7 +1400,7 @@ bool Generator::destructIfApplicable(ParseResult *pr,
                 ParseResult element;
                 ParseResult mnew;
                 std::string ts;
-                (*b)->toStringProper(&ts);
+                (*b)->toString(&ts);
                 element.set(pr->block, *b, actual_value);
                 std::vector<llvm::Value *> indices;
                 stl::push_back2(&indices,
@@ -1698,8 +1698,8 @@ bool Generator::parseFuncallInternal(
             if (!new_val) {
                 std::string twant;
                 std::string tgot;
-                (*param_iter)->toStringProper(&twant);
-                p.type->toStringProper(&tgot);
+                (*param_iter)->toString(&twant);
+                p.type->toString(&tgot);
                 char buf[100];
                 sprintf(buf, "%d", arg_count);
 
@@ -2567,7 +2567,7 @@ bool Generator::parseFunctionCall(Function *dfn,
             std::string expected_args;
             std::string provided_args;
             while (miter != myarg_types.end()) {
-                (*miter)->type->toStringProper(&expected_args);
+                (*miter)->type->toString(&expected_args);
                 expected_args.append(" ");
                 ++miter;
             }
@@ -2577,7 +2577,7 @@ bool Generator::parseFunctionCall(Function *dfn,
                 expected_args.erase(expected_args.size() - 1, 1);
             }
             while (caiter != call_arg_types.end()) {
-                (*caiter)->toStringProper(&provided_args);
+                (*caiter)->toString(&provided_args);
                 provided_args.append(" ");
                 ++caiter;
             }
@@ -2696,7 +2696,7 @@ bool Generator::parseFunctionCall(Function *dfn,
 
             std::string args;
             while (titer != call_arg_types.end()) {
-                (*titer)->toStringProper(&args);
+                (*titer)->toString(&args);
                 ++titer;
                 if (titer != call_arg_types.end()) {
                     args.append(" ");
@@ -2711,7 +2711,7 @@ bool Generator::parseFunctionCall(Function *dfn,
                     ++viter;
                 }
                 while (viter != closest_fn->parameter_types.end()) {
-                    (*viter)->type->toStringProper(&expected);
+                    (*viter)->type->toString(&expected);
                     expected.append(" ");
                     ++viter;
                 }

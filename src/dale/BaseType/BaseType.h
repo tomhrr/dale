@@ -85,6 +85,48 @@ int getUnsignedIntegerType(int size);
  *  returned.
  */
 const char *baseTypeToString(int base_type);
+/*! Get the base type as a symbol character.
+ *  @param base_type The base type.
+ *
+ *  If the base type is invalid, the character '?' will be returned.
+ */
+char baseTypeToSymbolChar(int base_type);
+/*! Check whether the base type is an integer type.
+ *  @param base_type The base type.
+ *
+ *  The core integer types (Int and UInt), their
+ *  specifically-sized variations, Char, IntPtr, Size and PtrDiff
+ *  are considered integer types.
+ */
+bool baseTypeIsIntegerType(int base_type);
+/*! Check whether the base type is a signed integer type.
+ *  @param base_type The base type.
+ *
+ *  Int, its specifically-sized variations and Char
+ *  are considered signed integer types.
+ */
+bool baseTypeIsSignedIntegerType(int base_type);
+/*! Check whether the base type is a floating point type.
+ *  @param base_type The base type.
+ */
+bool baseTypeIsFloatingPointType(int base_type);
+/*! Get the size (in bits) of a base integer type.
+ *  @param base_type The base type.
+ *
+ *  If the result is 1, then the size is the platform's native integer
+ *  size.  If the result is 2, then the size is the platform's native
+ *  pointer size.  If the result is 3, then the size is that of
+ *  size_t.  If the result is 4, then the size is that of ptrdiff_t.
+ *  Otherwise, the result is the number of bits required by the type.
+ */
+int integerTypeToSize(int base_type);
+/*! Get the relative size of a base floating point type.
+ *  @param base_type The base type.
+ *
+ *  The possible results are 1, 2 and 3, which denote Float, Double
+ *  and LongDouble respectively.
+ */
+int floatingPointTypeToRelativeSize(int base_type);
 }
 
 #endif

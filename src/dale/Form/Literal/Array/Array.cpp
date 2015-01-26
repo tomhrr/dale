@@ -55,8 +55,8 @@ FormLiteralArrayParse(Generator *gen,
         if (!el->type->isEqualTo(array_type->array_type)) {
             std::string exptype;
             std::string gottype;
-            array_type->array_type->toStringProper(&exptype);
-            el->type->toStringProper(&gottype);
+            array_type->array_type->toString(&exptype);
+            el->type->toString(&gottype);
 
             Error *e = new Error(
                 ErrorInst::Generator::IncorrectType,

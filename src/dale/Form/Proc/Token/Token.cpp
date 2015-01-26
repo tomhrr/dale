@@ -97,7 +97,7 @@ parseStringLiteral(Generator *gen,
     }
 
     std::string temp;
-    type->toStringProper(&temp);
+    type->toString(&temp);
     Error *e = new Error(
         ErrorInst::Generator::CannotParseLiteral,
         top,

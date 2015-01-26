@@ -40,7 +40,7 @@ FormProcFuncallParse(Generator *gen,
     if (!fn_ptr.type->points_to
             || !fn_ptr.type->points_to->is_function) {
         std::string temp;
-        fn_ptr.type->toStringProper(&temp);
+        fn_ptr.type->toString(&temp);
         Error *e = new Error(
             ErrorInst::Generator::IncorrectArgType,
             ((*lst)[1]),

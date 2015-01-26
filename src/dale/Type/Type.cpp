@@ -49,43 +49,16 @@ Type::reset(void)
     is_retval       = false;
 }
 
-/* pretty horrid, will tidy up later - linkage is not taken
- * into account when doing comparisons */
 bool Type::isEqualTo(Type *other_type,
                      bool ignore_arg_constness)
 {
-    if (DEBUG)  printf("Called type::isEqualTo\n");
-
-    /* Base type checking. */
-
     if (base_type != other_type->base_type) {
-        if (DEBUG)  printf("Base types don't compare: %d, %d\n",
-                               base_type, other_type->base_type);
         return false;
-    } else {
-        if (DEBUG)  printf("Base types are fine: %d, %d\n",
-                               base_type, other_type->base_type);
     }
 
     if (is_const != other_type->is_const) {
-        if (ignore_arg_constness && !is_const && other_type->is_const) {
-            if (DEBUG) {
-                printf("Constness does not match, but it "
-                       "is OK (arg is const, self is not): "
-                       "%d, %d\n",
-                       is_const, other_type->is_const);
-            }
-        } else {
-            if (DEBUG) {
-                printf("Constness does not match: %d, %d\n",
-                       is_const, other_type->is_const);
-            }
+        if (!(ignore_arg_constness && !is_const && other_type->is_const)) {
             return false;
-        }
-    } else {
-        if (DEBUG) {
-            printf("Constness is fine: %d, %d\n",
-                   is_const, other_type->is_const);
         }
     }
 
@@ -326,12 +299,12 @@ Node *Type::toNode(void)
     return NULL;
 }
 
-void Type::toStringProper(std::string *str)
+void Type::toString(std::string *str)
 {
     if (is_const) {
         str->append("(const ");
         is_const = 0;
-        toStringProper(str);
+        toString(str);
         str->append(")");
         is_const = 1;
         return;
@@ -340,7 +313,7 @@ void Type::toStringProper(std::string *str)
     if (is_reference) {
         str->append("(ref ");
         is_reference = 0;
-        toStringProper(str);
+        toString(str);
         str->append(")");
         is_reference = 1;
         return;
@@ -386,7 +359,7 @@ void Type::toStringProper(std::string *str)
 
     if (points_to) {
         str->append("(p ");
-        points_to->toStringProper(str);
+        points_to->toString(str);
         str->append(")");
         return;
     }
@@ -397,20 +370,20 @@ void Type::toStringProper(std::string *str)
         sprintf(buf, "%d", (int) array_size);
         str->append(buf);
         str->append(" ");
-        array_type->toStringProper(str);
+        array_type->toString(str);
         str->append(")");
         return;
     }
 
     if (is_function) {
         str->append("(fn ");
-        return_type->toStringProper(str);
+        return_type->toString(str);
         str->append(" (");
 
         std::vector<Type *>::iterator iter =
             parameter_types.begin();
         while (iter != parameter_types.end()) {
-            (*iter)->toStringProper(str);
+            (*iter)->toString(str);
             ++iter;
         }
 
@@ -482,91 +455,12 @@ void Type::toSymbolString(std::string *to)
     }
 
     if (base_type) {
-        char c = '?';
-        switch (base_type) {
-        case BaseType::Null:
-            if (DEBUG)  printf("ERROR: base "
-                                   "type is null, cannot encode\n");
-            break;
-        case BaseType::Void:
-            c = 'v';
-            break;
-        case BaseType::Bool:
-            c = 'b';
-            break;
-        case BaseType::Char:
-            c = 'c';
-            break;
-        case BaseType::Int:
-            c = 'i';
-            break;
-        case BaseType::VarArgs:
-            c = 'z';
-            break;
-        case BaseType::UInt:
-            c = 'j';
-            break;
-        case BaseType::IntPtr:
-            c = 'l';
-            break;
-        case BaseType::Int8:
-            c = 'y';
-            break;
-        case BaseType::UInt8:
-            c = 'm';
-            break;
-
-        case BaseType::Int16:
-            c = 'n';
-            break;
-        case BaseType::UInt16:
-            c = 'o';
-            break;
-        case BaseType::Int32:
-            c = 'p';
-            break;
-        case BaseType::UInt32:
-            c = 'q';
-            break;
-        case BaseType::Int64:
-            c = 'r';
-            break;
-        case BaseType::UInt64:
-            c = 's';
-            break;
-        case BaseType::Int128:
-            c = 't';
-            break;
-        case BaseType::UInt128:
-            c = 'u';
-            break;
-        case BaseType::Float:
-            c = 'f';
-            break;
-        case BaseType::Double:
-            c = 'd';
-            break;
-        case BaseType::LongDouble:
-            c = 'a';
-            break;
-        case BaseType::Size:
-            c = 'w';
-            break;
-        case BaseType::PtrDiff:
-            c = 'x';
-            break;
-        default:
-            if (DEBUG)  printf("ERROR: don't understand "
-                                   "base_type (%d)\n",
-                                   base_type);
-        }
+        char c = baseTypeToSymbolChar(base_type);
         if (c == '?') {
-            return;
+            fprintf(stderr, "Invalid base type (%d).\n", base_type);
+            abort();
         }
-        char buf[2];
-        buf[0] = c;
-        buf[1] = 0;
-        to->append(buf);
+        to->push_back(c);
         return;
     }
 
@@ -612,119 +506,30 @@ void Type::toSymbolString(std::string *to)
 
 bool Type::isIntegerType(void)
 {
-    return (   base_type == BaseType::Int
-               || base_type == BaseType::Char
-               || base_type == BaseType::UInt
-               || base_type == BaseType::IntPtr
-               || base_type == BaseType::Size
-               || base_type == BaseType::PtrDiff
-               || base_type == BaseType::Int8
-               || base_type == BaseType::UInt8
-               || base_type == BaseType::Int16
-               || base_type == BaseType::UInt16
-               || base_type == BaseType::Int32
-               || base_type == BaseType::UInt32
-               || base_type == BaseType::Int64
-               || base_type == BaseType::UInt64
-               || base_type == BaseType::Int128
-               || base_type == BaseType::UInt128);
+    return baseTypeIsIntegerType(base_type);
 }
 
 bool Type::isSignedIntegerType(void)
 {
-    return (   base_type == BaseType::Int
-               || base_type == BaseType::Char
-               || base_type == BaseType::Int8
-               || base_type == BaseType::Int16
-               || base_type == BaseType::Int32
-               || base_type == BaseType::Int64
-               || base_type == BaseType::Int128);
+    return baseTypeIsSignedIntegerType(base_type);
 }
-
-/* 1 == getNativeIntegerSize */
-/* 2 == getNativePointerSize */
-/* char should be 3 and should use whatever the platform's
- * char size is as well */
 
 int Type::getIntegerSize(void)
 {
-    int size;
-
-    /* ugh. */
     if (bitfield_size) {
         return 1000 + bitfield_size;
     }
-
-    switch (base_type) {
-    case BaseType::Char:
-        size = 8;
-        break;
-    case BaseType::Int:
-    case BaseType::UInt:
-        size = 1;
-        break;
-    case BaseType::IntPtr:
-        size = 2;
-        break;
-    case BaseType::Size:
-        size = 3;
-        break;
-    case BaseType::PtrDiff:
-        size = 4;
-        break;
-    case BaseType::Int8:
-    case BaseType::UInt8:
-        size = 8;
-        break;
-    case BaseType::Int16:
-    case BaseType::UInt16:
-        size = 16;
-        break;
-    case BaseType::Int32:
-    case BaseType::UInt32:
-        size = 32;
-        break;
-    case BaseType::Int64:
-    case BaseType::UInt64:
-        size = 64;
-        break;
-    case BaseType::Int128:
-    case BaseType::UInt128:
-        size = 128;
-        break;
-    default:
-        size = 0;
-    }
-
-    return size;
+    return integerTypeToSize(base_type);
 }
 
-int Type::getFPRelativeSize(void)
+int Type::getFloatingPointRelativeSize(void)
 {
-    int size;
-
-    switch (base_type) {
-    case BaseType::Float:
-        size = 1;
-        break;
-    case BaseType::Double:
-        size = 2;
-        break;
-    case BaseType::LongDouble:
-        size = 3;
-        break;
-    default:
-        size = 0;
-    }
-
-    return size;
+    return floatingPointTypeToRelativeSize(base_type);
 }
 
 bool Type::isFloatingPointType(void)
 {
-    return (   base_type == BaseType::Float
-               || base_type == BaseType::Double
-               || base_type == BaseType::LongDouble);
+    return baseTypeIsFloatingPointType(base_type);
 }
 
 bool Type::isVarArgs(void)
@@ -738,7 +543,7 @@ bool Type::isVarArgs(void)
     return (back->base_type == BaseType::VarArgs);
 }
 
-unsigned int Type::numberOfRequiredArgs(void)
+int Type::numberOfRequiredArgs(void)
 {
     if (parameter_types.size() == 0) {
         return 0;

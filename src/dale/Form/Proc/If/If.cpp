@@ -37,7 +37,7 @@ FormProcIfParse(Generator *gen,
 
     if (pr_cond.type->base_type != BaseType::Bool) {
         std::string temp;
-        pr->type->toStringProper(&temp);
+        pr->type->toString(&temp);
         Error *e = new Error(
             ErrorInst::Generator::IncorrectArgType,
             ((*lst)[1]),
@@ -164,8 +164,8 @@ FormProcIfParse(Generator *gen,
     if (!pr_then.type->isEqualTo(pr_else.type)) {
         std::string sthen;
         std::string selse;
-        pr_then.type->toStringProper(&sthen);
-        pr_else.type->toStringProper(&selse);
+        pr_then.type->toString(&sthen);
+        pr_else.type->toString(&selse);
         Error *e = new Error(
             ErrorInst::Generator::IfBranchesHaveDifferentTypes,
             node,

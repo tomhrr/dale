@@ -37,7 +37,7 @@ FormProcArefParse(Generator *gen,
 
     if (!(pr_array.type->points_to)) {
         std::string temp;
-        pr_array.type->toStringProper(&temp);
+        pr_array.type->toString(&temp);
         Error *e = new Error(
             ErrorInst::Generator::IncorrectArgType,
             ((*lst)[1]),
@@ -72,7 +72,7 @@ FormProcArefParse(Generator *gen,
         
         if (!res) {
             std::string temp;
-            pr_index.type->toStringProper(&temp);
+            pr_index.type->toString(&temp);
             Error *e = new Error(
                 ErrorInst::Generator::IncorrectArgType,
                 ((*lst)[2]),
@@ -128,7 +128,7 @@ FormProcArefParse(Generator *gen,
             );
         } else {
             std::string typestr;
-            pr_array.type->toStringProper(&typestr);
+            pr_array.type->toString(&typestr);
             Error *e = new Error(
                 ErrorInst::Generator::CanOnlyIndexIntoPointersAndArrays,
                 node,

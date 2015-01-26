@@ -114,7 +114,7 @@ bool ErrorReporter::assertIsIntegerType(const char *form_name,
     }
 
     std::string temp;
-    type->toStringProper(&temp);
+    type->toString(&temp);
     Error *e = new Error(
         ErrorInst::Generator::IncorrectArgType,
         n,
@@ -134,7 +134,7 @@ bool ErrorReporter::assertIsPointerOrIntegerType(const char *form_name,
     }
 
     std::string temp;
-    type->toStringProper(&temp);
+    type->toString(&temp);
     Error *e = new Error(
         ErrorInst::Generator::IncorrectArgType,
         n,
@@ -154,7 +154,7 @@ bool ErrorReporter::assertIsPointerType(const char *form_name,
     }
 
     std::string temp;
-    type->toStringProper(&temp);
+    type->toString(&temp);
     Error *e = new Error(
         ErrorInst::Generator::IncorrectArgType,
         n,
@@ -176,8 +176,8 @@ bool ErrorReporter::assertTypeEquality(const char *form_name,
 
     std::string got_str;
     std::string exp_str;
-    got->toStringProper(&got_str);
-    expected->toStringProper(&exp_str);
+    got->toString(&got_str);
+    expected->toString(&exp_str);
 
     Error *e = new Error(
         ((!strcmp(form_name, "return"))

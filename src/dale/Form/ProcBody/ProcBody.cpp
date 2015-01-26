@@ -69,7 +69,7 @@ FormProcBodyParse(Generator *gen,
              * Function can be anything (to support
              * overloading). */
             std::string mtype;
-            myvar->type->toStringProper(&mtype);
+            myvar->type->toString(&mtype);
             myvar->type =
                 ctx->tr->getPointerType(
                     ctx->tr->getStructType("DNode")
@@ -407,9 +407,9 @@ FormProcBodyParse(Generator *gen,
 
                     if (!dfn->return_type->isEqualTo(got_type)) {
                         std::string gotstr;
-                        got_type->toStringProper(&gotstr);
+                        got_type->toString(&gotstr);
                         std::string expstr;
-                        dfn->return_type->toStringProper(&expstr);
+                        dfn->return_type->toString(&expstr);
                         Error *e = new Error(
                             ErrorInst::Generator::IncorrectReturnType,
                             last_position,

@@ -121,7 +121,7 @@ FormProcAddressOfParse(Generator *gen,
 
                 std::string args;
                 while (titer != types.end()) {
-                    (*titer)->toStringProper(&args);
+                    (*titer)->toString(&args);
                     ++titer;
                     if (titer != types.end()) {
                         args.append(" ");
@@ -137,7 +137,7 @@ FormProcAddressOfParse(Generator *gen,
                             ++viter;
                         }
                         while (viter != closest_fn->parameter_types.end()) {
-                            (*viter)->type->toStringProper(&expected);
+                            (*viter)->type->toString(&expected);
                             expected.append(" ");
                             ++viter;
                         }

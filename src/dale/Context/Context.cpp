@@ -1190,7 +1190,7 @@ Context::toLLVMType_(Type *type,
     }
 
     std::string type_str;
-    type->toStringProper(&type_str);
+    type->toString(&type_str);
     Error *e = new Error(
         ErrorInst::Generator::UnableToConvertTypeToLLVMType,
         (n ? n : nullNode()),
@@ -1250,7 +1250,7 @@ Context::toLLVMType(Type *type,
             return llvm_type;
         }
         std::string temp;
-        type->toStringProper(&temp);
+        type->toString(&temp);
         Error *e = new Error(
             ErrorInst::Generator::TypeIsNotFirstClass,
             (n ? n : nullNode()),

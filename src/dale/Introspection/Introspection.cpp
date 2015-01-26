@@ -444,7 +444,7 @@ extern "C" {
                 g->ctx->er->popErrors(original_error_count);
                 return 0;
             }
-            ptype->toStringProper(&map_key);
+            ptype->toString(&map_key);
             parameter_types.push_back(ptype);
             ++iter;
             ++c;
@@ -526,7 +526,7 @@ extern "C" {
                 g->ctx->er->popErrors(original_error_count);
                 return NULL;
             }
-            ptype->toStringProper(&map_key);
+            ptype->toString(&map_key);
             ++iter;
         }
 
@@ -684,7 +684,7 @@ extern "C" {
         }
 
         std::string temp;
-        type->toStringProper(&temp);
+        type->toString(&temp);
         std::copy(temp.begin(), temp.end(), buf);
         buf[temp.size()] = '\0';
 

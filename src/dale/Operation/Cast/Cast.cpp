@@ -37,8 +37,8 @@ bool execute(Context *ctx,
 
     if (from_type->isFloatingPointType()
             && to_type->isFloatingPointType()) {
-        int a = from_type->getFPRelativeSize();
-        int b = to_type->getFPRelativeSize();
+        int a = from_type->getFloatingPointRelativeSize();
+        int b = to_type->getFloatingPointRelativeSize();
         if (a < b) {
             /* Target floating point is larger. */
             res = builder.CreateFPExt(value, llvm_to_type);
@@ -201,8 +201,8 @@ bool execute(Context *ctx,
     } else {
         std::string fts;
         std::string tts;
-        from_type->toStringProper(&fts);
-        to_type->toStringProper(&tts);
+        from_type->toString(&fts);
+        to_type->toString(&tts);
 
         Error *e = new Error(
             ErrorInst::Generator::InvalidCast,

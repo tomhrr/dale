@@ -109,13 +109,26 @@ public:
      */
     bool canBePassedFrom(Type *other_type,
                          bool ignore_arg_constness = true);
-    /*! Convert a type into a symbol string.
+    /*! Get the symbol string for a type.
      *  @param to The buffer for the symbol string.
      *
      *  Type symbol strings are used mainly for function name
      *  mangling.  See Namespace.
      */
     void toSymbolString(std::string *to);
+    /*! Get the display string for a type.
+     *  @param to The buffer for the string.
+     *
+     *  The display string is a string that will parse as the given
+     *  type.
+     */
+    void toString(std::string *to);
+    /*! Get a node for a type.
+     *
+     *  As with toString, the result will parse as the given type.
+     *  Ownership of the node passes to the caller.
+     */
+    Node *toNode(void);
 
     /*! Make a deep copy of the type.
      *
@@ -123,15 +136,31 @@ public:
      */
     Type *makeCopy(void);
 
+    /*! Check whether this type is an integer type.
+     */
     bool isIntegerType(void);
+    /*! Check whether this type is a signed integer type.
+     */
     bool isSignedIntegerType(void);
+    /*! Get the size of this integer type.
+     *
+     *  See BaseType::integerTypeToSize.
+     */
     int getIntegerSize(void);
-    int getFPRelativeSize(void);
+    /*! Check whether this type is a floating point type.
+     */
     bool isFloatingPointType(void);
-    void toStringProper(std::string *str);
+    /*! Get the relative size of this floating point type.
+     *
+     *  See BaseType::floatingPointTypeToRelativeSize.
+     */
+    int getFloatingPointRelativeSize(void);
+    /*! Check whether this type is the VarArgs type.
+     */
     bool isVarArgs(void);
-    unsigned int numberOfRequiredArgs(void);
-    Node *toNode(void);
+    /*! Get the number of arguments required by this function type.
+     */
+    int numberOfRequiredArgs(void);
 };
 }
 

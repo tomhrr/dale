@@ -125,8 +125,8 @@ FormLiteralStructParse(Generator *gen,
             } else {
                 std::string expstr;
                 std::string gotstr;
-                nametype->toStringProper(&expstr);
-                newvalue.type->toStringProper(&gotstr);
+                nametype->toString(&expstr);
+                newvalue.type->toString(&gotstr);
                 Error *e = new Error(
                     ErrorInst::Generator::IncorrectType,
                     name,

@@ -89,7 +89,7 @@ FormProcSrefParse(Generator *gen,
 
     if (pr_struct.type->points_to->struct_name.size() == 0) {
         std::string temp;
-        pr_struct.type->points_to->toStringProper(&temp);
+        pr_struct.type->points_to->toString(&temp);
         Error *e = new Error(
             ErrorInst::Generator::IncorrectArgType,
             ((*lst)[1]),

@@ -31,7 +31,7 @@ parseLiteralElement(Generator *gen,
     TypeRegister *tr = ctx->tr;
 
     std::string t;
-    type->toStringProper(&t);
+    type->toString(&t);
 
     if (type->base_type == BaseType::Bool) {
         llvm::APInt myint(1,
@@ -378,8 +378,8 @@ parseLiteral(Generator *gen,
             if (!(type->points_to->isEqualTo(gv->type))) {
                 std::string want;
                 std::string got;
-                gv->type->toStringProper(&got);
-                type->toStringProper(&want);
+                gv->type->toString(&got);
+                type->toString(&want);
                 Error *e = new Error(
                     ErrorInst::Generator::IncorrectType,
                     top,
@@ -396,7 +396,7 @@ parseLiteral(Generator *gen,
     }
 
     std::string str;
-    type->toStringProper(&str);
+    type->toString(&str);
 
     // Create an empty no-argument function that returns the
     // specified type.
@@ -623,7 +623,7 @@ parseLiteral(Generator *gen,
     }
 
     std::string temp2;
-    type->toStringProper(&temp2);
+    type->toString(&temp2);
     Error *e = new Error(
         ErrorInst::Generator::CannotParseLiteral,
         top,
