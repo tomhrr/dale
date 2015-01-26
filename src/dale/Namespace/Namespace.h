@@ -32,6 +32,10 @@ namespace dale
     A single namespace does not have any knowledge of its
     sub-namespaces; the tree of namespaces as a whole is managed by
     the Context class.
+
+    Adding a binding to a namespace transfers ownership of the binding
+    to the namespace.  Merging a namespace N into a namespace M
+    transfers ownership of all of N's bindings to M.
 */
 
 class Namespace
@@ -86,7 +90,10 @@ public:
      *  @param er The error reporter.
      *  @param name The namespace name.
      *  @param parent_namespace The parent namespace object. May be NULL.
-     *  @param lv_index The initial label-variable index for this namespace. */
+     *  @param lv_index The initial label-variable index for this namespace.
+     *
+     *  This does not take ownership of any of its pointer arguments.
+     */
     Namespace(ErrorReporter *er,
               TypeRegister *tr,
               std::string name,

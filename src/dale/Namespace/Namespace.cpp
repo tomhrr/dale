@@ -37,7 +37,7 @@ Namespace::Namespace(ErrorReporter *er,
             pns = pns->parent_namespace;
         }
         char num[5];
-        for (std::vector<std::string>::reverse_iterator 
+        for (std::vector<std::string>::reverse_iterator
                 b = names.rbegin(),
                 e = names.rend();
                 b != e;
@@ -53,7 +53,7 @@ Namespace::Namespace(ErrorReporter *er,
 
 Namespace::~Namespace(void)
 {
-    for (std::map<std::string, std::vector<Function*>*>::iterator 
+    for (std::map<std::string, std::vector<Function*>*>::iterator
             b = functions.begin(),
             e = functions.end();
             b != e;
@@ -122,21 +122,23 @@ Namespace::addFunction(const char *name,
     while (fn_iter != iter->second->end()) {
         Function *fn = (*fn_iter);
         if (fn->is_macro == function->is_macro) {
-            int is_equal = function->isEqualTo(fn); 
+            int is_equal = function->isEqualTo(fn);
             if (fn == function) {
                 functions_ordered.push_back(function);
                 return true;
-            } else if (is_equal && (fn->isDeclaration())) {
-                iter->second->erase(fn_iter);
-                fn_iter = iter->second->begin();
-            } else if (is_equal && (!fn->isDeclaration())) {
-                functions_ordered.push_back(function);
-                return true;
+            } else if (is_equal) {
+                if (fn->isDeclaration()) {
+                    iter->second->erase(fn_iter);
+                    fn_iter = iter->second->begin();
+                } else {
+                    functions_ordered.push_back(function);
+                    return true;
+                }
             } else {
                 ++fn_iter;
             }
         } else {
-            std::vector<Variable *>::iterator 
+            std::vector<Variable *>::iterator
                 fn_pt_begin       = fn->parameter_types.begin(),
                 fn_pt_end         = fn->parameter_types.end(),
                 function_pt_begin = function->parameter_types.begin(),
@@ -154,7 +156,7 @@ Namespace::addFunction(const char *name,
                     ((fn->is_macro)
                         ? ErrorInst::Generator::FunctionHasSameParamsAsMacro
                         : ErrorInst::Generator::MacroHasSameParamsAsFunction),
-                    (n ? n : nullNode()), 
+                    (n ? n : nullNode()),
                     name
                 );
                 er->addError(e);
@@ -170,7 +172,7 @@ Namespace::addFunction(const char *name,
     return true;
 }
 
-bool 
+bool
 Namespace::addVariable(const char *name,
                        Variable *variable)
 {
@@ -210,11 +212,11 @@ Namespace::addStruct(const char *name,
         return true;
     } else {
         return false;
-    } 
+    }
 }
 
 bool
-Namespace::addEnum(const char *name, 
+Namespace::addEnum(const char *name,
                    Enum *element_enum)
 {
     std::map<std::string, Enum *>::iterator iter;
@@ -277,16 +279,14 @@ Namespace::getFunction(const char *name,
     }
 
     /* If types are provided, is_macro is only taken into account if
-     * it is true. This is because you may want to get only the macros
-     * at a given point (the top-level), but there is no point at
-     * which you want prospective functions sans macros. */
+     * it is true.  This is because you may want to get only the
+     * macros at a given point (the top-level), but there is no point
+     * at which you want prospective functions only. */
 
-    // Get an iterator over the function list.
     std::vector<Function *>::iterator fn_iter;
     std::vector<Type *>::iterator arg_type_iter;
     std::vector<Variable *>::iterator fn_arg_type_iter;
 
-    // Get an iterator over the types.
     fn_iter = function_list->begin();
 
     Function *best_va_fn = NULL;
@@ -296,61 +296,49 @@ Namespace::getFunction(const char *name,
     Function *closest_fn = NULL;
     int best_closest_count = -1;
 
-    // For each function:
     while (fn_iter != function_list->end()) {
-        /* If the function is not a macro, but is_macro is
-         * set, then skip it. */
-        if (is_macro && !((*fn_iter)->is_macro)) {
+        Function *current = (*fn_iter);
+        if (is_macro && !current->is_macro) {
             ++fn_iter;
             continue;
         }
 
-        // Iterate over the function's arg types and the
-        // provided types.
-        fn_arg_type_iter = (*fn_iter)->parameter_types.begin();
+        fn_arg_type_iter = current->parameter_types.begin();
         arg_type_iter    = types->begin();
         int matched_arg_count = 0;
-        int broke_on_va       = 0;
-        int broke_on_failure  = 0;
+        bool broke_on_va      = false;
+        bool broke_on_failure = false;
 
         /* If this is a macro, then increment the function's parameter
          * types iterator, to account for the implicit MContext
          * argument. */
-        if ((*fn_iter)->is_macro) {
+        if (current->is_macro) {
             ++fn_arg_type_iter;
         }
 
-        while (fn_arg_type_iter
-                != (*fn_iter)->parameter_types.end()) {
-
-            // If the function's current element is
-            // varargs, then record the number of real
-            // arguments matched and keep a pointer to
-            // this function (if the number of matched
-            // arguments is better than that which is
-            // currently recorded) - then go to the next
-            // function.
-
-            if ((*fn_arg_type_iter)->type->base_type
-                    == BaseType::VarArgs) {
+        while (fn_arg_type_iter != current->parameter_types.end()) {
+            /* If the function's current parameter is varargs, then
+             * record the number of real arguments matched, keep a
+             * pointer to this function (if the number of matched
+             * arguments is better than that which is currently
+             * recorded), and go to the next function. */
+            if ((*fn_arg_type_iter)->type->base_type == BaseType::VarArgs) {
                 if (matched_arg_count > best_va_count) {
                     best_va_count = matched_arg_count;
-                    best_va_fn = (*fn_iter);
-                    broke_on_va = 1;
+                    best_va_fn = current;
+                    broke_on_va = true;
                     break;
                 } else {
-                    broke_on_failure = 1;
+                    broke_on_failure = true;
                     break;
                 }
             }
 
             if (arg_type_iter == types->end()) {
-                broke_on_failure = 1;
+                broke_on_failure = true;
                 break;
             }
 
-            // If an element matches, keep going.
-            // If it doesn't, go to the next function.
             bool result =
                 (*fn_arg_type_iter)->type->canBePassedFrom(
                     (*arg_type_iter),
@@ -363,39 +351,36 @@ Namespace::getFunction(const char *name,
                 ++matched_arg_count;
                 continue;
             } else {
-                broke_on_failure = 1;
+                broke_on_failure = true;
                 break;
             }
         }
 
-        if ((!broke_on_failure)
-                && (!broke_on_va)
+        if (!broke_on_failure && !broke_on_va
                 && (arg_type_iter == types->end())) {
-            // If the function is a declaration, store it
-            // in decl_fn, to use in the event that the
-            // real function cannot be found.
-
-            if (!(*fn_iter)->llvm_function
-                    || (!(*fn_iter)->llvm_function->size())) {
-                decl_fn = (*fn_iter);
+            /* If the function is a declaration, store it in decl_fn,
+             * to use in the event that the real function cannot be
+             * found. */
+            if (!current->llvm_function
+                    || (!current->llvm_function->size())) {
+                decl_fn = current;
             } else {
-                return (*fn_iter);
+                return current;
             }
         }
 
         if (broke_on_failure) {
             if (matched_arg_count > best_closest_count) {
                 best_closest_count = matched_arg_count;
-                closest_fn = (*fn_iter);
+                closest_fn = current;
             }
         }
-
         ++fn_iter;
     }
 
-    // If no exact match - is there a varargs match? - if
-    // so, use that, otherwise, is there a declaration
-    // match? if so, use that.
+    /* If this part is reached, there was no exact match.  Return the
+     * best varargs candidate, if one exists.  Otherwise, return the
+     * declaration match, if one exists. */
 
     if (best_va_fn) {
         return best_va_fn;
@@ -403,54 +388,39 @@ Namespace::getFunction(const char *name,
         return decl_fn;
     }
 
-    /* Nothing - set closest_fn (if it isn't null). */
+    /* If this part is reached, then set the closest function pointer,
+     * so that the callers can use it in an error message. */
+
     if (pclosest_fn) {
         *pclosest_fn = closest_fn;
     }
 
     /* If the argument type list does not comprise (p DNode)s, then
-     * change the last argument to a (p DNode) and re-call this
-     * function. (E.g. you may have a macro called identity that takes
-     * a (p DNode) - if you call it with a value parseable as an int,
-     * it won't be found until you check for (p DNode) arguments.
-     * Undoubtedly there is a much more efficient way of doing this.
-     * */
-
-    std::vector<Type *>::reverse_iterator rarg_type_iter;
-    rarg_type_iter = types->rbegin();
+     * change the last argument to a (p DNode) and recall this
+     * function.  This is so as to find macro candidates which aren't
+     * an exact type match for the current arguments. */
 
     Type *dnode = tr->getStructType("DNode");
-    Type *r_type = tr->getPointerType(dnode);
+    Type *pdnode = tr->getPointerType(dnode);
 
-    while (rarg_type_iter != types->rend()) {
-        Type *temp = *rarg_type_iter;
-        if (!( temp->points_to
-                &&
-                temp->points_to->struct_name.size()
-                &&
-                !(temp->points_to
-                    ->struct_name
-                    .compare("DNode")))) {
+    std::vector<Type *>::reverse_iterator rb, re;
+    for (rb = types->rbegin(), re = types->rend(); rb != re; ++rb) {
+        Type *current_type = *rb;
+        if (!(current_type->isEqualTo(pdnode))) {
             break;
         }
-        ++rarg_type_iter;
     }
 
-    if (rarg_type_iter == types->rend()) {
+    if (rb == re) {
         return NULL;
     }
 
-    Type *old_type = (*rarg_type_iter);
-    (*rarg_type_iter) = r_type;
-    Function *temp = getFunction(
-                                    name,
-                                    types,
-                                    NULL,
-                                    1
-                                );
-    (*rarg_type_iter) = old_type;
-    if (temp) {
-        return temp;
+    Type *substituted_type = (*rb);
+    (*rb) = pdnode;
+    Function *macro_candidate = getFunction(name, types, NULL, 1);
+    (*rb) = substituted_type;
+    if (macro_candidate) {
+        return macro_candidate;
     }
 
     return NULL;
@@ -543,7 +513,7 @@ Namespace::getVarsBeforeIndex(int index,
 }
 
 void
-Namespace::nameToSymbol(const char *name, 
+Namespace::nameToSymbol(const char *name,
                         std::string *new_name)
 {
     new_name->append("_Z");
@@ -574,7 +544,6 @@ Namespace::functionNameToSymbol(const char *name,
                                 std::vector<Variable *> *types)
 {
     if (linkage == Linkage::Extern_C) {
-        /* Handle hyphens. */
         char buf[5];
         std::string ss_name(name);
         for (std::string::const_iterator b = ss_name.begin(),
@@ -608,7 +577,7 @@ Namespace::eraseLLVMMacros(void)
 
     std::set<llvm::Function *> erased;
 
-    for (fn_b = functions_ordered.rbegin(), 
+    for (fn_b = functions_ordered.rbegin(),
             fn_e = functions_ordered.rend(); fn_b != fn_e; ++fn_b) {
         Function *fn = (*fn_b);
         if (!fn->is_macro) {
@@ -635,7 +604,7 @@ Namespace::eraseLLVMMacrosAndCTOFunctions(void)
 
     std::set<llvm::Function *> erased;
 
-    for (fn_b = functions_ordered.rbegin(), 
+    for (fn_b = functions_ordered.rbegin(),
             fn_e = functions_ordered.rend(); fn_b != fn_e; ++fn_b) {
         Function *fn = (*fn_b);
         if (!fn->is_macro && !fn->cto) {
@@ -871,9 +840,9 @@ Namespace::regetVariablePointers(llvm::Module *mod)
 bool
 Namespace::regetFunctionPointers(llvm::Module *mod)
 {
-    std::map<std::string, std::vector<Function *>* >::iterator 
+    std::map<std::string, std::vector<Function *>* >::iterator
         b, e;
-    
+
     for (b = functions.begin(), e = functions.end(); b != e; ++b) {
         for (std::vector<Function *>::iterator
                 fb = b->second->begin(),
@@ -983,7 +952,7 @@ Namespace::removeUnneededEnums(std::set<std::string> *forms,
     std::map<std::string, Enum *>::iterator
         b = enums.begin(),
         e = enums.end();
-    
+
     while (b != e) {
         std::set<std::string>::iterator fb = forms->find(b->first);
         if (fb == forms->end()) {
@@ -1036,7 +1005,7 @@ Namespace::removeUnneededFunctions(std::set<std::string> *forms,
             functions.erase(b++);
         } else {
             /* If every function is intern, then skip this (but
-             * don't erase - it will not be merged in any event). */
+             * don't erase, since it will not be merged in any event). */
             bool has_extern = false;
             for (std::vector<Function*>::iterator
                     fnb = b->second->begin(),
@@ -1093,7 +1062,7 @@ Namespace::removeDeserialised(void)
         std::map<std::string, Enum *>::iterator
             b = enums.begin(),
             e = enums.end();
-        
+
         while (b != e) {
             if (!b->second->serialise) {
                 enums.erase(b++);
@@ -1141,7 +1110,7 @@ Namespace::print(void)
 {
     fprintf(stderr, "Namespace: %s\n", name.c_str());
     fprintf(stderr, "Parent namespace: (%s)\n",
-                    ((parent_namespace != NULL) && 
+                    ((parent_namespace != NULL) &&
                      (parent_namespace->name.c_str()))
                         ? parent_namespace->name.c_str()
                         : "(nil)");
@@ -1151,7 +1120,7 @@ Namespace::print(void)
             e = functions.end();
             b != e;
             ++b) {
-        fprintf(stderr, "Function: %s (%zu)\n", 
+        fprintf(stderr, "Function: %s (%zu)\n",
                         b->first.c_str(),
                         b->second->size());
     }
@@ -1177,5 +1146,4 @@ Namespace::print(void)
         fprintf(stderr, "Variable: %s\n", b->first.c_str());
     }
 }
-
 }
