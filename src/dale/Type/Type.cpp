@@ -49,8 +49,9 @@ Type::reset(void)
     is_retval       = false;
 }
 
-bool Type::isEqualTo(Type *other_type,
-                     bool ignore_arg_constness)
+bool
+Type::isEqualTo(Type *other_type,
+                bool ignore_arg_constness)
 {
     if (base_type != other_type->base_type) {
         return false;
@@ -62,26 +63,12 @@ bool Type::isEqualTo(Type *other_type,
         }
     }
 
-    /* Bitfield size checking. */
     if (bitfield_size != other_type->bitfield_size) {
-        if (DEBUG)  printf("Bitfield size mismatch: %d, %d\n",
-                               bitfield_size,
-                               other_type->bitfield_size);
         return false;
-    } else {
-        if (DEBUG)  printf("Bitfield sizes are fine: %d, %d\n",
-                               bitfield_size,
-                               other_type->bitfield_size);
     }
 
-    /* Namespace checking. */
     if ((namespaces.size() == 0) ^ (other_type->namespaces.size() == 0)) {
-        if (DEBUG)  printf("namespaces is set in one but not the other\n");
-        if (DEBUG)  printf("(%p) (%p)\n", &(namespaces),
-                                          &(other_type->namespaces));
         return false;
-    } else {
-        if (DEBUG)  printf("namespaces set in both\n");
     }
 
     if (namespaces.size()) {
@@ -90,13 +77,8 @@ bool Type::isEqualTo(Type *other_type,
         }
     }
 
-    if (DEBUG)  printf("namespaces are fine, part 2\n");
-
     if ((struct_name.size()) ^ (other_type->struct_name.size())) {
-        if (DEBUG)  printf("struct name is set in one but not the other\n");
         return false;
-    } else {
-        if (DEBUG)  printf("no struct name problems\n");
     }
 
     if (struct_name.size()) {
@@ -105,29 +87,19 @@ bool Type::isEqualTo(Type *other_type,
         }
     }
 
-    if (DEBUG)  printf("no struct name problems, part 2\n");
-
-    /* Array and array size checking. */
-
     if (is_array != other_type->is_array) {
-        if (DEBUG)  printf("ERR: one is array, one is not\n");
         return false;
     }
     if (array_size != other_type->array_size) {
-        if (DEBUG)  printf("ERR: array size is off\n");
         return false;
     }
     if (is_array) {
         if (!array_type || !other_type->array_type) {
-            if (DEBUG)  printf("ERR: one has array type, one does not\n");
             return false;
         }
         return array_type->isEqualTo(other_type->array_type,
                                      ignore_arg_constness);
     }
-
-
-    /* Function type checking. */
 
     if (is_function != other_type->is_function) {
         return false;
@@ -142,22 +114,16 @@ bool Type::isEqualTo(Type *other_type,
                );
     }
 
-    /* Pointer checking. */
-
     if ((points_to == NULL) && (other_type->points_to != NULL)) {
-        if (DEBUG)  printf("first is not pointer, second is pointer\n");
         return false;
     }
     if ((other_type->points_to == NULL) && (points_to != NULL)) {
-        if (DEBUG)  printf("first is pointer, second is not pointer\n");
         return false;
     }
     if ((points_to == NULL) && (other_type->points_to == NULL)) {
-        if (DEBUG)  printf("both are not pointers, all good\n");
         return true;
     }
 
-    if (DEBUG)  printf("ok - checking the types to which these types point\n");
     return points_to->isEqualTo(other_type->points_to,
                                 ignore_arg_constness);
 }
@@ -188,28 +154,22 @@ Type::canBePassedFrom(Type *value_type,
     return result;
 }
 
-/* todo: this doesn't handle namespaces! */
-Node *Type::toNode(void)
+Node *
+Type::toNode(void)
 {
     if (struct_name.size()) {
         Token *t = new Token(TokenType::String, 0,0,0,0);
-        char tb[1024];
-        tb[0] = '\0';
-        if (namespaces.size()) {
-            std::vector<std::string>::iterator iter =
-                namespaces.begin();
-            while (iter != namespaces.end()) {
-                strcat(tb, (*iter).c_str());
-                strcat(tb, ".");
-                ++iter;
-            }
+        std::vector<std::string>::iterator iter =
+            namespaces.begin();
+        while (iter != namespaces.end()) {
+            t->str_value.append((*iter).c_str());
+            t->str_value.append(".");
+            ++iter;
         }
-        strcat(tb, struct_name.c_str());
+        t->str_value.append(struct_name.c_str());
         std::string myns;
-        if (getTypeMapEntry(tb, &myns)) {
+        if (getTypeMapEntry(t->str_value.c_str(), &myns)) {
             t->str_value.append(myns);
-        } else {
-            t->str_value.append(tb);
         }
         return new Node(t);
     }
@@ -253,10 +213,8 @@ Node *Type::toNode(void)
         t->str_value.append("array-of");
         nodes->push_back(new Node(t));
 
-        char buf[100];
-        sprintf(buf, "%d", (int) array_size);
         Token *size = new Token(TokenType::Int, 0,0,0,0);
-        size->str_value.append(buf);
+        append_int(&(size->str_value), array_size);
 
         Node *type = array_type->toNode();
         nodes->push_back(type);
@@ -282,7 +240,7 @@ Node *Type::toNode(void)
 
         while (iter != parameter_types.end()) {
             std::vector<Node *> *anode = new std::vector<Node*>;
-            Token *tnn = new Token(TokenType::String,0,0,0,0);
+            Token *tnn = new Token(TokenType::String, 0,0,0,0);
             tnn->str_value.append(c);
             c[0]++;
             anode->push_back(new Node(tnn));
@@ -320,35 +278,32 @@ void Type::toString(std::string *str)
     }
 
     if (struct_name.size()) {
-        char tb[1024];
-        tb[0] = '\0';
+        std::string name;
         if (namespaces.size()) {
             std::vector<std::string>::iterator iter =
                 namespaces.begin();
             while (iter != namespaces.end()) {
-                strcat(tb, (*iter).c_str());
-                strcat(tb, ".");
+                name.append((*iter).c_str());
+                name.append(".");
                 ++iter;
             }
         }
-        strcat(tb, struct_name.c_str());
+        name.append(struct_name.c_str());
         std::string myns;
-        if (getTypeMapEntry(tb, &myns)) {
+        if (getTypeMapEntry(name.c_str(), &myns)) {
             str->append(myns);
         } else {
-            str->append(tb);
+            str->append(name);
         }
         return;
     }
 
     if (bitfield_size) {
-        char buf[255];
-        sprintf(buf, "%d", bitfield_size);
         str->append("(bf ")
-        .append(baseTypeToString(base_type))
-        .append(" ")
-        .append(buf)
-        .append(")");
+            .append(baseTypeToString(base_type))
+            .append(" ");
+        append_int(str, bitfield_size);
+        str->append(")");
         return;
     }
 
@@ -366,9 +321,7 @@ void Type::toString(std::string *str)
 
     if (is_array) {
         str->append("(array-of ");
-        char buf[100];
-        sprintf(buf, "%d", (int) array_size);
-        str->append(buf);
+        append_int(str, array_size);
         str->append(" ");
         array_type->toString(str);
         str->append(")");
@@ -447,9 +400,7 @@ void Type::toSymbolString(std::string *to)
 
     if (is_array) {
         to->append("A");
-        char buf[100];
-        sprintf(buf, "%d", (int) array_size);
-        to->append(buf);
+        append_int(to, array_size);
         array_type->toSymbolString(to);
         return;
     }
@@ -471,19 +422,13 @@ void Type::toSymbolString(std::string *to)
             std::vector<std::string>::iterator iter;
             iter = namespaces.begin();
             while (iter != namespaces.end()) {
-                int len = (*iter).length();
-                char num[255];
-                sprintf(num, "%d", len);
-                to->append(num);
+                append_int(to, ((*iter).length()));
                 to->append((*iter));
                 ++iter;
             }
             to->append("E");
         }
-        int len = struct_name.size();
-        char num[255];
-        sprintf(num, "%d", len);
-        to->append(num);
+        append_int(to, struct_name.size());
         encodeStandard(&struct_name, to);
         return;
     }

@@ -131,6 +131,15 @@ ino_t get_inode(int fildes)
     return f1.st_ino;
 }
 
+void
+append_int(std::string *to, int num)
+{
+    char numstr[255];
+    sprintf(numstr, "%d", num);
+    to->append(numstr);
+    return;
+}
+
 void 
 splitString(std::string *str, std::vector<std::string> *lst, char c)
 {

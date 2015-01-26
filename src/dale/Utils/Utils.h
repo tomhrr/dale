@@ -16,6 +16,7 @@ int files_are_equivalent(const char *filename1,
                          const char *filename2);
 ino_t get_inode(const char *filename1);
 ino_t get_inode(int fildes);
+void append_int(std::string *to, int num);
 
 void splitString(std::string *str, std::vector<std::string> *lst, char c);
 void encodeStandard(const std::string *from, std::string *to);
