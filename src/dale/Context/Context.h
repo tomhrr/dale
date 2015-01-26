@@ -30,14 +30,18 @@ struct NSNode
     A class for containing the details of a tree of namespaces.
     Provides for activating/deactivating namespaces (named and
     anonymous), searching for bindings throughout the tree and
-    constructing LLVM types from 'internal' types, among other
-    things.
+    constructing LLVM types from 'internal' types, among other things.
 
     Within this class, an 'active' namespace is one into which new
     bindings will be put, whereas a 'used' namespace is one that is
     only used for binding resolution.  Note that all 'active'
     namespaces are also 'used' namespaces, for so long as they are
     active.
+
+    None of the retrieval functions transfer ownership to the caller.
+    Merging a context C into a context D transfers ownership of all of
+    C's namespaces and bindings to D.
+
 */
 class Context
 {
@@ -67,6 +71,9 @@ public:
     /*! The normal constructor.
      *  @param er The error reporter.
      *  @param nt The native types.
+     *  @param tr The type register.
+     *
+     *  This does not take ownership of any of its arguments.
      */
     Context(ErrorReporter *er,
             NativeTypes *nt,

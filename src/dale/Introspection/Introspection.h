@@ -1,6 +1,7 @@
 #ifndef DALE_INTROSPECTION
 #define DALE_INTROSPECTION
 
+#include "../ErrorType/ErrorType.h"
 #include "../Generator/Generator.h"
 
 extern "C" {

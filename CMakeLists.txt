@@ -183,6 +183,7 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Position/Position.cpp
                       src/dale/Utils/Utils.cpp
                       src/dale/Token/Token.cpp
+                      src/dale/ErrorType/ErrorType.cpp
                       src/dale/Error/Error.cpp
                       src/dale/ErrorReporter/ErrorReporter.cpp
                       src/dale/ParseResult/ParseResult.cpp

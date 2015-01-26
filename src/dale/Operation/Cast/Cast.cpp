@@ -1,5 +1,7 @@
 #include "Cast.h"
 
+#include "../../ErrorType/ErrorType.h"
+
 namespace dale
 {
 namespace Operation

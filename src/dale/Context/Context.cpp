@@ -1443,6 +1443,4 @@ Context::removeDeserialised(void)
 {
     return removeDeserialised_(namespaces);
 }
-
-
 }

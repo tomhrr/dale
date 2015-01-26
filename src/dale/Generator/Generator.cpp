@@ -58,6 +58,7 @@
 #endif
 
 #include "../BasicTypes/BasicTypes.h"
+#include "../ErrorType/ErrorType.h"
 #include "../Utils/Utils.h"
 #include "../Linkage/Linkage.h"
 #include "../BaseType/BaseType.h"

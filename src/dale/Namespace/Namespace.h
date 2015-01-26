@@ -5,6 +5,7 @@
 #include "../Variable/Variable.h"
 #include "../Struct/Struct.h"
 #include "../Enum/Enum.h"
+#include "../ErrorType/ErrorType.h"
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../Linkage/Linkage.h"
 #include "../Node/Node.h"
