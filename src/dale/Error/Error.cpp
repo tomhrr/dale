@@ -9,20 +9,15 @@ namespace dale
 Error::Error(int new_instance,
              Node *node)
 {
-    setFromNode(node);
-    instance = new_instance;
-    arg_strings = new std::vector<std::string>;
+    init(new_instance, node);
 }
 
 Error::Error(int new_instance,
              Node *node,
              const char *str1)
 {
-    setFromNode(node);
-    instance = new_instance;
-    arg_strings = new std::vector<std::string>;
-    std::string temp(str1);
-    arg_strings->push_back(temp);
+    init(new_instance, node);
+    arg_strings->push_back(str1);
 }
 
 Error::Error(int new_instance,
@@ -31,11 +26,8 @@ Error::Error(int new_instance,
              int str2,
              int str3)
 {
-    setFromNode(node);
-    instance = new_instance;
-    arg_strings = new std::vector<std::string>;
-    std::string temp(str1);
-    arg_strings->push_back(temp);
+    init(new_instance, node);
+    arg_strings->push_back(str1);
 
     char buf[100];
     sprintf(buf, "%d", str2);
@@ -49,9 +41,7 @@ Error::Error(int new_instance,
              int str1,
              int str2)
 {
-    setFromNode(node);
-    instance = new_instance;
-    arg_strings = new std::vector<std::string>;
+    init(new_instance, node);
 
     char buf[100];
     sprintf(buf, "%d", str1);
@@ -65,14 +55,10 @@ Error::Error(int new_instance,
              const char *str1,
              const char *str2)
 {
-    setFromNode(node);
-    instance = new_instance;
-    arg_strings = new std::vector<std::string>;
-    std::string temp(str1);
-    arg_strings->push_back(temp);
-    temp.clear();
-    temp.append(str2);
-    arg_strings->push_back(temp);
+    init(new_instance, node);
+
+    arg_strings->push_back(str1);
+    arg_strings->push_back(str2);
 }
 
 Error::Error(int new_instance,
@@ -81,17 +67,11 @@ Error::Error(int new_instance,
              const char *str2,
              const char *str3)
 {
-    setFromNode(node);
-    instance = new_instance;
-    arg_strings = new std::vector<std::string>;
-    std::string temp(str1);
-    arg_strings->push_back(temp);
-    temp.clear();
-    temp.append(str2);
-    arg_strings->push_back(temp);
-    temp.clear();
-    temp.append(str3);
-    arg_strings->push_back(temp);
+    init(new_instance, node);
+
+    arg_strings->push_back(str1);
+    arg_strings->push_back(str2);
+    arg_strings->push_back(str3);
 }
 
 Error::Error(int new_instance,
@@ -101,20 +81,12 @@ Error::Error(int new_instance,
              const char *str3,
              const char *str4)
 {
-    setFromNode(node);
-    instance = new_instance;
-    arg_strings = new std::vector<std::string>;
-    std::string temp(str1);
-    arg_strings->push_back(temp);
-    temp.clear();
-    temp.append(str2);
-    arg_strings->push_back(temp);
-    temp.clear();
-    temp.append(str3);
-    arg_strings->push_back(temp);
-    temp.clear();
-    temp.append(str4);
-    arg_strings->push_back(temp);
+    init(new_instance, node);
+
+    arg_strings->push_back(str1);
+    arg_strings->push_back(str2);
+    arg_strings->push_back(str3);
+    arg_strings->push_back(str4);
 }
 
 Error::~Error()
@@ -217,6 +189,13 @@ int Error::getType(void)
     default:
         return ErrorType::Error;
     }
+}
+
+void Error::init(int new_instance, Node *node)
+{
+    setFromNode(node);
+    instance = new_instance;
+    arg_strings = new std::vector<std::string>;
 }
 
 void Error::setFromNode(Node *node)

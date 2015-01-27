@@ -74,6 +74,7 @@ public:
     void addArgString(std::string *str);
     void addArgString(const char *str);
     void toString(std::string *str);
+    void init(int new_instance, Node *node);
     void setFromNode(Node *node);
 };
 }
