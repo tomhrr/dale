@@ -36,45 +36,86 @@ public:
     /*! Arguments for the error message printf string. */
     std::vector<std::string> arg_strings;
 
-    Error(int new_instance,
+    /*! Construct a new error using the given instance and node.
+     *  @param instance The error instance.
+     *  @param node The reference node.
+     *
+     *  The node argument is used for identifying where the error
+     *  occurred (filename and line/column number information).
+     *
+     *  The other error constructors take additional string and
+     *  integer arguments, which values are used in toString to
+     *  populate the format string for the error instance.
+     */
+    Error(int instance,
           Node *node);
-    Error(int new_instance,
+    Error(int instance,
           Node *node,
           const char *str1);
-    Error(int new_instance,
+    Error(int instance,
           Node *node,
-          int str1,
-          int str2);
-    Error(int new_instance,
+          int num1,
+          int num2);
+    Error(int instance,
           Node *node,
           const char *str1,
-          int str2,
-          int str3);
-    Error(int new_instance,
+          int num1,
+          int num2);
+    Error(int instance,
           Node *node,
           const char *str1,
           const char *str2);
-    Error(int new_instance,
+    Error(int instance,
           Node *node,
           const char *str1,
           const char *str2,
           const char *str3);
-    Error(int new_instance,
+    Error(int instance,
           Node *node,
           const char *str1,
           const char *str2,
           const char *str3,
           const char *str4);
     ~Error();
-    /* See constructor notes for Token - these classes are
-     * also pretty similar and could possibly be refactored
-     * into a single class. */
-    const char *getPrintfString(void);
+
+    /*! Get the error type for this error.
+     *
+     *  See ErrorType.
+     */
     int getType(void);
+    /*! Add an argument string to this error.
+     *  @param str The argument string.
+     *
+     *  str is added to the list of arguments that will be used when
+     *  populating the format string.
+     */
     void addArgString(std::string *str);
+    /*! Add an argument string to this error.
+     *  @param str The argument string.
+     *
+     *  str is added to the list of arguments that will be used when
+     *  populating the format string.
+     */
     void addArgString(const char *str);
-    void toString(std::string *str);
-    void init(int new_instance, Node *node);
+    /*! Get the error message string for this error.
+     *  @param to The buffer for the string.
+     *
+     *  The error message string will be like (e.g.) "test.dt:5:15:
+     *  error: label 'a' has already been defined in this scope".
+     */
+    void toString(std::string *to);
+    /*! Initialise this error object using the given instance and node.
+     *  @param instance The error instance.
+     *  @param node The reference node.
+     *
+     *  Should only be called by constructors.
+     */
+    void init(int instance, Node *node);
+    /*! Set position details using the given node.
+     *  @param node The reference node.
+     *
+     *  Should only be called by constructors and internal methods.
+     */
     void setFromNode(Node *node);
 };
 }

@@ -362,4 +362,34 @@ errorInstanceToString(int error_instance)
     }
     return ret;
 }
+
+int
+errorInstanceToType(int error_instance)
+{
+    int type;
+    switch (error_instance) {
+        case ErrorInst::Lexer::Null:
+            type = ErrorType::Diagnostic;
+            break;
+        case ErrorInst::Generator::StructContainsPadding:
+            type = ErrorType::Warning;
+            break;
+        default:
+            type = ErrorType::Error;
+    }
+    return type;
+}
+
+const char *
+errorTypeToString(int error_type)
+{
+    const char *str;
+    switch (error_type) {
+        case ErrorType::Error:      str = "error";          break;
+        case ErrorType::Warning:    str = "warning";        break;
+        case ErrorType::Diagnostic: str = "diagnostic";     break;
+        default:                    str = "unknown";
+    }
+    return str;
+}
 }

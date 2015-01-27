@@ -148,7 +148,7 @@ Type::canBePassedFrom(Type *value_type,
                       bool ignore_arg_constness)
 {
     int prev_const = is_const;
-    is_const = 0;
+    is_const = false;
     bool result = canBeSetFrom(value_type, ignore_arg_constness);
     is_const = prev_const;
     return result;
@@ -261,19 +261,19 @@ void Type::toString(std::string *str)
 {
     if (is_const) {
         str->append("(const ");
-        is_const = 0;
+        is_const = false;
         toString(str);
         str->append(")");
-        is_const = 1;
+        is_const = true;
         return;
     }
 
     if (is_reference) {
         str->append("(ref ");
-        is_reference = 0;
+        is_reference = false;
         toString(str);
         str->append(")");
-        is_reference = 1;
+        is_reference = true;
         return;
     }
 

@@ -5,11 +5,10 @@ namespace dale
 {
 /*! ErrorType
 
-    Contains the error type and instance enums, and a function for
-    retrieving the string error messages for the instance enums.
-    Error types are split into five categories: error, warning,
-    diagnostic, debug, and internal.  Error instances are split into
-    three categories: lexer, parser, and generator.
+    Contains the error type and instance enums, and functions for
+    dealing with them.  Error types are split into five categories:
+    error, warning, diagnostic, debug, and internal.  Error instances
+    are split into three categories: lexer, parser, and generator.
 */
 namespace ErrorType
 {
@@ -169,6 +168,17 @@ enum
  *  is expected to know the number and types of these placeholders.
  */
 const char* errorInstanceToString(int error_instance);
+/*! Get the error type for the given error instance.
+ *  @param error_instance The error instance.
+ */
+int errorInstanceToType(int error_instance);
+/*! Get the string for the given error type.
+ *  @param error_type The error type.
+ *
+ *  This string is generally the enum name with a lowercase first
+ *  letter.
+ */
+const char *errorTypeToString(int error_type);
 }
 
 #endif

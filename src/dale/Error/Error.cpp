@@ -6,82 +6,82 @@
 
 namespace dale
 {
-Error::Error(int new_instance,
+Error::Error(int instance,
              Node *node)
 {
-    init(new_instance, node);
+    init(instance, node);
 }
 
-Error::Error(int new_instance,
+Error::Error(int instance,
              Node *node,
              const char *str1)
 {
-    init(new_instance, node);
+    init(instance, node);
     arg_strings.push_back(str1);
 }
 
-Error::Error(int new_instance,
+Error::Error(int instance,
              Node *node,
              const char *str1,
-             int str2,
-             int str3)
+             int num1,
+             int num2)
 {
-    init(new_instance, node);
+    init(instance, node);
     arg_strings.push_back(str1);
 
     char buf[100];
-    sprintf(buf, "%d", str2);
+    sprintf(buf, "%d", num1);
     arg_strings.push_back(buf);
-    sprintf(buf, "%d", str3);
+    sprintf(buf, "%d", num2);
     arg_strings.push_back(buf);
 }
 
-Error::Error(int new_instance,
+Error::Error(int instance,
              Node *node,
-             int str1,
-             int str2)
+             int num1,
+             int num2)
 {
-    init(new_instance, node);
+    init(instance, node);
 
     char buf[100];
-    sprintf(buf, "%d", str1);
+    sprintf(buf, "%d", num1);
     arg_strings.push_back(buf);
-    sprintf(buf, "%d", str2);
+    sprintf(buf, "%d", num2);
     arg_strings.push_back(buf);
 }
 
-Error::Error(int new_instance,
+Error::Error(int instance,
              Node *node,
              const char *str1,
              const char *str2)
 {
-    init(new_instance, node);
+    init(instance, node);
 
     arg_strings.push_back(str1);
     arg_strings.push_back(str2);
 }
 
-Error::Error(int new_instance,
+Error::Error(int instance,
              Node *node,
              const char *str1,
              const char *str2,
              const char *str3)
 {
-    init(new_instance, node);
+    init(instance, node);
 
     arg_strings.push_back(str1);
     arg_strings.push_back(str2);
     arg_strings.push_back(str3);
 }
 
-Error::Error(int new_instance,
+Error::Error(int instance,
              Node *node,
              const char *str1,
              const char *str2,
              const char *str3,
              const char *str4)
 {
-    init(new_instance, node);
+    init(instance, node);
 
     arg_strings.push_back(str1);
     arg_strings.push_back(str2);
@@ -91,6 +91,35 @@ Error::Error(int new_instance,
 
 Error::~Error()
 {
+}
+
+int Error::getType(void)
+{
+    return errorInstanceToType(instance);
+}
+
+void Error::init(int instance, Node *node)
+{
+    setFromNode(node);
+    this->instance = instance;
+}
+
+void Error::setFromNode(Node *node)
+{
+    filename = node->filename;
+
+    node->getBeginPos()->copyTo(&begin);
+    node->getEndPos()->copyTo(&end);
+
+    if (node->macro_begin.line_number) {
+        macro_begin.setLineAndColumn(node->macro_begin.line_number,
+                                     node->macro_begin.column_number);
+        macro_end.setLineAndColumn(node->macro_end.line_number,
+                                   node->macro_end.column_number);
+    } else {
+        macro_begin.setLineAndColumn(0,0);
+        macro_end.setLineAndColumn(0,0);
+    }
 }
 
 void Error::addArgString(std::string *str)
@@ -103,105 +132,55 @@ void Error::addArgString(const char *str)
     arg_strings.push_back(str);
 }
 
-void Error::toString(std::string *str)
+void Error::toString(std::string *to)
 {
-    char first_err_buf[256];
-    char buf[256];
+    char msg_buf[256];
+    char final_buf[256];
+    char macro_buf[256];
 
-    int type = getType();
-    const char *type_string;
-    switch (type) {
-    case ErrorType::Error:
-        type_string = "error";
-        break;
-    case ErrorType::Warning:
-        type_string = "warning";
-        break;
-    case ErrorType::Diagnostic:
-        type_string = "diagnostic";
-        break;
-    default:
-        type_string = "unknown";
-    }
-
+    const char *type_string  = errorTypeToString(getType());
     const char *main_err_str = errorInstanceToString(instance);
 
     if (arg_strings.size() == 0) {
-        sprintf(first_err_buf, "%s", main_err_str);
+        sprintf(msg_buf, main_err_str);
     } else if (arg_strings.size() == 1) {
-        sprintf(first_err_buf, main_err_str, arg_strings[0].c_str());
+        sprintf(msg_buf, main_err_str, arg_strings[0].c_str());
     } else if (arg_strings.size() == 2) {
-        sprintf(first_err_buf, main_err_str, arg_strings[0].c_str(),
-                arg_strings[1].c_str());
+        sprintf(msg_buf, main_err_str, arg_strings[0].c_str(),
+                                       arg_strings[1].c_str());
     } else if (arg_strings.size() == 3) {
-        sprintf(first_err_buf, main_err_str, arg_strings[0].c_str(),
-                arg_strings[1].c_str(),
-                arg_strings[2].c_str());
+        sprintf(msg_buf, main_err_str, arg_strings[0].c_str(),
+                                       arg_strings[1].c_str(),
+                                       arg_strings[2].c_str());
     } else if (arg_strings.size() == 4) {
-        sprintf(first_err_buf, main_err_str, arg_strings[0].c_str(),
-                arg_strings[1].c_str(),
-                arg_strings[2].c_str(),
-                arg_strings[3].c_str());
+        sprintf(msg_buf, main_err_str, arg_strings[0].c_str(),
+                                       arg_strings[1].c_str(),
+                                       arg_strings[2].c_str(),
+                                       arg_strings[3].c_str());
     } else {
         fprintf(stderr,
-                "Internal error: too many strings (>4) "
+                "Internal error: too many argument strings (>4) "
                 "in the error.\n");
         abort();
     }
 
-    char macbuf[256];
-
     if (macro_begin.getLineNumber() != 0) {
-        sprintf(macbuf, " (see macro at %d:%d)",
+        sprintf(macro_buf, " (see macro at %d:%d)",
                 macro_begin.getLineNumber(),
                 macro_begin.getColumnNumber());
     } else {
-        macbuf[0] = '\0';
+        macro_buf[0] = '\0';
     }
 
-    sprintf(buf,
+    sprintf(final_buf,
             "%s:%d:%d: %s: %s%s",
             filename,
             begin.getLineNumber(),
             begin.getColumnNumber(),
             type_string,
-            first_err_buf,
-            macbuf);
+            msg_buf,
+            macro_buf);
 
-    str->append(buf);
-}
-
-int Error::getType(void)
-{
-    switch (instance) {
-    case ErrorInst::Lexer::Null:
-        return ErrorType::Diagnostic;
-    case ErrorInst::Generator::StructContainsPadding:
-        return ErrorType::Warning;
-    default:
-        return ErrorType::Error;
-    }
-}
-
-void Error::init(int new_instance, Node *node)
-{
-    setFromNode(node);
-    instance = new_instance;
-}
-
-void Error::setFromNode(Node *node)
-{
-    filename = node->filename;
-    node->getBeginPos()->copyTo(&begin);
-    node->getEndPos()->copyTo(&end);
-    if (node->macro_begin.line_number) {
-        macro_begin.setLineAndColumn(node->macro_begin.line_number,
-                                     node->macro_begin.column_number);
-        macro_end.setLineAndColumn(node->macro_end.line_number,
-                                   node->macro_end.column_number);
-    } else {
-        macro_begin.setLineAndColumn(0,0);
-        macro_end.setLineAndColumn(0,0);
-    }
+    to->append(final_buf);
 }
 }
