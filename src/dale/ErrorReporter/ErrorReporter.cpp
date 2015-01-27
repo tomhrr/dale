@@ -11,6 +11,9 @@ typedef std::vector<Node*> symlist;
 ErrorReporter::ErrorReporter(const char *new_current_filename)
 {
     current_filename = new_current_filename;
+    if (!strcmp(current_filename, "")) {
+        current_filename = "<unknown>";
+    }
     errors = new std::vector<Error *>;
     error_index = 0;
 }

@@ -9,23 +9,33 @@
 
 namespace dale
 {
+/*! Error
+
+    A class for storing the details of an error.
+
+    The 'reference macro' positions are set when an error occurs
+    within a macro body.  They sometimes assist in finding the 'real'
+    cause of the error when that is not obvious from the standard
+    begin/end positions.
+*/
 class Error
 {
 public:
-    int       instance;
-    Position  begin;
-    Position  end;
-    Position  macro_begin;
-    Position  macro_end;
+    /*! The error instance.  See ErrorType. */
+    int instance;
+    /*! The position at which the error begins. */
+    Position begin;
+    /*! The position at which the error ends. */
+    Position end;
+    /*! The position at which the reference macro begins. */
+    Position macro_begin;
+    /*! The position at which the reference macro ends. */
+    Position macro_end;
+    /*! The filename of the file in which the error occurred. */
     const char *filename;
+    /*! Arguments for the error message printf string. */
     std::vector<std::string> *arg_strings;
 
-    Error(const char *filename,
-          int new_instance,
-          int begin_line_number,
-          int begin_column_number,
-          int end_line_number,
-          int end_column_number);
     Error(int new_instance,
           Node *node);
     Error(int new_instance,

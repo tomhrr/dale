@@ -6,30 +6,12 @@
 
 namespace dale
 {
-Error::Error(const char *new_filename,
-             int new_instance,
-             int begin_line_number,
-             int begin_column_number,
-             int end_line_number,
-             int end_column_number)
-{
-    filename = new_filename;
-    begin.setLineAndColumn(begin_line_number, begin_column_number);
-    end.setLineAndColumn(end_line_number, end_column_number);
-    macro_begin.setLineAndColumn(0,0);
-    macro_end.setLineAndColumn(0,0);
-    instance = new_instance;
-    arg_strings = NULL;
-}
-
 Error::Error(int new_instance,
              Node *node)
 {
     filename = node->filename;
-    begin.setLineAndColumn(node->getBeginPos()->line_number,
-                           node->getBeginPos()->column_number);
-    end.setLineAndColumn(node->getEndPos()->line_number,
-                         node->getEndPos()->column_number);
+    node->getBeginPos()->copyTo(&begin);
+    node->getEndPos()->copyTo(&end);
     if (node->macro_begin.line_number) {
         macro_begin.setLineAndColumn(node->macro_begin.line_number,
                                      node->macro_begin.column_number);

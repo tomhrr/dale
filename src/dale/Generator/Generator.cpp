@@ -620,9 +620,8 @@ int Generator::run(std::vector<const char *> *filenames,
             if (linker->linkInModule(last_module, &link_error)) {
 #endif
                 Error *e = new Error(
-                    "not applicable",
                     ErrorInst::Generator::CannotLinkModules,
-                    0, 0, 0, 0
+                    new Node()
                 );
                 e->addArgString(link_error.c_str());
                 erep->addError(e);

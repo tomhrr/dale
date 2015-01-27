@@ -37,8 +37,9 @@ Node *Parser::getNextList(void)
 {
     Token ts(TokenType::Null, 0, 0, 0, 0);
     Token te(TokenType::Null, 0, 0, 0, 0);
-    Error e(erep->current_filename,
-            ErrorInst::Lexer::Null, 0, 0, 0, 0);
+    Node n;
+    n.filename = filename;
+    Error e(ErrorInst::Lexer::Null, &n);
 
     /* Pop the first token - should be a left parenthesis. */
     lxr->getNextToken(&ts, &e);
@@ -104,8 +105,9 @@ int Parser::getNextListInternal(std::vector<Node*> *list)
     /* Get token */
 
     Token t(TokenType::Null, 0, 0, 0, 0);
-    Error e(erep->current_filename,
-            ErrorInst::Lexer::Null, 0, 0, 0, 0);
+    Node n;
+    n.filename = filename;
+    Error e(ErrorInst::Lexer::Null, &n);
 
     do {
         lxr->getNextToken(&t, &e);
