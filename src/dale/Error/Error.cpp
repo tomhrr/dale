@@ -17,7 +17,7 @@ Error::Error(int new_instance,
              const char *str1)
 {
     init(new_instance, node);
-    arg_strings->push_back(str1);
+    arg_strings.push_back(str1);
 }
 
 Error::Error(int new_instance,
@@ -27,13 +27,13 @@ Error::Error(int new_instance,
              int str3)
 {
     init(new_instance, node);
-    arg_strings->push_back(str1);
+    arg_strings.push_back(str1);
 
     char buf[100];
     sprintf(buf, "%d", str2);
-    arg_strings->push_back(buf);
+    arg_strings.push_back(buf);
     sprintf(buf, "%d", str3);
-    arg_strings->push_back(buf);
+    arg_strings.push_back(buf);
 }
 
 Error::Error(int new_instance,
@@ -45,9 +45,9 @@ Error::Error(int new_instance,
 
     char buf[100];
     sprintf(buf, "%d", str1);
-    arg_strings->push_back(buf);
+    arg_strings.push_back(buf);
     sprintf(buf, "%d", str2);
-    arg_strings->push_back(buf);
+    arg_strings.push_back(buf);
 }
 
 Error::Error(int new_instance,
@@ -57,8 +57,8 @@ Error::Error(int new_instance,
 {
     init(new_instance, node);
 
-    arg_strings->push_back(str1);
-    arg_strings->push_back(str2);
+    arg_strings.push_back(str1);
+    arg_strings.push_back(str2);
 }
 
 Error::Error(int new_instance,
@@ -69,9 +69,9 @@ Error::Error(int new_instance,
 {
     init(new_instance, node);
 
-    arg_strings->push_back(str1);
-    arg_strings->push_back(str2);
-    arg_strings->push_back(str3);
+    arg_strings.push_back(str1);
+    arg_strings.push_back(str2);
+    arg_strings.push_back(str3);
 }
 
 Error::Error(int new_instance,
@@ -83,32 +83,24 @@ Error::Error(int new_instance,
 {
     init(new_instance, node);
 
-    arg_strings->push_back(str1);
-    arg_strings->push_back(str2);
-    arg_strings->push_back(str3);
-    arg_strings->push_back(str4);
+    arg_strings.push_back(str1);
+    arg_strings.push_back(str2);
+    arg_strings.push_back(str3);
+    arg_strings.push_back(str4);
 }
 
 Error::~Error()
 {
-    delete arg_strings;
 }
 
 void Error::addArgString(std::string *str)
 {
-    if (!arg_strings) {
-        arg_strings = new std::vector<std::string>;
-    }
-    arg_strings->push_back(*str);
+    arg_strings.push_back(*str);
 }
 
 void Error::addArgString(const char *str)
 {
-    if (!arg_strings) {
-        arg_strings = new std::vector<std::string>;
-    }
-    std::string temp(str);
-    arg_strings->push_back(temp);
+    arg_strings.push_back(str);
 }
 
 void Error::toString(std::string *str)
@@ -134,22 +126,22 @@ void Error::toString(std::string *str)
 
     const char *main_err_str = errorInstanceToString(instance);
 
-    if (!arg_strings || (arg_strings->size() == 0)) {
+    if (arg_strings.size() == 0) {
         sprintf(first_err_buf, "%s", main_err_str);
-    } else if (arg_strings->size() == 1) {
-        sprintf(first_err_buf, main_err_str, (*arg_strings)[0].c_str());
-    } else if (arg_strings->size() == 2) {
-        sprintf(first_err_buf, main_err_str, (*arg_strings)[0].c_str(),
-                (*arg_strings)[1].c_str());
-    } else if (arg_strings->size() == 3) {
-        sprintf(first_err_buf, main_err_str, (*arg_strings)[0].c_str(),
-                (*arg_strings)[1].c_str(),
-                (*arg_strings)[2].c_str());
-    } else if (arg_strings->size() == 4) {
-        sprintf(first_err_buf, main_err_str, (*arg_strings)[0].c_str(),
-                (*arg_strings)[1].c_str(),
-                (*arg_strings)[2].c_str(),
-                (*arg_strings)[3].c_str());
+    } else if (arg_strings.size() == 1) {
+        sprintf(first_err_buf, main_err_str, arg_strings[0].c_str());
+    } else if (arg_strings.size() == 2) {
+        sprintf(first_err_buf, main_err_str, arg_strings[0].c_str(),
+                arg_strings[1].c_str());
+    } else if (arg_strings.size() == 3) {
+        sprintf(first_err_buf, main_err_str, arg_strings[0].c_str(),
+                arg_strings[1].c_str(),
+                arg_strings[2].c_str());
+    } else if (arg_strings.size() == 4) {
+        sprintf(first_err_buf, main_err_str, arg_strings[0].c_str(),
+                arg_strings[1].c_str(),
+                arg_strings[2].c_str(),
+                arg_strings[3].c_str());
     } else {
         fprintf(stderr,
                 "Internal error: too many strings (>4) "
@@ -195,7 +187,6 @@ void Error::init(int new_instance, Node *node)
 {
     setFromNode(node);
     instance = new_instance;
-    arg_strings = new std::vector<std::string>;
 }
 
 void Error::setFromNode(Node *node)

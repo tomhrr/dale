@@ -34,7 +34,7 @@ public:
     /*! The filename of the file in which the error occurred. */
     const char *filename;
     /*! Arguments for the error message printf string. */
-    std::vector<std::string> *arg_strings;
+    std::vector<std::string> arg_strings;
 
     Error(int new_instance,
           Node *node);
