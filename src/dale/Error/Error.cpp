@@ -9,20 +9,8 @@ namespace dale
 Error::Error(int new_instance,
              Node *node)
 {
-    filename = node->filename;
-    node->getBeginPos()->copyTo(&begin);
-    node->getEndPos()->copyTo(&end);
-    if (node->macro_begin.line_number) {
-        macro_begin.setLineAndColumn(node->macro_begin.line_number,
-                                     node->macro_begin.column_number);
-        macro_end.setLineAndColumn(node->macro_end.line_number,
-                                   node->macro_end.column_number);
-    } else {
-        macro_begin.setLineAndColumn(0,0);
-        macro_end.setLineAndColumn(0,0);
-    }
+    setFromNode(node);
     instance = new_instance;
-
     arg_strings = new std::vector<std::string>;
 }
 
@@ -30,20 +18,7 @@ Error::Error(int new_instance,
              Node *node,
              const char *str1)
 {
-    filename = node->filename;
-    begin.setLineAndColumn(node->getBeginPos()->line_number,
-                           node->getBeginPos()->column_number);
-    end.setLineAndColumn(node->getEndPos()->line_number,
-                         node->getEndPos()->column_number);
-    if (node->macro_begin.line_number) {
-        macro_begin.setLineAndColumn(node->macro_begin.line_number,
-                                     node->macro_begin.column_number);
-        macro_end.setLineAndColumn(node->macro_end.line_number,
-                                   node->macro_end.column_number);
-    } else {
-        macro_begin.setLineAndColumn(0,0);
-        macro_end.setLineAndColumn(0,0);
-    }
+    setFromNode(node);
     instance = new_instance;
     arg_strings = new std::vector<std::string>;
     std::string temp(str1);
@@ -56,21 +31,7 @@ Error::Error(int new_instance,
              int str2,
              int str3)
 {
-    filename = node->filename;
-    begin.setLineAndColumn(node->getBeginPos()->line_number,
-                           node->getBeginPos()->column_number);
-    end.setLineAndColumn(node->getEndPos()->line_number,
-                         node->getEndPos()->column_number);
-
-    if (node->macro_begin.line_number) {
-        macro_begin.setLineAndColumn(node->macro_begin.line_number,
-                                     node->macro_begin.column_number);
-        macro_end.setLineAndColumn(node->macro_end.line_number,
-                                   node->macro_end.column_number);
-    } else {
-        macro_begin.setLineAndColumn(0,0);
-        macro_end.setLineAndColumn(0,0);
-    }
+    setFromNode(node);
     instance = new_instance;
     arg_strings = new std::vector<std::string>;
     std::string temp(str1);
@@ -88,20 +49,7 @@ Error::Error(int new_instance,
              int str1,
              int str2)
 {
-    filename = node->filename;
-    begin.setLineAndColumn(node->getBeginPos()->line_number,
-                           node->getBeginPos()->column_number);
-    end.setLineAndColumn(node->getEndPos()->line_number,
-                         node->getEndPos()->column_number);
-    if (node->macro_begin.line_number) {
-        macro_begin.setLineAndColumn(node->macro_begin.line_number,
-                                     node->macro_begin.column_number);
-        macro_end.setLineAndColumn(node->macro_end.line_number,
-                                   node->macro_end.column_number);
-    } else {
-        macro_begin.setLineAndColumn(0,0);
-        macro_end.setLineAndColumn(0,0);
-    }
+    setFromNode(node);
     instance = new_instance;
     arg_strings = new std::vector<std::string>;
 
@@ -117,20 +65,7 @@ Error::Error(int new_instance,
              const char *str1,
              const char *str2)
 {
-    filename = node->filename;
-    begin.setLineAndColumn(node->getBeginPos()->line_number,
-                           node->getBeginPos()->column_number);
-    end.setLineAndColumn(node->getEndPos()->line_number,
-                         node->getEndPos()->column_number);
-    if (node->macro_begin.line_number) {
-        macro_begin.setLineAndColumn(node->macro_begin.line_number,
-                                     node->macro_begin.column_number);
-        macro_end.setLineAndColumn(node->macro_end.line_number,
-                                   node->macro_end.column_number);
-    } else {
-        macro_begin.setLineAndColumn(0,0);
-        macro_end.setLineAndColumn(0,0);
-    }
+    setFromNode(node);
     instance = new_instance;
     arg_strings = new std::vector<std::string>;
     std::string temp(str1);
@@ -146,20 +81,7 @@ Error::Error(int new_instance,
              const char *str2,
              const char *str3)
 {
-    filename = node->filename;
-    begin.setLineAndColumn(node->getBeginPos()->line_number,
-                           node->getBeginPos()->column_number);
-    end.setLineAndColumn(node->getEndPos()->line_number,
-                         node->getEndPos()->column_number);
-    if (node->macro_begin.line_number) {
-        macro_begin.setLineAndColumn(node->macro_begin.line_number,
-                                     node->macro_begin.column_number);
-        macro_end.setLineAndColumn(node->macro_end.line_number,
-                                   node->macro_end.column_number);
-    } else {
-        macro_begin.setLineAndColumn(0,0);
-        macro_end.setLineAndColumn(0,0);
-    }
+    setFromNode(node);
     instance = new_instance;
     arg_strings = new std::vector<std::string>;
     std::string temp(str1);
@@ -179,20 +101,7 @@ Error::Error(int new_instance,
              const char *str3,
              const char *str4)
 {
-    filename = node->filename;
-    begin.setLineAndColumn(node->getBeginPos()->line_number,
-                           node->getBeginPos()->column_number);
-    end.setLineAndColumn(node->getEndPos()->line_number,
-                         node->getEndPos()->column_number);
-    if (node->macro_begin.line_number) {
-        macro_begin.setLineAndColumn(node->macro_begin.line_number,
-                                     node->macro_begin.column_number);
-        macro_end.setLineAndColumn(node->macro_end.line_number,
-                                   node->macro_end.column_number);
-    } else {
-        macro_begin.setLineAndColumn(0,0);
-        macro_end.setLineAndColumn(0,0);
-    }
+    setFromNode(node);
     instance = new_instance;
     arg_strings = new std::vector<std::string>;
     std::string temp(str1);
@@ -307,6 +216,22 @@ int Error::getType(void)
         return ErrorType::Warning;
     default:
         return ErrorType::Error;
+    }
+}
+
+void Error::setFromNode(Node *node)
+{
+    filename = node->filename;
+    node->getBeginPos()->copyTo(&begin);
+    node->getEndPos()->copyTo(&end);
+    if (node->macro_begin.line_number) {
+        macro_begin.setLineAndColumn(node->macro_begin.line_number,
+                                     node->macro_begin.column_number);
+        macro_end.setLineAndColumn(node->macro_end.line_number,
+                                   node->macro_end.column_number);
+    } else {
+        macro_begin.setLineAndColumn(0,0);
+        macro_end.setLineAndColumn(0,0);
     }
 }
 }

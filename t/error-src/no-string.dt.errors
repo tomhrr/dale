@@ -1,1 +1,1 @@
-./t/error-src/no-string.dt:0:0: error: DNode returned by macro is an atom but has no string
+<unknown>:0:0: error: DNode returned by macro is an atom but has no string

@@ -1,1 +1,1 @@
-./t/error-src/position.dt:7:21: error: not in scope: '++' (see macro at 7:5)
+<unknown>:7:21: error: not in scope: '++' (see macro at 7:5)
