@@ -105,31 +105,111 @@ extern "C" {
      */
     bool exists_2D_variable(MContext *mc, DNode *form);
 
-
-    int fn_2D_by_2D_args_2D_count(MContext *mc, DNode *dnode,
+    /*! Retrieve the number of functions that have the specified
+     *  parameters.
+     *  @param mc The current macro context.
+     *  @param form The list of parameters.
+     *  @param prefix If not null, only include functions that begin
+     *  with this prefix.
+     */
+    int fn_2D_by_2D_args_2D_count(MContext *mc, DNode *form,
                                   const char *prefix);
-    const char* fn_2D_by_2D_args_2D_name(MContext *mc, DNode *dnode,
-                                         int acount);
-    bool register_2D_type(MContext *mc, const char *buf1, 
-                                        const char *buf2);
-    DNode *type_2D_of(MContext *mc, DNode *dnode);
-    const char *printf_2D_length(MContext *mc, DNode *dnode);
-    bool type_2D_to_2D_string(MContext *mc, DNode *dnode, char *buf);
-    bool type_2D_to_2D_display_2D_string(MContext *mc, 
-                                        DNode *dnode, char *buf);
-    void report_2D_error(MContext *mc, DNode *dnode, char *str);
-    DNode *codomain(MContext *mc, DNode *dnode);
-    DNode *input_2D_type(MContext *mc, DNode *fn_name, int arg_count);
-    DNode *struct_2D_member_2D_type(MContext *mc,
-                                    DNode *struct_name_node, int
-                                    arg_count);
-    const char *struct_2D_member_2D_name(MContext *mc,
-                                         DNode *struct_name_node,
-                                         int arg_count);
-    int arity(MContext *mc, DNode *fn_name);
-    int struct_2D_member_2D_count(MContext *mc, DNode
-    *struct_name_node);
+    /*! Retrieve the name of the function at the specified index.
+     *  @param mc The current macro context.
+     *  @param form The list of parameters.
+     *  @param index The function index.
+     *
+     *  The index must be more than or equal to zero, and less than or
+     *  equal to the result of an earlier call to
+     *  fn_2D_by_2D_args_2D_count with the form.
+     */
+    const char* fn_2D_by_2D_args_2D_name(MContext *mc, DNode *form,
+                                         int index);
 
+    /*! Register a type mapping.
+     *  @param mc The current macro context.
+     *  @param from The internal name of the type.
+     *  @param to The display string for the type.
+     */
+    bool register_2D_type(MContext *mc, const char *from, const char *to);
+
+    /*! Get the type of a given form.
+     *  @param mc The current macro context.
+     *  @param form The form.
+     */
+    DNode *type_2D_of(MContext *mc, DNode *form);
+
+    /*! Get the printf format specifier for the given type.
+     *  @param mc The current macro context.
+     *  @param t The type node.
+     */
+    const char *printf_2D_length(MContext *mc, DNode *t);
+
+    /*! Stringify a type.
+     *  @param mc The current macro context.
+     *  @param t The type node.
+     *  @param buf A buffer for the stringified type.
+     */
+    bool type_2D_to_2D_string(MContext *mc, DNode *t, char *buf);
+    /*! Stringify a type for display.
+     *  @param mc The current macro context.
+     *  @param t The type node.
+     *  @param buf A buffer for the stringified type.
+     */
+    bool type_2D_to_2D_display_2D_string(MContext *mc, DNode *t, char *buf);
+
+    /*! Report an error to the compiler.
+     *  @param mc The current macro context.
+     *  @param form The reference node.
+     *  @param str The error message.
+     */
+    void report_2D_error(MContext *mc, DNode *form, char *str);
+
+    /*! Get the arity of a given function.
+     *  @param mc The current macro context.
+     *  @param name The name of the function.
+     */
+    int arity(MContext *mc, DNode *name);
+    /*! Get the codomain of a given function.
+     *  @param mc The current macro context.
+     *  @param form The function form node.
+     *
+     *  The function form node comprises the function name and its
+     *  parameter types.
+     */
+    DNode *codomain(MContext *mc, DNode *form);
+    /*! Get the type of the argument at a given index for a function.
+     *  @param mc The current macro context.
+     *  @param name The name of the function.
+     *  @param index The argument index.
+     */
+    DNode *input_2D_type(MContext *mc, DNode *name, int index);
+
+    /*! Get the number of members in a struct.
+     *  @param mc The current macro context.
+     *  @param name The struct name node.
+     */
+    int struct_2D_member_2D_count(MContext *mc, DNode *name);
+    /*! Get the type of a given struct member.
+     *  @param mc The current macro context.
+     *  @param name The struct name node.
+     *  @param index The member index within the struct.
+     */
+    DNode *struct_2D_member_2D_type(MContext *mc, DNode *name, int index);
+    /*! Get the name of a given struct member.
+     *  @param mc The current macro context.
+     *  @param name The struct name node.
+     *  @param index The member index within the struct.
+     */
+    const char *struct_2D_member_2D_name(MContext *mc, DNode *name,
+                                         int index);
+
+    /*! Find an introspection function.
+     *  @param name The external name of the function (e.g. "type-of").
+     *
+     *  Returns a pointer to the relevant function, or null if none
+     *  exists.
+     */
     void *find_introspection_function(const char *name);
 }
 

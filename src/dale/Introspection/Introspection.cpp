@@ -571,12 +571,12 @@ extern "C" {
         return ((thevar) ? true : false);
     }
 
-    int fn_2D_by_2D_args_2D_count(MContext *mc, DNode *dnode,
-                                   const char *prefix)
+    int fn_2D_by_2D_args_2D_count(MContext *mc, DNode *form,
+                                  const char *prefix)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
 
-        Node *n = g->DNodeToIntNode(dnode);
+        Node *n = g->DNodeToIntNode(form);
 
         assert(n->list && "must receive a list!");
 
@@ -655,12 +655,12 @@ extern "C" {
         return (int) fn_by_args_list->size();
     }
 
-    const char* fn_2D_by_2D_args_2D_name(MContext *mc, DNode *dnode,
-                                         int acount)
+    const char* fn_2D_by_2D_args_2D_name(MContext *mc, DNode *form,
+                                         int index)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
 
-        Node *n = g->DNodeToIntNode(dnode);
+        Node *n = g->DNodeToIntNode(form);
 
         assert(n->list && "must receive a list!");
 
@@ -696,24 +696,24 @@ extern "C" {
         }
 
         std::vector<std::string> *fn_by_args_list = b->second;
-        if (((unsigned) acount) > (fn_by_args_list->size() - 1)) {
+        if (((unsigned) index) > (fn_by_args_list->size() - 1)) {
             return NULL;
         }
 
-        return fn_by_args_list->at(acount).c_str();
+        return fn_by_args_list->at(index).c_str();
     }
 
-    bool register_2D_type(MContext *mc, const char *buf1, const char *buf2)
+    bool register_2D_type(MContext *mc, const char *from, const char *to)
     {
-        dale::addTypeMapEntry(buf1, buf2);
+        dale::addTypeMapEntry(from, to);
         return true;
     }
 
-    DNode *type_2D_of(MContext *mc, DNode *dnode)
+    DNode *type_2D_of(MContext *mc, DNode *form)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
 
-        Node *n = g->DNodeToIntNode(dnode);
+        Node *n = g->DNodeToIntNode(form);
 
         g_nodes.push_back(n);
 
@@ -749,11 +749,11 @@ extern "C" {
         return mynode;
     }
 
-    const char *printf_2D_length(MContext *mc, DNode *dnode)
+    const char *printf_2D_length(MContext *mc, DNode *t)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
 
-        Node *n = g->DNodeToIntNode(dnode);
+        Node *n = g->DNodeToIntNode(t);
         if (!n->is_token) {
             return "";
         }
@@ -802,11 +802,11 @@ extern "C" {
         return "";
     }
 
-    bool type_2D_to_2D_string(MContext *mc, DNode *dnode, char *buf)
+    bool type_2D_to_2D_string(MContext *mc, DNode *t, char *buf)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
 
-        Node *n = WrapNode(g->DNodeToIntNode(dnode));
+        Node *n = WrapNode(g->DNodeToIntNode(t));
 
         Type *type = FormTypeParse(g, (*(n->list))[0], false,
                                            false);
@@ -828,11 +828,11 @@ extern "C" {
         return true;
     }
 
-    bool type_2D_to_2D_display_2D_string(MContext *mc, DNode *dnode, char *buf)
+    bool type_2D_to_2D_display_2D_string(MContext *mc, DNode *t, char *buf)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
 
-        Node *n = WrapNode(g->DNodeToIntNode(dnode));
+        Node *n = WrapNode(g->DNodeToIntNode(t));
 
         Type *type = FormTypeParse(g, (*(n->list))[0], false,
                                            false);
@@ -848,11 +848,11 @@ extern "C" {
         return true;
     }
 
-    void report_2D_error(MContext *mc, DNode *dnode, char *str)
+    void report_2D_error(MContext *mc, DNode *form, char *str)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
 
-        Node *n = g->DNodeToIntNode(dnode);
+        Node *n = g->DNodeToIntNode(form);
 
         Error *e = new Error(
             ErrorInst::Generator::ExternalError, n, str
@@ -861,11 +861,33 @@ extern "C" {
         return;
     }
 
-    DNode *codomain(MContext *mc, DNode *dnode)
+    int arity(MContext *mc, DNode *name)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
 
-        Node *n = g->DNodeToIntNode(dnode);
+        Node *fn_node = g->DNodeToIntNode(name);
+        fn_node = g->parseOptionalMacroCall(fn_node);
+        if (!fn_node) {
+            return -1;
+        }
+        const char *fn_name = fn_node->token->str_value.c_str();
+
+        Function *fn = g->ctx->getFunction(fn_name, NULL, NULL,
+                                                    0);
+        if (!fn) {
+            return -1;
+        }
+        if (fn->linkage != Linkage::Extern_C) {
+            return -1;
+        }
+        return fn->numberOfRequiredArgs();
+    }
+
+    DNode *codomain(MContext *mc, DNode *form)
+    {
+        dale::Generator *g = (dale::Generator*) mc->generator;
+
+        Node *n = g->DNodeToIntNode(form);
 
         assert(n->list && "must receive a list!");
 
@@ -918,7 +940,7 @@ extern "C" {
         } 
     }
 
-    DNode *input_2D_type(MContext *mc, DNode *fn_name_nd, int arg_count)
+    DNode *input_2D_type(MContext *mc, DNode *fn_name_nd, int index)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
 
@@ -937,19 +959,19 @@ extern "C" {
         if (fn->linkage != Linkage::Extern_C) {
             return NULL;
         }
-        if ((int) (fn->parameter_types.size() - 1) < arg_count) {
+        if ((int) (fn->parameter_types.size() - 1) < index) {
             return NULL;
         }
 
-        return fn->parameter_types.at(arg_count)->type->toNode()->toDNode();
+        return fn->parameter_types.at(index)->type->toNode()->toDNode();
     }
 
     DNode *struct_2D_member_2D_type(MContext *mc,
-                                    DNode *struct_name_node, int arg_count)
+                                    DNode *name, int index)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
 
-        Node *s_node = g->DNodeToIntNode(struct_name_node);
+        Node *s_node = g->DNodeToIntNode(name);
         s_node = g->parseOptionalMacroCall(s_node);
         if (!s_node || !s_node->token) {
             return NULL;
@@ -960,20 +982,20 @@ extern "C" {
         if (!st) {
             return NULL;
         }
-        if ((int) st->member_types.size() < arg_count) {
+        if ((int) st->member_types.size() < index) {
             return NULL;
         }
         return
-            st->member_types.at(arg_count)->toNode()->toDNode();
+            st->member_types.at(index)->toNode()->toDNode();
     }
 
     const char *struct_2D_member_2D_name(MContext *mc,
-                                         DNode *struct_name_node,
-                                         int arg_count)
+                                         DNode *name,
+                                         int index)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
 
-        Node *s_node = g->DNodeToIntNode(struct_name_node);
+        Node *s_node = g->DNodeToIntNode(name);
         s_node = g->parseOptionalMacroCall(s_node);
         if (!s_node || !s_node->token) {
             return NULL;
@@ -984,39 +1006,17 @@ extern "C" {
         if (!st) {
             return NULL;
         }
-        if ((int) st->member_types.size() < arg_count) {
+        if ((int) st->member_types.size() < index) {
             return NULL;
         }
-        return st->indexToMember(arg_count);
+        return st->indexToMember(index);
     }
 
-    int arity(MContext *mc, DNode *fn_name_nd)
+    int struct_2D_member_2D_count(MContext *mc, DNode *name)
     {
         dale::Generator *g = (dale::Generator*) mc->generator;
 
-        Node *fn_node = g->DNodeToIntNode(fn_name_nd);
-        fn_node = g->parseOptionalMacroCall(fn_node);
-        if (!fn_node) {
-            return -1;
-        }
-        const char *fn_name = fn_node->token->str_value.c_str();
-
-        Function *fn = g->ctx->getFunction(fn_name, NULL, NULL,
-                                                    0);
-        if (!fn) {
-            return -1;
-        }
-        if (fn->linkage != Linkage::Extern_C) {
-            return -1;
-        }
-        return fn->numberOfRequiredArgs();
-    }
-
-    int struct_2D_member_2D_count(MContext *mc, DNode *struct_name_node)
-    {
-        dale::Generator *g = (dale::Generator*) mc->generator;
-
-        Node *s_node = g->DNodeToIntNode(struct_name_node);
+        Node *s_node = g->DNodeToIntNode(name);
         s_node = g->parseOptionalMacroCall(s_node);
         if (!s_node || !s_node->token) {
             return -1;
