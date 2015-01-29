@@ -36,14 +36,6 @@ execute(Context *ctx,
     return true;
 }
 
-llvm::FunctionType *
-getFunctionType(llvm::Type *t,
-                std::vector<llvm::Type*> &v,
-                bool b) {
-    llvm::ArrayRef<llvm::Type*> temp(v);
-    return llvm::FunctionType::get(t, temp, b);
-}
-
 static int function_count = 0;
 
 size_t 

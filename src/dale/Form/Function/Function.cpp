@@ -12,14 +12,6 @@
 
 namespace dale
 {
-static llvm::FunctionType *
-getFunctionType(llvm::Type *t,
-                std::vector<llvm::Type*> &v,
-                bool b) {
-    llvm::ArrayRef<llvm::Type*> temp(v);
-    return llvm::FunctionType::get(t, temp, b);
-}
-
 bool 
 FormFunctionParse(Generator *gen,
       Node *n,

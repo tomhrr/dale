@@ -14,14 +14,6 @@ namespace dale
 {
 static int anonstructcount = 0;
 
-static llvm::FunctionType *
-getFunctionType(llvm::Type *t,
-                std::vector<llvm::Type*> &v,
-                bool b) {
-    llvm::ArrayRef<llvm::Type*> temp(v);
-    return llvm::FunctionType::get(t, temp, b);
-}
-
 bool
 addOpaqueStruct(Generator *gen, const char *name, Node *top,
                 int linkage, int must_init)

@@ -7,6 +7,8 @@
 #include <vector>
 #include <string>
 
+#include "../llvm_Module.h"
+
 namespace dale
 {
 int is_simple_float(const char *str);
@@ -20,6 +22,10 @@ void append_int(std::string *to, int num);
 
 void splitString(std::string *str, std::vector<std::string> *lst, char c);
 void encodeStandard(const std::string *from, std::string *to);
+
+llvm::FunctionType *getFunctionType(llvm::Type *t,
+                                    std::vector<llvm::Type*> &v,
+                                    bool b);
 }
 
 #endif

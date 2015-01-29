@@ -265,13 +265,6 @@ llvm::Module *loadModule(std::string *path, bool materialize)
     return module;
 }
 
-llvm::FunctionType *getFunctionType(llvm::Type *t,
-                                    std::vector<llvm::Type*> &v,
-                                    bool b) {
-    llvm::ArrayRef<llvm::Type*> temp(v);
-    return llvm::FunctionType::get(t, temp, b);
-}
-
 int Generator::addIncludePath(char *filename)
 {
     inc_paths[inc_path_count++] = filename;

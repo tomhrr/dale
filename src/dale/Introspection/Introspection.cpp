@@ -3,19 +3,9 @@
 #include "../Generator/Generator.h"
 #include "../Form/Type/Type.h"
 #include "../Form/Proc/Inst/Inst.h"
+#include "../Utils/Utils.h"
 
 using namespace dale;
-
-std::vector<ParseResult*> g_parse_results;
-std::vector<Node *> g_nodes;
-
-llvm::FunctionType *
-getFunctionType(llvm::Type *t,
-                std::vector<llvm::Type*> &v,
-                bool b) {
-    llvm::ArrayRef<llvm::Type*> temp(v);
-    return llvm::FunctionType::get(t, temp, b);
-}
 
 static int myn = 0;
 bool makeTemporaryGlobalFunction(
@@ -715,8 +705,6 @@ extern "C" {
 
         Node *n = g->DNodeToIntNode(form);
 
-        g_nodes.push_back(n);
-
         if (!g->global_function) {
             fprintf(stderr, "No global function set.\n");
             abort();
@@ -742,8 +730,6 @@ extern "C" {
         if (!res) {
             return NULL;
         }
-
-        g_parse_results.push_back(p);
 
         DNode *mynode = p->type->toNode()->toDNode();
         return mynode;

@@ -14,15 +14,6 @@ namespace dale
 {
 namespace CommonDecl
 {
-llvm::FunctionType*
-getFunctionType(llvm::Type *t,
-                std::vector<llvm::Type*> &v,
-                bool b) 
-{
-    llvm::ArrayRef<llvm::Type*> temp(v);
-    return llvm::FunctionType::get(t, temp, b);
-}
-
 bool
 addVariable(Unit *unit,
             const char *name,
