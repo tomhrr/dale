@@ -204,6 +204,12 @@ extern "C" {
     const char *struct_2D_member_2D_name(MContext *mc, DNode *name,
                                          int index);
 
+    /*! Initialise introspection function lookup.
+     *
+     *  This must be called at least once before
+     *  find_introspection_function may be called.
+     */
+    void init_introspection_functions(void);
     /*! Find an introspection function.
      *  @param name The external name of the function (e.g. "type-of").
      *

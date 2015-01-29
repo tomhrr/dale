@@ -103,6 +103,7 @@
 #define eq(str) !strcmp(t->str_value.c_str(), str)
 
 extern "C" {
+    void init_introspection_functions(void);
     void *find_introspection_function(const char *);
 }
 
@@ -426,6 +427,8 @@ int Generator::run(std::vector<const char *> *filenames,
                    int mydebug,
                    int nodrt)
 {
+    init_introspection_functions();
+
     has_defined_extern_macro = 0;
     no_add_common_declarations = no_acd;
     no_drt = nodrt;
