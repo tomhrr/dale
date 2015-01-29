@@ -7,16 +7,13 @@
 
 using namespace dale;
 
-static int myn = 0;
-bool makeTemporaryGlobalFunction(
-    Generator *gen,
-    std::vector<DeferredGoto*> *dgs,
-    std::map<std::string, Label*> *mls
-)
+static int function_count = 0;
+bool
+makeTemporaryGlobalFunction(Generator *gen,
+                            std::vector<DeferredGoto*> *dgs,
+                            std::map<std::string, Label*> *mls)
 {
     Context *ctx = gen->ctx;
-
-    /* Create a temporary function for evaluating the arguments. */
 
     llvm::Type *llvm_return_type =
         ctx->toLLVMType(ctx->tr->type_int, NULL, false);
@@ -24,18 +21,14 @@ bool makeTemporaryGlobalFunction(
         return false;
     }
 
-    std::vector<llvm::Type*> mc_args;
-
+    std::vector<llvm::Type*> empty_args;
     llvm::FunctionType *ft =
-        getFunctionType(
-            llvm_return_type,
-            mc_args,
-            false
-        );
+        getFunctionType(llvm_return_type, empty_args, false);
+
+    char buf[32];
+    sprintf(buf, "_intro%d", function_count++);
 
     std::string new_name;
-    char buf[255];
-    sprintf(buf, "___myfn%d", myn++);
     ctx->ns()->nameToSymbol(buf, &new_name);
 
     if (gen->mod->getFunction(llvm::StringRef(new_name.c_str()))) {
@@ -45,18 +38,17 @@ bool makeTemporaryGlobalFunction(
         abort();
     }
 
-    llvm::Constant *fnc =
+    llvm::Constant *llvm_fnc =
         gen->mod->getOrInsertFunction(new_name.c_str(), ft);
-    if (!fnc) {
+    if (!llvm_fnc) {
         fprintf(stderr, "Internal error: unable to add "
                 "function ('%s') to module.\n",
                 new_name.c_str());
         abort();
     }
 
-    llvm::Function *fn =
-        llvm::dyn_cast<llvm::Function>(fnc);
-    if (!fn) {
+    llvm::Function *llvm_fn = llvm::dyn_cast<llvm::Function>(llvm_fnc);
+    if (!llvm_fn) {
         fprintf(stderr, "Internal error: unable to convert "
                 "function constant to function "
                 "for function '%s'.\n",
@@ -65,74 +57,43 @@ bool makeTemporaryGlobalFunction(
     }
 
     std::vector<Variable *> vars;
-
-    Function *dfn =
-        new Function(ctx->tr->type_int,
-                              &vars,
-                              fn,
-                              0,
-                              new std::string(new_name),
-                              0);
-    dfn->linkage = Linkage::Intern;
-    if (!dfn) {
+    Function *fn =
+        new Function(ctx->tr->type_int, &vars, llvm_fn, 0,
+                     new std::string(new_name), 0);
+    fn->linkage = Linkage::Intern;
+    if (!fn) {
         fprintf(stderr, "Internal error: unable to create new "
-                "function (!) '%s'.\n",
+                "function '%s'.\n",
                 new_name.c_str());
         abort();
     }
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                 "entry",
-                                 fn);
-
+        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", llvm_fn);
     int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    gen->global_functions.push_back(dfn);
-    gen->global_function = dfn;
-
-    gen->global_blocks.push_back(block);
-    gen->global_block = block;
+    gen->pushGlobalFunction(fn);
+    gen->pushGlobalBlock(block);
 
     ctx->activateAnonymousNamespace();
 
     return error_count;
 }
 
-void removeTemporaryGlobalFunction(
-    Generator *gen,
-    int error_count,
-    std::vector<DeferredGoto*> *dgs,
-    std::map<std::string, Label*> *mls
-)
+void
+removeTemporaryGlobalFunction(Generator *gen, int error_count,
+                              std::vector<DeferredGoto*> *dgs,
+                              std::map<std::string, Label*> *mls)
 {
     Context *ctx = gen->ctx;
-
     if (error_count >= 0) {
         ctx->er->popErrors(error_count);
     }
-
     ctx->deactivateAnonymousNamespace();
     Function *current = gen->global_function;
-
-    gen->global_functions.pop_back();
-    if (gen->global_functions.size()) {
-        gen->global_function = gen->global_functions.back();
-    } else {
-        gen->global_function = NULL;
-    }
-
-    gen->global_blocks.pop_back();
-    if (gen->global_blocks.size()) {
-        gen->global_block = gen->global_blocks.back();
-    } else {
-        gen->global_block = NULL;
-    }
-
-    /* Remove the temporary function. */
+    gen->popGlobalFunction();
+    gen->popGlobalBlock();
     current->llvm_function->eraseFromParent();
-
-    return;
 }
 
 extern "C" {

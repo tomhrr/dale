@@ -27,8 +27,7 @@ FormProcBodyParse(Generator *gen,
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);
 
-    gen->global_blocks.push_back(block);
-    gen->global_block = block;
+    gen->pushGlobalBlock(block);
 
     llvm::BasicBlock *next  = block;
     llvm::IRBuilder<> builder(block);
@@ -483,13 +482,7 @@ finish:
 
     dfn->deferred_gotos.clear();
     dfn->labels.clear();
-
-    gen->global_blocks.pop_back();
-    if (gen->global_blocks.size()) {
-        gen->global_block = gen->global_blocks.back();
-    } else {
-        gen->global_block = NULL;
-    }
+    gen->popGlobalBlock();
 
     return res;
 }

@@ -409,8 +409,8 @@ parseLiteral(Generator *gen,
         );
 
     std::string new_name;
-    char buf[255];
-    sprintf(buf, "___myfn%d", myn++);
+    char buf[32];
+    sprintf(buf, "_gv%d", myn++);
     ctx->ns()->nameToSymbol(buf, &new_name);
 
     if (gen->mod->getFunction(llvm::StringRef(new_name.c_str()))) {
@@ -462,8 +462,8 @@ parseLiteral(Generator *gen,
         );
 
     std::string wrap_new_name;
-    char wrap_buf[255];
-    sprintf(wrap_buf, "___myfn%d", myn++);
+    char wrap_buf[32];
+    sprintf(wrap_buf, "_gv%d", myn++);
     ctx->ns()->nameToSymbol(wrap_buf, &wrap_new_name);
 
     if (gen->mod->getFunction(llvm::StringRef(wrap_new_name.c_str()))) {

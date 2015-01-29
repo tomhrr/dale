@@ -206,6 +206,11 @@ public:
     int set_module_name;
     llvm::Type *llvm_type_dnode;
     llvm::Type *llvm_type_pdnode;
+
+    void pushGlobalFunction(Function *fn);
+    void pushGlobalBlock(llvm::BasicBlock *block);
+    void popGlobalFunction(void);
+    void popGlobalBlock(void);
 };
 }
 

@@ -2121,8 +2121,8 @@ Node *Generator::parseOptionalMacroCall(Node *n)
         );
 
     std::string new_name;
-    char buf[255];
-    sprintf(buf, "___myfn%d", myn++);
+    char buf[32];
+    sprintf(buf, "_gen%d", myn++);
     ctx->ns()->nameToSymbol(buf, &new_name);
 
     if (mod->getFunction(llvm::StringRef(new_name.c_str()))) {
@@ -2180,11 +2180,8 @@ Node *Generator::parseOptionalMacroCall(Node *n)
 
     int error_count = erep->getErrorTypeCount(ErrorType::Error);
 
-    global_functions.push_back(dfn);
-    global_function = dfn;
-
-    global_blocks.push_back(block);
-    global_block = block;
+    pushGlobalFunction(dfn);
+    pushGlobalBlock(block);
 
     ctx->activateAnonymousNamespace();
 
@@ -2210,19 +2207,8 @@ Node *Generator::parseOptionalMacroCall(Node *n)
 
     ctx->deactivateAnonymousNamespace();
 
-    global_functions.pop_back();
-    if (global_functions.size()) {
-        global_function = global_functions.back();
-    } else {
-        global_function = NULL;
-    }
-
-    global_blocks.pop_back();
-    if (global_blocks.size()) {
-        global_block = global_blocks.back();
-    } else {
-        global_block = NULL;
-    }
+    popGlobalFunction();
+    popGlobalBlock();
 
     /* Remove the temporary function. */
     fn->eraseFromParent();
@@ -3157,5 +3143,41 @@ Node *Generator::DNodeToIntNode(DNode *dnode)
     erep->addError(e);
 
     return NULL;
+}
+
+void
+Generator::pushGlobalFunction(Function *fn)
+{
+    global_functions.push_back(fn);
+    global_function = fn;
+}
+
+void
+Generator::pushGlobalBlock(llvm::BasicBlock *block)
+{
+    global_blocks.push_back(block);
+    global_block = block;
+}
+
+void
+Generator::popGlobalFunction(void)
+{
+    global_functions.pop_back();
+    if (global_functions.size()) {
+        global_function = global_functions.back();
+    } else {
+        global_function = NULL;
+    }
+}
+
+void
+Generator::popGlobalBlock(void)
+{
+    global_blocks.pop_back();
+    if (global_blocks.size()) {
+        global_block = global_blocks.back();
+    } else {
+        global_block = NULL;
+    }
 }
 }
