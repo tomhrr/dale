@@ -84,7 +84,7 @@ OffsetofGetByIndex(Unit *unit,
     llvm::FunctionType *ft =
         getFunctionType(llvm_return_type, mc_args, false);
 
-    char buf[255];
+    char buf[32];
     sprintf(buf, "_oo%d", function_count++);
     std::string new_name;
     ctx->ns()->nameToSymbol(buf, &new_name);

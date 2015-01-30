@@ -123,25 +123,18 @@ parseLiteralElement(Generator *gen,
     if (type->struct_name.size()) {
         std::vector<llvm::Constant *> constants;
 
-        Struct *str =
-            ctx->getStruct(
-                type->struct_name.c_str(),
-                &(type->namespaces)
-            );
-        if (!str) {
-            fprintf(stderr, "Internal error: invalid struct.\n");
-            abort();
-        }
+        Struct *st = ctx->getStruct(type);
+        assert(st);
 
         std::vector<Type *>::iterator begin =
-            str->member_types.begin();
+            st->member_types.begin();
 
         int i = 0;
         int last_el_size = -1;
         int last_offset = -1;
         int incr = 0;
 
-        while (begin != str->member_types.end()) {
+        while (begin != st->member_types.end()) {
             Type *current = (*begin);
             size_t el_size =
                 Operation::SizeofGet(gen->unit_stack->top(), current);
@@ -186,12 +179,12 @@ parseLiteralElement(Generator *gen,
             return NULL;
         }
 
-        llvm::StructType *st =
+        llvm::StructType *llvm_st =
             llvm::cast<llvm::StructType>(llvm_type);
 
         llvm::Constant *init =
             llvm::ConstantStruct::get(
-                st,
+                llvm_st,
                 constants
             );
 

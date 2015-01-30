@@ -5,32 +5,25 @@ namespace dale
 namespace Operation
 {
 bool 
-Sizeof(Context *ctx,
-        llvm::BasicBlock *block,
-        Type *type,
-        ParseResult *pr)
+Sizeof(Context *ctx, llvm::BasicBlock *block, Type *type,
+       ParseResult *pr)
 {
     llvm::IRBuilder<> builder(block);
 
-    llvm::Type *llvm_type =
-        ctx->toLLVMType(type, NULL, false);
-    if (!llvm_type) {
-        return false;
-    }
+    llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
+    assert(llvm_type);
 
     llvm::PointerType *lpt =
         llvm::PointerType::getUnqual(llvm_type);
 
-    llvm::Value *res =
-        builder.CreateGEP(
-            llvm::ConstantPointerNull::get(lpt),
-            ctx->nt->getNativeInt(1)
-        );
+    llvm::Value *pointer =
+        builder.CreateGEP(llvm::ConstantPointerNull::get(lpt),
+                          ctx->nt->getNativeInt(1));
 
-    llvm::Value *res2 =
-        builder.CreatePtrToInt(res, ctx->nt->getNativeSizeType());
+    llvm::Value *int_pointer =
+        builder.CreatePtrToInt(pointer, ctx->nt->getNativeSizeType());
 
-    pr->set(block, ctx->tr->type_size, res2);
+    pr->set(block, ctx->tr->type_size, int_pointer);
     return true;
 }
 
@@ -45,71 +38,46 @@ SizeofGet(Unit *unit,
     llvm::Type *llvm_return_type =
         ctx->toLLVMType(ctx->tr->type_size, NULL, false);
     if (!llvm_return_type) {
-        return 0;
+        return -1;
     }
 
     std::vector<llvm::Type*> mc_args;
 
     llvm::FunctionType *ft =
-        getFunctionType(
-            llvm_return_type,
-            mc_args,
-            false
-        );
+        getFunctionType(llvm_return_type, mc_args, false);
 
+    char buf[32];
+    sprintf(buf, "_so%d", function_count++);
     std::string new_name;
-    char buf[255];
-    sprintf(buf, "_function_sizeof_%d", function_count++);
     ctx->ns()->nameToSymbol(buf, &new_name);
+    assert(!unit->module->getFunction(llvm::StringRef(new_name.c_str())));
 
-    if (unit->module->getFunction(llvm::StringRef(new_name.c_str()))) {
-        fprintf(stderr, "Internal error: "
-                "function already exists in module ('%s').\n",
-                new_name.c_str());
-        abort();
-    }
-
-    llvm::Constant *fnc =
-        unit->module->getOrInsertFunction(
-            new_name.c_str(),
-            ft
-        );
-
-    std::vector<Variable*> args;
-
-    llvm::Function *fn = llvm::cast<llvm::Function>(fnc);
-
-    fn->setCallingConv(llvm::CallingConv::C);
-
-    fn->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+    llvm::Constant *llvm_fnc =
+        unit->module->getOrInsertFunction(new_name.c_str(), ft);
+    llvm::Function *llvm_fn = llvm::cast<llvm::Function>(llvm_fnc);
+    llvm_fn->setCallingConv(llvm::CallingConv::C);
+    llvm_fn->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);
-    ParseResult mine;
-    bool mres = Sizeof(ctx, block, type, &mine);
-    if (!mres) {
-        return 0;
+        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", llvm_fn);
+    ParseResult sizeof_pr;
+    bool res = Sizeof(ctx, block, type, &sizeof_pr);
+    if (!res) {
+        return -1;
     }
 
     llvm::IRBuilder<> builder(block);
-    builder.CreateRet(mine.value);
+    builder.CreateRet(sizeof_pr.value);
 
-    void* fptr =
-        unit->ee->getPointerToFunction(fn);
-    if (!fptr) {
-        fprintf(stderr,
-                "Internal error: could not get pointer "
-                "to function for literal.\n");
-        abort();
-    }
+    void* fptr = unit->ee->getPointerToFunction(llvm_fn);
+    assert(fptr);
 
     size_t (*FPTR)(void) = (size_t (*)(void))fptr;
+    size_t size = (size_t) FPTR();
 
-    size_t res = (size_t) FPTR();
+    llvm_fn->eraseFromParent();
 
-    fn->eraseFromParent();
-
-    return res;
+    return size;
 }
 }
 }

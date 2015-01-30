@@ -22,11 +22,8 @@ namespace Operation
  *  @param member_name The struct member name.
  *  @param pr The parse result for the offset.
  */
-bool Offsetof(Context *ctx,
-              llvm::BasicBlock *block,
-              Type *type,
-              const char *field_name,
-              ParseResult *pr);
+bool Offsetof(Context *ctx, llvm::BasicBlock *block, Type *type,
+              const char *field_name, ParseResult *pr);
 /*! Get the offset of a particular struct member by index.
  *  @param ctx The current context.
  *  @param block The current block.
@@ -34,11 +31,8 @@ bool Offsetof(Context *ctx,
  *  @param index The struct member index.
  *  @param pr The parse result for the offset.
  */
-bool OffsetofByIndex(Context *ctx,
-                     llvm::BasicBlock *block,
-                     Type *type,
-                     int index,
-                     ParseResult *pr);
+bool OffsetofByIndex(Context *ctx, llvm::BasicBlock *block,
+                     Type *type, int index, ParseResult *pr);
 /*! Get the offset of a particular struct member by index.
  *  @param unit The current unit.
  *  @param type The struct type.
@@ -47,9 +41,7 @@ bool OffsetofByIndex(Context *ctx,
  *  Unlike the other Offsetof calls, this one returns the actual
  *  result as a number, rather than within a ParseResult.
  */
-size_t OffsetofGetByIndex(Unit *unit,
-                          Type *type,
-                          int index);
+size_t OffsetofGetByIndex(Unit *unit, Type *type, int index);
 }
 }
 

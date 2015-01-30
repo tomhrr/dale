@@ -15,12 +15,22 @@ namespace dale
 {
 namespace Operation
 {
-bool Sizeof(Context *ctx,
-             llvm::BasicBlock *block,
-             Type *type,
-             ParseResult *pr);
-size_t SizeofGet(Unit *unit,
-                 Type *type);
+/*! Get the size of a particular type.
+ *  @param ctx The current context.
+ *  @param block The current block.
+ *  @param type The type.
+ *  @param pr The parse result for the size.
+ */
+bool Sizeof(Context *ctx, llvm::BasicBlock *block, Type *type,
+            ParseResult *pr);
+/*! Get the size of a particular type.
+ *  @param unit The current unit.
+ *  @param type The type.
+ *
+ *  Unlike Sizeof, this returns the actual result as a number, rather
+ *  than within a ParseResult.
+ */
+size_t SizeofGet(Unit *unit, Type *type);
 }
 }
 
