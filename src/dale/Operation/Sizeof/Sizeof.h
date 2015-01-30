@@ -15,15 +15,12 @@ namespace dale
 {
 namespace Operation
 {
-namespace Sizeof
-{
-bool execute(Context *ctx,
+bool Sizeof(Context *ctx,
              llvm::BasicBlock *block,
              Type *type,
              ParseResult *pr);
-size_t get(Unit *unit,
-           Type *type);
-}
+size_t SizeofGet(Unit *unit,
+                 Type *type);
 }
 }
 

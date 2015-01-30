@@ -489,7 +489,7 @@ addSignedInt(Context *ctx,
                                      fn->llvm_function);
 
         ParseResult temp;
-        Operation::Cast::execute(ctx, block, (*(iter + 1))->value,
+        Operation::Cast(ctx, block, (*(iter + 1))->value,
                                  type_int, type, NULL, false, &temp);
 
         llvm::IRBuilder<> builder(temp.block);
@@ -513,7 +513,7 @@ addSignedInt(Context *ctx,
                                      fn->llvm_function);
 
         ParseResult temp;
-        Operation::Cast::execute(ctx, block, (*(iter + 1))->value,
+        Operation::Cast(ctx, block, (*(iter + 1))->value,
                                  type_int, type, NULL, false, &temp);
 
         llvm::IRBuilder<> builder(temp.block);
@@ -599,7 +599,7 @@ addUnsignedInt(Context *ctx,
                                      fn->llvm_function);
 
         ParseResult temp;
-        Operation::Cast::execute(ctx, block, (*(iter + 1))->value,
+        Operation::Cast(ctx, block, (*(iter + 1))->value,
                                  type_int, type, NULL, false, &temp);
 
         llvm::IRBuilder<> builder(temp.block);
@@ -622,7 +622,7 @@ addUnsignedInt(Context *ctx,
                                      fn->llvm_function);
 
         ParseResult temp;
-        Operation::Cast::execute(ctx, block, (*(iter + 1))->value,
+        Operation::Cast(ctx, block, (*(iter + 1))->value,
                                  type_int, type, NULL, false, &temp);
 
         llvm::IRBuilder<> builder(temp.block);
@@ -980,7 +980,7 @@ addEnum(Context *ctx,
             );
 
         ParseResult temp;
-        Operation::Cast::execute(ctx, block, (*(iter + 1))->value,
+        Operation::Cast(ctx, block, (*(iter + 1))->value,
                                  type_int, enum_int_type, NULL, false, &temp);
         builder.SetInsertPoint(temp.block);
 
@@ -1036,7 +1036,7 @@ addEnum(Context *ctx,
             );
 
         ParseResult temp;
-        Operation::Cast::execute(ctx, block, (*(iter + 1))->value,
+        Operation::Cast(ctx, block, (*(iter + 1))->value,
                                  type_int, enum_int_type, NULL, false, &temp);
         builder.SetInsertPoint(temp.block);
 

@@ -4,15 +4,13 @@ namespace dale
 {
 namespace Operation
 {
-namespace Alignmentof
-{
 static int alignment_structs = 0;
 
 bool 
-execute(Context *ctx,
-        llvm::BasicBlock *block,
-        Type *type,
-        ParseResult *pr)
+Alignmentof(Context *ctx,
+            llvm::BasicBlock *block,
+            Type *type,
+            ParseResult *pr)
 {
     std::vector<llvm::Type*> elements_llvm;
     elements_llvm.push_back(
@@ -65,7 +63,6 @@ execute(Context *ctx,
 
     pr->set(block, ctx->tr->type_size, res2);
     return true;
-}
 }
 }
 }

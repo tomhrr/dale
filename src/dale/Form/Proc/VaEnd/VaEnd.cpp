@@ -44,7 +44,7 @@ FormProcVaEndParse(Generator *gen,
 
     std::vector<llvm::Value*> call_args;
     ParseResult to_pchar;
-    res = Operation::Cast::execute(ctx, pr_valist.block,
+    res = Operation::Cast(ctx, pr_valist.block,
                 pr_valist.value,
                 pr_valist.type,
                 ctx->tr->getPointerType(ctx->tr->getBasicType(BaseType::Char)),

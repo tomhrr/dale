@@ -6,9 +6,7 @@ namespace dale
 {
 namespace Operation
 {
-namespace Cast
-{
-bool execute(Context *ctx,
+bool Cast(Context *ctx,
                      llvm::BasicBlock *block,
                      llvm::Value *value,
                      Type *from_type,
@@ -130,7 +128,7 @@ bool execute(Context *ctx,
         // Cast that value to a value of the right type.
 
         ParseResult temp;
-        bool mres = execute(ctx, block,
+        bool mres = Cast(ctx, block,
                             newint,
                             temp_to_type,
                             to_type,
@@ -152,7 +150,7 @@ bool execute(Context *ctx,
         Type *to_type_temp = mystruct->member_types.at(0);
 
         ParseResult temp;
-        bool mres = execute(ctx, block,
+        bool mres = Cast(ctx, block,
                             value,
                             from_type,
                             to_type_temp,
@@ -220,7 +218,6 @@ bool execute(Context *ctx,
     pr->value = res;
 
     return true;
-}
 }
 }
 }

@@ -38,7 +38,7 @@ FormProcAlignmentOfParse(Generator *gen,
         return false;
     }
 
-    bool res = Operation::Alignmentof::execute(ctx, block, type, pr);
+    bool res = Operation::Alignmentof(ctx, block, type, pr);
     return res;
 }
 }

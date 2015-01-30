@@ -15,25 +15,19 @@ namespace dale
 {
 namespace Operation
 {
-namespace Offsetof
-{
-bool execute(Context *ctx,
-             llvm::BasicBlock *block,
-             Type *type,
-             const char *field_name,
-             ParseResult *pr);
-bool executeByIndex(Context *ctx,
-                    llvm::BasicBlock *block,
-                    Type *type,
-                    int index,
-                    ParseResult *pr);
-size_t get(Unit *unit,
-           Type *type,
-           const char *field_name);
-size_t getByIndex(Unit *unit,
-                  Type *type,
-                  int index);
-}
+bool Offsetof(Context *ctx,
+              llvm::BasicBlock *block,
+              Type *type,
+              const char *field_name,
+              ParseResult *pr);
+bool OffsetofByIndex(Context *ctx,
+                     llvm::BasicBlock *block,
+                     Type *type,
+                     int index,
+                     ParseResult *pr);
+size_t OffsetofGetByIndex(Unit *unit,
+                          Type *type,
+                          int index);
 }
 }
 

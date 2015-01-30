@@ -61,7 +61,7 @@ FormProcArefParse(Generator *gen,
     if (pr_index.type->base_type != BaseType::Size) {
         ParseResult newt;
         bool res =
-            Operation::Cast::execute(ctx,
+            Operation::Cast(ctx,
                                      pr_index.block,
                                      pr_index.value,
                                      pr_index.type, 

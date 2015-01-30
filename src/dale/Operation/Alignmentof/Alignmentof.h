@@ -15,13 +15,10 @@ namespace dale
 {
 namespace Operation
 {
-namespace Alignmentof
-{
-bool execute(Context *ctx,
-             llvm::BasicBlock *block,
-             Type *type,
-             ParseResult *pr);
-}
+bool Alignmentof(Context *ctx,
+                 llvm::BasicBlock *block,
+                 Type *type,
+                 ParseResult *pr);
 }
 }
 

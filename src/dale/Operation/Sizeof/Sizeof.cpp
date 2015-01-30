@@ -4,10 +4,8 @@ namespace dale
 {
 namespace Operation
 {
-namespace Sizeof
-{
 bool 
-execute(Context *ctx,
+Sizeof(Context *ctx,
         llvm::BasicBlock *block,
         Type *type,
         ParseResult *pr)
@@ -39,8 +37,8 @@ execute(Context *ctx,
 static int function_count = 0;
 
 size_t 
-get(Unit *unit,
-    Type *type)
+SizeofGet(Unit *unit,
+          Type *type)
 {
     Context *ctx = unit->ctx;
 
@@ -88,7 +86,7 @@ get(Unit *unit,
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);
     ParseResult mine;
-    bool mres = execute(ctx, block, type, &mine);
+    bool mres = Sizeof(ctx, block, type, &mine);
     if (!mres) {
         return 0;
     }
@@ -112,7 +110,6 @@ get(Unit *unit,
     fn->eraseFromParent();
 
     return res;
-}
 }
 }
 }

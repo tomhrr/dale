@@ -84,7 +84,7 @@ FormProcSizeofParse(Generator *gen,
     }
 
 
-    bool res = Operation::Sizeof::execute(ctx, block, type, pr);
+    bool res = Operation::Sizeof(ctx, block, type, pr);
 
     return res;
 }

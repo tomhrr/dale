@@ -4,9 +4,7 @@ namespace dale
 {
 namespace Operation
 {
-namespace Offsetof
-{
-int
+static int
 nameToIndex(Context *ctx,
             Type *type,
             const char *field_name)
@@ -33,18 +31,18 @@ nameToIndex(Context *ctx,
 }
 
 bool 
-execute(Context *ctx,
+Offsetof(Context *ctx,
         llvm::BasicBlock *block,
         Type *type,
         const char *field_name,
         ParseResult *pr)
 {
-    return executeByIndex(ctx, block, type, 
+    return OffsetofByIndex(ctx, block, type, 
                           nameToIndex(ctx, type, field_name), pr);
 }
 
 bool 
-executeByIndex(Context *ctx,
+OffsetofByIndex(Context *ctx,
                llvm::BasicBlock *block,
                Type *type,
                int index,
@@ -79,16 +77,8 @@ executeByIndex(Context *ctx,
 
 static int function_count = 0;
 
-size_t 
-get(Unit *unit,
-    Type *type,
-    const char *field_name)
-{
-    return getByIndex(unit, type, nameToIndex(unit->ctx, type, field_name));
-}
-
 size_t
-getByIndex(Unit *unit,
+OffsetofGetByIndex(Unit *unit,
            Type *type,
            int index)
 {
@@ -138,7 +128,7 @@ getByIndex(Unit *unit,
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);
     ParseResult mine;
-    bool mres = executeByIndex(ctx, block, type, index, &mine);
+    bool mres = OffsetofByIndex(ctx, block, type, index, &mine);
     if (!mres) {
         return 0;
     }
@@ -162,7 +152,6 @@ getByIndex(Unit *unit,
     fn->eraseFromParent();
 
     return res;
-}
 }
 }
 }

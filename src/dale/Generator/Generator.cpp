@@ -2633,7 +2633,7 @@ bool Generator::parseFunctionCall(Function *dfn,
                 }
 
                 ParseResult mytemp;
-                bool res = Operation::Cast::execute(ctx, block,
+                bool res = Operation::Cast(ctx, block,
                            (*citer),
                            (*caiter),
                            (*miter)->type,

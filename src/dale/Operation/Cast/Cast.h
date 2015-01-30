@@ -14,17 +14,14 @@ namespace dale
 {
 namespace Operation
 {
-namespace Cast
-{
-bool execute(Context *ctx,
-            llvm::BasicBlock *block,
-            llvm::Value *value,
-            Type *from_type,
-            Type *to_type,
-            Node *n,
-            bool implicit,
-            ParseResult *pr);
-}
+bool Cast(Context *ctx,
+          llvm::BasicBlock *block,
+          llvm::Value *value,
+          Type *from_type,
+          Type *to_type,
+          Node *n,
+          bool implicit,
+          ParseResult *pr);
 }
 }
 

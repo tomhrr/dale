@@ -64,7 +64,7 @@ FormProcOffsetOfParse(Generator *gen,
 
     /* Second argument is struct field. */
 
-    bool res = Operation::Offsetof::execute(ctx, block, mytype,
+    bool res = Operation::Offsetof(ctx, block, mytype,
                            (*lst)[2]->token->str_value.c_str(),
                            pr);
     return res;

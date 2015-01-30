@@ -58,7 +58,7 @@ FormProcCastParse(Generator *gen,
     }
 
     ParseResult temp;
-    res = Operation::Cast::execute(ctx,
+    res = Operation::Cast(ctx,
                 pr_value.block,
                 pr_value.value,
                 pr_value.type,

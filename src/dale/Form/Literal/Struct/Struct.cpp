@@ -108,7 +108,7 @@ FormLiteralStructParse(Generator *gen,
                         && newvalue.type->isFloatingPointType())) {
                 ParseResult casttemp;
                 bool res =
-                    Operation::Cast::execute(
+                    Operation::Cast(
                            ctx,
                            newvalue.block,
                            newvalue.value,
