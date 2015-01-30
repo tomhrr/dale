@@ -584,6 +584,12 @@ Context::getStruct(const char *name,
     return getStruct(full_name.c_str());
 }
 
+Struct *
+Context::getStruct(Type* type)
+{
+    return getStruct(type->struct_name.c_str(), &(type->namespaces));
+}
+
 Enum *
 Context::getEnum(const char *name)
 {

@@ -204,7 +204,10 @@ public:
     /*! Get the struct with the given name.
      */
     Struct *getStruct(const char *name,
-                               std::vector<std::string> *namespaces);
+                      std::vector<std::string> *namespaces);
+    /*! Get the struct for the given type.
+     */
+    Struct *getStruct(Type *type);
     /*! Get the enum with the given name.
      */
     Enum *getEnum(const char *name);
