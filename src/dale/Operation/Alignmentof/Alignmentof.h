@@ -15,9 +15,13 @@ namespace dale
 {
 namespace Operation
 {
-bool Alignmentof(Context *ctx,
-                 llvm::BasicBlock *block,
-                 Type *type,
+/*! Get the required alignment for a particular type.
+ *  @param ctx The current context.
+ *  @param block The current block.
+ *  @param type The type.
+ *  @param pr The parse result for the alignment result.
+ */
+bool Alignmentof(Context *ctx, llvm::BasicBlock *block, Type *type,
                  ParseResult *pr);
 }
 }
