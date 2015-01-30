@@ -63,8 +63,8 @@ void serialise(FILE *out, int a)
 {
     if ((a < 0) || (a > 255)) {
         fprintf(stderr, "Internal error: assuming ints for "
-                "serialising are between 0 and 255 "
-                "inclusive (got %d).", a);
+                        "serialising are between 0 and 255 "
+                        "inclusive (got %d).", a);
         abort();
     }
 
@@ -402,7 +402,7 @@ char *deserialise(TypeRegister *tr, char *in, Struct **st)
 void serialise(FILE *out, Enum *en)
 {
     serialise(out, &(en->last_index));
-    serialise(out, en->member_to_index);
+    serialise(out, &(en->member_to_index));
     serialise(out, en->once_tag);
     serialise(out, en->linkage);
 
@@ -418,10 +418,7 @@ char *deserialise(TypeRegister *tr, char *in, Enum *en)
 {
     en->type = NULL;
     in = deserialise(tr, in, &(en->last_index));
-    std::map<std::string, int64_t> *nn =
-        new std::map<std::string, int64_t>;
-    in = deserialise(tr, in, nn);
-    en->member_to_index = nn;
+    in = deserialise(tr, in, &(en->member_to_index));
     in = deserialise(tr, in, &(en->once_tag));
     in = deserialise(tr, in, &(en->linkage));
 

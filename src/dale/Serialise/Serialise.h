@@ -12,6 +12,17 @@
 
 namespace dale
 {
+/*! Serialise
+
+    Provides module serialisation and deserialisation functions.
+    These are not documented individually, since they all follow the
+    same pattern: serialise functions take a file pointer and an
+    arbitrary type, and deserialise functions take a TypeRegister, a
+    char pointer (the input stream), and an arbitrary type pointer.
+    Serialise functions do not return anything, whereas deserialise
+    functions return a pointer to the next position in the input
+    stream.
+*/
 template<typename T>
 void serialise(FILE *out, std::vector<T> *x);
 

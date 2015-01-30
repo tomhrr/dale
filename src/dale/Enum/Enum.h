@@ -22,7 +22,7 @@ public:
     /*! The index of the last member. */
     int last_index;
     /*! A map from member name to index. */
-    std::map<std::string, int64_t> *member_to_index;
+    std::map<std::string, int64_t> member_to_index;
     /*! The once tag of this type. */
     std::string once_tag;
     /*! The linkage of this type. */
