@@ -6,23 +6,17 @@ namespace dale
 {
 namespace Operation
 {
-bool Cast(Context *ctx,
-                     llvm::BasicBlock *block,
-                     llvm::Value *value,
-                     Type *from_type,
-                     Type *to_type,
-                     Node *n,
-                     bool implicit,
-                     ParseResult *pr)
+bool
+Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
+     Type *from_type, Type *to_type, Node *n, bool implicit, ParseResult *pr)
 {
     llvm::IRBuilder<> builder(block);
     llvm::Value *res = NULL;
     std::string *struct_name;
 
     std::vector<llvm::Value *> two_zero_indices;
-    llvm::Value *llvm_native_zero = ctx->nt->getNativeInt(0);
-    two_zero_indices.push_back(llvm_native_zero);
-    two_zero_indices.push_back(llvm_native_zero);
+    stl::push_back2(&two_zero_indices,
+                    ctx->nt->getLLVMZero(), ctx->nt->getLLVMZero());
 
     llvm::Type *llvm_from_type =
         ctx->toLLVMType(from_type, NULL, false);
@@ -40,10 +34,8 @@ bool Cast(Context *ctx,
         int a = from_type->getFloatingPointRelativeSize();
         int b = to_type->getFloatingPointRelativeSize();
         if (a < b) {
-            /* Target floating point is larger. */
             res = builder.CreateFPExt(value, llvm_to_type);
         } else {
-            /* Target floating point is smaller. */
             res = builder.CreateFPTrunc(value, llvm_to_type);
         }
     } else if (from_type->isFloatingPointType()
@@ -71,17 +63,12 @@ bool Cast(Context *ctx,
             ctx->nt->internalSizeToRealSize(to_type->getIntegerSize());
 
         if (pr_size <= ta_size) {
-            /* Target integer is larger. */
             if (to_type->isSignedIntegerType()) {
-                /* Target integer is signed - use sext. */
                 res = builder.CreateSExt(value, llvm_to_type);
             } else {
-                /* Target integer is not signed - use zext. */
                 res = builder.CreateZExt(value, llvm_to_type);
             }
         } else {
-            /* Target integer is smaller - use trunc regardless of
-             * signedness. */
             res = builder.CreateTrunc(value, llvm_to_type);
         }
     } else if (!implicit && from_type->isIntegerType()
@@ -96,108 +83,90 @@ bool Cast(Context *ctx,
                && struct_name->size()
                && (to_type->isIntegerType())
                && (ctx->getEnum(struct_name->c_str()))) {
+        llvm::Value *pointer = 
+            llvm::cast<llvm::Value>(
+                builder.CreateAlloca(llvm_from_type)
+            );
+        builder.CreateStore(value, pointer);
 
-        Struct *mystruct =
-            ctx->getStruct(from_type->struct_name.c_str());
-        Type *temp_to_type = mystruct->member_types.at(0);
-
-        // Store the struct.
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(llvm_from_type)
-                                );
-        builder.CreateStore(value,
-                            new_ptr1);
-
-        // Get a pointer to it.
-        llvm::Value *one =
-            builder.CreateGEP(new_ptr1,
+        llvm::Value *pointer_value =
+            builder.CreateGEP(pointer,
                               llvm::ArrayRef<llvm::Value*>(two_zero_indices));
 
-        // Bitcast the pointer to an int pointer of the right size.
-        Type *ptemp_to_type = ctx->tr->getPointerType(temp_to_type);
-        llvm::Value *intptr =
+        Struct *st = ctx->getStruct(from_type->struct_name.c_str());
+        Type *intermediate_type = st->member_types.at(0);
+        llvm::Value *int_pointer =
             builder.CreateBitCast(
-                one, ctx->toLLVMType(ptemp_to_type,
-                                     NULL, false)
+                pointer_value,
+                ctx->toLLVMType(
+                    ctx->tr->getPointerType(intermediate_type),
+                    NULL, false
+                )
             );
 
-        // Load that value.
-        llvm::Value *newint =
-            builder.CreateLoad(intptr);
+        llvm::Value *new_int =
+            builder.CreateLoad(int_pointer);
 
-        // Cast that value to a value of the right type.
-
-        ParseResult temp;
-        bool mres = Cast(ctx, block,
-                            newint,
-                            temp_to_type,
-                            to_type,
-                            n,
-                            implicit,
-                            &temp);
-        if (!mres) {
+        ParseResult cast_pr;
+        bool cast_res = Cast(ctx, block, new_int, intermediate_type, 
+                             to_type, n, implicit, &cast_pr);
+        if (!cast_res) {
             return false;
         }
 
-        block = temp.block;
-        res   = temp.value;
+        block = cast_pr.block;
+        res   = cast_pr.value;
     } else if ((struct_name = &(to_type->struct_name))
                && struct_name->size()
                && (from_type->isIntegerType())
                && (ctx->getEnum(struct_name->c_str()))) {
 
-        Struct *mystruct = ctx->getStruct(to_type->struct_name.c_str());
-        Type *to_type_temp = mystruct->member_types.at(0);
+        Struct *st = ctx->getStruct(to_type->struct_name.c_str());
+        Type *intermediate_type = st->member_types.at(0);
 
-        ParseResult temp;
-        bool mres = Cast(ctx, block,
-                            value,
-                            from_type,
-                            to_type_temp,
-                            n,
-                            implicit, &temp);
-        if (!mres) {
+        ParseResult cast_pr;
+        bool cast_res = Cast(ctx, block, value, from_type, intermediate_type,
+                             n, implicit, &cast_pr);
+        if (!cast_res) {
             return false;
         }
-        block = temp.block;
-        value = temp.value;
+        block = cast_pr.block;
+        value = cast_pr.value;
 
-        // Store the integer.
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-            builder.CreateAlloca(ctx->toLLVMType(to_type_temp, NULL, false))
-                                );
-        builder.CreateStore(value,
-                            new_ptr1);
-
-        // Bitcast the int pointer to a struct pointer.
-        Type *pto_type = ctx->tr->getPointerType(to_type);
-        llvm::Value *sp =
+        llvm::Value *pointer = 
+            llvm::cast<llvm::Value>(
+                builder.CreateAlloca(
+                    ctx->toLLVMType(intermediate_type, NULL, false)
+                )
+            );
+        builder.CreateStore(value, pointer);
+        llvm::Value *int_pointer =
             builder.CreateBitCast(
-                new_ptr1, ctx->toLLVMType(pto_type,
-                                          NULL, false)
+                pointer, 
+                ctx->toLLVMType(ctx->tr->getPointerType(to_type),
+                                NULL, false),
             );
 
-        // Load that value.
-        llvm::Value *newint =
+        llvm::Value *new_int =
             builder.CreateLoad(sp);
 
-        // Return that value.
-        res = newint;
+        res = new_int;
     } else if (to_type->is_array) {
-        // Store the value.
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(llvm_from_type)
-                                );
-        builder.CreateStore(value, new_ptr1);
-        Type *pto_type = ctx->tr->getPointerType(to_type);
-        llvm::Value *sp =
-            builder.CreateBitCast(
-                new_ptr1, ctx->toLLVMType(pto_type, NULL, false)
+        llvm::Value *pointer =
+            llvm::cast<llvm::Value>(
+                builder.CreateAlloca(llvm_from_type)
             );
-        llvm::Value *newint =
-            builder.CreateLoad(sp);
-        res = newint;
+        builder.CreateStore(value, pointer);
+        llvm::Value *int_pointer =
+            builder.CreateBitCast(
+                pointer, 
+                ctx->toLLVMType(ctx->tr->getPointerType(to_type),
+                                NULL, false)
+            );
 
+        llvm::Value *new_int =
+            builder.CreateLoad(sp);
+        res = new_int;
     } else {
         std::string fts;
         std::string tts;
@@ -205,8 +174,7 @@ bool Cast(Context *ctx,
         to_type->toString(&tts);
 
         Error *e = new Error(
-            ErrorInst::Generator::InvalidCast,
-            n,
+            ErrorInst::Generator::InvalidCast, n,
             fts.c_str(), tts.c_str()
         );
         ctx->er->addError(e);
