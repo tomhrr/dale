@@ -144,11 +144,11 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
             builder.CreateBitCast(
                 pointer, 
                 ctx->toLLVMType(ctx->tr->getPointerType(to_type),
-                                NULL, false),
+                                NULL, false)
             );
 
         llvm::Value *new_int =
-            builder.CreateLoad(sp);
+            builder.CreateLoad(int_pointer);
 
         res = new_int;
     } else if (to_type->is_array) {
@@ -165,7 +165,7 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
             );
 
         llvm::Value *new_int =
-            builder.CreateLoad(sp);
+            builder.CreateLoad(int_pointer);
         res = new_int;
     } else {
         std::string fts;
