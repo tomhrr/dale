@@ -9,6 +9,8 @@
 
 #include "../llvm_Module.h"
 
+#define _unused(x) ((void)x)
+
 namespace dale
 {
 int is_simple_float(const char *str);

@@ -9,6 +9,10 @@
 #define BT_FP(t)  BasicTypes::addFloatingPoint(ctx, mod, &current_once_tag, t);
 
 #define AV_INT(n, v) addVariable(unit, n, type_int, nt->getNativeInt(v));
+#define CFP_FLOAT(v) llvm::ConstantFP::get(llvm::Type::getFloatTy(llvm::getGlobalContext()), v)
+#define CFP_DBL(v) llvm::ConstantFP::get(llvm::Type::getDoubleTy(llvm::getGlobalContext()), v)
+#define CFP_FP80(v) llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(llvm::getGlobalContext()), v)
+#define CFP_INF(v) llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(llvm::getGlobalContext()), v)
 
 namespace dale
 {
@@ -20,7 +24,7 @@ addVariable(Unit *unit,
             Type *type,
             llvm::Constant *init)
 {
-    Context *ctx      = unit->ctx;
+    Context *ctx = unit->ctx;
     llvm::Module *mod = unit->module;
 
     Variable *var = new Variable();
@@ -28,27 +32,23 @@ addVariable(Unit *unit,
     var->type = type;
     var->internal_name.append(name);
     var->linkage = Linkage::Extern;
-    int avres = ctx->ns()->addVariable(name, var);
-    if (!avres) {
-        fprintf(stderr, "Unable to add %s.\n", name);
-        abort();
-    }
+    bool res = ctx->ns()->addVariable(name, var);
+    assert(res); _unused(res);
 
-    llvm::Type *rdttype =
+    llvm::Type *var_type =
         ctx->toLLVMType(type, NULL, false, false);
-    if (!rdttype) {
+    if (!var_type) {
         return false;
     }
 
-    llvm::GlobalVariable *lvar =
+    llvm::GlobalVariable *llvm_var =
         llvm::cast<llvm::GlobalVariable>(
-            mod->getOrInsertGlobal(name,
-                                   rdttype)
+            mod->getOrInsertGlobal(name, var_type)
         );
 
-    lvar->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_Weak));
-    lvar->setInitializer(init);
-    var->value = lvar;
+    llvm_var->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_Weak));
+    llvm_var->setInitializer(init);
+    var->value = llvm_var;
 
     return true;
 }
@@ -96,7 +96,7 @@ addVarargsFunctions(Unit *unit)
 void 
 addBasicTypes(Unit *unit, bool is_x86_64)
 {
-    Context *ctx      = unit->ctx;
+    Context *ctx = unit->ctx;
     llvm::Module *mod = unit->module;
     std::string current_once_tag = unit->once_tag;
     TypeRegister *tr = ctx->tr;
@@ -118,10 +118,10 @@ addBasicTypes(Unit *unit, bool is_x86_64)
     BT_UI(tr->type_uint64);
 
     /* i128 (actually any integer type with a size of more than 64
-     * bits) does not work properly in some respects on x86-32
-     * (see http://llvm.org/bugs/show_bug.cgi?id=2660). Rather
-     * than allowing the hobbled support to be had, disable it
-     * completely. */
+     * bits) does not work properly in some respects on x86-32 (see
+     * http://llvm.org/bugs/show_bug.cgi?id=2660).  Rather than
+     * allowing the hobbled support to be had, disable it completely.
+     * */
 
     if (is_x86_64) {
         BT_SI(tr->type_int128);
@@ -157,10 +157,10 @@ addStandardVariables(Unit *unit)
     Context *ctx = unit->ctx;
     NativeTypes *nt = ctx->nt;
     
-    Type *type_int        = ctx->tr->type_int;
-    Type *type_float      = ctx->tr->type_float;
-    Type *type_double     = ctx->tr->type_double;
-    Type *type_longdouble = ctx->tr->type_longdouble;
+    Type *type_int    = ctx->tr->type_int;
+    Type *type_float  = ctx->tr->type_float;
+    Type *type_double = ctx->tr->type_double;
+    Type *type_ldbl   = ctx->tr->type_longdouble;
 
     AV_INT("JMP_BUF_SIZE",     sizeof (jmp_buf));
     AV_INT("FPOS_T",           sizeof (fpos_t));
@@ -191,53 +191,15 @@ addStandardVariables(Unit *unit)
     AV_INT("EXIT_FAILURE",  EXIT_FAILURE);
     AV_INT("EXIT_SUCCESS",  EXIT_SUCCESS);
 
-    addVariable(unit, "FLT_EPSILON",
-                type_float,
-                llvm::ConstantFP::get(llvm::Type::getFloatTy(
-                                      llvm::getGlobalContext()),
-                                      FLT_EPSILON));
-    addVariable(unit, "FLT_MIN",
-                type_float,
-                llvm::ConstantFP::get(llvm::Type::getFloatTy(
-                                      llvm::getGlobalContext()),
-                                      FLT_MIN));
-    addVariable(unit, "FLT_MAX",
-                type_float,
-                llvm::ConstantFP::get(llvm::Type::getFloatTy(
-                                      llvm::getGlobalContext()),
-                                      FLT_MAX));
-
-    addVariable(unit, "DBL_EPSILON",
-                type_double,
-                llvm::ConstantFP::get(llvm::Type::getDoubleTy(
-                                      llvm::getGlobalContext()),
-                                      DBL_EPSILON));
-    addVariable(unit, "DBL_MIN",
-                type_double,
-                llvm::ConstantFP::get(llvm::Type::getDoubleTy(
-                                      llvm::getGlobalContext()),
-                                      DBL_MIN));
-    addVariable(unit, "DBL_MAX",
-                type_double,
-                llvm::ConstantFP::get(llvm::Type::getDoubleTy(
-                                      llvm::getGlobalContext()),
-                                      DBL_MAX));
-
-    addVariable(unit, "LDBL_EPSILON",
-                type_longdouble,
-                llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(
-                                      llvm::getGlobalContext()),
-                                      LDBL_EPSILON));
-    addVariable(unit, "LDBL_MIN",
-                type_longdouble,
-                llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(
-                                      llvm::getGlobalContext()),
-                                      LDBL_MIN));
-    addVariable(unit, "LDBL_MAX",
-                type_longdouble,
-                llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(
-                                      llvm::getGlobalContext()),
-                                      LDBL_MAX));
+    addVariable(unit, "FLT_EPSILON",  type_float,  CFP_FLOAT(FLT_EPSILON));
+    addVariable(unit, "FLT_MIN",      type_float,  CFP_FLOAT(FLT_MIN));
+    addVariable(unit, "FLT_MAX",      type_float,  CFP_FLOAT(FLT_MAX));
+    addVariable(unit, "DBL_EPSILON",  type_double, CFP_DBL(DBL_EPSILON));
+    addVariable(unit, "DBL_MIN",      type_double, CFP_DBL(DBL_MIN));
+    addVariable(unit, "DBL_MAX",      type_double, CFP_DBL(DBL_MAX));
+    addVariable(unit, "LDBL_EPSILON", type_ldbl,   CFP_FP80(LDBL_EPSILON));
+    addVariable(unit, "LDBL_MIN",     type_ldbl,   CFP_FP80(LDBL_MIN));
+    addVariable(unit, "LDBL_MAX",     type_ldbl,   CFP_FP80(LDBL_MAX));
 
     addVariable(unit, "HUGE_VAL",
                 type_double,
@@ -252,7 +214,7 @@ addStandardVariables(Unit *unit)
                 ));
 
     addVariable(unit, "HUGE_VALL",
-                type_longdouble,
+                type_ldbl,
                 llvm::ConstantFP::getInfinity(
                     llvm::Type::getX86_FP80Ty(llvm::getGlobalContext())
                 ));
