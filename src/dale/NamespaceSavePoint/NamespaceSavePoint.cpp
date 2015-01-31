@@ -40,12 +40,7 @@ bool NamespaceSavePoint::restore(void)
             b != e;
             ++b) {
         fb = src_ns->functions.find(b->first);
-        if (fb == src_ns->functions.end()) {
-            fprintf(stderr, "Looking for function list for '%s', "
-                            "but it no longer exists in the "
-                            "context.", b->first.c_str());
-            abort();
-        }
+        assert(fb != src_ns->functions.end());
         int count = b->second;
         int to_remove = fb->second->size() - count;
         while (to_remove--) {
@@ -57,8 +52,7 @@ bool NamespaceSavePoint::restore(void)
     }
 
     int variable_diff = 
-        src_ns->variables_ordered.size()
-            - variable_count;
+        src_ns->variables_ordered.size() - variable_count;
 
     while (variable_diff--) {
         src_ns->variables.erase(src_ns->variables_ordered.back());
@@ -66,8 +60,7 @@ bool NamespaceSavePoint::restore(void)
     }
 
     int struct_diff = 
-        src_ns->structs_ordered.size()
-            - struct_count;
+        src_ns->structs_ordered.size() - struct_count;
 
     while (struct_diff--) {
         src_ns->structs.erase(src_ns->structs_ordered.back());
@@ -75,8 +68,7 @@ bool NamespaceSavePoint::restore(void)
     }
 
     int enum_diff = 
-        src_ns->enums_ordered.size()
-            - enum_count;
+        src_ns->enums_ordered.size() - enum_count;
 
     while (enum_diff--) {
         src_ns->enums.erase(src_ns->enums_ordered.back());

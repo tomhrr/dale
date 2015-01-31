@@ -9,11 +9,23 @@
 
 namespace dale
 {
+/*! NamespaceSavePoint
+
+    A class for storing the state of a namespace at a given time, and
+    for restoring the namespace to that state.  At the moment, this is
+    only used by ContextSavePoint.
+*/
 class NamespaceSavePoint
 {
 public:
+    /*! Construct a new savepoint using the given namespace.
+     *  @param ns The namespace.
+     */
     NamespaceSavePoint(Namespace *ns);
     ~NamespaceSavePoint(void);
+    /*! Restore the context so it is as it was prior to savepoint
+     *  instantiation.
+     */
     bool restore(void);
 
 private:
