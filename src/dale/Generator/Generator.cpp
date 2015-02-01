@@ -2401,10 +2401,10 @@ bool Generator::parseFunctionCall(Function *dfn,
 
             if (diff) {
                 errors.insert(errors.end(),
-                              erep->errors->begin() + error_count,
-                              erep->errors->end());
-                erep->errors->erase(erep->errors->begin() + error_count,
-                                    erep->errors->end());
+                              erep->errors.begin() + error_count,
+                              erep->errors.end());
+                erep->errors.erase(erep->errors.begin() + error_count,
+                                    erep->errors.end());
             }
 
             call_args.push_back(NULL);
