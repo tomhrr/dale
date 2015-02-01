@@ -3,10 +3,12 @@
 #include <set>
 #include <string>
 
-namespace dale { namespace CoreForms {
-
-int core_forms_max = 35;
-const char *core_forms_strs[36] = {
+namespace dale
+{
+namespace CoreForms
+{
+const int core_forms_max = 35;
+const char *core_forms_strs[core_forms_max + 1] = {
     "goto", "label", "return", "setf", "@", ":", "#", "$",
     "get-dnodes", "p=", "p+", "p-", "p<", "p>", "def", "if", "null",
     "nullptr", "do", "cast", "va-arg", "sizeof", "offsetof",
@@ -15,8 +17,8 @@ const char *core_forms_strs[36] = {
     "array-of", "setv", "@$", "@:", ":@", "@:@", NULL
 };
 
-int core_forms_no_override_max = 31;
-const char *core_forms_no_override_strs[32] = {
+const int core_forms_no_override_max = 31;
+const char *core_forms_no_override_strs[core_forms_no_override_max + 1] = {
     "goto", "label", "return", ":", "get-dnodes", "p=", "p+", "p-", "p<",
     "p>", "def", "if", "null", "nullptr", "do", "cast", "va-arg",
     "va-start", "va-end",
@@ -56,5 +58,5 @@ existsNoOverride(const char *name)
 {
     return (core_forms_no_override.find(name) != core_forms_no_override.end());
 }
-
-}}
+}
+}
