@@ -19,8 +19,7 @@ Unit::Unit(const char *path,
         exit(1);
     }
 
-    std::vector<Token *> *ungot_tokens = new std::vector<Token *>;
-    Lexer *lxr = new Lexer(fp, ungot_tokens, 1, 1);
+    Lexer *lxr = new Lexer(fp);
     parser = new Parser(lxr, er, path);
 
     module = new llvm::Module(path, llvm::getGlobalContext());

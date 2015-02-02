@@ -75,7 +75,7 @@ addOpaqueStruct(Generator *gen, const char *name, Node *top,
 
     int index = 0;
     char buf[100];
-    while (1) {
+    for (;;) {
         sprintf(buf, "__retain_struct_%d", index);
         if (!gen->mod->getFunction(buf)) {
             gen->mod->getOrInsertFunction(buf, ft);

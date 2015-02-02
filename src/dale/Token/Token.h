@@ -37,6 +37,7 @@ public:
           int begin_column_number,
           int end_line_number,
           int end_column_number);
+    Token(Token *token);
     ~Token();
     /* Should probably add a constructor that takes two point
      * arguments, instead of taking the numbers and allocating

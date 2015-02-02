@@ -17,6 +17,11 @@ Token::Token(int new_type,
     type  = new_type;
 }
 
+Token::Token(Token *token)
+{
+    token->copyTo(this);
+}
+
 Token::~Token(void)
 {
 }

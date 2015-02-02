@@ -8,116 +8,92 @@
 
 namespace dale
 {
-Lexer::Lexer(FILE *new_file,
-             std::vector<Token *> *new_ungot_tokens,
-             int line_number,
-             int column_number)
+Lexer::Lexer(FILE *file, int line_number, int column_number)
 {
-    current = new Position(line_number, column_number);
+    current.setLineAndColumn(line_number, column_number);
+    this->file = file;
 
-    file         = new_file;
-    ungot_tokens = new_ungot_tokens;
+    count = 0;
+    index = 0;
 
-    lexcnt = 0;
-    chari  = 0;
-    been_pushed = 0;
-    reset_pos = 0;
+    been_pushed = false;
+    reset_position = false;
 
-    lexbuf[0] = '\0';
-}
-
-int Lexer::pushText(const char *text)
-{
-    int len = strlen(text);
-    if ((len + lexcnt) > 8192) {
-        fprintf(stderr, "Internal error: too much text pushed "
-                "onto lexer buffer.\n");
-        abort();
-    }
-    strcat(lexbuf, text);
-    lexcnt += len;
-    been_pushed = 1;
-
-    return 1;
-}
-
-int Lexer::myfgetc()
-{
-    if (lexcnt == 0) {
-        int bytes = fread(lexbuf, 1, 8192, file);
-        if (!bytes) {
-            return EOF;
-        }
-        lexcnt = bytes;
-        chari = 0;
-
-        if (been_pushed) {
-            been_pushed = 0;
-            current->setLineAndColumn(1,1);
-            reset_pos = 1;
-        }
-    }
-    --lexcnt;
-    char r = lexbuf[chari++];
-    return (int) r;
-}
-
-int Lexer::myungetc(char c)
-{
-    ++lexcnt;
-    --chari;
-    return 1;
+    buf[0] = '\0';
 }
 
 Lexer::~Lexer(void)
 {
-    delete current;
-    delete ungot_tokens;
 }
 
-ino_t Lexer::currentInode(void)
+int
+Lexer::getchar_()
 {
-    return get_inode(fileno(file));
-}
+    if (count == 0) {
+        int bytes = fread(buf, 1, 8192, file);
+        if (!bytes) {
+            return EOF;
+        }
 
-void Lexer::ungetToken(Token *token)
-{
-    Token *push_token = new Token(
-        token->type,
-        token->begin.line_number,
-        token->begin.column_number,
-        token->end.line_number,
-        token->end.column_number
-    );
-    token->copyTo(push_token);
+        count = bytes;
+        index = 0;
 
-    ungot_tokens->push_back(push_token);
-}
-
-int Lexer::getNextToken(Token *token, Error *error)
-{
-    /* Reset error token. */
-    error->instance = ErrorInst::Lexer::Null;
-
-    /* Before doing anything else, check for an existing un-got
-     * token. */
-    if (!(ungot_tokens->empty())) {
-        Token *popped_token = ungot_tokens->back();
-        ungot_tokens->pop_back();
-        popped_token->copyTo(token);
-        delete(popped_token);
-        return 1;
+        if (been_pushed) {
+            been_pushed = false;
+            current.setLineAndColumn(1,1);
+            reset_position = true;
+        }
     }
 
-    /* Set when you hit a token - will be used for token begin
-     * position. */
-    int begin_line_count = current->getLineNumber();
-    int begin_col_count  = current->getColumnNumber();
+    --count;
+    char r = buf[index++];
+    return (int) r;
+}
 
-    /* Set everytime - will be the last position for the token as
-     * well as the current position for the context. */
-    int end_line_count   = begin_line_count;
-    int end_col_count    = begin_col_count;
+void
+Lexer::ungetchar_(char c)
+{
+    ++count;
+    --index;
+}
+
+void
+Lexer::pushText(const char *text)
+{
+    int len = strlen(text);
+    assert((len + count) <= 8192);
+    strcat(buf, text);
+    count += len;
+    been_pushed = true;
+}
+
+void
+Lexer::ungetToken(Token *token)
+{
+    ungot_tokens.push_back(new Token(token));
+}
+
+bool
+Lexer::getNextToken(Token *token, Error *error)
+{
+    error->instance = ErrorInst::Lexer::Null;
+
+    if (!(ungot_tokens.empty())) {
+        Token *popped_token = ungot_tokens.back();
+        ungot_tokens.pop_back();
+        popped_token->copyTo(token);
+        delete(popped_token);
+        return true;
+    }
+
+    /* Set when a token is hit: will be used for token begin position. */
+    int begin_line_count = current.getLineNumber();
+    int begin_col_count  = current.getColumnNumber();
+
+    /* Set everytime: will be the last position for the token as well
+     * as the current position for the context. */
+    int end_line_count = begin_line_count;
+    int end_col_count  = begin_col_count;
 
     /* Current character. */
     int c;
@@ -129,10 +105,10 @@ int Lexer::getNextToken(Token *token, Error *error)
     token->str_value.clear();
     token->str_value.reserve(20);
 
-    while (1) {
-        c = myfgetc();
+    for (;;) {
+        c = getchar_();
 
-        if (reset_pos == 1) {
+        if (reset_position) {
             begin_line_count = 1;
             end_line_count   = 1;
 
@@ -140,17 +116,17 @@ int Lexer::getNextToken(Token *token, Error *error)
             begin_col_count  = 1;
             end_col_count    = col_diff + 1;
 
-            reset_pos        = 0;
+            reset_position = false;
         }
 
         /* Single-line comments. */
         if ((c == ';') && (token->str_value.compare("#\\"))) {
             if (type) {
-                myungetc(c);
+                ungetchar_(c);
                 break;
             }
 
-            while ((c = myfgetc()) && c != EOF && c != '\n') {
+            while ((c = getchar_()) && c != EOF && c != '\n') {
             }
 
             end_line_count++;
@@ -162,7 +138,7 @@ int Lexer::getNextToken(Token *token, Error *error)
         /* Multiple-line comments */
         if ((c == '|') && !(token->str_value.compare("#"))) {
             type = TokenType::Null;
-            while ((c = myfgetc()) && (c != EOF) && (c != '|')) {
+            while ((c = getchar_()) && (c != EOF) && (c != '|')) {
                 if (c == '\n') {
                     end_line_count++;
                     end_col_count = 1;
@@ -171,7 +147,7 @@ int Lexer::getNextToken(Token *token, Error *error)
                 }
             }
             if (c != EOF) {
-                myfgetc();
+                getchar_();
             }
             end_col_count = 1;
             begin_col_count = 1;
@@ -183,7 +159,7 @@ int Lexer::getNextToken(Token *token, Error *error)
         /* String literals. */
         if ((c == '"') && (token->str_value.compare("#\\"))) {
             if (type) {
-                myungetc(c);
+                ungetchar_(c);
                 break;
             }
             type = TokenType::StringLiteral;
@@ -191,7 +167,7 @@ int Lexer::getNextToken(Token *token, Error *error)
             begin_col_count  = end_col_count;
 
             /* Read characters until you hit a double-quote. */
-            while ((c = myfgetc())
+            while ((c = getchar_())
                     && c != EOF
                     && ((c != '"')
                         || (token->str_value.length() &&
@@ -219,7 +195,7 @@ int Lexer::getNextToken(Token *token, Error *error)
         /* Whitespace. */
         if (isspace(c)) {
             if (type) {
-                myungetc(c);
+                ungetchar_(c);
                 break;
             }
 
@@ -236,7 +212,7 @@ int Lexer::getNextToken(Token *token, Error *error)
         /* End-of-file. */
         if (c == EOF) {
             if (type) {
-                myungetc(c);
+                ungetchar_(c);
                 break;
             }
 
@@ -247,7 +223,7 @@ int Lexer::getNextToken(Token *token, Error *error)
         /* Left parenthesis. */
         if (c == '(' && (token->str_value.compare("#\\"))) {
             if (type) {
-                myungetc(c);
+                ungetchar_(c);
                 break;
             }
             type = TokenType::LeftParen;
@@ -260,7 +236,7 @@ int Lexer::getNextToken(Token *token, Error *error)
         /* Right parenthesis. */
         if (c == ')' && (token->str_value.compare("#\\"))) {
             if (type) {
-                myungetc(c);
+                ungetchar_(c);
                 break;
             }
             type = TokenType::RightParen;
@@ -302,35 +278,27 @@ int Lexer::getNextToken(Token *token, Error *error)
             }
         } else {
             if (!is_simple_int(token->str_value.c_str())) {
-                error->instance =
-                    ErrorInst::Lexer::InvalidInteger;
+                error->instance = ErrorInst::Lexer::InvalidInteger;
             }
         }
     }
+
+    current.setLineAndColumn(end_line_count, end_col_count);
 
     if (error->instance == ErrorInst::Lexer::Null) {
         token->begin.setLineAndColumn(
             begin_line_count,
             begin_col_count
         );
-        current->setLineAndColumn(
-            end_line_count,
-            end_col_count
-        );
-        current->copyTo(&(token->end));
-        return 1;
+        current.copyTo(&(token->end));
+        return true;
     } else {
         error->begin.setLineAndColumn(
             begin_line_count,
             begin_col_count
         );
-        current->setLineAndColumn(
-            end_line_count,
-            end_col_count
-        );
-        current->copyTo(&(error->end));
-
-        return 0;
+        current.copyTo(&(error->end));
+        return false;
     }
 }
 }
