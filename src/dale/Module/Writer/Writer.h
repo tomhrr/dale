@@ -11,12 +11,10 @@ namespace dale
 {
 namespace Module
 {
-
 /*! Writer
 
     A class for writing Dale modules to disk.
 */
-
 class Writer
 {
 private:
@@ -46,7 +44,17 @@ private:
     bool writeContext(void);
 
 public:
-    /*! The standard constructor. */
+    /*! The standard constructor.
+     *  @param module_name The module name.
+     *  @param ctx The module context.
+     *  @param mod The LLVM module.
+     *  @param pm The LLVM pass manager.
+     *  @param included_once_tags The once tags for the module.
+     *  @param included_modules The modules included by way of the module.
+     *  @param cto Whether the module is a compile-time only module.
+     *
+     *  This does not take ownership of any of its arguments.
+     */
     Writer(std::string module_name, dale::Context *ctx, 
            llvm::Module *mod, llvm::PassManager *pm,
            std::set<std::string> *included_once_tags,
