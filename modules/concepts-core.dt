@@ -106,17 +106,17 @@ constructed by way of `def-concept-macro`.
 |#
 (def def-concept
   (macro extern (concept-name-node refinement-list type-arguments ...)
-    (if (= 1 (@:@ concept-name-node is-list))
+    (if (@:@ concept-name-node is-list)
         (do (report-error mc concept-name-node
                           "concept name argument must not be a list")
             (return (nullptr DNode)))
         (nullptr DNode))
-    (if (not (= 1 (@:@ refinement-list is-list)))
+    (if (not (@:@ refinement-list is-list))
         (do (report-error mc refinement-list
                           "refinement argument must be a list")
             (return (nullptr DNode)))
         (nullptr DNode))
-    (if (not (= 1 (@:@ type-arguments is-list)))
+    (if (not (@:@ type-arguments is-list))
         (do (report-error mc type-arguments
                           "type argument must be a list")
             (return (nullptr DNode)))
@@ -599,7 +599,7 @@ both A and B.
       (sprintf buf "_%s" (@:@ macro-name token-str))
       (while (not (null mt-vl))
         (if tnames
-            (do (if (not (= 1 (@:@ mt-vl is-list)))
+            (do (if (not (@:@ mt-vl is-list))
                     (do (report-error mc mt-vl 
                             "concept macro types must be concepts")
                         (return false))
@@ -610,7 +610,7 @@ both A and B.
                     (do (report-error mc myx "unable to convert type to string")
                         (return false))
                     0))
-            (do (if (= 1 (@:@ mt-vl is-list))
+            (do (if (@:@ mt-vl is-list)
                     (do (report-error mc mt-vl
                             "concept macro types must be atoms")
                         (return false))
@@ -916,8 +916,8 @@ macro buffer and returns true.  Otherwise, returns false.
 |#
 (def is-forced-concept
   (fn intern bool ((node (p DNode)))
-    (and (= 1 (@:@ node is-list))
-         (and (= 0 (@:@ (@:@ node list-node) is-list))
+    (and (@:@ node is-list)
+         (and (not (@:@ (@:@ node list-node) is-list))
               (= 0 (strcmp (@:@ (@:@ node list-node) token-str)
                            "force"))))))
 
@@ -976,7 +976,7 @@ being of the Value concept.
                   (@:@ (@:@ first next-node) next-node)))
           (do
               (if (and (not (exists-type mc myvl))
-                       (= 0 (@:@ myvl is-list)))
+                       (not (@:@ myvl is-list)))
                   ; If the type argument is not actually a type, then
                   ; treat it as being of the Value concept.
                   (setf ($ type-concept-list i)

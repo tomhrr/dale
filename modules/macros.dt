@@ -51,7 +51,7 @@ be used again.
 
     (def begin (var auto int 1))
 
-    (setf (:@ holder is-list) 1)
+    (setf (:@ holder is-list) true)
     (setf (:@ holder list-node) frm)
     (setf (:@ holder next-node) nullp)
     (setv temp-node frm)
@@ -91,9 +91,9 @@ be used again.
 
     (label begin-loop2)
 
-        (do (if (= 1 (@:@ cn is-list))
+        (do (if (@:@ cn is-list)
                 (do ;(printf "CN is list\n")
-                (if (= 0 (@:' cn list-node is-list))
+                (if (not (@:' cn list-node is-list))
                     (do ;(printf "CN is list with first token: %s\n"
                                 ;(@:' cn list-node token-str))
                     (if (and (= 0 (strcmp (@:' cn list-node token-str) "uq"))
@@ -181,7 +181,7 @@ be used again.
                     0))
                 0)
 
-            (if (and (= 0 no-down) (= 1 (@:@ cn is-list)))
+            (if (and (= 0 no-down) (@:@ cn is-list))
                 (do ;(printf "Moving down into this list: ") (DNode-print cn) (printf "\n")
 
                     (setf ($ upvs upvs-count) cn)

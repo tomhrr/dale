@@ -59,7 +59,7 @@ must also implement `LessThanComparable`.
       0)
   (prefer-ref-bindings (uq T))
 
-  (and (!= 0 (@:@ N is-list))
+  (and (@:@ N is-list)
        (do (report-error mc N "second argument must be an atom")
            (return (nullptr DNode))))
 

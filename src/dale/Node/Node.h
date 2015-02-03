@@ -8,7 +8,7 @@
 
 struct DNode
 {
-    int    is_list;
+    bool   is_list;
     char  *token_str;
     DNode *list_node;
     DNode *next_node;
@@ -28,8 +28,8 @@ namespace dale
 class Node
 {
 public:
-    int                  is_list;
-    int                  is_token;
+    bool                 is_list;
+    bool                 is_token;
     Position             macro_begin;
     Position             macro_end;
     Position             list_begin;

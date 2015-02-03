@@ -217,7 +217,7 @@ macro.
              (return (mnfv mc "0"))))
 
     (setf-dsref-mul
-      holder-node (is-list   1)
+      holder-node (is-list   true)
                   (list-node null-node)
                   (next-node null-node))
 
@@ -278,7 +278,7 @@ macro.
              (return (mnfv mc "0"))))
 
     (setf-dsref-mul 
-      holder-node (is-list   1)
+      holder-node (is-list   true)
                   (list-node null-node)
                   (next-node null-node))
       

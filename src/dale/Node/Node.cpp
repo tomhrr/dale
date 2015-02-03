@@ -8,8 +8,8 @@ namespace dale
 {
 Node::Node()
 {
-    is_list  = 0;
-    is_token = 0;
+    is_list  = false;
+    is_token = false;
 
     list       = NULL;
     token      = NULL;
@@ -22,8 +22,8 @@ Node::Node()
 
 Node::Node(int empty)
 {
-    is_list  = 0;
-    is_token = 0;
+    is_list  = false;
+    is_token = false;
 
     list       = NULL;
     token      = NULL;
@@ -36,8 +36,8 @@ Node::Node(int empty)
 
 Node::Node(std::vector<Node*> *new_list)
 {
-    is_list  = 1;
-    is_token = 0;
+    is_list  = true;
+    is_token = false;
 
     list       = new_list;
     token      = NULL;
@@ -50,8 +50,8 @@ Node::Node(std::vector<Node*> *new_list)
 
 Node::Node(Token *new_token)
 {
-    is_list  = 0;
-    is_token = 1;
+    is_list  = false;
+    is_token = true;
 
     list       = NULL;
     token      = new_token;
@@ -178,7 +178,7 @@ Node::toDNode(void)
 
         strncpy(sv, ttostr.c_str(), ttostr.length()+1);
 
-        dnode->is_list   = 0;
+        dnode->is_list   = false;
         dnode->token_str = sv;
         dnode->list_node = NULL;
         dnode->next_node = NULL;
@@ -205,7 +205,7 @@ Node::toDNode(void)
 
     if (is_list) {
         DNode *top_node = (DNode*)malloc(sizeof(*top_node));
-        top_node->is_list   = 1;
+        top_node->is_list   = true;
         top_node->token_str = NULL;
         top_node->next_node = NULL;
 

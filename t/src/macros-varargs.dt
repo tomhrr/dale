@@ -35,7 +35,7 @@
       20 size)) (p char))))
       (sprintf retstr "%d" my-sum)
 
-      (setf (: (@ retval) is-list) 0)
+      (setf (: (@ retval) is-list)   false)
       (setf (: (@ retval) token-str) retstr)
       (setf (: (@ retval) list-node) nullp)
       (setf (: (@ retval) next-node) nullp)
