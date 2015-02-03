@@ -6,50 +6,109 @@
 
 #include <vector>
 
+/*! DNode
+
+    The struct analogue to Node.  This must have the same definition
+    as the DNode type defined in the drt module, so that DNodes may be
+    passed between the compiler and Dale code.
+*/
 struct DNode
 {
-    bool   is_list;
-    char  *token_str;
+    bool is_list;
+    char *token_str;
     DNode *list_node;
     DNode *next_node;
-    int    begin_line;
-    int    begin_column;
-    int    end_line;
-    int    end_column;
-    int    macro_begin_line;
-    int    macro_begin_column;
-    int    macro_end_line;
-    int    macro_end_column;
-    const char  *filename;
+    int begin_line;
+    int begin_column;
+    int end_line;
+    int end_column;
+    int macro_begin_line;
+    int macro_begin_column;
+    int macro_end_line;
+    int macro_end_column;
+    const char *filename;
 };
 
 namespace dale
 {
+/*! Node
+
+    The core syntactic element class.  Each node is either a token
+    (atom) node or a list of nodes.
+*/
 class Node
 {
 public:
-    bool                 is_list;
-    bool                 is_token;
-    Position             macro_begin;
-    Position             macro_end;
-    Position             list_begin;
-    Position             list_end;
-    Token               *token;
+    /*! Whether the node is a list node. */
+    bool is_list;
+    /*! Whether the node is a token node. */
+    bool is_token;
+    /*! The beginning position of the node. */
+    Position list_begin;
+    /*! The ending position of the node. */
+    Position list_end;
+    /*! The beginning position of the original macro that produced this node. */
+    Position macro_begin;
+    /*! The ending position of the original macro that produced this node. */
+    Position macro_end;
+    /*! The token. */
+    Token *token;
+    /*! The list. */
     std::vector<Node *> *list;
-    const char*          filename;
+    /*! The name of the file from which the node was parsed. */
+    const char* filename;
 
+    /*! Construct a null node.
+     *
+     *  A null node is neither list nor token, and is generally only
+     *  used to construct error messages that do not need to refer to
+     *  a node.
+     */
     Node(void);
-    Node(int empty);
+    /*! Construct a token node.
+     *  @param token The token.
+     *
+     *  This takes ownership of the token.
+     */
     Node(Token *token);
+    /*! Construct a list node.
+     *  @param list The list.
+     *
+     *  This takes ownership of the list.
+     */
     Node(std::vector<Node *> *list);
-    void print(void);
-    Position *getBeginPos(void);
-    Position *getEndPos(void);
-    void copyMetaTo(Node *other);
-    void copyTo(Node *other);
-    DNode *toDNode(void);
-    void addMacroPosition(Node *mp_node);
     ~Node(void);
+    /*! Print the node to the standard output.
+     */
+    void print(void);
+    /*! Get the beginning position of the node.
+     *
+     *  This does not relinquish ownership of the position.
+     */
+    Position *getBeginPos(void);
+    /*! Get the ending position of the node.
+     *
+     *  This does not relinquish ownership of the position.
+     */
+    Position *getEndPos(void);
+    /*! Copy position and filename information to the argument node.
+     *  @param other The other node.
+     */
+    void copyMetaTo(Node *other);
+    /*! Copy all of this node's details to the argument node.
+     *  @param other The other node.
+     */
+    void copyTo(Node *other);
+    /*! Construct a DNode from this node.
+     */
+    DNode *toDNode(void);
+    /*! Set the current node's macro position from the argument node.
+     *  @param mp_node The node from which to take the macro position.
+     *
+     *  If the current node already has a macro position set, then
+     *  that position is not overridden.
+     */
+    void addMacroPosition(Node *mp_node);
 };
 
 Node *nullNode(void);

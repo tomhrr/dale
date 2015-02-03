@@ -11,23 +11,10 @@ Node::Node()
     is_list  = false;
     is_token = false;
 
-    list       = NULL;
-    token      = NULL;
-    filename   = NULL;
-    list_begin.setLineAndColumn(0,0);
-    list_end.setLineAndColumn(0,0);
-    macro_begin.setLineAndColumn(0,0);
-    macro_end.setLineAndColumn(0,0);
-}
+    list     = NULL;
+    token    = NULL;
+    filename = NULL;
 
-Node::Node(int empty)
-{
-    is_list  = false;
-    is_token = false;
-
-    list       = NULL;
-    token      = NULL;
-    filename   = NULL;
     list_begin.setLineAndColumn(0,0);
     list_end.setLineAndColumn(0,0);
     macro_begin.setLineAndColumn(0,0);
@@ -39,9 +26,10 @@ Node::Node(std::vector<Node*> *new_list)
     is_list  = true;
     is_token = false;
 
-    list       = new_list;
-    token      = NULL;
-    filename   = NULL;
+    list     = new_list;
+    token    = NULL;
+    filename = NULL;
+
     list_begin.setLineAndColumn(0,0);
     list_end.setLineAndColumn(0,0);
     macro_begin.setLineAndColumn(0,0);
@@ -53,16 +41,32 @@ Node::Node(Token *new_token)
     is_list  = false;
     is_token = true;
 
-    list       = NULL;
-    token      = new_token;
-    filename   = NULL;
+    list     = NULL;
+    token    = new_token;
+    filename = NULL;
+
     list_begin.setLineAndColumn(0,0);
     list_end.setLineAndColumn(0,0);
     macro_begin.setLineAndColumn(0,0);
     macro_end.setLineAndColumn(0,0);
 }
 
-Position *Node::getBeginPos(void)
+Node::~Node(void)
+{
+    if (is_token) {
+        delete token;
+    } else if (is_list) {
+        for (std::vector<Node *>::iterator b = list->begin(),
+                                           e = list->end();
+                b != e; ++b) {
+            delete (*b);
+        }
+        delete list;
+    }
+}
+
+Position *
+Node::getBeginPos(void)
 {
     if (is_list || (!is_token)) {
         return &list_begin;
@@ -71,7 +75,8 @@ Position *Node::getBeginPos(void)
     }
 }
 
-Position *Node::getEndPos(void)
+Position *
+Node::getEndPos(void)
 {
     if (is_list || (!is_token)) {
         return &list_end;
@@ -80,50 +85,25 @@ Position *Node::getEndPos(void)
     }
 }
 
-Node::~Node(void)
-{
-    /* It is assumed that nodes take ownership of their respective
-     * lists/tokens. */
-
-    if (is_token) {
-        delete token;
-    } else if (is_list) {
-        // Iterate over the list, delete each node in turn.
-        std::vector<Node *>::iterator iter = list->begin();
-
-        while (iter != list->end()) {
-            delete (*iter);
-            ++iter;
-        }
-        delete list;
-    }
-}
-
-void Node::print(void)
+void
+Node::print(void)
 {
     if (is_token) {
         if (token->type == TokenType::StringLiteral) {
             printf("\"%s\" ", token->str_value.c_str());
-        } else if (token->type == TokenType::Int) {
-            //printf("%d ", token->int_value);
-
-            // Numbers are all stored in strings now.
-            printf("%s ", token->str_value.c_str());
-        } else if (token->type == TokenType::String) {
-            printf("%s ", token->str_value.c_str());
-        } else if (token->type == TokenType::FloatingPoint) {
+        } else if (token->type == TokenType::Int
+                || token->type == TokenType::String
+                || token->type == TokenType::FloatingPoint) {
             printf("%s ", token->str_value.c_str());
         } else {
             printf("(Unknown) ");
         }
     } else if (is_list) {
-        std::vector<Node *>::iterator iter =
-            list->begin();
-
         printf("(");
-        while (iter != list->end()) {
-            (*iter)->print();
-            iter++;
+        for (std::vector<Node *>::iterator b = list->begin(),
+                                           e = list->end();
+                b != e; ++b) {
+            (*b)->print();
         }
         printf(")");
     } else {
@@ -131,15 +111,32 @@ void Node::print(void)
     }
 }
 
-/* todo: not sure why the string isn't copied, if present. */
-void Node::copyTo(Node *other)
+void
+Node::copyTo(Node *other)
 {
     other->is_list = is_list;
     other->is_token = is_token;
+    if (is_list) {
+        std::vector<Node *> *list_copy = new std::vector<Node *>();
+        for (std::vector<Node *>::iterator
+                b = list->begin(), e = list->end();
+                b != e;
+                ++b) {
+            Node *node =
+                ((*b)->is_token)
+                    ? new Node((*b)->token)
+                    : new Node((*b)->list);
+            list_copy->push_back(node);
+        }
+        other->list = list_copy;
+    } else {
+        this->token->copyTo(other->token);
+    }
     copyMetaTo(other);
 }
 
-void Node::copyMetaTo(Node *other)
+void
+Node::copyMetaTo(Node *other)
 {
     other->list_begin.setLineAndColumn(
         getBeginPos()->getLineNumber(),
@@ -155,12 +152,13 @@ void Node::copyMetaTo(Node *other)
 }
 
 Node *null_node;
-Node *nullNode(void)
+Node *
+nullNode(void)
 {
     if (null_node) {
         return null_node;
     }
-    null_node = new Node(0);
+    null_node = new Node();
     return null_node;
 }
 
@@ -168,15 +166,14 @@ DNode *
 Node::toDNode(void)
 {
     if (is_token) {
-        Token *t     = token;
-        DNode *dnode = (DNode*)malloc(sizeof(*dnode));
+        Token *t = token;
+        DNode *dnode = (DNode*) malloc(sizeof(*dnode));
 
-        std::string ttostr;
-        t->valueToString(&ttostr);
+        std::string token_str;
+        t->valueToString(&token_str);
 
-        char *sv = (char*)malloc(ttostr.length() + 1);
-
-        strncpy(sv, ttostr.c_str(), ttostr.length()+1);
+        char *sv = (char *) malloc(token_str.length() + 1);
+        strncpy(sv, token_str.c_str(), token_str.length() + 1);
 
         dnode->is_list   = false;
         dnode->token_str = sv;
@@ -188,22 +185,15 @@ Node::toDNode(void)
         dnode->end_line     = getEndPos()->getLineNumber();
         dnode->end_column   = getEndPos()->getColumnNumber();
         if (macro_begin.getLineNumber()) {
-            dnode->macro_begin_line = macro_begin.getLineNumber();
-            dnode->macro_begin_column =
-                macro_begin.getColumnNumber();
-            dnode->macro_end_line = macro_end.getLineNumber();
-            dnode->macro_end_column =
-                macro_end.getColumnNumber();
+            dnode->macro_begin_line   = macro_begin.getLineNumber();
+            dnode->macro_begin_column = macro_begin.getColumnNumber();
+            dnode->macro_end_line     = macro_end.getLineNumber();
+            dnode->macro_end_column   = macro_end.getColumnNumber();
         }
         dnode->filename = filename;
 
         return dnode;
-    }
-
-    /* If node is list - for each element, call self, link the
-     * nodes together. */
-
-    if (is_list) {
+    } else if (is_list) {
         DNode *top_node = (DNode*)malloc(sizeof(*top_node));
         top_node->is_list   = true;
         top_node->token_str = NULL;
@@ -220,8 +210,8 @@ Node::toDNode(void)
             DNode *temp_node = (*node_iter)->toDNode();
 
             if (!current_dnode) {
-                top_node->list_node = temp_node;
-                current_dnode = temp_node;
+                top_node->list_node      = temp_node;
+                current_dnode            = temp_node;
             } else {
                 current_dnode->next_node = temp_node;
                 current_dnode            = temp_node;
@@ -236,12 +226,10 @@ Node::toDNode(void)
         top_node->end_column   = getEndPos()->getColumnNumber();
 
         if (macro_begin.getLineNumber()) {
-            top_node->macro_begin_line = macro_begin.getLineNumber();
-            top_node->macro_begin_column =
-                macro_begin.getColumnNumber();
-            top_node->macro_end_line = macro_end.getLineNumber();
-            top_node->macro_end_column =
-                macro_end.getColumnNumber();
+            top_node->macro_begin_line   = macro_begin.getLineNumber();
+            top_node->macro_begin_column = macro_begin.getColumnNumber();
+            top_node->macro_end_line     = macro_end.getLineNumber();
+            top_node->macro_end_column   = macro_end.getColumnNumber();
         }
         top_node->filename = filename;
 
