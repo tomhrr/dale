@@ -4,36 +4,41 @@
 
 namespace dale
 {
-Parser::Parser(Lexer *new_lxr, ErrorReporter *new_erep,
-               const char *myfilename)
+Parser::Parser(Lexer *lexer, ErrorReporter *erep,
+               const char *filename)
 {
-    lxr  = new_lxr;
-    erep = new_erep;
-    filename = strdup(myfilename);
+    this->lexer      = lexer;
+    this->erep     = erep;
+    this->filename = filename;
 }
 
 Parser::~Parser()
 {
-    delete lxr;
-    free((void*) filename);
+    delete lexer;
 }
 
-void Parser::deleteNodeList(std::vector<Node *> *list)
+Lexer *
+Parser::getLexer(void)
+{
+    return lexer;
+}
+
+void
+Parser::deleteNodeList(std::vector<Node *> *list)
 {
     erep->flush();
 
-    std::vector<Node *>::iterator iter =
-        list->begin();
-
-    while (iter != list->end()) {
-        delete (*iter);
-        ++iter;
+    for (std::vector<Node *>::iterator b = list->begin(),
+                                       e = list->end();
+            b != e; ++b) {
+        delete (*b);
     }
 
     delete list;
 }
 
-Node *Parser::getNextList(void)
+Node *
+Parser::getNextList(void)
 {
     Token ts(TokenType::Null, 0, 0, 0, 0);
     Token te(TokenType::Null, 0, 0, 0, 0);
@@ -41,8 +46,7 @@ Node *Parser::getNextList(void)
     n.filename = filename;
     Error e(ErrorInst::Lexer::Null, &n);
 
-    /* Pop the first token - should be a left parenthesis. */
-    lxr->getNextToken(&ts, &e);
+    lexer->getNextToken(&ts, &e);
 
     if (e.instance != ErrorInst::Lexer::Null) {
         erep->addError(e);
@@ -71,9 +75,7 @@ Node *Parser::getNextList(void)
         return NULL;
     }
 
-    /* Pop the next token - should be a right parenthesis. */
-
-    lxr->getNextToken(&te, &e);
+    lexer->getNextToken(&te, &e);
 
     if (e.instance != ErrorInst::Lexer::Null) {
         erep->addError(e);
@@ -92,25 +94,22 @@ Node *Parser::getNextList(void)
 
     Node *node = new Node(list);
     node->filename = filename;
-    node->getBeginPos()->line_number   = ts.begin.getLineNumber();
-    node->getBeginPos()->column_number = ts.begin.getColumnNumber();
-    node->getEndPos()->line_number     = te.begin.getLineNumber();
-    node->getEndPos()->column_number   = te.begin.getColumnNumber();
+    ts.begin.copyTo(node->getBeginPos());
+    te.begin.copyTo(node->getEndPos());
 
     return node;
 }
 
-int Parser::getNextListInternal(std::vector<Node*> *list)
+int
+Parser::getNextListInternal(std::vector<Node*> *list)
 {
-    /* Get token */
-
     Token t(TokenType::Null, 0, 0, 0, 0);
     Node n;
     n.filename = filename;
     Error e(ErrorInst::Lexer::Null, &n);
 
     do {
-        lxr->getNextToken(&t, &e);
+        lexer->getNextToken(&t, &e);
         if (e.instance == ErrorInst::Lexer::Null) {
             break;
         } else {
@@ -124,27 +123,22 @@ int Parser::getNextListInternal(std::vector<Node*> *list)
     }
 
     if (t.type == TokenType::LeftParen) {
-        /* new list - create list node, create new list, set list
-         * node to point to new list, recall */
-        std::vector<Node*> *sublist = new std::vector<Node*>;
+        std::vector<Node*> *sublist = new std::vector<Node*>();
         Node *node = new Node(sublist);
         list->push_back(node);
         node->filename = filename;
-        node->getBeginPos()->line_number   = t.begin.getLineNumber();
-        node->getBeginPos()->column_number = t.begin.getColumnNumber();
-        node->getEndPos()->line_number     = t.end.getLineNumber();
-        node->getEndPos()->column_number   = t.end.getColumnNumber();
+        t.begin.copyTo(node->getBeginPos());
+        t.end.copyTo(node->getEndPos());
 
         int res;
-
-        while ((res = getNextListInternal(sublist)) == 1) {
+        while ((res = (getNextListInternal(sublist))) == 1) {
         }
 
         if (res == 0) {
             return 0;
         }
 
-        lxr->getNextToken(&t, &e);
+        lexer->getNextToken(&t, &e);
 
         if (e.instance != ErrorInst::Lexer::Null) {
             erep->addError(e);
@@ -158,15 +152,13 @@ int Parser::getNextListInternal(std::vector<Node*> *list)
             erep->addError(e);
             return 0;
         }
-
-        node->getEndPos()->line_number     = t.begin.getLineNumber();
-        node->getEndPos()->column_number   = t.begin.getColumnNumber();
+        t.begin.copyTo(node->getEndPos());
 
         return 1;
     }
 
     if (t.type == TokenType::RightParen) {
-        lxr->ungetToken(&t);
+        lexer->ungetToken(&t);
         return 2;
     }
 

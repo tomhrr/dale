@@ -148,7 +148,7 @@ addVarargsTypes(Unit *unit, bool is_x86_64)
             : "(def va-list "
                 "(struct extern ((a uint32))))";
 
-    prsr->lxr->pushText(definition);
+    prsr->getLexer()->pushText(definition);
 }
 
 void 
