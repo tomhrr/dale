@@ -3,6 +3,10 @@
 
 namespace dale
 {
+/*! Linkage
+
+    Contains the variable and function linkage definitions.
+*/
 namespace Linkage
 {
 enum
@@ -15,10 +19,20 @@ enum
     Extern_Weak
 };
 
+/*! Check whether the linkage is an extern linkage.
+ *  @param linkage The linkage.
+ */
 bool isExtern(int linkage);
+/*! Check whether the linkage is an extern linkage (includes weak).
+ *  @param linkage The linkage.
+ */
 bool isExternAll(int linkage);
 }
 
+/*! StructLinkage
+
+    Contains the struct linkage definitions.
+*/
 namespace StructLinkage
 {
 enum
@@ -28,9 +42,16 @@ enum
     Extern,
     Opaque
 };
+/*! Check whether the linkage is an extern linkage.
+ *  @param linkage The linkage.
+ */
 bool isExtern(int linkage);
 }
 
+/*! EnumLinkage
+
+    Contains the enum linkage definitions.
+*/
 namespace EnumLinkage
 {
 enum
@@ -39,6 +60,9 @@ enum
     Intern,
     Extern
 };
+/*! Check whether the linkage is an extern linkage.
+ *  @param linkage The linkage.
+ */
 bool isExtern(int linkage);
 }
 }
