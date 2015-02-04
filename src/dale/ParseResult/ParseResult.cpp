@@ -2,51 +2,44 @@
 
 namespace dale
 {
-ParseResult::ParseResult()
+void
+ParseResult::init()
 {
     block = NULL;
     type = NULL;
     value = NULL;
     address_of_value = NULL;
     type_of_address_of_value = NULL;
-    treat_as_terminator = 0;
-    do_not_destruct = 0;
-    do_not_copy_with_setf = 0;
-    freshly_copied = 0;
-    value_is_lvalue = 0;
+
+    treat_as_terminator = false;
+    do_not_destruct = false;
+    do_not_copy_with_setf = false;
+    freshly_copied = false;
+    value_is_lvalue = false;
 
     retval = NULL;
     retval_type = NULL;
     retval_used = false;
 }
 
-ParseResult::ParseResult(
-    llvm::BasicBlock *new_block,
-    Type *new_type,
-    llvm::Value *new_value
-)
+ParseResult::ParseResult()
 {
-    treat_as_terminator = 0;
-    do_not_destruct = 0;
-    do_not_copy_with_setf = 0;
-    freshly_copied = 0;
-    value_is_lvalue = 0;
-    block = new_block;
-    type  = new_type;
-    value = new_value;
-    address_of_value = NULL;
-    type_of_address_of_value = NULL;
+    init();
+}
 
-    retval = NULL;
-    retval_type = NULL;
-    retval_used = false;
+ParseResult::ParseResult(llvm::BasicBlock *block, Type *type,
+                         llvm::Value *value)
+{
+    init();
+    set(block, type, value);
 }
 
 ParseResult::~ParseResult()
 {
 }
 
-int ParseResult::copyTo(ParseResult *x)
+void
+ParseResult::copyTo(ParseResult *x)
 {
     x->treat_as_terminator = treat_as_terminator;
     x->do_not_destruct = do_not_destruct;
@@ -61,18 +54,17 @@ int ParseResult::copyTo(ParseResult *x)
     x->retval_type = retval_type;
     x->retval = retval;
     x->retval_used = retval_used;
-    return 1;
 }
 
-void ParseResult::set(llvm::BasicBlock *new_block,
-                      Type *new_type,
-                      llvm::Value *new_value) {
-    block = new_block;
-    type  = new_type;
-    value = new_value;
+void
+ParseResult::set(llvm::BasicBlock *block, Type *type, llvm::Value *value) {
+    this->block = block;
+    this->type  = type;
+    this->value = value;
 }
 
-bool ParseResult::setAddressOfValue(Context *ctx)
+bool
+ParseResult::setAddressOfValue(Context *ctx)
 {
     if (address_of_value) {
         return true;
@@ -90,7 +82,8 @@ bool ParseResult::setAddressOfValue(Context *ctx)
     return true;
 }
 
-bool ParseResult::getAddressOfValue(Context *ctx, ParseResult *pr)
+bool
+ParseResult::getAddressOfValue(Context *ctx, ParseResult *pr)
 {
     bool res = setAddressOfValue(ctx);
     if (!res) {
@@ -105,16 +98,14 @@ bool ParseResult::getAddressOfValue(Context *ctx, ParseResult *pr)
     return true;
 }
 
-llvm::Value *ParseResult::getValue(Context *ctx)
+llvm::Value *
+ParseResult::getValue(Context *ctx)
 {
     if (retval) {
         llvm::IRBuilder<> builder(block);
         return builder.CreateLoad(retval);
-    }
-    if (value) {
+    } else {
         return value;
     }
-    fprintf(stderr, "No value in ParseResult.\n");
-    abort();
 }
 }
