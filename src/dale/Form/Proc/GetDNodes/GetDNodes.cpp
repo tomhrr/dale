@@ -173,14 +173,14 @@ IntNodeToStaticDNode(Generator *gen,
         );
     }
 
-    int pos[8] = { node->getBeginPos()->line_number,
-                   node->getBeginPos()->column_number,
-                   node->getEndPos()->line_number,
-                   node->getEndPos()->column_number,
-                   node->macro_begin.line_number,
-                   node->macro_begin.column_number,
-                   node->macro_end.line_number,
-                   node->macro_end.column_number };
+    int pos[8] = { node->getBeginPos()->getLineNumber(),
+                   node->getBeginPos()->getColumnNumber(),
+                   node->getEndPos()->getLineNumber(),
+                   node->getEndPos()->getColumnNumber(),
+                   node->macro_begin.getLineNumber(),
+                   node->macro_begin.getColumnNumber(),
+                   node->macro_end.getLineNumber(),
+                   node->macro_end.getColumnNumber() };
     for (int i = 0; i < 8; i++) {
         constants.push_back(
             llvm::cast<llvm::Constant>(ctx->nt->getNativeInt(pos[i]))

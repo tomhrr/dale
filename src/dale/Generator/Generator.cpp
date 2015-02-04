@@ -2999,14 +2999,10 @@ llvm::Value *Generator::coerceValue(llvm::Value *from_value,
 Node *Generator::DNodeToIntNode(DNode *dnode)
 {
     Node *tempnode = new Node();
-    tempnode->list_begin.line_number    = dnode->begin_line;
-    tempnode->list_begin.column_number  = dnode->begin_column;
-    tempnode->list_end.line_number      = dnode->end_line;
-    tempnode->list_end.column_number    = dnode->end_column;
-    tempnode->macro_begin.line_number   = dnode->macro_begin_line;
-    tempnode->macro_begin.column_number = dnode->macro_begin_column;
-    tempnode->macro_end.line_number     = dnode->macro_end_line;
-    tempnode->macro_end.column_number   = dnode->macro_end_column;
+    tempnode->list_begin.setLineAndColumn(dnode->begin_line, dnode->begin_column);
+    tempnode->list_end.setLineAndColumn(dnode->end_line, dnode->end_column);
+    tempnode->macro_begin.setLineAndColumn(dnode->macro_begin_line, dnode->macro_begin_column);
+    tempnode->macro_end.setLineAndColumn(dnode->macro_end_line, dnode->macro_end_column);
     tempnode->filename = dnode->filename;
 
     if (!dnode->is_list) {
@@ -3045,10 +3041,8 @@ Node *Generator::DNodeToIntNode(DNode *dnode)
 
             token->str_value.append(dnode->token_str);
             Node *n = new Node(token);
-            n->macro_begin.line_number   = dnode->macro_begin_line;
-            n->macro_begin.column_number = dnode->macro_begin_column;
-            n->macro_end.line_number     = dnode->macro_end_line;
-            n->macro_end.column_number   = dnode->macro_end_column;
+            n->macro_begin.setLineAndColumn(dnode->macro_begin_line, dnode->macro_begin_column);
+            n->macro_end.setLineAndColumn(dnode->macro_end_line, dnode->macro_end_column);
 
             if (strchr(dnode->token_str, '.')) {
                 if (!is_simple_float(dnode->token_str)) {
@@ -3092,10 +3086,8 @@ Node *Generator::DNodeToIntNode(DNode *dnode)
             token->str_value.append(str);
 
             Node *n = new Node(token);
-            n->macro_begin.line_number   = dnode->macro_begin_line;
-            n->macro_begin.column_number = dnode->macro_begin_column;
-            n->macro_end.line_number     = dnode->macro_end_line;
-            n->macro_end.column_number   = dnode->macro_end_column;
+            n->macro_begin.setLineAndColumn(dnode->macro_begin_line, dnode->macro_begin_column);
+            n->macro_end.setLineAndColumn(dnode->macro_end_line, dnode->macro_end_column);
             n->filename = dnode->filename;
             return n;
         }
@@ -3106,10 +3098,8 @@ Node *Generator::DNodeToIntNode(DNode *dnode)
         token->str_value.append(dnode->token_str);
 
         Node *mynode = new Node(token);
-        mynode->macro_begin.line_number   = dnode->macro_begin_line;
-        mynode->macro_begin.column_number = dnode->macro_begin_column;
-        mynode->macro_end.line_number     = dnode->macro_end_line;
-        mynode->macro_end.column_number   = dnode->macro_end_column;
+        mynode->macro_begin.setLineAndColumn(dnode->macro_begin_line, dnode->macro_begin_column);
+        mynode->macro_end.setLineAndColumn(dnode->macro_end_line, dnode->macro_end_column);
         mynode->filename = dnode->filename;
         return mynode;
     }
@@ -3128,14 +3118,10 @@ Node *Generator::DNodeToIntNode(DNode *dnode)
 
         Node *final_node = new Node(list);
         final_node->filename = dnode->filename;
-        final_node->list_begin.line_number    = dnode->begin_line;
-        final_node->list_begin.column_number  = dnode->begin_column;
-        final_node->list_end.line_number      = dnode->end_line;
-        final_node->list_end.column_number    = dnode->end_column;
-        final_node->macro_begin.line_number   = dnode->macro_begin_line;
-        final_node->macro_begin.column_number = dnode->macro_begin_column;
-        final_node->macro_end.line_number     = dnode->macro_end_line;
-        final_node->macro_end.column_number   = dnode->macro_end_column;
+        final_node->list_begin.setLineAndColumn(dnode->begin_line, dnode->begin_column);
+        final_node->list_end.setLineAndColumn(dnode->end_line, dnode->end_column);
+        final_node->macro_begin.setLineAndColumn(dnode->macro_begin_line, dnode->macro_begin_column);
+        final_node->macro_end.setLineAndColumn(dnode->macro_end_line, dnode->macro_end_column);
         return final_node;
     }
 

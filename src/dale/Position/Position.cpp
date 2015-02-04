@@ -8,37 +8,40 @@ Position::Position()
     column_number = 0;
 }
 
-Position::Position(int new_line_number, int new_column_number)
+Position::Position(int line_number, int column_number)
 {
-    line_number   = new_line_number;
-    column_number = new_column_number;
+    setLineAndColumn(line_number, column_number);
 }
 
-Position::Position(Position *pos)
+Position::Position(Position *other)
 {
-    line_number   = pos->line_number;
-    column_number = pos->column_number;
+    line_number   = other->line_number;
+    column_number = other->column_number;
 }
 
-void Position::setLineAndColumn(int new_line_number, int new_column_number)
+void
+Position::setLineAndColumn(int line_number, int column_number)
 {
-    line_number   = new_line_number;
-    column_number = new_column_number;
+    this->line_number   = line_number;
+    this->column_number = column_number;
 }
 
-int Position::getLineNumber(void)
+int
+Position::getLineNumber(void)
 {
     return line_number;
 }
 
-int Position::getColumnNumber(void)
+int
+Position::getColumnNumber(void)
 {
     return column_number;
 }
 
-void Position::copyTo(Position *p)
+void
+Position::copyTo(Position *other)
 {
-    p->line_number   = line_number;
-    p->column_number = column_number;
+    other->line_number   = line_number;
+    other->column_number = column_number;
 }
 }

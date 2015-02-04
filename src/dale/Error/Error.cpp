@@ -111,11 +111,11 @@ void Error::setFromNode(Node *node)
     node->getBeginPos()->copyTo(&begin);
     node->getEndPos()->copyTo(&end);
 
-    if (node->macro_begin.line_number) {
-        macro_begin.setLineAndColumn(node->macro_begin.line_number,
-                                     node->macro_begin.column_number);
-        macro_end.setLineAndColumn(node->macro_end.line_number,
-                                   node->macro_end.column_number);
+    if (node->macro_begin.getLineNumber()) {
+        macro_begin.setLineAndColumn(node->macro_begin.getLineNumber(),
+                                     node->macro_begin.getColumnNumber());
+        macro_end.setLineAndColumn(node->macro_end.getLineNumber(),
+                                   node->macro_end.getColumnNumber());
     } else {
         macro_begin.setLineAndColumn(0,0);
         macro_end.setLineAndColumn(0,0);
