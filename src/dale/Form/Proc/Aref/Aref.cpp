@@ -102,7 +102,7 @@ FormProcArefParse(Generator *gen,
               );
     } else {
         std::vector<llvm::Value *> indices;
-        stl::push_back2(&indices, ctx->nt->getLLVMZero(),
+        STL::push_back2(&indices, ctx->nt->getLLVMZero(),
                         llvm::cast<llvm::Value>(pr_index.value));
         vres = builder.Insert(
                   llvm::GetElementPtrInst::Create(

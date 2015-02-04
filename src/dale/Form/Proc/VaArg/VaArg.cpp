@@ -178,16 +178,16 @@ FormProcVaArgParse(Generator *gen,
                               );
 
         std::vector<llvm::Value *> indices_gp_offset;
-        stl::push_back2(&indices_gp_offset, ctx->nt->getLLVMZero(),
+        STL::push_back2(&indices_gp_offset, ctx->nt->getLLVMZero(),
                         ctx->nt->getLLVMZero());
 
         std::vector<llvm::Value *> indices_overflow_arg_area;
-        stl::push_back2(&indices_overflow_arg_area,
+        STL::push_back2(&indices_overflow_arg_area,
                         ctx->nt->getLLVMZero(),
                         ctx->nt->getNativeInt(2));
 
         std::vector<llvm::Value *> indices_reg_save_area;
-        stl::push_back2(&indices_reg_save_area,
+        STL::push_back2(&indices_reg_save_area,
                         ctx->nt->getLLVMZero(),
                         ctx->nt->getNativeInt(3));
 

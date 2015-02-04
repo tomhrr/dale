@@ -123,7 +123,7 @@ FormProcTokenParse(Generator *gen,
     Type *type_cchar  = ctx->tr->getConstType(type_char);
     Type *type_pcchar = ctx->tr->getPointerType(type_cchar);
     std::vector<llvm::Value *> two_zero_indices;
-    stl::push_back2(&two_zero_indices,
+    STL::push_back2(&two_zero_indices,
                     nt->getLLVMZero(), nt->getLLVMZero());
 
     Token *t = node->token;

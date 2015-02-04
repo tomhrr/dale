@@ -1,6 +1,6 @@
 #include "Type.h"
 
-#include "../STLUtils/STLUtils.h"
+#include "../STL/STL.h"
 #include "../Utils/Utils.h"
 
 #define DEBUG 0
@@ -108,7 +108,7 @@ Type::isEqualTo(Type *other_type,
         if (!return_type->isEqualTo(other_type->return_type)) {
             return false;
         }
-        return dale::stl::isEqualTo(
+        return dale::STL::isEqualTo(
                    &(parameter_types),
                    &(other_type->parameter_types)
                );

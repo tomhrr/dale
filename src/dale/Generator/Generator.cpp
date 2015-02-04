@@ -63,7 +63,7 @@
 #include "../Linkage/Linkage.h"
 #include "../BaseType/BaseType.h"
 #include "../Lexer/Lexer.h"
-#include "../STLUtils/STLUtils.h"
+#include "../STL/STL.h"
 #include "../Serialise/Serialise.h"
 #include "../NativeTypes/NativeTypes.h"
 #include "../ContextSavePoint/ContextSavePoint.h"
@@ -168,7 +168,7 @@ Generator::Generator()
     dtm_nm_modules  = new std::map<std::string, std::string>;
 
     two_zero_indices.clear();
-    stl::push_back2(&two_zero_indices,
+    STL::push_back2(&two_zero_indices,
                     nt->getLLVMZero(), nt->getLLVMZero());
 
     /* On OS X, SYSTEM_PROCESSOR is i386 even when the underlying
@@ -1306,7 +1306,7 @@ bool Generator::destructIfApplicable(ParseResult *pr,
             temp.type  = mine;
             temp.block = mbl;
             std::vector<llvm::Value *> indices;
-            stl::push_back2(&indices,
+            STL::push_back2(&indices,
                             nt->getLLVMZero(),
                             llvm::cast<llvm::Value>(
                                 llvm::ConstantInt::get(
@@ -1399,7 +1399,7 @@ bool Generator::destructIfApplicable(ParseResult *pr,
                 (*b)->toString(&ts);
                 element.set(pr->block, *b, actual_value);
                 std::vector<llvm::Value *> indices;
-                stl::push_back2(&indices,
+                STL::push_back2(&indices,
                                 nt->getLLVMZero(),
                                 llvm::cast<llvm::Value>(
                                     llvm::ConstantInt::get(

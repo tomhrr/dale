@@ -2,7 +2,7 @@
 
 #include "../llvm_LinkAll.h"
 #include "../NativeTypes/NativeTypes.h"
-#include "../STLUtils/STLUtils.h"
+#include "../STL/STL.h"
 #include "../Utils/Utils.h"
 
 namespace dale
@@ -58,7 +58,7 @@ Namespace::~Namespace(void)
             e = functions.end();
             b != e;
             ++b) {
-        stl::deleteElements(b->second);
+        STL::deleteElements(b->second);
         delete b->second;
     }
     functions.clear();
@@ -148,7 +148,7 @@ Namespace::addFunction(const char *name,
             } else {
                 std::advance(function_pt_begin, 1);
             }
-            if (dale::stl::isEqualToIter(function_pt_begin,
+            if (dale::STL::isEqualToIter(function_pt_begin,
                                          function_pt_end,
                                          fn_pt_begin,
                                          fn_pt_end)) {

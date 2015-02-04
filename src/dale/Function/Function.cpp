@@ -1,6 +1,6 @@
 #include "Function.h"
 
-#include "../STLUtils/STLUtils.h"
+#include "../STL/STL.h"
 
 namespace dale
 {
@@ -38,7 +38,7 @@ Function::Function(
 Function::~Function()
 {
     if (parameter_types.size()) {
-        stl::deleteElements(&parameter_types);
+        STL::deleteElements(&parameter_types);
     }
 }
 
@@ -94,7 +94,7 @@ Function::isEqualTo(Function *other_fn)
         return false;
     }
 
-    return dale::stl::isEqualTo(
+    return dale::STL::isEqualTo(
         &parameter_types,
         &(other_fn->parameter_types)
     );

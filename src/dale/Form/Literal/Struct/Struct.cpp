@@ -86,7 +86,7 @@ FormLiteralStructParse(Generator *gen,
         int index = str->memberToIndex(name->token->str_value.c_str());
 
         std::vector<llvm::Value *> indices;
-        stl::push_back2(&indices, ctx->nt->getLLVMZero(),
+        STL::push_back2(&indices, ctx->nt->getLLVMZero(),
                         ctx->nt->getNativeInt(index));
 
         llvm::Value *res =

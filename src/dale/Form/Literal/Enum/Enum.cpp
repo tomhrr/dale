@@ -42,7 +42,7 @@ FormLiteralEnumParse(Generator *gen,
                       );
 
     std::vector<llvm::Value *> two_zero_indices;
-    stl::push_back2(&two_zero_indices,
+    STL::push_back2(&two_zero_indices,
                         ctx->nt->getLLVMZero(), ctx->nt->getLLVMZero());
     llvm::Value *res =
         builder.CreateGEP(sp,

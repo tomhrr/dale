@@ -47,7 +47,7 @@ OffsetofByIndex(Context *ctx,
         = llvm::PointerType::getUnqual(llvm_type);
 
     std::vector<llvm::Value *> indices;
-    stl::push_back2(&indices,  ctx->nt->getLLVMZero(),
+    STL::push_back2(&indices,  ctx->nt->getLLVMZero(),
                                ctx->nt->getNativeInt(index));
                     
     llvm::Value *pointer_to_offset =

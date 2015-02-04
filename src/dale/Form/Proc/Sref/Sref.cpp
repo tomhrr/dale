@@ -158,7 +158,7 @@ FormProcSrefParse(Generator *gen,
     }
 
     std::vector<llvm::Value *> indices;
-    stl::push_back2(&indices, ctx->nt->getNativeInt(0),
+    STL::push_back2(&indices, ctx->nt->getNativeInt(0),
                               ctx->nt->getNativeInt(index));
 
     llvm::IRBuilder<> builder(pr_struct.block);

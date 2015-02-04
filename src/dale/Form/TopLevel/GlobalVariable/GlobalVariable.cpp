@@ -495,10 +495,10 @@ parseLiteral(Generator *gen,
 
     std::vector<Type *> call_arg_types;
     Type *ptype = ctx->tr->getPointerType(type);
-    stl::push_back2(&call_arg_types, ptype, ptype);
+    STL::push_back2(&call_arg_types, ptype, ptype);
 
     std::vector<llvm::Value *> call_args2;
-    stl::push_back2(&call_args2, reta, reta2);
+    STL::push_back2(&call_args2, reta, reta2);
 
     if (Function *or_setf =
                 ctx->getFunction("setf-assign", &call_arg_types, NULL, 0)) {

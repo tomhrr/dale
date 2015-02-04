@@ -625,7 +625,7 @@ past_sl_parse:
                 }
                 /* Get the function pointer value. */
                 std::vector<llvm::Value *> indices;
-                stl::push_back2(&indices,
+                STL::push_back2(&indices,
                                 ctx->nt->getLLVMZero(),
                                 ctx->nt->getNativeInt(
                                     mystruct->memberToIndex("apply")));

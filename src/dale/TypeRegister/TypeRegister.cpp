@@ -1,7 +1,7 @@
 #include "TypeRegister.h"
 
 #include "../Utils/Utils.h"
-#include "../STLUtils/STLUtils.h"
+#include "../STL/STL.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -69,13 +69,13 @@ TypeRegister::~TypeRegister(void)
         delete basic_types[i];
     }
 
-    stl::deleteMapElements(&pointer_types);
-    stl::deleteMapElements(&const_types);
-    stl::deleteMapElements(&struct_types);
-    stl::deleteMapElements(&reference_types);
-    stl::deleteMapElements(&retval_types);
-    stl::deleteNestedMapElements(&array_types);
-    stl::deleteNestedMapElements(&bitfield_types);
+    STL::deleteMapElements(&pointer_types);
+    STL::deleteMapElements(&const_types);
+    STL::deleteMapElements(&struct_types);
+    STL::deleteMapElements(&reference_types);
+    STL::deleteMapElements(&retval_types);
+    STL::deleteNestedMapElements(&array_types);
+    STL::deleteNestedMapElements(&bitfield_types);
 }
 
 Type*
