@@ -24,7 +24,7 @@ FormMacroStructDerefParse(Context *ctx, Node *n)
     // the provided list this new list.
 
     std::vector<Node*> *newlst = new std::vector<Node *>;
-    Token *ad = new Token(TokenType::String,0,0,0,0);
+    Token *ad = new Token(TokenType::String);
     ad->str_value.append(":");
     newlst->push_back(new Node(ad));
     newlst->push_back((*lst)[1]);

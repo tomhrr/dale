@@ -158,7 +158,7 @@ Node *
 Type::toNode(void)
 {
     if (struct_name.size()) {
-        Token *t = new Token(TokenType::String, 0,0,0,0);
+        Token *t = new Token(TokenType::String);
         std::vector<std::string>::iterator iter =
             namespaces.begin();
         while (iter != namespaces.end()) {
@@ -175,7 +175,7 @@ Type::toNode(void)
     }
 
     if (base_type) {
-        Token *t = new Token(TokenType::String, 0,0,0,0);
+        Token *t = new Token(TokenType::String);
         t->str_value.append(baseTypeToString(base_type));
         return new Node(t);
     }
@@ -183,7 +183,7 @@ Type::toNode(void)
     if (points_to) {
         std::vector<Node *> *nodes = new std::vector<Node*>;
 
-        Token *t = new Token(TokenType::String, 0,0,0,0);
+        Token *t = new Token(TokenType::String);
         t->str_value.append("p");
         nodes->push_back(new Node(t));
 
@@ -196,7 +196,7 @@ Type::toNode(void)
     if (is_const) {
         std::vector<Node *> *nodes = new std::vector<Node*>;
 
-        Token *t = new Token(TokenType::String, 0,0,0,0);
+        Token *t = new Token(TokenType::String);
         t->str_value.append("const");
         nodes->push_back(new Node(t));
 
@@ -209,11 +209,11 @@ Type::toNode(void)
     if (is_array) {
         std::vector<Node *> *nodes = new std::vector<Node*>;
 
-        Token *t = new Token(TokenType::String, 0,0,0,0);
+        Token *t = new Token(TokenType::String);
         t->str_value.append("array-of");
         nodes->push_back(new Node(t));
 
-        Token *size = new Token(TokenType::Int, 0,0,0,0);
+        Token *size = new Token(TokenType::Int);
         append_int(&(size->str_value), array_size);
 
         Node *type = array_type->toNode();
@@ -225,7 +225,7 @@ Type::toNode(void)
     if (is_function) {
         std::vector<Node *> *nodes = new std::vector<Node*>;
 
-        Token *t = new Token(TokenType::String, 0,0,0,0);
+        Token *t = new Token(TokenType::String);
         t->str_value.append("fn");
         nodes->push_back(new Node(t));
 
@@ -240,7 +240,7 @@ Type::toNode(void)
 
         while (iter != parameter_types.end()) {
             std::vector<Node *> *anode = new std::vector<Node*>;
-            Token *tnn = new Token(TokenType::String, 0,0,0,0);
+            Token *tnn = new Token(TokenType::String);
             tnn->str_value.append(c);
             c[0]++;
             anode->push_back(new Node(tnn));

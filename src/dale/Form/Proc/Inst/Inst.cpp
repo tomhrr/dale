@@ -562,8 +562,7 @@ past_sl_parse:
     block = try_fnp.block;
     if (try_fnp.type->points_to
             && try_fnp.type->points_to->is_function) {
-        Token *funcall_str_tok = 
-            new Token(TokenType::String, 0,0,0,0);
+        Token *funcall_str_tok = new Token(TokenType::String);
         funcall_str_tok->str_value.clear();
         funcall_str_tok->str_value.append("funcall");
         Node *funcall_str_node = new Node(funcall_str_tok);

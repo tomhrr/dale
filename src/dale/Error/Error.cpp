@@ -117,8 +117,8 @@ void Error::setFromNode(Node *node)
         macro_end.setLineAndColumn(node->macro_end.getLineNumber(),
                                    node->macro_end.getColumnNumber());
     } else {
-        macro_begin.setLineAndColumn(0,0);
-        macro_end.setLineAndColumn(0,0);
+        macro_begin.zero();
+        macro_end.zero();
     }
 }
 

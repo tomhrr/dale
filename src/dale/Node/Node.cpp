@@ -15,10 +15,10 @@ Node::Node()
     token    = NULL;
     filename = NULL;
 
-    list_begin.setLineAndColumn(0,0);
-    list_end.setLineAndColumn(0,0);
-    macro_begin.setLineAndColumn(0,0);
-    macro_end.setLineAndColumn(0,0);
+    list_begin.zero();
+    list_end.zero();
+    macro_begin.zero();
+    macro_end.zero();
 }
 
 Node::Node(std::vector<Node*> *new_list)
@@ -30,10 +30,10 @@ Node::Node(std::vector<Node*> *new_list)
     token    = NULL;
     filename = NULL;
 
-    list_begin.setLineAndColumn(0,0);
-    list_end.setLineAndColumn(0,0);
-    macro_begin.setLineAndColumn(0,0);
-    macro_end.setLineAndColumn(0,0);
+    list_begin.zero();
+    list_end.zero();
+    macro_begin.zero();
+    macro_end.zero();
 }
 
 Node::Node(Token *new_token)
@@ -45,10 +45,10 @@ Node::Node(Token *new_token)
     token    = new_token;
     filename = NULL;
 
-    list_begin.setLineAndColumn(0,0);
-    list_end.setLineAndColumn(0,0);
-    macro_begin.setLineAndColumn(0,0);
-    macro_end.setLineAndColumn(0,0);
+    list_begin.zero();
+    list_end.zero();
+    macro_begin.zero();
+    macro_end.zero();
 }
 
 Node::~Node(void)

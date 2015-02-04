@@ -41,6 +41,9 @@ public:
      *  @param column_number The column number.
      */
     void setLineAndColumn(int line_number, int column_number);
+    /*! Set the line and column numbers for this position to zero.
+     */
+    void zero(void);
 };
 }
 

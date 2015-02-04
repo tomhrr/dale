@@ -22,7 +22,7 @@ FormMacroDerefStructDerefParse(Context *ctx, Node *n)
     // second element from the first list.
 
     std::vector<Node*> *newlst = new std::vector<Node *>;
-    Token *de = new Token(TokenType::String,0,0,0,0);
+    Token *de = new Token(TokenType::String);
     de->str_value.append("@");
     Node *nde = new Node(de);
     (*lst)[1]->copyMetaTo(nde);
@@ -34,7 +34,7 @@ FormMacroDerefStructDerefParse(Context *ctx, Node *n)
     // list. Adjust the original list to suit.
 
     std::vector<Node*> *newlst2 = new std::vector<Node *>;
-    Token *ad = new Token(TokenType::String,0,0,0,0);
+    Token *ad = new Token(TokenType::String);
     ad->str_value.append(":");
     Node *nad = new Node(ad);
     (*lst)[1]->copyMetaTo(nad);

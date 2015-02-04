@@ -40,8 +40,8 @@ Parser::deleteNodeList(std::vector<Node *> *list)
 Node *
 Parser::getNextList(void)
 {
-    Token ts(TokenType::Null, 0, 0, 0, 0);
-    Token te(TokenType::Null, 0, 0, 0, 0);
+    Token ts(TokenType::Null);
+    Token te(TokenType::Null);
     Node n;
     n.filename = filename;
     Error e(ErrorInst::Lexer::Null, &n);
@@ -103,7 +103,7 @@ Parser::getNextList(void)
 int
 Parser::getNextListInternal(std::vector<Node*> *list)
 {
-    Token t(TokenType::Null, 0, 0, 0, 0);
+    Token t(TokenType::Null);
     Node n;
     n.filename = filename;
     Error e(ErrorInst::Lexer::Null, &n);
@@ -162,7 +162,7 @@ Parser::getNextListInternal(std::vector<Node*> *list)
         return 2;
     }
 
-    Token *tok_ptr = new Token(TokenType::Null, 0, 0, 0, 0);
+    Token *tok_ptr = new Token(TokenType::Null);
     t.copyTo(tok_ptr);
     Node *node = new Node(tok_ptr);
     node->filename = filename;

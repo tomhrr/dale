@@ -216,7 +216,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             && lst->size() == 2
             && lst->at(0)->is_token
             && !(lst->at(0)->token->str_value.compare("struct"))) {
-        Token *li = new Token(TokenType::String,0,0,0,0);
+        Token *li = new Token(TokenType::String);
         li->str_value.append("extern");
         lst->insert((lst->begin() + 1), new Node(li));
         char buf[255];
@@ -232,7 +232,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        Token *name = new Token(TokenType::String,0,0,0,0);
+        Token *name = new Token(TokenType::String);
         name->str_value.append(buf);
         Type *myst = FormTypeParse(gen, new Node(name), false,
                                         false);

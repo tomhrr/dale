@@ -66,7 +66,6 @@ void Token::copyTo(Token *token)
     token->type = type;
     begin.copyTo(&(token->begin));
     end.copyTo(&(token->end));
-    token->int_value = int_value;
 
     token->str_value.clear();
     token->str_value.append(str_value.c_str());

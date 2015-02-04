@@ -28,7 +28,7 @@ FormMacroSetvParse(Context *ctx, Node *n)
     // element of the current list.
 
     std::vector<Node*> *newlst = new std::vector<Node *>;
-    Token *addrof = new Token(TokenType::String,0,0,0,0);
+    Token *addrof = new Token(TokenType::String);
     addrof->str_value.append("#");
     newlst->push_back(new Node(addrof));
     newlst->push_back((*lst)[1]);

@@ -44,4 +44,11 @@ Position::copyTo(Position *other)
     other->line_number   = line_number;
     other->column_number = column_number;
 }
+
+void
+Position::zero(void)
+{
+    line_number   = 0;
+    column_number = 0;
+}
 }
