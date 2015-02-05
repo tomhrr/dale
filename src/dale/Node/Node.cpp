@@ -170,7 +170,7 @@ Node::toDNode(void)
         DNode *dnode = (DNode*) malloc(sizeof(*dnode));
 
         std::string token_str;
-        t->valueToString(&token_str);
+        t->toString(&token_str);
 
         char *sv = (char *) malloc(token_str.length() + 1);
         strncpy(sv, token_str.c_str(), token_str.length() + 1);
