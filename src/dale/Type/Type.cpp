@@ -214,7 +214,7 @@ Type::toNode(void)
         nodes->push_back(new Node(t));
 
         Token *size = new Token(TokenType::Int);
-        append_int(&(size->str_value), array_size);
+        appendInt(&(size->str_value), array_size);
 
         Node *type = array_type->toNode();
         nodes->push_back(type);
@@ -302,7 +302,7 @@ void Type::toString(std::string *str)
         str->append("(bf ")
             .append(baseTypeToString(base_type))
             .append(" ");
-        append_int(str, bitfield_size);
+        appendInt(str, bitfield_size);
         str->append(")");
         return;
     }
@@ -321,7 +321,7 @@ void Type::toString(std::string *str)
 
     if (is_array) {
         str->append("(array-of ");
-        append_int(str, array_size);
+        appendInt(str, array_size);
         str->append(" ");
         array_type->toString(str);
         str->append(")");
@@ -400,7 +400,7 @@ void Type::toSymbolString(std::string *to)
 
     if (is_array) {
         to->append("A");
-        append_int(to, array_size);
+        appendInt(to, array_size);
         array_type->toSymbolString(to);
         return;
     }
@@ -422,13 +422,13 @@ void Type::toSymbolString(std::string *to)
             std::vector<std::string>::iterator iter;
             iter = namespaces.begin();
             while (iter != namespaces.end()) {
-                append_int(to, ((*iter).length()));
+                appendInt(to, ((*iter).length()));
                 to->append((*iter));
                 ++iter;
             }
             to->append("E");
         }
-        append_int(to, struct_name.size());
+        appendInt(to, struct_name.size());
         encodeStandard(&struct_name, to);
         return;
     }

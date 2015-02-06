@@ -9,7 +9,7 @@
 namespace dale
 {
 bool
-is_simple_float(const char *str)
+isSimpleFloat(const char *str)
 {
     int j = 0;
     int hit_period = 0;
@@ -35,7 +35,7 @@ is_simple_float(const char *str)
 }
 
 bool
-is_simple_int(const char *str)
+isSimpleInt(const char *str)
 {
     int j;
     int len = strlen(str);
@@ -62,7 +62,7 @@ is_simple_int(const char *str)
 }
 
 bool
-string_fits_in_int(const char *str)
+stringFitsInInt(const char *str)
 {
     if ((strlen(str) == 1) && isdigit(str[0])) {
         return true;
@@ -85,7 +85,7 @@ string_fits_in_int(const char *str)
 }
 
 bool
-files_are_equivalent(const char *path1, const char *path2)
+filesAreEquivalent(const char *path1, const char *path2)
 {
     if (!strcmp(path1, path2)) {
         return true;
@@ -112,7 +112,7 @@ files_are_equivalent(const char *path1, const char *path2)
 }
 
 void
-append_int(std::string *to, int num)
+appendInt(std::string *to, int num)
 {
     char numstr[255];
     sprintf(numstr, "%d", num);

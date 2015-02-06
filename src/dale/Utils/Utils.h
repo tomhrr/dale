@@ -16,15 +16,15 @@ namespace dale
 /*! Check whether a string represents a decimal number.
  *  @param str The string.
  */
-bool is_simple_float(const char *str);
+bool isSimpleFloat(const char *str);
 /*! Check whether a string represents an integer.
  *  @param str The string.
  */
-bool is_simple_int(const char *str);
+bool isSimpleInt(const char *str);
 /*! Check whether an integer string is small enough to be converted to int.
  *  @param str The string.
  */
-bool string_fits_in_int(const char *str);
+bool stringFitsInInt(const char *str);
 /*! Check whether two file paths are equivalent.
  *  @param path1 The first path.
  *  @param path2 The second path.
@@ -32,13 +32,13 @@ bool string_fits_in_int(const char *str);
  *  Two paths are equivalent if they are the same path, or if they
  *  point to the same file.
  */
-bool files_are_equivalent(const char *path1,
+bool filesAreEquivalent(const char *path1,
                           const char *path2);
 /*! Append the integer to the string.
  *  @param to The string.
  *  @param num The integer.
  */
-void append_int(std::string *to, int num);
+void appendInt(std::string *to, int num);
 
 /*! Split a string using the given separator.
  *  @param str The string.

@@ -3045,7 +3045,7 @@ Node *Generator::DNodeToIntNode(DNode *dnode)
             n->macro_end.setLineAndColumn(dnode->macro_end_line, dnode->macro_end_column);
 
             if (strchr(dnode->token_str, '.')) {
-                if (!is_simple_float(dnode->token_str)) {
+                if (!isSimpleFloat(dnode->token_str)) {
                     Error *e = new Error(
                         ErrorInst::Lexer::InvalidFloatingPointNumber,
                         n
@@ -3057,7 +3057,7 @@ Node *Generator::DNodeToIntNode(DNode *dnode)
                     token->type = TokenType::FloatingPoint;
                 }
             } else {
-                if (!is_simple_int(dnode->token_str)) {
+                if (!isSimpleInt(dnode->token_str)) {
                     Error *e = new Error(
                         ErrorInst::Lexer::InvalidInteger,
                         n

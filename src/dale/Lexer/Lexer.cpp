@@ -272,12 +272,12 @@ Lexer::getNextToken(Token *token, Error *error)
             token->type = TokenType::String;
         } else if (strchr(token->str_value.c_str(), '.')) {
             token->type = TokenType::FloatingPoint;
-            if (!is_simple_float(token->str_value.c_str())) {
+            if (!isSimpleFloat(token->str_value.c_str())) {
                 error->instance =
                     ErrorInst::Lexer::InvalidFloatingPointNumber;
             }
         } else {
-            if (!is_simple_int(token->str_value.c_str())) {
+            if (!isSimpleInt(token->str_value.c_str())) {
                 error->instance = ErrorInst::Lexer::InvalidInteger;
             }
         }
