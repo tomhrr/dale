@@ -8,7 +8,8 @@
 
 namespace dale
 {
-int is_simple_float(const char *str)
+bool
+is_simple_float(const char *str)
 {
     int j = 0;
     int hit_period = 0;
@@ -21,19 +22,20 @@ int is_simple_float(const char *str)
         if (!isdigit(c)) {
             if (c == '.') {
                 if (hit_period) {
-                    return 0;
+                    return false;
                 } else {
                     hit_period = 1;
                 }
             } else {
-                return 0;
+                return false;
             }
         }
     }
-    return 1;
+    return true;
 }
 
-int is_simple_int(const char *str)
+bool
+is_simple_int(const char *str)
 {
     int j;
     int len = strlen(str);
@@ -43,7 +45,7 @@ int is_simple_int(const char *str)
         for (j = 2; j < len; j++) {
             char c = str[j];
             if (!isxdigit(c)) {
-                return 0;
+                return false;
             }
         }
     } else {
@@ -52,17 +54,18 @@ int is_simple_int(const char *str)
             if ((j == 0) && c == '-') {
                 continue;
             } else if (!isdigit(c)) {
-                return 0;
+                return false;
             }
         }
     }
-    return 1;
+    return true;
 }
 
-int string_fits_in_int(const char *str)
+bool
+string_fits_in_int(const char *str)
 {
     if ((strlen(str) == 1) && isdigit(str[0])) {
-        return 1;
+        return true;
     }
 
     char buf[20];
@@ -81,54 +84,31 @@ int string_fits_in_int(const char *str)
            : (strcmp(str, buf) <= 0);
 }
 
-int files_are_equivalent(const char *filename1,
-                         const char *filename2)
+bool
+files_are_equivalent(const char *path1, const char *path2)
 {
+    if (!strcmp(path1, path2)) {
+        return true;
+    }
+
     struct stat f1;
     struct stat f2;
 
-    if (stat(filename1, &f1) == -1) {
+    if (stat(path1, &f1) == -1) {
         printf("Unable to stat %s: %s\n",
-               filename1,
+               path1,
                strerror(errno));
-        return 0;
+        return false;
     }
 
-    if (stat(filename2, &f2) == -1) {
+    if (stat(path2, &f2) == -1) {
         printf("Unable to stat %s: %s\n",
-               filename2,
+               path2,
                strerror(errno));
-        return 0;
+        return false;
     }
 
     return (f1.st_ino == f2.st_ino);
-}
-
-ino_t get_inode(const char *filename1)
-{
-    struct stat f1;
-
-    if (stat(filename1, &f1) == -1) {
-        printf("Unable to stat %s: %s\n",
-               filename1,
-               strerror(errno));
-        return 0;
-    }
-
-    return f1.st_ino;
-}
-
-ino_t get_inode(int fildes)
-{
-    struct stat f1;
-
-    if (fstat(fildes, &f1) == -1) {
-        printf("Unable to stat FD: %s\n",
-               strerror(errno));
-        return 0;
-    }
-
-    return f1.st_ino;
 }
 
 void
@@ -158,8 +138,7 @@ splitString(std::string *str, std::vector<std::string> *lst, char c)
 }
 
 void
-encodeStandard(const std::string *from,
-               std::string *to)
+encodeStandard(const std::string *from, std::string *to)
 {
     char buf[5];
 
@@ -176,9 +155,7 @@ encodeStandard(const std::string *from,
 }
 
 llvm::FunctionType *
-getFunctionType(llvm::Type *t,
-                std::vector<llvm::Type*> &v,
-                bool b) {
+getFunctionType(llvm::Type *t, std::vector<llvm::Type*> &v, bool b) {
     llvm::ArrayRef<llvm::Type*> temp(v);
     return llvm::FunctionType::get(t, temp, b);
 }

@@ -13,21 +13,52 @@
 
 namespace dale
 {
-int is_simple_float(const char *str);
-int is_simple_int(const char *str);
-int string_fits_in_int(const char *str);
-int files_are_equivalent(const char *filename1,
-                         const char *filename2);
-ino_t get_inode(const char *filename1);
-ino_t get_inode(int fildes);
+/*! Check whether a string represents a decimal number.
+ *  @param str The string.
+ */
+bool is_simple_float(const char *str);
+/*! Check whether a string represents an integer.
+ *  @param str The string.
+ */
+bool is_simple_int(const char *str);
+/*! Check whether an integer string is small enough to be converted to int.
+ *  @param str The string.
+ */
+bool string_fits_in_int(const char *str);
+/*! Check whether two file paths are equivalent.
+ *  @param path1 The first path.
+ *  @param path2 The second path.
+ *
+ *  Two paths are equivalent if they are the same path, or if they
+ *  point to the same file.
+ */
+bool files_are_equivalent(const char *path1,
+                          const char *path2);
+/*! Append the integer to the string.
+ *  @param to The string.
+ *  @param num The integer.
+ */
 void append_int(std::string *to, int num);
 
+/*! Split a string using the given separator.
+ *  @param str The string.
+ *  @param lst The string list buffer, for the split parts.
+ *  @param c The separator.
+ */
 void splitString(std::string *str, std::vector<std::string> *lst, char c);
+/*! Encode a name so it may be used in a symbol.
+ *  @param from The string.
+ *  @param to The buffer for the result.
+ */
 void encodeStandard(const std::string *from, std::string *to);
 
+/*! Get an LLVM function type.
+ *  @param t The return type.
+ *  @param v The parameter types.
+ *  @param b Whether the function is a varargs function.
+ */
 llvm::FunctionType *getFunctionType(llvm::Type *t,
-                                    std::vector<llvm::Type*> &v,
-                                    bool b);
+                                    std::vector<llvm::Type*> &v, bool b);
 }
 
 #endif
