@@ -5,24 +5,24 @@
 
 namespace dale
 {
-Unit::Unit(const char *path,
-           ErrorReporter *er,
-           NativeTypes *nt,
+Unit::Unit(const char *path, ErrorReporter *er, NativeTypes *nt,
            TypeRegister *tr)
 {
-    er->current_filename = path;
-
-    ctx = new Context(er, nt, tr);
     FILE *fp = fopen(path, "r");
     if (!fp) {
         perror("Unable to open file");
         exit(1);
     }
 
+    er->current_filename = path;
+
+    ctx = new Context(er, nt, tr);
+
     Lexer *lxr = new Lexer(fp);
     parser = new Parser(lxr, er, path);
 
     module = new llvm::Module(path, llvm::getGlobalContext());
+
 #if D_LLVM_VERSION_MINOR <= 2
     linker = new llvm::Linker(path, module, false);
 #else
@@ -38,12 +38,14 @@ Unit::~Unit(void)
     delete parser;
 }
 
-bool Unit::hasOnceTag(void)
+bool
+Unit::hasOnceTag(void)
 {
     return (once_tag.size() ? true : false);
 }
 
-bool Unit::setOnceTag(std::string new_once_tag)
+bool
+Unit::setOnceTag(std::string new_once_tag)
 {
     if (hasOnceTag()) {
         return false;
