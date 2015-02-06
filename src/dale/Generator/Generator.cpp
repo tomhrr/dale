@@ -110,7 +110,6 @@ extern "C" {
 namespace dale
 {
 
-Type *type_dnode = NULL;
 llvm::Function *pool_free_fn = NULL;
 void (*pool_free_fptr)(MContext *) = NULL;
 
@@ -542,7 +541,6 @@ int Generator::run(std::vector<const char *> *filenames,
             } else {
                 std::vector<const char*> import_forms;
                 addDaleModule(nullNode(), "drt", &import_forms);
-                setPdnode();
                 setPoolfree();
             }
         }
@@ -1781,35 +1779,6 @@ bool Generator::parseFuncallInternal(
     return true;
 }
 
-void Generator::setPdnode()
-{
-    if (!type_dnode) {
-        Type *st = tr->getStructType("DNode");
-        Type *tt = tr->getPointerType(st);
-
-        llvm::Type *dnode =
-            ctx->toLLVMType(st, NULL, false);
-        if (!dnode) {
-            fprintf(stderr, "Unable to fetch DNode type.\n");
-            abort();
-        }
-
-        llvm::Type *pointer_to_dnode =
-            ctx->toLLVMType(tt, NULL, false);
-        if (!pointer_to_dnode) {
-            fprintf(stderr, "Unable to fetch pointer to DNode type.\n");
-            abort();
-        }
-
-        type_dnode = st;
-        type_pdnode = tt;
-        intptr_t temp = (intptr_t) pointer_to_dnode;
-        llvm_type_pdnode = (llvm::Type *) temp;
-        intptr_t temp1 = (intptr_t) dnode;
-        llvm_type_dnode = (llvm::Type *) temp1;
-    }
-}
-
 void Generator::setPoolfree()
 {
     if (!pool_free_fptr) {
@@ -1969,8 +1938,6 @@ Node *Generator::parseMacroCall(Node *n,
     ++var_iter;
 
     std::vector<DNode *> dnodes_to_free;
-
-    setPdnode();
 
     DNode *myargs[256];
     int myargs_count = 0;
@@ -2192,7 +2159,7 @@ Node *Generator::parseOptionalMacroCall(Node *n)
         }
         else {
             /* Add a (p DNode) to types. */
-            types.push_back(type_pdnode);
+            types.push_back(tr->type_pdnode);
         }
     }
     erep->popErrors(error_count);
@@ -2327,7 +2294,6 @@ bool Generator::parseFunctionCall(Function *dfn,
             }
         }
         if (fn && fn->is_macro) {
-            setPdnode();
             /* If the third argument is either non-existent, or a (p
              * DNode) (because typed arguments must appear before the
              * first (p DNode) argument), then short-circuit, so long
@@ -2335,7 +2301,7 @@ bool Generator::parseFunctionCall(Function *dfn,
             std::vector<Variable*>::iterator
                 b = (fn->parameter_types.begin() + 1);
             if ((b == fn->parameter_types.end())
-                    || (*b)->type->isEqualTo(type_pdnode)) {
+                    || (*b)->type->isEqualTo(tr->type_pdnode)) {
                 bool use = false;
                 int size = lst->size();
                 if (fn->isVarArgs()) {
@@ -2397,7 +2363,7 @@ bool Generator::parseFunctionCall(Function *dfn,
             }
 
             call_args.push_back(NULL);
-            call_arg_types.push_back(type_pdnode);
+            call_arg_types.push_back(tr->type_pdnode);
             ++symlist_iter;
             continue;
         }

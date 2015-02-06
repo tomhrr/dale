@@ -99,7 +99,6 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
         } else {
             std::vector<const char*> import_forms;
             gen->addDaleModule(nullNode(), "drt", &import_forms);
-            gen->setPdnode();
         }
     }
 

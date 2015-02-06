@@ -8,7 +8,6 @@
 
 namespace dale
 {
-
 /*! TypeRegister
 
     A class for generating and caching types.
@@ -16,7 +15,6 @@ namespace dale
     All returned Types should be treated as const. This will
     be fixed properly later.
 */
-
 class TypeRegister
 {
 private:
@@ -75,6 +73,7 @@ public:
      *  by the caller after this function has been executed.
      *  @param type The type. */
     Type *getType(Type *type);
+
     /*! Variables for common types. */
     Type *type_bool;
     Type *type_void;
@@ -100,6 +99,8 @@ public:
     Type *type_uint128;
     Type *type_pchar;
     Type *type_pvoid;
+    Type *type_dnode;
+    Type *type_pdnode;
 
     /*! Dump debugging information to stderr. */
     void print(void);

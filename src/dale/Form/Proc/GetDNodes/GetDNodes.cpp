@@ -9,6 +9,9 @@ namespace dale
 {
 std::map<std::string, llvm::GlobalVariable*> string_cache;
 
+llvm::Type *llvm_type_dnode = NULL;
+llvm::Type *llvm_type_pdnode = NULL;
+
 llvm::Value *
 IntNodeToStaticDNode(Generator *gen,
                      Node *node,
@@ -26,8 +29,8 @@ IntNodeToStaticDNode(Generator *gen,
 
     /* Add the variable to the module. */
 
-    llvm::Type *llvm_type = gen->llvm_type_dnode;
-    llvm::Type *llvm_r_type = gen->llvm_type_pdnode;
+    llvm::Type *llvm_type = llvm_type_dnode;
+    llvm::Type *llvm_r_type = llvm_type_pdnode;
 
     llvm::GlobalVariable *var =
         llvm::cast<llvm::GlobalVariable>(
@@ -221,6 +224,27 @@ FormProcGetDNodesParse(Generator *gen,
 {
     Context *ctx = gen->ctx;
 
+    if (!llvm_type_dnode) {
+        llvm::Type *dnode =
+            ctx->toLLVMType(ctx->tr->type_dnode, NULL, false);
+        if (!dnode) {
+            fprintf(stderr, "Unable to fetch DNode type.\n");
+            abort();
+        }
+
+        llvm::Type *pointer_to_dnode =
+            ctx->toLLVMType(ctx->tr->type_pdnode, NULL, false);
+        if (!pointer_to_dnode) {
+            fprintf(stderr, "Unable to fetch pointer to DNode type.\n");
+            abort();
+        }
+
+        intptr_t temp = (intptr_t) pointer_to_dnode;
+        llvm_type_pdnode = (llvm::Type *) temp;
+        intptr_t temp1 = (intptr_t) dnode;
+        llvm_type_dnode = (llvm::Type *) temp1;
+    }
+
     if (!ctx->er->assertArgNums("get-dnodes", node, 1, 1)) {
         return false;
     }
@@ -229,7 +253,7 @@ FormProcGetDNodesParse(Generator *gen,
 
     llvm::IRBuilder<> builder(block);
 
-    pr->set(block, gen->type_pdnode, v);
+    pr->set(block, ctx->tr->type_pdnode, v);
     return true;
 }
 }

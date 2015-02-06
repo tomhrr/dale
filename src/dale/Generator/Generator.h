@@ -146,7 +146,6 @@ public:
     llvm::Module          *mod;
     bool is_x86_64;
     llvm::Value *IntNodeToStaticDNode(Node *node, llvm::Value *next_node);
-    Type *type_pdnode;
     bool parseFuncallInternal(
         Function *dfn,
         Node *n,
@@ -204,8 +203,6 @@ public:
     int has_defined_extern_macro;
     std::string module_name;
     int set_module_name;
-    llvm::Type *llvm_type_dnode;
-    llvm::Type *llvm_type_pdnode;
 
     void pushGlobalFunction(Function *fn);
     void pushGlobalBlock(llvm::BasicBlock *block);

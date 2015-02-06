@@ -61,6 +61,9 @@ TypeRegister::TypeRegister(void)
 
     type_pchar  = getPointerType(type_char);
     type_pvoid  = getPointerType(type_void);
+
+    type_dnode  = getStructType("DNode");
+    type_pdnode = getPointerType(type_dnode);
 }
 
 TypeRegister::~TypeRegister(void)
