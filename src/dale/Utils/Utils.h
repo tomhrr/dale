@@ -51,6 +51,10 @@ void splitString(std::string *str, std::vector<std::string> *lst, char c);
  *  @param to The buffer for the result.
  */
 void encodeStandard(const std::string *from, std::string *to);
+/*! Check whether a name is a valid module name.
+ *  @param name The module name.
+ */
+bool isValidModuleName(const std::string *name);
 
 /*! Get an LLVM function type.
  *  @param t The return type.

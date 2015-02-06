@@ -109,17 +109,6 @@ extern "C" {
 
 namespace dale
 {
-int isValidModuleName(std::string *str)
-{
-    int i;
-    for (i = 0; i < (int) str->length(); ++i) {
-        char c = (*str)[i];
-        if (!(isalnum(c) || (c == '-') || (c == '_') || (c == '.'))) {
-            return 0;
-        }
-    }
-    return 1;
-}
 
 Type *type_dnode = NULL;
 llvm::Function *pool_free_fn = NULL;

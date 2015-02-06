@@ -154,6 +154,19 @@ encodeStandard(const std::string *from, std::string *to)
     return;
 }
 
+bool
+isValidModuleName(const std::string *name)
+{
+    int i;
+    for (i = 0; i < (int) name->length(); ++i) {
+        char c = (*name)[i];
+        if (!(isalnum(c) || (c == '-') || (c == '_') || (c == '.'))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 llvm::FunctionType *
 getFunctionType(llvm::Type *t, std::vector<llvm::Type*> &v, bool b) {
     llvm::ArrayRef<llvm::Type*> temp(v);
