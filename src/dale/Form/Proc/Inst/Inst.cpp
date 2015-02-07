@@ -98,7 +98,7 @@ parseInternal(Generator *gen,
     Node *first = (*lst)[0];
 
     if (!first->is_token) {
-        first = gen->parseOptionalMacroCall(first);
+        first = gen->getUnit()->mp->parseOptionalMacroCall(first);
         if (!first) {
             return false;
         }
@@ -376,7 +376,7 @@ past_sl_parse:
 
             if (*macro_to_call) {
                 Node *mac_node =
-                    gen->parseMacroCall(n, t->str_value.c_str(),
+                    gen->getUnit()->mp->parseMacroCall(n, t->str_value.c_str(),
                                    *macro_to_call);
                 if (!mac_node) {
                     return false;
@@ -422,7 +422,7 @@ past_sl_parse:
         first = (*lst)[0];
 
         if (!first->is_token) {
-            first = gen->parseOptionalMacroCall(first);
+            first = gen->getUnit()->mp->parseOptionalMacroCall(first);
             if (!first) {
                 return false;
             }

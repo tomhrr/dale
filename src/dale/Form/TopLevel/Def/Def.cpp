@@ -38,7 +38,7 @@ FormTopLevelDefParse(Generator *gen,
 
     Node *n = (*lst)[1];
 
-    n = gen->parseOptionalMacroCall(n);
+    n = gen->getUnit()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
@@ -76,7 +76,7 @@ FormTopLevelDefParse(Generator *gen,
         return false;
     }
 
-    n = gen->parseOptionalMacroCall(n);
+    n = gen->getUnit()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }

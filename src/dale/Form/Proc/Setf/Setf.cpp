@@ -64,7 +64,7 @@ FormProcSetfParse(Generator *gen,
     }
 
     Node *val_node = (*lst)[2];
-    val_node = gen->parseOptionalMacroCall(val_node);
+    val_node = gen->getUnit()->mp->parseOptionalMacroCall(val_node);
     if (!val_node) {
         return false;
     }

@@ -3,6 +3,7 @@
 
 #include "../ErrorType/ErrorType.h"
 #include "../Generator/Generator.h"
+#include "../MacroProcessor/MacroProcessor.h"
 
 /*! Introspection
 

@@ -7,6 +7,7 @@
 #include "../NativeTypes/NativeTypes.h"
 #include "../TypeRegister/TypeRegister.h"
 #include "../DNodeConverter/DNodeConverter.h"
+#include "../MacroProcessor/MacroProcessor.h"
 
 namespace llvm {
     class Linker;
@@ -16,6 +17,8 @@ namespace llvm {
 
 namespace dale
 {
+class Generator;
+
 /*! Unit
 
     A unit is created for each new file that is parsed.  It comprises
@@ -48,6 +51,8 @@ public:
     Parser *parser;
     /*! The unit's DNode converter. */
     DNodeConverter *dnc;
+    /*! The unit's macro processor. */
+    MacroProcessor *mp;
     /*! The unit's once tag (optional). */
     std::string once_tag;
 
@@ -56,12 +61,13 @@ public:
      *  @param er The error reporter.
      *  @param nt The native types object.
      *  @param tr The type register.
+     *  @param ee The execution engine.
      *
      *  A new context and parser will be instantiated on construction,
      *  ownership of both being retained by the unit.
      */
-    Unit(const char *path, ErrorReporter *er, NativeTypes *nt,
-         TypeRegister *tr);
+    Unit(const char *path, Generator *gen, ErrorReporter *er,
+         NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee);
     ~Unit(void);
     /*! Check whether this unit has a once tag.
      */

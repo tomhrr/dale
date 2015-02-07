@@ -113,13 +113,13 @@ types_2D_equal(MContext *mc, DNode *t1, DNode *t2)
     Generator *g = (dale::Generator*) mc->generator;
 
     Node *n = g->getUnit()->dnc->toNode(t1);
-    n = g->parseOptionalMacroCall(n);
+    n = g->getUnit()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
 
     Node *n2 = g->getUnit()->dnc->toNode(t2);
-    n2 = g->parseOptionalMacroCall(n2);
+    n2 = g->getUnit()->mp->parseOptionalMacroCall(n2);
     if (!n2) {
         return false;
     }
@@ -142,7 +142,7 @@ is_2D_char_2D_type(MContext *mc, DNode *t)
 {
     Generator *g = (dale::Generator*) mc->generator;
     Node *n = g->getUnit()->dnc->toNode(t);
-    n = g->parseOptionalMacroCall(n);
+    n = g->getUnit()->mp->parseOptionalMacroCall(n);
     return (n && n->token && !n->token->str_value.compare("char"));
 }
 
@@ -151,7 +151,7 @@ get_type(MContext *mc, DNode *dnode, Type **type)
 {
     Generator *g = (dale::Generator*) mc->generator;
     Node *n = g->getUnit()->dnc->toNode(dnode);
-    n = g->parseOptionalMacroCall(n);
+    n = g->getUnit()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
@@ -229,13 +229,13 @@ is_2D_pointer_2D_to_2D_type(MContext *mc, DNode *t, DNode *pointee)
 {
     Generator *g = (dale::Generator*) mc->generator;
     Node *n = g->getUnit()->dnc->toNode(t);
-    n = g->parseOptionalMacroCall(n);
+    n = g->getUnit()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
 
     Node *n2 = g->getUnit()->dnc->toNode(pointee);
-    n2 = g->parseOptionalMacroCall(n2);
+    n2 = g->getUnit()->mp->parseOptionalMacroCall(n2);
     if (!n2) {
         return false;
     }
@@ -341,7 +341,7 @@ has_2D_errors(MContext *mc, DNode *form)
 
     /* POMC may succeed, but the underlying macro may return a null
      * DNode pointer.  This is not necessarily an error. */
-    n = g->parseOptionalMacroCall(n);
+    n = g->getUnit()->mp->parseOptionalMacroCall(n);
     if (n) {
         FormProcInstParse(g, g->getUnit()->getGlobalFunction(),
                           g->getUnit()->getGlobalBlock(),
@@ -481,7 +481,7 @@ exists_2D_variable(MContext *mc, DNode *form)
     dale::Generator *g = (dale::Generator*) mc->generator;
 
     Node *n = g->getUnit()->dnc->toNode(form);
-    n = g->parseOptionalMacroCall(n);
+    n = g->getUnit()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
@@ -776,7 +776,7 @@ arity(MContext *mc, DNode *name)
     dale::Generator *g = (dale::Generator*) mc->generator;
 
     Node *fn_node = g->getUnit()->dnc->toNode(name);
-    fn_node = g->parseOptionalMacroCall(fn_node);
+    fn_node = g->getUnit()->mp->parseOptionalMacroCall(fn_node);
     if (!fn_node) {
         return -1;
     }
@@ -847,7 +847,7 @@ input_2D_type(MContext *mc, DNode *fn_name_nd, int index)
     dale::Generator *g = (dale::Generator*) mc->generator;
 
     Node *fn_node = g->getUnit()->dnc->toNode(fn_name_nd);
-    fn_node = g->parseOptionalMacroCall(fn_node);
+    fn_node = g->getUnit()->mp->parseOptionalMacroCall(fn_node);
     if (!fn_node) {
         return NULL;
     }
@@ -873,7 +873,7 @@ struct_2D_member_2D_type(MContext *mc, DNode *name, int index)
     dale::Generator *g = (dale::Generator*) mc->generator;
 
     Node *struct_node = g->getUnit()->dnc->toNode(name);
-    struct_node = g->parseOptionalMacroCall(struct_node);
+    struct_node = g->getUnit()->mp->parseOptionalMacroCall(struct_node);
     if (!struct_node || !struct_node->token) {
         return NULL;
     }
@@ -895,7 +895,7 @@ struct_2D_member_2D_name(MContext *mc, DNode *name, int index)
     dale::Generator *g = (dale::Generator*) mc->generator;
 
     Node *struct_node = g->getUnit()->dnc->toNode(name);
-    struct_node = g->parseOptionalMacroCall(struct_node);
+    struct_node = g->getUnit()->mp->parseOptionalMacroCall(struct_node);
     if (!struct_node || !struct_node->token) {
         return NULL;
     }
@@ -917,7 +917,7 @@ struct_2D_member_2D_count(MContext *mc, DNode *name)
     dale::Generator *g = (dale::Generator*) mc->generator;
 
     Node *struct_node = g->getUnit()->dnc->toNode(name);
-    struct_node = g->parseOptionalMacroCall(struct_node);
+    struct_node = g->getUnit()->mp->parseOptionalMacroCall(struct_node);
     if (!struct_node || !struct_node->token) {
         return -1;
     }

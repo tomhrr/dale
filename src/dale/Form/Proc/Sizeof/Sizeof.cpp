@@ -31,7 +31,7 @@ FormProcSizeofParse(Generator *gen,
     /* Get the type to which it is being cast. */
 
     Node *thing = (*lst)[1];
-    thing = gen->parseOptionalMacroCall(thing);
+    thing = gen->getUnit()->mp->parseOptionalMacroCall(thing);
     if (!thing) {
         return false;
     }

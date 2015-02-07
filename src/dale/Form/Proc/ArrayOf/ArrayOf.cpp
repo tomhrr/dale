@@ -27,7 +27,7 @@ FormProcArrayOfParse(Generator *gen,
         return false;
     }
 
-    Node *newnum = gen->parseOptionalMacroCall((*lst)[1]);
+    Node *newnum = gen->getUnit()->mp->parseOptionalMacroCall((*lst)[1]);
     if (!newnum) {
         return false;
     }

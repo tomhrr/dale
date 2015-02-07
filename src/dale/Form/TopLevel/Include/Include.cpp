@@ -17,7 +17,7 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
 
     symlist *lst = node->list;
     Node *n = (*lst)[1];
-    n = gen->parseOptionalMacroCall(n);
+    n = gen->getUnit()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
@@ -82,7 +82,8 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
      * stacks, create new parser/module/context for the new file.
      * */
 
-    Unit *unit = new Unit(filename_buf.c_str(), ctx->er, ctx->nt, ctx->tr);
+    Unit *unit = new Unit(filename_buf.c_str(), gen, ctx->er, ctx->nt,
+                          ctx->tr, gen->getUnit()->ee);
     gen->unit_stack->push(unit);
     gen->ctx    = unit->ctx;
     gen->mod    = unit->module;

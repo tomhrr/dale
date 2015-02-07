@@ -5,8 +5,8 @@
 
 namespace dale
 {
-Unit::Unit(const char *path, ErrorReporter *er, NativeTypes *nt,
-           TypeRegister *tr)
+Unit::Unit(const char *path, Generator *gen, ErrorReporter *er, NativeTypes *nt,
+           TypeRegister *tr, llvm::ExecutionEngine *ee)
 {
     FILE *fp = fopen(path, "r");
     if (!fp) {
@@ -18,6 +18,7 @@ Unit::Unit(const char *path, ErrorReporter *er, NativeTypes *nt,
     dnc = new DNodeConverter(er);
 
     ctx = new Context(er, nt, tr);
+    mp = new MacroProcessor(gen, ctx, ee);
 
     Lexer *lxr = new Lexer(fp);
     parser = new Parser(lxr, er, path);
@@ -30,7 +31,7 @@ Unit::Unit(const char *path, ErrorReporter *er, NativeTypes *nt,
     linker = new llvm::Linker(module);
 #endif
 
-    ee = NULL;
+    this->ee = ee;
 }
 
 Unit::~Unit(void)

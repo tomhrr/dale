@@ -103,7 +103,7 @@ FormTopLevelEnumParse(Generator *gen, Node *node)
                 return false;
             }
         } else {
-            n = gen->parseOptionalMacroCall(n);
+            n = gen->getUnit()->mp->parseOptionalMacroCall(n);
             if (!n) {
                 return false;
             }

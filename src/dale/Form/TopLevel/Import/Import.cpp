@@ -19,7 +19,7 @@ FormTopLevelImportParse(Generator *gen, Node *node)
 
     symlist *lst = top->list;
     Node *n = (*lst)[1];
-    n = gen->parseOptionalMacroCall(n);
+    n = gen->getUnit()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }

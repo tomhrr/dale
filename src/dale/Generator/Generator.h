@@ -32,22 +32,6 @@ namespace llvm {
     class Module;
 }
 
-struct PoolNode
-{
-    void     *value;
-    PoolNode *next_node;
-    PoolNode *last_node;
-};
-
-int pool_free(PoolNode *pool_node);
-
-struct MContext
-{
-    int      arg_count;
-    PoolNode *pool_node;
-    void     *generator;
-};
-
 namespace dale
 {
 enum Produce {
@@ -131,8 +115,6 @@ public:
         Function *dfn,
         ParseResult *pr, ParseResult *pr2);
 
-    void setPoolfree();
-
     int prefunction_ctx_index;
    
     bool scopeClose(Function *dfn,
@@ -142,7 +124,6 @@ public:
     bool destructIfApplicable(ParseResult *pr, llvm::IRBuilder<> *builder, 
                               ParseResult *pr2, bool value_is_ptr = false);
     Context               *ctx;
-    Node *parseOptionalMacroCall(Node *n);
     llvm::Module          *mod;
     bool is_x86_64;
     llvm::Value *IntNodeToStaticDNode(Node *node, llvm::Value *next_node);
@@ -169,10 +150,6 @@ public:
     int getUnusedVarname(std::string *mystr);
 
     Namespace *prefunction_ns;
-    Node *parseMacroCall(
-        Node *n,
-        const char *name,
-        Function *macro_to_call);
     bool parseFunctionCall(Function *dfn,
                                    llvm::BasicBlock *block, Node *n, const char* fn_name,
                                    bool getAddress, bool
