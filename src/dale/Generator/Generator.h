@@ -72,11 +72,6 @@ private:
         std::set<std::string> *found_forms
     );
 
-    llvm::Value *coerceValue(llvm::Value *from_value,
-                             Type *from_type,
-                             Type *to_type,
-                             llvm::BasicBlock *block);
-
     void regetPointersForFVDM(Context *newctx);
     void regetPointersForDM(Context *newctx);
 

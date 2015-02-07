@@ -87,6 +87,7 @@
 #include "../Operation/Sizeof/Sizeof.h"
 #include "../Operation/Offsetof/Offsetof.h"
 #include "../MacroProcessor/MacroProcessor.h"
+#include "../Operation/Coerce/Coerce.h"
 
 #include <iostream>
 #include <sys/time.h>
@@ -1663,13 +1664,15 @@ bool Generator::parseFuncallInternal(
         if ((param_iter != fn_ptr->type->points_to->parameter_types.end())
                 && (!(p.type->isEqualTo((*param_iter), 1)))
                 && ((*param_iter)->base_type != BaseType::VarArgs)) {
-
-            llvm::Value *new_val = coerceValue(p.getValue(ctx),
+            ParseResult coerce;
+            bool coerce_result = Operation::Coerce(ctx, block,
+                                               p.getValue(ctx),
                                                p.type,
                                                (*param_iter),
-                                               block);
+                                               &coerce);
+            llvm::Value *new_val = coerce.value;
 
-            if (!new_val) {
+            if (!coerce_result) {
                 std::string twant;
                 std::string tgot;
                 (*param_iter)->toString(&twant);
@@ -2491,32 +2494,6 @@ int Generator::parseInteger(Node *n)
     }
 
     return addnum;
-}
-
-llvm::Value *Generator::coerceValue(llvm::Value *from_value,
-                                    Type *from_type,
-                                    Type *to_type,
-                                    llvm::BasicBlock *block)
-{
-    int fa = from_type->is_array;
-    int fb = (fa) ? from_type->array_type->base_type : 0;
-    Type *fp = from_type->points_to;
-    Type *tp = to_type->points_to;
-
-    if (fb == BaseType::Char && fa && !fp) {
-        if (tp && tp->base_type == BaseType::Char && !tp->points_to) {
-            llvm::IRBuilder<> builder(block);
-
-            llvm::Value *charpointer =
-                builder.CreateGEP(
-                    llvm::cast<llvm::Value>(from_value),
-                    llvm::ArrayRef<llvm::Value*>(two_zero_indices));
-
-            return charpointer;
-        }
-    }
-
-    return NULL;
 }
 
 Unit *

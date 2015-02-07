@@ -264,7 +264,8 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Unit/Unit.cpp
                       src/dale/UnitStack/UnitStack.cpp
                       src/dale/DNodeConverter/DNodeConverter.cpp
-                      src/dale/MacroProcessor/MacroProcessor.cpp)
+                      src/dale/MacroProcessor/MacroProcessor.cpp
+                      src/dale/Operation/Coerce/Coerce.cpp)
 set_target_properties (dalec PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS} -I.")
 set_target_properties (dalec PROPERTIES LINK_FLAGS "${DALEC_LINK_FLAGS} ${LLVM_LINK_FLAGS}")
 target_link_libraries (dalec ${LLVM_LIBS} ${DALEC_LINK_FLAGS})
