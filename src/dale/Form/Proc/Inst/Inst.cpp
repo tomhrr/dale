@@ -75,7 +75,7 @@ parseInternal(Generator *gen,
         printf("\n");
     }
 
-    gen->global_block = block;
+    //gen->global_block = block;
 
     if (n->is_token) {
         return FormProcTokenParse(

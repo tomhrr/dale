@@ -55,4 +55,52 @@ Unit::setOnceTag(std::string new_once_tag)
     once_tag = new_once_tag;
     return true;
 }
+
+Function*
+Unit::getGlobalFunction(void)
+{
+    return global_function;
+}
+
+llvm::BasicBlock*
+Unit::getGlobalBlock(void)
+{
+    return global_block;
+}
+
+void
+Unit::pushGlobalFunction(Function *fn)
+{
+    global_functions.push_back(fn);
+    global_function = fn;
+}
+
+void
+Unit::pushGlobalBlock(llvm::BasicBlock *block)
+{
+    global_blocks.push_back(block);
+    global_block = block;
+}
+
+void
+Unit::popGlobalFunction(void)
+{
+    global_functions.pop_back();
+    if (global_functions.size()) {
+        global_function = global_functions.back();
+    } else {
+        global_function = NULL;
+    }
+}
+
+void
+Unit::popGlobalBlock(void)
+{
+    global_blocks.pop_back();
+    if (global_blocks.size()) {
+        global_block = global_blocks.back();
+    } else {
+        global_block = NULL;
+    }
+}
 }

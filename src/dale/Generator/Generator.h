@@ -157,12 +157,6 @@ public:
 
     int parseInteger(Node *n);
 
-    std::vector<Function*> global_functions;
-    std::vector<llvm::BasicBlock*>        global_blocks;
-
-    Function *global_function;
-    llvm::BasicBlock        *global_block;
-
     /* Function name lists will be stored here by fnByArgsCount, keyed on
      * the stringification of of the parameter types. This map will, in
      * turn, be used by fnByArgsName. */
@@ -204,11 +198,6 @@ public:
     int has_defined_extern_macro;
     std::string module_name;
     int set_module_name;
-
-    void pushGlobalFunction(Function *fn);
-    void pushGlobalBlock(llvm::BasicBlock *block);
-    void popGlobalFunction(void);
-    void popGlobalBlock(void);
 };
 }
 

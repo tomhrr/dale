@@ -25,6 +25,16 @@ namespace dale
 */
 class Unit
 {
+private:
+    /*! The unit's global functions. */
+    std::vector<Function*> global_functions;
+    /*! The unit's global blocks. */
+    std::vector<llvm::BasicBlock*> global_blocks;
+    /*! The current global function. */
+    Function *global_function;
+    /*! The current global block. */
+    llvm::BasicBlock *global_block;
+
 public:
     /*! The unit's LLVM module. */
     llvm::Module *module;
@@ -59,6 +69,24 @@ public:
     /*! Set the once tag for this unit.
      */
     bool setOnceTag(std::string new_once_tag);
+    /*! Get the current global function.
+     */
+    Function *getGlobalFunction(void);
+    /*! Get the current global function.
+     */
+    llvm::BasicBlock *getGlobalBlock(void);
+    /*! Push a new global function onto the stack.
+     */
+    void pushGlobalFunction(Function *fn);
+    /*! Push a new global block onto the stack.
+     */
+    void pushGlobalBlock(llvm::BasicBlock *block);
+    /*! Pop the top global function from the stack.
+     */
+    void popGlobalFunction(void);
+    /*! Pop the top global block from the stack.
+     */
+    void popGlobalBlock(void);
 };
 }
 

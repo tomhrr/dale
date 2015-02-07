@@ -471,8 +471,6 @@ int Generator::run(std::vector<const char *> *filenames,
     }
 
     llvm::Module *last_module = NULL;
-    global_function  = NULL;
-    global_block     = NULL;
 
     std::vector<const char *>::iterator iter =
         filenames->begin();
@@ -2139,8 +2137,8 @@ Node *Generator::parseOptionalMacroCall(Node *n)
 
     int error_count = erep->getErrorTypeCount(ErrorType::Error);
 
-    pushGlobalFunction(dfn);
-    pushGlobalBlock(block);
+    getUnit()->pushGlobalFunction(dfn);
+    getUnit()->pushGlobalBlock(block);
 
     ctx->activateAnonymousNamespace();
 
@@ -2166,8 +2164,8 @@ Node *Generator::parseOptionalMacroCall(Node *n)
 
     ctx->deactivateAnonymousNamespace();
 
-    popGlobalFunction();
-    popGlobalBlock();
+    getUnit()->popGlobalFunction();
+    getUnit()->popGlobalBlock();
 
     /* Remove the temporary function. */
     fn->eraseFromParent();
@@ -2949,42 +2947,6 @@ llvm::Value *Generator::coerceValue(llvm::Value *from_value,
     }
 
     return NULL;
-}
-
-void
-Generator::pushGlobalFunction(Function *fn)
-{
-    global_functions.push_back(fn);
-    global_function = fn;
-}
-
-void
-Generator::pushGlobalBlock(llvm::BasicBlock *block)
-{
-    global_blocks.push_back(block);
-    global_block = block;
-}
-
-void
-Generator::popGlobalFunction(void)
-{
-    global_functions.pop_back();
-    if (global_functions.size()) {
-        global_function = global_functions.back();
-    } else {
-        global_function = NULL;
-    }
-}
-
-void
-Generator::popGlobalBlock(void)
-{
-    global_blocks.pop_back();
-    if (global_blocks.size()) {
-        global_block = global_blocks.back();
-    } else {
-        global_block = NULL;
-    }
 }
 
 Unit *

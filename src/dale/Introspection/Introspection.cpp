@@ -73,8 +73,8 @@ makeTemporaryGlobalFunction(Generator *gen,
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", llvm_fn);
     int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    gen->pushGlobalFunction(fn);
-    gen->pushGlobalBlock(block);
+    gen->getUnit()->pushGlobalFunction(fn);
+    gen->getUnit()->pushGlobalBlock(block);
 
     ctx->activateAnonymousNamespace();
 
@@ -91,9 +91,9 @@ removeTemporaryGlobalFunction(Generator *gen, int error_count,
         ctx->er->popErrors(error_count);
     }
     ctx->deactivateAnonymousNamespace();
-    Function *current = gen->global_function;
-    gen->popGlobalFunction();
-    gen->popGlobalBlock();
+    Function *current = gen->getUnit()->getGlobalFunction();
+    gen->getUnit()->popGlobalFunction();
+    gen->getUnit()->popGlobalBlock();
     current->llvm_function->eraseFromParent();
 }
 
@@ -332,7 +332,7 @@ has_2D_errors(MContext *mc, DNode *form)
     bool made_temp = false;
     std::vector<DeferredGoto*> dgs;
     std::map<std::string, Label*> mls;
-    if (!g->global_function) {
+    if (!g->getUnit()->getGlobalFunction()) {
         makeTemporaryGlobalFunction(g, &dgs, &mls);
         made_temp = true;
     }
@@ -343,7 +343,8 @@ has_2D_errors(MContext *mc, DNode *form)
      * DNode pointer.  This is not necessarily an error. */
     n = g->parseOptionalMacroCall(n);
     if (n) {
-        FormProcInstParse(g, g->global_function, g->global_block,
+        FormProcInstParse(g, g->getUnit()->getGlobalFunction(),
+                          g->getUnit()->getGlobalBlock(),
                           n, false, false, NULL, &pr);
     }
 
@@ -636,14 +637,15 @@ type_2D_of(MContext *mc, DNode *form)
     bool made_temp = false;
     std::vector<DeferredGoto*> dgs;
     std::map<std::string, Label*> mls;
-    if (!g->global_function) {
+    if (!g->getUnit()->getGlobalFunction()) {
         makeTemporaryGlobalFunction(g, &dgs, &mls);
         made_temp = true;
     }
 
     ParseResult pr;
     bool res =
-        FormProcInstParse(g, g->global_function, g->global_block,
+        FormProcInstParse(g, g->getUnit()->getGlobalFunction(),
+                          g->getUnit()->getGlobalBlock(),
                           n, false, false, NULL, &pr);
 
     if (made_temp) {
