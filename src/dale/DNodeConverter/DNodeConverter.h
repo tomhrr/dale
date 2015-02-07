@@ -14,6 +14,11 @@ class DNodeConverter
 {
 private:
     ErrorReporter *er;
+    Node *numberAtomToNode(DNode *dnode, Node *error_node);
+    Node *stringLiteralAtomToNode(DNode *dnode);
+    Node *stringAtomToNode(DNode *dnode);
+    Node *atomToNode(DNode *dnode, Node *error_node);
+    Node *listToNode(DNode *dnode);
 
 public:
     /*! Construct a new DNodeConverter.
