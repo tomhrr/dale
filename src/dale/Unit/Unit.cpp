@@ -8,8 +8,8 @@ namespace dale
 Unit::Unit(const char *path, Generator *gen, ErrorReporter *er, NativeTypes *nt,
            TypeRegister *tr, llvm::ExecutionEngine *ee)
 {
-    FILE *fp = fopen(path, "r");
-    if (!fp) {
+    FILE *mfp = fopen(path, "r");
+    if (!mfp) {
         perror("Unable to open file");
         exit(1);
     }
@@ -19,8 +19,9 @@ Unit::Unit(const char *path, Generator *gen, ErrorReporter *er, NativeTypes *nt,
 
     ctx = new Context(er, nt, tr);
     mp = new MacroProcessor(gen, ctx, ee);
+    fp = new FunctionProcessor(gen);
 
-    Lexer *lxr = new Lexer(fp);
+    Lexer *lxr = new Lexer(mfp);
     parser = new Parser(lxr, er, path);
 
     module = new llvm::Module(path, llvm::getGlobalContext());

@@ -52,7 +52,7 @@ public:
     int index;
 
     Function();
-    /*! Construct a new variable using the given parameters.
+    /*! Construct a new function using the given parameters.
      *  @param return_type The return type.
      *  @param parameter_types The parameter types.
      *  @param llvm_function The LLVM function.

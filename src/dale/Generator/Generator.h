@@ -116,14 +116,6 @@ public:
     llvm::Module          *mod;
     bool is_x86_64;
     llvm::Value *IntNodeToStaticDNode(Node *node, llvm::Value *next_node);
-    bool parseFuncallInternal(
-        Function *dfn,
-        Node *n,
-        bool getAddress,
-        ParseResult *fn_ptr,
-        int skip,
-        std::vector<llvm::Value*> *extra_call_args
-    , ParseResult *pr);
 
     /* Function name lists will be stored here by fnByArgsCount, keyed on
      * the stringification of of the parameter types. This map will, in
@@ -137,12 +129,6 @@ public:
     int getUnusedVarname(std::string *mystr);
 
     Namespace *prefunction_ns;
-    bool parseFunctionCall(Function *dfn,
-                                   llvm::BasicBlock *block, Node *n, const char* fn_name,
-                                   bool getAddress, bool
-                                   prefixed_with_core,
-                                   Function
-                                   **macro_to_call, ParseResult *pr);
     Parser                *prsr;
     llvm::Linker          *linker;
     std::string current_once_tag;

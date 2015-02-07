@@ -8,6 +8,7 @@
 #include "../TypeRegister/TypeRegister.h"
 #include "../DNodeConverter/DNodeConverter.h"
 #include "../MacroProcessor/MacroProcessor.h"
+#include "../FunctionProcessor/FunctionProcessor.h"
 
 namespace llvm {
     class Linker;
@@ -53,6 +54,8 @@ public:
     DNodeConverter *dnc;
     /*! The unit's macro processor. */
     MacroProcessor *mp;
+    /*! The unit's function processor. */
+    FunctionProcessor *fp;
     /*! The unit's once tag (optional). */
     std::string once_tag;
 
