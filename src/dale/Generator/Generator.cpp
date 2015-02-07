@@ -2458,44 +2458,6 @@ void Generator::parseArgument(Variable *var, Node *top,
     return;
 }
 
-int Generator::parseInteger(Node *n)
-{
-    if (!n->is_token) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement,
-            n,
-            "symbol", "integer", "list"
-        );
-        erep->addError(e);
-        return -1;
-    }
-    if (n->token->type != TokenType::Int) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement,
-            n,
-            "integer", "literal", n->token->tokenType()
-        );
-        erep->addError(e);
-        return -1;
-    }
-
-    char *endptr;
-    unsigned long addnum =
-        strtoul(n->token->str_value.c_str(), &endptr, DECIMAL_RADIX);
-
-    if (STRTOUL_FAILED(addnum, n->token->str_value.c_str(), endptr)) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnableToParseInteger,
-            n,
-            n->token->str_value.c_str()
-        );
-        erep->addError(e);
-        return -1;
-    }
-
-    return addnum;
-}
-
 Unit *
 Generator::getUnit(void)
 {

@@ -4,6 +4,7 @@
 #include "../../../Function/Function.h"
 #include "../../Type/Type.h"
 #include "../../Literal/Array/Array.h"
+#include "../../Literal/Integer/Integer.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
@@ -32,7 +33,7 @@ FormProcArrayOfParse(Generator *gen,
         return false;
     }
 
-    int size = gen->parseInteger(newnum);
+    int size = FormLiteralIntegerParse(newnum, ctx->er);
     if (size == -1) {
         return false;
     }

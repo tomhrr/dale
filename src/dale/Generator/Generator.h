@@ -21,12 +21,6 @@
 #include "../UnitStack/UnitStack.h"
 #include "../llvm_IRBuilder.h"
 
-#define DECIMAL_RADIX 10
-
-#define STRTOUL_FAILED(ret, str, end) \
-    (((((ret) == ULONG_MAX || ((ret) == 0)) && (errno == ERANGE)) \
-        || (((ret) == 0) && ((str) == (end)))))
-
 namespace llvm {
     class Linker;
     class Module;
@@ -130,8 +124,6 @@ public:
         int skip,
         std::vector<llvm::Value*> *extra_call_args
     , ParseResult *pr);
-
-    int parseInteger(Node *n);
 
     /* Function name lists will be stored here by fnByArgsCount, keyed on
      * the stringification of of the parameter types. This map will, in

@@ -11,6 +11,11 @@
 
 #define _unused(x) ((void)x)
 
+#define STRTOUL_FAILED(ret, str, end) \
+    (((((ret) == ULONG_MAX || ((ret) == 0)) && (errno == ERANGE)) \
+                || (((ret) == 0) && ((str) == (end)))))
+#define DECIMAL_RADIX 10
+
 namespace dale
 {
 /*! Check whether a string represents a decimal number.

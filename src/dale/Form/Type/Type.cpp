@@ -2,6 +2,7 @@
 
 #include "../../Generator/Generator.h"
 #include "../Struct/Struct.h"
+#include "../Literal/Integer/Integer.h"
 
 static int anonstructcount = 0;
 
@@ -261,7 +262,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             ctx->er->addError(e);
             return NULL;
         }
-        int size = gen->parseInteger(lst->at(2));
+        int size = FormLiteralIntegerParse(lst->at(2), ctx->er);
         if (size == -1) {
             return NULL;
         }
@@ -317,7 +318,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        int size = gen->parseInteger(newnum);
+        int size = FormLiteralIntegerParse(newnum, ctx->er);
         if (size == -1) {
             return NULL;
         }
