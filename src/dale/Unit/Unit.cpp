@@ -15,6 +15,7 @@ Unit::Unit(const char *path, ErrorReporter *er, NativeTypes *nt,
     }
 
     er->current_filename = path;
+    dnc = new DNodeConverter(er);
 
     ctx = new Context(er, nt, tr);
 

@@ -6,6 +6,7 @@
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../NativeTypes/NativeTypes.h"
 #include "../TypeRegister/TypeRegister.h"
+#include "../DNodeConverter/DNodeConverter.h"
 
 namespace llvm {
     class Linker;
@@ -35,6 +36,8 @@ public:
     Context *ctx;
     /*! The unit's parser. */
     Parser *parser;
+    /*! The unit's DNode converter. */
+    DNodeConverter *dnc;
     /*! The unit's once tag (optional). */
     std::string once_tag;
 

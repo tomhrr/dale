@@ -196,6 +196,7 @@ public:
     int inc_path_count;
     void addCommonDeclarations(void);
     UnitStack *unit_stack;
+    Unit *getUnit(void);
     int addDaleModule(Node *n, const char *module_name,
                       std::vector<const char*> *import_forms);
     std::set<std::string> *included_once_tags;
