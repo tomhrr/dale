@@ -138,7 +138,6 @@ public:
     void setPdnode();
     char *inc_paths[100];
     int inc_path_count;
-    void addCommonDeclarations(void);
     UnitStack *unit_stack;
     Unit *getUnit(void);
     int addDaleModule(Node *n, const char *module_name,

@@ -263,28 +263,6 @@ int Generator::addModulePath(char *filename)
     return 1;
 }
 
-static int added_common_declarations = 0;
-
-void Generator::addCommonDeclarations(void)
-{
-    CommonDecl::addBasicTypes(unit_stack->top(), is_x86_64);
-
-    /* The basic math functions and the varargs functions are
-     * added to every module, but the structs are not, because
-     * they can merge backwards and forwards (the other stuff has
-     * internal linkage). */
-
-    if (added_common_declarations) {
-        return;
-    }
-    added_common_declarations = 1;
-
-    CommonDecl::addVarargsTypes(unit_stack->top(), is_x86_64);
-    CommonDecl::addStandardVariables(unit_stack->top());
-
-    return;
-}
-
 static int mc_count   = 0;
 static int mcpn_count = 0;
 static int globmarker = 0;
@@ -489,7 +467,8 @@ int Generator::run(std::vector<const char *> *filenames,
     while (iter != filenames->end()) {
         const char *filename = (*iter);
 
-        Unit *unit = new Unit(filename, this, erep, nt, tr, NULL);
+        Unit *unit = new Unit(filename, this, erep, nt, tr, NULL,
+                              is_x86_64);
         unit_stack = new UnitStack(unit);
 
         ctx    = unit->ctx;
@@ -527,7 +506,7 @@ int Generator::run(std::vector<const char *> *filenames,
 
         if (!no_acd) {
             if (nodrt) {
-                addCommonDeclarations();
+                unit->addCommonDeclarations();
             } else {
                 std::vector<const char*> import_forms;
                 addDaleModule(nullNode(), "drt", &import_forms);

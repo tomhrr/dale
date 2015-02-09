@@ -58,6 +58,8 @@ public:
     FunctionProcessor *fp;
     /*! The unit's once tag (optional). */
     std::string once_tag;
+    /*! Whether this is an x86-64 platform. */
+    bool is_x86_64;
 
     /*! Construct a new unit.
      *  @param path The path to the file being parsed.
@@ -65,12 +67,14 @@ public:
      *  @param nt The native types object.
      *  @param tr The type register.
      *  @param ee The execution engine.
+     *  @param is_x86_64 Whether this is an x86-64 platform.
      *
      *  A new context and parser will be instantiated on construction,
      *  ownership of both being retained by the unit.
      */
     Unit(const char *path, Generator *gen, ErrorReporter *er,
-         NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee);
+         NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee,
+         bool is_x86_64);
     ~Unit(void);
     /*! Check whether this unit has a once tag.
      */
@@ -96,6 +100,9 @@ public:
     /*! Pop the top global block from the stack.
      */
     void popGlobalBlock(void);
+    /*! Add the necessary common declarations to this unit.
+     */
+    void addCommonDeclarations(void);
 };
 }
 

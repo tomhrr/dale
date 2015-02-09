@@ -2,11 +2,12 @@
 #include "../Lexer/Lexer.h"
 #include "../llvm_Module.h"
 #include "../llvm_Linker.h"
+#include "../CommonDecl/CommonDecl.h"
 
 namespace dale
 {
 Unit::Unit(const char *path, Generator *gen, ErrorReporter *er, NativeTypes *nt,
-           TypeRegister *tr, llvm::ExecutionEngine *ee)
+           TypeRegister *tr, llvm::ExecutionEngine *ee, bool is_x86_64)
 {
     FILE *mfp = fopen(path, "r");
     if (!mfp) {
@@ -33,6 +34,8 @@ Unit::Unit(const char *path, Generator *gen, ErrorReporter *er, NativeTypes *nt,
 #endif
 
     this->ee = ee;
+
+    this->is_x86_64 = is_x86_64;
 }
 
 Unit::~Unit(void)
@@ -104,5 +107,28 @@ Unit::popGlobalBlock(void)
     } else {
         global_block = NULL;
     }
+}
+
+static bool added_common_declarations = false;
+
+void
+Unit::addCommonDeclarations(void)
+{
+    CommonDecl::addBasicTypes(this, is_x86_64);
+
+    /* The basic math functions and the varargs functions are
+     * added to every module, but the structs are not, because
+     * they can merge backwards and forwards (the other stuff has
+     * internal linkage). */
+
+    if (added_common_declarations) {
+        return;
+    }
+    added_common_declarations = true;
+
+    CommonDecl::addVarargsTypes(this, is_x86_64);
+    CommonDecl::addStandardVariables(this);
+
+    return;
 }
 }
