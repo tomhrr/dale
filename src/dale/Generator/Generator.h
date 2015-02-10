@@ -48,38 +48,16 @@ private:
     std::map<std::string, std::string>   *dtm_nm_modules;
 
 
-    std::vector<DeferredGoto *> *defgotos;
-    std::multiset<ino_t> *included_inodes;
     std::set<std::string> *included_modules;
     std::set<std::string> *cto_modules;
     int debug;
 
     std::vector<std::string> *so_paths_g;
 
-    void addVoidPointerType(void);
-    void addVarargsFunctions(void);
-    void parseModuleName(Node *top);
-    void parseImport(Node *top);
-    int removeUnneededForms(
-        Context *mynewcontext,
-        std::set<std::string> *forms_set,
-        std::set<std::string> *found_forms
-    );
-
-    void regetPointersForFVDM(Context *newctx);
-    void regetPointersForDM(Context *newctx);
-
-    void popErrors(int original_count);
-    void processRetval(Type *et,
-                       llvm::BasicBlock *block,
-                       ParseResult *pr,
-                       std::vector<llvm::Value*> *call_args);
-
 public:
     int addIncludePath(char *filename);
     int addModulePath(char *filename);
 
-    Node  *DNodeToIntNode(DNode *dnode);
     Generator();
     ~Generator();
     int run(std::vector<const char *> *filenames,
@@ -103,16 +81,9 @@ public:
     Context               *ctx;
     llvm::Module          *mod;
     bool is_x86_64;
-    llvm::Value *IntNodeToStaticDNode(Node *node, llvm::Value *next_node);
-
-    /* Function name lists will be stored here by fnByArgsCount, keyed on
-     * the stringification of of the parameter types. This map will, in
-     * turn, be used by fnByArgsName. */
-    std::map<std::string, std::vector<std::string>*> fn_by_args;
 
     int getUnusedVarname(std::string *mystr);
 
-    Namespace *prefunction_ns;
     Parser                *prsr;
     llvm::Linker          *linker;
     std::string current_once_tag;

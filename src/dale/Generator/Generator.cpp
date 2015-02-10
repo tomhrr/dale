@@ -137,7 +137,6 @@ Generator::Generator()
 {
     CoreForms::init();
 
-    prefunction_ns = NULL;
     inc_path_count = 0;
 
     llvm::InitializeNativeTarget();
@@ -146,7 +145,6 @@ Generator::Generator()
     nt = new NativeTypes();
     tr = new TypeRegister();
 
-    included_inodes    = new std::multiset<ino_t>;
     included_once_tags = new std::set<std::string>;
     included_modules   = new std::set<std::string>;
     set_module_name    = 0;
@@ -176,7 +174,6 @@ Generator::~Generator()
     delete ctx;
     delete prsr;
     delete tr;
-    delete included_inodes;
     delete included_once_tags;
     delete included_modules;
 
