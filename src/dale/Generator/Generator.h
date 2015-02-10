@@ -83,6 +83,8 @@ public:
     bool is_x86_64;
 
     int getUnusedVarname(std::string *mystr);
+    std::map<std::string, std::vector<std::string>*> fn_by_args;
+    Namespace *prefunction_ns;
 
     Parser                *prsr;
     llvm::Linker          *linker;
@@ -90,7 +92,6 @@ public:
     llvm::ExecutionEngine *ee;
     bool no_add_common_declarations;
     bool no_drt;
-    void setPdnode();
     char *inc_paths[100];
     int inc_path_count;
     UnitStack *unit_stack;
