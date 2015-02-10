@@ -7,6 +7,7 @@
 #include "../Linkage/Linkage.h"
 #include "../Linkage/Struct/Struct.h"
 #include "../Type/Type.h"
+#include "../Argument/Argument.h"
 #include "../ProcBody/ProcBody.h"
 #include "../../llvm_Function.h"
 
@@ -186,8 +187,7 @@ FormStructParse(Generator *gen,
         var = new Variable();
         var->type = NULL;
 
-        gen->parseArgument(var, (*node_iter), true, true, false);
-
+        FormArgumentParse(gen, var, (*node_iter), true, true, false);
         if (!var || !var->type) {
             Error *e = new Error(
                 ErrorInst::Generator::InvalidType,

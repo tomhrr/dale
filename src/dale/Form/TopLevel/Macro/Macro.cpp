@@ -6,6 +6,7 @@
 #include "../../Function/Function.h"
 #include "../../Linkage/Linkage.h"
 #include "../../ProcBody/ProcBody.h"
+#include "../../Argument/Argument.h"
 
 namespace dale
 {
@@ -92,7 +93,7 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
     while (node_iter != args->end()) {
         if (!(*node_iter)->is_token) {
             var = new Variable();
-            gen->parseArgument(var, (*node_iter), false, false, false);
+            FormArgumentParse(gen, var, (*node_iter), false, false, false);
             if (!var->type) {
                 return false;
             }

@@ -112,10 +112,6 @@ public:
      * turn, be used by fnByArgsName. */
     std::map<std::string, std::vector<std::string>*> fn_by_args;
 
-    void parseArgument(Variable *var, Node *n,
-                       bool allow_anon_structs,
-                       bool allow_bitfields,
-                       bool allow_refs);
     int getUnusedVarname(std::string *mystr);
 
     Namespace *prefunction_ns;

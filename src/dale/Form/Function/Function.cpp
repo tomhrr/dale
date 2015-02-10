@@ -6,7 +6,9 @@
 #include "../../CoreForms/CoreForms.h"
 #include "../Linkage/Linkage.h"
 #include "../Type/Type.h"
+#include "../Function/Function.h"
 #include "../ProcBody/ProcBody.h"
+#include "../Argument/Argument.h"
 #include "../../llvm_Function.h"
 #include "Config.h"
 
@@ -159,8 +161,7 @@ FormFunctionParse(Generator *gen,
         var = new Variable();
         var->type = NULL;
 
-        gen->parseArgument(var, (*node_iter), false, false, true);
-
+        FormArgumentParse(gen, var, (*node_iter), false, false, true);
         if (var->type == NULL) {
             delete var;
             return false;

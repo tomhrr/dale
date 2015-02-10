@@ -2,6 +2,7 @@
 
 #include "../../Generator/Generator.h"
 #include "../Struct/Struct.h"
+#include "../Argument/Argument.h"
 #include "../Literal/Integer/Integer.h"
 
 static int anonstructcount = 0;
@@ -398,7 +399,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             var = new Variable();
             var->type = NULL;
 
-            gen->parseArgument(var, (*node_iter),
+            FormArgumentParse(gen, var, (*node_iter),
                           allow_anon_structs,
                           allow_bitfields,
                           true);
