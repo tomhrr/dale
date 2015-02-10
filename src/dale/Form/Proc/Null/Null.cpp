@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Operation/Destruct/Destruct.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
@@ -75,7 +76,7 @@ FormProcNullParse(Generator *gen,
 
     pr->set(pr_value.block, ctx->tr->type_bool, icmpres);
     ParseResult temp;
-    res = gen->destructIfApplicable(&pr_value, NULL, &temp);
+    res = Operation::Destruct(ctx, &pr_value, &temp);
     if (!res) {
         return false;
     }

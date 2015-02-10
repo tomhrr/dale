@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Operation/Destruct/Destruct.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
@@ -151,12 +152,12 @@ FormProcSetfParse(Generator *gen,
 
         ParseResult temp;
         pr_variable.block = pr_value.block;
-        bool mres = gen->destructIfApplicable(&pr_variable, &builder, &temp);
+        bool mres = Operation::Destruct(ctx, &pr_variable, &temp, &builder);
         if (!mres) {
             return false;
         }
         pr_value.block = temp.block;
-        mres = gen->destructIfApplicable(&pr_value, &builder, &temp);
+        mres = Operation::Destruct(ctx, &pr_value, &temp, &builder);
         if (!mres) {
             return false;
         }
@@ -187,12 +188,12 @@ cont1:
 
         ParseResult temp;
         pr_variable.block = pr_value.block;
-        bool mres = gen->destructIfApplicable(&pr_variable, &builder, &temp);
+        bool mres = Operation::Destruct(ctx, &pr_variable, &temp, &builder);
         if (!mres) {
             return false;
         }
         pr_value.block = temp.block;
-        mres = gen->destructIfApplicable(&pr_value, &builder, &temp);
+        mres = Operation::Destruct(ctx, &pr_value, &temp, &builder);
         if (!mres) {
             return false;
         }
@@ -226,12 +227,12 @@ cont2:
 
         ParseResult temp;
         pr_variable.block = pr_value.block;
-        bool mres = gen->destructIfApplicable(&pr_variable, &builder, &temp);
+        bool mres = Operation::Destruct(ctx, &pr_variable, &temp, &builder);
         if (!mres) {
             return false;
         }
         pr_value.block = temp.block;
-        mres = gen->destructIfApplicable(&pr_value, &builder, &temp);
+        mres = Operation::Destruct(ctx, &pr_value, &temp, &builder);
         if (!mres) {
             return false;
         }

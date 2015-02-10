@@ -4,6 +4,7 @@
 #include "../../../Function/Function.h"
 #include "../../../Operation/Cast/Cast.h"
 #include "../../../Operation/Sizeof/Sizeof.h"
+#include "../../../Operation/Destruct/Destruct.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
@@ -108,9 +109,9 @@ FormProcPtrAddParse(Generator *gen,
 
     ptr.block = final_res.block;
     ParseResult temp;
-    gen->destructIfApplicable(&ptr, NULL, &temp);
+    Operation::Destruct(ctx, &ptr, &temp);
     val.block = temp.block;
-    gen->destructIfApplicable(&val, NULL, &temp);
+    Operation::Destruct(ctx, &val, &temp);
     final_res.block = temp.block;
     pr->set(final_res.block, ptr.type, final_res.value);
 

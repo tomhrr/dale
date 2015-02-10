@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Operation/Destruct/Destruct.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
@@ -60,9 +61,9 @@ FormProcPtrEqualsParse(Generator *gen,
     p1.block = p2.block;
     ParseResult ret;
     ret.block = p2.block;
-    gen->destructIfApplicable(&p1, NULL, &ret);
+    Operation::Destruct(ctx, &p1, &ret);
     p2.block = ret.block;
-    gen->destructIfApplicable(&p2, NULL, &ret);
+    Operation::Destruct(ctx, &p2, &ret);
     pr->block = ret.block;
 
     return true;

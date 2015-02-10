@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
 #include "../../../Operation/Cast/Cast.h"
+#include "../../../Operation/Destruct/Destruct.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
@@ -142,13 +143,12 @@ FormProcArefParse(Generator *gen,
 
     pr_array.block = pr_index.block;
     ParseResult temp;
-    res = gen->destructIfApplicable(&pr_array, NULL, &temp);
+    res = Operation::Destruct(ctx, &pr_array, &temp);
     if (!res) {
         return false;
     }
     pr_index.block = temp.block;
-
-    res = gen->destructIfApplicable(&pr_index, NULL, &temp);
+    res = Operation::Destruct(ctx, &pr_index, &temp);
     if (!res) {
         return false;
     }

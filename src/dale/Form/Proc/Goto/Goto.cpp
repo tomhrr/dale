@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Operation/Destruct/Destruct.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
@@ -74,8 +75,7 @@ FormProcGotoParse(Generator *gen,
     } else {
         /* Get all the variables that exist within the current
          * scope and have an index greater than the label's index.
-         * Add a destructIfApplicable call for each of these
-         * variables. */
+         * Add a Destruct call for each of these variables. */
         std::vector<Variable *> myvars;
         ctx->ns()->getVarsAfterIndex(mylabel->index, &myvars);
         ParseResult myp;
@@ -93,7 +93,7 @@ FormProcGotoParse(Generator *gen,
             llvm::Value *myv = builder.CreateLoad(v->value);
             myp.value = myv;
             ParseResult temp;
-            gen->destructIfApplicable(&myp, NULL, &temp);
+            Operation::Destruct(ctx, &myp, &temp);
             myp.block = temp.block;
         }
         block = myp.block;

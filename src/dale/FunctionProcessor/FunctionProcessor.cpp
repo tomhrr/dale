@@ -5,6 +5,7 @@
 #include "../Form/Proc/Inst/Inst.h"
 #include "../Operation/Coerce/Coerce.h"
 #include "../Operation/Cast/Cast.h"
+#include "../Operation/Destruct/Destruct.h"
 
 #define IMPLICIT 1
 
@@ -219,7 +220,7 @@ bool FunctionProcessor::parseFuncallInternal(
 
     fn_ptr->block = pr->block;
     ParseResult temp;
-    bool res = gen->destructIfApplicable(fn_ptr, NULL, &temp);
+    bool res = Operation::Destruct(gen->ctx, fn_ptr, &temp);
     if (!res) {
         return false;
     }

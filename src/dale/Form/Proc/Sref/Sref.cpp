@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Operation/Destruct/Destruct.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
@@ -173,7 +174,7 @@ FormProcSrefParse(Generator *gen,
     pr->set(pr_struct.block, ctx->tr->getPointerType(eltype), vres);
 
     ParseResult temp;
-    res = gen->destructIfApplicable(&pr_struct, NULL, &temp);
+    res = Operation::Destruct(ctx, &pr_struct, &temp);
     if (!res) {
         return false;
     }

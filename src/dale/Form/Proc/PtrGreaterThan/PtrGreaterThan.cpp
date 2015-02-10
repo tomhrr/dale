@@ -4,6 +4,7 @@
 #include "../../../Function/Function.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
+#include "../../../Operation/Destruct/Destruct.h"
 
 namespace dale
 {
@@ -55,9 +56,9 @@ FormProcPtrGreaterThanParse(Generator *gen,
 
     p.block = p2.block;
     ParseResult temp;
-    gen->destructIfApplicable(&p, NULL, &temp);
+    Operation::Destruct(ctx, &p, &temp);
     p2.block = temp.block;
-    gen->destructIfApplicable(&p2, NULL, &temp);
+    Operation::Destruct(ctx, &p2, &temp);
     pr->block = temp.block;
 
     return true;

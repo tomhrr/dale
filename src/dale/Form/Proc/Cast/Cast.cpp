@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
 #include "../../../Operation/Cast/Cast.h"
+#include "../../../Operation/Destruct/Destruct.h"
 #include "../../Type/Type.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
@@ -71,7 +72,7 @@ FormProcCastParse(Generator *gen,
     }
     pr_value.block = temp.block;
     ParseResult temp2;
-    res = gen->destructIfApplicable(&pr_value, NULL, &temp2);
+    res = Operation::Destruct(ctx, &pr_value, &temp2);
     temp.block = temp2.block;
 
     pr->set(temp.block, temp.type, temp.value);

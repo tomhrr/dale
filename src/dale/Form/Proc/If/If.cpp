@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Operation/Destruct/Destruct.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
@@ -59,7 +60,7 @@ FormProcIfParse(Generator *gen,
     builder4.CreateCondBr(pr_cond.value, then_block, else_block);
 
     ParseResult temp;
-    res = gen->destructIfApplicable(&pr_cond, &builder4, &temp);
+    res = Operation::Destruct(ctx, &pr_cond, &temp, &builder4);
     if (!res) {
         return false;
     }

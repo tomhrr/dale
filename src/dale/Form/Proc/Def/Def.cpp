@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Operation/Destruct/Destruct.h"
 #include "../../Linkage/Linkage.h"
 #include "../../Type/Type.h"
 #include "../../Struct/Struct.h"
@@ -337,7 +338,7 @@ FormProcDefParse(Generator *gen,
             }
         }
         ParseResult temp;
-        bool mres = gen->destructIfApplicable(&p, NULL, &temp);
+        bool mres = Operation::Destruct(ctx, &p, &temp);
         if (!mres) {
             return false;
         }
@@ -550,7 +551,7 @@ FormProcDefParse(Generator *gen,
             }
         }
         ParseResult temp;
-        bool mres = gen->destructIfApplicable(&p, NULL, &temp);
+        bool mres = Operation::Destruct(ctx, &p, &temp);
         if (!mres) {
             return false;
         }

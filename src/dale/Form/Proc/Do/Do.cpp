@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Operation/Destruct/Destruct.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
@@ -44,7 +45,7 @@ FormProcDoParse(Generator *gen,
         pr->block = used_pr->block;
         if (!is_last) {
             ParseResult pr_value;
-            bool res = gen->destructIfApplicable(&local_pr, NULL, &pr_value);
+            bool res = Operation::Destruct(ctx, &local_pr, &pr_value);
             if (!res) {
                 return false;
             }

@@ -4,6 +4,7 @@
 #include "../../ParseResult/ParseResult.h"
 #include "../../Function/Function.h"
 #include "../../CoreForms/CoreForms.h"
+#include "../../Operation/Destruct/Destruct.h"
 #include "../Linkage/Linkage.h"
 #include "../Type/Type.h"
 #include "../Proc/Inst/Inst.h"
@@ -199,7 +200,7 @@ FormProcBodyParse(Generator *gen,
                 last_position->filename = (*iter)->filename;
             } else {
                 ParseResult temp;
-                bool res = gen->destructIfApplicable(&p, NULL, &temp);
+                bool res = Operation::Destruct(ctx, &p, &temp);
                 if (!res) {
                     return 0;
                 }
@@ -367,8 +368,8 @@ FormProcBodyParse(Generator *gen,
                 ParseResult pr_variable;
                 ParseResult temp;
                 pr_variable.set(NULL, v->type, v->value);
-                bool res = gen->destructIfApplicable(&pr_variable, &builder,
-                                                &temp);
+                bool res = Operation::Destruct(ctx, &pr_variable,
+                                               &temp, &builder);
                 if (!res) {
                     return 0;
                 }

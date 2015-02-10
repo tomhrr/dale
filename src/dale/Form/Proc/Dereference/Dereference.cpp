@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Operation/Destruct/Destruct.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
@@ -89,7 +90,7 @@ FormProcDereferenceParse(Generator *gen,
     }
 
     ParseResult temp;
-    res = gen->destructIfApplicable(&p, NULL, &temp);
+    res = Operation::Destruct(ctx, &p, &temp);
     if (!res) {
         return false;
     }

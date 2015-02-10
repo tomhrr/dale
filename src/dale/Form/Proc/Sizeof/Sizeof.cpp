@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
 #include "../../../Operation/Sizeof/Sizeof.h"
+#include "../../../Operation/Destruct/Destruct.h"
 #include "../../Type/Type.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
@@ -63,7 +64,7 @@ FormProcSizeofParse(Generator *gen,
             block = expr_res.block;
 
             ParseResult temp;
-            res = gen->destructIfApplicable(&expr_res, NULL, &temp);
+            res = Operation::Destruct(ctx, &expr_res, &temp);
             if (!res) {
                 return false;
             }
@@ -75,7 +76,7 @@ FormProcSizeofParse(Generator *gen,
                 : expr_res.type;
             block = expr_res.block;
             ParseResult temp;
-            bool res = gen->destructIfApplicable(&expr_res, NULL, &temp);
+            bool res = Operation::Destruct(ctx, &expr_res, &temp);
             if (!res) {
                 return false;
             }
