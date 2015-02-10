@@ -69,8 +69,6 @@ private:
     void regetPointersForFVDM(Context *newctx);
     void regetPointersForDM(Context *newctx);
 
-    void removeMacroTemporaries(void);
-
     void popErrors(int original_count);
     void processRetval(Type *et,
                        llvm::BasicBlock *block,

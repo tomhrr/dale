@@ -265,86 +265,6 @@ int Generator::addModulePath(char *filename)
     return 1;
 }
 
-static int mc_count   = 0;
-static int mcpn_count = 0;
-static int globmarker = 0;
-
-void Generator::removeMacroTemporaries(void)
-{
-    /* Remove macro calls using mc_count. */
-
-    std::string name;
-    char buf[20];
-
-    while (mc_count > 0) {
-        mc_count--;
-
-        name.clear();
-        name.append("_dale_TempMacroExecution");
-        sprintf(buf, "%d", mc_count);
-        name.append(buf);
-
-        llvm::Function *fn =
-            mod->getFunction((const char *) name.c_str());
-
-        if (fn) {
-            fn->eraseFromParent();
-        } else {
-            fprintf(stderr,
-                    "Internal error: tried to remove function '%s', "
-                    "but it could not be found.\n",
-                    name.c_str());
-            abort();
-        }
-    }
-
-    while (mcpn_count > 0) {
-        mcpn_count--;
-
-        name.clear();
-        name.append("_dale_TempMacroPVar");
-        sprintf(buf, "%d", mcpn_count);
-        name.append(buf);
-
-        llvm::GlobalVariable *g =
-            mod->getGlobalVariable((const char *) name.c_str(), true);
-
-        if (g) {
-            g->eraseFromParent();
-        } else {
-            fprintf(stderr,
-                    "Internal error: tried to remove variable '%s', "
-                    "but it could not be found.\n",
-                    name.c_str());
-            abort();
-        }
-    }
-
-    /* Remove strings used for macro calls. */
-
-    while (globmarker > 0) {
-        globmarker--;
-
-        name.clear();
-        name.append("_dale_");
-        sprintf(buf, "%d", globmarker);
-        name.append(buf);
-
-        llvm::GlobalVariable *g =
-            mod->getGlobalVariable((const char *) name.c_str());
-
-        if (g) {
-            g->eraseFromParent();
-        } else {
-            fprintf(stderr,
-                    "Internal error: tried to remove variable '%s', "
-                    "but it could not be found.\n",
-                    name.c_str());
-            abort();
-        }
-    }
-}
-
 void *myLFC(const std::string &name)
 {
     void *fn_pointer = find_introspection_function(name.c_str());
@@ -554,8 +474,6 @@ int Generator::run(std::vector<const char *> *filenames,
             FormTopLevelInstParse(this, top);
             erep->flush();
         } while (1);
-
-        removeMacroTemporaries();
 
         if (remove_macros) {
             ctx->eraseLLVMMacros();
