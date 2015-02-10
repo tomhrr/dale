@@ -36,6 +36,7 @@
 #include "../Funcall/Funcall.h"
 #include "../UsingNamespace/UsingNamespace.h"
 #include "../NewScope/NewScope.h"
+#include "../../../Operation/Copy/Copy.h"
 #include "../ArrayOf/ArrayOf.h"
 #include "../../Macro/ArrayDeref/ArrayDeref.h"
 #include "../../Macro/StructDeref/StructDeref.h"
@@ -698,7 +699,7 @@ FormProcInstParse(Generator *gen,
     /* todo: if there's never a use case for a separate
      * parseresult, then fix this function accordingly. */
     if (!no_copy) {
-        gen->copyWithSetfIfApplicable(fn, pr, pr);
+        Operation::Copy(gen->ctx, fn, pr, pr);
     }
 
     return true;

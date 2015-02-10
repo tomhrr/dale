@@ -6,6 +6,7 @@
 #include "../Operation/Coerce/Coerce.h"
 #include "../Operation/Cast/Cast.h"
 #include "../Operation/Destruct/Destruct.h"
+#include "../Operation/Copy/Copy.h"
 
 #define IMPLICIT 1
 
@@ -201,7 +202,7 @@ bool FunctionProcessor::parseFuncallInternal(
              * here. (todo: do the casting after this part, instead.)
              * */
             if (!args_cast) {
-                bool res = gen->copyWithSetfIfApplicable(dfn, arg_refpr, arg_refpr);
+                bool res = Operation::Copy(gen->ctx, dfn, arg_refpr, arg_refpr);
                 if (!res) {
                     return false;
                 }
@@ -796,7 +797,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
              * here. (todo: do the casting after this part, instead.)
              * */
             if (!args_cast) {
-                bool res = gen->copyWithSetfIfApplicable(dfn, arg_refpr, arg_refpr);
+                bool res = Operation::Copy(gen->ctx, dfn, arg_refpr, arg_refpr);
                 if (!res) {
                     return false;
                 }

@@ -100,10 +100,6 @@ public:
     bool addLib(const char *lib_path, int add_to_so_paths,
                 int add_nm_to_so_paths);
 
-    bool copyWithSetfIfApplicable(
-        Function *dfn,
-        ParseResult *pr, ParseResult *pr2);
-
     int prefunction_ctx_index;
    
     bool scopeClose(Function *dfn,
