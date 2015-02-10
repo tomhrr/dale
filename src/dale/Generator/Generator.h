@@ -102,10 +102,6 @@ public:
 
     int prefunction_ctx_index;
    
-    bool scopeClose(Function *dfn,
-                   llvm::BasicBlock *block,
-                   llvm::Value *no_destruct,
-                   bool entire_function);
     Context               *ctx;
     llvm::Module          *mod;
     bool is_x86_64;

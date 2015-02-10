@@ -5,6 +5,7 @@
 #include "../../Function/Function.h"
 #include "../../CoreForms/CoreForms.h"
 #include "../../Operation/Destruct/Destruct.h"
+#include "../../Operation/CloseScope/CloseScope.h"
 #include "../Linkage/Linkage.h"
 #include "../Type/Type.h"
 #include "../Proc/Inst/Inst.h"
@@ -420,21 +421,21 @@ FormProcBodyParse(Generator *gen,
                         goto finish;
                     }
                     if (dfn->return_type->base_type == BaseType::Void) {
-                        gen->scopeClose(dfn, i, NULL, true);
+                        Operation::CloseScope(ctx, dfn, i, NULL, true);
                         builder.CreateRetVoid();
                     } else {
                         ParseResult x;
                         x.set(i, last_type, last_value);
-                        gen->scopeClose(dfn, x.block, NULL, true);
+                        Operation::CloseScope(ctx, dfn, x.block, NULL, true);
                         builder.CreateRet(x.value);
                     }
                 } else {
-                    gen->scopeClose(dfn, i, NULL, true);
+                    Operation::CloseScope(ctx, dfn, i, NULL, true);
                     builder.CreateRetVoid();
                 }
             } else {
                 if (bcount == bmax) {
-                    gen->scopeClose(dfn, i, NULL, true);
+                    Operation::CloseScope(ctx, dfn, i, NULL, true);
                     builder.CreateRetVoid();
                 } else {
                     /* Get the next block and create a branch to it. */

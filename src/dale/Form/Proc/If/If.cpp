@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
 #include "../../../Operation/Destruct/Destruct.h"
+#include "../../../Operation/CloseScope/CloseScope.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
@@ -71,7 +72,7 @@ FormProcIfParse(Generator *gen,
         FormProcInstParse(gen, fn, then_block, (*lst)[2], get_address,
                                 false,
                                NULL, &pr_then);
-    gen->scopeClose(fn, then_block, NULL, false);
+    Operation::CloseScope(ctx, fn, then_block, NULL, false);
     ctx->deactivateAnonymousNamespace();
     if (!res) {
         return false;
@@ -83,7 +84,7 @@ FormProcIfParse(Generator *gen,
         FormProcInstParse(gen, fn, else_block, (*lst)[3], get_address,
                                 false,
                                NULL, &pr_else);
-    gen->scopeClose(fn, else_block, NULL, false);
+    Operation::CloseScope(ctx, fn, else_block, NULL, false);
     ctx->deactivateAnonymousNamespace();
     if (!res) {
         return false;

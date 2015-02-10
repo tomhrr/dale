@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Operation/CloseScope/CloseScope.h"
 #include "../Inst/Inst.h"
 #include "../Do/Do.h"
 #include "../../../llvm_Function.h"
@@ -31,7 +32,7 @@ FormProcNewScopeParse(Generator *gen,
                                          prefixed_with_core,
                                          pr);
 
-    gen->scopeClose(fn, block, NULL, false);
+    Operation::CloseScope(ctx, fn, block, NULL, false);
     ctx->deactivateNamespace(anon_name.c_str());
 
     return success;

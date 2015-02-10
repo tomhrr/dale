@@ -1170,38 +1170,6 @@ int Generator::addDaleModule(Node *n,
     return 1;
 }
 
-bool Generator::scopeClose(Function *dfn,
-                           llvm::BasicBlock *block,
-                           llvm::Value *no_destruct,
-                           bool entire_function)
-{
-    std::vector<Variable *> stack_vars;
-    if (entire_function) {
-        ctx->ns()->getVarsAfterIndex(dfn->index, &stack_vars);
-    } else {
-        ctx->ns()->getVariables(&stack_vars);
-    }
-    
-    ParseResult mnew;
-    mnew.block = block;
-
-    for (std::vector<Variable *>::iterator
-            b = stack_vars.begin(),
-            e = stack_vars.end();
-            b != e;
-            ++b) {
-
-        if (no_destruct && ((*b)->value == no_destruct)) {
-            continue;
-        }
-        mnew.type = (*b)->type;
-        mnew.value = (*b)->value;
-        Operation::Destruct(ctx, &mnew, &mnew, NULL, true);
-    }
-
-    return true;
-}
-
 void Generator::parseArgument(Variable *var, Node *top,
                               bool allow_anon_structs,
                               bool allow_bitfields,

@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Operation/CloseScope/CloseScope.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
@@ -27,7 +28,7 @@ FormProcReturnParse(Generator *gen,
     }
     if (lst->size() == 1) {
         llvm::IRBuilder<> builder(block);
-        gen->scopeClose(fn, block, NULL, true);
+        Operation::CloseScope(ctx, fn, block, NULL, true);
         builder.CreateRetVoid();
         pr->set(block, ctx->tr->type_void, NULL);
         pr->do_not_destruct       = 1;
@@ -64,7 +65,7 @@ FormProcReturnParse(Generator *gen,
      * in parseIf. So, return the proper value in the second
      * branch.) */
     if (p.type->base_type == BaseType::Void) {
-        gen->scopeClose(fn, block, NULL, true);
+        Operation::CloseScope(ctx, fn, block, NULL, true);
         builder.SetInsertPoint(block);
         builder.CreateRetVoid();
         pr->set(block, ctx->tr->type_void, NULL);
@@ -73,7 +74,7 @@ FormProcReturnParse(Generator *gen,
         pr->treat_as_terminator   = 1;
         return true;
     } else {
-        gen->scopeClose(fn, block, NULL, true);
+        Operation::CloseScope(ctx, fn, block, NULL, true);
         builder.SetInsertPoint(block);
         builder.CreateRet(p.value);
         pr->set(block, fn->return_type, p.value);
