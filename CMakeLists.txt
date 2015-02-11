@@ -262,7 +262,7 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Label/Label.cpp
                       src/dale/CommonDecl/CommonDecl.cpp
                       src/dale/Unit/Unit.cpp
-                      src/dale/UnitStack/UnitStack.cpp
+                      src/dale/Units/Units.cpp
                       src/dale/DNodeConverter/DNodeConverter.cpp
                       src/dale/MacroProcessor/MacroProcessor.cpp
                       src/dale/Operation/Coerce/Coerce.cpp

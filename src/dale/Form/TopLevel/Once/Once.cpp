@@ -33,7 +33,7 @@ FormTopLevelOnceParse(Generator *gen,
 
     if (gen->included_once_tags->find(once_tag) !=
             gen->included_once_tags->end()) {
-        if (gen->unit_stack->size() == 1) {
+        if (gen->units->size() == 1) {
             Error *e = new Error(
                 ErrorInst::Generator::CannotOnceTheLastOpenFile,
                 n
@@ -41,8 +41,8 @@ FormTopLevelOnceParse(Generator *gen,
             ctx->er->addError(e);
             return false;
         }
-        gen->unit_stack->pop();
-        Unit *unit = gen->unit_stack->top();
+        gen->units->pop();
+        Unit *unit = gen->units->top();
         gen->ctx    = unit->ctx;
         gen->mod    = unit->module;
         gen->linker = unit->linker;
@@ -52,7 +52,7 @@ FormTopLevelOnceParse(Generator *gen,
     }
     gen->included_once_tags->insert(once_tag);
     gen->current_once_tag = once_tag;
-    gen->unit_stack->top()->setOnceTag(once_tag);
+    gen->units->top()->setOnceTag(once_tag);
 
     return true;
 }

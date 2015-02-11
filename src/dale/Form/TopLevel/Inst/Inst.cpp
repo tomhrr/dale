@@ -34,9 +34,9 @@ FormTopLevelInstParse(Generator *gen, Node *node)
     }
 
     if (!top->is_token && !top->is_list) {
-        gen->unit_stack->pop();
-        if (!gen->unit_stack->empty()) {
-            Unit *unit = gen->unit_stack->top();
+        gen->units->pop();
+        if (!gen->units->empty()) {
+            Unit *unit = gen->units->top();
             gen->ctx    = unit->ctx;
             gen->mod    = unit->module;
             gen->linker = unit->linker;

@@ -137,9 +137,9 @@ parseLiteralElement(Generator *gen,
         while (begin != st->member_types.end()) {
             Type *current = (*begin);
             size_t el_size =
-                Operation::SizeofGet(gen->unit_stack->top(), current);
+                Operation::SizeofGet(gen->units->top(), current);
             size_t offset =
-                Operation::OffsetofGetByIndex(gen->unit_stack->top(), type, i);
+                Operation::OffsetofGetByIndex(gen->units->top(), type, i);
             size_t padding = 0;
             if (i != 0) {
                 padding = (offset - last_offset - last_el_size);
@@ -278,7 +278,7 @@ a:
         /* Take the portion devoted to whatever the element is,
          * and re-call this function. */
         size_t el_size =
-            Operation::SizeofGet(gen->unit_stack->top(), type->array_type);
+            Operation::SizeofGet(gen->units->top(), type->array_type);
         int i = 0;
         int els = type->array_size;
         std::vector<llvm::Constant *> constants;
@@ -564,7 +564,7 @@ parseLiteral(Generator *gen,
     }
 
     size_t struct_size =
-        Operation::SizeofGet(gen->unit_stack->top(), type);
+        Operation::SizeofGet(gen->units->top(), type);
     char buf5[5];
     sprintf(buf5, "%u", (unsigned) struct_size);
 

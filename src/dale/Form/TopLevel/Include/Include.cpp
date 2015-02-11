@@ -84,8 +84,8 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
 
     Unit *unit = new Unit(filename_buf.c_str(), gen, ctx->er, ctx->nt,
                           ctx->tr, gen->getUnit()->ee,
-                          gen->unit_stack->top()->is_x86_64);
-    gen->unit_stack->push(unit);
+                          gen->units->top()->is_x86_64);
+    gen->units->push(unit);
     gen->ctx    = unit->ctx;
     gen->mod    = unit->module;
     gen->linker = unit->linker;

@@ -1,31 +1,28 @@
-#ifndef DALE_UNITSTACK
-#define DALE_UNITSTACK
+#ifndef DALE_UNITS
+#define DALE_UNITS
 
 #include "../Unit/Unit.h"
 #include <stack>
 
 namespace dale
 {
-/*! UnitStack
+/*! Units
 
     Whereas a unit is created for each new file that is parsed, a
-    single unit stack is created for each new top-level file (i.e.
-    those specified in the call to the compiler, and excluding any
-    files parsed by way of include calls).  It facilitates the
-    merging/linking of units as parsing starts and finishes for each.
+    single Units object is created at the beginning of the compilation
+    process for referring to the individual units, as well as some
+    utility classes that remain constant throughout.  Units is the
+    highest-level "context" object.
 */
-class UnitStack
+class Units
 {
 private:
     /*! The stack of units. */
     std::stack<Unit *> units;
 
 public:
-    /*! Construct a new unit stack.
-     *  @param initial The first unit.
-     */
-    UnitStack(Unit *initial);
-    ~UnitStack(void);
+    Units();
+    ~Units(void);
 
     /*! Get the unit at the top of the stack.
      */

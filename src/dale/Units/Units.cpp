@@ -1,38 +1,37 @@
-#include "UnitStack.h"
+#include "Units.h"
 #include "../llvm_Module.h"
 #include "../llvm_Linker.h"
 
 namespace dale
 {
-UnitStack::UnitStack(Unit *initial)
+Units::Units()
 {
-    units.push(initial);
 }
 
-UnitStack::~UnitStack(void)
+Units::~Units(void)
 {
 }
 
 Unit* 
-UnitStack::top(void)
+Units::top(void)
 {
     return units.top();
 }
 
 bool
-UnitStack::empty(void)
+Units::empty(void)
 {
     return units.empty();
 }
 
 size_t
-UnitStack::size(void)
+Units::size(void)
 {
     return units.size();
 }
 
 void
-UnitStack::pop(void)
+Units::pop(void)
 {
     Unit *popped = units.top();
     units.pop();
@@ -63,11 +62,13 @@ UnitStack::pop(void)
 }
 
 void
-UnitStack::push(Unit *new_unit)
+Units::push(Unit *new_unit)
 {
-    Unit *current = units.top();
-    new_unit->ctx->merge(current->ctx);
-    new_unit->ee = current->ee;
+    if (units.size()) {
+        Unit *current = units.top();
+        new_unit->ctx->merge(current->ctx);
+        new_unit->ee = current->ee;
+    }
     units.push(new_unit);
 
     return;

@@ -18,7 +18,7 @@
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../Enum/Enum.h"
 #include "../TypeRegister/TypeRegister.h"
-#include "../UnitStack/UnitStack.h"
+#include "../Units/Units.h"
 #include "../llvm_IRBuilder.h"
 
 namespace llvm {
@@ -94,7 +94,7 @@ public:
     bool no_drt;
     char *inc_paths[100];
     int inc_path_count;
-    UnitStack *unit_stack;
+    Units *units;
     Unit *getUnit(void);
     int addDaleModule(Node *n, const char *module_name,
                       std::vector<const char*> *import_forms);

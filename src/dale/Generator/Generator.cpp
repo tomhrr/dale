@@ -383,12 +383,18 @@ int Generator::run(std::vector<const char *> *filenames,
         }
     }
 
+    units = new Units();
+
     while (iter != filenames->end()) {
         const char *filename = (*iter);
+        if (units->size()) {
+            fprintf(stderr, "units size\n");
+            abort();
+        }
 
         Unit *unit = new Unit(filename, this, erep, nt, tr, NULL,
                               is_x86_64);
-        unit_stack = new UnitStack(unit);
+        units->push(unit);
 
         ctx    = unit->ctx;
         mod    = unit->module;
@@ -456,9 +462,9 @@ int Generator::run(std::vector<const char *> *filenames,
 
             /* EOF. */
             if (!top->is_token && !top->is_list) {
-                unit_stack->pop();
-                if (!unit_stack->empty()) {
-                    Unit *unit = unit_stack->top();
+                units->pop();
+                if (!units->empty()) {
+                    Unit *unit = units->top();
                     ctx    = unit->ctx;
                     mod    = unit->module;
                     linker = unit->linker;
@@ -1088,6 +1094,6 @@ int Generator::addDaleModule(Node *n,
 Unit *
 Generator::getUnit(void)
 {
-    return unit_stack->top();
+    return units->top();
 }
 }
