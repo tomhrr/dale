@@ -13,7 +13,7 @@ FormLiteralEnumParse(Generator *gen,
       bool getAddress,
       ParseResult *pr)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     if (!n->is_token) {
         Error *e = new Error(

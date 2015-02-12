@@ -15,7 +15,7 @@ FormLiteralArrayParse(Generator *gen,
       int *size,
       ParseResult *pr)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     Node *array_list = n;
 

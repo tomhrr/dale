@@ -34,10 +34,10 @@ IntNodeToStaticDNode(Generator *gen,
 
     llvm::GlobalVariable *var =
         llvm::cast<llvm::GlobalVariable>(
-            gen->mod->getOrInsertGlobal(varname.c_str(), llvm_type)
+            gen->units->top()->module->getOrInsertGlobal(varname.c_str(), llvm_type)
         );
 
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
     var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
     std::vector<llvm::Constant *> constants;
@@ -66,7 +66,7 @@ IntNodeToStaticDNode(Generator *gen,
         = string_cache.find(t->str_value);
         if (f != string_cache.end()) {
             llvm::GlobalVariable *temp = f->second;
-            if (temp->getParent() == gen->mod) {
+            if (temp->getParent() == gen->units->top()->module) {
                 svar2 = temp;
             }
         }
@@ -90,7 +90,7 @@ IntNodeToStaticDNode(Generator *gen,
 
             svar2 =
                 llvm::cast<llvm::GlobalVariable>(
-                    gen->mod->getOrInsertGlobal(varname2.c_str(),
+                    gen->units->top()->module->getOrInsertGlobal(varname2.c_str(),
                                            ctx->toLLVMType(archar, NULL, false))
                 );
 
@@ -222,7 +222,7 @@ FormProcGetDNodesParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     if (!llvm_type_dnode) {
         llvm::Type *dnode =

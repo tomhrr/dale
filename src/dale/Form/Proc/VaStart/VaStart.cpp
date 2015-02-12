@@ -17,7 +17,7 @@ FormProcVaStartParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     if (!ctx->er->assertArgNums("va-start", node, 1, 1)) {
         return false;
@@ -36,7 +36,7 @@ FormProcVaStartParse(Generator *gen,
 
     llvm::IRBuilder<> builder(pr_valist.block);
     llvm::Function *va_start =
-        gen->mod->getFunction(llvm::StringRef("llvm.va_start"));
+        gen->units->top()->module->getFunction(llvm::StringRef("llvm.va_start"));
     if (!va_start) {
         fprintf(stderr, "Unable to load va_start.");
         abort();

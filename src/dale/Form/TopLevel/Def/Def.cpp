@@ -22,7 +22,7 @@ bool
 FormTopLevelDefParse(Generator *gen,
            Node *top)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     symlist *lst = top->list;
 

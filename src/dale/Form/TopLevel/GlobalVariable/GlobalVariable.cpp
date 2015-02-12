@@ -18,7 +18,7 @@ parseLiteralElement(Generator *gen,
                     Type *type,
                     int *size)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
     NativeTypes *nt = ctx->nt;
     TypeRegister *tr = ctx->tr;
 
@@ -214,7 +214,7 @@ parseLiteralElement(Generator *gen,
         Type *archar =
             tr->getArrayType(tr->type_char, *size);
 
-        if (gen->mod->getGlobalVariable(llvm::StringRef(varname2.c_str()))) {
+        if (gen->units->top()->module->getGlobalVariable(llvm::StringRef(varname2.c_str()))) {
             fprintf(stderr, "Internal error: "
                     "global variable already exists "
                     "in module ('%s').\n",
@@ -224,7 +224,7 @@ parseLiteralElement(Generator *gen,
 
         llvm::GlobalVariable *svar2 =
             llvm::cast<llvm::GlobalVariable>(
-                gen->mod->getOrInsertGlobal(varname2.c_str(),
+                gen->units->top()->module->getOrInsertGlobal(varname2.c_str(),
                                        ctx->toLLVMType(archar, NULL, false))
             );
 
@@ -339,7 +339,7 @@ parseLiteral(Generator *gen,
              Node *top,
              int *size)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     /* Extreme special-case - if top is a two-element list, and
      * the first element is #, and the second element is a global
@@ -406,7 +406,7 @@ parseLiteral(Generator *gen,
     sprintf(buf, "_gv%d", myn++);
     ctx->ns()->nameToSymbol(buf, &new_name);
 
-    if (gen->mod->getFunction(llvm::StringRef(new_name.c_str()))) {
+    if (gen->units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
                 "function already exists in module ('%s').\n",
                 new_name.c_str());
@@ -414,7 +414,7 @@ parseLiteral(Generator *gen,
     }
 
     llvm::Constant *fnc =
-        gen->mod->getOrInsertFunction(
+        gen->units->top()->module->getOrInsertFunction(
             new_name.c_str(),
             ft
         );
@@ -459,7 +459,7 @@ parseLiteral(Generator *gen,
     sprintf(wrap_buf, "_gv%d", myn++);
     ctx->ns()->nameToSymbol(wrap_buf, &wrap_new_name);
 
-    if (gen->mod->getFunction(llvm::StringRef(wrap_new_name.c_str()))) {
+    if (gen->units->top()->module->getFunction(llvm::StringRef(wrap_new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
                 "function already exists in module ('%s').\n",
                 wrap_new_name.c_str());
@@ -467,7 +467,7 @@ parseLiteral(Generator *gen,
     }
 
     llvm::Constant *wrap_fnc =
-        gen->mod->getOrInsertFunction(
+        gen->units->top()->module->getOrInsertFunction(
             wrap_new_name.c_str(),
             wrapft
         );
@@ -587,7 +587,7 @@ parseLiteral(Generator *gen,
     builder.CreateRetVoid();
 
     void* fptr =
-        gen->ee->getPointerToFunction(wrap_fn);
+        gen->units->top()->ee->getPointerToFunction(wrap_fn);
     if (!fptr) {
         fprintf(stderr,
                 "Internal error: could not get pointer "
@@ -621,7 +621,7 @@ parseLiteral(Generator *gen,
 bool
 FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     Node *name_node = (*(node->list))[1];
     const char *name = name_node->token->str_value.c_str();
@@ -742,7 +742,7 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
 
     /* Add the variable to the module. */
 
-    if (gen->mod->getGlobalVariable(llvm::StringRef(new_name.c_str()))) {
+    if (gen->units->top()->module->getGlobalVariable(llvm::StringRef(new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
                 "global variable already exists in "
                 "module ('%s').\n",
@@ -752,7 +752,7 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
 
     llvm::GlobalVariable *var =
         llvm::cast<llvm::GlobalVariable>(
-            gen->mod->getOrInsertGlobal(new_name.c_str(),
+            gen->units->top()->module->getOrInsertGlobal(new_name.c_str(),
                                    rdttype)
         );
 

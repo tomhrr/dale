@@ -22,7 +22,7 @@ bool
 FormTopLevelModuleParse(Generator *gen, Node *node)
 {
     Node *top = node;
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     if (gen->module_name.size() > 0) {
         fprintf(stderr, "Internal error: module name already set.\n");

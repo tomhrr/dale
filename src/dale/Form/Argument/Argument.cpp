@@ -19,7 +19,7 @@ bool FormArgumentParse(Generator *gen,
             bool allow_bitfields,
             bool allow_refs)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     var->linkage = Linkage::Auto;
 

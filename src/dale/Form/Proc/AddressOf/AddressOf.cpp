@@ -18,7 +18,7 @@ FormProcAddressOfParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     assert(node->list && "parseAddressOf must receive a list!");
 

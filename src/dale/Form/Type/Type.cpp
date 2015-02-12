@@ -16,7 +16,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
         return NULL;
     }
 
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     if (top->is_token) {
         Token *t = top->token;
@@ -58,10 +58,10 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
                                              : -1;
 
         if (bmt != -1) {
-            Type *mt = gen->ctx->tr->getBasicType(bmt);
+            Type *mt = gen->units->top()->ctx->tr->getBasicType(bmt);
 
             if (mt) {
-                if (!gen->is_x86_64
+                if (!gen->units->top()->is_x86_64
                         && (mt->base_type == BaseType::Int128
                             || mt->base_type == BaseType::UInt128)) {
                     Error *e = new Error(

@@ -8,7 +8,7 @@ namespace dale
 bool
 FormTopLevelUsingNamespaceParse(Generator *gen, Node *node)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     if (!ctx->er->assertArgNums("using-namespace", node, 1, -1)) {
         return false;

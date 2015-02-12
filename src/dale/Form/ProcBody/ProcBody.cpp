@@ -22,7 +22,7 @@ FormProcBodyParse(Generator *gen,
       int is_anonymous,
       llvm::Value *return_value)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     symlist *lst = n->list;
 

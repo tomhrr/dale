@@ -120,6 +120,7 @@ char *mod_paths[100];
 int mod_path_count = 0;
 
 static int var_count = 0;
+llvm::Module *mod;
 int Generator::getUnusedVarname(std::string *mystr)
 {
     char buf[256];
@@ -156,14 +157,6 @@ Generator::Generator()
     STL::push_back2(&two_zero_indices,
                     nt->getLLVMZero(), nt->getLLVMZero());
 
-    /* On OS X, SYSTEM_PROCESSOR is i386 even when the underlying
-     * processor is x86-64, hence the extra check here. */
-    is_x86_64 =
-        ((!strcmp(SYSTEM_PROCESSOR, "x86_64"))
-         || ((!strcmp(SYSTEM_PROCESSOR, "amd64")))
-         || ((!strcmp(SYSTEM_NAME, "Darwin"))
-             && (sizeof(char *) == 8)));
-
     has_defined_extern_macro = 0;
 
     cto_modules = new std::set<std::string>;
@@ -171,8 +164,6 @@ Generator::Generator()
 
 Generator::~Generator()
 {
-    delete ctx;
-    delete prsr;
     delete tr;
     delete included_once_tags;
     delete included_modules;
@@ -242,6 +233,15 @@ int Generator::run(std::vector<const char *> *filenames,
                    int nodrt,
                    std::vector<const char *> *compile_libs_sv)
 {
+    /* On OS X, SYSTEM_PROCESSOR is i386 even when the underlying
+     * processor is x86-64, hence the extra check here. */
+    bool is_x86_64 =
+        ((!strcmp(SYSTEM_PROCESSOR, "x86_64"))
+         || ((!strcmp(SYSTEM_PROCESSOR, "amd64")))
+         || ((!strcmp(SYSTEM_NAME, "Darwin"))
+             && (sizeof(char *) == 8)));
+
+
     init_introspection_functions();
 
     has_defined_extern_macro = 0;
@@ -327,6 +327,10 @@ int Generator::run(std::vector<const char *> *filenames,
     }
 
     units = new Units(&mr);
+    Context *ctx    = NULL;
+    mod    = NULL;
+    llvm::Linker *linker = NULL;
+    Parser *prsr  = NULL;
 
     while (iter != filenames->end()) {
         const char *filename = (*iter);
@@ -338,11 +342,10 @@ int Generator::run(std::vector<const char *> *filenames,
         Unit *unit = new Unit(filename, this, erep, nt, tr, NULL,
                               is_x86_64);
         units->push(unit);
-
         ctx    = unit->ctx;
         mod    = unit->module;
         linker = unit->linker;
-        prsr   = unit->parser;
+        prsr  = unit->parser;
         current_once_tag.clear();
 
         llvm::Triple TheTriple(mod->getTargetTriple());
@@ -389,7 +392,7 @@ int Generator::run(std::vector<const char *> *filenames,
             error_count =
                 erep->getErrorTypeCount(ErrorType::Error);
 
-            Node *top = prsr->getNextList();
+            Node *top = units->top()->parser->getNextList();
             if (top) {
                 nodes.push_back(top);
             }
@@ -411,7 +414,6 @@ int Generator::run(std::vector<const char *> *filenames,
                     ctx    = unit->ctx;
                     mod    = unit->module;
                     linker = unit->linker;
-                    prsr   = unit->parser;
                     current_once_tag = unit->once_tag;
                     continue;
                 }

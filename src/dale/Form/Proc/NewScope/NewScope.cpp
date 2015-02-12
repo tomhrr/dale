@@ -18,7 +18,7 @@ FormProcNewScopeParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
     assert(node->list && "must receive a list!");
     if (!ctx->er->assertArgNums("new-scope", node, 1, -1)) {
         return false;

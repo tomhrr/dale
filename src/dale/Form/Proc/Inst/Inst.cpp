@@ -68,15 +68,13 @@ parseInternal(Generator *gen,
                    Type *wanted_type,
                    ParseResult *pr)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     if (DALE_DEBUG) {
         printf("Called FormProcInstParse: ");
         n->print();
         printf("\n");
     }
-
-    //gen->global_block = block;
 
     if (n->is_token) {
         return FormProcTokenParse(
@@ -699,7 +697,7 @@ FormProcInstParse(Generator *gen,
     /* todo: if there's never a use case for a separate
      * parseresult, then fix this function accordingly. */
     if (!no_copy) {
-        Operation::Copy(gen->ctx, fn, pr, pr);
+        Operation::Copy(gen->units->top()->ctx, fn, pr, pr);
     }
 
     return true;

@@ -14,7 +14,7 @@ parseStringLiteral(Generator *gen,
                    Node *top,
                    int *size)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     if (type->base_type == BaseType::Int) {
         if (!top->is_token) {
@@ -117,7 +117,7 @@ FormProcTokenParse(Generator *gen,
            Type *wanted_type,
            ParseResult *pr)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
     NativeTypes *nt = ctx->nt;
     Type *type_char   = ctx->tr->type_char;
     Type *type_cchar  = ctx->tr->getConstType(type_char);
@@ -388,7 +388,7 @@ tryvar:
 
         var =
             llvm::cast<llvm::GlobalVariable>(
-                gen->mod->getOrInsertGlobal(varname.c_str(),
+                gen->units->top()->module->getOrInsertGlobal(varname.c_str(),
                                             llvm_type)
             );
 

@@ -14,7 +14,7 @@ makeTemporaryGlobalFunction(Generator *gen,
                             std::vector<DeferredGoto*> *dgs,
                             std::map<std::string, Label*> *mls)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     llvm::Type *llvm_return_type =
         ctx->toLLVMType(ctx->tr->type_int, NULL, false);
@@ -32,7 +32,7 @@ makeTemporaryGlobalFunction(Generator *gen,
     std::string new_name;
     ctx->ns()->nameToSymbol(buf, &new_name);
 
-    if (gen->mod->getFunction(llvm::StringRef(new_name.c_str()))) {
+    if (gen->units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
                 "function already exists in module ('%s').\n",
                 new_name.c_str());
@@ -40,7 +40,7 @@ makeTemporaryGlobalFunction(Generator *gen,
     }
 
     llvm::Constant *llvm_fnc =
-        gen->mod->getOrInsertFunction(new_name.c_str(), ft);
+        gen->units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
     if (!llvm_fnc) {
         fprintf(stderr, "Internal error: unable to add "
                 "function ('%s') to module.\n",
@@ -86,7 +86,7 @@ removeTemporaryGlobalFunction(Generator *gen, int error_count,
                               std::vector<DeferredGoto*> *dgs,
                               std::map<std::string, Label*> *mls)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
     if (error_count >= 0) {
         ctx->er->popErrors(error_count);
     }
@@ -125,12 +125,12 @@ types_2D_equal(MContext *mc, DNode *t1, DNode *t2)
     }
 
     int original_error_count =
-        g->ctx->er->getErrorTypeCount(ErrorType::Error);
+        g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
     Type *type1 = FormTypeParse(g, n,  false, false);
     Type *type2 = FormTypeParse(g, n2, false, false);
 
-    g->ctx->er->popErrors(original_error_count);
+    g->units->top()->ctx->er->popErrors(original_error_count);
     if (!type1 || !type2) {
         return 0;
     }
@@ -157,11 +157,11 @@ get_type(MContext *mc, DNode *dnode, Type **type)
     }
 
     int original_error_count =
-        g->ctx->er->getErrorTypeCount(ErrorType::Error);
+        g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
     *type = FormTypeParse(g, n, false, false);
 
-    g->ctx->er->popErrors(original_error_count);
+    g->units->top()->ctx->er->popErrors(original_error_count);
     if (!*type) {
         return false;
     }
@@ -241,12 +241,12 @@ is_2D_pointer_2D_to_2D_type(MContext *mc, DNode *t, DNode *pointee)
     }
 
     int original_error_count =
-        g->ctx->er->getErrorTypeCount(ErrorType::Error);
+        g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
     Type *type  = FormTypeParse(g, n,  false, false);
     Type *type2 = FormTypeParse(g, n2, false, false);
 
-    g->ctx->er->popErrors(original_error_count);
+    g->units->top()->ctx->er->popErrors(original_error_count);
     if (!type || !type2) {
         return false;
     }
@@ -274,11 +274,11 @@ must_2D_init(MContext *mc, DNode *t)
     Node *n = g->getUnit()->dnc->toNode(t);
 
     int original_error_count =
-        g->ctx->er->getErrorTypeCount(ErrorType::Error);
+        g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
     Type *ptype = FormTypeParse(g, n, false, false);
     if (!ptype) {
-        g->ctx->er->popErrors(original_error_count);
+        g->units->top()->ctx->er->popErrors(original_error_count);
         return false;
     }
 
@@ -287,7 +287,7 @@ must_2D_init(MContext *mc, DNode *t)
     }
     if (ptype->struct_name.size()) {
         Struct *st =
-            g->ctx->getStruct(
+            g->units->top()->ctx->getStruct(
                 ptype->struct_name.c_str(),
                 &(ptype->namespaces)
             );
@@ -304,11 +304,11 @@ is_2D_const(MContext *mc, DNode *t)
     Node *n = g->getUnit()->dnc->toNode(t);
 
     int original_error_count =
-        g->ctx->er->getErrorTypeCount(ErrorType::Error);
+        g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
     Type *ptype = FormTypeParse(g, n, false, false);
     if (!ptype) {
-        g->ctx->er->popErrors(original_error_count);
+        g->units->top()->ctx->er->popErrors(original_error_count);
         return false;
     }
 
@@ -327,7 +327,7 @@ has_2D_errors(MContext *mc, DNode *form)
     Node *n = g->getUnit()->dnc->toNode(form);
 
     int original_error_count =
-        g->ctx->er->getErrorTypeCount(ErrorType::Error);
+        g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
     bool made_temp = false;
     std::vector<DeferredGoto*> dgs;
@@ -353,12 +353,12 @@ has_2D_errors(MContext *mc, DNode *form)
     }
 
     int new_error_count =
-        g->ctx->er->getErrorTypeCount(ErrorType::Error);
+        g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
     bool has_errors =
         ((new_error_count - original_error_count) != 0);
 
-    g->ctx->er->popErrors(original_error_count);
+    g->units->top()->ctx->er->popErrors(original_error_count);
     return has_errors;
 }
 
@@ -369,7 +369,7 @@ exists_2D_fn(MContext *mc, DNode *form)
 
     Node *n = g->getUnit()->dnc->toNode(form);
 
-    if (!g->ctx->er->assertArgNums("exists-fn", n, 1, -1)) {
+    if (!g->units->top()->ctx->er->assertArgNums("exists-fn", n, 1, -1)) {
         return false;
     }
 
@@ -379,11 +379,11 @@ exists_2D_fn(MContext *mc, DNode *form)
     Node *node_function_name = (*lst)[1];
 
     int original_error_count =
-        g->ctx->er->getErrorTypeCount(ErrorType::Error);
+        g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
     Type *return_type = FormTypeParse(g, node_return_type, false, false);
     if (!return_type) {
-        g->ctx->er->popErrors(original_error_count);
+        g->units->top()->ctx->er->popErrors(original_error_count);
         return false;
     }
 
@@ -395,7 +395,7 @@ exists_2D_fn(MContext *mc, DNode *form)
     while (iter != lst->end()) {
         Type *parameter_type = FormTypeParse(g, (*iter), false, false);
         if (!parameter_type) {
-            g->ctx->er->popErrors(original_error_count);
+            g->units->top()->ctx->er->popErrors(original_error_count);
             return false;
         }
         if (parameter_type->base_type == BaseType::Void) {
@@ -406,10 +406,10 @@ exists_2D_fn(MContext *mc, DNode *form)
     }
 
     Function *fn =
-        g->ctx->getFunction(node_function_name->token->str_value.c_str(),
+        g->units->top()->ctx->getFunction(node_function_name->token->str_value.c_str(),
                             &parameter_types, NULL, 0);
 
-    g->ctx->er->popErrors(original_error_count);
+    g->units->top()->ctx->er->popErrors(original_error_count);
     return (fn && !fn->is_macro);
 }
 
@@ -420,14 +420,14 @@ exists_2D_type(MContext *mc, DNode *t)
 
     Node *n = WrapNode(g->getUnit()->dnc->toNode(t));
 
-    if (!g->ctx->er->assertArgNums("exists-type", n, 0, 0)) {
+    if (!g->units->top()->ctx->er->assertArgNums("exists-type", n, 0, 0)) {
         return false;
     }
 
     symlist *lst = n->list;
-    int error_count = g->ctx->er->getErrorTypeCount(ErrorType::Error);
+    int error_count = g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
     Type *type = FormTypeParse(g, (*lst)[0], false, false);
-    g->ctx->er->popErrors(error_count);
+    g->units->top()->ctx->er->popErrors(error_count);
 
     return !!type;
 }
@@ -439,12 +439,12 @@ exists_2D_macro(MContext *mc, DNode *form)
 
     Node *n = g->getUnit()->dnc->toNode(form);
 
-    if (!g->ctx->er->assertArgNums("exists-macro", n, 0, -1)) {
+    if (!g->units->top()->ctx->er->assertArgNums("exists-macro", n, 0, -1)) {
         return false;
     }
 
     int original_error_count =
-        g->ctx->er->getErrorTypeCount(ErrorType::Error);
+        g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
     symlist *lst = n->list;
     Node *function_name = (*lst)[0];
@@ -457,7 +457,7 @@ exists_2D_macro(MContext *mc, DNode *form)
     while (iter != lst->end()) {
         Type *parameter_type = FormTypeParse(g, (*iter), false, false);
         if (!parameter_type) {
-            g->ctx->er->popErrors(original_error_count);
+            g->units->top()->ctx->er->popErrors(original_error_count);
             return false;
         }
         if (parameter_type->base_type == BaseType::Void) {
@@ -468,10 +468,10 @@ exists_2D_macro(MContext *mc, DNode *form)
     }
 
     Function *fn =
-        g->ctx->getFunction(function_name->token->str_value.c_str(),
+        g->units->top()->ctx->getFunction(function_name->token->str_value.c_str(),
                             &parameter_types, NULL, 1);
 
-    g->ctx->er->popErrors(original_error_count);
+    g->units->top()->ctx->er->popErrors(original_error_count);
     return (fn && fn->is_macro);
 }
 
@@ -490,12 +490,12 @@ exists_2D_variable(MContext *mc, DNode *form)
     }
 
     int original_error_count =
-        g->ctx->er->getErrorTypeCount(ErrorType::Error);
+        g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
     Variable *var =
-        g->ctx->getVariable(n->token->str_value.c_str());
+        g->units->top()->ctx->getVariable(n->token->str_value.c_str());
 
-    g->ctx->er->popErrors(original_error_count);
+    g->units->top()->ctx->er->popErrors(original_error_count);
     return (var ? true : false);
 }
 
@@ -506,12 +506,12 @@ fn_2D_by_2D_args_2D_count(MContext *mc, DNode *form, const char *prefix)
 
     Node *n = g->getUnit()->dnc->toNode(form);
 
-    if (!g->ctx->er->assertArgNums("fn-by-args-count", n, 0, -1)) {
+    if (!g->units->top()->ctx->er->assertArgNums("fn-by-args-count", n, 0, -1)) {
         return 0;
     }
 
     int original_error_count =
-        g->ctx->er->getErrorTypeCount(ErrorType::Error);
+        g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
     symlist *lst = n->list;
 
@@ -522,7 +522,7 @@ fn_2D_by_2D_args_2D_count(MContext *mc, DNode *form, const char *prefix)
     while (iter != lst->end()) {
         Type *parameter_type = FormTypeParse(g, (*iter), false, false);
         if (!parameter_type) {
-            g->ctx->er->popErrors(original_error_count);
+            g->units->top()->ctx->er->popErrors(original_error_count);
             return 0;
         }
         parameter_type->toString(&map_key);
@@ -548,7 +548,7 @@ fn_2D_by_2D_args_2D_count(MContext *mc, DNode *form, const char *prefix)
         prefix = "";
     }
     std::string ss_prefix(prefix);
-    g->ctx->getFunctionNames(&function_names,
+    g->units->top()->ctx->getFunctionNames(&function_names,
                              (has_prefix ? &ss_prefix : NULL));
     std::vector<std::string> *fn_by_args_list =
         new std::vector<std::string>;
@@ -558,7 +558,7 @@ fn_2D_by_2D_args_2D_count(MContext *mc, DNode *form, const char *prefix)
             e = function_names.end();
             b != e;
             ++b) {
-        Function *fn = g->ctx->getFunction(b->c_str(), &parameter_types,
+        Function *fn = g->units->top()->ctx->getFunction(b->c_str(), &parameter_types,
                                            NULL, 0);
         if (fn && !fn->is_macro) {
             fn_by_args_list->push_back(*b);
@@ -584,12 +584,12 @@ fn_2D_by_2D_args_2D_name(MContext *mc, DNode *form, int index)
 
     assert(n->list && "must receive a list!");
 
-    if (!g->ctx->er->assertArgNums("fn-by-args-name", n, 0, -1)) {
+    if (!g->units->top()->ctx->er->assertArgNums("fn-by-args-name", n, 0, -1)) {
         return NULL;
     }
 
     int original_error_count =
-        g->ctx->er->getErrorTypeCount(ErrorType::Error);
+        g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
     symlist *lst = n->list;
     std::vector<Node *>::iterator iter = lst->begin();
@@ -598,7 +598,7 @@ fn_2D_by_2D_args_2D_name(MContext *mc, DNode *form, int index)
     while (iter != lst->end()) {
         Type *parameter_type = FormTypeParse(g, (*iter), false, false);
         if (!parameter_type) {
-            g->ctx->er->popErrors(original_error_count);
+            g->units->top()->ctx->er->popErrors(original_error_count);
             return NULL;
         }
         parameter_type->toString(&map_key);
@@ -767,7 +767,7 @@ report_2D_error(MContext *mc, DNode *form, char *str)
     Node *n = g->getUnit()->dnc->toNode(form);
 
     Error *e = new Error(ErrorInst::Generator::ExternalError, n, str);
-    g->ctx->er->addError(e);
+    g->units->top()->ctx->er->addError(e);
 }
 
 int
@@ -782,7 +782,7 @@ arity(MContext *mc, DNode *name)
     }
     const char *fn_name = fn_node->token->str_value.c_str();
 
-    Function *fn = g->ctx->getFunction(fn_name, NULL, NULL, 0);
+    Function *fn = g->units->top()->ctx->getFunction(fn_name, NULL, NULL, 0);
     if (!fn) {
         return -1;
     }
@@ -800,7 +800,7 @@ DNode *codomain(MContext *mc, DNode *form)
 
     assert(n->list && "must receive a list!");
 
-    if (!g->ctx->er->assertArgNums("codomain", n, 0, -1)) {
+    if (!g->units->top()->ctx->er->assertArgNums("codomain", n, 0, -1)) {
         return NULL;
     }
 
@@ -809,7 +809,7 @@ DNode *codomain(MContext *mc, DNode *form)
     Node *function_name = (*lst)[0];
 
     int original_error_count =
-        g->ctx->er->getErrorTypeCount(ErrorType::Error);
+        g->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
     std::vector<Type *> parameter_types;
 
@@ -819,7 +819,7 @@ DNode *codomain(MContext *mc, DNode *form)
     while (iter != lst->end()) {
         Type *parameter_type = FormTypeParse(g, (*iter), false, false);
         if (!parameter_type) {
-            g->ctx->er->popErrors(original_error_count);
+            g->units->top()->ctx->er->popErrors(original_error_count);
             return NULL;
         }
         if (parameter_type->base_type == BaseType::Void) {
@@ -830,10 +830,10 @@ DNode *codomain(MContext *mc, DNode *form)
     }
 
     Function *fn =
-        g->ctx->getFunction(function_name->token->str_value.c_str(),
+        g->units->top()->ctx->getFunction(function_name->token->str_value.c_str(),
                             &parameter_types, NULL, 0);
 
-    g->ctx->er->popErrors(original_error_count);
+    g->units->top()->ctx->er->popErrors(original_error_count);
     if (fn && !fn->is_macro) {
         return fn->return_type->toNode()->toDNode();
     } else {
@@ -853,7 +853,7 @@ input_2D_type(MContext *mc, DNode *fn_name_nd, int index)
     }
     const char *fn_name = fn_node->token->str_value.c_str();
 
-    Function *fn = g->ctx->getFunction(fn_name, NULL, NULL, 0);
+    Function *fn = g->units->top()->ctx->getFunction(fn_name, NULL, NULL, 0);
     if (!fn) {
         return NULL;
     }
@@ -879,7 +879,7 @@ struct_2D_member_2D_type(MContext *mc, DNode *name, int index)
     }
     const char *struct_name = struct_node->token->str_value.c_str();
 
-    Struct *st = g->ctx->getStruct(struct_name);
+    Struct *st = g->units->top()->ctx->getStruct(struct_name);
     if (!st) {
         return NULL;
     }
@@ -901,7 +901,7 @@ struct_2D_member_2D_name(MContext *mc, DNode *name, int index)
     }
     const char *struct_name = struct_node->token->str_value.c_str();
 
-    Struct *st = g->ctx->getStruct(struct_name);
+    Struct *st = g->units->top()->ctx->getStruct(struct_name);
     if (!st) {
         return NULL;
     }
@@ -923,7 +923,7 @@ struct_2D_member_2D_count(MContext *mc, DNode *name)
     }
     const char *struct_name = struct_node->token->str_value.c_str();
 
-    Struct *st = g->ctx->getStruct(struct_name);
+    Struct *st = g->units->top()->ctx->getStruct(struct_name);
     if (!st) {
         return -1;
     }

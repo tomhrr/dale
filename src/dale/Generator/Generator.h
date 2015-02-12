@@ -75,16 +75,10 @@ public:
 
     int prefunction_ctx_index;
    
-    Context               *ctx;
-    llvm::Module          *mod;
-    bool is_x86_64;
-
     int getUnusedVarname(std::string *mystr);
     std::map<std::string, std::vector<std::string>*> fn_by_args;
     Namespace *prefunction_ns;
 
-    Parser                *prsr;
-    llvm::Linker          *linker;
     std::string current_once_tag;
     llvm::ExecutionEngine *ee;
     bool no_add_common_declarations;

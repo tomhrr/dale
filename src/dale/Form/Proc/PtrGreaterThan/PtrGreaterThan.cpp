@@ -17,7 +17,7 @@ FormProcPtrGreaterThanParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->ctx; 
+    Context *ctx = gen->units->top()->ctx; 
 
     if (!ctx->er->assertArgNums("p>", node, 2, 2)) {
         return false;

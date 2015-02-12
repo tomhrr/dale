@@ -19,7 +19,7 @@ FormProcAlignmentOfParse(Generator *gen,
 {
     assert(node->list && "must receive a list!");
 
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     if (!ctx->er->assertArgNums("alignmentof", node, 1, 1)) {
         return false;

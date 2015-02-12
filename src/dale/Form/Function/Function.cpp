@@ -22,7 +22,7 @@ FormFunctionParse(Generator *gen,
       int override_linkage,
       int is_anonymous)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     if (!name) {
         Node *name_node = (*(n->list))[1];
@@ -343,7 +343,7 @@ FormFunctionParse(Generator *gen,
      * prototype, then fail. */
 
     llvm::Function *temp23;
-    if ((temp23 = gen->mod->getFunction(new_name.c_str()))) {
+    if ((temp23 = gen->units->top()->module->getFunction(new_name.c_str()))) {
         Function *temp25 =
             ctx->getFunction(new_name.c_str(), NULL,
                              NULL, 0);
@@ -372,7 +372,7 @@ FormFunctionParse(Generator *gen,
     }
 
     llvm::Constant *fnc =
-        gen->mod->getOrInsertFunction(
+        gen->units->top()->module->getOrInsertFunction(
             new_name.c_str(),
             ft
         );

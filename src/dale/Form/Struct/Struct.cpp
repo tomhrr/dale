@@ -19,7 +19,7 @@ bool
 addOpaqueStruct(Generator *gen, const char *name, Node *top,
                 int linkage, int must_init)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     if (!top) {
         top = new Node();
@@ -78,8 +78,8 @@ addOpaqueStruct(Generator *gen, const char *name, Node *top,
     char buf[100];
     for (;;) {
         sprintf(buf, "__retain_struct_%d", index);
-        if (!gen->mod->getFunction(buf)) {
-            gen->mod->getOrInsertFunction(buf, ft);
+        if (!gen->units->top()->module->getFunction(buf)) {
+            gen->units->top()->module->getOrInsertFunction(buf, ft);
             break;
         }
         ++index;
@@ -93,7 +93,7 @@ FormStructParse(Generator *gen,
       Node *top,
       const char *name)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     anonstructcount++;
 

@@ -16,7 +16,7 @@ FormLiteralStructParse(Generator *gen,
       bool get_address,
       ParseResult *pr)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     Node *struct_list = n;
 

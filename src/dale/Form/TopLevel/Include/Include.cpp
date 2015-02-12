@@ -9,7 +9,7 @@ namespace dale
 bool
 FormTopLevelIncludeParse(Generator *gen, Node *node)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     if (!ctx->er->assertArgNums("include", node, 1, 1)) {
         return false;
@@ -86,13 +86,9 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
                           ctx->tr, gen->getUnit()->ee,
                           gen->units->top()->is_x86_64);
     gen->units->push(unit);
-    gen->ctx    = unit->ctx;
-    gen->mod    = unit->module;
-    gen->linker = unit->linker;
-    gen->prsr   = unit->parser;
     gen->current_once_tag.clear();
 
-    gen->ee->addModule(gen->mod);
+    gen->units->top()->ee->addModule(gen->units->top()->module);
     CommonDecl::addVarargsFunctions(unit);
 
     if (!gen->no_add_common_declarations) {
@@ -100,11 +96,11 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
             gen->getUnit()->addCommonDeclarations();
         } else {
             std::vector<const char*> import_forms;
-            gen->units->mr->run(ctx, gen->mod, nullNode(), "drt", &import_forms);
+            gen->units->mr->run(ctx, gen->units->top()->module, nullNode(), "drt", &import_forms);
         }
     }
 
-    gen->ctx->regetPointers(gen->mod);
+    gen->units->top()->ctx->regetPointers(gen->units->top()->module);
 
     return true;
 }

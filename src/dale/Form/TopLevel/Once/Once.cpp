@@ -14,7 +14,7 @@ bool
 FormTopLevelOnceParse(Generator *gen,
            Node *top)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     if (!ctx->er->assertArgNums("once", top, 1, 1)) {
         return false;
@@ -43,10 +43,7 @@ FormTopLevelOnceParse(Generator *gen,
         }
         gen->units->pop();
         Unit *unit = gen->units->top();
-        gen->ctx    = unit->ctx;
-        gen->mod    = unit->module;
-        gen->linker = unit->linker;
-        gen->prsr   = unit->parser;
+        gen->units->top()->ctx    = unit->ctx;
         gen->current_once_tag.clear();
         gen->current_once_tag = unit->once_tag;
     }

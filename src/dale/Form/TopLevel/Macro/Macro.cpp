@@ -13,7 +13,7 @@ namespace dale
 bool
 FormTopLevelMacroParse(Generator *gen, Node *node)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     Node *top = node->list->at(2);
     const char *name = node->list->at(1)->token->str_value.c_str();
@@ -188,7 +188,7 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
                             linkage,
                             mc_args_internal);
 
-    if (gen->mod->getFunction(llvm::StringRef(new_name.c_str()))) {
+    if (gen->units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
         Error *e = new Error(
             ErrorInst::Generator::RedeclarationOfFunctionOrMacro,
             top,
@@ -199,7 +199,7 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
     }
 
     llvm::Constant *fnc =
-        gen->mod->getOrInsertFunction(
+        gen->units->top()->module->getOrInsertFunction(
             new_name.c_str(),
             ft
         );

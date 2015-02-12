@@ -24,7 +24,7 @@ namespace dale
 bool
 FormTopLevelInstParse(Generator *gen, Node *node)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     ctx->deleteAnonymousNamespaces();
     Node *top = node;
@@ -37,10 +37,7 @@ FormTopLevelInstParse(Generator *gen, Node *node)
         gen->units->pop();
         if (!gen->units->empty()) {
             Unit *unit = gen->units->top();
-            gen->ctx    = unit->ctx;
-            gen->mod    = unit->module;
-            gen->linker = unit->linker;
-            gen->prsr   = unit->parser;
+            gen->units->top()->ctx    = unit->ctx;
             gen->current_once_tag.clear();
             gen->current_once_tag = unit->once_tag;
             return 1;

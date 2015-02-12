@@ -332,7 +332,7 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
     sprintf(buf, "_gen%d", myn++);
     ctx->ns()->nameToSymbol(buf, &new_name);
 
-    if (gen->mod->getFunction(llvm::StringRef(new_name.c_str()))) {
+    if (gen->units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
                 "function already exists in module ('%s').\n",
                 new_name.c_str());
@@ -340,7 +340,7 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
     }
 
     llvm::Constant *fnc =
-        gen->mod->getOrInsertFunction(new_name.c_str(), ft);
+        gen->units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
     if (!fnc) {
         fprintf(stderr, "Internal error: unable to add "
                 "function ('%s') to module.\n",

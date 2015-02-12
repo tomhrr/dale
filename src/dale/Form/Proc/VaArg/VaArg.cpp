@@ -17,7 +17,7 @@ FormProcVaArgParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     assert(node->list && "must receive a list!");
 
@@ -57,7 +57,7 @@ FormProcVaArgParse(Generator *gen,
         return false;
     }
 
-    if (gen->is_x86_64) {
+    if (gen->units->top()->is_x86_64) {
         /*
             (See the AMD64 ABI draft of 13/01/2010 for more
             information, most of this is verbatim from there, it

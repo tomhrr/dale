@@ -15,7 +15,7 @@ namespace dale
 bool
 FormTopLevelEnumParse(Generator *gen, Node *node)
 {
-    Context *ctx = gen->ctx;
+    Context *ctx = gen->units->top()->ctx;
 
     Node *top = node->list->at(2);
     const char *name = node->list->at(1)->token->str_value.c_str();
@@ -247,7 +247,7 @@ FormTopLevelEnumParse(Generator *gen, Node *node)
                    ? Linkage::Extern
                    : Linkage::Intern;
 
-    BasicTypes::addEnum(ctx, gen->mod, &(gen->current_once_tag), ttt,
+    BasicTypes::addEnum(ctx, gen->units->top()->module, &(gen->current_once_tag), ttt,
                         enumtype, d_enumtype, flinkage);
 
     return true;
