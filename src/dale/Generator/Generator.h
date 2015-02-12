@@ -76,7 +76,6 @@ public:
     int prefunction_ctx_index;
    
     int getUnusedVarname(std::string *mystr);
-    std::map<std::string, std::vector<std::string>*> fn_by_args;
     Namespace *prefunction_ns;
 
     std::string current_once_tag;

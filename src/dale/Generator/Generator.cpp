@@ -330,7 +330,6 @@ int Generator::run(std::vector<const char *> *filenames,
     Context *ctx    = NULL;
     mod    = NULL;
     llvm::Linker *linker = NULL;
-    Parser *prsr  = NULL;
 
     while (iter != filenames->end()) {
         const char *filename = (*iter);
@@ -345,7 +344,6 @@ int Generator::run(std::vector<const char *> *filenames,
         ctx    = unit->ctx;
         mod    = unit->module;
         linker = unit->linker;
-        prsr  = unit->parser;
         current_once_tag.clear();
 
         llvm::Triple TheTriple(mod->getTargetTriple());

@@ -8,6 +8,7 @@
 using namespace dale;
 
 static int function_count = 0;
+std::map<std::string, std::vector<std::string>*> fn_by_args;
 
 bool
 makeTemporaryGlobalFunction(Generator *gen,
@@ -531,12 +532,12 @@ fn_2D_by_2D_args_2D_count(MContext *mc, DNode *form, const char *prefix)
     }
 
     std::map<std::string, std::vector<std::string>*>::iterator
-        b = g->fn_by_args.find(map_key),
-        e = g->fn_by_args.end();
+        b = fn_by_args.find(map_key),
+        e = fn_by_args.end();
     if (b != e) {
         std::vector<std::string>* fn_by_args_list = b->second;
         delete fn_by_args_list;
-        g->fn_by_args.erase(b);
+        fn_by_args.erase(b);
     }
 
     /* For each function that exists, see if it has an instance
@@ -565,7 +566,7 @@ fn_2D_by_2D_args_2D_count(MContext *mc, DNode *form, const char *prefix)
         }
     }
 
-    g->fn_by_args.insert(
+    fn_by_args.insert(
         std::pair<std::string, std::vector<std::string>*>(
             map_key,
             fn_by_args_list
@@ -606,8 +607,8 @@ fn_2D_by_2D_args_2D_name(MContext *mc, DNode *form, int index)
     }
 
     std::map<std::string, std::vector<std::string>*>::iterator
-        b = g->fn_by_args.find(map_key),
-        e = g->fn_by_args.end();
+        b = fn_by_args.find(map_key),
+        e = fn_by_args.end();
     if (b == e) {
         return NULL;
     }
