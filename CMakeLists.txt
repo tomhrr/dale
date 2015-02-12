@@ -271,7 +271,8 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Operation/Destruct/Destruct.cpp
                       src/dale/Operation/Copy/Copy.cpp
                       src/dale/Operation/CloseScope/CloseScope.cpp
-                      src/dale/Form/Argument/Argument.cpp)
+                      src/dale/Form/Argument/Argument.cpp
+                      src/dale/Module/Reader/Reader.cpp)
 set_target_properties (dalec PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS} -I.")
 set_target_properties (dalec PROPERTIES LINK_FLAGS "${DALEC_LINK_FLAGS} ${LLVM_LINK_FLAGS}")
 target_link_libraries (dalec ${LLVM_LIBS} ${DALEC_LINK_FLAGS})

@@ -300,11 +300,9 @@ int main(int argc, char **argv)
     Generator *g = new Generator();
     bool res;
 
+    std::vector<const char*> compile_libs_sv;
     for (j = 0; j < compile_lib_count; ++j) {
-        res = g->addLib(compile_libs[j], 0, 0);
-        if (!res) {
-            exit(1);
-        }
+        compile_libs_sv.push_back(compile_libs[j]);
     }
 
     for (j = 0; j < include_path_count; ++j) {
@@ -349,7 +347,8 @@ int main(int argc, char **argv)
                       produce, optlevel, remove_macros,
                       module_name, no_acd, &so_paths, no_strip,
                       static_mods_all, &vstatic_modules,
-                      &vcto_modules, enable_cto, debug, noalways);
+                      &vcto_modules, enable_cto, debug, noalways,
+                      &compile_libs_sv);
     if (!rest) {
         exit(1);
     }

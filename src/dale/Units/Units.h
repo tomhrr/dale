@@ -2,6 +2,7 @@
 #define DALE_UNITS
 
 #include "../Unit/Unit.h"
+#include "../Module/Reader/Reader.h"
 #include <stack>
 
 namespace dale
@@ -21,7 +22,13 @@ private:
     std::stack<Unit *> units;
 
 public:
-    Units();
+    /*! The module reader. */
+    Module::Reader *mr;
+
+    /*! Construct a new Units object.
+     *  @param mr A module reader.
+     */
+    Units(Module::Reader *mr);
     ~Units(void);
 
     /*! Get the unit at the top of the stack.

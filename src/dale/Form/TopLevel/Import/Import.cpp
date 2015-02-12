@@ -47,7 +47,8 @@ FormTopLevelImportParse(Generator *gen, Node *node)
         }
     }
 
-    int res = gen->addDaleModule(top, my_module_name, &import_forms);
+    int res =
+        gen->units->mr->run(ctx, gen->mod, top, my_module_name, &import_forms);
     if (!res) {
         Error *e = new Error(
             ErrorInst::Generator::UnableToLoadModule,

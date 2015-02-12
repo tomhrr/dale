@@ -4,8 +4,9 @@
 
 namespace dale
 {
-Units::Units()
+Units::Units(Module::Reader *mr)
 {
+    this->mr = mr;
 }
 
 Units::~Units(void)

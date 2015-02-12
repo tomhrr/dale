@@ -52,8 +52,6 @@ private:
     std::set<std::string> *cto_modules;
     int debug;
 
-    std::vector<std::string> *so_paths_g;
-
 public:
     int addIncludePath(char *filename);
     int addModulePath(char *filename);
@@ -72,9 +70,8 @@ public:
             std::vector<const char *> *cto_modules,
             int enable_cto,
             int debug,
-            int noalways);
-    bool addLib(const char *lib_path, int add_to_so_paths,
-                int add_nm_to_so_paths);
+            int noalways,
+            std::vector<const char*> *compile_libs_sv);
 
     int prefunction_ctx_index;
    
@@ -96,8 +93,6 @@ public:
     int inc_path_count;
     Units *units;
     Unit *getUnit(void);
-    int addDaleModule(Node *n, const char *module_name,
-                      std::vector<const char*> *import_forms);
     std::set<std::string> *included_once_tags;
     int cto;
     int has_defined_extern_macro;

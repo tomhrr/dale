@@ -100,7 +100,7 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
             gen->getUnit()->addCommonDeclarations();
         } else {
             std::vector<const char*> import_forms;
-            gen->addDaleModule(nullNode(), "drt", &import_forms);
+            gen->units->mr->run(ctx, gen->mod, nullNode(), "drt", &import_forms);
         }
     }
 
