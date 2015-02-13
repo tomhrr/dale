@@ -3,6 +3,7 @@
 
 #include "../Unit/Unit.h"
 #include "../Module/Reader/Reader.h"
+#include "../Namespace/Namespace.h"
 #include <stack>
 
 namespace dale
@@ -24,6 +25,9 @@ private:
 public:
     /*! The module reader. */
     Module::Reader *mr;
+    /*! The namespace immediately before the first namespace within
+     *  the function currently being processed. */
+    Namespace *prefunction_ns;
 
     /*! Construct a new Units object.
      *  @param mr A module reader.

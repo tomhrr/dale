@@ -31,7 +31,7 @@ FormFunctionParse(Generator *gen,
     }
 
     if (!is_anonymous) {
-        gen->prefunction_ns = ctx->ns();
+        gen->units->prefunction_ns = ctx->ns();
     }
 
     /* Ensure this isn't a no-override core form. */

@@ -70,11 +70,7 @@ public:
             std::vector<const char *> *include_paths_sv,
             std::vector<const char *> *module_paths_sv);
 
-    int prefunction_ctx_index;
-   
     int getUnusedVarname(std::string *mystr);
-    Namespace *prefunction_ns;
-
     std::string current_once_tag;
     llvm::ExecutionEngine *ee;
     bool no_add_common_declarations;

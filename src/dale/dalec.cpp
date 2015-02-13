@@ -298,7 +298,6 @@ int main(int argc, char **argv)
     }
 
     Generator *g = new Generator();
-    bool res;
 
     std::vector<const char*> compile_libs_sv;
     for (j = 0; j < compile_lib_count; ++j) {

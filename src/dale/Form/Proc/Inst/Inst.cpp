@@ -111,7 +111,7 @@ parseInternal(Generator *gen,
 
         std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
         std::vector<NSNode *> used_ns_nodes   = ctx->used_ns_nodes;
-        ctx->popUntilNamespace(gen->prefunction_ns);
+        ctx->popUntilNamespace(gen->units->prefunction_ns);
 
         char buf[255];
         sprintf(buf, "_anon_%d", anoncount++);
