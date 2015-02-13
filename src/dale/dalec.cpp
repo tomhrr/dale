@@ -305,24 +305,14 @@ int main(int argc, char **argv)
         compile_libs_sv.push_back(compile_libs[j]);
     }
 
+    std::vector<const char*> include_paths_sv;
     for (j = 0; j < include_path_count; ++j) {
-        res = g->addIncludePath(include_paths[j]);
-        if (!res) {
-            fprintf(stderr,
-                    "dalec: unable to add include path (%s).\n",
-                    include_paths[j]);
-            exit(1);
-        }
+        include_paths_sv.push_back(include_paths[j]);
     }
 
+    std::vector<const char*> module_paths_sv;
     for (j = 0; j < module_path_count; ++j) {
-        res = g->addModulePath(module_paths[j]);
-        if (!res) {
-            fprintf(stderr,
-                    "dalec: unable to add module path (%s).\n",
-                    module_paths[j]);
-            exit(1);
-        }
+        module_paths_sv.push_back(module_paths[j]);
     }
 
     std::vector<const char*> bc_files;
@@ -348,7 +338,8 @@ int main(int argc, char **argv)
                       module_name, no_acd, &so_paths, no_strip,
                       static_mods_all, &vstatic_modules,
                       &vcto_modules, enable_cto, debug, noalways,
-                      &compile_libs_sv);
+                      &compile_libs_sv, &include_paths_sv,
+                      &module_paths_sv);
     if (!rest) {
         exit(1);
     }

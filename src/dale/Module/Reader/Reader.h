@@ -28,6 +28,7 @@ public:
     std::vector<std::string> *so_paths; // so_paths_g
     std::set<std::string> included_modules; // included_modules
     std::set<std::string> included_once_tags; // included_once_tags
+    std::vector<const char*> *include_directory_paths; // inc_paths
 
     /*! Construct a new Module::Reader.
      *  @param module_directory_paths Module search paths.
@@ -36,7 +37,8 @@ public:
      *  This does not take ownership of any of its arguments.
      */
     Reader(std::vector<const char*> *module_directory_paths,
-           std::vector<std::string> *so_paths);
+           std::vector<std::string> *so_paths,
+           std::vector<const char*> *include_directory_paths);
     ~Reader();
 
 llvm::Module *

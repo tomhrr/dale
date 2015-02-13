@@ -32,11 +32,12 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
 
     std::string filename_buf(t->str_value.c_str());
 
-    /* Check if the file exists in the current directory, or in ./include.
-     * If it doesn't, go through each of the -I (inc_paths) directories.
-     * If it doesn't exist in any of them, check DALE_INCLUDE_PATH (set at
-     * compile time - used to be an environment variable).  Otherwise,
-     * print an error and return nothing. */
+    /* Check if the file exists in the current directory, or in
+     * ./include.  If it doesn't, go through each of the -I
+     * (include_directory_paths) directories.  If it doesn't exist in
+     * any of them, check DALE_INCLUDE_PATH (set at compile time -
+     * used to be an environment variable).  Otherwise, print an error
+     * and return nothing. */
 
     FILE *include_file = fopen(filename_buf.c_str(), "r");
 
@@ -46,12 +47,16 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
         filename_buf.append(t->str_value.c_str());
         include_file = fopen(filename_buf.c_str(), "r");
         if (!include_file) {
-            int mi;
-            for (mi = 0; mi < gen->inc_path_count; ++mi) {
+            std::vector<const char *> *idp =
+                gen->units->mr->include_directory_paths;
+            for (std::vector<const char*>::iterator b = idp->begin(),
+                                                    e = idp->end();
+                    b != e;
+                    ++b) {
                 filename_buf.clear();
-                filename_buf.append(gen->inc_paths[mi])
-                .append("/")
-                .append(t->str_value.c_str());
+                filename_buf.append(*b)
+                    .append("/")
+                    .append(t->str_value.c_str());
                 include_file = fopen(filename_buf.c_str(), "r");
                 if (include_file) {
                     break;

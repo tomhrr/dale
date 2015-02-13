@@ -116,9 +116,6 @@ int nesting = 0;
 
 std::vector<llvm::Value *> two_zero_indices;
 
-char *mod_paths[100];
-int mod_path_count = 0;
-
 static int var_count = 0;
 llvm::Module *mod;
 int Generator::getUnusedVarname(std::string *mystr)
@@ -137,8 +134,6 @@ int Generator::getUnusedVarname(std::string *mystr)
 Generator::Generator()
 {
     CoreForms::init();
-
-    inc_path_count = 0;
 
     llvm::InitializeNativeTarget();
     llvm::InitializeAllAsmPrinters();
@@ -171,18 +166,6 @@ Generator::~Generator()
     delete cto_modules;
     delete dtm_modules;
     delete dtm_nm_modules;
-}
-
-int Generator::addIncludePath(char *filename)
-{
-    inc_paths[inc_path_count++] = filename;
-    return 1;
-}
-
-int Generator::addModulePath(char *filename)
-{
-    mod_paths[mod_path_count++] = filename;
-    return 1;
 }
 
 void *myLFC(const std::string &name)
@@ -231,7 +214,9 @@ int Generator::run(std::vector<const char *> *filenames,
                    int enable_cto,
                    int mydebug,
                    int nodrt,
-                   std::vector<const char *> *compile_libs_sv)
+                   std::vector<const char *> *compile_libs_sv,
+                   std::vector<const char *> *include_paths_sv,
+                   std::vector<const char *> *module_paths_sv)
 {
     /* On OS X, SYSTEM_PROCESSOR is i386 even when the underlying
      * processor is x86-64, hence the extra check here. */
@@ -298,11 +283,7 @@ int Generator::run(std::vector<const char *> *filenames,
         }
     }
 
-    std::vector<const char*> mod_paths_sv;
-    for (int i = 0; i < mod_path_count; i++) {
-        mod_paths_sv.push_back(mod_paths[i]);
-    }
-    Module::Reader mr(&mod_paths_sv, so_paths);
+    Module::Reader mr(module_paths_sv, so_paths, include_paths_sv);
     for (std::vector<const char*>::iterator b = compile_libs_sv->begin(),
                                             e = compile_libs_sv->end();
             b != e;

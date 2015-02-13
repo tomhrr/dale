@@ -58,9 +58,11 @@ namespace dale
 namespace Module
 {
 Reader::Reader(std::vector<const char*> *module_directory_paths,
-               std::vector<std::string> *so_paths)
+               std::vector<std::string> *so_paths,
+               std::vector<const char*> *include_directory_paths)
 {
     this->module_directory_paths = module_directory_paths;
+    this->include_directory_paths = include_directory_paths;
     this->so_paths = so_paths;
 }
 

@@ -43,19 +43,14 @@ private:
     TypeRegister          *tr;
     ErrorReporter         *erep;
 
-
     std::map<std::string, llvm::Module*> *dtm_modules;
     std::map<std::string, std::string>   *dtm_nm_modules;
-
 
     std::set<std::string> *included_modules;
     std::set<std::string> *cto_modules;
     int debug;
 
 public:
-    int addIncludePath(char *filename);
-    int addModulePath(char *filename);
-
     Generator();
     ~Generator();
     int run(std::vector<const char *> *filenames,
@@ -71,7 +66,9 @@ public:
             int enable_cto,
             int debug,
             int noalways,
-            std::vector<const char*> *compile_libs_sv);
+            std::vector<const char *> *compile_libs_sv,
+            std::vector<const char *> *include_paths_sv,
+            std::vector<const char *> *module_paths_sv);
 
     int prefunction_ctx_index;
    
@@ -82,8 +79,6 @@ public:
     llvm::ExecutionEngine *ee;
     bool no_add_common_declarations;
     bool no_drt;
-    char *inc_paths[100];
-    int inc_path_count;
     Units *units;
     Unit *getUnit(void);
     std::set<std::string> *included_once_tags;
