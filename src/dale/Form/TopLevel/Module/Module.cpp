@@ -24,7 +24,7 @@ FormTopLevelModuleParse(Generator *gen, Node *node)
     Node *top = node;
     Context *ctx = gen->units->top()->ctx;
 
-    if (gen->module_name.size() > 0) {
+    if (gen->units->module_name.size() > 0) {
         fprintf(stderr, "Internal error: module name already set.\n");
         abort();
     }
@@ -104,9 +104,8 @@ FormTopLevelModuleParse(Generator *gen, Node *node)
         }
     }
 
-    gen->module_name = std::string("lib");
-    gen->module_name.append(my_module_name);
-    gen->set_module_name = 1;
+    gen->units->module_name = std::string("lib");
+    gen->units->module_name.append(my_module_name);
 
     return true;
 }

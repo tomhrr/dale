@@ -78,8 +78,6 @@ public:
     Unit *getUnit(void);
     std::set<std::string> *included_once_tags;
     int cto;
-    std::string module_name;
-    int set_module_name;
 };
 }
 

@@ -28,6 +28,8 @@ public:
     /*! The namespace immediately before the first namespace within
      *  the function currently being processed. */
     Namespace *prefunction_ns;
+    /*! The current module name. */
+    std::string module_name;
 
     /*! Construct a new Units object.
      *  @param mr A module reader.

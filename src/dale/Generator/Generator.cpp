@@ -143,7 +143,6 @@ Generator::Generator()
 
     included_once_tags = new std::set<std::string>;
     included_modules   = new std::set<std::string>;
-    set_module_name    = 0;
 
     dtm_modules     = new std::map<std::string, llvm::Module*>;
     dtm_nm_modules  = new std::map<std::string, std::string>;
@@ -243,42 +242,12 @@ int Generator::run(std::vector<const char *> *filenames,
         cto_modules->insert(std::string(*b));
     }
 
-    std::string under_module_name;
-    if (my_module_name) {
-        char *last = strrchr(my_module_name, '/');
-        if (!last) {
-            last = my_module_name;
-            under_module_name = std::string(last);
-        } else {
-            under_module_name = std::string(last + 1);
-        }
-        int diff = last - my_module_name;
-        module_name = std::string(my_module_name);
-        module_name.replace(diff + 1, 0, "lib");
-    }
-
-    if (filenames->size() == 0) {
-        return 0;
-    }
-
     llvm::Module *last_module = NULL;
 
     std::vector<const char *>::iterator iter =
         filenames->begin();
 
     erep = new ErrorReporter("");
-
-    if (under_module_name.length() > 0) {
-        if (!isValidModuleName(&under_module_name)) {
-            Error *e = new Error(
-                ErrorInst::Generator::InvalidModuleName,
-                NULL,
-                under_module_name.c_str()
-            );
-            erep->addError(e);
-            return 0;
-        }
-    }
 
     Module::Reader mr(module_paths_sv, so_paths, include_paths_sv);
     for (std::vector<const char*>::iterator b = compile_libs_sv->begin(),
@@ -308,6 +277,36 @@ int Generator::run(std::vector<const char *> *filenames,
     Context *ctx    = NULL;
     mod    = NULL;
     llvm::Linker *linker = NULL;
+
+    std::string under_module_name;
+    if (my_module_name) {
+        char *last = strrchr(my_module_name, '/');
+        if (!last) {
+            last = my_module_name;
+            under_module_name = std::string(last);
+        } else {
+            under_module_name = std::string(last + 1);
+        }
+        int diff = last - my_module_name;
+        units->module_name = std::string(my_module_name);
+        units->module_name.replace(diff + 1, 0, "lib");
+    }
+
+    if (filenames->size() == 0) {
+        return 0;
+    }
+
+    if (under_module_name.length() > 0) {
+        if (!isValidModuleName(&under_module_name)) {
+            Error *e = new Error(
+                ErrorInst::Generator::InvalidModuleName,
+                NULL,
+                under_module_name.c_str()
+            );
+            erep->addError(e);
+            return 0;
+        }
+    }
 
     while (iter != filenames->end()) {
         const char *filename = (*iter);
@@ -550,8 +549,8 @@ int Generator::run(std::vector<const char *> *filenames,
         }
     }
 
-    if (module_name.size() > 0) {
-        Module::Writer mw(module_name, ctx, mod, &PM,
+    if (units->module_name.size() > 0) {
+        Module::Writer mw(units->module_name, ctx, mod, &PM,
                           &(mr.included_once_tags),
                           &(mr.included_modules),
                           cto);
