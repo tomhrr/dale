@@ -261,16 +261,13 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
         return true;
     }
 
-    /* This is used later on when determining whether to remove
-     * all macro-related content from the linked module. If no
-     * extern macros have been defined (cf. declared), then all
-     * macro content should be removed, since it's not needed at
-     * runtime. This also allows createConstantMergePass to run,
-     * since it doesn't work if the macro content is not removed,
-     * for some reason. */
-    if (linkage == Linkage::Extern) {
-        gen->has_defined_extern_macro = 1;
-    }
+    /* Previously, Generator had a variable called
+     * has_defined_extern_macro, which was set here if the macro had
+     * extern scope.  Later, if that variable wasn't set,
+     * createConstantMergePass could be added to the pass list.  If
+     * problems are had later with that pass, the absence of that
+     * variable and associated behaviour probably have something to do
+     * with it.  */
 
     int error_count =
         ctx->er->getErrorTypeCount(ErrorType::Error);

@@ -78,7 +78,6 @@ public:
     Unit *getUnit(void);
     std::set<std::string> *included_once_tags;
     int cto;
-    int has_defined_extern_macro;
     std::string module_name;
     int set_module_name;
 };

@@ -152,8 +152,6 @@ Generator::Generator()
     STL::push_back2(&two_zero_indices,
                     nt->getLLVMZero(), nt->getLLVMZero());
 
-    has_defined_extern_macro = 0;
-
     cto_modules = new std::set<std::string>;
 }
 
@@ -229,7 +227,6 @@ int Generator::run(std::vector<const char *> *filenames,
 
     init_introspection_functions();
 
-    has_defined_extern_macro = 0;
     no_add_common_declarations = no_acd;
     no_drt = nodrt;
 
@@ -402,7 +399,6 @@ int Generator::run(std::vector<const char *> *filenames,
 
         if (remove_macros) {
             ctx->eraseLLVMMacros();
-            has_defined_extern_macro = 0;
         }
 
         if (dale::pool_free_fptr) {
@@ -514,7 +510,6 @@ int Generator::run(std::vector<const char *> *filenames,
 
     if (remove_macros) {
         ctx->eraseLLVMMacros();
-        has_defined_extern_macro = 0;
     }
 
     llvm::raw_fd_ostream temp(fileno(outfile), false);
