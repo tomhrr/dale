@@ -325,7 +325,6 @@ int Generator::run(std::vector<const char *> *filenames,
         ctx    = unit->ctx;
         mod    = unit->module;
         linker = unit->linker;
-        current_once_tag.clear();
 
         llvm::Triple TheTriple(mod->getTargetTriple());
         if (TheTriple.getTriple().empty()) {
@@ -393,7 +392,6 @@ int Generator::run(std::vector<const char *> *filenames,
                     ctx    = unit->ctx;
                     mod    = unit->module;
                     linker = unit->linker;
-                    current_once_tag = unit->once_tag;
                     continue;
                 }
                 break;

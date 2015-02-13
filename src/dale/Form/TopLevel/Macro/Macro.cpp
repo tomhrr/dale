@@ -250,8 +250,8 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
     if (!ctx->ns()->addFunction(name, dfn, top)) {
         return false;
     }
-    if (gen->current_once_tag.length() > 0) {
-        dfn->once_tag = gen->current_once_tag;
+    if (gen->units->top()->once_tag.length() > 0) {
+        dfn->once_tag = gen->units->top()->once_tag;
     }
 
     /* If the list has only three arguments, the macro is a

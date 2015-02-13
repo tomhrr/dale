@@ -367,8 +367,8 @@ FormFunctionParse(Generator *gen,
         }
     }
 
-    if (gen->current_once_tag.length() > 0) {
-        dfn->once_tag = gen->current_once_tag;
+    if (gen->units->top()->once_tag.length() > 0) {
+        dfn->once_tag = gen->units->top()->once_tag;
     }
 
     llvm::Constant *fnc =

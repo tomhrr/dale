@@ -714,7 +714,7 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
     var2->name.append(name);
     var2->type = r_type;
     var2->internal_name.append(new_name);
-    var2->once_tag = gen->current_once_tag;
+    var2->once_tag = gen->units->top()->once_tag;
     var2->linkage = linkage;
     int avres = ctx->ns()->addVariable(name, var2);
 

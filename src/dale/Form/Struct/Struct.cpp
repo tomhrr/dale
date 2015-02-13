@@ -42,7 +42,7 @@ addOpaqueStruct(Generator *gen, const char *name, Node *top,
     new_struct->is_opaque = 1;
     new_struct->linkage = linkage;
     new_struct->internal_name.append(name2.c_str());
-    new_struct->once_tag = gen->current_once_tag;
+    new_struct->once_tag = gen->units->top()->once_tag;
 
     if (!ctx->ns()->addStruct(name, new_struct)) {
         /* Only an error if there is not an existing struct. This

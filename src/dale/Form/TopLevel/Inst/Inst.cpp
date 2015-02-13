@@ -38,8 +38,8 @@ FormTopLevelInstParse(Generator *gen, Node *node)
         if (!gen->units->empty()) {
             Unit *unit = gen->units->top();
             gen->units->top()->ctx    = unit->ctx;
-            gen->current_once_tag.clear();
-            gen->current_once_tag = unit->once_tag;
+            gen->units->top()->once_tag.clear();
+            gen->units->top()->once_tag = unit->once_tag;
             return 1;
         }
         return false;

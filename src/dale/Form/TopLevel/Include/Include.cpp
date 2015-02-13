@@ -91,7 +91,7 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
                           ctx->tr, gen->getUnit()->ee,
                           gen->units->top()->is_x86_64);
     gen->units->push(unit);
-    gen->current_once_tag.clear();
+    gen->units->top()->once_tag.clear();
 
     gen->units->top()->ee->addModule(gen->units->top()->module);
     CommonDecl::addVarargsFunctions(unit);

@@ -71,7 +71,6 @@ public:
             std::vector<const char *> *module_paths_sv);
 
     int getUnusedVarname(std::string *mystr);
-    std::string current_once_tag;
     llvm::ExecutionEngine *ee;
     bool no_add_common_declarations;
     bool no_drt;

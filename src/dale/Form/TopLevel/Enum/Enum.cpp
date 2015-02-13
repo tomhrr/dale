@@ -73,7 +73,7 @@ FormTopLevelEnumParse(Generator *gen, Node *node)
     }
 
     Enum *enm = new Enum();
-    enm->once_tag = gen->current_once_tag;
+    enm->once_tag = gen->units->top()->once_tag;
     enm->linkage = linkage;
 
     std::vector<Node *>::iterator iter =
@@ -188,7 +188,7 @@ FormTopLevelEnumParse(Generator *gen, Node *node)
 
     Struct *enum_str = new Struct();
     enum_str->addMember("_enum_value", enumtype);
-    enum_str->once_tag = gen->current_once_tag;
+    enum_str->once_tag = gen->units->top()->once_tag;
     enum_str->linkage =
         (linkage == EnumLinkage::Extern) ? StructLinkage::Extern
         : StructLinkage::Intern;
@@ -247,7 +247,7 @@ FormTopLevelEnumParse(Generator *gen, Node *node)
                    ? Linkage::Extern
                    : Linkage::Intern;
 
-    BasicTypes::addEnum(ctx, gen->units->top()->module, &(gen->current_once_tag), ttt,
+    BasicTypes::addEnum(ctx, gen->units->top()->module, &(gen->units->top()->once_tag), ttt,
                         enumtype, d_enumtype, flinkage);
 
     return true;

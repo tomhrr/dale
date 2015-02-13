@@ -44,11 +44,11 @@ FormTopLevelOnceParse(Generator *gen,
         gen->units->pop();
         Unit *unit = gen->units->top();
         gen->units->top()->ctx    = unit->ctx;
-        gen->current_once_tag.clear();
-        gen->current_once_tag = unit->once_tag;
+        gen->units->top()->once_tag.clear();
+        gen->units->top()->once_tag = unit->once_tag;
     }
     gen->included_once_tags->insert(once_tag);
-    gen->current_once_tag = once_tag;
+    gen->units->top()->once_tag = once_tag;
     gen->units->top()->setOnceTag(once_tag);
 
     return true;
