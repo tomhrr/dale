@@ -77,7 +77,6 @@ public:
     Units *units;
     Unit *getUnit(void);
     std::set<std::string> *included_once_tags;
-    int cto;
 };
 }
 

@@ -231,8 +231,6 @@ int Generator::run(std::vector<const char *> *filenames,
 
     debug = mydebug;
 
-    cto = enable_cto;
-
     cto_modules->clear();
     for (std::vector<const char*>::iterator
             b = mycto_modules->begin(),
@@ -274,6 +272,7 @@ int Generator::run(std::vector<const char *> *filenames,
     }
 
     units = new Units(&mr);
+    units->cto = enable_cto;
     Context *ctx    = NULL;
     mod    = NULL;
     llvm::Linker *linker = NULL;
@@ -553,7 +552,7 @@ int Generator::run(std::vector<const char *> *filenames,
         Module::Writer mw(units->module_name, ctx, mod, &PM,
                           &(mr.included_once_tags),
                           &(mr.included_modules),
-                          cto);
+                          units->cto);
         mw.run();
     } else {
         int rgp = 1;

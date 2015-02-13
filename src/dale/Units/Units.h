@@ -30,6 +30,8 @@ public:
     Namespace *prefunction_ns;
     /*! The current module name. */
     std::string module_name;
+    /*! Whether the module being compiled is a compile-time-only module. */
+    bool cto;
 
     /*! Construct a new Units object.
      *  @param mr A module reader.

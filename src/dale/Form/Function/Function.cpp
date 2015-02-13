@@ -105,7 +105,7 @@ FormFunctionParse(Generator *gen,
         ++next_index;
     }
 
-    if (gen->cto) {
+    if (gen->units->cto) {
         my_cto = 1;
     }
 

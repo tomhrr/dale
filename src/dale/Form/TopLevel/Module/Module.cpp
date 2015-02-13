@@ -92,7 +92,7 @@ FormTopLevelModuleParse(Generator *gen, Node *node)
                 return false;
             }
             if (!((*b)->token->str_value.compare("cto"))) {
-                gen->cto = 1;
+                gen->units->cto = true;
             } else {
                 Error *e = new Error(
                     ErrorInst::Generator::InvalidAttribute,
