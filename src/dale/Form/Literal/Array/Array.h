@@ -8,7 +8,7 @@
 
 namespace dale {
 bool
-FormLiteralArrayParse(Generator *gen,
+FormLiteralArrayParse(Units *units,
       Function *dfn,
       llvm::BasicBlock *block,
       Node *n,

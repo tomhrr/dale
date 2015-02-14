@@ -6,7 +6,7 @@
 
 namespace dale
 {
-class Generator;
+class Units;
 
 /*! FunctionProcessor
 
@@ -15,9 +15,9 @@ class Generator;
 class FunctionProcessor
 {
 public:
-    Generator *gen;
+    Units *units;
 
-    FunctionProcessor(Generator *gen);
+    FunctionProcessor(Units *units);
     ~FunctionProcessor();
 
     bool parseFuncallInternal(

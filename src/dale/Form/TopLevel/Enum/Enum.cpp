@@ -13,9 +13,9 @@
 namespace dale
 {
 bool
-FormTopLevelEnumParse(Generator *gen, Node *node)
+FormTopLevelEnumParse(Units *units, Node *node)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     Node *top = node->list->at(2);
     const char *name = node->list->at(1)->token->str_value.c_str();
@@ -40,7 +40,7 @@ FormTopLevelEnumParse(Generator *gen, Node *node)
 
     Node *enumtypen = (*lst)[2];
 
-    Type *enumtype = FormTypeParse(gen, enumtypen, false, false);
+    Type *enumtype = FormTypeParse(units, enumtypen, false, false);
     if (!enumtype) {
         return false;
     }
@@ -73,7 +73,7 @@ FormTopLevelEnumParse(Generator *gen, Node *node)
     }
 
     Enum *enm = new Enum();
-    enm->once_tag = gen->units->top()->once_tag;
+    enm->once_tag = units->top()->once_tag;
     enm->linkage = linkage;
 
     std::vector<Node *>::iterator iter =
@@ -103,7 +103,7 @@ FormTopLevelEnumParse(Generator *gen, Node *node)
                 return false;
             }
         } else {
-            n = gen->units->top()->mp->parseOptionalMacroCall(n);
+            n = units->top()->mp->parseOptionalMacroCall(n);
             if (!n) {
                 return false;
             }
@@ -188,7 +188,7 @@ FormTopLevelEnumParse(Generator *gen, Node *node)
 
     Struct *enum_str = new Struct();
     enum_str->addMember("_enum_value", enumtype);
-    enum_str->once_tag = gen->units->top()->once_tag;
+    enum_str->once_tag = units->top()->once_tag;
     enum_str->linkage =
         (linkage == EnumLinkage::Extern) ? StructLinkage::Extern
         : StructLinkage::Intern;
@@ -247,7 +247,7 @@ FormTopLevelEnumParse(Generator *gen, Node *node)
                    ? Linkage::Extern
                    : Linkage::Intern;
 
-    BasicTypes::addEnum(ctx, gen->units->top()->module, &(gen->units->top()->once_tag), ttt,
+    BasicTypes::addEnum(ctx, units->top()->module, &(units->top()->once_tag), ttt,
                         enumtype, d_enumtype, flinkage);
 
     return true;

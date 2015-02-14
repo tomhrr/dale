@@ -14,7 +14,7 @@
 namespace dale
 {
 bool
-FormProcBodyParse(Generator *gen,
+FormProcBodyParse(Units *units,
       Node *n,
       Function *dfn,
       llvm::Function *fn,
@@ -22,14 +22,14 @@ FormProcBodyParse(Generator *gen,
       int is_anonymous,
       llvm::Value *return_value)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     symlist *lst = n->list;
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);
 
-    gen->units->top()->pushGlobalBlock(block);
+    units->top()->pushGlobalBlock(block);
 
     llvm::BasicBlock *next  = block;
     llvm::IRBuilder<> builder(block);
@@ -176,7 +176,7 @@ FormProcBodyParse(Generator *gen,
         }
         ParseResult p;
         bool res =
-            FormProcInstParse(gen, dfn, next, (*iter), false, false,
+            FormProcInstParse(units, dfn, next, (*iter), false, false,
             wanted_type, &p);
         if (!res) {
             /* Add an option to stop on first error, which would
@@ -484,7 +484,7 @@ finish:
 
     dfn->deferred_gotos.clear();
     dfn->labels.clear();
-    gen->units->top()->popGlobalBlock();
+    units->top()->popGlobalBlock();
 
     return res;
 }

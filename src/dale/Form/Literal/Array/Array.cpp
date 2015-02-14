@@ -5,7 +5,7 @@
 
 namespace dale {
 bool 
-FormLiteralArrayParse(Generator *gen,
+FormLiteralArrayParse(Units *units,
       Function *dfn,
       llvm::BasicBlock *block,
       Node *n,
@@ -15,7 +15,7 @@ FormLiteralArrayParse(Generator *gen,
       int *size,
       ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     Node *array_list = n;
 
@@ -39,7 +39,7 @@ FormLiteralArrayParse(Generator *gen,
         ParseResult *el = new ParseResult();
         bool res =
             FormProcInstParse(
-                gen,
+                units,
                 dfn,
                 block,
                 (*iter),

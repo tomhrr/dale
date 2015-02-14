@@ -8,7 +8,7 @@
 namespace dale
 {
 bool
-FormProcGotoParse(Generator *gen,
+FormProcGotoParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -16,7 +16,7 @@ FormProcGotoParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     assert(node->list && "parseGoto must receive a list!");
 

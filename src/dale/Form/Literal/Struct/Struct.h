@@ -7,7 +7,7 @@
 
 namespace dale {
 bool
-FormLiteralStructParse(Generator *gen,
+FormLiteralStructParse(Units *units,
       Function *dfn,
       llvm::BasicBlock *block,
       Node *n,

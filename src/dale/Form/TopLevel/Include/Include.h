@@ -6,7 +6,7 @@
 namespace dale
 {
 bool
-FormTopLevelIncludeParse(Generator *gen, Node *node);
+FormTopLevelIncludeParse(Units *units, Node *node);
 }
 
 #endif

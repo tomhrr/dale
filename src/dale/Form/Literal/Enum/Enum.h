@@ -8,7 +8,7 @@
 
 namespace dale {
 bool
-FormLiteralEnumParse(Generator *gen,
+FormLiteralEnumParse(Units *units,
       llvm::BasicBlock *block,
       Node *n,
       Enum *myenum,

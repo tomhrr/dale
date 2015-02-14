@@ -13,7 +13,7 @@ llvm::Type *llvm_type_dnode = NULL;
 llvm::Type *llvm_type_pdnode = NULL;
 
 llvm::Value *
-IntNodeToStaticDNode(Generator *gen,
+IntNodeToStaticDNode(Units *units,
                      Node *node,
                      llvm::Value *next_node)
 {
@@ -25,7 +25,7 @@ IntNodeToStaticDNode(Generator *gen,
 
     /* If it's one node, add the dnode. */
     std::string varname;
-    gen->units->top()->getUnusedVarname(&varname);
+    units->top()->getUnusedVarname(&varname);
 
     /* Add the variable to the module. */
 
@@ -34,10 +34,10 @@ IntNodeToStaticDNode(Generator *gen,
 
     llvm::GlobalVariable *var =
         llvm::cast<llvm::GlobalVariable>(
-            gen->units->top()->module->getOrInsertGlobal(varname.c_str(), llvm_type)
+            units->top()->module->getOrInsertGlobal(varname.c_str(), llvm_type)
         );
 
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
     var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
     std::vector<llvm::Constant *> constants;
@@ -66,7 +66,7 @@ IntNodeToStaticDNode(Generator *gen,
         = string_cache.find(t->str_value);
         if (f != string_cache.end()) {
             llvm::GlobalVariable *temp = f->second;
-            if (temp->getParent() == gen->units->top()->module) {
+            if (temp->getParent() == units->top()->module) {
                 svar2 = temp;
             }
         }
@@ -82,7 +82,7 @@ IntNodeToStaticDNode(Generator *gen,
                                          t->str_value.c_str(),
                                          true);
             std::string varname2;
-            gen->units->top()->getUnusedVarname(&varname2);
+            units->top()->getUnusedVarname(&varname2);
 
             Type *archar =
                 ctx->tr->getArrayType(ctx->tr->type_char,
@@ -90,7 +90,7 @@ IntNodeToStaticDNode(Generator *gen,
 
             svar2 =
                 llvm::cast<llvm::GlobalVariable>(
-                    gen->units->top()->module->getOrInsertGlobal(varname2.c_str(),
+                    units->top()->module->getOrInsertGlobal(varname2.c_str(),
                                            ctx->toLLVMType(archar, NULL, false))
                 );
 
@@ -136,7 +136,7 @@ IntNodeToStaticDNode(Generator *gen,
 
         while (list_iter != list->rend()) {
             llvm::Value *temp_value =
-                IntNodeToStaticDNode(gen, (*list_iter), sub_next_node);
+                IntNodeToStaticDNode(units, (*list_iter), sub_next_node);
             sub_next_node = temp_value;
             ++list_iter;
         }
@@ -214,7 +214,7 @@ IntNodeToStaticDNode(Generator *gen,
 }
 
 bool
-FormProcGetDNodesParse(Generator *gen,
+FormProcGetDNodesParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -222,7 +222,7 @@ FormProcGetDNodesParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     if (!llvm_type_dnode) {
         llvm::Type *dnode =
@@ -249,7 +249,7 @@ FormProcGetDNodesParse(Generator *gen,
         return false;
     }
 
-    llvm::Value *v = IntNodeToStaticDNode(gen, node->list->at(1), NULL);
+    llvm::Value *v = IntNodeToStaticDNode(units, node->list->at(1), NULL);
 
     llvm::IRBuilder<> builder(block);
 

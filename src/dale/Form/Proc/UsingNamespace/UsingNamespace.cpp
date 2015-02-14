@@ -8,7 +8,7 @@
 namespace dale
 {
 bool
-FormProcUsingNamespaceParse(Generator *gen,
+FormProcUsingNamespaceParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -16,7 +16,7 @@ FormProcUsingNamespaceParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     assert(node->list && "must receive a list!");
 
@@ -26,7 +26,7 @@ FormProcUsingNamespaceParse(Generator *gen,
 
     symlist *lst = node->list;
     Node *n2 = (*lst)[1];
-    n2 = gen->units->top()->mp->parseOptionalMacroCall(n2);
+    n2 = units->top()->mp->parseOptionalMacroCall(n2);
     if (!n2) {
         return false;
     }
@@ -57,7 +57,7 @@ FormProcUsingNamespaceParse(Generator *gen,
 
     pr->block = block;
     while (node_iter != lst->end()) {
-        bool res = FormProcInstParse(gen, 
+        bool res = FormProcInstParse(units, 
                        fn, pr->block, (*node_iter), get_address, 
                        false, NULL, pr
                    );

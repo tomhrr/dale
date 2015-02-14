@@ -4,7 +4,7 @@
 namespace dale
 {
 bool
-FormProcNewScopeParse(Generator *gen,
+FormProcNewScopeParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,

@@ -108,7 +108,7 @@ initialise(Context *ctx,
 }
 
 bool
-FormProcDefParse(Generator *gen,
+FormProcDefParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -116,7 +116,7 @@ FormProcDefParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     assert(node->list && "must receive a list!");
 
@@ -162,7 +162,7 @@ FormProcDefParse(Generator *gen,
     }
 
     if (!(nvar->token->str_value.compare("struct"))) {
-        FormStructParse(gen, ndef, name);
+        FormStructParse(units, ndef, name);
         pr->set(block, ctx->tr->type_int,
               llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
         return true;
@@ -236,7 +236,7 @@ FormProcDefParse(Generator *gen,
             p.block = block;
         } else {
             bool res =
-                FormProcInstParse(gen,
+                FormProcInstParse(units,
                     fn, block, last, get_address, false, NULL, &p
                 );
             if (!res) {
@@ -347,7 +347,7 @@ FormProcDefParse(Generator *gen,
         return true;
     } else {
         /* Parse the type. */
-        type = FormTypeParse(gen, (*newlist)[2], false, false);
+        type = FormTypeParse(units, (*newlist)[2], false, false);
         if (!type) {
             return false;
         }
@@ -451,7 +451,7 @@ FormProcDefParse(Generator *gen,
             p.block = block;
         } else {
             bool res =
-                FormProcInstParse(gen,
+                FormProcInstParse(units,
                     fn, block, last, get_address, false, type, &p
                 );
             if (!res) {

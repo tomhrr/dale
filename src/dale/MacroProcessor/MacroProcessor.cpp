@@ -21,9 +21,9 @@ typedef std::vector<Node*> symlist;
 llvm::Function *pool_free_fn;
 void (*pool_free_fptr)(MContext *);
 
-MacroProcessor::MacroProcessor(Generator *gen, Context *ctx, llvm::ExecutionEngine* ee)
+MacroProcessor::MacroProcessor(Units *units, Context *ctx, llvm::ExecutionEngine* ee)
 {
-    this->gen = gen;
+    this->units = units;
     this->ctx = ctx;
     this->ee = ee;
 }
@@ -33,7 +33,7 @@ MacroProcessor::~MacroProcessor()
 }
 
 static DNode *
-callmacro(int arg_count, void *gen, void *mac, DNode **dnodes,
+callmacro(int arg_count, void *units, void *mac, DNode **dnodes,
           MContext **mc_ptr)
 {
     ffi_type **args =
@@ -54,7 +54,7 @@ callmacro(int arg_count, void *gen, void *mac, DNode **dnodes,
     int actual_arg_count = arg_count - 1;
     mc->arg_count = actual_arg_count;
     mc->pool_node = pn;
-    mc->generator = gen;
+    mc->units = units;
 
     int i;
     for (i = 1; i < arg_count; i++) {
@@ -224,7 +224,7 @@ Node *MacroProcessor::parseMacroCall(Node *n,
 
     /* Cast it to the correct type. */
 
-    DNode* (*FP)(int arg_count, void *gen, void *mac_fn, DNode
+    DNode* (*FP)(int arg_count, void *units, void *mac_fn, DNode
     **dnodes, MContext **mcp) =
         (DNode* (*)(int, void*, void*, DNode**, MContext**))callmacro_fptr;
 
@@ -232,7 +232,7 @@ Node *MacroProcessor::parseMacroCall(Node *n,
 
     MContext *mcontext;
     DNode *mc_result_dnode = FP(myargs_count + 1,
-                                (void *) gen,
+                                (void *) units,
                                 (char *) actualmacro_fptr,
                                 myargs,
                                 &mcontext);
@@ -241,7 +241,7 @@ Node *MacroProcessor::parseMacroCall(Node *n,
 
     //fprintf(stderr, "MC result dnode: %s: %p\n", name, mc_result_dnode);
     Node *mc_result_node =
-        (mc_result_dnode) ? gen->units->top()->dnc->toNode(mc_result_dnode)
+        (mc_result_dnode) ? units->top()->dnc->toNode(mc_result_dnode)
                           : NULL;
 
     /* Free the pool node. */
@@ -332,7 +332,7 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
     sprintf(buf, "_gen%d", myn++);
     ctx->ns()->nameToSymbol(buf, &new_name);
 
-    if (gen->units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
+    if (units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
                 "function already exists in module ('%s').\n",
                 new_name.c_str());
@@ -340,7 +340,7 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
     }
 
     llvm::Constant *fnc =
-        gen->units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
+        units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
     if (!fnc) {
         fprintf(stderr, "Internal error: unable to add "
                 "function ('%s') to module.\n",
@@ -387,8 +387,8 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
 
     int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    gen->units->top()->pushGlobalFunction(dfn);
-    gen->units->top()->pushGlobalBlock(block);
+    units->top()->pushGlobalFunction(dfn);
+    units->top()->pushGlobalBlock(block);
 
     ctx->activateAnonymousNamespace();
 
@@ -398,7 +398,7 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
             ++b) {
         ParseResult mine;
         bool res =
-            FormProcInstParse(gen, dfn, block, *b, false, false, NULL,
+            FormProcInstParse(units, dfn, block, *b, false, false, NULL,
                               &mine);
 
         if (res) {
@@ -415,8 +415,8 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
 
     ctx->deactivateAnonymousNamespace();
 
-    gen->units->top()->popGlobalFunction();
-    gen->units->top()->popGlobalBlock();
+    units->top()->popGlobalFunction();
+    units->top()->popGlobalBlock();
 
     /* Remove the temporary function. */
     fn->eraseFromParent();

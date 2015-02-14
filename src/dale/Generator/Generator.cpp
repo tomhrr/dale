@@ -296,7 +296,7 @@ int Generator::run(std::vector<const char *> *filenames,
             abort();
         }
 
-        Unit *unit = new Unit(filename, this, erep, nt, tr, NULL,
+        Unit *unit = new Unit(filename, units, erep, nt, tr, NULL,
                               is_x86_64);
         units->push(unit);
         ctx    = unit->ctx;
@@ -373,7 +373,7 @@ int Generator::run(std::vector<const char *> *filenames,
                 }
                 break;
             }
-            FormTopLevelInstParse(this, top);
+            FormTopLevelInstParse(units, top);
             erep->flush();
         } while (1);
 

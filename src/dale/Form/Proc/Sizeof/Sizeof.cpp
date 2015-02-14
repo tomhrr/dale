@@ -11,7 +11,7 @@
 namespace dale
 {
 bool
-FormProcSizeofParse(Generator *gen,
+FormProcSizeofParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -19,7 +19,7 @@ FormProcSizeofParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     assert(node->list && "must receive a list!");
 
@@ -32,12 +32,12 @@ FormProcSizeofParse(Generator *gen,
     /* Get the type to which it is being cast. */
 
     Node *thing = (*lst)[1];
-    thing = gen->units->top()->mp->parseOptionalMacroCall(thing);
+    thing = units->top()->mp->parseOptionalMacroCall(thing);
     if (!thing) {
         return false;
     }
 
-    Type *type = FormTypeParse(gen, (*lst)[1], false, false);
+    Type *type = FormTypeParse(units, (*lst)[1], false, false);
 
     if (!type) {
         ctx->er->popLastError();
@@ -46,7 +46,7 @@ FormProcSizeofParse(Generator *gen,
 
         ParseResult expr_res;
         bool res =
-            FormProcInstParse(gen, 
+            FormProcInstParse(units, 
                 fn, block, (*lst)[1], true, false, NULL, &expr_res
             );
 
@@ -54,7 +54,7 @@ FormProcSizeofParse(Generator *gen,
             ctx->er->popErrors(error_count);
 
             bool res =
-                FormProcInstParse(gen, 
+                FormProcInstParse(units, 
                     fn, block, (*lst)[1], false, false, NULL, &expr_res
                 );
             if (!res) {

@@ -9,12 +9,12 @@
 namespace dale
 {
 llvm::Constant *
-parseStringLiteral(Generator *gen,
+parseStringLiteral(Units *units,
                    Type *type,
                    Node *top,
                    int *size)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     if (type->base_type == BaseType::Int) {
         if (!top->is_token) {
@@ -108,7 +108,7 @@ parseStringLiteral(Generator *gen,
 }
 
 bool
-FormProcTokenParse(Generator *gen,
+FormProcTokenParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -117,7 +117,7 @@ FormProcTokenParse(Generator *gen,
            Type *wanted_type,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
     NativeTypes *nt = ctx->nt;
     Type *type_char   = ctx->tr->type_char;
     Type *type_cchar  = ctx->tr->getConstType(type_char);
@@ -155,7 +155,7 @@ FormProcTokenParse(Generator *gen,
 
         bool res =
             FormLiteralEnumParse(
-                                gen, block, node,
+                                units, block, node,
                                 myenum2,
                                 wanted_type,
                                 myenumstruct2,
@@ -362,7 +362,7 @@ tryvar:
         /* Add the variable to the module. */
 
         int size = 0;
-        llvm::Constant *init = parseStringLiteral(gen, type_pcchar,
+        llvm::Constant *init = parseStringLiteral(units, type_pcchar,
                                                   node, &size);
         if (!init) {
             return false;
@@ -384,11 +384,11 @@ tryvar:
 
         std::string varname;
         llvm::GlobalVariable *var;
-        gen->units->top()->getUnusedVarname(&varname);
+        units->top()->getUnusedVarname(&varname);
 
         var =
             llvm::cast<llvm::GlobalVariable>(
-                gen->units->top()->module->getOrInsertGlobal(varname.c_str(),
+                units->top()->module->getOrInsertGlobal(varname.c_str(),
                                             llvm_type)
             );
 

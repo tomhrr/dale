@@ -5,7 +5,7 @@
 
 namespace dale
 {
-bool FormArgumentParse(Generator *gen,
+bool FormArgumentParse(Units *units,
             Variable *var,
             Node *top,
             bool allow_anon_structs,

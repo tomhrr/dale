@@ -12,9 +12,9 @@
 
 namespace dale
 {
-FunctionProcessor::FunctionProcessor(Generator *gen)
+FunctionProcessor::FunctionProcessor(Units *units)
 {
-    this->gen = gen;
+    this->units = units;
 }
 
 FunctionProcessor::~FunctionProcessor()
@@ -58,7 +58,7 @@ bool FunctionProcessor::parseFuncallInternal(
                 n,
                 "function pointer call", buf1, buf2
             );
-            gen->units->top()->ctx->er->addError(e);
+            units->top()->ctx->er->addError(e);
             return false;
         }
     } else {
@@ -73,7 +73,7 @@ bool FunctionProcessor::parseFuncallInternal(
                 n,
                 "function pointer call", buf1, buf2
             );
-            gen->units->top()->ctx->er->addError(e);
+            units->top()->ctx->er->addError(e);
             return false;
         }
     }
@@ -106,7 +106,7 @@ bool FunctionProcessor::parseFuncallInternal(
     }
     while (symlist_iter != lst->end()) {
         ParseResult p;
-        bool res = FormProcInstParse(gen, 
+        bool res = FormProcInstParse(units, 
             dfn, block, (*symlist_iter), getAddress, false, NULL, &p,
             true
         );
@@ -122,8 +122,8 @@ bool FunctionProcessor::parseFuncallInternal(
                 && (!(p.type->isEqualTo((*param_iter), 1)))
                 && ((*param_iter)->base_type != BaseType::VarArgs)) {
             ParseResult coerce;
-            bool coerce_result = Operation::Coerce(gen->units->top()->ctx, block,
-                                               p.getValue(gen->units->top()->ctx),
+            bool coerce_result = Operation::Coerce(units->top()->ctx, block,
+                                               p.getValue(units->top()->ctx),
                                                p.type,
                                                (*param_iter),
                                                &coerce);
@@ -143,14 +143,14 @@ bool FunctionProcessor::parseFuncallInternal(
                     "function pointer call",
                     twant.c_str(), buf, tgot.c_str()
                 );
-                gen->units->top()->ctx->er->addError(e);
+                units->top()->ctx->er->addError(e);
                 return false;
             } else {
                 args_cast = true;
                 call_args.push_back(new_val);
             }
         } else {
-            call_args.push_back(p.getValue(gen->units->top()->ctx));
+            call_args.push_back(p.getValue(units->top()->ctx));
         }
 
         ++symlist_iter;
@@ -189,24 +189,24 @@ bool FunctionProcessor::parseFuncallInternal(
                     ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
                     call_arg_nodes.at(i)
                 );
-                gen->units->top()->ctx->er->addError(e);
+                units->top()->ctx->er->addError(e);
                 return false;
             }
-            bool res = arg_refpr->getAddressOfValue(gen->units->top()->ctx, &refpr);
+            bool res = arg_refpr->getAddressOfValue(units->top()->ctx, &refpr);
             if (!res) {
                 return false;
             }
-            call_args_final[i] = refpr.getValue(gen->units->top()->ctx);
+            call_args_final[i] = refpr.getValue(units->top()->ctx);
         } else {
             /* If arguments had to be cast, then skip the copies,
              * here. (todo: do the casting after this part, instead.)
              * */
             if (!args_cast) {
-                bool res = Operation::Copy(gen->units->top()->ctx, dfn, arg_refpr, arg_refpr);
+                bool res = Operation::Copy(units->top()->ctx, dfn, arg_refpr, arg_refpr);
                 if (!res) {
                     return false;
                 }
-                call_args_final[i] = arg_refpr->getValue(gen->units->top()->ctx);
+                call_args_final[i] = arg_refpr->getValue(units->top()->ctx);
             }
         }
     }
@@ -221,7 +221,7 @@ bool FunctionProcessor::parseFuncallInternal(
 
     fn_ptr->block = pr->block;
     ParseResult temp;
-    bool res = Operation::Destruct(gen->units->top()->ctx, fn_ptr, &temp);
+    bool res = Operation::Destruct(units->top()->ctx, fn_ptr, &temp);
     if (!res) {
         return false;
     }
@@ -246,7 +246,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
             ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
             n
         );
-        gen->units->top()->ctx->er->addError(e);
+        units->top()->ctx->er->addError(e);
         return false;
     }
 
@@ -259,7 +259,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
             ErrorInst::Generator::FirstListElementMustBeAtom,
             nfn_name
         );
-        gen->units->top()->ctx->er->addError(e);
+        units->top()->ctx->er->addError(e);
         return false;
     }
 
@@ -270,7 +270,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
             ErrorInst::Generator::FirstListElementMustBeSymbol,
             nfn_name
         );
-        gen->units->top()->ctx->er->addError(e);
+        units->top()->ctx->er->addError(e);
         return false;
     }
 
@@ -289,8 +289,8 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
     if (!strcmp(name, "setf")) {
         /* Add a bool argument and type to the front of the
          * function call. */
-        call_arg_types.push_back(gen->units->top()->ctx->tr->type_bool);
-        call_args.push_back(gen->units->top()->ctx->nt->getLLVMFalse());
+        call_arg_types.push_back(units->top()->ctx->tr->type_bool);
+        call_args.push_back(units->top()->ctx->nt->getLLVMFalse());
     }
 
     symlist_iter = lst->begin();
@@ -302,13 +302,13 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
      * not overloaded, because that will give the greatest benefits.
      * */
 
-    if (!gen->units->top()->ctx->isOverloadedFunction(t->str_value.c_str())) {
+    if (!units->top()->ctx->isOverloadedFunction(t->str_value.c_str())) {
         std::map<std::string, std::vector<Function *> *>::iterator
             iter;
         Function *fn = NULL;
         for (std::vector<NSNode *>::reverse_iterator
-                rb = gen->units->top()->ctx->used_ns_nodes.rbegin(),
-                re = gen->units->top()->ctx->used_ns_nodes.rend();
+                rb = units->top()->ctx->used_ns_nodes.rbegin(),
+                re = units->top()->ctx->used_ns_nodes.rend();
                 rb != re;
                 ++rb) {
             iter = (*rb)->ns->functions.find(name);
@@ -325,7 +325,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
             std::vector<Variable*>::iterator
                 b = (fn->parameter_types.begin() + 1);
             if ((b == fn->parameter_types.end())
-                    || (*b)->type->isEqualTo(gen->units->top()->ctx->tr->type_pdnode)) {
+                    || (*b)->type->isEqualTo(units->top()->ctx->tr->type_pdnode)) {
                 bool use = false;
                 int size = lst->size();
                 if (fn->isVarArgs()) {
@@ -357,20 +357,20 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
     int current_dgcount = dfn->deferred_gotos.size();
     std::map<std::string, Label *> labels = dfn->labels;
     llvm::BasicBlock *original_block = block;
-    ContextSavePoint *csp = new ContextSavePoint(gen->units->top()->ctx);
+    ContextSavePoint *csp = new ContextSavePoint(units->top()->ctx);
 
     while (symlist_iter != lst->end()) {
         call_arg_nodes.push_back(*symlist_iter);
         int error_count =
-            gen->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
+            units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
         ParseResult p;
         bool res = 
-            FormProcInstParse(gen, dfn, block, (*symlist_iter),
+            FormProcInstParse(units, dfn, block, (*symlist_iter),
                                     false, false, NULL,
                                     &p, true);
 
-        int diff = gen->units->top()->ctx->er->getErrorTypeCount(ErrorType::Error)
+        int diff = units->top()->ctx->er->getErrorTypeCount(ErrorType::Error)
                    - error_count;
 
         if (!res || diff) {
@@ -380,14 +380,14 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
 
             if (diff) {
                 errors.insert(errors.end(),
-                              gen->units->top()->ctx->er->errors.begin() + error_count,
-                              gen->units->top()->ctx->er->errors.end());
-                gen->units->top()->ctx->er->errors.erase(gen->units->top()->ctx->er->errors.begin() + error_count,
-                                    gen->units->top()->ctx->er->errors.end());
+                              units->top()->ctx->er->errors.begin() + error_count,
+                              units->top()->ctx->er->errors.end());
+                units->top()->ctx->er->errors.erase(units->top()->ctx->er->errors.begin() + error_count,
+                                    units->top()->ctx->er->errors.end());
             }
 
             call_args.push_back(NULL);
-            call_arg_types.push_back(gen->units->top()->ctx->tr->type_pdnode);
+            call_arg_types.push_back(units->top()->ctx->tr->type_pdnode);
             ++symlist_iter;
             continue;
         }
@@ -397,7 +397,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
             p = ParseResult(block, p.type_of_address_of_value,
                             p.address_of_value);
         }
-        call_args.push_back(p.getValue(gen->units->top()->ctx));
+        call_args.push_back(p.getValue(units->top()->ctx));
         call_arg_types.push_back(p.type);
         call_arg_prs.push_back(p);
 
@@ -410,7 +410,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
     Function *closest_fn = NULL;
 
     Function *fn =
-        gen->units->top()->ctx->getFunction(t->str_value.c_str(),
+        units->top()->ctx->getFunction(t->str_value.c_str(),
                          &call_arg_types,
                          &closest_fn,
                          0);
@@ -478,7 +478,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
                 e = errors.rend();
                 b != e;
                 ++b) {
-            gen->units->top()->ctx->er->addError(*b);
+            units->top()->ctx->er->addError(*b);
         }
         return false;
     }
@@ -498,18 +498,18 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
                     e = errors.rend();
                     b != e;
                     ++b) {
-                gen->units->top()->ctx->er->addError(*b);
+                units->top()->ctx->er->addError(*b);
             }
             return false;
         }
 
-        if (gen->units->top()->ctx->existsExternCFunction(t->str_value.c_str())) {
+        if (units->top()->ctx->existsExternCFunction(t->str_value.c_str())) {
             /* The function name is not overloaded. */
             /* Get this single function, try to cast each integral
              * call_arg to the expected type. If that succeeds
              * without error, then keep going. */
 
-            fn = gen->units->top()->ctx->getFunction(t->str_value.c_str(),
+            fn = units->top()->ctx->getFunction(t->str_value.c_str(),
                                   NULL, NULL, 0);
 
             std::vector<Variable *> myarg_types =
@@ -559,7 +559,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
                     provided_args.c_str(),
                     expected_args.c_str()
                 );
-                gen->units->top()->ctx->er->addError(e);
+                units->top()->ctx->er->addError(e);
                 return false;
             }
             if (!fn->isVarArgs()
@@ -571,7 +571,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
                     provided_args.c_str(),
                     expected_args.c_str()
                 );
-                gen->units->top()->ctx->er->addError(e);
+                units->top()->ctx->er->addError(e);
                 return false;
             }
 
@@ -595,7 +595,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
                         provided_args.c_str(),
                         expected_args.c_str()
                     );
-                    gen->units->top()->ctx->er->addError(e);
+                    units->top()->ctx->er->addError(e);
                     return false;
                 }
                 if (!(*caiter)->isIntegerType()
@@ -607,12 +607,12 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
                         provided_args.c_str(),
                         expected_args.c_str()
                     );
-                    gen->units->top()->ctx->er->addError(e);
+                    units->top()->ctx->er->addError(e);
                     return false;
                 }
 
                 ParseResult mytemp;
-                bool res = Operation::Cast(gen->units->top()->ctx, block,
+                bool res = Operation::Cast(units->top()->ctx, block,
                            (*citer),
                            (*caiter),
                            (*miter)->type,
@@ -627,11 +627,11 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
                         provided_args.c_str(),
                         expected_args.c_str()
                     );
-                    gen->units->top()->ctx->er->addError(e);
+                    units->top()->ctx->er->addError(e);
                     return false;
                 }
                 block = mytemp.block;
-                call_args_newer.push_back(mytemp.getValue(gen->units->top()->ctx));
+                call_args_newer.push_back(mytemp.getValue(units->top()->ctx));
                 call_arg_types_newer.push_back(mytemp.type);
 
                 ++miter;
@@ -642,13 +642,13 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
             call_args = call_args_newer;
             call_arg_types = call_arg_types_newer;
             args_cast = true;
-        } else if (gen->units->top()->ctx->existsNonExternCFunction(t->str_value.c_str())) {
+        } else if (units->top()->ctx->existsNonExternCFunction(t->str_value.c_str())) {
             /* Return a no-op ParseResult if the function name is
              * 'destroy', because it's tedious to have to check in
              * generic code whether a particular value can be
              * destroyed or not. */
             if (!t->str_value.compare("destroy")) {
-                pr->set(block, gen->units->top()->ctx->tr->type_void, NULL);
+                pr->set(block, units->top()->ctx->tr->type_void, NULL);
                 return true;
             }
 
@@ -685,7 +685,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
                     t->str_value.c_str(), args.c_str(),
                     expected.c_str()
                 );
-                gen->units->top()->ctx->er->addError(e);
+                units->top()->ctx->er->addError(e);
                 return false;
             } else {
                 Error *e = new Error(
@@ -693,7 +693,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
                     n,
                     t->str_value.c_str(), args.c_str()
                 );
-                gen->units->top()->ctx->er->addError(e);
+                units->top()->ctx->er->addError(e);
                 return false;
             }
         } else {
@@ -702,7 +702,7 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
                 n,
                 t->str_value.c_str()
             );
-            gen->units->top()->ctx->er->addError(e);
+            units->top()->ctx->er->addError(e);
             return false;
         }
     }
@@ -735,30 +735,30 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
                         llvm::Type::getDoubleTy(llvm::getGlobalContext())
                     );
                 (*call_arg_types_iter) =
-                    gen->units->top()->ctx->tr->type_double;
+                    units->top()->ctx->tr->type_double;
             } else if ((*call_arg_types_iter)->isIntegerType()) {
                 int real_size =
-                    gen->units->top()->ctx->nt->internalSizeToRealSize(
+                    units->top()->ctx->nt->internalSizeToRealSize(
                         (*call_arg_types_iter)->getIntegerSize()
                     );
 
-                if (real_size < gen->units->top()->ctx->nt->getNativeIntSize()) {
+                if (real_size < units->top()->ctx->nt->getNativeIntSize()) {
                     if ((*call_arg_types_iter)->isSignedIntegerType()) {
                         /* Target integer is signed - use sext. */
                         (*call_args_iter) =
                             builder.CreateSExt((*call_args_iter),
-                                               gen->units->top()->ctx->toLLVMType(
-                                                    gen->units->top()->ctx->tr->type_int,
+                                               units->top()->ctx->toLLVMType(
+                                                    units->top()->ctx->tr->type_int,
                                                               NULL, false));
-                        (*call_arg_types_iter) = gen->units->top()->ctx->tr->type_int;
+                        (*call_arg_types_iter) = units->top()->ctx->tr->type_int;
                     } else {
                         /* Target integer is not signed - use zext. */
                         (*call_args_iter) =
                             builder.CreateZExt((*call_args_iter),
-                                               gen->units->top()->ctx->toLLVMType(
-                                                    gen->units->top()->ctx->tr->type_uint,
+                                               units->top()->ctx->toLLVMType(
+                                                    units->top()->ctx->tr->type_uint,
                                                               NULL, false));
-                        (*call_arg_types_iter) = gen->units->top()->ctx->tr->type_uint;
+                        (*call_arg_types_iter) = units->top()->ctx->tr->type_uint;
                     }
                 }
             }
@@ -784,24 +784,24 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
                     ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
                     call_arg_nodes.at(i)
                 );
-                gen->units->top()->ctx->er->addError(e);
+                units->top()->ctx->er->addError(e);
                 return false;
             }
-            bool res = arg_refpr->getAddressOfValue(gen->units->top()->ctx, &refpr);
+            bool res = arg_refpr->getAddressOfValue(units->top()->ctx, &refpr);
             if (!res) {
                 return false;
             }
-            call_args_final[i] = refpr.getValue(gen->units->top()->ctx);
+            call_args_final[i] = refpr.getValue(units->top()->ctx);
         } else {
             /* If arguments had to be cast, then skip the copies,
              * here. (todo: do the casting after this part, instead.)
              * */
             if (!args_cast) {
-                bool res = Operation::Copy(gen->units->top()->ctx, dfn, arg_refpr, arg_refpr);
+                bool res = Operation::Copy(units->top()->ctx, dfn, arg_refpr, arg_refpr);
                 if (!res) {
                     return false;
                 }
-                call_args_final[i] = arg_refpr->getValue(gen->units->top()->ctx);
+                call_args_final[i] = arg_refpr->getValue(units->top()->ctx);
             }
         }
     }
@@ -837,7 +837,7 @@ void FunctionProcessor::processRetval(Type *return_type,
         if (!pr->retval) {
             llvm::IRBuilder<> builder(block);
             llvm::Type *et =
-                gen->units->top()->ctx->toLLVMType(return_type, NULL, false,
+                units->top()->ctx->toLLVMType(return_type, NULL, false,
                                 false);
             if (!et) {
                 return;
@@ -848,7 +848,7 @@ void FunctionProcessor::processRetval(Type *return_type,
                 );
             call_args->push_back(new_ptr);
             pr->retval = new_ptr;
-            pr->retval_type = gen->units->top()->ctx->tr->getPointerType(return_type);
+            pr->retval_type = units->top()->ctx->tr->getPointerType(return_type);
         } else {
             call_args->push_back(pr->retval);
         }

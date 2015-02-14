@@ -11,17 +11,17 @@
 namespace dale
 {
 bool
-FormTopLevelOnceParse(Generator *gen,
+FormTopLevelOnceParse(Units *units,
            Node *top)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("once", top, 1, 1)) {
         return false;
     }
     symlist *lst = top->list;
     Node *n = (*lst)[1];
-    n = gen->units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
@@ -31,9 +31,9 @@ FormTopLevelOnceParse(Generator *gen,
     const char *once_name = n->token->str_value.c_str();
     std::string once_tag(once_name);
 
-    if (gen->units->mr->included_once_tags.find(once_tag) !=
-            gen->units->mr->included_once_tags.end()) {
-        if (gen->units->size() == 1) {
+    if (units->mr->included_once_tags.find(once_tag) !=
+            units->mr->included_once_tags.end()) {
+        if (units->size() == 1) {
             Error *e = new Error(
                 ErrorInst::Generator::CannotOnceTheLastOpenFile,
                 n
@@ -41,15 +41,15 @@ FormTopLevelOnceParse(Generator *gen,
             ctx->er->addError(e);
             return false;
         }
-        gen->units->pop();
-        Unit *unit = gen->units->top();
-        gen->units->top()->ctx    = unit->ctx;
-        gen->units->top()->once_tag.clear();
-        gen->units->top()->once_tag = unit->once_tag;
+        units->pop();
+        Unit *unit = units->top();
+        units->top()->ctx    = unit->ctx;
+        units->top()->once_tag.clear();
+        units->top()->once_tag = unit->once_tag;
     }
-    gen->units->mr->included_once_tags.insert(once_tag);
-    gen->units->top()->once_tag = once_tag;
-    gen->units->top()->setOnceTag(once_tag);
+    units->mr->included_once_tags.insert(once_tag);
+    units->top()->once_tag = once_tag;
+    units->top()->setOnceTag(once_tag);
 
     return true;
 }

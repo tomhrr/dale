@@ -11,7 +11,7 @@
 namespace dale
 {
 bool
-FormProcCastParse(Generator *gen,
+FormProcCastParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -19,7 +19,7 @@ FormProcCastParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     assert(node->list && "must receive a list!");
 
@@ -33,7 +33,7 @@ FormProcCastParse(Generator *gen,
 
     ParseResult pr_value;
     bool res =
-        FormProcInstParse(gen, fn, block, (*lst)[1], false, 
+        FormProcInstParse(units, fn, block, (*lst)[1], false, 
                                     false, NULL,
                                     &pr_value);
 
@@ -45,7 +45,7 @@ FormProcCastParse(Generator *gen,
      * cast to a bitfield type, because there's no other way to
      * set a bitfield value.) */
 
-    Type *type = FormTypeParse(gen, (*lst)[2], false, true);
+    Type *type = FormTypeParse(units, (*lst)[2], false, true);
     if (!type) {
         return false;
     }

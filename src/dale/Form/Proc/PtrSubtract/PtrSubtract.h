@@ -4,7 +4,7 @@
 namespace dale
 {
 bool
-FormProcPtrSubtractParse(Generator *gen,
+FormProcPtrSubtractParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,

@@ -18,12 +18,12 @@ struct MContext
 {
     int      arg_count;
     PoolNode *pool_node;
-    void     *generator;
+    void     *units;
 };
 
 namespace dale
 {
-class Generator;
+class Units;
 
 extern llvm::Function *pool_free_fn;
 extern void (*pool_free_fptr)(MContext *);
@@ -35,11 +35,11 @@ extern void (*pool_free_fptr)(MContext *);
 class MacroProcessor
 {
 public:
-    Generator *gen;
+    Units *units;
     Context *ctx;
     llvm::ExecutionEngine *ee; 
     
-    MacroProcessor(Generator *gen, Context *ctx, llvm::ExecutionEngine* ee);
+    MacroProcessor(Units *units, Context *ctx, llvm::ExecutionEngine* ee);
     ~MacroProcessor();
 
     Node* parseMacroCall(Node *n,

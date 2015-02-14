@@ -10,7 +10,7 @@
 namespace dale
 {
 bool
-FormProcAddressOfParse(Generator *gen,
+FormProcAddressOfParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -18,7 +18,7 @@ FormProcAddressOfParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     assert(node->list && "parseAddressOf must receive a list!");
 
@@ -48,7 +48,7 @@ FormProcAddressOfParse(Generator *gen,
      * setf). (todo: this comment does not appear to be correct.) */
 
     bool res =
-        FormProcInstParse(gen, 
+        FormProcInstParse(units, 
             fn, block, (*lst)[1], false, false, NULL, pr
         );
 
@@ -96,7 +96,7 @@ FormProcAddressOfParse(Generator *gen,
                 ++iter;
                 ++iter;
                 while (iter != lst->end()) {
-                    Type *type = FormTypeParse(gen, (*iter),
+                    Type *type = FormTypeParse(units, (*iter),
                                                          false, false);
                     if (!type) {
                         return false;

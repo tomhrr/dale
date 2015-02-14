@@ -12,14 +12,14 @@
 
 namespace dale
 {
-bool FormArgumentParse(Generator *gen,
+bool FormArgumentParse(Units *units,
             Variable *var,
             Node *top,
             bool allow_anon_structs,
             bool allow_bitfields,
             bool allow_refs)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     var->linkage = Linkage::Auto;
 
@@ -94,7 +94,7 @@ bool FormArgumentParse(Generator *gen,
     var->name.clear();
     var->name.append(tname->str_value.c_str());
 
-    Type *type = FormTypeParse(gen, (*lst)[1], allow_anon_structs,
+    Type *type = FormTypeParse(units, (*lst)[1], allow_anon_structs,
                                     allow_bitfields, allow_refs);
     var->type = type;
 

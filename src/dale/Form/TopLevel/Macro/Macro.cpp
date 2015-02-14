@@ -11,9 +11,9 @@
 namespace dale
 {
 bool
-FormTopLevelMacroParse(Generator *gen, Node *node)
+FormTopLevelMacroParse(Units *units, Node *node)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     Node *top = node->list->at(2);
     const char *name = node->list->at(1)->token->str_value.c_str();
@@ -93,7 +93,7 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
     while (node_iter != args->end()) {
         if (!(*node_iter)->is_token) {
             var = new Variable();
-            FormArgumentParse(gen, var, (*node_iter), false, false, false);
+            FormArgumentParse(units, var, (*node_iter), false, false, false);
             if (!var->type) {
                 return false;
             }
@@ -188,7 +188,7 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
                             linkage,
                             mc_args_internal);
 
-    if (gen->units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
+    if (units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
         Error *e = new Error(
             ErrorInst::Generator::RedeclarationOfFunctionOrMacro,
             top,
@@ -199,7 +199,7 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
     }
 
     llvm::Constant *fnc =
-        gen->units->top()->module->getOrInsertFunction(
+        units->top()->module->getOrInsertFunction(
             new_name.c_str(),
             ft
         );
@@ -250,8 +250,8 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
     if (!ctx->ns()->addFunction(name, dfn, top)) {
         return false;
     }
-    if (gen->units->top()->once_tag.length() > 0) {
-        dfn->once_tag = gen->units->top()->once_tag;
+    if (units->top()->once_tag.length() > 0) {
+        dfn->once_tag = units->top()->once_tag;
     }
 
     /* If the list has only three arguments, the macro is a
@@ -275,9 +275,9 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;
 
-    gen->units->top()->pushGlobalFunction(dfn);
-    FormProcBodyParse(gen, top, dfn, fn, 3, 0);
-    gen->units->top()->popGlobalFunction();
+    units->top()->pushGlobalFunction(dfn);
+    FormProcBodyParse(units, top, dfn, fn, 3, 0);
+    units->top()->popGlobalFunction();
 
     ctx->deactivateNamespace(anon_name.c_str());
 

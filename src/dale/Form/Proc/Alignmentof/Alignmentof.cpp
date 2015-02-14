@@ -9,7 +9,7 @@
 namespace dale
 {
 bool
-FormProcAlignmentOfParse(Generator *gen,
+FormProcAlignmentOfParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -19,7 +19,7 @@ FormProcAlignmentOfParse(Generator *gen,
 {
     assert(node->list && "must receive a list!");
 
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("alignmentof", node, 1, 1)) {
         return false;
@@ -28,11 +28,11 @@ FormProcAlignmentOfParse(Generator *gen,
     symlist *lst = node->list;
 
     Node *mytype = (*lst)[1];
-    mytype = gen->units->top()->mp->parseOptionalMacroCall(mytype);
+    mytype = units->top()->mp->parseOptionalMacroCall(mytype);
     if (!mytype) {
         return false;
     }
-    Type *type = FormTypeParse(gen, mytype, false,
+    Type *type = FormTypeParse(units, mytype, false,
                                          false);
     if (!type) {
         return false;

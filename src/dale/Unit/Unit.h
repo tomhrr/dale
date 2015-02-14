@@ -18,7 +18,7 @@ namespace llvm {
 
 namespace dale
 {
-class Generator;
+class Units;
 
 /*! Unit
 
@@ -74,7 +74,7 @@ public:
      *  A new context and parser will be instantiated on construction,
      *  ownership of both being retained by the unit.
      */
-    Unit(const char *path, Generator *gen, ErrorReporter *er,
+    Unit(const char *path, Units *units, ErrorReporter *er,
          NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee,
          bool is_x86_64);
     ~Unit(void);

@@ -6,7 +6,7 @@
 
 namespace dale
 {
-Unit::Unit(const char *path, Generator *gen, ErrorReporter *er, NativeTypes *nt,
+Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
            TypeRegister *tr, llvm::ExecutionEngine *ee, bool is_x86_64)
 {
     FILE *mfp = fopen(path, "r");
@@ -19,8 +19,8 @@ Unit::Unit(const char *path, Generator *gen, ErrorReporter *er, NativeTypes *nt,
     dnc = new DNodeConverter(er);
 
     ctx = new Context(er, nt, tr);
-    mp = new MacroProcessor(gen, ctx, ee);
-    fp = new FunctionProcessor(gen);
+    mp = new MacroProcessor(units, ctx, ee);
+    fp = new FunctionProcessor(units);
 
     Lexer *lxr = new Lexer(mfp);
     parser = new Parser(lxr, er, path);

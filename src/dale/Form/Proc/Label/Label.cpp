@@ -7,7 +7,7 @@
 namespace dale
 {
 bool
-FormProcLabelParse(Generator *gen,
+FormProcLabelParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -15,7 +15,7 @@ FormProcLabelParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     assert(node->list && "parseLabel must receive a list!");
 

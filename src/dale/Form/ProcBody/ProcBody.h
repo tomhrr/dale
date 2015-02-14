@@ -6,7 +6,7 @@
 namespace dale
 {
 bool
-FormProcBodyParse(Generator *gen,
+FormProcBodyParse(Units *units,
       Node *n,
       Function *dfn,
       llvm::Function *fn,

@@ -10,7 +10,7 @@
 namespace dale
 {
 bool
-FormProcNewScopeParse(Generator *gen,
+FormProcNewScopeParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -18,7 +18,7 @@ FormProcNewScopeParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
     assert(node->list && "must receive a list!");
     if (!ctx->er->assertArgNums("new-scope", node, 1, -1)) {
         return false;
@@ -27,7 +27,7 @@ FormProcNewScopeParse(Generator *gen,
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;
 
-    bool success = FormProcDoParse(gen, fn, block, node,
+    bool success = FormProcDoParse(units, fn, block, node,
                                          get_address,
                                          prefixed_with_core,
                                          pr);

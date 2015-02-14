@@ -4,7 +4,7 @@
 
 namespace dale {
 bool 
-FormLiteralEnumParse(Generator *gen,
+FormLiteralEnumParse(Units *units,
       llvm::BasicBlock *block,
       Node *n,
       Enum *myenum,
@@ -13,7 +13,7 @@ FormLiteralEnumParse(Generator *gen,
       bool getAddress,
       ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     if (!n->is_token) {
         Error *e = new Error(

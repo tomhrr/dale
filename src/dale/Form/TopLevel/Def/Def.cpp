@@ -19,10 +19,10 @@
 namespace dale
 {
 bool
-FormTopLevelDefParse(Generator *gen,
+FormTopLevelDefParse(Units *units,
            Node *top)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     symlist *lst = top->list;
 
@@ -38,7 +38,7 @@ FormTopLevelDefParse(Generator *gen,
 
     Node *n = (*lst)[1];
 
-    n = gen->units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
@@ -76,7 +76,7 @@ FormTopLevelDefParse(Generator *gen,
         return false;
     }
 
-    n = gen->units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
@@ -108,15 +108,15 @@ FormTopLevelDefParse(Generator *gen,
     }
 
     if (!subt->str_value.compare("fn")) {
-        FormTopLevelFunctionParse(gen, top);
+        FormTopLevelFunctionParse(units, top);
     } else if (!subt->str_value.compare("var")) {
-        FormTopLevelGlobalVariableParse(gen, top);
+        FormTopLevelGlobalVariableParse(units, top);
     } else if (!subt->str_value.compare("struct")) {
-        FormTopLevelStructParse(gen, top);
+        FormTopLevelStructParse(units, top);
     } else if (!subt->str_value.compare("macro")) {
-        FormTopLevelMacroParse(gen, top);
+        FormTopLevelMacroParse(units, top);
     } else if (!subt->str_value.compare("enum")) {
-        FormTopLevelEnumParse(gen, top);
+        FormTopLevelEnumParse(units, top);
     } else {
         Error *e = new Error(
             ErrorInst::Generator::IncorrectArgType,

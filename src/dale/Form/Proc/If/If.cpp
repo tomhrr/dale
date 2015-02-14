@@ -10,7 +10,7 @@
 namespace dale
 {
 bool
-FormProcIfParse(Generator *gen,
+FormProcIfParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -20,7 +20,7 @@ FormProcIfParse(Generator *gen,
 {
     assert(node->list && "must receive a list!");
 
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("if", node, 3, 3)) {
         return false;
@@ -30,7 +30,7 @@ FormProcIfParse(Generator *gen,
 
     ParseResult pr_cond;
     bool res =
-        FormProcInstParse(gen, fn, block, (*lst)[1], get_address,
+        FormProcInstParse(units, fn, block, (*lst)[1], get_address,
                                false,
                                NULL, &pr_cond);
     if (!res) {
@@ -69,7 +69,7 @@ FormProcIfParse(Generator *gen,
     ctx->activateAnonymousNamespace();
     ParseResult pr_then;
     res =
-        FormProcInstParse(gen, fn, then_block, (*lst)[2], get_address,
+        FormProcInstParse(units, fn, then_block, (*lst)[2], get_address,
                                 false,
                                NULL, &pr_then);
     Operation::CloseScope(ctx, fn, then_block, NULL, false);
@@ -81,7 +81,7 @@ FormProcIfParse(Generator *gen,
     ctx->activateAnonymousNamespace();
     ParseResult pr_else;
     res =
-        FormProcInstParse(gen, fn, else_block, (*lst)[3], get_address,
+        FormProcInstParse(units, fn, else_block, (*lst)[3], get_address,
                                 false,
                                NULL, &pr_else);
     Operation::CloseScope(ctx, fn, else_block, NULL, false);

@@ -12,13 +12,13 @@
 namespace dale
 {
 llvm::Constant *
-parseLiteralElement(Generator *gen,
+parseLiteralElement(Units *units,
                     Node *top,
                     char *thing,
                     Type *type,
                     int *size)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
     NativeTypes *nt = ctx->nt;
     TypeRegister *tr = ctx->tr;
 
@@ -137,9 +137,9 @@ parseLiteralElement(Generator *gen,
         while (begin != st->member_types.end()) {
             Type *current = (*begin);
             size_t el_size =
-                Operation::SizeofGet(gen->units->top(), current);
+                Operation::SizeofGet(units->top(), current);
             size_t offset =
-                Operation::OffsetofGetByIndex(gen->units->top(), type, i);
+                Operation::OffsetofGetByIndex(units->top(), type, i);
             size_t padding = 0;
             if (i != 0) {
                 padding = (offset - last_offset - last_el_size);
@@ -158,7 +158,7 @@ parseLiteralElement(Generator *gen,
             memcpy(aligned, addr, el_size);
 
             llvm::Constant *el =
-                parseLiteralElement(gen,
+                parseLiteralElement(units,
                                     top,
                                     (char*) aligned,
                                     current,
@@ -209,12 +209,12 @@ parseLiteralElement(Generator *gen,
             );
 
         std::string varname2;
-        gen->units->top()->getUnusedVarname(&varname2);
+        units->top()->getUnusedVarname(&varname2);
 
         Type *archar =
             tr->getArrayType(tr->type_char, *size);
 
-        if (gen->units->top()->module->getGlobalVariable(llvm::StringRef(varname2.c_str()))) {
+        if (units->top()->module->getGlobalVariable(llvm::StringRef(varname2.c_str()))) {
             fprintf(stderr, "Internal error: "
                     "global variable already exists "
                     "in module ('%s').\n",
@@ -224,7 +224,7 @@ parseLiteralElement(Generator *gen,
 
         llvm::GlobalVariable *svar2 =
             llvm::cast<llvm::GlobalVariable>(
-                gen->units->top()->module->getOrInsertGlobal(varname2.c_str(),
+                units->top()->module->getOrInsertGlobal(varname2.c_str(),
                                        ctx->toLLVMType(archar, NULL, false))
             );
 
@@ -278,7 +278,7 @@ a:
         /* Take the portion devoted to whatever the element is,
          * and re-call this function. */
         size_t el_size =
-            Operation::SizeofGet(gen->units->top(), type->array_type);
+            Operation::SizeofGet(units->top(), type->array_type);
         int i = 0;
         int els = type->array_size;
         std::vector<llvm::Constant *> constants;
@@ -300,7 +300,7 @@ a:
             // Re-call parseLiteralElement, push the new constant onto
             // the vector.
             llvm::Constant *mycon =
-                parseLiteralElement(gen,
+                parseLiteralElement(units,
                                     top,
                                     elmem,
                                     type->array_type,
@@ -334,12 +334,12 @@ static int myn = 0;
 /* Size is only set when you are parsing a string literal - it
  * will contain the final size of the returned array. */
 llvm::Constant *
-parseLiteral(Generator *gen,
+parseLiteral(Units *units,
              Type *type,
              Node *top,
              int *size)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     /* Extreme special-case - if top is a two-element list, and
      * the first element is #, and the second element is a global
@@ -356,7 +356,7 @@ parseLiteral(Generator *gen,
             && (!top->list->at(0)->token->str_value.compare("#"))
             && (type->points_to)) {
         Node *var = top->list->at(1);
-        var = gen->units->top()->mp->parseOptionalMacroCall(var);
+        var = units->top()->mp->parseOptionalMacroCall(var);
         if (var && var->is_token) {
             Variable *gv =
                 ctx->getVariable(var->token->str_value.c_str());
@@ -406,7 +406,7 @@ parseLiteral(Generator *gen,
     sprintf(buf, "_gv%d", myn++);
     ctx->ns()->nameToSymbol(buf, &new_name);
 
-    if (gen->units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
+    if (units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
                 "function already exists in module ('%s').\n",
                 new_name.c_str());
@@ -414,7 +414,7 @@ parseLiteral(Generator *gen,
     }
 
     llvm::Constant *fnc =
-        gen->units->top()->module->getOrInsertFunction(
+        units->top()->module->getOrInsertFunction(
             new_name.c_str(),
             ft
         );
@@ -438,7 +438,7 @@ parseLiteral(Generator *gen,
     nodes.push_back(top);
     Node *topwrapper = new Node(&nodes);
 
-    FormProcBodyParse(gen, topwrapper, dfn, fn, 0, 0);
+    FormProcBodyParse(units, topwrapper, dfn, fn, 0, 0);
     int error_post_count =
         ctx->er->getErrorTypeCount(ErrorType::Error);
     if (error_count != error_post_count) {
@@ -459,7 +459,7 @@ parseLiteral(Generator *gen,
     sprintf(wrap_buf, "_gv%d", myn++);
     ctx->ns()->nameToSymbol(wrap_buf, &wrap_new_name);
 
-    if (gen->units->top()->module->getFunction(llvm::StringRef(wrap_new_name.c_str()))) {
+    if (units->top()->module->getFunction(llvm::StringRef(wrap_new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
                 "function already exists in module ('%s').\n",
                 wrap_new_name.c_str());
@@ -467,7 +467,7 @@ parseLiteral(Generator *gen,
     }
 
     llvm::Constant *wrap_fnc =
-        gen->units->top()->module->getOrInsertFunction(
+        units->top()->module->getOrInsertFunction(
             wrap_new_name.c_str(),
             wrapft
         );
@@ -564,7 +564,7 @@ parseLiteral(Generator *gen,
     }
 
     size_t struct_size =
-        Operation::SizeofGet(gen->units->top(), type);
+        Operation::SizeofGet(units->top(), type);
     char buf5[5];
     sprintf(buf5, "%u", (unsigned) struct_size);
 
@@ -587,7 +587,7 @@ parseLiteral(Generator *gen,
     builder.CreateRetVoid();
 
     void* fptr =
-        gen->units->top()->ee->getPointerToFunction(wrap_fn);
+        units->top()->ee->getPointerToFunction(wrap_fn);
     if (!fptr) {
         fprintf(stderr,
                 "Internal error: could not get pointer "
@@ -598,7 +598,7 @@ parseLiteral(Generator *gen,
     ((void (*)(void)) fptr)();
 
     llvm::Constant *parsed =
-        parseLiteralElement(gen, top, (char*) &thing, type, size);
+        parseLiteralElement(units, top, (char*) &thing, type, size);
 
     wrap_fn->eraseFromParent();
     (llvm::cast<llvm::Function>(fnc))->eraseFromParent();
@@ -619,9 +619,9 @@ parseLiteral(Generator *gen,
 }
 
 bool
-FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
+FormTopLevelGlobalVariableParse(Units *units, Node *node)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     Node *name_node = (*(node->list))[1];
     const char *name = name_node->token->str_value.c_str();
@@ -660,7 +660,7 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
 
     int linkage = FormLinkageParse(ctx, (*lst)[1]);
 
-    Type *r_type = FormTypeParse(gen, (*lst)[2], false, false);
+    Type *r_type = FormTypeParse(units, (*lst)[2], false, false);
     if (r_type == NULL) {
         return false;
     }
@@ -677,7 +677,7 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
 
     Node *n2 = NULL;
     if (has_initialiser) {
-        n2 = gen->units->top()->mp->parseOptionalMacroCall((*lst)[3]);
+        n2 = units->top()->mp->parseOptionalMacroCall((*lst)[3]);
         if (!n2) {
             return false;
         }
@@ -685,7 +685,7 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
 
     llvm::Constant *init =
         (has_initialiser)
-        ? parseLiteral(gen, r_type, n2, &size)
+        ? parseLiteral(units, r_type, n2, &size)
         : NULL;
 
     if ((init == NULL) && (has_initialiser)) {
@@ -714,7 +714,7 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
     var2->name.append(name);
     var2->type = r_type;
     var2->internal_name.append(new_name);
-    var2->once_tag = gen->units->top()->once_tag;
+    var2->once_tag = units->top()->once_tag;
     var2->linkage = linkage;
     int avres = ctx->ns()->addVariable(name, var2);
 
@@ -742,7 +742,7 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
 
     /* Add the variable to the module. */
 
-    if (gen->units->top()->module->getGlobalVariable(llvm::StringRef(new_name.c_str()))) {
+    if (units->top()->module->getGlobalVariable(llvm::StringRef(new_name.c_str()))) {
         fprintf(stderr, "Internal error: "
                 "global variable already exists in "
                 "module ('%s').\n",
@@ -752,7 +752,7 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
 
     llvm::GlobalVariable *var =
         llvm::cast<llvm::GlobalVariable>(
-            gen->units->top()->module->getOrInsertGlobal(new_name.c_str(),
+            units->top()->module->getOrInsertGlobal(new_name.c_str(),
                                    rdttype)
         );
 

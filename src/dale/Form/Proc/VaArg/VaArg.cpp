@@ -9,7 +9,7 @@
 namespace dale
 {
 bool
-FormProcVaArgParse(Generator *gen,
+FormProcVaArgParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -17,7 +17,7 @@ FormProcVaArgParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     assert(node->list && "must receive a list!");
 
@@ -30,7 +30,7 @@ FormProcVaArgParse(Generator *gen,
     /* Get the arglist. */
 
     ParseResult pr_arglist;
-    bool res = FormProcInstParse(gen, fn, block, (*lst)[1], false,
+    bool res = FormProcInstParse(units, fn, block, (*lst)[1], false,
                                       false,
                                       NULL, &pr_arglist);
     if (!res) {
@@ -39,7 +39,7 @@ FormProcVaArgParse(Generator *gen,
 
     /* Get the type to which it is being cast. */
 
-    Type *type = FormTypeParse(gen, (*lst)[2], false, false);
+    Type *type = FormTypeParse(units, (*lst)[2], false, false);
 
     if (!type) {
         return false;
@@ -57,7 +57,7 @@ FormProcVaArgParse(Generator *gen,
         return false;
     }
 
-    if (gen->units->top()->is_x86_64) {
+    if (units->top()->is_x86_64) {
         /*
             (See the AMD64 ABI draft of 13/01/2010 for more
             information, most of this is verbatim from there, it

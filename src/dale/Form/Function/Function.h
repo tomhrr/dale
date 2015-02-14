@@ -5,7 +5,7 @@
 
 namespace dale
 {
-bool FormFunctionParse(Generator *gen,
+bool FormFunctionParse(Units *units,
            Node *n,
            const char *name,
            Function **new_function,

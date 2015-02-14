@@ -5,7 +5,7 @@
 
 namespace dale
 {
-bool FormStructParse(Generator *gen,
+bool FormStructParse(Units *units,
            Node *n,
            const char *name);
 }

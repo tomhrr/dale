@@ -15,14 +15,14 @@
 namespace dale
 {
 bool 
-FormFunctionParse(Generator *gen,
+FormFunctionParse(Units *units,
       Node *n,
       const char *name,
       Function **new_function,
       int override_linkage,
       int is_anonymous)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     if (!name) {
         Node *name_node = (*(n->list))[1];
@@ -31,7 +31,7 @@ FormFunctionParse(Generator *gen,
     }
 
     if (!is_anonymous) {
-        gen->units->prefunction_ns = ctx->ns();
+        units->prefunction_ns = ctx->ns();
     }
 
     /* Ensure this isn't a no-override core form. */
@@ -105,7 +105,7 @@ FormFunctionParse(Generator *gen,
         ++next_index;
     }
 
-    if (gen->units->cto) {
+    if (units->cto) {
         my_cto = 1;
     }
 
@@ -161,7 +161,7 @@ FormFunctionParse(Generator *gen,
         var = new Variable();
         var->type = NULL;
 
-        FormArgumentParse(gen, var, (*node_iter), false, false, true);
+        FormArgumentParse(units, var, (*node_iter), false, false, true);
         if (var->type == NULL) {
             delete var;
             return false;
@@ -261,7 +261,7 @@ FormFunctionParse(Generator *gen,
     }
 
     Type *r_type = 
-        FormTypeParse(gen, (*lst)[return_type_index], false,
+        FormTypeParse(units, (*lst)[return_type_index], false,
                           false, false, true);
 
     ctx->deactivateNamespace(anon_name.c_str());
@@ -343,7 +343,7 @@ FormFunctionParse(Generator *gen,
      * prototype, then fail. */
 
     llvm::Function *temp23;
-    if ((temp23 = gen->units->top()->module->getFunction(new_name.c_str()))) {
+    if ((temp23 = units->top()->module->getFunction(new_name.c_str()))) {
         Function *temp25 =
             ctx->getFunction(new_name.c_str(), NULL,
                              NULL, 0);
@@ -367,12 +367,12 @@ FormFunctionParse(Generator *gen,
         }
     }
 
-    if (gen->units->top()->once_tag.length() > 0) {
-        dfn->once_tag = gen->units->top()->once_tag;
+    if (units->top()->once_tag.length() > 0) {
+        dfn->once_tag = units->top()->once_tag;
     }
 
     llvm::Constant *fnc =
-        gen->units->top()->module->getOrInsertFunction(
+        units->top()->module->getOrInsertFunction(
             new_name.c_str(),
             ft
         );
@@ -459,10 +459,10 @@ FormFunctionParse(Generator *gen,
     ctx->activateAnonymousNamespace();
     std::string anon_name2 = ctx->ns()->name;
 
-    gen->units->top()->pushGlobalFunction(dfn);
-    FormProcBodyParse(gen, n, dfn, fn, (next_index + 2),
+    units->top()->pushGlobalFunction(dfn);
+    FormProcBodyParse(units, n, dfn, fn, (next_index + 2),
                           is_anonymous, lv_return_value);
-    gen->units->top()->popGlobalFunction();
+    units->top()->popGlobalFunction();
 
     if (!strcmp(name, "main")
             && ctx->getVariable("stdin")

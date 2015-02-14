@@ -9,14 +9,14 @@ static int anonstructcount = 0;
 
 namespace dale {
 Type *
-FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
+FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
       bool allow_bitfields, bool allow_refs, bool allow_retvals)
 {
     if (!top) {
         return NULL;
     }
 
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     if (top->is_token) {
         Token *t = top->token;
@@ -58,10 +58,10 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
                                              : -1;
 
         if (bmt != -1) {
-            Type *mt = gen->units->top()->ctx->tr->getBasicType(bmt);
+            Type *mt = units->top()->ctx->tr->getBasicType(bmt);
 
             if (mt) {
-                if (!gen->units->top()->is_x86_64
+                if (!units->top()->is_x86_64
                         && (mt->base_type == BaseType::Int128
                             || mt->base_type == BaseType::UInt128)) {
                     Error *e = new Error(
@@ -102,10 +102,10 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
 
     /* If here, node is a list node. Try for a macro call. */
 
-    Node *newtop = gen->units->top()->mp->parseOptionalMacroCall(top);
+    Node *newtop = units->top()->mp->parseOptionalMacroCall(top);
 
     if (newtop != top) {
-        return FormTypeParse(gen, newtop, allow_anon_structs,
+        return FormTypeParse(units, newtop, allow_anon_structs,
                          allow_bitfields, allow_refs, allow_retvals);
     }
 
@@ -140,7 +140,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
         templist.assign(lst->begin() + 1, lst->end());
         lst = &templist;
         if (lst->size() == 1) {
-            return FormTypeParse(gen, lst->at(0), allow_anon_structs,
+            return FormTypeParse(units, lst->at(0), allow_anon_structs,
                              allow_bitfields);
         }
     }
@@ -158,7 +158,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             ctx->er->addError(e);
             return NULL;
         }
-        Node *new_type = gen->units->top()->mp->parseOptionalMacroCall((*lst)[1]);
+        Node *new_type = units->top()->mp->parseOptionalMacroCall((*lst)[1]);
         if (!new_type) {
             return NULL;
         }
@@ -166,7 +166,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
         /* Reference types are only permitted at the 'top level' of
          * the type. */
         Type *reference_type =
-            FormTypeParse(gen, (*lst)[1], allow_anon_structs,
+            FormTypeParse(units, (*lst)[1], allow_anon_structs,
                   allow_bitfields);
 
         if (reference_type == NULL) {
@@ -189,7 +189,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             ctx->er->addError(e);
             return NULL;
         }
-        Node *new_type = gen->units->top()->mp->parseOptionalMacroCall((*lst)[1]);
+        Node *new_type = units->top()->mp->parseOptionalMacroCall((*lst)[1]);
         if (!new_type) {
             return NULL;
         }
@@ -197,7 +197,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
         /* Retval types are only permitted at the 'top level' of
          * the type. */
         Type *retval_type =
-            FormTypeParse(gen, (*lst)[1], allow_anon_structs,
+            FormTypeParse(units, (*lst)[1], allow_anon_structs,
                   allow_bitfields);
 
         if (retval_type == NULL) {
@@ -226,7 +226,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
         int error_count =
             ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        FormStructParse(gen, new Node(lst), buf);
+        FormStructParse(units, new Node(lst), buf);
 
         int error_post_count =
             ctx->er->getErrorTypeCount(ErrorType::Error);
@@ -236,7 +236,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
 
         Token *name = new Token(TokenType::String);
         name->str_value.append(buf);
-        Type *myst = FormTypeParse(gen, new Node(name), false,
+        Type *myst = FormTypeParse(units, new Node(name), false,
                                         false);
         if (!myst) {
             fprintf(stderr, "Unable to retrieve anonymous struct.\n");
@@ -254,7 +254,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             && lst->at(0)->is_token
             && !(lst->at(0)->token->str_value.compare("bf"))) {
         Type *bf_type =
-            FormTypeParse(gen, lst->at(1), false, false);
+            FormTypeParse(units, lst->at(1), false, false);
         if (!(bf_type->isIntegerType())) {
             Error *e = new Error(
                 ErrorInst::Generator::BitfieldMustHaveIntegerType,
@@ -284,13 +284,13 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        Node *newnum = gen->units->top()->mp->parseOptionalMacroCall((*lst)[1]);
+        Node *newnum = units->top()->mp->parseOptionalMacroCall((*lst)[1]);
         if (!newnum) {
             return NULL;
         }
 
         Type *const_type =
-            FormTypeParse(gen, (*lst)[1], allow_anon_structs,
+            FormTypeParse(units, (*lst)[1], allow_anon_structs,
                       allow_bitfields);
 
         if (const_type == NULL) {
@@ -314,7 +314,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        Node *newnum = gen->units->top()->mp->parseOptionalMacroCall((*lst)[1]);
+        Node *newnum = units->top()->mp->parseOptionalMacroCall((*lst)[1]);
         if (!newnum) {
             return NULL;
         }
@@ -325,7 +325,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
         }
 
         Type *array_type =
-            FormTypeParse(gen, (*lst)[2], allow_anon_structs,
+            FormTypeParse(units, (*lst)[2], allow_anon_structs,
                       allow_bitfields);
 
         if (array_type == NULL) {
@@ -343,7 +343,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
         }
 
         Type *points_to_type =
-            FormTypeParse(gen, (*lst)[1], allow_anon_structs,
+            FormTypeParse(units, (*lst)[1], allow_anon_structs,
                       allow_bitfields);
 
         if (points_to_type == NULL) {
@@ -359,7 +359,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
         }
 
         Type *ret_type =
-            FormTypeParse(gen, (*lst)[1], allow_anon_structs,
+            FormTypeParse(units, (*lst)[1], allow_anon_structs,
                       allow_bitfields, false, true);
 
         if (ret_type == NULL) {
@@ -399,7 +399,7 @@ FormTypeParse(Generator *gen, Node *top, bool allow_anon_structs,
             var = new Variable();
             var->type = NULL;
 
-            FormArgumentParse(gen, var, (*node_iter),
+            FormArgumentParse(units, var, (*node_iter),
                           allow_anon_structs,
                           allow_bitfields,
                           true);

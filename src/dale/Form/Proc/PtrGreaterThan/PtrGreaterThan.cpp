@@ -9,7 +9,7 @@
 namespace dale
 {
 bool
-FormProcPtrGreaterThanParse(Generator *gen,
+FormProcPtrGreaterThanParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -17,7 +17,7 @@ FormProcPtrGreaterThanParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx; 
+    Context *ctx = units->top()->ctx; 
 
     if (!ctx->er->assertArgNums("p>", node, 2, 2)) {
         return false;
@@ -26,7 +26,7 @@ FormProcPtrGreaterThanParse(Generator *gen,
     symlist *lst = node->list;
 
     ParseResult p;
-    bool res = FormProcInstParse(gen, 
+    bool res = FormProcInstParse(units, 
                     fn, block, (*lst)[1], get_address, false, NULL, &p
                );
     if (!res) {
@@ -37,7 +37,7 @@ FormProcPtrGreaterThanParse(Generator *gen,
     }
 
     ParseResult p2;
-    res = FormProcInstParse(gen, 
+    res = FormProcInstParse(units, 
                fn, p.block, (*lst)[2], get_address, false, NULL, &p2
           );
     if (!res) {

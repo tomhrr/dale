@@ -9,7 +9,7 @@
 namespace dale
 {
 bool
-FormProcDoParse(Generator *gen,
+FormProcDoParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -17,7 +17,7 @@ FormProcDoParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
     assert(node->list && "must receive a list!");
     if (!ctx->er->assertArgNums("do", node, 1, -1)) {
         return false;
@@ -33,7 +33,7 @@ FormProcDoParse(Generator *gen,
 
         ParseResult local_pr;
         ParseResult *used_pr = (is_last ? pr : &local_pr);
-        bool res = FormProcInstParse(gen, 
+        bool res = FormProcInstParse(units, 
                        fn, pr->block, *b, get_address, 
                        false, NULL,
                        used_pr

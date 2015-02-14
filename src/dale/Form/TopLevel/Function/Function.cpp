@@ -7,9 +7,9 @@
 namespace dale
 {
 bool
-FormTopLevelFunctionParse(Generator *gen, Node *node)
+FormTopLevelFunctionParse(Units *units, Node *node)
 {
-    return FormFunctionParse(gen, node, NULL, NULL,
+    return FormFunctionParse(units, node, NULL, NULL,
                                        Linkage::Null, 0);
 }
 }

@@ -11,7 +11,7 @@
 namespace dale
 {
 bool
-FormProcPtrSubtractParse(Generator *gen,
+FormProcPtrSubtractParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -19,7 +19,7 @@ FormProcPtrSubtractParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx; 
+    Context *ctx = units->top()->ctx; 
 
     assert(node->list && "must receive a list!");
 
@@ -30,7 +30,7 @@ FormProcPtrSubtractParse(Generator *gen,
     symlist *lst = node->list;
 
     ParseResult ptr;
-    bool mres = FormProcInstParse(gen, 
+    bool mres = FormProcInstParse(units, 
                          fn, block, (*lst)[1], get_address, false, NULL, &ptr
                      );
     if (!mres) {
@@ -41,7 +41,7 @@ FormProcPtrSubtractParse(Generator *gen,
     }
 
     ParseResult val;
-    mres = FormProcInstParse(gen, 
+    mres = FormProcInstParse(units, 
                  fn, ptr.block, (*lst)[2], get_address, false, NULL, &val
           );
     if (!mres) {

@@ -6,9 +6,9 @@
 namespace dale
 {
 bool
-FormTopLevelImportParse(Generator *gen, Node *node)
+FormTopLevelImportParse(Units *units, Node *node)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
     Node *top = node;
 
     assert(top->list && "parseImport must receive a list!");
@@ -19,7 +19,7 @@ FormTopLevelImportParse(Generator *gen, Node *node)
 
     symlist *lst = top->list;
     Node *n = (*lst)[1];
-    n = gen->units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
@@ -48,7 +48,7 @@ FormTopLevelImportParse(Generator *gen, Node *node)
     }
 
     int res =
-        gen->units->mr->run(ctx, gen->units->top()->module, top, my_module_name, &import_forms);
+        units->mr->run(ctx, units->top()->module, top, my_module_name, &import_forms);
     if (!res) {
         Error *e = new Error(
             ErrorInst::Generator::UnableToLoadModule,

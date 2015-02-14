@@ -4,7 +4,7 @@
 namespace dale
 {
 bool
-FormProcOffsetOfParse(Generator *gen,
+FormProcOffsetOfParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,

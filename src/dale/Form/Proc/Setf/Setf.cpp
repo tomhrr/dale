@@ -9,7 +9,7 @@
 namespace dale
 {
 bool
-FormProcSetfParse(Generator *gen,
+FormProcSetfParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -17,7 +17,7 @@ FormProcSetfParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     assert(node->list && "parseSetf must receive a list!");
 
@@ -33,7 +33,7 @@ FormProcSetfParse(Generator *gen,
 
     ParseResult pr_variable;
     bool res =
-        FormProcInstParse(gen, fn, block, (*lst)[1], false, 
+        FormProcInstParse(units, fn, block, (*lst)[1], false, 
                                     false, NULL,
                                     &pr_variable);
 
@@ -65,7 +65,7 @@ FormProcSetfParse(Generator *gen,
     }
 
     Node *val_node = (*lst)[2];
-    val_node = gen->units->top()->mp->parseOptionalMacroCall(val_node);
+    val_node = units->top()->mp->parseOptionalMacroCall(val_node);
     if (!val_node) {
         return false;
     }
@@ -101,7 +101,7 @@ FormProcSetfParse(Generator *gen,
         pr_value.block = pr_variable.block;
     } else {
         res =
-            FormProcInstParse(gen, 
+            FormProcInstParse(units, 
                 fn, pr_variable.block, val_node, false,
                 false,
                 pr_variable.type->points_to,
@@ -210,7 +210,7 @@ cont2:
 
     if (var_value) {
         res =
-            FormProcInstParse(gen, 
+            FormProcInstParse(units, 
                 fn, pr_value.block, val_node, false,
                 false,
                 pr_variable.type->points_to,

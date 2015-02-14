@@ -7,9 +7,9 @@
 namespace dale
 {
 bool
-FormTopLevelIncludeParse(Generator *gen, Node *node)
+FormTopLevelIncludeParse(Units *units, Node *node)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("include", node, 1, 1)) {
         return false;
@@ -17,7 +17,7 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
 
     symlist *lst = node->list;
     Node *n = (*lst)[1];
-    n = gen->units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
@@ -48,7 +48,7 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
         include_file = fopen(filename_buf.c_str(), "r");
         if (!include_file) {
             std::vector<const char *> *idp =
-                gen->units->mr->include_directory_paths;
+                units->mr->include_directory_paths;
             for (std::vector<const char*>::iterator b = idp->begin(),
                                                     e = idp->end();
                     b != e;
@@ -87,25 +87,25 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
      * stacks, create new parser/module/context for the new file.
      * */
 
-    Unit *unit = new Unit(filename_buf.c_str(), gen, ctx->er, ctx->nt,
-                          ctx->tr, gen->units->top()->ee,
-                          gen->units->top()->is_x86_64);
-    gen->units->push(unit);
-    gen->units->top()->once_tag.clear();
+    Unit *unit = new Unit(filename_buf.c_str(), units, ctx->er, ctx->nt,
+                          ctx->tr, units->top()->ee,
+                          units->top()->is_x86_64);
+    units->push(unit);
+    units->top()->once_tag.clear();
 
-    gen->units->top()->ee->addModule(gen->units->top()->module);
+    units->top()->ee->addModule(units->top()->module);
     CommonDecl::addVarargsFunctions(unit);
 
-    if (!gen->units->no_common) {
-        if (gen->units->no_dale_stdlib) {
-            gen->units->top()->addCommonDeclarations();
+    if (!units->no_common) {
+        if (units->no_dale_stdlib) {
+            units->top()->addCommonDeclarations();
         } else {
             std::vector<const char*> import_forms;
-            gen->units->mr->run(ctx, gen->units->top()->module, nullNode(), "drt", &import_forms);
+            units->mr->run(ctx, units->top()->module, nullNode(), "drt", &import_forms);
         }
     }
 
-    gen->units->top()->ctx->regetPointers(gen->units->top()->module);
+    units->top()->ctx->regetPointers(units->top()->module);
 
     return true;
 }

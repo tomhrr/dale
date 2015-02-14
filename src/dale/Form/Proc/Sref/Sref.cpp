@@ -9,7 +9,7 @@
 namespace dale
 {
 bool
-FormProcSrefParse(Generator *gen,
+FormProcSrefParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -17,7 +17,7 @@ FormProcSrefParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     assert(node->list && "must receive a list!");
 
@@ -34,7 +34,7 @@ FormProcSrefParse(Generator *gen,
 
     ParseResult pr_struct;
     bool res =
-        FormProcInstParse(gen, fn, block, (*lst)[1], get_address,
+        FormProcInstParse(units, fn, block, (*lst)[1], get_address,
                                false,
                                NULL, &pr_struct);
 
@@ -47,7 +47,7 @@ FormProcSrefParse(Generator *gen,
             if (e->instance ==
                     ErrorInst::Generator::CannotTakeAddressOfNonLvalue) {
                 res =
-                    FormProcInstParse(gen, 
+                    FormProcInstParse(units, 
                         fn, block, (*lst)[1], false, 
                         false, NULL, &pr_struct
                     );
@@ -111,7 +111,7 @@ FormProcSrefParse(Generator *gen,
     }
 
     Node *ref = (*lst)[2];
-    ref = gen->units->top()->mp->parseOptionalMacroCall(ref);
+    ref = units->top()->mp->parseOptionalMacroCall(ref);
     if (!ref) {
         return false;
     }

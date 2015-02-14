@@ -22,9 +22,9 @@
 namespace dale
 {
 bool
-FormTopLevelInstParse(Generator *gen, Node *node)
+FormTopLevelInstParse(Units *units, Node *node)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     ctx->deleteAnonymousNamespaces();
     Node *top = node;
@@ -34,12 +34,12 @@ FormTopLevelInstParse(Generator *gen, Node *node)
     }
 
     if (!top->is_token && !top->is_list) {
-        gen->units->pop();
-        if (!gen->units->empty()) {
-            Unit *unit = gen->units->top();
-            gen->units->top()->ctx    = unit->ctx;
-            gen->units->top()->once_tag.clear();
-            gen->units->top()->once_tag = unit->once_tag;
+        units->pop();
+        if (!units->empty()) {
+            Unit *unit = units->top();
+            units->top()->ctx    = unit->ctx;
+            units->top()->once_tag.clear();
+            units->top()->once_tag = unit->once_tag;
             return 1;
         }
         return false;
@@ -84,7 +84,7 @@ FormTopLevelInstParse(Generator *gen, Node *node)
         return false;
     }
 
-    bool (*toplevel_form)(Generator *gen, Node *n);
+    bool (*toplevel_form)(Units *units, Node *n);
 
     toplevel_form =
         (eq("do"))              ? &FormTopLevelDoParse
@@ -98,16 +98,16 @@ FormTopLevelInstParse(Generator *gen, Node *node)
                                 : NULL;
 
     if (toplevel_form) {
-        toplevel_form(gen, top);
+        toplevel_form(units, top);
         return true;
     }
 
-    Node *newtop = gen->units->top()->mp->parseOptionalMacroCall(top);
+    Node *newtop = units->top()->mp->parseOptionalMacroCall(top);
     if (!newtop) {
         return false;
     }
     if (newtop != top) {
-        return FormTopLevelInstParse(gen, newtop);
+        return FormTopLevelInstParse(units, newtop);
     }
     Error *e = new Error(
         ErrorInst::Generator::NotInScope,

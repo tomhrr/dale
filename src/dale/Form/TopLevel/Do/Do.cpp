@@ -7,9 +7,9 @@
 namespace dale
 {
 bool
-FormTopLevelDoParse(Generator *gen, Node *node)
+FormTopLevelDoParse(Units *units, Node *node)
 {
-    Context *ctx = gen->units->top()->ctx; 
+    Context *ctx = units->top()->ctx; 
 
     std::vector<Node *> *lst = node->list;
 
@@ -28,7 +28,7 @@ FormTopLevelDoParse(Generator *gen, Node *node)
     ++node_iter;
 
     while (node_iter != lst->end()) {
-        FormTopLevelInstParse(gen, (*node_iter));
+        FormTopLevelInstParse(units, (*node_iter));
         ctx->er->flush();
         ++node_iter;
     }

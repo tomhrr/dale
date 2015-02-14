@@ -59,7 +59,7 @@ namespace dale
 static int anoncount = 0;
 
 bool
-parseInternal(Generator *gen,
+parseInternal(Units *units,
                    Function *fn,
                    llvm::BasicBlock *block,
                    Node *n,
@@ -68,7 +68,7 @@ parseInternal(Generator *gen,
                    Type *wanted_type,
                    ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     if (DALE_DEBUG) {
         printf("Called FormProcInstParse: ");
@@ -78,7 +78,7 @@ parseInternal(Generator *gen,
 
     if (n->is_token) {
         return FormProcTokenParse(
-            gen, fn, block, n, get_address, prefixed_with_core,
+            units, fn, block, n, get_address, prefixed_with_core,
             wanted_type, pr
         );
     }
@@ -97,7 +97,7 @@ parseInternal(Generator *gen,
     Node *first = (*lst)[0];
 
     if (!first->is_token) {
-        first = gen->units->top()->mp->parseOptionalMacroCall(first);
+        first = units->top()->mp->parseOptionalMacroCall(first);
         if (!first) {
             return false;
         }
@@ -111,14 +111,14 @@ parseInternal(Generator *gen,
 
         std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
         std::vector<NSNode *> used_ns_nodes   = ctx->used_ns_nodes;
-        ctx->popUntilNamespace(gen->units->prefunction_ns);
+        ctx->popUntilNamespace(units->prefunction_ns);
 
         char buf[255];
         sprintf(buf, "_anon_%d", anoncount++);
         Function *myanonfn = NULL;
         int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        FormFunctionParse(gen, n, buf, &myanonfn, Linkage::Intern, 1);
+        FormFunctionParse(units, n, buf, &myanonfn, Linkage::Intern, 1);
 
         int diff = ctx->er->getErrorTypeCount(ErrorType::Error)
                    - error_count;
@@ -188,7 +188,7 @@ parseInternal(Generator *gen,
 
         bool res =
             FormLiteralStructParse(
-                               gen, fn, block, n,
+                               units, fn, block, n,
                                wanted_type->struct_name.c_str(),
                                str,
                                wanted_type,
@@ -239,7 +239,7 @@ parseInternal(Generator *gen,
         }
 
         Type *myenumtype =
-            FormTypeParse(gen, (*lst)[0], false, false);
+            FormTypeParse(units, (*lst)[0], false, false);
 
         if (!myenumtype) {
             fprintf(stderr,
@@ -251,7 +251,7 @@ parseInternal(Generator *gen,
         int original_error_count =
             ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        bool res = FormLiteralEnumParse(gen, block, (*lst)[1],
+        bool res = FormLiteralEnumParse(units, block, (*lst)[1],
                                              myenum,
                                              myenumtype,
                                              myenumstruct,
@@ -287,7 +287,7 @@ past_en_parse:
         }
 
         Type *structtype =
-            FormTypeParse(gen, (*lst)[0], false, false);
+            FormTypeParse(units, (*lst)[0], false, false);
 
         if (!structtype) {
             fprintf(stderr,
@@ -300,7 +300,7 @@ past_en_parse:
         int original_error_count =
             ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        bool res = FormLiteralStructParse(gen, fn, block, (*lst)[1],
+        bool res = FormLiteralStructParse(units, fn, block, (*lst)[1],
                                                 "asdf",
                                                 str,
                                                 structtype,
@@ -322,7 +322,7 @@ past_sl_parse:
             && (!strcmp(t->str_value.c_str(), "array"))) {
         int size;
         bool res = FormLiteralArrayParse(
-                                gen,
+                                units,
                                 fn, block, n,
                                 "array literal",
                                 wanted_type,
@@ -366,7 +366,7 @@ past_sl_parse:
             Function **macro_to_call = &macro_to_call_real;
             *macro_to_call = NULL;
 
-            bool res = gen->units->top()->fp->parseFunctionCall(fn, block, n,
+            bool res = units->top()->fp->parseFunctionCall(fn, block, n,
                                    t->str_value.c_str(), get_address,
                                    false, macro_to_call, pr);
             if (res) {
@@ -375,14 +375,14 @@ past_sl_parse:
 
             if (*macro_to_call) {
                 Node *mac_node =
-                    gen->units->top()->mp->parseMacroCall(n, t->str_value.c_str(),
+                    units->top()->mp->parseMacroCall(n, t->str_value.c_str(),
                                    *macro_to_call);
                 if (!mac_node) {
                     return false;
                 }
                 bool res =
                     FormProcInstParse(
-                        gen, fn, block, mac_node, get_address, false, wanted_type, pr
+                        units, fn, block, mac_node, get_address, false, wanted_type, pr
                     );
 
                 delete mac_node;
@@ -421,7 +421,7 @@ past_sl_parse:
         first = (*lst)[0];
 
         if (!first->is_token) {
-            first = gen->units->top()->mp->parseOptionalMacroCall(first);
+            first = units->top()->mp->parseOptionalMacroCall(first);
             if (!first) {
                 return false;
             }
@@ -448,7 +448,7 @@ past_sl_parse:
 
     /* Core forms (at least at this point). */
 
-    bool (* core_fn)(Generator *gen,
+    bool (* core_fn)(Units *units,
                      Function *fn,
                      llvm::BasicBlock *block,
                      Node *node,
@@ -490,7 +490,7 @@ past_sl_parse:
                                   : NULL;
 
     if (core_fn) {
-        return core_fn(gen, fn, block, n,
+        return core_fn(units, fn, block, n,
                        get_address, prefixed_with_core, pr);
     }
 
@@ -511,7 +511,7 @@ past_sl_parse:
         if (!new_node) {
             return false;
         }
-        return FormProcInstParse(gen, fn, block, new_node,
+        return FormProcInstParse(units, fn, block, new_node,
                                       get_address, false, wanted_type, pr);
     }
 
@@ -537,7 +537,7 @@ past_sl_parse:
     int last_error_count =
         ctx->er->getErrorTypeCount(ErrorType::Error);
     ParseResult try_fnp;
-    bool res = FormProcInstParse(gen,
+    bool res = FormProcInstParse(units,
                                fn, block, (*lst)[0], get_address,
                                false, wanted_type, &try_fnp
                            );
@@ -569,7 +569,7 @@ past_sl_parse:
         lst->insert(lst->begin(), funcall_str_node);
         bool res =
             FormProcFuncallParse(
-                         gen,
+                         units,
                          fn,
                          block,
                          n,
@@ -578,7 +578,7 @@ past_sl_parse:
                          pr);
         return res;
     }
-    res = FormProcInstParse(gen,
+    res = FormProcInstParse(units,
                   fn, try_fnp.block, (*lst)[0], true, false, wanted_type,
                   &try_fnp
               );
@@ -648,7 +648,7 @@ past_sl_parse:
 
                 std::vector<llvm::Value*> extra_args;
                 extra_args.push_back(try_fnp.value);
-                return gen->units->top()->fp->parseFuncallInternal(
+                return units->top()->fp->parseFuncallInternal(
                            fn,
                            n,
                            get_address,
@@ -671,7 +671,7 @@ past_sl_parse:
 }
 
 bool
-FormProcInstParse(Generator *gen,
+FormProcInstParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -682,7 +682,7 @@ FormProcInstParse(Generator *gen,
            bool no_copy)
 {
     bool res =
-        parseInternal(gen, fn, block, node,
+        parseInternal(units, fn, block, node,
                       get_address,
                       prefixed_with_core,
                       wanted_type,
@@ -697,7 +697,7 @@ FormProcInstParse(Generator *gen,
     /* todo: if there's never a use case for a separate
      * parseresult, then fix this function accordingly. */
     if (!no_copy) {
-        Operation::Copy(gen->units->top()->ctx, fn, pr, pr);
+        Operation::Copy(units->top()->ctx, fn, pr, pr);
     }
 
     return true;

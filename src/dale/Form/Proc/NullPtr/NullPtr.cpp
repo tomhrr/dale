@@ -8,7 +8,7 @@
 namespace dale
 {
 bool
-FormProcNullPtrParse(Generator *gen,
+FormProcNullPtrParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -16,7 +16,7 @@ FormProcNullPtrParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     assert(node->list && "must receive a list!");
 
@@ -26,7 +26,7 @@ FormProcNullPtrParse(Generator *gen,
 
     symlist *lst = node->list;
 
-    Type *type = FormTypeParse(gen, (*lst)[1], false, false);
+    Type *type = FormTypeParse(units, (*lst)[1], false, false);
     if (!type) {
         return false;
     }

@@ -6,7 +6,7 @@
 
 namespace dale {
 bool
-FormLiteralStructParse(Generator *gen,
+FormLiteralStructParse(Units *units,
       Function *dfn,
       llvm::BasicBlock *block,
       Node *n,
@@ -16,7 +16,7 @@ FormLiteralStructParse(Generator *gen,
       bool get_address,
       ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     Node *struct_list = n;
 
@@ -95,7 +95,7 @@ FormLiteralStructParse(Generator *gen,
 
         ParseResult newvalue;
         bool mres =
-            FormProcInstParse(gen, dfn, block, namevalue, false,
+            FormProcInstParse(units, dfn, block, namevalue, false,
                                    false, NULL, &newvalue);
 
         if (!mres) {

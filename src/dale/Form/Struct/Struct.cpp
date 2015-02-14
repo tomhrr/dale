@@ -16,10 +16,10 @@ namespace dale
 static int anonstructcount = 0;
 
 bool
-addOpaqueStruct(Generator *gen, const char *name, Node *top,
+addOpaqueStruct(Units *units, const char *name, Node *top,
                 int linkage, int must_init)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     if (!top) {
         top = new Node();
@@ -42,7 +42,7 @@ addOpaqueStruct(Generator *gen, const char *name, Node *top,
     new_struct->is_opaque = 1;
     new_struct->linkage = linkage;
     new_struct->internal_name.append(name2.c_str());
-    new_struct->once_tag = gen->units->top()->once_tag;
+    new_struct->once_tag = units->top()->once_tag;
 
     if (!ctx->ns()->addStruct(name, new_struct)) {
         /* Only an error if there is not an existing struct. This
@@ -78,8 +78,8 @@ addOpaqueStruct(Generator *gen, const char *name, Node *top,
     char buf[100];
     for (;;) {
         sprintf(buf, "__retain_struct_%d", index);
-        if (!gen->units->top()->module->getFunction(buf)) {
-            gen->units->top()->module->getOrInsertFunction(buf, ft);
+        if (!units->top()->module->getFunction(buf)) {
+            units->top()->module->getOrInsertFunction(buf, ft);
             break;
         }
         ++index;
@@ -89,11 +89,11 @@ addOpaqueStruct(Generator *gen, const char *name, Node *top,
 }
 
 bool 
-FormStructParse(Generator *gen,
+FormStructParse(Units *units,
       Node *top,
       const char *name)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     anonstructcount++;
 
@@ -145,7 +145,7 @@ FormStructParse(Generator *gen,
     }
     ++next_index;
 
-    bool res = addOpaqueStruct(gen, name, top, linkage, must_init);
+    bool res = addOpaqueStruct(units, name, top, linkage, must_init);
     if (!res) {
         return false;
     }
@@ -187,7 +187,7 @@ FormStructParse(Generator *gen,
         var = new Variable();
         var->type = NULL;
 
-        FormArgumentParse(gen, var, (*node_iter), true, true, false);
+        FormArgumentParse(units, var, (*node_iter), true, true, false);
         if (!var || !var->type) {
             Error *e = new Error(
                 ErrorInst::Generator::InvalidType,

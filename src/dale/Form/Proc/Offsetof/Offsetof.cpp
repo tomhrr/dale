@@ -9,7 +9,7 @@
 namespace dale
 {
 bool
-FormProcOffsetOfParse(Generator *gen,
+FormProcOffsetOfParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -17,7 +17,7 @@ FormProcOffsetOfParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     assert(node->list && "must receive a list!");
 
@@ -30,12 +30,12 @@ FormProcOffsetOfParse(Generator *gen,
     /* First argument must be a struct name. */
 
     Node *struct_name = (*lst)[1];
-    struct_name = gen->units->top()->mp->parseOptionalMacroCall(struct_name);
+    struct_name = units->top()->mp->parseOptionalMacroCall(struct_name);
     if (!struct_name) {
         return false;
     }
 
-    Type *mytype = FormTypeParse(gen, struct_name,
+    Type *mytype = FormTypeParse(units, struct_name,
                                            false,
                                            false);
     if (!mytype) {

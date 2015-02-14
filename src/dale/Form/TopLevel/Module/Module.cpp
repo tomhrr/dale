@@ -19,12 +19,12 @@ isValidModuleName(std::string *str)
 }
 
 bool
-FormTopLevelModuleParse(Generator *gen, Node *node)
+FormTopLevelModuleParse(Units *units, Node *node)
 {
     Node *top = node;
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
-    if (gen->units->module_name.size() > 0) {
+    if (units->module_name.size() > 0) {
         fprintf(stderr, "Internal error: module name already set.\n");
         abort();
     }
@@ -35,7 +35,7 @@ FormTopLevelModuleParse(Generator *gen, Node *node)
 
     symlist *lst = top->list;
     Node *n = (*lst)[1];
-    n = gen->units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
@@ -57,7 +57,7 @@ FormTopLevelModuleParse(Generator *gen, Node *node)
 
     if (lst->size() == 3) {
         n = (*lst)[2];
-        n = gen->units->top()->mp->parseOptionalMacroCall(n);
+        n = units->top()->mp->parseOptionalMacroCall(n);
         if (!n) {
             return false;
         }
@@ -92,7 +92,7 @@ FormTopLevelModuleParse(Generator *gen, Node *node)
                 return false;
             }
             if (!((*b)->token->str_value.compare("cto"))) {
-                gen->units->cto = true;
+                units->cto = true;
             } else {
                 Error *e = new Error(
                     ErrorInst::Generator::InvalidAttribute,
@@ -104,8 +104,8 @@ FormTopLevelModuleParse(Generator *gen, Node *node)
         }
     }
 
-    gen->units->module_name = std::string("lib");
-    gen->units->module_name.append(my_module_name);
+    units->module_name = std::string("lib");
+    units->module_name.append(my_module_name);
 
     return true;
 }

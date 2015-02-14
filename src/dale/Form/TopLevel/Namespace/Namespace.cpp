@@ -6,10 +6,10 @@
 namespace dale
 {
 bool
-FormTopLevelNamespaceParse(Generator *gen,
+FormTopLevelNamespaceParse(Units *units,
            Node *node)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("namespace", node, 1, -1)) {
         return false;
@@ -17,7 +17,7 @@ FormTopLevelNamespaceParse(Generator *gen,
 
     symlist *lst = node->list;
     Node *n = (*lst)[1];
-    n = gen->units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
@@ -47,7 +47,7 @@ FormTopLevelNamespaceParse(Generator *gen,
     ++symlist_iter;
 
     while (symlist_iter != lst->end()) {
-        FormTopLevelInstParse(gen, (*symlist_iter));
+        FormTopLevelInstParse(units, (*symlist_iter));
         ctx->er->flush();
         ++symlist_iter;
     }

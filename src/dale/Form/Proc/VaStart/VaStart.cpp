@@ -9,7 +9,7 @@
 namespace dale
 {
 bool
-FormProcVaStartParse(Generator *gen,
+FormProcVaStartParse(Units *units,
            Function *fn,
            llvm::BasicBlock *block,
            Node *node,
@@ -17,7 +17,7 @@ FormProcVaStartParse(Generator *gen,
            bool prefixed_with_core,
            ParseResult *pr)
 {
-    Context *ctx = gen->units->top()->ctx;
+    Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("va-start", node, 1, 1)) {
         return false;
@@ -27,7 +27,7 @@ FormProcVaStartParse(Generator *gen,
 
     ParseResult pr_valist;
     bool res =
-        FormProcInstParse(gen, fn, block, (*lst)[1], false,
+        FormProcInstParse(units, fn, block, (*lst)[1], false,
                                 false, NULL,
                                &pr_valist);
     if (!res) {
@@ -36,7 +36,7 @@ FormProcVaStartParse(Generator *gen,
 
     llvm::IRBuilder<> builder(pr_valist.block);
     llvm::Function *va_start =
-        gen->units->top()->module->getFunction(llvm::StringRef("llvm.va_start"));
+        units->top()->module->getFunction(llvm::StringRef("llvm.va_start"));
     if (!va_start) {
         fprintf(stderr, "Unable to load va_start.");
         abort();
