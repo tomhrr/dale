@@ -31,8 +31,8 @@ FormTopLevelOnceParse(Generator *gen,
     const char *once_name = n->token->str_value.c_str();
     std::string once_tag(once_name);
 
-    if (gen->included_once_tags->find(once_tag) !=
-            gen->included_once_tags->end()) {
+    if (gen->units->mr->included_once_tags.find(once_tag) !=
+            gen->units->mr->included_once_tags.end()) {
         if (gen->units->size() == 1) {
             Error *e = new Error(
                 ErrorInst::Generator::CannotOnceTheLastOpenFile,
@@ -47,7 +47,7 @@ FormTopLevelOnceParse(Generator *gen,
         gen->units->top()->once_tag.clear();
         gen->units->top()->once_tag = unit->once_tag;
     }
-    gen->included_once_tags->insert(once_tag);
+    gen->units->mr->included_once_tags.insert(once_tag);
     gen->units->top()->once_tag = once_tag;
     gen->units->top()->setOnceTag(once_tag);
 

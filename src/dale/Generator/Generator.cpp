@@ -128,9 +128,6 @@ Generator::Generator()
     nt = new NativeTypes();
     tr = new TypeRegister();
 
-    included_once_tags = new std::set<std::string>;
-    included_modules   = new std::set<std::string>;
-
     dtm_modules     = new std::map<std::string, llvm::Module*>;
     dtm_nm_modules  = new std::map<std::string, std::string>;
 
@@ -144,8 +141,6 @@ Generator::Generator()
 Generator::~Generator()
 {
     delete tr;
-    delete included_once_tags;
-    delete included_modules;
 
     delete cto_modules;
     delete dtm_modules;

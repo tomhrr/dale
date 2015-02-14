@@ -75,7 +75,6 @@ public:
     bool no_drt;
     Units *units;
     Unit *getUnit(void);
-    std::set<std::string> *included_once_tags;
 };
 }
 
