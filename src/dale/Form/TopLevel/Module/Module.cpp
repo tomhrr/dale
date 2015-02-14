@@ -35,7 +35,7 @@ FormTopLevelModuleParse(Generator *gen, Node *node)
 
     symlist *lst = top->list;
     Node *n = (*lst)[1];
-    n = gen->getUnit()->mp->parseOptionalMacroCall(n);
+    n = gen->units->top()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
@@ -57,7 +57,7 @@ FormTopLevelModuleParse(Generator *gen, Node *node)
 
     if (lst->size() == 3) {
         n = (*lst)[2];
-        n = gen->getUnit()->mp->parseOptionalMacroCall(n);
+        n = gen->units->top()->mp->parseOptionalMacroCall(n);
         if (!n) {
             return false;
         }

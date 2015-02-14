@@ -209,7 +209,7 @@ parseLiteralElement(Generator *gen,
             );
 
         std::string varname2;
-        gen->getUnusedVarname(&varname2);
+        gen->units->top()->getUnusedVarname(&varname2);
 
         Type *archar =
             tr->getArrayType(tr->type_char, *size);
@@ -356,7 +356,7 @@ parseLiteral(Generator *gen,
             && (!top->list->at(0)->token->str_value.compare("#"))
             && (type->points_to)) {
         Node *var = top->list->at(1);
-        var = gen->getUnit()->mp->parseOptionalMacroCall(var);
+        var = gen->units->top()->mp->parseOptionalMacroCall(var);
         if (var && var->is_token) {
             Variable *gv =
                 ctx->getVariable(var->token->str_value.c_str());
@@ -677,7 +677,7 @@ FormTopLevelGlobalVariableParse(Generator *gen, Node *node)
 
     Node *n2 = NULL;
     if (has_initialiser) {
-        n2 = gen->getUnit()->mp->parseOptionalMacroCall((*lst)[3]);
+        n2 = gen->units->top()->mp->parseOptionalMacroCall((*lst)[3]);
         if (!n2) {
             return false;
         }

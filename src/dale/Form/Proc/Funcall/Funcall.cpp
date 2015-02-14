@@ -50,7 +50,7 @@ FormProcFuncallParse(Generator *gen,
         return false;
     }
 
-    res = gen->getUnit()->fp->parseFuncallInternal(
+    res = gen->units->top()->fp->parseFuncallInternal(
                fn,
                node,
                get_address,

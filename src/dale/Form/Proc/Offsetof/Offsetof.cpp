@@ -30,7 +30,7 @@ FormProcOffsetOfParse(Generator *gen,
     /* First argument must be a struct name. */
 
     Node *struct_name = (*lst)[1];
-    struct_name = gen->getUnit()->mp->parseOptionalMacroCall(struct_name);
+    struct_name = gen->units->top()->mp->parseOptionalMacroCall(struct_name);
     if (!struct_name) {
         return false;
     }

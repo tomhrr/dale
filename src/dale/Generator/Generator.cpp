@@ -116,20 +116,7 @@ int nesting = 0;
 
 std::vector<llvm::Value *> two_zero_indices;
 
-static int var_count = 0;
 llvm::Module *mod;
-int Generator::getUnusedVarname(std::string *mystr)
-{
-    char buf[256];
-    do {
-        mystr->clear();
-        sprintf(buf, "%d", var_count++);
-        mystr->append("_dv");
-        mystr->append(buf);
-    } while (mod->getGlobalVariable(llvm::StringRef(*mystr)));
-
-    return 1;
-}
 
 Generator::Generator()
 {

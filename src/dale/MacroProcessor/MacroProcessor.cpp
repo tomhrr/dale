@@ -241,7 +241,7 @@ Node *MacroProcessor::parseMacroCall(Node *n,
 
     //fprintf(stderr, "MC result dnode: %s: %p\n", name, mc_result_dnode);
     Node *mc_result_node =
-        (mc_result_dnode) ? gen->getUnit()->dnc->toNode(mc_result_dnode)
+        (mc_result_dnode) ? gen->units->top()->dnc->toNode(mc_result_dnode)
                           : NULL;
 
     /* Free the pool node. */
@@ -387,8 +387,8 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
 
     int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    gen->getUnit()->pushGlobalFunction(dfn);
-    gen->getUnit()->pushGlobalBlock(block);
+    gen->units->top()->pushGlobalFunction(dfn);
+    gen->units->top()->pushGlobalBlock(block);
 
     ctx->activateAnonymousNamespace();
 
@@ -415,8 +415,8 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
 
     ctx->deactivateAnonymousNamespace();
 
-    gen->getUnit()->popGlobalFunction();
-    gen->getUnit()->popGlobalBlock();
+    gen->units->top()->popGlobalFunction();
+    gen->units->top()->popGlobalBlock();
 
     /* Remove the temporary function. */
     fn->eraseFromParent();

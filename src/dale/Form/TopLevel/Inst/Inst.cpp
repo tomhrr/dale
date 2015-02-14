@@ -102,7 +102,7 @@ FormTopLevelInstParse(Generator *gen, Node *node)
         return true;
     }
 
-    Node *newtop = gen->getUnit()->mp->parseOptionalMacroCall(top);
+    Node *newtop = gen->units->top()->mp->parseOptionalMacroCall(top);
     if (!newtop) {
         return false;
     }

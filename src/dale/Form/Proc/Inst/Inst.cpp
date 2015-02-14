@@ -97,7 +97,7 @@ parseInternal(Generator *gen,
     Node *first = (*lst)[0];
 
     if (!first->is_token) {
-        first = gen->getUnit()->mp->parseOptionalMacroCall(first);
+        first = gen->units->top()->mp->parseOptionalMacroCall(first);
         if (!first) {
             return false;
         }
@@ -366,7 +366,7 @@ past_sl_parse:
             Function **macro_to_call = &macro_to_call_real;
             *macro_to_call = NULL;
 
-            bool res = gen->getUnit()->fp->parseFunctionCall(fn, block, n,
+            bool res = gen->units->top()->fp->parseFunctionCall(fn, block, n,
                                    t->str_value.c_str(), get_address,
                                    false, macro_to_call, pr);
             if (res) {
@@ -375,7 +375,7 @@ past_sl_parse:
 
             if (*macro_to_call) {
                 Node *mac_node =
-                    gen->getUnit()->mp->parseMacroCall(n, t->str_value.c_str(),
+                    gen->units->top()->mp->parseMacroCall(n, t->str_value.c_str(),
                                    *macro_to_call);
                 if (!mac_node) {
                     return false;
@@ -421,7 +421,7 @@ past_sl_parse:
         first = (*lst)[0];
 
         if (!first->is_token) {
-            first = gen->getUnit()->mp->parseOptionalMacroCall(first);
+            first = gen->units->top()->mp->parseOptionalMacroCall(first);
             if (!first) {
                 return false;
             }
@@ -648,7 +648,7 @@ past_sl_parse:
 
                 std::vector<llvm::Value*> extra_args;
                 extra_args.push_back(try_fnp.value);
-                return gen->getUnit()->fp->parseFuncallInternal(
+                return gen->units->top()->fp->parseFuncallInternal(
                            fn,
                            n,
                            get_address,

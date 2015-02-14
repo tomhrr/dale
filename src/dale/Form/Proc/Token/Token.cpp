@@ -384,7 +384,7 @@ tryvar:
 
         std::string varname;
         llvm::GlobalVariable *var;
-        gen->getUnusedVarname(&varname);
+        gen->units->top()->getUnusedVarname(&varname);
 
         var =
             llvm::cast<llvm::GlobalVariable>(

@@ -21,7 +21,7 @@ FormTopLevelOnceParse(Generator *gen,
     }
     symlist *lst = top->list;
     Node *n = (*lst)[1];
-    n = gen->getUnit()->mp->parseOptionalMacroCall(n);
+    n = gen->units->top()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }

@@ -70,7 +70,6 @@ public:
             std::vector<const char *> *include_paths_sv,
             std::vector<const char *> *module_paths_sv);
 
-    int getUnusedVarname(std::string *mystr);
     llvm::ExecutionEngine *ee;
     bool no_add_common_declarations;
     bool no_drt;

@@ -28,7 +28,7 @@ FormProcAlignmentOfParse(Generator *gen,
     symlist *lst = node->list;
 
     Node *mytype = (*lst)[1];
-    mytype = gen->getUnit()->mp->parseOptionalMacroCall(mytype);
+    mytype = gen->units->top()->mp->parseOptionalMacroCall(mytype);
     if (!mytype) {
         return false;
     }

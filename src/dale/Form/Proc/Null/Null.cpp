@@ -33,7 +33,7 @@ FormProcNullParse(Generator *gen,
 
     Node *arg = (*lst)[1];
     if (arg->is_list) {
-        arg = gen->getUnit()->mp->parseOptionalMacroCall(arg);
+        arg = gen->units->top()->mp->parseOptionalMacroCall(arg);
         if (!arg) {
             return false;
         }

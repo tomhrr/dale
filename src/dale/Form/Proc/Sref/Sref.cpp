@@ -111,7 +111,7 @@ FormProcSrefParse(Generator *gen,
     }
 
     Node *ref = (*lst)[2];
-    ref = gen->getUnit()->mp->parseOptionalMacroCall(ref);
+    ref = gen->units->top()->mp->parseOptionalMacroCall(ref);
     if (!ref) {
         return false;
     }

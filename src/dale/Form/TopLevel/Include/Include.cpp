@@ -17,7 +17,7 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
 
     symlist *lst = node->list;
     Node *n = (*lst)[1];
-    n = gen->getUnit()->mp->parseOptionalMacroCall(n);
+    n = gen->units->top()->mp->parseOptionalMacroCall(n);
     if (!n) {
         return false;
     }
@@ -88,7 +88,7 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
      * */
 
     Unit *unit = new Unit(filename_buf.c_str(), gen, ctx->er, ctx->nt,
-                          ctx->tr, gen->getUnit()->ee,
+                          ctx->tr, gen->units->top()->ee,
                           gen->units->top()->is_x86_64);
     gen->units->push(unit);
     gen->units->top()->once_tag.clear();
@@ -98,7 +98,7 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
 
     if (!gen->no_add_common_declarations) {
         if (gen->no_drt) {
-            gen->getUnit()->addCommonDeclarations();
+            gen->units->top()->addCommonDeclarations();
         } else {
             std::vector<const char*> import_forms;
             gen->units->mr->run(ctx, gen->units->top()->module, nullNode(), "drt", &import_forms);

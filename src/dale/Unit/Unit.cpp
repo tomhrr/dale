@@ -34,8 +34,8 @@ Unit::Unit(const char *path, Generator *gen, ErrorReporter *er, NativeTypes *nt,
 #endif
 
     this->ee = ee;
-
     this->is_x86_64 = is_x86_64;
+    var_count = 0;
 }
 
 Unit::~Unit(void)
@@ -129,6 +129,18 @@ Unit::addCommonDeclarations(void)
     CommonDecl::addVarargsTypes(this, is_x86_64);
     CommonDecl::addStandardVariables(this);
 
+    return;
+}
+
+void
+Unit::getUnusedVarname(std::string *buf)
+{
+    char ibuf[16];
+    do {
+        sprintf(ibuf, "_dv%d", var_count++);
+    } while (module->getGlobalVariable(llvm::StringRef(ibuf)));
+
+    buf->append(ibuf);
     return;
 }
 }

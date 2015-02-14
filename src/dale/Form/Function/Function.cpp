@@ -459,10 +459,10 @@ FormFunctionParse(Generator *gen,
     ctx->activateAnonymousNamespace();
     std::string anon_name2 = ctx->ns()->name;
 
-    gen->getUnit()->pushGlobalFunction(dfn);
+    gen->units->top()->pushGlobalFunction(dfn);
     FormProcBodyParse(gen, n, dfn, fn, (next_index + 2),
                           is_anonymous, lv_return_value);
-    gen->getUnit()->popGlobalFunction();
+    gen->units->top()->popGlobalFunction();
 
     if (!strcmp(name, "main")
             && ctx->getVariable("stdin")

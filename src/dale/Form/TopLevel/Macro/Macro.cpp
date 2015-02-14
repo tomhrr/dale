@@ -275,9 +275,9 @@ FormTopLevelMacroParse(Generator *gen, Node *node)
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;
 
-    gen->getUnit()->pushGlobalFunction(dfn);
+    gen->units->top()->pushGlobalFunction(dfn);
     FormProcBodyParse(gen, top, dfn, fn, 3, 0);
-    gen->getUnit()->popGlobalFunction();
+    gen->units->top()->popGlobalFunction();
 
     ctx->deactivateNamespace(anon_name.c_str());
 

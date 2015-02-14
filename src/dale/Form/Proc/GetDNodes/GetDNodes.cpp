@@ -25,7 +25,7 @@ IntNodeToStaticDNode(Generator *gen,
 
     /* If it's one node, add the dnode. */
     std::string varname;
-    gen->getUnusedVarname(&varname);
+    gen->units->top()->getUnusedVarname(&varname);
 
     /* Add the variable to the module. */
 
@@ -82,7 +82,7 @@ IntNodeToStaticDNode(Generator *gen,
                                          t->str_value.c_str(),
                                          true);
             std::string varname2;
-            gen->getUnusedVarname(&varname2);
+            gen->units->top()->getUnusedVarname(&varname2);
 
             Type *archar =
                 ctx->tr->getArrayType(ctx->tr->type_char,
