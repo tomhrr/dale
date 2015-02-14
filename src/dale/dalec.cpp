@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     int no_stdlib = 0;
     int bitcode_path_count = 0;
     int remove_macros = 0;
-    int no_acd = 0;
+    int no_common = 0;
     char *module_name = NULL;
     int no_strip = 0;
     int static_mods_all = 0;
@@ -70,7 +70,6 @@ int main(int argc, char **argv)
     int found_ctom = 0;
     int enable_cto = 0;
     int module_path_count = 0;
-    int noalways = 0;
 
     if (argc < 2) {
         fprintf(stderr, "dalec: no input files.\n");
@@ -79,7 +78,7 @@ int main(int argc, char **argv)
 
     static struct option long_options[] = {
         { "no-dale-stdlib", no_argument,       &no_dale_stdlib,  1 },
-        { "no-common",      no_argument,       &no_acd,          1 },
+        { "no-common",      no_argument,       &no_common,       1 },
         { "no-stdlib",      no_argument,       &no_stdlib,       1 },
         { "no-strip",       no_argument,       &no_strip,        1 },
         { "static-modules", no_argument,       &static_mods_all, 1 },
@@ -247,9 +246,6 @@ int main(int argc, char **argv)
             strcat(output_path, ".o");
         }
     }
-    if (no_dale_stdlib) {
-        noalways = 1;
-    }
 
     char compile_lib_str[1024] = "";
     for (int i = 0; i < compile_lib_count; ++i) {
@@ -334,9 +330,9 @@ int main(int argc, char **argv)
 
     int rest = g->run(&vinput_files, &bc_files, tempout,
                       produce, optlevel, remove_macros,
-                      module_name, no_acd, &so_paths, no_strip,
+                      module_name, no_common, &so_paths, no_strip,
                       static_mods_all, &vstatic_modules,
-                      &vcto_modules, enable_cto, debug, noalways,
+                      &vcto_modules, enable_cto, debug, no_dale_stdlib,
                       &compile_libs_sv, &include_paths_sv,
                       &module_paths_sv);
     if (!rest) {

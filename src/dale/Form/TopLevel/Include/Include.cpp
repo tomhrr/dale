@@ -96,8 +96,8 @@ FormTopLevelIncludeParse(Generator *gen, Node *node)
     gen->units->top()->ee->addModule(gen->units->top()->module);
     CommonDecl::addVarargsFunctions(unit);
 
-    if (!gen->no_add_common_declarations) {
-        if (gen->no_drt) {
+    if (!gen->units->no_common) {
+        if (gen->units->no_dale_stdlib) {
             gen->units->top()->addCommonDeclarations();
         } else {
             std::vector<const char*> import_forms;

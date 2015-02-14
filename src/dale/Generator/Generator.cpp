@@ -184,7 +184,7 @@ int Generator::run(std::vector<const char *> *filenames,
                    int optlevel,
                    int remove_macros,
                    char *my_module_name,
-                   int no_acd,
+                   int no_common,
                    std::vector<std::string> *so_paths,
                    int nostrip,
                    int static_mods_all,
@@ -192,7 +192,7 @@ int Generator::run(std::vector<const char *> *filenames,
                    std::vector<const char *> *mycto_modules,
                    int enable_cto,
                    int mydebug,
-                   int nodrt,
+                   int no_dale_stdlib,
                    std::vector<const char *> *compile_libs_sv,
                    std::vector<const char *> *include_paths_sv,
                    std::vector<const char *> *module_paths_sv)
@@ -205,11 +205,9 @@ int Generator::run(std::vector<const char *> *filenames,
          || ((!strcmp(SYSTEM_NAME, "Darwin"))
              && (sizeof(char *) == 8)));
 
+    llvm::ExecutionEngine *ee = NULL;
 
     init_introspection_functions();
-
-    no_add_common_declarations = no_acd;
-    no_drt = nodrt;
 
     debug = mydebug;
 
@@ -238,7 +236,7 @@ int Generator::run(std::vector<const char *> *filenames,
     }
 
     const char *libdrt_path = NULL;
-    if (!nodrt) {
+    if (!no_dale_stdlib) {
         if (fopen(DALE_LIBRARY_PATH "/libdrt.so", "r")) {
             libdrt_path = DALE_LIBRARY_PATH "/libdrt.so";
         } else if (fopen("./libdrt.so", "r")) {
@@ -255,6 +253,8 @@ int Generator::run(std::vector<const char *> *filenames,
 
     units = new Units(&mr);
     units->cto = enable_cto;
+    units->no_common = no_common;
+    units->no_dale_stdlib = no_dale_stdlib;
     Context *ctx    = NULL;
     mod    = NULL;
     llvm::Linker *linker = NULL;
@@ -330,13 +330,13 @@ int Generator::run(std::vector<const char *> *filenames,
         ee->InstallLazyFunctionCreator(myLFC);
         CommonDecl::addVarargsFunctions(unit);
 
-        if (!no_acd) {
-            if (nodrt) {
+        if (!units->no_common) {
+            if (units->no_dale_stdlib) {
                 unit->addCommonDeclarations();
             } else {
                 std::vector<const char*> import_forms;
                 mr.run(ctx, mod, nullNode(), "drt", &import_forms);
-                getUnit()->mp->setPoolfree();
+                units->top()->mp->setPoolfree();
             }
         }
         int error_count = 0;
@@ -658,11 +658,5 @@ int Generator::run(std::vector<const char *> *filenames,
     }
 
     return 1;
-}
-
-Unit *
-Generator::getUnit(void)
-{
-    return units->top();
 }
 }

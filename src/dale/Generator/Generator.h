@@ -57,7 +57,7 @@ public:
             std::vector<const char *> *bc_files,
             FILE *outfile, int produce, int optlevel,
             int remove_macros, char *module_name,
-            int no_acd,
+            int no_common,
             std::vector<std::string> *so_paths,
             int nostrip,
             int static_mods_all,
@@ -65,16 +65,12 @@ public:
             std::vector<const char *> *cto_modules,
             int enable_cto,
             int debug,
-            int noalways,
+            int no_dale_stdlib,
             std::vector<const char *> *compile_libs_sv,
             std::vector<const char *> *include_paths_sv,
             std::vector<const char *> *module_paths_sv);
 
-    llvm::ExecutionEngine *ee;
-    bool no_add_common_declarations;
-    bool no_drt;
     Units *units;
-    Unit *getUnit(void);
 };
 }
 

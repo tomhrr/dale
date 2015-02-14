@@ -32,6 +32,11 @@ public:
     std::string module_name;
     /*! Whether the module being compiled is a compile-time-only module. */
     bool cto;
+    /*! Whether common declarations should be added to each new unit. */
+    bool no_common;
+    /*! Whether the standard library (libdrt) should be imported into
+     *  each new unit. */
+    bool no_dale_stdlib;
 
     /*! Construct a new Units object.
      *  @param mr A module reader.
