@@ -8,16 +8,13 @@
 #include <getopt.h>
 #include <cstdio>
 
-const int MAX_LIBS        = 100;
-const int MAX_INPUT_FILES = 100;
-
 using namespace dale;
 
-int appears_to_be_lib(char *str)
+int appears_to_be_lib(const char *str)
 {
     int len = strlen(str);
     if (len >= 2) {
-        char *end = str + (len - 2);
+        const char *end = str + (len - 2);
         if ((!strcmp(end, ".o")) || (!strcmp(end, ".a"))) {
             return 1;
         }
@@ -31,36 +28,30 @@ int main(int argc, char **argv)
     int opt;
     char optc;
 
-    char *input_files[MAX_INPUT_FILES];
-    char *input_link_files[MAX_INPUT_FILES];
-    const char *compile_libs[MAX_LIBS];
-    const char *run_libs[MAX_LIBS];
-    char *include_paths[MAX_LIBS];
-    char *run_paths[MAX_LIBS];
-    char *bitcode_paths[MAX_LIBS];
-    char *static_modules[MAX_LIBS];
-    char *cto_modules[MAX_LIBS];
+    std::vector<const char*> input_files;
+    std::vector<const char*> input_link_files;
+    std::vector<const char*> compile_libs;
+    std::vector<const char*> run_libs;
+    std::vector<const char*> include_paths;
+    std::vector<const char*> run_paths;
+    std::vector<const char*> bitcode_paths;
+    std::vector<const char*> static_modules;
+
+    std::vector<const char*> cto_modules;
+    std::vector<const char*> module_paths;
+
     char *output_path_arg = NULL;
-    char *module_paths[MAX_LIBS];
     int no_linking    = 0;
     int produce       = ASM;
     int produce_set   = 0;
     int optlevel      = 0;
 
-    int cto_module_count = 0;
-    int static_module_count = 0;
-    int compile_lib_count = 0;
-    int input_link_file_count = 0;
-    int run_lib_count = 0;
-    int include_path_count = 0;
-    int run_path_count = 0;
-    int input_file_count = 0;
+    int input_file_count;
     int j = 0;
     int debug = 0;
     char output_path[256] = "";
     int no_dale_stdlib = 0;
     int no_stdlib = 0;
-    int bitcode_path_count = 0;
     int remove_macros = 0;
     int no_common = 0;
     char *module_name = NULL;
@@ -69,7 +60,6 @@ int main(int argc, char **argv)
     int found_sm = 0;
     int found_ctom = 0;
     int enable_cto = 0;
-    int module_path_count = 0;
 
     if (argc < 2) {
         fprintf(stderr, "dalec: no input files.\n");
@@ -125,47 +115,17 @@ int main(int argc, char **argv)
             }
             produce_set = 1;
         } else if (optc == 'I') {
-            if (include_path_count == MAX_LIBS) {
-                fprintf(stderr, "dalec: hit include path limit (change "
-                        "the limit in dale-to-bc.\n");
-                exit(1);
-            }
-            include_paths[include_path_count++] = optarg;
+            include_paths.push_back(optarg);
         } else if (optc == 'a') {
-            if (compile_lib_count == MAX_LIBS) {
-                fprintf(stderr, "dalec: hit library limit (change "
-                        "the limit in dale-to-bc.\n");
-                exit(1);
-            }
-            compile_libs[compile_lib_count++] = optarg;
+            compile_libs.push_back(optarg);
         } else if (optc == 'L') {
-            if (run_path_count == MAX_LIBS) {
-                fprintf(stderr, "dalec: hit run-include path limit (change "
-                        "the limit in dale-to-bc.\n");
-                exit(1);
-            }
-            run_paths[run_path_count++] = optarg;
+            run_paths.push_back(optarg);
         } else if (optc == 'l') {
-            if (run_lib_count == MAX_LIBS) {
-                fprintf(stderr, "dalec: hit run-library limit (change "
-                        "the limit in dale-to-bc.\n");
-                exit(1);
-            }
-            run_libs[run_lib_count++] = optarg;
+            run_libs.push_back(optarg);
         } else if (optc == 'b') {
-            if (run_lib_count == MAX_LIBS) {
-                fprintf(stderr, "dalec: hit bitcode path limit (change "
-                        "the limit in dale-to-bc.\n");
-                exit(1);
-            }
-            bitcode_paths[bitcode_path_count++] = optarg;
+            bitcode_paths.push_back(optarg);
         } else if (optc == 'M') {
-            if (module_path_count == MAX_LIBS) {
-                fprintf(stderr, "dalec: hit module path limit (change "
-                        "the limit in dale-to-bc.\n");
-                exit(1);
-            }
-            module_paths[module_path_count++] = optarg;
+            module_paths.push_back(optarg);
         } else if (optc == 'c') {
             no_linking = 1;
         } else if (optc == 'r') {
@@ -178,10 +138,10 @@ int main(int argc, char **argv)
             module_name = optarg;
         } else if (found_sm == 1) {
             found_sm = 0;
-            static_modules[static_module_count++] = optarg;
+            static_modules.push_back(optarg);
         } else if (found_ctom == 1) {
             found_sm = 0;
-            cto_modules[cto_module_count++] = optarg;
+            cto_modules.push_back(optarg);
         }
     }
 
@@ -193,15 +153,8 @@ int main(int argc, char **argv)
 
     input_file_count = argc - optind;
 
-    if (input_file_count > MAX_INPUT_FILES) {
-        fprintf(stderr, "dalec: input file count (%d) exceeds the "
-                "maximum number of input files that "
-                "may be specified.\n", input_file_count);
-        exit(1);
-    }
-
     for (j = 0; j < input_file_count; ++j) {
-        input_files[j] = argv[optind + j];
+        input_files.push_back(argv[optind + j]);
     }
 
     /* Input files that end with .o or .a should go straight to the
@@ -211,8 +164,7 @@ int main(int argc, char **argv)
         int len = strlen(input_files[k]);
         if (len >= 2) {
             if (appears_to_be_lib(input_files[k])) {
-                input_link_files[input_link_file_count++] =
-                    input_files[k];
+                input_link_files.push_back(input_files[k]);
                 actual_input_file_count--;
             }
         }
@@ -247,44 +199,61 @@ int main(int argc, char **argv)
         }
     }
 
-    char compile_lib_str[1024] = "";
-    for (int i = 0; i < compile_lib_count; ++i) {
-        strcat(compile_lib_str, " -l ");
-        strcat(compile_lib_str, compile_libs[i]);
+    std::string compile_lib_str;
+    for (std::vector<const char*>::iterator b = compile_libs.begin(),
+                                            e = compile_libs.end();
+            b != e;
+            ++b) {
+        compile_lib_str.append(" -l ");
+        compile_lib_str.append(*b);
     }
 
-    char include_path_str[1024] = "";
-    for (int i = 0; i < include_path_count; ++i) {
-        strcat(include_path_str, " -I ");
-        strcat(include_path_str, include_paths[i]);
+    std::string include_path_str;
+    for (std::vector<const char*>::iterator b = include_paths.begin(),
+                                            e = include_paths.end();
+            b != e;
+            ++b) {
+        include_path_str.append(" -I ");
+        include_path_str.append(*b);
     }
 
-    char run_path_str[1024] = "";
-    for (int i = 0; i < run_path_count; ++i) {
-        strcat(run_path_str, " -L ");
-        strcat(run_path_str, run_paths[i]);
+    std::string run_path_str;
+    for (std::vector<const char*>::iterator b = run_paths.begin(),
+                                            e = run_paths.end();
+            b != e;
+            ++b) {
+        run_path_str.append(" -L ");
+        run_path_str.append(*b);
     }
 
-    char input_file_str[1024] = "";
-    for (int i = 0; i < input_file_count; ++i) {
-        if (!appears_to_be_lib(input_files[i])) {
-            strcat(input_file_str, " ");
-            strcat(input_file_str, input_files[i]);
+    std::string input_file_str;
+    for (std::vector<const char*>::iterator b = input_files.begin(),
+                                            e = input_files.end();
+            b != e;
+            ++b) {
+        if (!appears_to_be_lib(*b)) {
+            input_file_str.append(" ");
+            input_file_str.append(*b);
         }
     }
 
-    std::vector<const char*> vinput_files;
-
-    for (j = 0; j < input_file_count; ++j) {
-        if (!appears_to_be_lib(argv[optind + j])) {
-            vinput_files.push_back(argv[optind + j]);
+    std::vector<const char*> non_lib_input_files;
+    for (std::vector<const char*>::iterator b = input_files.begin(),
+                                            e = input_files.end();
+            b != e;
+            ++b) {
+        if (!appears_to_be_lib(*b)) {
+            non_lib_input_files.push_back(*b);
         }
     }
 
-    char input_link_file_str[1024] = "";
-    for (int i = 0; i < input_link_file_count; ++i) {
-        strcat(input_link_file_str, " ");
-        strcat(input_link_file_str, input_link_files[i]);
+    std::string input_link_file_str;
+    for (std::vector<const char*>::iterator b = input_link_files.begin(),
+                                            e = input_link_files.end();
+            b != e;
+            ++b) {
+        input_link_file_str.append(" ");
+        input_link_file_str.append(*b);
     }
 
     FILE *tempout = tmpfile();
@@ -293,64 +262,35 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    Generator *g = new Generator();
-
-    std::vector<const char*> compile_libs_sv;
-    for (j = 0; j < compile_lib_count; ++j) {
-        compile_libs_sv.push_back(compile_libs[j]);
-    }
-
-    std::vector<const char*> include_paths_sv;
-    for (j = 0; j < include_path_count; ++j) {
-        include_paths_sv.push_back(include_paths[j]);
-    }
-
-    std::vector<const char*> module_paths_sv;
-    for (j = 0; j < module_path_count; ++j) {
-        module_paths_sv.push_back(module_paths[j]);
-    }
-
-    std::vector<const char*> bc_files;
-    for (j = 0; j < bitcode_path_count; ++j) {
-        bc_files.push_back(bitcode_paths[j]);
-    }
-
-    std::vector<const char*> vstatic_modules;
-    for (j = 0; j < static_module_count; ++j) {
-        vstatic_modules.push_back(static_modules[j]);
-    }
-
-    std::vector<const char*> vcto_modules;
-    for (j = 0; j < cto_module_count; ++j) {
-        vcto_modules.push_back(cto_modules[j]);
-    }
-
+    Generator g;
     std::vector<std::string> so_paths;
-    //so_paths.push_back("/usr/local/lib/libffi.so");
 
-    int rest = g->run(&vinput_files, &bc_files, tempout,
-                      produce, optlevel, remove_macros,
-                      module_name, no_common, &so_paths, no_strip,
-                      static_mods_all, &vstatic_modules,
-                      &vcto_modules, enable_cto, debug, no_dale_stdlib,
-                      &compile_libs_sv, &include_paths_sv,
-                      &module_paths_sv);
+    int rest = g.run(&non_lib_input_files, &bitcode_paths, tempout,
+                     produce, optlevel, remove_macros,
+                     module_name, no_common, &so_paths, no_strip,
+                     static_mods_all, &static_modules,
+                     &cto_modules, enable_cto, debug, no_dale_stdlib,
+                     &compile_libs, &include_paths,
+                     &module_paths);
     if (!rest) {
         exit(1);
     }
-    delete g;
 
-    char run_lib_str[1024] = "";
-    for (int i = 0; i < run_lib_count; ++i) {
-        strcat(run_lib_str, " -l");
-        strcat(run_lib_str, run_libs[i]);
+    std::string run_lib_str;
+    for (std::vector<const char*>::iterator b = run_libs.begin(),
+                                            e = run_libs.end();
+            b != e;
+            ++b) {
+        run_lib_str.append(" -l ");
+        run_lib_str.append(*b);
     }
+
     for (std::vector<std::string>::reverse_iterator b = so_paths.rbegin(),
             e = so_paths.rend();
             b != e;
             ++b) {
-        strcat(input_link_file_str, " ");
-        strcat(input_link_file_str, (*b).c_str());
+        input_link_file_str.append(" ");
+        input_link_file_str.append((*b).c_str());
     }
 
     char temp_output_path[256] = "";
@@ -415,11 +355,9 @@ int main(int argc, char **argv)
         sprintf(final, "cc %s -c %s "
                 "%s %s -o %s",
                 (no_stdlib) ? "--nostdlib" : "",
-                run_path_str,
-                run_lib_str,
+                run_path_str.c_str(),
+                run_lib_str.c_str(),
                 temp_output_path,
-                // not needed, obviously enough
-                //input_link_file_str,
                 output_path);
         int res = system(final);
         if (res) {
@@ -431,10 +369,10 @@ int main(int argc, char **argv)
         sprintf(final, "cc %s -Wl,--gc-sections %s "
                 "%s %s %s -o %s",
                 (no_stdlib) ? "--nostdlib" : "",
-                run_path_str,
+                run_path_str.c_str(),
                 temp_output_path,
-                input_link_file_str,
-                run_lib_str,
+                input_link_file_str.c_str(),
+                run_lib_str.c_str(),
                 output_path);
         int res = system(final);
         if (res) {
