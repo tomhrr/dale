@@ -183,7 +183,7 @@ int Generator::run(std::vector<const char *> *filenames,
                    int produce,
                    int optlevel,
                    int remove_macros,
-                   char *my_module_name,
+                   const char *my_module_name,
                    int no_common,
                    std::vector<std::string> *so_paths,
                    int nostrip,
@@ -261,7 +261,7 @@ int Generator::run(std::vector<const char *> *filenames,
 
     std::string under_module_name;
     if (my_module_name) {
-        char *last = strrchr(my_module_name, '/');
+        const char *last = strrchr(my_module_name, '/');
         if (!last) {
             last = my_module_name;
             under_module_name = std::string(last);

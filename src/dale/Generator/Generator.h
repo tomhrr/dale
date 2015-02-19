@@ -56,7 +56,7 @@ public:
     int run(std::vector<const char *> *filenames,
             std::vector<const char *> *bc_files,
             FILE *outfile, int produce, int optlevel,
-            int remove_macros, char *module_name,
+            int remove_macros, const char *module_name,
             int no_common,
             std::vector<std::string> *so_paths,
             int nostrip,
