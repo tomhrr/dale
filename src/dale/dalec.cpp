@@ -11,6 +11,7 @@
 using namespace dale;
 
 static const char *options = "M:m:O:a:I:L:l:o:s:b:cdrR";
+static const int COPY_SIZE = 8192;
 
 static bool
 appearsToBeLib(const char *str)
@@ -38,6 +39,58 @@ joinWithPrefix(std::vector<const char*> *strings, const char *prefix,
         buffer->append(" ");
         buffer->append(*b);
     }
+}
+
+static bool
+copyFile(const char *to_path, FILE *from)
+{
+    FILE *to = fopen(to_path, "w");
+    char buf[COPY_SIZE];
+    memset(buf, 0, COPY_SIZE);
+    size_t bytes;
+    size_t wbytes;
+    bool success = true;
+
+    fseek(from, SEEK_SET, 0);
+
+    while ((bytes = fread(buf, (size_t) 1, (size_t) COPY_SIZE, from))) {
+        if (ferror(from)) {
+            perror("Unable to read file");
+            fclose(from);
+            fclose(to);
+            success = false;
+            break;
+        }
+        wbytes = fwrite(buf, (size_t) 1, bytes, to);
+        if (wbytes != bytes) {
+            if (ferror(from)) {
+                perror("Unable to copy file content");
+                success = false;
+                break;
+            }
+            if (ferror(to)) {
+                perror("Unable to copy file content");
+                success = false;
+                break;
+            }
+        }
+        if (bytes != COPY_SIZE) {
+            if (feof(from)) {
+                break;
+            } else {
+                perror("Unable to copy file content");
+                success = false;
+                break;
+            }
+        }
+        memset(buf, 0, COPY_SIZE);
+    }
+
+    fflush(to);
+    fclose(from);
+    fclose(to);
+
+    return success;
 }
 
 int
@@ -222,136 +275,89 @@ main(int argc, char **argv)
     std::string input_link_file_str;
     joinWithPrefix(&input_link_files, " ", &input_link_file_str);
 
-    FILE *tempout = tmpfile();
-    if (!tempout) {
-        perror("Unable to open temporary output file");
+    FILE *output_file = tmpfile();
+    if (!output_file) {
+        fprintf(stderr, "dalec: unable to open temporary output file.\n");
         exit(1);
     }
-
-    Generator g;
     std::vector<std::string> so_paths;
+    Generator generator;
 
-    int rest = g.run(&input_files, &bitcode_paths, tempout,
-                     produce, optlevel, remove_macros,
-                     module_name, no_common, &so_paths, no_strip,
-                     static_mods_all, &static_modules,
-                     &cto_modules, enable_cto, debug, no_dale_stdlib,
-                     &compile_libs, &include_paths,
-                     &module_paths);
-    if (!rest) {
+    bool generated =
+        generator.run(&input_files, &bitcode_paths, output_file,
+                      produce, optlevel, remove_macros,
+                      module_name, no_common, &so_paths, no_strip,
+                      static_mods_all, &static_modules,
+                      &cto_modules, enable_cto, debug, no_dale_stdlib,
+                      &compile_libs, &include_paths,
+                      &module_paths);
+    if (!generated) {
         exit(1);
     }
+    fflush(output_file);
 
     std::string run_lib_str;
-    for (std::vector<const char*>::iterator b = run_libs.begin(),
-                                            e = run_libs.end();
-            b != e;
-            ++b) {
-        run_lib_str.append(" -l ");
-        run_lib_str.append(*b);
-    }
+    joinWithPrefix(&run_libs, " -l ", &run_lib_str);
 
     for (std::vector<std::string>::reverse_iterator b = so_paths.rbegin(),
-            e = so_paths.rend();
+                                                    e = so_paths.rend();
             b != e;
             ++b) {
         input_link_file_str.append(" ");
         input_link_file_str.append((*b).c_str());
     }
 
-    char temp_output_path[256] = "";
-    strcpy(temp_output_path, output_path.c_str());
+    std::string intermediate_output_path = output_path;
     if (!produce_set) {
-        strcat(temp_output_path, ".s");
+        intermediate_output_path.append(".s");
     }
-
-    if (!rest) {
+    bool result = copyFile(intermediate_output_path.c_str(), output_file);
+    if (!result) {
         exit(1);
     }
-
-    if (rest) {
-        fflush(tempout);
-        FILE *out = fopen(temp_output_path, "w");
-        fseek(tempout, 0, SEEK_SET);
-        char buf[8192];
-        memset(buf, 0, 8192);
-        size_t bytes;
-        size_t wbytes;
-        while ((bytes = fread(buf, (size_t) 1, (size_t) 8192, tempout))) {
-            if (ferror(tempout)) {
-                perror("Unable to read output file");
-                fclose(tempout);
-                fclose(out);
-                break;
-            }
-            wbytes = fwrite(buf, (size_t) 1, bytes, out);
-            if (wbytes != bytes) {
-                if (ferror(tempout)) {
-                    perror("Unable to copy file content");
-                    break;
-                }
-                if (ferror(out)) {
-                    perror("Unable to copy file content");
-                    break;
-                }
-            }
-            if (bytes != 8192) {
-                if (feof(tempout)) {
-                    break;
-                } else {
-                    perror("Unable to copy file content");
-                    break;
-                }
-            }
-            memset(buf, 0, 8192);
-        }
-        fflush(tempout);
-        fflush(out);
-        fclose(tempout);
-        fclose(out);
-    }
-
     if (produce_set) {
         exit(0);
     }
 
-    char final[8192] = "";
-    final[0] = '\0';
+    char compile_cmd[8192];
+    int bytes = 0;
     if (no_linking) {
-        sprintf(final, "cc %s -c %s "
-                "%s %s -o %s",
-                (no_stdlib) ? "--nostdlib" : "",
-                run_path_str.c_str(),
-                run_lib_str.c_str(),
-                temp_output_path,
-                output_path.c_str());
-        int res = system(final);
-        if (res) {
-            perror("Unable to run cc");
-            fprintf(stderr, "dalec: cc failed: %d (%s)\n", res, final);
-            exit(1);
-        }
+        bytes = snprintf(compile_cmd, (8192 - 1),
+                         "cc %s -c %s %s %s -o %s",
+                         (no_stdlib) ? "--nostdlib" : "",
+                         run_path_str.c_str(),
+                         run_lib_str.c_str(),
+                         intermediate_output_path.c_str(),
+                         output_path.c_str());
     } else {
-        sprintf(final, "cc %s -Wl,--gc-sections %s "
-                "%s %s %s -o %s",
-                (no_stdlib) ? "--nostdlib" : "",
-                run_path_str.c_str(),
-                temp_output_path,
-                input_link_file_str.c_str(),
-                run_lib_str.c_str(),
-                output_path.c_str());
-        int res = system(final);
-        if (res) {
-            perror("Unable to run cc");
-            fprintf(stderr, "dalec: cc failed: %d (%s)\n", res, final);
-            exit(1);
-        }
+        bytes = snprintf(compile_cmd, (8192 - 1),
+                         "cc %s -Wl,--gc-sections %s %s %s %s -o %s",
+                         (no_stdlib) ? "--nostdlib" : "",
+                         run_path_str.c_str(),
+                         intermediate_output_path.c_str(),
+                         input_link_file_str.c_str(),
+                         run_lib_str.c_str(),
+                         output_path.c_str());
     }
-    int rres = remove(temp_output_path);
-    if (rres) {
-        fprintf(stderr, "Internal error: unable to remove "
-                "temporary file (%s).\n",
-                temp_output_path);
+    if (bytes >= 8192) {
+        fprintf(stderr, "dalec: cc command is too long!\n");
+        exit(1);
+    }
+
+    int status = system(compile_cmd);
+    if (status != 0) {
+        fprintf(stderr, "dalec: cc failed.\n", res, compile_cmd);
+        if (debug) {
+            fprintf(stderr, "%s\n", compile_cmd);
+        }
+        exit(1);
+    }
+
+    status = remove(intermediate_output_path.c_str());
+    if (status != 0) {
+        fprintf(stderr, "dalec: unable to remove temporary file '%s'.\n",
+                        intermediate_output_path.c_str());
+        exit(1);
     }
 
     return 0;
