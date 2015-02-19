@@ -1,4 +1,3 @@
-#include "Token/Token.h"
 #include "Generator/Generator.h"
 
 #include <cstring>
@@ -8,10 +7,28 @@
 #include <getopt.h>
 #include <cstdio>
 
+/*! dalec
+
+    The main compiler executable, responsible for organising the
+    arguments for Generator, running Generator, and assembling/linking
+    the results together using the system's compiler.
+*/
+
 using namespace dale;
 
 static const char *options = "M:m:O:a:I:L:l:o:s:b:cdrR";
 static const int COPY_SIZE = 8192;
+static const char *progname = NULL;
+
+static void
+error(const char *error_msg, bool show_perror = false)
+{
+    if (show_perror) {
+        perror(progname);
+    }
+    fprintf(stderr, "%s: %s.\n", progname, error_msg);
+    exit(1);
+}
 
 static bool
 appearsToBeLib(const char *str)
@@ -55,21 +72,21 @@ copyFile(const char *to_path, FILE *from)
 
     while ((bytes = fread(buf, (size_t) 1, (size_t) COPY_SIZE, from))) {
         if (ferror(from)) {
-            perror("Unable to read file");
             fclose(from);
             fclose(to);
+            error("unable to read temporary file", true);
             success = false;
             break;
         }
         wbytes = fwrite(buf, (size_t) 1, bytes, to);
         if (wbytes != bytes) {
             if (ferror(from)) {
-                perror("Unable to copy file content");
+                error("unable to copy temporary file content", true);
                 success = false;
                 break;
             }
             if (ferror(to)) {
-                perror("Unable to copy file content");
+                error("unable to copy temporary file content", true);
                 success = false;
                 break;
             }
@@ -78,7 +95,7 @@ copyFile(const char *to_path, FILE *from)
             if (feof(from)) {
                 break;
             } else {
-                perror("Unable to copy file content");
+                error("unable to copy temporary file content", true);
                 success = false;
                 break;
             }
@@ -96,6 +113,8 @@ copyFile(const char *to_path, FILE *from)
 int
 main(int argc, char **argv)
 {
+    progname = argv[0];
+
     int opt;
     char optc;
 
@@ -146,8 +165,7 @@ main(int argc, char **argv)
     };
 
     if (argc < 2) {
-        fprintf(stderr, "dalec: no input files.\n");
-        exit(1);
+        error("no input files");
     }
 
     while ((opt = getopt_long(argc, argv, options,
@@ -157,9 +175,7 @@ main(int argc, char **argv)
         switch (optc) {
             case 'o': {
                 if (output_path_arg) {
-                    fprintf(stderr, "dalec: an output path has already "
-                                    "been specified.\n");
-                    exit(1);
+                    error("an output path has already been specified");
                 }
                 output_path_arg = optarg;
                 break;
@@ -167,8 +183,7 @@ main(int argc, char **argv)
             case 'O': {
                 optlevel = (optarg[0] - '0');
                 if ((optlevel < 0) || (optlevel > 4)) {
-                    fprintf(stderr, "dalec: invalid optimisation level.\n");
-                    exit(1);
+                    error("invalid optimisation level");
                 }
                 break;
             }
@@ -181,9 +196,7 @@ main(int argc, char **argv)
                 } else if (!strcmp(type, "bc")) {
                     produce = BitCode;
                 } else {
-                    fprintf(stderr, "dalec: unrecognised output "
-                            "option.\n");
-                    exit(1);
+                    error("unrecognised output option");
                 }
                 produce_set = true;
                 break;
@@ -230,8 +243,7 @@ main(int argc, char **argv)
     }
 
     if (!input_files.size()) {
-        fprintf(stderr, "dalec: no input files.\n");
-        exit(1);
+        error("no input files");
     }
 
     /* Set output_path. */
@@ -277,8 +289,7 @@ main(int argc, char **argv)
 
     FILE *output_file = tmpfile();
     if (!output_file) {
-        fprintf(stderr, "dalec: unable to open temporary output file.\n");
-        exit(1);
+        error("unable to open temporary output file", true);
     }
     std::vector<std::string> so_paths;
     Generator generator;
@@ -340,24 +351,23 @@ main(int argc, char **argv)
                          output_path.c_str());
     }
     if (bytes >= 8192) {
-        fprintf(stderr, "dalec: cc command is too long!\n");
-        exit(1);
+        error("cc command is too long");
     }
 
     int status = system(compile_cmd);
     if (status != 0) {
-        fprintf(stderr, "dalec: cc failed.\n", res, compile_cmd);
         if (debug) {
             fprintf(stderr, "%s\n", compile_cmd);
         }
-        exit(1);
+        error("cc failed");
     }
 
     status = remove(intermediate_output_path.c_str());
     if (status != 0) {
-        fprintf(stderr, "dalec: unable to remove temporary file '%s'.\n",
-                        intermediate_output_path.c_str());
-        exit(1);
+        if (debug) {
+            fprintf(stderr, "%s\n", intermediate_output_path.c_str());
+        }
+        error("unable to remove temporary file");
     }
 
     return 0;
