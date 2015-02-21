@@ -2,7 +2,7 @@
 #define DALE_FORM_LITERAL_STRUCT
 
 #include "../../../Context/Context.h"
-#include "../../../Generator/Generator.h"
+#include "../../../Units/Units.h"
 #include "../../../Node/Node.h"
 
 namespace dale {

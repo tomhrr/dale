@@ -1,7 +1,7 @@
 #ifndef DALE_FORM_PROC_INST
 #define DALE_FORM_PROC_INST
 
-#include "../../../Generator/Generator.h"
+#include "../../../Units/Units.h"
 
 namespace dale
 {

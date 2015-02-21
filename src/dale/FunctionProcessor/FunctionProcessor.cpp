@@ -1,6 +1,5 @@
 #include "FunctionProcessor.h"
 
-#include "../Generator/Generator.h"
 #include "../ContextSavePoint/ContextSavePoint.h"
 #include "../Form/Proc/Inst/Inst.h"
 #include "../Operation/Coerce/Coerce.h"

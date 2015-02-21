@@ -57,6 +57,20 @@
 #include "llvm/IRReader/IRReader.h"
 #endif
 
+#include "../Units/Units.h"
+#include "../Label/Label.h"
+#include "../Context/Context.h"
+#include "../Function/Function.h"
+#include "../Variable/Variable.h"
+#include "../Type/Type.h"
+#include "../Struct/Struct.h"
+#include "../ParseResult/ParseResult.h"
+#include "../Parser/Parser.h"
+#include "../Node/Node.h"
+#include "../ErrorReporter/ErrorReporter.h"
+#include "../Enum/Enum.h"
+#include "../TypeRegister/TypeRegister.h"
+#include "../llvm_IRBuilder.h"
 #include "../BasicTypes/BasicTypes.h"
 #include "../ErrorType/ErrorType.h"
 #include "../Utils/Utils.h"
@@ -124,27 +138,10 @@ Generator::Generator()
 
     llvm::InitializeNativeTarget();
     llvm::InitializeAllAsmPrinters();
-
-    nt = new NativeTypes();
-    tr = new TypeRegister();
-
-    dtm_modules     = new std::map<std::string, llvm::Module*>;
-    dtm_nm_modules  = new std::map<std::string, std::string>;
-
-    two_zero_indices.clear();
-    STL::push_back2(&two_zero_indices,
-                    nt->getLLVMZero(), nt->getLLVMZero());
-
-    cto_modules = new std::set<std::string>;
 }
 
 Generator::~Generator()
 {
-    delete tr;
-
-    delete cto_modules;
-    delete dtm_modules;
-    delete dtm_nm_modules;
 }
 
 void *myLFC(const std::string &name)
@@ -177,26 +174,36 @@ void *myLFC(const std::string &name)
     return NULL;
 }
 
-int Generator::run(std::vector<const char *> *filenames,
-                   std::vector<const char *> *bc_files,
-                   FILE *outfile,
+int Generator::run(std::vector<const char *> *file_paths,
+                   std::vector<const char *> *bc_file_paths,
+                   std::vector<const char *> *compile_lib_paths,
+                   std::vector<const char *> *include_paths,
+                   std::vector<const char *> *module_paths,
+                   std::vector<const char *> *static_module_names,
+                   std::vector<const char *> *cto_module_names,
+                   const char *module_name,
+                   int debug,
                    int produce,
                    int optlevel,
                    int remove_macros,
-                   const char *my_module_name,
                    int no_common,
-                   std::vector<std::string> *so_paths,
-                   int nostrip,
-                   int static_mods_all,
-                   std::vector<const char *> *static_modules,
-                   std::vector<const char *> *mycto_modules,
-                   int enable_cto,
-                   int mydebug,
                    int no_dale_stdlib,
-                   std::vector<const char *> *compile_libs_sv,
-                   std::vector<const char *> *include_paths_sv,
-                   std::vector<const char *> *module_paths_sv)
+                   int static_mods_all,
+                   int enable_cto,
+                   std::vector<std::string> *shared_object_paths,
+                   FILE *output_file)
 {
+    NativeTypes *nt = new NativeTypes();
+    TypeRegister *tr = new TypeRegister();
+
+    std::map<std::string, llvm::Module*> dtm_modules;
+    std::map<std::string, std::string> dtm_nm_modules;
+    std::set<std::string> cto_modules;
+
+    two_zero_indices.clear();
+    STL::push_back2(&two_zero_indices,
+                    nt->getLLVMZero(), nt->getLLVMZero());
+
     /* On OS X, SYSTEM_PROCESSOR is i386 even when the underlying
      * processor is x86-64, hence the extra check here. */
     bool is_x86_64 =
@@ -209,27 +216,25 @@ int Generator::run(std::vector<const char *> *filenames,
 
     init_introspection_functions();
 
-    debug = mydebug;
-
-    cto_modules->clear();
+    cto_modules.clear();
     for (std::vector<const char*>::iterator
-            b = mycto_modules->begin(),
-            e = mycto_modules->end();
+            b = cto_module_names->begin(),
+            e = cto_module_names->end();
             b != e;
             ++b) {
-        cto_modules->insert(std::string(*b));
+        cto_modules.insert(std::string(*b));
     }
 
     llvm::Module *last_module = NULL;
 
     std::vector<const char *>::iterator iter =
-        filenames->begin();
+        file_paths->begin();
 
-    erep = new ErrorReporter("");
+    ErrorReporter *erep = new ErrorReporter("");
 
-    Module::Reader mr(module_paths_sv, so_paths, include_paths_sv);
-    for (std::vector<const char*>::iterator b = compile_libs_sv->begin(),
-                                            e = compile_libs_sv->end();
+    Module::Reader mr(module_paths, shared_object_paths, include_paths);
+    for (std::vector<const char*>::iterator b = compile_lib_paths->begin(),
+                                            e = compile_lib_paths->end();
             b != e;
             ++b) {
         mr.addLib((*b), 0, 0);
@@ -247,33 +252,33 @@ int Generator::run(std::vector<const char *> *filenames,
         }
         mr.addLib(libdrt_path, 0, 0);
     }
-    if (!my_module_name && libdrt_path) {
-        so_paths->push_back(libdrt_path);
+    if (!module_name && libdrt_path) {
+        shared_object_paths->push_back(libdrt_path);
     }
 
-    units = new Units(&mr);
-    units->cto = enable_cto;
-    units->no_common = no_common;
-    units->no_dale_stdlib = no_dale_stdlib;
+    Units units(&mr);
+    units.cto = enable_cto;
+    units.no_common = no_common;
+    units.no_dale_stdlib = no_dale_stdlib;
     Context *ctx    = NULL;
     mod    = NULL;
     llvm::Linker *linker = NULL;
 
     std::string under_module_name;
-    if (my_module_name) {
-        const char *last = strrchr(my_module_name, '/');
+    if (module_name) {
+        const char *last = strrchr(module_name, '/');
         if (!last) {
-            last = my_module_name;
+            last = module_name;
             under_module_name = std::string(last);
         } else {
             under_module_name = std::string(last + 1);
         }
-        int diff = last - my_module_name;
-        units->module_name = std::string(my_module_name);
-        units->module_name.replace(diff + 1, 0, "lib");
+        int diff = last - module_name;
+        units.module_name = std::string(module_name);
+        units.module_name.replace(diff + 1, 0, "lib");
     }
 
-    if (filenames->size() == 0) {
+    if (file_paths->size() == 0) {
         return 0;
     }
 
@@ -289,16 +294,16 @@ int Generator::run(std::vector<const char *> *filenames,
         }
     }
 
-    while (iter != filenames->end()) {
+    while (iter != file_paths->end()) {
         const char *filename = (*iter);
-        if (units->size()) {
+        if (units.size()) {
             fprintf(stderr, "units size\n");
             abort();
         }
 
-        Unit *unit = new Unit(filename, units, erep, nt, tr, NULL,
+        Unit *unit = new Unit(filename, &units, erep, nt, tr, NULL,
                               is_x86_64);
-        units->push(unit);
+        units.push(unit);
         ctx    = unit->ctx;
         mod    = unit->module;
         linker = unit->linker;
@@ -330,13 +335,13 @@ int Generator::run(std::vector<const char *> *filenames,
         ee->InstallLazyFunctionCreator(myLFC);
         CommonDecl::addVarargsFunctions(unit);
 
-        if (!units->no_common) {
-            if (units->no_dale_stdlib) {
+        if (!units.no_common) {
+            if (units.no_dale_stdlib) {
                 unit->addCommonDeclarations();
             } else {
                 std::vector<const char*> import_forms;
                 mr.run(ctx, mod, nullNode(), "drt", &import_forms);
-                units->top()->mp->setPoolfree();
+                units.top()->mp->setPoolfree();
             }
         }
         int error_count = 0;
@@ -347,7 +352,7 @@ int Generator::run(std::vector<const char *> *filenames,
             error_count =
                 erep->getErrorTypeCount(ErrorType::Error);
 
-            Node *top = units->top()->parser->getNextList();
+            Node *top = units.top()->parser->getNextList();
             if (top) {
                 nodes.push_back(top);
             }
@@ -363,9 +368,9 @@ int Generator::run(std::vector<const char *> *filenames,
 
             /* EOF. */
             if (!top->is_token && !top->is_list) {
-                units->pop();
-                if (!units->empty()) {
-                    Unit *unit = units->top();
+                units.pop();
+                if (!units.empty()) {
+                    Unit *unit = units.top();
                     ctx    = unit->ctx;
                     mod    = unit->module;
                     linker = unit->linker;
@@ -373,7 +378,7 @@ int Generator::run(std::vector<const char *> *filenames,
                 }
                 break;
             }
-            FormTopLevelInstParse(units, top);
+            FormTopLevelInstParse(&units, top);
             erep->flush();
         } while (1);
 
@@ -460,10 +465,10 @@ int Generator::run(std::vector<const char *> *filenames,
         return 0;
     }
 
-    if (bc_files) {
+    if (bc_file_paths) {
         for (std::vector<const char*>::iterator
-                b = bc_files->begin(),
-                e = bc_files->end();
+                b = bc_file_paths->begin(),
+                e = bc_file_paths->end();
                 b != e;
                 ++b) {
 #if D_LLVM_VERSION_MINOR <= 2
@@ -492,7 +497,7 @@ int Generator::run(std::vector<const char *> *filenames,
         ctx->eraseLLVMMacros();
     }
 
-    llvm::raw_fd_ostream temp(fileno(outfile), false);
+    llvm::raw_fd_ostream temp(fileno(output_file), false);
     llvm::CodeGenOpt::Level OLvl = llvm::CodeGenOpt::Default;
 
     /* At optlevel 3, things go quite awry when making libraries,
@@ -530,22 +535,22 @@ int Generator::run(std::vector<const char *> *filenames,
         }
     }
 
-    if (units->module_name.size() > 0) {
-        Module::Writer mw(units->module_name, ctx, mod, &PM,
+    if (units.module_name.size() > 0) {
+        Module::Writer mw(units.module_name, ctx, mod, &PM,
                           &(mr.included_once_tags),
                           &(mr.included_modules),
-                          units->cto);
+                          units.cto);
         mw.run();
     } else {
         int rgp = 1;
         std::string err;
 
         std::map<std::string, llvm::Module *> mdtm_modules;
-        if (static_mods_all || (static_modules->size() > 0)) {
+        if (static_mods_all || (static_module_names->size() > 0)) {
             if (remove_macros) {
                 for (std::map<std::string, std::string>::iterator
-                        b = dtm_nm_modules->begin(),
-                        e = dtm_nm_modules->end();
+                        b = dtm_nm_modules.begin(),
+                        e = dtm_nm_modules.end();
                         b != e; ++b) {
                     mdtm_modules.insert(
                         std::pair<std::string, llvm::Module*>(
@@ -555,7 +560,7 @@ int Generator::run(std::vector<const char *> *filenames,
                     );
                 }
             } else {
-                mdtm_modules = *dtm_modules;
+                mdtm_modules = dtm_modules;
             }
             rgp = 0;
         }
@@ -564,7 +569,7 @@ int Generator::run(std::vector<const char *> *filenames,
             for (std::map<std::string, llvm::Module *>::iterator b =
                         mdtm_modules.begin(), e = mdtm_modules.end();
                     b != e; ++b) {
-                if (cto_modules->find(b->first) == cto_modules->end()) {
+                if (cto_modules.find(b->first) == cto_modules.end()) {
 #if D_LLVM_VERSION_MINOR <= 2
                     if (linker->LinkInModule(b->second, &err)) {
 #else
@@ -578,10 +583,10 @@ int Generator::run(std::vector<const char *> *filenames,
                     }
                 }
             }
-        } else if (static_modules->size() > 0) {
+        } else if (static_module_names->size() > 0) {
             for (std::vector<const char *>::iterator b =
-                        static_modules->begin(), e =
-                        static_modules->end();
+                        static_module_names->begin(), e =
+                        static_module_names->end();
                     b != e; ++b) {
                 std::map<std::string, llvm::Module *>::iterator
                 found = mdtm_modules.find(std::string(*b));

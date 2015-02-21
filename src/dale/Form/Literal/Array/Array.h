@@ -1,7 +1,7 @@
 #ifndef DALE_FORM_LITERAL_ARRAY
 #define DALE_FORM_LITERAL_ARRAY
 
-#include "../../../Generator/Generator.h"
+#include "../../../Units/Units.h"
 #include "../../../Node/Node.h"
 #include "../../../Type/Type.h"
 #include "../../../Function/Function.h"

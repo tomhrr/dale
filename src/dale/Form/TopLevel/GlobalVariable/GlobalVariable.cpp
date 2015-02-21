@@ -1,5 +1,5 @@
 #include "GlobalVariable.h"
-#include "../../../Generator/Generator.h"
+#include "../../../Units/Units.h"
 #include "../../../Node/Node.h"
 #include "../../../Operation/Cast/Cast.h"
 #include "../../../Operation/Sizeof/Sizeof.h"

@@ -1,6 +1,5 @@
 #include "Introspection.h"
 #include "../Type/Type.h"
-#include "../Generator/Generator.h"
 #include "../Form/Type/Type.h"
 #include "../Form/Proc/Inst/Inst.h"
 #include "../Utils/Utils.h"

@@ -143,7 +143,6 @@ main(int argc, char **argv)
     int no_stdlib       = 0;
     int remove_macros   = 0;
     int no_common       = 0;
-    int no_strip        = 0;
     int static_mods_all = 0;
     int found_sm        = 0;
     int found_ctom      = 0;
@@ -156,7 +155,6 @@ main(int argc, char **argv)
         { "no-dale-stdlib", no_argument,       &no_dale_stdlib,  1 },
         { "no-common",      no_argument,       &no_common,       1 },
         { "no-stdlib",      no_argument,       &no_stdlib,       1 },
-        { "no-strip",       no_argument,       &no_strip,        1 },
         { "static-modules", no_argument,       &static_mods_all, 1 },
         { "static-module",  required_argument, &found_sm,        1 },
         { "cto-module",     required_argument, &found_ctom,      1 },
@@ -295,13 +293,24 @@ main(int argc, char **argv)
     Generator generator;
 
     bool generated =
-        generator.run(&input_files, &bitcode_paths, output_file,
-                      produce, optlevel, remove_macros,
-                      module_name, no_common, &so_paths, no_strip,
-                      static_mods_all, &static_modules,
-                      &cto_modules, enable_cto, debug, no_dale_stdlib,
-                      &compile_libs, &include_paths,
-                      &module_paths);
+        generator.run(&input_files,
+                      &bitcode_paths,
+                      &compile_libs,
+                      &include_paths,
+                      &module_paths,
+                      &static_modules,
+                      &cto_modules,
+                      module_name,
+                      debug,
+                      produce,
+                      optlevel,
+                      remove_macros,
+                      no_common,
+                      no_dale_stdlib,
+                      static_mods_all,
+                      enable_cto,
+                      &so_paths,
+                      output_file);
     if (!generated) {
         exit(1);
     }
