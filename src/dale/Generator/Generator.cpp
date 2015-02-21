@@ -210,6 +210,29 @@ linkFile(llvm::Linker *linker, const char *path)
 #endif
 }
 
+void
+addDataLayout(llvm::PassManager *pass_manager, llvm::Module *mod)
+{
+#if D_LLVM_VERSION_MINOR >= 5
+    pass_manager->add(new llvm::DataLayoutPass(mod));
+#elif D_LLVM_VERSION_MINOR >= 2
+    pass_manager->add(new llvm::DataLayout(mod));
+#else
+    pass_manager->add(new llvm::TargetData(mod));
+#endif
+}
+
+void
+addPrintModulePass(llvm::PassManager *pass_manager,
+                   llvm::raw_fd_ostream *ostream)
+{
+#if D_LLVM_VERSION_MINOR <= 4
+    pass_manager->add(llvm::createPrintModulePass(ostream));
+#else
+    pass_manager->add(llvm::createPrintModulePass(*ostream));
+#endif
+}
+
 int
 Generator::run(std::vector<const char *> *file_paths,
                std::vector<const char *> *bc_file_paths,
@@ -419,6 +442,10 @@ Generator::run(std::vector<const char *> *file_paths,
         }
     }
 
+    if (remove_macros) {
+        ctx->eraseLLVMMacros();
+    }
+
     if (er.getErrorTypeCount(ErrorType::Error)) {
         return 0;
     }
@@ -432,15 +459,15 @@ Generator::run(std::vector<const char *> *file_paths,
         }
     }
 
-    llvm::Triple global_triple(last_module->getTargetTriple());
-    if (global_triple.getTriple().empty()) {
-        global_triple.setTriple(getTriple());
+    llvm::Triple triple(last_module->getTargetTriple());
+    if (triple.getTriple().empty()) {
+        triple.setTriple(getTriple());
     }
 
     std::string Err;
-    const llvm::Target *TheTarget = llvm::TargetRegistry::lookupTarget(
-                                        global_triple.getTriple(), Err);
-    if (TheTarget == 0) {
+    const llvm::Target *target = llvm::TargetRegistry::lookupTarget(
+                                        triple.getTriple(), Err);
+    if (target == 0) {
         fprintf(stderr,
                 "Internal error: cannot auto-select target "
                 "for module: %s\n", Err.c_str());
@@ -453,28 +480,23 @@ Generator::run(std::vector<const char *> *file_paths,
 
     std::string Features;
 #if D_LLVM_VERSION_MINOR <= 4
-    std::auto_ptr<llvm::TargetMachine> target =
+    std::auto_ptr<llvm::TargetMachine> target_sp =
         std::auto_ptr<llvm::TargetMachine>
 #else
-    std::shared_ptr<llvm::TargetMachine> target =
+    std::shared_ptr<llvm::TargetMachine> target_sp =
         std::shared_ptr<llvm::TargetMachine>
 #endif
-        (TheTarget->createTargetMachine(
-            global_triple.getTriple(), llvm::sys::getHostCPUName(),
+        (target->createTargetMachine(
+            triple.getTriple(), llvm::sys::getHostCPUName(),
             Features
 #if D_LLVM_VERSION_MINOR >= 2
             , target_options
 #endif
          ));
 
-    llvm::TargetMachine &Target = *target.get();
+    llvm::TargetMachine &target_machine = *target_sp.get();
 
-    if (remove_macros) {
-        ctx->eraseLLVMMacros();
-    }
-
-    llvm::raw_fd_ostream temp(fileno(output_file), false);
-    llvm::CodeGenOpt::Level OLvl = llvm::CodeGenOpt::Default;
+    llvm::raw_fd_ostream ostream(fileno(output_file), false);
 
     /* At optlevel 3, things go quite awry when making libraries,
      * due to the argumentPromotionPass. So set it to 2, unless
@@ -488,136 +510,120 @@ Generator::run(std::vector<const char *> *file_paths,
         lto = 1;
     }
 
-    llvm::PassManager PM;
-    llvm::PassManagerBuilder PMB;
-    PMB.OptLevel = optlevel;
+    llvm::PassManager pass_manager;
+    addDataLayout(&pass_manager, mod);
+    pass_manager.add(llvm::createPostDomTree());
 
-#if D_LLVM_VERSION_MINOR >= 5
-    PM.add(new llvm::DataLayoutPass(mod));
-#elif D_LLVM_VERSION_MINOR >= 2
-    PM.add(new llvm::DataLayout(mod));
-#else
-    PM.add(new llvm::TargetData(mod));
-#endif
-    PM.add(llvm::createPostDomTree());
-    PMB.DisableUnitAtATime = true;
+    llvm::PassManagerBuilder pass_manager_builder;
+    pass_manager_builder.OptLevel = optlevel;
+    pass_manager_builder.DisableUnitAtATime = true;
+
     if (optlevel > 0) {
         if (lto) {
-            PMB.DisableUnitAtATime = false;
+            pass_manager_builder.DisableUnitAtATime = false;
         }
-        PMB.populateModulePassManager(PM);
+        pass_manager_builder.populateModulePassManager(pass_manager);
         if (lto) {
-            PMB.populateLTOPassManager(PM, true, true);
+            pass_manager_builder.populateLTOPassManager(pass_manager, true, true);
         }
     }
 
     if (units.module_name.size() > 0) {
-        Module::Writer mw(units.module_name, ctx, mod, &PM,
-                          &(mr.included_once_tags),
-                          &(mr.included_modules),
+        Module::Writer mw(units.module_name, ctx, mod, &pass_manager,
+                          &(mr.included_once_tags), &(mr.included_modules),
                           units.cto);
         mw.run();
-    } else {
-        int rgp = 1;
-        std::string err;
+        return 1;
+    }
 
-        std::map<std::string, llvm::Module *> mdtm_modules;
-        if (static_mods_all || (static_module_names->size() > 0)) {
-            if (remove_macros) {
-                for (std::map<std::string, std::string>::iterator
-                        b = dtm_nm_modules.begin(),
-                        e = dtm_nm_modules.end();
-                        b != e; ++b) {
-                    mdtm_modules.insert(
-                        std::pair<std::string, llvm::Module*>(
-                            b->first,
-                            mr.loadModule(&(b->second), true)
-                        )
-                    );
-                }
-            } else {
-                mdtm_modules = dtm_modules;
-            }
-            rgp = 0;
-        }
-
-        if (static_mods_all) {
-            for (std::map<std::string, llvm::Module *>::iterator b =
-                        mdtm_modules.begin(), e = mdtm_modules.end();
-                    b != e; ++b) {
-                if (cto_modules.find(b->first) == cto_modules.end()) {
-                    linkModule(linker, b->second);
-                }
-            }
-        } else if (static_module_names->size() > 0) {
-            for (std::vector<const char *>::iterator b =
-                        static_module_names->begin(), e =
-                        static_module_names->end();
-                    b != e; ++b) {
-                std::map<std::string, llvm::Module *>::iterator
-                found = mdtm_modules.find(std::string(*b));
-                if (found != mdtm_modules.end()) {
-                    linkModule(linker, found->second);
-                }
-            }
-            rgp = 0;
-        }
-
-        /* Previously, eraseLLVMMacrosAndCTOFunctions was only run
-         * when a module was created, because that was the only time a
-         * function could be CTO. It can be CTO at any time now. (The
-         * removeMacros part of the call is unnecessary, but shouldn't
-         * cause any problems.) */
-        if (rgp) {
-            ctx->regetPointers(mod);
-        }
+    bool reget_pointers = true;
+    std::map<std::string, llvm::Module *> static_dtm_modules;
+    if (static_mods_all || (static_module_names->size() > 0)) {
         if (remove_macros) {
-            ctx->eraseLLVMMacrosAndCTOFunctions();
+            for (std::map<std::string, std::string>::iterator
+                    b = dtm_nm_modules.begin(),
+                    e = dtm_nm_modules.end();
+                    b != e; ++b) {
+                static_dtm_modules.insert(
+                    std::pair<std::string, llvm::Module*>(
+                        b->first,
+                        mr.loadModule(&(b->second), true)
+                    )
+                );
+            }
+        } else {
+            static_dtm_modules = dtm_modules;
         }
+        reget_pointers = false;
+    }
 
-        llvm::formatted_raw_ostream *temp_fro
-        = new llvm::formatted_raw_ostream(temp,
-            llvm::formatted_raw_ostream::DELETE_STREAM);
-
-        if (produce == IR) {
-#if D_LLVM_VERSION_MINOR <= 4
-            PM.add(llvm::createPrintModulePass(&temp));
-#else
-            PM.add(llvm::createPrintModulePass(temp));
-#endif
-        } else if (produce == ASM) {
-            Target.setAsmVerbosityDefault(true);
-            bool res = Target.addPassesToEmitFile(
-                PM, *temp_fro, llvm::TargetMachine::CGFT_AssemblyFile,
-                OLvl, NULL);
-            if (res) {
-                fprintf(stderr,
-                        "Internal error: unable to add passes "
-                        "to emit file.\n");
-                abort();
+    if (static_mods_all) {
+        for (std::map<std::string, llvm::Module *>::iterator
+                b = static_dtm_modules.begin(),
+                e = static_dtm_modules.end();
+                b != e; ++b) {
+            if (cto_modules.find(b->first) == cto_modules.end()) {
+                linkModule(linker, b->second);
             }
         }
-
-        if (debug) {
-            mod->dump();
+    } else if (static_module_names->size() > 0) {
+        for (std::vector<const char *>::iterator b =
+                    static_module_names->begin(), e =
+                    static_module_names->end();
+                b != e; ++b) {
+            std::map<std::string, llvm::Module *>::iterator
+            found = static_dtm_modules.find(std::string(*b));
+            if (found != static_dtm_modules.end()) {
+                linkModule(linker, found->second);
+            }
         }
-        if (debug) {
-            llvm::verifyModule(*mod);
-        }
-        PM.run(*mod);
+        reget_pointers = false;
+    }
 
-        if (produce == BitCode) {
-            llvm::WriteBitcodeToFile(mod, temp);
-        }
+    if (reget_pointers) {
+        ctx->regetPointers(mod);
+    }
+    if (remove_macros) {
+        ctx->eraseLLVMMacrosAndCTOFunctions();
+    }
 
-        temp_fro->flush();
-        temp.flush();
+    llvm::formatted_raw_ostream *ostream_formatted =
+        new llvm::formatted_raw_ostream(
+            ostream,
+            llvm::formatted_raw_ostream::DELETE_STREAM
+        );
+
+    if (produce == IR) {
+        addPrintModulePass(&pass_manager, &ostream);
+    } else if (produce == ASM) {
+        target_machine.setAsmVerbosityDefault(true);
+        llvm::CodeGenOpt::Level level = llvm::CodeGenOpt::Default;
+        bool res = target_machine.addPassesToEmitFile(
+            pass_manager, *ostream_formatted,
+            llvm::TargetMachine::CGFT_AssemblyFile,
+            level, NULL);
+        if (res) {
+            fprintf(stderr,
+                    "Internal error: unable to add passes "
+                    "to emit file.\n");
+            abort();
+        }
     }
 
     if (debug) {
-        tr->print();
+        mod->dump();
+    }
+    if (debug) {
+        llvm::verifyModule(*mod);
+    }
+    pass_manager.run(*mod);
+
+    if (produce == BitCode) {
+        llvm::WriteBitcodeToFile(mod, ostream);
     }
 
+    ostream_formatted->flush();
+    ostream.flush();
     return 1;
 }
 }

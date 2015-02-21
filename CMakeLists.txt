@@ -314,7 +314,6 @@ add_custom_command (OUTPUT  libdrt.so
                                 -c ${CMAKE_SOURCE_DIR}/modules/drt.dt 
                                 -o ./drt.dt.s
                                 --no-dale-stdlib
-                                --no-strip
                                 --static-modules)
 add_custom_target (drt ALL DEPENDS libdrt.so)
 add_dependencies (drt dalec)
