@@ -233,6 +233,51 @@ addPrintModulePass(llvm::PassManager *pass_manager,
 #endif
 }
 
+#if D_LLVM_VERSION_MINOR <= 4
+std::auto_ptr<llvm::TargetMachine> target_sp;
+#else
+std::shared_ptr<llvm::TargetMachine> target_sp;
+#endif
+llvm::TargetMachine *
+getTargetMachine(llvm::Module *last_module)
+{
+    llvm::Triple triple(last_module->getTargetTriple());
+    if (triple.getTriple().empty()) {
+        triple.setTriple(getTriple());
+    }
+
+    std::string Err;
+    const llvm::Target *target = llvm::TargetRegistry::lookupTarget(
+                                        triple.getTriple(), Err);
+    if (target == 0) {
+        fprintf(stderr,
+                "Internal error: cannot auto-select target "
+                "for module: %s\n", Err.c_str());
+        abort();
+    }
+
+#if D_LLVM_VERSION_MINOR >= 2
+    llvm::TargetOptions target_options;
+#endif
+
+    std::string Features;
+    target_sp =
+#if D_LLVM_VERSION_MINOR <= 4
+        std::auto_ptr<llvm::TargetMachine>
+#else
+        std::shared_ptr<llvm::TargetMachine>
+#endif
+        (target->createTargetMachine(
+            triple.getTriple(), llvm::sys::getHostCPUName(),
+            Features
+#if D_LLVM_VERSION_MINOR >= 2
+            , target_options
+#endif
+        ));
+
+    return target_sp.get();
+}
+
 int
 Generator::run(std::vector<const char *> *file_paths,
                std::vector<const char *> *bc_file_paths,
@@ -257,8 +302,8 @@ Generator::run(std::vector<const char *> *file_paths,
         return 0;
     }
 
-    NativeTypes *nt = new NativeTypes();
-    TypeRegister *tr = new TypeRegister();
+    NativeTypes nt;
+    TypeRegister tr;
     llvm::ExecutionEngine *ee = NULL;
 
     std::map<std::string, llvm::Module*> dtm_modules;
@@ -276,7 +321,7 @@ Generator::run(std::vector<const char *> *file_paths,
     std::vector<llvm::Value *> two_zero_indices;
     two_zero_indices.clear();
     STL::push_back2(&two_zero_indices,
-                    nt->getLLVMZero(), nt->getLLVMZero());
+                    nt.getLLVMZero(), nt.getLLVMZero());
 
     /* On OS X, SYSTEM_PROCESSOR is i386 even when the underlying
      * processor is x86-64, hence the extra check here. */
@@ -355,7 +400,7 @@ Generator::run(std::vector<const char *> *file_paths,
         const char *filename = *b;
         assert(!units.size());
 
-        Unit *unit = new Unit(filename, &units, &er, nt, tr, NULL, is_x86_64);
+        Unit *unit = new Unit(filename, &units, &er, &nt, &tr, NULL, is_x86_64);
         units.push(unit);
         ctx    = unit->ctx;
         mod    = unit->module;
@@ -459,56 +504,19 @@ Generator::run(std::vector<const char *> *file_paths,
         }
     }
 
-    llvm::Triple triple(last_module->getTargetTriple());
-    if (triple.getTriple().empty()) {
-        triple.setTriple(getTriple());
-    }
-
-    std::string Err;
-    const llvm::Target *target = llvm::TargetRegistry::lookupTarget(
-                                        triple.getTriple(), Err);
-    if (target == 0) {
-        fprintf(stderr,
-                "Internal error: cannot auto-select target "
-                "for module: %s\n", Err.c_str());
-        abort();
-    }
-
-#if D_LLVM_VERSION_MINOR >= 2
-    llvm::TargetOptions target_options;
-#endif
-
-    std::string Features;
-#if D_LLVM_VERSION_MINOR <= 4
-    std::auto_ptr<llvm::TargetMachine> target_sp =
-        std::auto_ptr<llvm::TargetMachine>
-#else
-    std::shared_ptr<llvm::TargetMachine> target_sp =
-        std::shared_ptr<llvm::TargetMachine>
-#endif
-        (target->createTargetMachine(
-            triple.getTriple(), llvm::sys::getHostCPUName(),
-            Features
-#if D_LLVM_VERSION_MINOR >= 2
-            , target_options
-#endif
-         ));
-
-    llvm::TargetMachine &target_machine = *target_sp.get();
-
-    llvm::raw_fd_ostream ostream(fileno(output_file), false);
-
-    /* At optlevel 3, things go quite awry when making libraries,
-     * due to the argumentPromotionPass. So set it to 2, unless
-     * LTO has also been requested (optlevel == 4). */
+    /* At optlevel 3, things go quite awry when making libraries, due
+     * to the argumentPromotionPass. So set it to 2, unless LTO has
+     * also been requested (optlevel == 4). */
+    bool lto = false;
     if (optlevel == 3) {
         optlevel = 2;
-    }
-    int lto = 0;
-    if (optlevel == 4) {
+    } else if (optlevel == 4) {
         optlevel = 3;
-        lto = 1;
+        lto = true;
     }
+
+    llvm::TargetMachine *target_machine = getTargetMachine(last_module);
+    llvm::raw_fd_ostream ostream(fileno(output_file), false);
 
     llvm::PassManager pass_manager;
     addDataLayout(&pass_manager, mod);
@@ -596,16 +604,15 @@ Generator::run(std::vector<const char *> *file_paths,
     if (produce == IR) {
         addPrintModulePass(&pass_manager, &ostream);
     } else if (produce == ASM) {
-        target_machine.setAsmVerbosityDefault(true);
+        target_machine->setAsmVerbosityDefault(true);
         llvm::CodeGenOpt::Level level = llvm::CodeGenOpt::Default;
-        bool res = target_machine.addPassesToEmitFile(
+        bool res = target_machine->addPassesToEmitFile(
             pass_manager, *ostream_formatted,
             llvm::TargetMachine::CGFT_AssemblyFile,
             level, NULL);
         if (res) {
             fprintf(stderr,
-                    "Internal error: unable to add passes "
-                    "to emit file.\n");
+                    "Internal error: unable to add passes to emit file.\n");
             abort();
         }
     }
@@ -624,6 +631,7 @@ Generator::run(std::vector<const char *> *file_paths,
 
     ostream_formatted->flush();
     ostream.flush();
+
     return 1;
 }
 }
