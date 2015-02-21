@@ -306,9 +306,6 @@ Generator::run(std::vector<const char *> *file_paths,
     TypeRegister tr;
     llvm::ExecutionEngine *ee = NULL;
 
-    std::map<std::string, llvm::Module*> dtm_modules;
-    std::map<std::string, std::string> dtm_nm_modules;
-
     std::set<std::string> cto_modules;
     for (std::vector<const char*>::iterator
             b = cto_module_names->begin(),
@@ -544,13 +541,16 @@ Generator::run(std::vector<const char *> *file_paths,
         return 1;
     }
 
+    std::map<std::string, llvm::Module*> *dtm_modules = &(mr.dtm_modules);
+    std::map<std::string, std::string> *dtm_nm_modules = &(mr.dtm_nm_modules);
+
     bool reget_pointers = true;
     std::map<std::string, llvm::Module *> static_dtm_modules;
     if (static_mods_all || (static_module_names->size() > 0)) {
         if (remove_macros) {
             for (std::map<std::string, std::string>::iterator
-                    b = dtm_nm_modules.begin(),
-                    e = dtm_nm_modules.end();
+                    b = dtm_nm_modules->begin(),
+                    e = dtm_nm_modules->end();
                     b != e; ++b) {
                 static_dtm_modules.insert(
                     std::pair<std::string, llvm::Module*>(
@@ -560,7 +560,7 @@ Generator::run(std::vector<const char *> *file_paths,
                 );
             }
         } else {
-            static_dtm_modules = dtm_modules;
+            static_dtm_modules = *dtm_modules;
         }
         reget_pointers = false;
     }

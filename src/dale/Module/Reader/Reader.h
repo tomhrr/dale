@@ -20,8 +20,6 @@ class Reader
 {
 private:
     std::vector<const char*> *module_directory_paths; // mod_paths
-    std::map<std::string, llvm::Module*> dtm_modules; // dtm_modules
-    std::map<std::string, std::string> dtm_nm_modules; // dtm_nm_modules
     std::set<std::string> cto_module_names; // cto_modules
 
 public:
@@ -29,6 +27,8 @@ public:
     std::set<std::string> included_modules; // included_modules
     std::set<std::string> included_once_tags; // included_once_tags
     std::vector<const char*> *include_directory_paths; // inc_paths
+    std::map<std::string, llvm::Module*> dtm_modules; // dtm_modules
+    std::map<std::string, std::string> dtm_nm_modules; // dtm_nm_modules
 
     /*! Construct a new Module::Reader.
      *  @param module_directory_paths Module search paths.
