@@ -187,6 +187,29 @@ linkModule(llvm::Linker *linker, llvm::Module *mod)
     }
 }
 
+void
+linkFile(llvm::Linker *linker, const char *path)
+{
+#if D_LLVM_VERSION_MINOR <= 2
+    const llvm::sys::Path bb(path);
+    bool is_native = false;
+    if (linker->LinkInFile(bb, is_native)) {
+        fprintf(stderr, "Internal error: unable to link bitcode file.\n");
+        abort();
+    }
+#else
+    llvm::SMDiagnostic sm_error;
+    llvm::Module *path_mod = llvm::ParseIRFile(path, sm_error,
+                                               llvm::getGlobalContext());
+    std::string error;
+    if (linker->linkInModule(path_mod, &error)) {
+        fprintf(stderr, "Internal error: unable to link bitcode file "
+                "module: %s.\n", error.c_str());
+        abort();
+    }
+#endif
+}
+
 int
 Generator::run(std::vector<const char *> *file_paths,
                std::vector<const char *> *bc_file_paths,
@@ -396,6 +419,19 @@ Generator::run(std::vector<const char *> *file_paths,
         }
     }
 
+    if (er.getErrorTypeCount(ErrorType::Error)) {
+        return 0;
+    }
+
+    if (bc_file_paths) {
+        for (std::vector<const char*>::iterator b = bc_file_paths->begin(),
+                                                e = bc_file_paths->end();
+                b != e;
+                ++b) {
+            linkFile(linker, *b);
+        }
+    }
+
     llvm::Triple global_triple(last_module->getTargetTriple());
     if (global_triple.getTriple().empty()) {
         global_triple.setTriple(getTriple());
@@ -432,38 +468,6 @@ Generator::run(std::vector<const char *> *file_paths,
          ));
 
     llvm::TargetMachine &Target = *target.get();
-
-    if (er.getErrorTypeCount(ErrorType::Error)) {
-        return 0;
-    }
-
-    if (bc_file_paths) {
-        for (std::vector<const char*>::iterator
-                b = bc_file_paths->begin(),
-                e = bc_file_paths->end();
-                b != e;
-                ++b) {
-#if D_LLVM_VERSION_MINOR <= 2
-            const llvm::sys::Path bb(*b);
-            bool is_native = false;
-            if (linker->LinkInFile(bb, is_native)) {
-                fprintf(stderr, "Internal error: unable to link "
-                        "bitcode file.\n");
-                abort();
-            }
-#else
-            llvm::SMDiagnostic err;
-            llvm::Module *mymod = llvm::ParseIRFile(*b, err,
-                                                    llvm::getGlobalContext());
-            std::string errstr;
-            if (linker->linkInModule(mymod, &errstr)) {
-                fprintf(stderr, "Internal error: unable to link "
-                        "bitcode file module: %s.\n", errstr.c_str());
-                abort();
-            }
-#endif
-        }
-    }
 
     if (remove_macros) {
         ctx->eraseLLVMMacros();
