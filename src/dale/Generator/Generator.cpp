@@ -6,56 +6,59 @@
 #include <cstring>
 #include <cassert>
 #include <cerrno>
+#include <iostream>
+#include <unistd.h>
+#include <setjmp.h>
+#include <float.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include FFI_HEADER
 
-#if D_LLVM_VERSION_MAJOR < 3
-#error "LLVM >= 3.0 is required."
-#endif
-
-#include "llvm/Support/DynamicLibrary.h"
-#include "llvm/Support/Host.h"
-#include "llvm/Support/Signals.h"
 #if D_LLVM_VERSION_MINOR <= 4
 #include "llvm/Support/system_error.h"
 #else
 #include "llvm/Object/Error.h"
 #endif
-#include "../llvm_LLVMContext.h"
-#include "../llvm_Module.h"
-#include "llvm/LinkAllPasses.h"
-#include "../llvm_Linker.h"
-#include "../llvm_Function.h"
-#include "../llvm_CallingConv.h"
-#include "../llvm_AssemblyPrintModulePass.h"
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/ExecutionEngine/JIT.h"
-#include "llvm/ExecutionEngine/Interpreter.h"
-#include "../llvm_ValueSymbolTable.h"
-#include "llvm/ADT/StringRef.h"
-#include "llvm/PassManager.h"
-#include "llvm/Analysis/Passes.h"
-#include "../llvm_AnalysisVerifier.h"
-#include "llvm/Transforms/Scalar.h"
-#include "llvm/Transforms/IPO.h"
-#include "llvm/Transforms/IPO/PassManagerBuilder.h"
-#include "llvm/Bitcode/ReaderWriter.h"
-#include "llvm/Support/raw_ostream.h"
-#include "llvm/ADT/Triple.h"
-#include "llvm/Support/TargetRegistry.h"
-#include "llvm/Target/TargetMachine.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/CodeGen/LinkAllAsmWriterComponents.h"
-#include "llvm/CodeGen/LinkAllCodegenComponents.h"
-#include "llvm/Support/FileUtilities.h"
-#include "llvm/Support/MemoryBuffer.h"
-#include "llvm/Support/FormattedStream.h"
-#include "llvm/Support/Debug.h"
-#include "llvm/Transforms/Utils/Cloning.h"
-
 #if D_LLVM_VERSION_MINOR >= 3
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/IRReader/IRReader.h"
 #endif
+
+#include "../llvm_LLVMContext.h"
+#include "../llvm_Module.h"
+#include "../llvm_Linker.h"
+#include "../llvm_Function.h"
+#include "../llvm_CallingConv.h"
+#include "../llvm_AssemblyPrintModulePass.h"
+#include "../llvm_ValueSymbolTable.h"
+#include "../llvm_AnalysisVerifier.h"
+#include "llvm/Support/DynamicLibrary.h"
+#include "llvm/Support/Host.h"
+#include "llvm/Support/Signals.h"
+#include "llvm/LinkAllPasses.h"
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/ExecutionEngine/JIT.h"
+#include "llvm/ExecutionEngine/Interpreter.h"
+#include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/Triple.h"
+#include "llvm/PassManager.h"
+#include "llvm/Analysis/Passes.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/Bitcode/ReaderWriter.h"
+#include "llvm/CodeGen/LinkAllAsmWriterComponents.h"
+#include "llvm/CodeGen/LinkAllCodegenComponents.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/TargetRegistry.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Support/FileUtilities.h"
+#include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/FormattedStream.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/IPO.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include "llvm/Transforms/Utils/Cloning.h"
 
 #include "../Units/Units.h"
 #include "../Label/Label.h"
@@ -105,19 +108,6 @@
 #include "../Operation/Destruct/Destruct.h"
 #include "../Operation/Copy/Copy.h"
 
-#include <iostream>
-#include <sys/time.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <setjmp.h>
-#include <float.h>
-#include FFI_HEADER
-
-#define DALE_DEBUG 0
-
-#define eq(str) !strcmp(t->str_value.c_str(), str)
-
 extern "C" {
     void init_introspection_functions(void);
     void *find_introspection_function(const char *);
@@ -125,13 +115,6 @@ extern "C" {
 
 namespace dale
 {
-
-int nesting = 0;
-
-std::vector<llvm::Value *> two_zero_indices;
-
-llvm::Module *mod;
-
 Generator::Generator()
 {
     CoreForms::init();
@@ -144,7 +127,7 @@ Generator::~Generator()
 {
 }
 
-void *myLFC(const std::string &name)
+void *lazyFunctionCreator(const std::string &name)
 {
     void *fn_pointer = find_introspection_function(name.c_str());
     if (fn_pointer) {
@@ -152,24 +135,22 @@ void *myLFC(const std::string &name)
     }
 
     if (name[0] != '_') {
-        /* Try for the underscored version. */
-        std::string temp;
-        temp.append("_");
-        temp.append(name);
+        /* Try for one beginning with an underscore (OS X-specific). */
+        std::string osx_name;
+        osx_name.append("_");
+        osx_name.append(name);
 
-        void *ptr =
-            llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(temp);
-        if (ptr) {
-            return ptr;
+        fn_pointer =
+            llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(osx_name);
+        if (fn_pointer) {
+            return fn_pointer;
         }
     }
 
-    if (DALE_DEBUG) {
-        fprintf(stderr,
-                "Internal warning: can't find symbol '%s' "
-                "in installed lazy function creator.\n",
-                name.c_str());
-    }
+    fprintf(stderr,
+            "Internal warning: can't find symbol '%s' in installed "
+            "lazy function creator.\n",
+            name.c_str());
 
     return NULL;
 }
@@ -193,13 +174,27 @@ int Generator::run(std::vector<const char *> *file_paths,
                    std::vector<std::string> *shared_object_paths,
                    FILE *output_file)
 {
+    if (!file_paths->size()) {
+        return 0;
+    }
+
     NativeTypes *nt = new NativeTypes();
     TypeRegister *tr = new TypeRegister();
+    llvm::ExecutionEngine *ee = NULL;
 
     std::map<std::string, llvm::Module*> dtm_modules;
     std::map<std::string, std::string> dtm_nm_modules;
-    std::set<std::string> cto_modules;
 
+    std::set<std::string> cto_modules;
+    for (std::vector<const char*>::iterator
+            b = cto_module_names->begin(),
+            e = cto_module_names->end();
+            b != e;
+            ++b) {
+        cto_modules.insert(std::string(*b));
+    }
+
+    std::vector<llvm::Value *> two_zero_indices;
     two_zero_indices.clear();
     STL::push_back2(&two_zero_indices,
                     nt->getLLVMZero(), nt->getLLVMZero());
@@ -212,25 +207,9 @@ int Generator::run(std::vector<const char *> *file_paths,
          || ((!strcmp(SYSTEM_NAME, "Darwin"))
              && (sizeof(char *) == 8)));
 
-    llvm::ExecutionEngine *ee = NULL;
-
     init_introspection_functions();
 
-    cto_modules.clear();
-    for (std::vector<const char*>::iterator
-            b = cto_module_names->begin(),
-            e = cto_module_names->end();
-            b != e;
-            ++b) {
-        cto_modules.insert(std::string(*b));
-    }
-
     llvm::Module *last_module = NULL;
-
-    std::vector<const char *>::iterator iter =
-        file_paths->begin();
-
-    ErrorReporter *erep = new ErrorReporter("");
 
     Module::Reader mr(module_paths, shared_object_paths, include_paths);
     for (std::vector<const char*>::iterator b = compile_lib_paths->begin(),
@@ -257,52 +236,47 @@ int Generator::run(std::vector<const char *> *file_paths,
     }
 
     Units units(&mr);
-    units.cto = enable_cto;
-    units.no_common = no_common;
+    units.cto            = enable_cto;
+    units.no_common      = no_common;
     units.no_dale_stdlib = no_dale_stdlib;
-    Context *ctx    = NULL;
-    mod    = NULL;
+
+    Context *ctx         = NULL;
+    llvm::Module *mod    = NULL;
     llvm::Linker *linker = NULL;
 
-    std::string under_module_name;
+    ErrorReporter er("");
     if (module_name) {
         const char *last = strrchr(module_name, '/');
+        std::string bare_module_name;
         if (!last) {
             last = module_name;
-            under_module_name = std::string(last);
+            bare_module_name = std::string(last);
         } else {
-            under_module_name = std::string(last + 1);
+            bare_module_name = std::string(last + 1);
+        }
+        if (bare_module_name.length() > 0) {
+            if (!isValidModuleName(&bare_module_name)) {
+                Error *e = new Error(
+                    ErrorInst::Generator::InvalidModuleName, NULL,
+                    bare_module_name.c_str()
+                );
+                er.addError(e);
+                return 0;
+            }
         }
         int diff = last - module_name;
         units.module_name = std::string(module_name);
         units.module_name.replace(diff + 1, 0, "lib");
     }
 
-    if (file_paths->size() == 0) {
-        return 0;
-    }
+    for (std::vector<const char*>::iterator b = file_paths->begin(),
+                                            e = file_paths->end();
+            b != e;
+            ++b) {
+        const char *filename = *b;
+        assert(!units.size());
 
-    if (under_module_name.length() > 0) {
-        if (!isValidModuleName(&under_module_name)) {
-            Error *e = new Error(
-                ErrorInst::Generator::InvalidModuleName,
-                NULL,
-                under_module_name.c_str()
-            );
-            erep->addError(e);
-            return 0;
-        }
-    }
-
-    while (iter != file_paths->end()) {
-        const char *filename = (*iter);
-        if (units.size()) {
-            fprintf(stderr, "units size\n");
-            abort();
-        }
-
-        Unit *unit = new Unit(filename, &units, erep, nt, tr, NULL,
-                              is_x86_64);
+        Unit *unit = new Unit(filename, &units, &er, nt, tr, NULL, is_x86_64);
         units.push(unit);
         ctx    = unit->ctx;
         mod    = unit->module;
@@ -332,7 +306,7 @@ int Generator::run(std::vector<const char *> *file_paths,
         unit->ee = ee;
         unit->mp->ee = ee;
 
-        ee->InstallLazyFunctionCreator(myLFC);
+        ee->InstallLazyFunctionCreator(&lazyFunctionCreator);
         CommonDecl::addVarargsFunctions(unit);
 
         if (!units.no_common) {
@@ -350,19 +324,19 @@ int Generator::run(std::vector<const char *> *file_paths,
 
         do {
             error_count =
-                erep->getErrorTypeCount(ErrorType::Error);
+                er.getErrorTypeCount(ErrorType::Error);
 
             Node *top = units.top()->parser->getNextList();
             if (top) {
                 nodes.push_back(top);
             }
 
-            if (erep->getErrorTypeCount(ErrorType::Error) > error_count) {
-                erep->flush();
+            if (er.getErrorTypeCount(ErrorType::Error) > error_count) {
+                er.flush();
                 continue;
             }
             if (!top) {
-                erep->flush();
+                er.flush();
                 break;
             }
 
@@ -379,7 +353,7 @@ int Generator::run(std::vector<const char *> *file_paths,
                 break;
             }
             FormTopLevelInstParse(&units, top);
-            erep->flush();
+            er.flush();
         } while (1);
 
         if (remove_macros) {
@@ -402,15 +376,13 @@ int Generator::run(std::vector<const char *> *file_paths,
                     new Node()
                 );
                 e->addArgString(link_error.c_str());
-                erep->addError(e);
-                erep->flush();
+                er.addError(e);
+                er.flush();
                 break;
             }
         }
 
         last_module = mod;
-
-        ++iter;
 
         for (std::vector<Node *>::iterator b = nodes.begin(),
                                            e = nodes.end();
@@ -461,7 +433,7 @@ int Generator::run(std::vector<const char *> *file_paths,
 
     llvm::TargetMachine &Target = *target.get();
 
-    if (erep->getErrorTypeCount(ErrorType::Error)) {
+    if (er.getErrorTypeCount(ErrorType::Error)) {
         return 0;
     }
 
@@ -642,7 +614,7 @@ int Generator::run(std::vector<const char *> *file_paths,
             }
         }
 
-        if (DALE_DEBUG) {
+        if (debug) {
             mod->dump();
         }
         if (debug) {
@@ -658,7 +630,7 @@ int Generator::run(std::vector<const char *> *file_paths,
         temp.flush();
     }
 
-    if (DALE_DEBUG) {
+    if (debug) {
         tr->print();
     }
 

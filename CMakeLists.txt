@@ -47,6 +47,10 @@ message (STATUS "System name: ${CMAKE_SYSTEM_NAME}")
 message (STATUS "System processor: ${CMAKE_SYSTEM_PROCESSOR}")
 message (STATUS "System version: ${CMAKE_SYSTEM_VERSION}")
 
+if (${D_LLVM_VERSION_MAJOR} LESS 3)
+    message (FATAL_ERROR "LLVM >= 3.0 is required.")
+endif ()
+
 # Get LLVM configuration details.
 
 execute_process (COMMAND ${LLVM_CONFIG} --libs
