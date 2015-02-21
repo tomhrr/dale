@@ -108,6 +108,9 @@
 #include "../Operation/Destruct/Destruct.h"
 #include "../Operation/Copy/Copy.h"
 
+static const char *x86_64_layout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128";
+static const char *x86_32_layout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32";
+
 extern "C" {
     void init_introspection_functions(void);
     void *find_introspection_function(const char *);
@@ -127,7 +130,8 @@ Generator::~Generator()
 {
 }
 
-void *lazyFunctionCreator(const std::string &name)
+void *
+lazyFunctionCreator(const std::string &name)
 {
     void *fn_pointer = find_introspection_function(name.c_str());
     if (fn_pointer) {
@@ -155,24 +159,53 @@ void *lazyFunctionCreator(const std::string &name)
     return NULL;
 }
 
-int Generator::run(std::vector<const char *> *file_paths,
-                   std::vector<const char *> *bc_file_paths,
-                   std::vector<const char *> *compile_lib_paths,
-                   std::vector<const char *> *include_paths,
-                   std::vector<const char *> *module_paths,
-                   std::vector<const char *> *static_module_names,
-                   std::vector<const char *> *cto_module_names,
-                   const char *module_name,
-                   int debug,
-                   int produce,
-                   int optlevel,
-                   int remove_macros,
-                   int no_common,
-                   int no_dale_stdlib,
-                   int static_mods_all,
-                   int enable_cto,
-                   std::vector<std::string> *shared_object_paths,
-                   FILE *output_file)
+std::string
+getTriple(void)
+{
+#if D_LLVM_VERSION_MINOR >= 2
+    return llvm::sys::getDefaultTargetTriple();
+#else
+    return llvm::sys::getHostTriple();
+#endif
+}
+
+void
+linkModule(llvm::Linker *linker, llvm::Module *mod)
+{
+    std::string error;
+    bool result;
+#if D_LLVM_VERSION_MINOR <= 2
+    result = linker->LinkInModule(mod, &error);
+#else
+    result = linker->linkInModule(mod, &error);
+#endif
+    if (result) {
+        fprintf(stderr,
+                "Internal error: unable to link Dale module: %s\n",
+                error.c_str());
+        abort();
+    }
+}
+
+int
+Generator::run(std::vector<const char *> *file_paths,
+               std::vector<const char *> *bc_file_paths,
+               std::vector<const char *> *compile_lib_paths,
+               std::vector<const char *> *include_paths,
+               std::vector<const char *> *module_paths,
+               std::vector<const char *> *static_module_names,
+               std::vector<const char *> *cto_module_names,
+               const char *module_name,
+               int debug,
+               int produce,
+               int optlevel,
+               int remove_macros,
+               int no_common,
+               int no_dale_stdlib,
+               int static_mods_all,
+               int enable_cto,
+               std::vector<std::string> *shared_object_paths,
+               FILE *output_file)
 {
     if (!file_paths->size()) {
         return 0;
@@ -246,13 +279,13 @@ int Generator::run(std::vector<const char *> *file_paths,
 
     ErrorReporter er("");
     if (module_name) {
-        const char *last = strrchr(module_name, '/');
+        const char *last_slash = strrchr(module_name, '/');
         std::string bare_module_name;
-        if (!last) {
-            last = module_name;
-            bare_module_name = std::string(last);
+        if (!last_slash) {
+            last_slash = module_name;
+            bare_module_name = std::string(last_slash);
         } else {
-            bare_module_name = std::string(last + 1);
+            bare_module_name = std::string(last_slash + 1);
         }
         if (bare_module_name.length() > 0) {
             if (!isValidModuleName(&bare_module_name)) {
@@ -264,7 +297,7 @@ int Generator::run(std::vector<const char *> *file_paths,
                 return 0;
             }
         }
-        int diff = last - module_name;
+        int diff = last_slash - module_name;
         units.module_name = std::string(module_name);
         units.module_name.replace(diff + 1, 0, "lib");
     }
@@ -282,35 +315,25 @@ int Generator::run(std::vector<const char *> *file_paths,
         mod    = unit->module;
         linker = unit->linker;
 
-        llvm::Triple TheTriple(mod->getTargetTriple());
-        if (TheTriple.getTriple().empty()) {
-#if D_LLVM_VERSION_MINOR >= 2
-            TheTriple.setTriple(llvm::sys::getDefaultTargetTriple());
-#else
-            TheTriple.setTriple(llvm::sys::getHostTriple());
-#endif
+        llvm::Triple triple(mod->getTargetTriple());
+        if (triple.getTriple().empty()) {
+            triple.setTriple(getTriple());
         }
-
-        /* todo: need some sort of platform table/class. */
-        if (is_x86_64) {
-            mod->setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128");
-        } else {
-            mod->setDataLayout("e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32");
-        }
+        mod->setDataLayout((is_x86_64) ? x86_64_layout : x86_32_layout);
 
         llvm::EngineBuilder eb = llvm::EngineBuilder(mod);
         eb.setEngineKind(llvm::EngineKind::JIT);
         ee = eb.create();
         assert(ee);
+        ee->InstallLazyFunctionCreator(&lazyFunctionCreator);
 
         unit->ee = ee;
         unit->mp->ee = ee;
 
-        ee->InstallLazyFunctionCreator(&lazyFunctionCreator);
         CommonDecl::addVarargsFunctions(unit);
 
-        if (!units.no_common) {
-            if (units.no_dale_stdlib) {
+        if (!no_common) {
+            if (no_dale_stdlib) {
                 unit->addCommonDeclarations();
             } else {
                 std::vector<const char*> import_forms;
@@ -318,14 +341,10 @@ int Generator::run(std::vector<const char *> *file_paths,
                 units.top()->mp->setPoolfree();
             }
         }
-        int error_count = 0;
 
         std::vector<Node*> nodes;
-
-        do {
-            error_count =
-                er.getErrorTypeCount(ErrorType::Error);
-
+        for (;;) {
+            int error_count = er.getErrorTypeCount(ErrorType::Error);
             Node *top = units.top()->parser->getNextList();
             if (top) {
                 nodes.push_back(top);
@@ -340,7 +359,6 @@ int Generator::run(std::vector<const char *> *file_paths,
                 break;
             }
 
-            /* EOF. */
             if (!top->is_token && !top->is_list) {
                 units.pop();
                 if (!units.empty()) {
@@ -354,7 +372,7 @@ int Generator::run(std::vector<const char *> *file_paths,
             }
             FormTopLevelInstParse(&units, top);
             er.flush();
-        } while (1);
+        }
 
         if (remove_macros) {
             ctx->eraseLLVMMacros();
@@ -365,21 +383,7 @@ int Generator::run(std::vector<const char *> *file_paths,
         }
 
         if (last_module) {
-            std::string link_error;
-#if D_LLVM_VERSION_MINOR <= 2
-            if (linker->LinkInModule(last_module, &link_error)) {
-#else
-            if (linker->linkInModule(last_module, &link_error)) {
-#endif
-                Error *e = new Error(
-                    ErrorInst::Generator::CannotLinkModules,
-                    new Node()
-                );
-                e->addArgString(link_error.c_str());
-                er.addError(e);
-                er.flush();
-                break;
-            }
+            linkModule(linker, last_module);
         }
 
         last_module = mod;
@@ -392,18 +396,14 @@ int Generator::run(std::vector<const char *> *file_paths,
         }
     }
 
-    llvm::Triple GTheTriple(last_module->getTargetTriple());
-    if (GTheTriple.getTriple().empty()) {
-#if D_LLVM_VERSION_MINOR >= 2
-        GTheTriple.setTriple(llvm::sys::getDefaultTargetTriple());
-#else
-        GTheTriple.setTriple(llvm::sys::getHostTriple());
-#endif
+    llvm::Triple global_triple(last_module->getTargetTriple());
+    if (global_triple.getTriple().empty()) {
+        global_triple.setTriple(getTriple());
     }
 
     std::string Err;
     const llvm::Target *TheTarget = llvm::TargetRegistry::lookupTarget(
-                                        GTheTriple.getTriple(), Err);
+                                        global_triple.getTriple(), Err);
     if (TheTarget == 0) {
         fprintf(stderr,
                 "Internal error: cannot auto-select target "
@@ -424,7 +424,7 @@ int Generator::run(std::vector<const char *> *file_paths,
         std::shared_ptr<llvm::TargetMachine>
 #endif
         (TheTarget->createTargetMachine(
-            GTheTriple.getTriple(), llvm::sys::getHostCPUName(),
+            global_triple.getTriple(), llvm::sys::getHostCPUName(),
             Features
 #if D_LLVM_VERSION_MINOR >= 2
             , target_options
@@ -542,17 +542,7 @@ int Generator::run(std::vector<const char *> *file_paths,
                         mdtm_modules.begin(), e = mdtm_modules.end();
                     b != e; ++b) {
                 if (cto_modules.find(b->first) == cto_modules.end()) {
-#if D_LLVM_VERSION_MINOR <= 2
-                    if (linker->LinkInModule(b->second, &err)) {
-#else
-                    if (linker->linkInModule(b->second, &err)) {
-#endif
-                        fprintf(stderr,
-                                "Internal error: unable to link "
-                                "dale module: %s\n",
-                                err.c_str());
-                        return 0;
-                    }
+                    linkModule(linker, b->second);
                 }
             }
         } else if (static_module_names->size() > 0) {
@@ -563,17 +553,7 @@ int Generator::run(std::vector<const char *> *file_paths,
                 std::map<std::string, llvm::Module *>::iterator
                 found = mdtm_modules.find(std::string(*b));
                 if (found != mdtm_modules.end()) {
-#if D_LLVM_VERSION_MINOR <= 2
-                    if (linker->LinkInModule(found->second, &err)) {
-#else
-                    if (linker->linkInModule(found->second, &err)) {
-#endif
-                        fprintf(stderr,
-                                "Internal error: unable to link "
-                                "dale module: %s\n",
-                                err.c_str());
-                        return 0;
-                    }
+                    linkModule(linker, found->second);
                 }
             }
             rgp = 0;

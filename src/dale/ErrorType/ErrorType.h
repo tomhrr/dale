@@ -57,7 +57,6 @@ enum
     CannotFindSymbolForMacro,
     CannotCreateExecutionEngine,
     CannotLoadLibrary,
-    CannotLinkModules,
 
     OnlyListsAtTopLevel,
     NoEmptyLists,

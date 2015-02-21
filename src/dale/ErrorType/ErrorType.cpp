@@ -277,9 +277,6 @@ errorInstanceToString(int error_instance)
     case ErrorInst::Generator::MustHaveInitialiserForType:
         ret = "must have initialiser for variable of this type";
         break;
-    case ErrorInst::Generator::CannotLinkModules:
-        ret = "cannot link modules: %s";
-        break;
     case ErrorInst::Generator::StructContainsPadding:
         ret = "struct contains padding, may cause problems";
         break;
