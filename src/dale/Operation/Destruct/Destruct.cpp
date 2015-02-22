@@ -5,7 +5,7 @@ namespace dale
 namespace Operation
 {
 Function *
-getDestructor(Context *ctx, Type *type) 
+getDestructor(Context *ctx, Type *type)
 {
     std::vector<Type *> types;
     types.push_back(ctx->tr->getPointerType(type));
@@ -41,11 +41,6 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
      * arrays, rather than pointers to arrays.  This should be fixed at
      * some point, but for now, if this value is not a pointer, then
      * store it in a temporary location. */
-
-    llvm::IRBuilder<> internal_builder(block);
-    if (!builder) {
-        builder = &internal_builder;
-    }
 
     if (!pr->value->getType()->isPointerTy()) {
         array_value = llvm::cast<llvm::Value>(
@@ -88,8 +83,8 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
 }
 
 bool
-Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
-         llvm::IRBuilder<> *builder, bool value_is_ptr)
+destruct_(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
+          llvm::IRBuilder<> *builder, bool value_is_ptr)
 {
     pr->copyTo(pr_ret);
 
@@ -119,22 +114,11 @@ Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
             llvm::Value *array_value = pr->value;
 
             if (!value_is_ptr) {
-                if (builder) {
-                    llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                            builder->CreateAlloca(
-                                ctx->toLLVMType(pr->type, NULL, false))
-                            );
-                    builder->CreateStore(pr->value, new_ptr2);
-                    array_value = new_ptr2;
-                } else {
-                    llvm::IRBuilder<> builder(pr->block);
-                    llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                            builder.CreateAlloca(
-                                ctx->toLLVMType(pr->type, NULL, false))
-                            );
-                    builder.CreateStore(pr->value, new_ptr2);
-                    array_value = new_ptr2;
-                }
+                array_value = llvm::cast<llvm::Value>(
+                        builder->CreateAlloca(
+                            ctx->toLLVMType(pr->type, NULL, false))
+                        );
+                builder->CreateStore(pr->value, array_value);
             }
 
             for (std::vector<Type*>::iterator
@@ -156,38 +140,18 @@ Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
                                         i++
                                     )
                                 ));
-                if (builder) {
-                    llvm::Value *res = 
-                        builder->Insert(
-                            llvm::GetElementPtrInst::Create(
-                                array_value,
-                                llvm::ArrayRef<llvm::Value*>(indices)
-                            ),
-                            "asdf"
-                        );
-                    element.value = res;
-                    Destruct(ctx, &element, &mnew, builder, true);
-                } else {
-                    llvm::IRBuilder<> builder(pr->block);
-                    llvm::Value *res = 
-                        builder.Insert(
-                            llvm::GetElementPtrInst::Create(
-                                array_value,
-                                llvm::ArrayRef<llvm::Value*>(indices)
-                            ),
-                            "asdf"
-                        );
-                    element.value = res;
-                    Destruct(ctx, &element, &mnew, &builder, true);
-                }
+                element.value =
+                    builder->Insert(
+                        llvm::GetElementPtrInst::Create(
+                            array_value,
+                            llvm::ArrayRef<llvm::Value*>(indices)
+                        ),
+                        "asdf"
+                    );
+                Destruct(ctx, &element, &mnew, builder, true);
             }
         }
         return true;
-    }
-    int destroy_builder = 0;
-    if (!builder) {
-        destroy_builder = 1;
-        builder = new llvm::IRBuilder<>(pr->block);
     }
     std::vector<llvm::Value *> call_args;
     llvm::Value *new_ptr2;
@@ -204,10 +168,23 @@ Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
     builder->CreateCall(
         fn->llvm_function,
         llvm::ArrayRef<llvm::Value*>(call_args));
-    if (destroy_builder) {
-        delete builder;
-    }
     return true;
+}
+
+bool
+Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
+         llvm::IRBuilder<> *builder, bool value_is_ptr)
+{
+    bool res;
+
+    if (!builder) {
+        llvm::IRBuilder<> internal_builder(pr->block);
+        res = destruct_(ctx, pr, pr_ret, &internal_builder, value_is_ptr);
+    } else {
+        res = destruct_(ctx, pr, pr_ret, builder, value_is_ptr);
+    }
+
+    return res;
 }
 }
 }
