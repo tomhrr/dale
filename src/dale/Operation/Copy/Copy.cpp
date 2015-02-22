@@ -7,53 +7,53 @@ namespace Operation
 bool
 Copy(Context *ctx, Function *fn, ParseResult *pr, ParseResult *pr_ret)
 {
-    /* If this is a setf function, then don't copy, even if it can
-     * be done. This is because, if the setf function is (e.g.)
-     * the same as the current function, you'll end up with
-     * non-terminating recursion. It would be possible to limit
-     * this to the same function only, but you could have mutual
-     * recursion - it would be better for the author to do all of
-     * this manually, rather than complicating things. */
     pr->copyTo(pr_ret);
+
+    /* If this is a setf function, then don't copy, even if it can be
+     * done.  This is because, if the setf function is (e.g.) the same
+     * as the current function, there will be non-terminating
+     * recursion.  It would be possible to limit this to the same
+     * function only, but you could have mutual recursion; it would be
+     * better for the author to do all of this manually, rather than
+     * complicating things.  (It's very possible that this will change
+     * in the future.) */
     if (fn->is_setf_fn) {
         return true;
     }
     if (pr->do_not_copy_with_setf) {
         return true;
     }
-    /* If the parseresult has already been copied, then don't copy
-     * it again (pointless). todo: if you are having copy etc.
-     * problems, this is likely to be the issue. */
+    /* If the parse result has already been copied, then don't copy
+     * it again, since there's no point. */
     if (pr->freshly_copied) {
         return true;
     }
-    std::vector<Type *> types;
+
     Type *copy_type = ctx->tr->getPointerType(pr->type);
+    std::vector<Type *> types;
     types.push_back(copy_type);
     types.push_back(copy_type);
-    Function *over_setf =
-        ctx->getFunction("setf-copy", &types, NULL, 0);
+    Function *over_setf = ctx->getFunction("setf-copy", &types, NULL, 0);
     if (!over_setf) {
         return true;
     }
+
     llvm::IRBuilder<> builder(pr->block);
-    llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(ctx->toLLVMType(pr->type, NULL,
-                                        false))
-                            );
-    llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(ctx->toLLVMType(pr->type, NULL,
-                                        false))
-                            );
-    builder.CreateStore(pr->value, new_ptr2);
+    llvm::Type *llvm_pr_type = ctx->toLLVMType(pr->type, NULL, false);
+    llvm::Value *result_ptr =
+        llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_pr_type));
+    llvm::Value *value_ptr =
+        llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_pr_type));
+    builder.CreateStore(pr->value, value_ptr);
 
     std::vector<llvm::Value *> call_args;
-    call_args.push_back(new_ptr1);
-    call_args.push_back(new_ptr2);
+    call_args.push_back(result_ptr);
+    call_args.push_back(value_ptr);
     builder.CreateCall(
         over_setf->llvm_function,
-        llvm::ArrayRef<llvm::Value*>(call_args));
-    llvm::Value *result = builder.CreateLoad(new_ptr1);
+        llvm::ArrayRef<llvm::Value*>(call_args)
+    );
+    llvm::Value *result = builder.CreateLoad(result_ptr);
 
     pr_ret->set(pr->block, pr->type, result);
     pr_ret->freshly_copied = 1;
