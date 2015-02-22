@@ -4,6 +4,89 @@ namespace dale
 {
 namespace Operation
 {
+Function *
+getDestructor(Context *ctx, Type *type) 
+{
+    std::vector<Type *> types;
+    types.push_back(ctx->tr->getPointerType(type));
+    Function *fn = ctx->getFunction("destroy", &types, NULL, 0);
+    return fn;
+}
+
+bool
+destructArray(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
+              llvm::IRBuilder<> *builder, bool value_is_ptr)
+{
+    Type *array_type = pr->type->array_type;
+    llvm::BasicBlock *block = pr->block;
+    llvm::Value *array_value = pr->value;
+
+    if (!array_value) {
+        return true;
+    }
+    if (!array_value->getType()) {
+        return true;
+    }
+
+    if (!array_type->is_array) {
+        Function *fn = getDestructor(ctx, array_type);
+        if (!fn) {
+            return true;
+        }
+    }
+
+    llvm::Type *llvm_array_type = ctx->toLLVMType(pr->type, NULL, false);
+
+    /* Array literals are stored in the variable table as actual
+     * arrays, rather than pointers to arrays.  This should be fixed at
+     * some point, but for now, if this value is not a pointer, then
+     * store it in a temporary location. */
+
+    llvm::IRBuilder<> internal_builder(block);
+    if (!builder) {
+        builder = &internal_builder;
+    }
+
+    if (!pr->value->getType()->isPointerTy()) {
+        array_value = llvm::cast<llvm::Value>(
+            builder->CreateAlloca(llvm_array_type)
+        );
+        builder->CreateStore(pr->value, array_value);
+    }
+
+    for (int i = (pr->type->array_size - 1); i >= 0; i--) {
+        ParseResult temp;
+        temp.type  = array_type;
+        temp.block = block;
+        std::vector<llvm::Value *> indices;
+        STL::push_back2(&indices,
+                        ctx->nt->getLLVMZero(),
+                        llvm::cast<llvm::Value>(
+                            llvm::ConstantInt::get(
+                                ctx->nt->getNativeIntType(), i
+                            )
+                        ));
+        ParseResult mnew;
+
+        llvm::Value *res = builder->Insert(
+                                llvm::GetElementPtrInst::Create(
+                                    array_value,
+                                    llvm::ArrayRef<llvm::Value*>(indices)
+                                ),
+                                "asdf"
+                            );
+        if (!array_type->is_array) {
+            temp.value = builder->CreateLoad(res);
+        } else {
+            temp.value = res;
+        }
+        Destruct(ctx, &temp, &mnew, builder);
+    }
+
+    pr_ret->block = block;
+    return true;
+}
+
 bool
 Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
          llvm::IRBuilder<> *builder, bool value_is_ptr)
@@ -17,109 +100,12 @@ Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
     assert(pr->type);
 
     /* If it's an array with a known size, call this function for
-     * each element in the array in order from last to first. */
+     * each element in the array, in order from last to first. */
     if (pr->type->is_array && pr->type->array_size) {
-        Type *mine =
-            pr->type->array_type;
-        llvm::BasicBlock   *mbl  = pr->block;
-        int i = pr->type->array_size;
-        llvm::Value *actual_value = pr->value;
-        if (!pr->value) {
-            return true;
-        }
-        if (!pr->value->getType()) {
-            return true;
-        }
-
-        std::vector<Type *> types;
-        if (!mine->is_array) {
-            types.push_back(ctx->tr->getPointerType(mine));
-            Function *fn = ctx->getFunction("destroy", &types, NULL, 0);
-            if (!fn) {
-                return true;
-            }
-        }
-
-        /* Hmph: array literals are stored in the variable table as
-         * actual arrays, rather than pointers to arrays. This should
-         * be fixed at some point, but for now, if this value is not a
-         * pointer, then store it in a temporary location. */
-
-        if (!(pr->value->getType()->isPointerTy())) {
-            if (builder) {
-                llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                        builder->CreateAlloca(
-                            ctx->toLLVMType(pr->type, NULL, false))
-                        );
-                builder->CreateStore(pr->value, new_ptr2);
-                actual_value = new_ptr2;
-            } else {
-                llvm::IRBuilder<> builder(mbl);
-                llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
-                        builder.CreateAlloca(
-                            ctx->toLLVMType(pr->type, NULL, false))
-                        );
-                builder.CreateStore(pr->value, new_ptr2);
-                actual_value = new_ptr2;
-            }
-        }
-
-        for (i = (pr->type->array_size - 1); i >= 0; i--) {
-            ParseResult temp;
-            temp.type  = mine;
-            temp.block = mbl;
-            std::vector<llvm::Value *> indices;
-            STL::push_back2(&indices,
-                            ctx->nt->getLLVMZero(),
-                            llvm::cast<llvm::Value>(
-                                llvm::ConstantInt::get(
-                                    ctx->nt->getNativeIntType(),
-                                    i
-                                )
-                            ));
-            ParseResult mnew;
-
-            if (builder) {
-                llvm::Value *res = builder->Insert(
-                                       llvm::GetElementPtrInst::Create(
-                                           actual_value,
-                                           llvm::ArrayRef<llvm::Value*>(indices)
-                                       ),
-                                       "asdf"
-                                   );
-                if (!mine->is_array) {
-                    temp.value = builder->CreateLoad(res);
-                } else {
-                    temp.value = res;
-                }
-                Destruct(ctx, &temp, &mnew, builder);
-            }
-            else {
-                llvm::IRBuilder<> builder(mbl);
-                llvm::Value *res = builder.Insert(
-                                       llvm::GetElementPtrInst::Create(
-                                           actual_value,
-                                           llvm::ArrayRef<llvm::Value*>(indices)
-                                       ),
-                                       "asdf"
-                                   );
-                if (!mine->is_array) {
-                    temp.value = builder.CreateLoad(res);
-                } else {
-                    temp.value = res;
-                }
-                Destruct(ctx, &temp, &mnew, &builder);
-            }
-            mbl = mnew.block;
-        }
-        pr_ret->block = mbl;
-        return true;
+        return destructArray(ctx, pr, pr_ret, builder, value_is_ptr);
     }
 
-    std::vector<Type *> types;
-    types.push_back(ctx->tr->getPointerType(pr->type));
-    Function *fn = ctx->getFunction("destroy", &types,
-                            NULL, 0);
+    Function *fn = getDestructor(ctx, pr->type);
     if (!fn) {
         /* If this is a struct, call Destruct on each of the elements,
          * in the absence of a destructor for the struct as a whole.
@@ -130,7 +116,7 @@ Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
                                                  &(type->namespaces));
             std::vector<Type*> *st_types = &(st->member_types);
             int i = 0;
-            llvm::Value *actual_value = pr->value;
+            llvm::Value *array_value = pr->value;
 
             if (!value_is_ptr) {
                 if (builder) {
@@ -139,7 +125,7 @@ Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
                                 ctx->toLLVMType(pr->type, NULL, false))
                             );
                     builder->CreateStore(pr->value, new_ptr2);
-                    actual_value = new_ptr2;
+                    array_value = new_ptr2;
                 } else {
                     llvm::IRBuilder<> builder(pr->block);
                     llvm::Value *new_ptr2 = llvm::cast<llvm::Value>(
@@ -147,7 +133,7 @@ Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
                                 ctx->toLLVMType(pr->type, NULL, false))
                             );
                     builder.CreateStore(pr->value, new_ptr2);
-                    actual_value = new_ptr2;
+                    array_value = new_ptr2;
                 }
             }
 
@@ -160,7 +146,7 @@ Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
                 ParseResult mnew;
                 std::string ts;
                 (*b)->toString(&ts);
-                element.set(pr->block, *b, actual_value);
+                element.set(pr->block, *b, array_value);
                 std::vector<llvm::Value *> indices;
                 STL::push_back2(&indices,
                                 ctx->nt->getLLVMZero(),
@@ -174,7 +160,7 @@ Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
                     llvm::Value *res = 
                         builder->Insert(
                             llvm::GetElementPtrInst::Create(
-                                actual_value,
+                                array_value,
                                 llvm::ArrayRef<llvm::Value*>(indices)
                             ),
                             "asdf"
@@ -186,7 +172,7 @@ Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
                     llvm::Value *res = 
                         builder.Insert(
                             llvm::GetElementPtrInst::Create(
-                                actual_value,
+                                array_value,
                                 llvm::ArrayRef<llvm::Value*>(indices)
                             ),
                             "asdf"
