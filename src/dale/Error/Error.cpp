@@ -38,6 +38,24 @@ Error::Error(int instance,
 
 Error::Error(int instance,
              Node *node,
+             const char *str1,
+             const char *str2,
+             int num1,
+             const char *str3)
+{
+    init(instance, node);
+    arg_strings.push_back(str1);
+    arg_strings.push_back(str2);
+
+    char buf[100];
+    sprintf(buf, "%d", num1);
+    arg_strings.push_back(buf);
+
+    arg_strings.push_back(str3);
+}
+
+Error::Error(int instance,
+             Node *node,
              int num1,
              int num2)
 {

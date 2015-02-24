@@ -147,14 +147,12 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
                 std::string tgot;
                 (*param_iter)->toString(&twant);
                 p.type->toString(&tgot);
-                char buf[100];
-                sprintf(buf, "%d", arg_count);
 
                 Error *e = new Error(
                     ErrorInst::Generator::IncorrectArgType,
                     (*b),
                     "function pointer call",
-                    twant.c_str(), buf, tgot.c_str()
+                    twant.c_str(), arg_count, tgot.c_str()
                 );
                 units->top()->ctx->er->addError(e);
                 return false;
