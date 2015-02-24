@@ -17,21 +17,20 @@ CloseScope(Context *ctx, Function *fn, llvm::BasicBlock *block,
         ctx->ns()->getVariables(&stack_vars);
     }
 
-    ParseResult mnew;
-    mnew.block = block;
+    ParseResult element;
+    element.block = block;
 
     for (std::vector<Variable *>::iterator
             b = stack_vars.begin(),
             e = stack_vars.end();
             b != e;
             ++b) {
-
         if (skip_value && ((*b)->value == skip_value)) {
             continue;
         }
-        mnew.type = (*b)->type;
-        mnew.value = (*b)->value;
-        Operation::Destruct(ctx, &mnew, &mnew, NULL, true);
+        element.type = (*b)->type;
+        element.value = (*b)->value;
+        Operation::Destruct(ctx, &element, &element, NULL, true);
     }
 
     return true; 

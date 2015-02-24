@@ -50,9 +50,9 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
     }
 
     for (int i = (pr->type->array_size - 1); i >= 0; i--) {
-        ParseResult temp;
-        temp.type  = array_type;
-        temp.block = block;
+        ParseResult element;
+        element.type  = array_type;
+        element.block = block;
         std::vector<llvm::Value *> indices;
         STL::push_back2(
             &indices,
@@ -61,7 +61,6 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
                 llvm::ConstantInt::get(ctx->nt->getNativeIntType(), i)
             )
         );
-        ParseResult mnew;
 
         llvm::Value *res =
             builder->Insert(
@@ -71,11 +70,12 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
                 "ap"
             );
         if (!array_type->is_array) {
-            temp.value = builder->CreateLoad(res);
+            element.value = builder->CreateLoad(res);
         } else {
-            temp.value = res;
+            element.value = res;
         }
-        Destruct(ctx, &temp, &mnew, builder);
+        Destruct(ctx, &element, &element, builder);
+        block = element.block;
     }
 
     pr_ret->block = block;
@@ -86,8 +86,6 @@ bool
 destructStruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
                llvm::IRBuilder<> *builder, bool value_is_ptr)
 {
-    ParseResult unused;
-
     Struct *st = ctx->getStruct(pr->type);
     std::vector<Type*> *st_types = &(st->member_types);
 
@@ -108,7 +106,7 @@ destructStruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
             b != e;
             ++b) {
         ParseResult element;
-        element.set(pr->block, *b, struct_value);
+        element.set(pr_ret->block, *b, struct_value);
         std::vector<llvm::Value *> indices;
         STL::push_back2(
             &indices,
@@ -125,7 +123,8 @@ destructStruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
                 ),
                 "sp"
             );
-        Destruct(ctx, &element, &unused, builder, true);
+        Destruct(ctx, &element, &element, builder, true);
+        pr_ret->block = element.block;
     }
 
     return true;
