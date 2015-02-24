@@ -60,7 +60,7 @@ FormProcDereferenceParse(Units *units,
         return false;
     }
 
-    /* If getAddress is false (the usual case), append a load
+    /* If get_address is false (the usual case), append a load
      * instruction, otherwise just return the value. */
 
     pr->set(p.block, NULL, NULL);

@@ -38,12 +38,12 @@ public:
     FunctionProcessor(Units *units);
     ~FunctionProcessor();
 
-    bool parseFuncallInternal(Function *dfn, Node *n, bool getAddress,
+    bool parseFuncallInternal(Function *dfn, Node *n, bool get_address,
                               ParseResult *fn_ptr, int skip,
                               std::vector<llvm::Value*> *extra_call_args,
                               ParseResult *pr);
     bool parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
-                           Node *n, const char *name, bool getAddress,
+                           Node *n, const char *name, bool get_address,
                            bool prefixed_with_core, Function **macro_to_call,
                            ParseResult *pr);
 };

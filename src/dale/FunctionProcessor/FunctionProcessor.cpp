@@ -31,8 +31,8 @@ FunctionProcessor::processRetval(Type *return_type, llvm::BasicBlock *block,
 
     pr->do_not_destruct = 1;
     pr->do_not_copy_with_setf = 1;
-    /* todo: may turn out to be unnecessary. */
     pr->retval_used = true;
+
     if (pr->retval) {
         call_args->push_back(pr->retval);
         return;
@@ -40,17 +40,14 @@ FunctionProcessor::processRetval(Type *return_type, llvm::BasicBlock *block,
 
     llvm::IRBuilder<> builder(block);
     llvm::Type *et =
-        units->top()->ctx->toLLVMType(return_type, NULL, false,
-                        false);
+        units->top()->ctx->toLLVMType(return_type, NULL, false, false);
     if (!et) {
         return;
     }
-    llvm::Value *new_ptr =
-        llvm::cast<llvm::Value>(
-            builder.CreateAlloca(et)
-        );
-    call_args->push_back(new_ptr);
-    pr->retval = new_ptr;
+    llvm::Value *retval_ptr =
+        llvm::cast<llvm::Value>(builder.CreateAlloca(et));
+    call_args->push_back(retval_ptr);
+    pr->retval = retval_ptr;
     pr->retval_type = units->top()->ctx->tr->getPointerType(return_type);
 }
 
@@ -58,7 +55,7 @@ bool
 FunctionProcessor::parseFuncallInternal(
     Function *dfn,
     Node *n,
-    bool getAddress,
+    bool get_address,
     ParseResult *fn_ptr,
     int skip,
     std::vector<llvm::Value*> *extra_call_args,
@@ -141,7 +138,7 @@ FunctionProcessor::parseFuncallInternal(
     while (symlist_iter != lst->end()) {
         ParseResult p;
         bool res = FormProcInstParse(units, 
-            dfn, block, (*symlist_iter), getAddress, false, NULL, &p,
+            dfn, block, (*symlist_iter), get_address, false, NULL, &p,
             true
         );
         if (!res) {
@@ -268,14 +265,14 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
         llvm::BasicBlock *block,
         Node *n,
         const char *name,
-        bool getAddress,
+        bool get_address,
         bool prefixed_with_core,
         Function **macro_to_call,
         ParseResult *pr)
 {
     assert(n->list && "must receive a list!");
 
-    if (getAddress) {
+    if (get_address) {
         Error *e = new Error(
             ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
             n

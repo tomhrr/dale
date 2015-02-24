@@ -11,7 +11,7 @@ FormLiteralArrayParse(Units *units,
       Node *n,
       const char *name,
       Type *array_type,
-      bool getAddress,
+      bool get_address,
       int *size,
       ParseResult *pr)
 {
@@ -128,7 +128,7 @@ FormLiteralArrayParse(Units *units,
     pr->set(block, ctx->tr->getPointerType(array_type->array_type), 
             array_ptr);
 
-    if (!getAddress) {
+    if (!get_address) {
         pr->address_of_value = pr->value;
         pr->value_is_lvalue = 0;
         pr->type_of_address_of_value = pr->type;

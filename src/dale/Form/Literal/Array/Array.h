@@ -14,7 +14,7 @@ FormLiteralArrayParse(Units *units,
       Node *n,
       const char *name,
       Type *array_type,
-      bool getAddress,
+      bool get_address,
       int *size,
       ParseResult *pr);
 }

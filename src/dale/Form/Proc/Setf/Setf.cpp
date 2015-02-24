@@ -27,7 +27,7 @@ FormProcSetfParse(Units *units,
         return false;
     }
 
-    /* Used to use getAddress for the first argument, but now setf
+    /* Used to use get_address for the first argument, but now setf
      * always takes a pointer as its first argument, to facilitate
      * overloading etc. */
 

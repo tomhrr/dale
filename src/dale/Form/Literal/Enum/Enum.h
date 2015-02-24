@@ -14,7 +14,7 @@ FormLiteralEnumParse(Units *units,
       Enum *myenum,
       Type *myenumtype,
       Struct *myenumstructtype,
-      bool getAddress,
+      bool get_address,
       ParseResult *pr);
 }
 

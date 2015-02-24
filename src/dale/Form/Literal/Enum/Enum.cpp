@@ -10,7 +10,7 @@ FormLiteralEnumParse(Units *units,
       Enum *myenum,
       Type *myenumtype,
       Struct *myenumstructtype,
-      bool getAddress,
+      bool get_address,
       ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
@@ -59,7 +59,7 @@ FormLiteralEnumParse(Units *units,
                             llvm_type, num),
                         res);
 
-    if (getAddress) {
+    if (get_address) {
         pr->set(block, ctx->tr->getPointerType(myenumtype), sp);
         return true;
     } else {
