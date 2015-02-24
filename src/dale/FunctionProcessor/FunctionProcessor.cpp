@@ -20,7 +20,42 @@ FunctionProcessor::~FunctionProcessor()
 {
 }
 
-bool FunctionProcessor::parseFuncallInternal(
+void
+FunctionProcessor::processRetval(Type *return_type, llvm::BasicBlock *block,
+                                 ParseResult *pr,
+                                 std::vector<llvm::Value*> *call_args)
+{
+    if (!return_type->is_retval) {
+        return;
+    }
+
+    pr->do_not_destruct = 1;
+    pr->do_not_copy_with_setf = 1;
+    /* todo: may turn out to be unnecessary. */
+    pr->retval_used = true;
+    if (pr->retval) {
+        call_args->push_back(pr->retval);
+        return;
+    }
+
+    llvm::IRBuilder<> builder(block);
+    llvm::Type *et =
+        units->top()->ctx->toLLVMType(return_type, NULL, false,
+                        false);
+    if (!et) {
+        return;
+    }
+    llvm::Value *new_ptr =
+        llvm::cast<llvm::Value>(
+            builder.CreateAlloca(et)
+        );
+    call_args->push_back(new_ptr);
+    pr->retval = new_ptr;
+    pr->retval_type = units->top()->ctx->tr->getPointerType(return_type);
+}
+
+bool
+FunctionProcessor::parseFuncallInternal(
     Function *dfn,
     Node *n,
     bool getAddress,
@@ -823,36 +858,4 @@ bool FunctionProcessor::parseFunctionCall(Function *dfn,
     return true;
 }
 
-void FunctionProcessor::processRetval(Type *return_type,
-                              llvm::BasicBlock *block,
-                              ParseResult *pr,
-                              std::vector<llvm::Value*> *call_args)
-{
-    if (return_type->is_retval) {
-        pr->do_not_destruct = 1;
-        pr->do_not_copy_with_setf = 1;
-        /* todo: may turn out to be unnecessary. */
-        pr->retval_used = true;
-        if (!pr->retval) {
-            llvm::IRBuilder<> builder(block);
-            llvm::Type *et =
-                units->top()->ctx->toLLVMType(return_type, NULL, false,
-                                false);
-            if (!et) {
-                return;
-            }
-            llvm::Value *new_ptr =
-                llvm::cast<llvm::Value>(
-                    builder.CreateAlloca(et)
-                );
-            call_args->push_back(new_ptr);
-            pr->retval = new_ptr;
-            pr->retval_type = units->top()->ctx->tr->getPointerType(return_type);
-        } else {
-            call_args->push_back(pr->retval);
-        }
-    }
-
-    return;
-}
 }
