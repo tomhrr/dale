@@ -21,6 +21,10 @@ namespace Operation
  *  @param from_type The type from which the value should be cast.
  *  @param to_type The type to which the value should be cast.
  *  @param pr The parse result for the coercion result.
+ *
+ *  The coercion operation is akin to cast, except that it only
+ *  applies when the from type is a char array and the to type is a
+ *  char pointer.
  */
 bool Coerce(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
             Type *from_type, Type *to_type, ParseResult *pr);

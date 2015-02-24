@@ -54,9 +54,9 @@ FunctionProcessor::processRetval(Type *return_type, llvm::BasicBlock *block,
 bool
 checkArgumentCount(Type *fn_ptr, Node *n, int num_args, ErrorReporter *er)
 {
-    int num_required_args = fn_ptr->points_to->numberOfRequiredArgs();
+    int num_required_args = fn_ptr->numberOfRequiredArgs();
 
-    if (fn_ptr->points_to->isVarArgs()) {
+    if (fn_ptr->isVarArgs()) {
         if (num_args < num_required_args) {
             Error *e = new Error(
                 ErrorInst::Generator::IncorrectMinimumNumberOfArgs,
@@ -87,6 +87,8 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
                                         std::vector<llvm::Value*> *extra_call_args,
                                         ParseResult *pr)
 {
+    Type *fn_ptr = fn_ptr_pr->type->points_to;
+
     llvm::BasicBlock *block = fn_ptr_pr->block;
     std::vector<llvm::Value *> empty;
     if (!extra_call_args) {
@@ -94,7 +96,7 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
     }
 
     int num_args = n->list->size() - skip + extra_call_args->size();
-    bool res = checkArgumentCount(fn_ptr_pr->type, n, num_args,
+    bool res = checkArgumentCount(fn_ptr, n, num_args,
                                   units->top()->ctx->er);
     if (!res) {
         return false;
@@ -104,71 +106,68 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
     std::vector<ParseResult> call_arg_prs;
     std::vector<Node *> call_arg_nodes;
 
-    bool args_cast = false;
+    bool args_coerced = false;
     int arg_count = 1;
 
     std::copy(extra_call_args->begin(), extra_call_args->end(),
               std::back_inserter(call_args));
 
     std::vector<Type *>::iterator param_iter =
-        fn_ptr_pr->type->points_to->parameter_types.begin() +
-            extra_call_args->size();
+        fn_ptr->parameter_types.begin() + extra_call_args->size();
 
     for (std::vector<Node *>::iterator b = n->list->begin() + skip,
                                        e = n->list->end();
             b != e;
             ++b) {
-        ParseResult p;
-        bool res = FormProcInstParse(units, 
-            dfn, block, (*b), get_address, false, NULL, &p,
-            true
-        );
+        ParseResult arg_pr;
+        bool res = FormProcInstParse(units, dfn, block, (*b), get_address,
+                                     false, NULL, &arg_pr, true);
         if (!res) {
             return false;
         }
 
-        call_arg_prs.push_back(p);
+        call_arg_prs.push_back(arg_pr);
         call_arg_nodes.push_back(*b);
-        block = p.block;
+        block = arg_pr.block;
 
-        if ((param_iter != fn_ptr_pr->type->points_to->parameter_types.end())
-                && (!(p.type->isEqualTo((*param_iter), 1)))
+        /* If the parsed argument is not of the correct type, attempt
+         * to coerce the type to the correct type. */
+        if ((param_iter != fn_ptr->parameter_types.end())
+                && (!(arg_pr.type->isEqualTo((*param_iter), 1)))
                 && ((*param_iter)->base_type != BaseType::VarArgs)) {
-            ParseResult coerce;
-            bool coerce_result = Operation::Coerce(units->top()->ctx, block,
-                                               p.getValue(units->top()->ctx),
-                                               p.type,
-                                               (*param_iter),
-                                               &coerce);
-            llvm::Value *new_val = coerce.value;
-
+            ParseResult coerce_pr;
+            bool coerce_result =
+                Operation::Coerce(units->top()->ctx, block,
+                                  arg_pr.getValue(units->top()->ctx),
+                                  arg_pr.type,
+                                  (*param_iter),
+                                  &coerce_pr);
             if (!coerce_result) {
-                std::string twant;
-                std::string tgot;
-                (*param_iter)->toString(&twant);
-                p.type->toString(&tgot);
+                std::string wanted_type;
+                std::string got_type;
+                (*param_iter)->toString(&wanted_type);
+                arg_pr.type->toString(&got_type);
 
                 Error *e = new Error(
                     ErrorInst::Generator::IncorrectArgType,
                     (*b),
                     "function pointer call",
-                    twant.c_str(), arg_count, tgot.c_str()
+                    wanted_type.c_str(), arg_count, got_type.c_str()
                 );
                 units->top()->ctx->er->addError(e);
                 return false;
             } else {
-                args_cast = true;
-                call_args.push_back(new_val);
+                args_coerced = true;
+                call_args.push_back(coerce_pr.value;
             }
         } else {
-            call_args.push_back(p.getValue(units->top()->ctx));
+            call_args.push_back(arg_pr.getValue(units->top()->ctx));
         }
 
-        if (param_iter != fn_ptr_pr->type->points_to->parameter_types.end()) {
+        if (param_iter != fn_ptr->parameter_types.end()) {
             ++param_iter;
-            // Skip the varargs type.
-            if (param_iter !=
-                    fn_ptr_pr->type->points_to->parameter_types.end()) {
+            /* Skip the varargs type. */
+            if (param_iter != fn_ptr->parameter_types.end()) {
                 if ((*param_iter)->base_type == BaseType::VarArgs) {
                     ++param_iter;
                 }
@@ -178,19 +177,18 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
 
     llvm::IRBuilder<> builder(block);
 
-    /* Iterate over the types of the found function. For the reference
+    /* Iterate over the types of the found function.  For the reference
      * types, replace the call argument with its address. todo: same
      * code as in parseFunctionCall, move into a separate function. */
 
     std::vector<llvm::Value *> call_args_final = call_args;
     int caps = call_arg_prs.size();
-    int pts  = fn_ptr_pr->type->points_to->parameter_types.size();
+    int pts  = fn_ptr->parameter_types.size();
     int limit = (caps > pts ? pts : caps);
     ParseResult refpr;
     int start = extra_call_args->size();
     for (int i = start; i < limit; i++) {
-        Type *pt = 
-            fn_ptr_pr->type->points_to->parameter_types.at(i);
+        Type *pt = fn_ptr->parameter_types.at(i);
         ParseResult *arg_refpr = &(call_arg_prs.at(i));
         if (pt->is_reference) {
             if (!pt->is_const && !arg_refpr->value_is_lvalue) {
@@ -210,7 +208,7 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
             /* If arguments had to be cast, then skip the copies,
              * here. (todo: do the casting after this part, instead.)
              * */
-            if (!args_cast) {
+            if (!args_coerced) {
                 bool res = Operation::Copy(units->top()->ctx, dfn, arg_refpr, arg_refpr);
                 if (!res) {
                     return false;
@@ -220,13 +218,14 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
         }
     }
 
-    processRetval(fn_ptr_pr->type->points_to->return_type,
+    processRetval(fn_ptr->return_type,
                   block, pr, &call_args_final);
 
     llvm::Value *call_res =
-        builder.CreateCall(fn_ptr_pr->value, llvm::ArrayRef<llvm::Value*>(call_args_final));
+        builder.CreateCall(fn_ptr_pr->value,
+                           llvm::ArrayRef<llvm::Value*>(call_args_final));
 
-    pr->set(block, fn_ptr_pr->type->points_to->return_type, call_res);
+    pr->set(block, fn_ptr->return_type, call_res);
 
     fn_ptr_pr->block = pr->block;
     ParseResult temp;
