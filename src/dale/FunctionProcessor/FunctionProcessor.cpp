@@ -88,12 +88,12 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
                                         ParseResult *pr)
 {
     llvm::BasicBlock *block = fn_ptr_pr->block;
-
-    int num_args = n->list->size() - skip;
-    if (extra_call_args) {
-        num_args += extra_call_args->size();
+    std::vector<llvm::Value *> empty;
+    if (!extra_call_args) {
+        extra_call_args = &empty;
     }
 
+    int num_args = n->list->size() - skip + extra_call_args->size();
     bool res = checkArgumentCount(fn_ptr_pr->type, n, num_args,
                                   units->top()->ctx->er);
     if (!res) {
@@ -104,34 +104,23 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
     std::vector<ParseResult> call_arg_prs;
     std::vector<Node *> call_arg_nodes;
 
-    if (extra_call_args) {
-        for (std::vector<llvm::Value*>::iterator b = extra_call_args->begin(),
-                                                 e = extra_call_args->end();
-                b != e;
-                ++b) {
-            call_args.push_back((*b));
-        }
-    }
-    std::vector<Type *>::iterator param_iter;
-
-    std::vector<Node *>::iterator symlist_iter;
-    symlist_iter = n->list->begin();
-    while (skip--) {
-        ++symlist_iter;
-    }
-
-    param_iter = fn_ptr_pr->type->points_to->parameter_types.begin();
     bool args_cast = false;
     int arg_count = 1;
 
-    if (extra_call_args) {
-        param_iter += extra_call_args->size();
-    }
+    std::copy(extra_call_args->begin(), extra_call_args->end(),
+              std::back_inserter(call_args));
 
-    while (symlist_iter != n->list->end()) {
+    std::vector<Type *>::iterator param_iter =
+        fn_ptr_pr->type->points_to->parameter_types.begin() +
+            extra_call_args->size();
+
+    for (std::vector<Node *>::iterator b = n->list->begin() + skip,
+                                       e = n->list->end();
+            b != e;
+            ++b) {
         ParseResult p;
         bool res = FormProcInstParse(units, 
-            dfn, block, (*symlist_iter), get_address, false, NULL, &p,
+            dfn, block, (*b), get_address, false, NULL, &p,
             true
         );
         if (!res) {
@@ -139,7 +128,7 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
         }
 
         call_arg_prs.push_back(p);
-        call_arg_nodes.push_back(*symlist_iter);
+        call_arg_nodes.push_back(*b);
         block = p.block;
 
         if ((param_iter != fn_ptr_pr->type->points_to->parameter_types.end())
@@ -163,7 +152,7 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
 
                 Error *e = new Error(
                     ErrorInst::Generator::IncorrectArgType,
-                    (*symlist_iter),
+                    (*b),
                     "function pointer call",
                     twant.c_str(), buf, tgot.c_str()
                 );
@@ -176,8 +165,6 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
         } else {
             call_args.push_back(p.getValue(units->top()->ctx));
         }
-
-        ++symlist_iter;
 
         if (param_iter != fn_ptr_pr->type->points_to->parameter_types.end()) {
             ++param_iter;
@@ -202,7 +189,7 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
     int pts  = fn_ptr_pr->type->points_to->parameter_types.size();
     int limit = (caps > pts ? pts : caps);
     ParseResult refpr;
-    int start = (extra_call_args ? extra_call_args->size() : 0);
+    int start = extra_call_args->size();
     for (int i = start; i < limit; i++) {
         Type *pt = 
             fn_ptr_pr->type->points_to->parameter_types.at(i);
