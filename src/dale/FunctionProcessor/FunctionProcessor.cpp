@@ -158,7 +158,7 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
                 return false;
             } else {
                 args_coerced = true;
-                call_args.push_back(coerce_pr.value;
+                call_args.push_back(coerce_pr.value);
             }
         } else {
             call_args.push_back(arg_pr.getValue(units->top()->ctx));
