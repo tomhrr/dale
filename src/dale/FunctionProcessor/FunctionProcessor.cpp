@@ -109,17 +109,12 @@ processReferenceTypes(std::vector<llvm::Value *> *call_args,
                 return false;
             }
             call_args_final->at(i) = refpr.getValue(ctx);
-        } else {
-            /* If arguments had to be cast, then skip the copies,
-             * here. (todo: do the casting after this part, instead.)
-             * */
-            if (!args_cast) {
-                bool res = Operation::Copy(ctx, dfn, arg_refpr, arg_refpr);
-                if (!res) {
-                    return false;
-                }
-                call_args_final->at(i) = arg_refpr->getValue(ctx);
+        } else if (!args_cast) {
+            bool res = Operation::Copy(ctx, dfn, arg_refpr, arg_refpr);
+            if (!res) {
+                return false;
             }
+            call_args_final->at(i) = arg_refpr->getValue(ctx);
         }
     }
 
@@ -224,10 +219,6 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
 
     llvm::IRBuilder<> builder(block);
 
-    /* Iterate over the types of the found function.  For the reference
-     * types, replace the call argument with its address. todo: same
-     * code as in parseFunctionCall, move into a separate function. */
-
     std::vector<llvm::Value *> call_args_final = call_args;
     res = processReferenceTypes(&call_args, &call_args_final,
                                 &call_arg_nodes, &call_arg_prs, dfn,
@@ -259,13 +250,58 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
 }
 
 bool
+isUnoverloadedMacro(Units *units, const char *name,
+                    std::vector<Node*> *lst,
+                    Function **macro_to_call)
+{
+    std::map<std::string, std::vector<Function *> *>::iterator
+        iter;
+    Function *fn = NULL;
+    for (std::vector<NSNode *>::reverse_iterator
+            rb = units->top()->ctx->used_ns_nodes.rbegin(),
+            re = units->top()->ctx->used_ns_nodes.rend();
+            rb != re;
+            ++rb) {
+        iter = (*rb)->ns->functions.find(name);
+        if (iter != (*rb)->ns->functions.end()) {
+            fn = iter->second->at(0);
+            break;
+        }
+    }
+    if (fn && fn->is_macro) {
+        /* If the third argument is either non-existent, or a (p
+         * DNode) (because typed arguments must appear before the
+         * first (p DNode) argument), then short-circuit, so long
+         * as the argument count is ok. */
+        std::vector<Variable*>::iterator
+            b = (fn->parameter_types.begin() + 1);
+        if ((b == fn->parameter_types.end())
+                || (*b)->type->isEqualTo(units->top()->ctx->tr->type_pdnode)) {
+            bool use = false;
+            int size = lst->size();
+            if (fn->isVarArgs()) {
+                use = ((fn->numberOfRequiredArgs() - 1)
+                        <= (size - 1));
+            } else {
+                use = ((fn->numberOfRequiredArgs() - 1)
+                        == (size - 1));
+            }
+            if (use) {
+                *macro_to_call = fn;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool
 FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
                                      Node *n, const char *name,
                                      bool get_address, bool prefixed_with_core,
                                      Function **macro_to_call, ParseResult *pr)
 {
-    assert(n->list && "must receive a list!");
-
     if (get_address) {
         Error *e = new Error(
             ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
@@ -311,60 +347,19 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
     std::vector<llvm::Value *> call_args_newer;
     std::vector<Type *> call_arg_types_newer;
 
-    if (!strcmp(name, "setf")) {
-        /* Add a bool argument and type to the front of the
-         * function call. */
-        call_arg_types.push_back(units->top()->ctx->tr->type_bool);
-        call_args.push_back(units->top()->ctx->nt->getLLVMFalse());
-    }
-
     symlist_iter = lst->begin();
     /* Skip the function name. */
     ++symlist_iter;
 
-    /* The processing below is only required when the function/macro
-     * name is overloaded. For now, short-circuit for macros that are
-     * not overloaded, because that will give the greatest benefits.
-     * */
+    /* The processing further down is only required when the
+     * function/macro name is overloaded.  For now, short-circuit for
+     * macros that are not overloaded, since those are most common,
+     * and avoiding the later work in those cases makes things much
+     * quicker. */
 
     if (!units->top()->ctx->isOverloadedFunction(t->str_value.c_str())) {
-        std::map<std::string, std::vector<Function *> *>::iterator
-            iter;
-        Function *fn = NULL;
-        for (std::vector<NSNode *>::reverse_iterator
-                rb = units->top()->ctx->used_ns_nodes.rbegin(),
-                re = units->top()->ctx->used_ns_nodes.rend();
-                rb != re;
-                ++rb) {
-            iter = (*rb)->ns->functions.find(name);
-            if (iter != (*rb)->ns->functions.end()) {
-                fn = iter->second->at(0);
-                break;
-            }
-        }
-        if (fn && fn->is_macro) {
-            /* If the third argument is either non-existent, or a (p
-             * DNode) (because typed arguments must appear before the
-             * first (p DNode) argument), then short-circuit, so long
-             * as the argument count is ok. */
-            std::vector<Variable*>::iterator
-                b = (fn->parameter_types.begin() + 1);
-            if ((b == fn->parameter_types.end())
-                    || (*b)->type->isEqualTo(units->top()->ctx->tr->type_pdnode)) {
-                bool use = false;
-                int size = lst->size();
-                if (fn->isVarArgs()) {
-                    use = ((fn->numberOfRequiredArgs() - 1)
-                            <= (size - 1));
-                } else {
-                    use = ((fn->numberOfRequiredArgs() - 1)
-                            == (size - 1));
-                }
-                if (use) {
-                    *macro_to_call = fn;
-                    return false;
-                }
-            }
+        if (isUnoverloadedMacro(units, name, lst, macro_to_call)) {
+            return false;
         }
     }
 
