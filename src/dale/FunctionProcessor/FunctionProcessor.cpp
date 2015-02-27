@@ -9,6 +9,8 @@
 
 #define IMPLICIT 1
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 FunctionProcessor::FunctionProcessor(Units *units)
@@ -59,7 +61,7 @@ checkArgumentCount(Type *fn_ptr, Node *n, int num_args, ErrorReporter *er)
     if (fn_ptr->isVarArgs()) {
         if (num_args < num_required_args) {
             Error *e = new Error(
-                ErrorInst::Generator::IncorrectMinimumNumberOfArgs,
+                IncorrectMinimumNumberOfArgs,
                 n, "function pointer call", num_required_args, num_args
             );
             er->addError(e);
@@ -68,7 +70,7 @@ checkArgumentCount(Type *fn_ptr, Node *n, int num_args, ErrorReporter *er)
     } else {
         if (num_args != num_required_args) {
             Error *e = new Error(
-                ErrorInst::Generator::IncorrectNumberOfArgs,
+                IncorrectNumberOfArgs,
                 n, "function pointer call", num_required_args, num_args
             );
             er->addError(e);
@@ -98,7 +100,7 @@ processReferenceTypes(std::vector<llvm::Value *> *call_args,
         if (pt->is_reference) {
             if (!pt->is_const && !arg_refpr->value_is_lvalue) {
                 Error *e = new Error(
-                    ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
+                    CannotTakeAddressOfNonLvalue,
                     call_arg_nodes->at(i)
                 );
                 ctx->er->addError(e);
@@ -190,12 +192,10 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
                 (*param_iter)->toString(&wanted_type);
                 arg_pr.type->toString(&got_type);
 
-                Error *e = new Error(
-                    ErrorInst::Generator::IncorrectArgType,
-                    (*b),
-                    "function pointer call",
-                    wanted_type.c_str(), arg_count, got_type.c_str()
-                );
+                Error *e = new Error(IncorrectArgType, (*b),
+                                     "function pointer call",
+                                     wanted_type.c_str(), arg_count,
+                                     got_type.c_str());
                 units->top()->ctx->er->addError(e);
                 return false;
             } else {
@@ -302,12 +302,12 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
                                      bool get_address, bool prefixed_with_core,
                                      Function **macro_to_call, ParseResult *pr)
 {
+    Context *ctx = units->top()->ctx;
+    ErrorReporter *er = ctx->er;
+
     if (get_address) {
-        Error *e = new Error(
-            ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
-            n
-        );
-        units->top()->ctx->er->addError(e);
+        Error *e = new Error(CannotTakeAddressOfNonLvalue, n);
+        er->addError(e);
         return false;
     }
 
@@ -316,22 +316,16 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
     Node *nfn_name = (*lst)[0];
 
     if (!nfn_name->is_token) {
-        Error *e = new Error(
-            ErrorInst::Generator::FirstListElementMustBeAtom,
-            nfn_name
-        );
-        units->top()->ctx->er->addError(e);
+        Error *e = new Error(FirstListElementMustBeAtom, nfn_name);
+        er->addError(e);
         return false;
     }
 
     Token *t = nfn_name->token;
 
     if (t->type != TokenType::String) {
-        Error *e = new Error(
-            ErrorInst::Generator::FirstListElementMustBeSymbol,
-            nfn_name
-        );
-        units->top()->ctx->er->addError(e);
+        Error *e = new Error(FirstListElementMustBeSymbol, nfn_name);
+        er->addError(e);
         return false;
     }
 
@@ -357,7 +351,7 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
      * and avoiding the later work in those cases makes things much
      * quicker. */
 
-    if (!units->top()->ctx->isOverloadedFunction(t->str_value.c_str())) {
+    if (!ctx->isOverloadedFunction(t->str_value.c_str())) {
         if (isUnoverloadedMacro(units, name, lst, macro_to_call)) {
             return false;
         }
@@ -366,32 +360,29 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
     std::vector<Error*> errors;
 
     /* Record the number of blocks and the instruction index in the
-     * current block. If the underlying Function to call
-     * is a function, then there's no problem with using the
-     * modifications caused by the repeated PFBI calls below. If
-     * it's a macro, however, anything that occurred needs to be
-     * 'rolled back'. Have to do the same thing for the context. */
+     * current block.  If the underlying Function to call is a
+     * function, then there's no problem with using the modifications
+     * caused by the repeated FormProcInstParse calls below.  If it's
+     * a macro, however, anything that occurred needs to be 'rolled
+     * back'.  Have to do the same thing for the context. */
 
     int current_block_count = dfn->llvm_function->size();
     int current_instr_index = block->size();
     int current_dgcount = dfn->deferred_gotos.size();
     std::map<std::string, Label *> labels = dfn->labels;
     llvm::BasicBlock *original_block = block;
-    ContextSavePoint *csp = new ContextSavePoint(units->top()->ctx);
+    ContextSavePoint *csp = new ContextSavePoint(ctx);
 
     while (symlist_iter != lst->end()) {
         call_arg_nodes.push_back(*symlist_iter);
-        int error_count =
-            units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
+        int error_count = er->getErrorTypeCount(ErrorType::Error);
 
         ParseResult p;
         bool res =
             FormProcInstParse(units, dfn, block, (*symlist_iter),
-                                    false, false, NULL,
-                                    &p, true);
+                              false, false, NULL, &p, true);
 
-        int diff = units->top()->ctx->er->getErrorTypeCount(ErrorType::Error)
-                   - error_count;
+        int diff = er->getErrorTypeCount(ErrorType::Error) - error_count;
 
         if (!res || diff) {
             /* May be a macro call (could be an unparseable
@@ -400,14 +391,16 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
 
             if (diff) {
                 errors.insert(errors.end(),
-                              units->top()->ctx->er->errors.begin() + error_count,
-                              units->top()->ctx->er->errors.end());
-                units->top()->ctx->er->errors.erase(units->top()->ctx->er->errors.begin() + error_count,
-                                    units->top()->ctx->er->errors.end());
+                              er->errors.begin() + error_count,
+                              er->errors.end());
+                er->errors.erase(
+                    er->errors.begin() + error_count,
+                    er->errors.end()
+                );
             }
 
             call_args.push_back(NULL);
-            call_arg_types.push_back(units->top()->ctx->tr->type_pdnode);
+            call_arg_types.push_back(ctx->tr->type_pdnode);
             ++symlist_iter;
             continue;
         }
@@ -417,7 +410,7 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
             p = ParseResult(block, p.type_of_address_of_value,
                             p.address_of_value);
         }
-        call_args.push_back(p.getValue(units->top()->ctx));
+        call_args.push_back(p.getValue(ctx));
         call_arg_types.push_back(p.type);
         call_arg_prs.push_back(p);
 
@@ -430,14 +423,14 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
     Function *closest_fn = NULL;
 
     Function *fn =
-        units->top()->ctx->getFunction(t->str_value.c_str(),
+        ctx->getFunction(t->str_value.c_str(),
                          &call_arg_types,
                          &closest_fn,
                          0);
 
-    /* If the function is a macro, set macro_to_call and return
-     * NULL. (It's the caller's responsibility to handle
-     * processing of macros.) */
+    /* If the function is a macro, set macro_to_call and return false.
+     * (It's the caller's responsibility to handle processing of
+     * macros.) */
 
     if (fn && fn->is_macro) {
         /* Remove any basic blocks that have been added by way of
@@ -498,7 +491,7 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
                 e = errors.rend();
                 b != e;
                 ++b) {
-            units->top()->ctx->er->addError(*b);
+            er->addError(*b);
         }
         return false;
     }
@@ -518,18 +511,18 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
                     e = errors.rend();
                     b != e;
                     ++b) {
-                units->top()->ctx->er->addError(*b);
+                er->addError(*b);
             }
             return false;
         }
 
-        if (units->top()->ctx->existsExternCFunction(t->str_value.c_str())) {
+        if (ctx->existsExternCFunction(t->str_value.c_str())) {
             /* The function name is not overloaded. */
             /* Get this single function, try to cast each integral
              * call_arg to the expected type. If that succeeds
              * without error, then keep going. */
 
-            fn = units->top()->ctx->getFunction(t->str_value.c_str(),
+            fn = ctx->getFunction(t->str_value.c_str(),
                                   NULL, NULL, 0);
 
             std::vector<Variable *> myarg_types =
@@ -572,26 +565,20 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
             int size = call_args.size();
 
             if (size < fn->numberOfRequiredArgs()) {
-                Error *e = new Error(
-                    ErrorInst::Generator::FunctionNotInScope,
-                    n,
-                    t->str_value.c_str(),
-                    provided_args.c_str(),
-                    expected_args.c_str()
-                );
-                units->top()->ctx->er->addError(e);
+                Error *e = new Error(FunctionNotInScope, n,
+                                     t->str_value.c_str(),
+                                     provided_args.c_str(),
+                                     expected_args.c_str());
+                er->addError(e);
                 return false;
             }
             if (!fn->isVarArgs()
                     && size != fn->numberOfRequiredArgs()) {
-                Error *e = new Error(
-                    ErrorInst::Generator::FunctionNotInScope,
-                    n,
-                    t->str_value.c_str(),
-                    provided_args.c_str(),
-                    expected_args.c_str()
-                );
-                units->top()->ctx->er->addError(e);
+                Error *e = new Error(FunctionNotInScope, n,
+                                     t->str_value.c_str(),
+                                     provided_args.c_str(),
+                                     expected_args.c_str());
+                er->addError(e);
                 return false;
             }
 
@@ -608,31 +595,25 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
                 }
                 if (!(*miter)->type->isIntegerType()
                         and (*miter)->type->base_type != BaseType::Bool) {
-                    Error *e = new Error(
-                        ErrorInst::Generator::FunctionNotInScope,
-                        n,
-                        t->str_value.c_str(),
-                        provided_args.c_str(),
-                        expected_args.c_str()
-                    );
-                    units->top()->ctx->er->addError(e);
+                    Error *e = new Error(FunctionNotInScope, n,
+                                         t->str_value.c_str(),
+                                         provided_args.c_str(),
+                                         expected_args.c_str());
+                    er->addError(e);
                     return false;
                 }
                 if (!(*caiter)->isIntegerType()
                         and (*caiter)->base_type != BaseType::Bool) {
-                    Error *e = new Error(
-                        ErrorInst::Generator::FunctionNotInScope,
-                        n,
-                        t->str_value.c_str(),
-                        provided_args.c_str(),
-                        expected_args.c_str()
-                    );
-                    units->top()->ctx->er->addError(e);
+                    Error *e = new Error(FunctionNotInScope, n,
+                                         t->str_value.c_str(),
+                                         provided_args.c_str(),
+                                         expected_args.c_str());
+                    er->addError(e);
                     return false;
                 }
 
                 ParseResult mytemp;
-                bool res = Operation::Cast(units->top()->ctx, block,
+                bool res = Operation::Cast(ctx, block,
                            (*citer),
                            (*caiter),
                            (*miter)->type,
@@ -640,18 +621,15 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
                            IMPLICIT,
                            &mytemp);
                 if (!res) {
-                    Error *e = new Error(
-                        ErrorInst::Generator::FunctionNotInScope,
-                        n,
-                        t->str_value.c_str(),
-                        provided_args.c_str(),
-                        expected_args.c_str()
-                    );
-                    units->top()->ctx->er->addError(e);
+                    Error *e = new Error(FunctionNotInScope, n,
+                                         t->str_value.c_str(),
+                                         provided_args.c_str(),
+                                         expected_args.c_str());
+                    er->addError(e);
                     return false;
                 }
                 block = mytemp.block;
-                call_args_newer.push_back(mytemp.getValue(units->top()->ctx));
+                call_args_newer.push_back(mytemp.getValue(ctx));
                 call_arg_types_newer.push_back(mytemp.type);
 
                 ++miter;
@@ -662,13 +640,13 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
             call_args = call_args_newer;
             call_arg_types = call_arg_types_newer;
             args_cast = true;
-        } else if (units->top()->ctx->existsNonExternCFunction(t->str_value.c_str())) {
+        } else if (ctx->existsNonExternCFunction(t->str_value.c_str())) {
             /* Return a no-op ParseResult if the function name is
              * 'destroy', because it's tedious to have to check in
              * generic code whether a particular value can be
              * destroyed or not. */
             if (!t->str_value.compare("destroy")) {
-                pr->set(block, units->top()->ctx->tr->type_void, NULL);
+                pr->set(block, ctx->tr->type_void, NULL);
                 return true;
             }
 
@@ -700,29 +678,25 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
                     expected.erase(expected.size() - 1, 1);
                 }
                 Error *e = new Error(
-                    ErrorInst::Generator::OverloadedFunctionOrMacroNotInScopeWithClosest,
+                    OverloadedFunctionOrMacroNotInScopeWithClosest,
                     n,
                     t->str_value.c_str(), args.c_str(),
                     expected.c_str()
                 );
-                units->top()->ctx->er->addError(e);
+                er->addError(e);
                 return false;
             } else {
                 Error *e = new Error(
-                    ErrorInst::Generator::OverloadedFunctionOrMacroNotInScope,
+                    OverloadedFunctionOrMacroNotInScope,
                     n,
                     t->str_value.c_str(), args.c_str()
                 );
-                units->top()->ctx->er->addError(e);
+                er->addError(e);
                 return false;
             }
         } else {
-            Error *e = new Error(
-                ErrorInst::Generator::NotInScope,
-                n,
-                t->str_value.c_str()
-            );
-            units->top()->ctx->er->addError(e);
+            Error *e = new Error(NotInScope, n, t->str_value.c_str());
+            er->addError(e);
             return false;
         }
     }
@@ -755,30 +729,30 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
                         llvm::Type::getDoubleTy(llvm::getGlobalContext())
                     );
                 (*call_arg_types_iter) =
-                    units->top()->ctx->tr->type_double;
+                    ctx->tr->type_double;
             } else if ((*call_arg_types_iter)->isIntegerType()) {
                 int real_size =
-                    units->top()->ctx->nt->internalSizeToRealSize(
+                    ctx->nt->internalSizeToRealSize(
                         (*call_arg_types_iter)->getIntegerSize()
                     );
 
-                if (real_size < units->top()->ctx->nt->getNativeIntSize()) {
+                if (real_size < ctx->nt->getNativeIntSize()) {
                     if ((*call_arg_types_iter)->isSignedIntegerType()) {
                         /* Target integer is signed - use sext. */
                         (*call_args_iter) =
                             builder.CreateSExt((*call_args_iter),
-                                               units->top()->ctx->toLLVMType(
-                                                    units->top()->ctx->tr->type_int,
+                                               ctx->toLLVMType(
+                                                    ctx->tr->type_int,
                                                               NULL, false));
-                        (*call_arg_types_iter) = units->top()->ctx->tr->type_int;
+                        (*call_arg_types_iter) = ctx->tr->type_int;
                     } else {
                         /* Target integer is not signed - use zext. */
                         (*call_args_iter) =
                             builder.CreateZExt((*call_args_iter),
-                                               units->top()->ctx->toLLVMType(
-                                                    units->top()->ctx->tr->type_uint,
+                                               ctx->toLLVMType(
+                                                    ctx->tr->type_uint,
                                                               NULL, false));
-                        (*call_arg_types_iter) = units->top()->ctx->tr->type_uint;
+                        (*call_arg_types_iter) = ctx->tr->type_uint;
                     }
                 }
             }
@@ -801,7 +775,7 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
     bool res = processReferenceTypes(&call_args, &call_args_final,
                                 &call_arg_nodes, &call_arg_prs, dfn,
                                 &parameter_types,
-                                units->top()->ctx, args_cast, 0);
+                                ctx, args_cast, 0);
     if (!res) {
         return false;
     }
