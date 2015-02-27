@@ -80,6 +80,53 @@ checkArgumentCount(Type *fn_ptr, Node *n, int num_args, ErrorReporter *er)
 }
 
 bool
+processReferenceTypes(std::vector<llvm::Value *> *call_args,
+                      std::vector<llvm::Value *> *call_args_final,
+                      std::vector<Node *> *call_arg_nodes,
+                      std::vector<ParseResult> *call_arg_prs,
+                      Function *dfn, std::vector<Type*> *parameter_types,
+                      Context *ctx, bool args_cast,
+                      int extra_call_args_size)
+{
+    int caps = call_arg_prs->size();
+    int pts  = parameter_types->size();
+    int limit = (caps > pts ? pts : caps);
+    ParseResult refpr;
+    for (int i = extra_call_args_size; i < limit; i++) {
+        Type *pt = parameter_types->at(i);
+        ParseResult *arg_refpr = &(call_arg_prs->at(i));
+        if (pt->is_reference) {
+            if (!pt->is_const && !arg_refpr->value_is_lvalue) {
+                Error *e = new Error(
+                    ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
+                    call_arg_nodes->at(i)
+                );
+                ctx->er->addError(e);
+                return false;
+            }
+            bool res = arg_refpr->getAddressOfValue(ctx, &refpr);
+            if (!res) {
+                return false;
+            }
+            call_args_final->at(i) = refpr.getValue(ctx);
+        } else {
+            /* If arguments had to be cast, then skip the copies,
+             * here. (todo: do the casting after this part, instead.)
+             * */
+            if (!args_cast) {
+                bool res = Operation::Copy(ctx, dfn, arg_refpr, arg_refpr);
+                if (!res) {
+                    return false;
+                }
+                call_args_final->at(i) = arg_refpr->getValue(ctx);
+            }
+        }
+    }
+
+    return true;
+}
+
+bool
 FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
                                         bool get_address,
                                         ParseResult *fn_ptr_pr,
@@ -182,40 +229,13 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
      * code as in parseFunctionCall, move into a separate function. */
 
     std::vector<llvm::Value *> call_args_final = call_args;
-    int caps = call_arg_prs.size();
-    int pts  = fn_ptr->parameter_types.size();
-    int limit = (caps > pts ? pts : caps);
-    ParseResult refpr;
-    int start = extra_call_args->size();
-    for (int i = start; i < limit; i++) {
-        Type *pt = fn_ptr->parameter_types.at(i);
-        ParseResult *arg_refpr = &(call_arg_prs.at(i));
-        if (pt->is_reference) {
-            if (!pt->is_const && !arg_refpr->value_is_lvalue) {
-                Error *e = new Error(
-                    ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
-                    call_arg_nodes.at(i)
-                );
-                units->top()->ctx->er->addError(e);
-                return false;
-            }
-            bool res = arg_refpr->getAddressOfValue(units->top()->ctx, &refpr);
-            if (!res) {
-                return false;
-            }
-            call_args_final[i] = refpr.getValue(units->top()->ctx);
-        } else {
-            /* If arguments had to be cast, then skip the copies,
-             * here. (todo: do the casting after this part, instead.)
-             * */
-            if (!args_coerced) {
-                bool res = Operation::Copy(units->top()->ctx, dfn, arg_refpr, arg_refpr);
-                if (!res) {
-                    return false;
-                }
-                call_args_final[i] = arg_refpr->getValue(units->top()->ctx);
-            }
-        }
+    res = processReferenceTypes(&call_args, &call_args_final,
+                                &call_arg_nodes, &call_arg_prs, dfn,
+                                &(fn_ptr->parameter_types),
+                                units->top()->ctx, args_coerced,
+                                extra_call_args->size());
+    if (!res) {
+        return false;
     }
 
     processRetval(fn_ptr->return_type,
@@ -370,7 +390,7 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
             units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
         ParseResult p;
-        bool res = 
+        bool res =
             FormProcInstParse(units, dfn, block, (*symlist_iter),
                                     false, false, NULL,
                                     &p, true);
@@ -774,43 +794,23 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
 
     /* Iterate over the types of the found function. For the reference
      * types, replace the call argument with its address. */
-    
-    std::vector<llvm::Value *> call_args_final = call_args;
-    int caps = call_arg_prs.size();
-    int pts  = fn->parameter_types.size();
-    int limit = (caps > pts ? pts : caps);
-    ParseResult refpr;
-    for (int i = 0; i < limit; i++) {
-        Type *pt = fn->parameter_types.at(i)->type;
-        ParseResult *arg_refpr = &(call_arg_prs.at(i));
-        if (pt->is_reference) {
-            if (!pt->is_const && !arg_refpr->value_is_lvalue) {
-                Error *e = new Error(
-                    ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
-                    call_arg_nodes.at(i)
-                );
-                units->top()->ctx->er->addError(e);
-                return false;
-            }
-            bool res = arg_refpr->getAddressOfValue(units->top()->ctx, &refpr);
-            if (!res) {
-                return false;
-            }
-            call_args_final[i] = refpr.getValue(units->top()->ctx);
-        } else {
-            /* If arguments had to be cast, then skip the copies,
-             * here. (todo: do the casting after this part, instead.)
-             * */
-            if (!args_cast) {
-                bool res = Operation::Copy(units->top()->ctx, dfn, arg_refpr, arg_refpr);
-                if (!res) {
-                    return false;
-                }
-                call_args_final[i] = arg_refpr->getValue(units->top()->ctx);
-            }
-        }
+
+    std::vector<Type *> parameter_types;
+    for (std::vector<Variable *>::iterator b = fn->parameter_types.begin(),
+                                           e = fn->parameter_types.end();
+            b != e;
+            ++b) {
+        parameter_types.push_back((*b)->type);
     }
-   
+    std::vector<llvm::Value *> call_args_final = call_args;
+    bool res = processReferenceTypes(&call_args, &call_args_final,
+                                &call_arg_nodes, &call_arg_prs, dfn,
+                                &parameter_types,
+                                units->top()->ctx, args_cast, 0);
+    if (!res) {
+        return false;
+    }
+
     processRetval(fn->return_type, block, pr, &call_args_final);
 
     llvm::Value *call_res = builder.CreateCall(
