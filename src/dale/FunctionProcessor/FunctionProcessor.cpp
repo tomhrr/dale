@@ -295,21 +295,49 @@ isUnoverloadedMacro(Units *units, const char *name,
 }
 
 bool
-typesToString(std::vector<Type *> *types, std::string *buf)
+typesToString(std::vector<Type *>::iterator begin,
+              std::vector<Type *>::iterator end,
+              std::string *buf)
 {
-    for (std::vector<Type *>::iterator b = types->begin(),
-                                       e = types->end();
-            b != e;
-            ++b) {
-        (*b)->toString(buf);
-        if ((b + 1) != e) {
+    if (begin == end) {
+        buf->append("void");
+        return true;
+    }
+
+    for (; begin != end; ++begin) {
+        (*begin)->toString(buf);
+        if ((begin + 1) != end) {
             buf->append(" ");
         }
     }
-    if (types->size() == 0) {
-        buf->append("void");
-    }
+
     return true;
+}
+
+bool
+typesToString(std::vector<Variable *>::iterator begin,
+              std::vector<Variable *>::iterator end,
+              std::string *buf)
+{
+    if (begin == end) {
+        buf->append("void");
+        return true;
+    }
+
+    for (; begin != end; ++begin) {
+        (*begin)->type->toString(buf);
+        if ((begin + 1) != end) {
+            buf->append(" ");
+        }
+    }
+
+    return true;
+}
+
+bool
+typesToString(std::vector<Type *> *types, std::string *buf)
+{
+    return typesToString(types->begin(), types->end(), buf);
 }
 
 bool
@@ -366,17 +394,17 @@ processExternCFunction(Context *ctx,
     }
 
     for (int i = 0; i < required; i++) {
-        Variable *pb = parameters.at(i);
-        llvm::Value *ab = call_args->at(i);
-        Type *tb = call_arg_types->at(i);
+        Variable *parameter = parameters.at(i);
+        llvm::Value *value = call_args->at(i);
+        Type *type = call_arg_types->at(i);
 
-        if (tb->isEqualTo(pb->type, 1)) {
-            call_args_final.push_back(ab);
-            call_arg_types_final.push_back(tb);
+        if (type->isEqualTo(parameter->type, 1)) {
+            call_args_final.push_back(value);
+            call_arg_types_final.push_back(type);
             continue;
         }
-        if (!pb->type->isIntegerType()
-                and pb->type->base_type != BaseType::Bool) {
+        if (!parameter->type->isIntegerType()
+                and parameter->type->base_type != BaseType::Bool) {
             Error *e = new Error(FunctionNotInScope, n,
                                  name,
                                  provided_args.c_str(),
@@ -384,8 +412,8 @@ processExternCFunction(Context *ctx,
             er->addError(e);
             return false;
         }
-        if (!tb->isIntegerType()
-                and tb->base_type != BaseType::Bool) {
+        if (!type->isIntegerType()
+                and type->base_type != BaseType::Bool) {
             Error *e = new Error(FunctionNotInScope, n,
                                  name,
                                  provided_args.c_str(),
@@ -395,7 +423,8 @@ processExternCFunction(Context *ctx,
         }
 
         ParseResult cast_result;
-        bool res = Operation::Cast(ctx, block, ab, tb, pb->type,
+        bool res = Operation::Cast(ctx, block, value, type,
+                                   parameter->type,
                                    n, IMPLICIT, &cast_result);
         if (!res) {
             Error *e = new Error(FunctionNotInScope, n,
@@ -426,119 +455,80 @@ processVarArgsFunction(Context *ctx, Function *fn,
                        std::vector<Type *> *call_arg_types,
                        llvm::IRBuilder<> *builder)
 {
-    int n = fn->numberOfRequiredArgs();
+    int required = fn->numberOfRequiredArgs();
+    int call_args_count = call_args->size();
 
-    std::vector<llvm::Value *>::iterator call_args_iter
-    = call_args->begin();
-    std::vector<Type *>::iterator call_arg_types_iter
-    = call_arg_types->begin();
+    Type *type_int  = ctx->tr->type_int;
+    Type *type_uint = ctx->tr->type_uint;
+    llvm::Type *llvm_type_int  = ctx->toLLVMType(type_int,  NULL, false);
+    llvm::Type *llvm_type_uint = ctx->toLLVMType(type_uint, NULL, false);
 
-    while (n--) {
-        ++call_args_iter;
-        ++call_arg_types_iter;
-    }
-    while (call_args_iter != call_args->end()) {
-        if ((*call_arg_types_iter)->base_type == BaseType::Float) {
-            (*call_args_iter) =
+    for (int i = required; i < call_args_count; i++) {
+        llvm::Value *value = call_args->at(i);
+        Type *type = call_arg_types->at(i);
+
+        if (type->base_type == BaseType::Float) {
+            value =
                 builder->CreateFPExt(
-                    (*call_args_iter),
+                    value,
                     llvm::Type::getDoubleTy(llvm::getGlobalContext())
                 );
-            (*call_arg_types_iter) =
-                ctx->tr->type_double;
-        } else if ((*call_arg_types_iter)->isIntegerType()) {
+            type = ctx->tr->type_double;
+        } else if (type->isIntegerType()) {
             int real_size =
-                ctx->nt->internalSizeToRealSize(
-                    (*call_arg_types_iter)->getIntegerSize()
-                );
+                ctx->nt->internalSizeToRealSize(type->getIntegerSize());
 
             if (real_size < ctx->nt->getNativeIntSize()) {
-                if ((*call_arg_types_iter)->isSignedIntegerType()) {
-                    /* Target integer is signed - use sext. */
-                    (*call_args_iter) =
-                        builder->CreateSExt((*call_args_iter),
-                                            ctx->toLLVMType(
-                                                ctx->tr->type_int,
-                                                            NULL, false));
-                    (*call_arg_types_iter) = ctx->tr->type_int;
+                if (type->isSignedIntegerType()) {
+                    value = builder->CreateSExt(value, llvm_type_int);
+                    type = ctx->tr->type_int;
                 } else {
-                    /* Target integer is not signed - use zext. */
-                    (*call_args_iter) =
-                        builder->CreateZExt((*call_args_iter),
-                                            ctx->toLLVMType(
-                                                ctx->tr->type_uint,
-                                                            NULL, false));
-                    (*call_arg_types_iter) = ctx->tr->type_uint;
+                    value = builder->CreateZExt(value, llvm_type_uint);
+                    type = ctx->tr->type_uint;
                 }
             }
         }
-        ++call_args_iter;
-        ++call_arg_types_iter;
+
+        call_args->at(i) = value;
+        call_arg_types->at(i) = type;
     }
 
     return true;
 }
 
-bool
-addNotFoundError(std::vector<Type *> *call_arg_types,
-                 const char *name,
-                 Node *n,
-                 Function *closest_fn,
-                 bool has_others,
+void
+addNotFoundError(std::vector<Type *> *call_arg_types, const char *name,
+                 Node *n, Function *closest_fn, bool has_others,
                  ErrorReporter *er)
 {
-    if (has_others) {
-        std::vector<Type *>::iterator titer =
-            call_arg_types->begin();
-
-        std::string args;
-        while (titer != call_arg_types->end()) {
-            (*titer)->toString(&args);
-            ++titer;
-            if (titer != call_arg_types->end()) {
-                args.append(" ");
-            }
-        }
-
-        if (closest_fn) {
-            std::string expected;
-            std::vector<Variable *>::iterator viter;
-            viter = closest_fn->parameter_types.begin();
-            if (closest_fn->is_macro) {
-                ++viter;
-            }
-            while (viter != closest_fn->parameter_types.end()) {
-                (*viter)->type->toString(&expected);
-                expected.append(" ");
-                ++viter;
-            }
-            if (expected.size() > 0) {
-                expected.erase(expected.size() - 1, 1);
-            }
-            Error *e = new Error(
-                OverloadedFunctionOrMacroNotInScopeWithClosest,
-                n,
-                name, args.c_str(),
-                expected.c_str()
-            );
-            er->addError(e);
-            return false;
-        } else {
-            Error *e = new Error(
-                OverloadedFunctionOrMacroNotInScope,
-                n,
-                name, args.c_str()
-            );
-            er->addError(e);
-            return false;
-        }
-    } else {
+    if (!has_others) {
         Error *e = new Error(NotInScope, n, name);
         er->addError(e);
-        return false;
+        return;
     }
 
+    std::string args;
+    typesToString(call_arg_types, &args);
 
+    if (closest_fn) {
+        std::string expected;
+        typesToString(closest_fn->parameter_types.begin() +
+                          (closest_fn->is_macro ? 1 : 0),
+                      closest_fn->parameter_types.end(),
+                      &expected);
+
+        Error *e = new Error(
+            OverloadedFunctionOrMacroNotInScopeWithClosest,
+            n, name, args.c_str(), expected.c_str()
+        );
+        er->addError(e);
+    } else {
+        Error *e = new Error(
+            OverloadedFunctionOrMacroNotInScope,
+            n, name, args.c_str()
+        );
+        er->addError(e);
+    }
 }
 
 bool
