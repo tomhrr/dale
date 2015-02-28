@@ -496,6 +496,68 @@ processVarArgsFunction(Context *ctx, Function *fn,
 }
 
 bool
+addNotFoundError(std::vector<Type *> *call_arg_types,
+                 const char *name,
+                 Node *n,
+                 Function *closest_fn,
+                 bool has_others,
+                 ErrorReporter *er)
+{
+    if (has_others) {
+        std::vector<Type *>::iterator titer =
+            call_arg_types->begin();
+
+        std::string args;
+        while (titer != call_arg_types->end()) {
+            (*titer)->toString(&args);
+            ++titer;
+            if (titer != call_arg_types->end()) {
+                args.append(" ");
+            }
+        }
+
+        if (closest_fn) {
+            std::string expected;
+            std::vector<Variable *>::iterator viter;
+            viter = closest_fn->parameter_types.begin();
+            if (closest_fn->is_macro) {
+                ++viter;
+            }
+            while (viter != closest_fn->parameter_types.end()) {
+                (*viter)->type->toString(&expected);
+                expected.append(" ");
+                ++viter;
+            }
+            if (expected.size() > 0) {
+                expected.erase(expected.size() - 1, 1);
+            }
+            Error *e = new Error(
+                OverloadedFunctionOrMacroNotInScopeWithClosest,
+                n,
+                name, args.c_str(),
+                expected.c_str()
+            );
+            er->addError(e);
+            return false;
+        } else {
+            Error *e = new Error(
+                OverloadedFunctionOrMacroNotInScope,
+                n,
+                name, args.c_str()
+            );
+            er->addError(e);
+            return false;
+        }
+    } else {
+        Error *e = new Error(NotInScope, n, name);
+        er->addError(e);
+        return false;
+    }
+
+
+}
+
+bool
 FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
                                      Node *n, const char *name,
                                      bool get_address, bool prefixed_with_core,
@@ -677,63 +739,21 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
             if (!res) {
                 return false;
             }
-        } else if (ctx->existsNonExternCFunction(t->str_value.c_str())) {
+        } else if (!t->str_value.compare("destroy")) {
             /* Return a no-op ParseResult if the function name is
              * 'destroy', because it's tedious to have to check in
              * generic code whether a particular value can be
              * destroyed or not. */
-            if (!t->str_value.compare("destroy")) {
-                pr->set(block, ctx->tr->type_void, NULL);
-                return true;
-            }
-
-            std::vector<Type *>::iterator titer =
-                call_arg_types.begin();
-
-            std::string args;
-            while (titer != call_arg_types.end()) {
-                (*titer)->toString(&args);
-                ++titer;
-                if (titer != call_arg_types.end()) {
-                    args.append(" ");
-                }
-            }
-
-            if (closest_fn) {
-                std::string expected;
-                std::vector<Variable *>::iterator viter;
-                viter = closest_fn->parameter_types.begin();
-                if (closest_fn->is_macro) {
-                    ++viter;
-                }
-                while (viter != closest_fn->parameter_types.end()) {
-                    (*viter)->type->toString(&expected);
-                    expected.append(" ");
-                    ++viter;
-                }
-                if (expected.size() > 0) {
-                    expected.erase(expected.size() - 1, 1);
-                }
-                Error *e = new Error(
-                    OverloadedFunctionOrMacroNotInScopeWithClosest,
-                    n,
-                    t->str_value.c_str(), args.c_str(),
-                    expected.c_str()
-                );
-                er->addError(e);
-                return false;
-            } else {
-                Error *e = new Error(
-                    OverloadedFunctionOrMacroNotInScope,
-                    n,
-                    t->str_value.c_str(), args.c_str()
-                );
-                er->addError(e);
-                return false;
-            }
+            pr->set(block, ctx->tr->type_void, NULL);
+            return true;
         } else {
-            Error *e = new Error(NotInScope, n, t->str_value.c_str());
-            er->addError(e);
+            bool has_others =
+                ctx->existsNonExternCFunction(t->str_value.c_str());
+
+            addNotFoundError(&call_arg_types,
+                             t->str_value.c_str(), n,
+                             closest_fn, has_others,
+                             er);
             return false;
         }
     }
