@@ -99,10 +99,8 @@ processReferenceTypes(std::vector<llvm::Value *> *call_args,
         ParseResult *arg_refpr = &(call_arg_prs->at(i));
         if (pt->is_reference) {
             if (!pt->is_const && !arg_refpr->value_is_lvalue) {
-                Error *e = new Error(
-                    CannotTakeAddressOfNonLvalue,
-                    call_arg_nodes->at(i)
-                );
+                Error *e = new Error(CannotTakeAddressOfNonLvalue,
+                                     call_arg_nodes->at(i));
                 ctx->er->addError(e);
                 return false;
             }
@@ -297,6 +295,24 @@ isUnoverloadedMacro(Units *units, const char *name,
 }
 
 bool
+typesToString(std::vector<Type *> *types, std::string *buf)
+{
+    for (std::vector<Type *>::iterator b = types->begin(),
+                                       e = types->end();
+            b != e;
+            ++b) {
+        (*b)->toString(buf);
+        if ((b + 1) != e) {
+            buf->append(" ");
+        }
+    }
+    if (types->size() == 0) {
+        buf->append("void");
+    }
+    return true;
+}
+
+bool
 processExternCFunction(Context *ctx,
                        const char *name, Node *n, Function **fn_ptr,
                        llvm::BasicBlock *block,
@@ -305,52 +321,36 @@ processExternCFunction(Context *ctx,
                        bool *args_cast)
 {
     ErrorReporter *er = ctx->er;
+    std::vector<llvm::Value *> call_args_final;
+    std::vector<Type *> call_arg_types_final;
 
-    /* Get this single function, try to cast each integral
-     * call_arg to the expected type. If that succeeds
-     * without error, then keep going. */
-
-    std::vector<llvm::Value *> call_args_newer;
-    std::vector<Type *> call_arg_types_newer;
+    /* Get this single function, try to cast each integral call_arg to
+     * the expected type. If that succeeds without error, then keep
+     * going. */
 
     Function *fn = ctx->getFunction(name, NULL, NULL, 0);
 
-    std::vector<Variable *> myarg_types =
-        fn->parameter_types;
-    std::vector<Variable *>::iterator miter =
-        myarg_types.begin();
+    std::vector<Variable *> parameters = fn->parameter_types;
+    std::vector<Type *> parameter_types;
+    for (std::vector<Variable *>::iterator b = parameters.begin(),
+                                           e = parameters.end();
+            b != e;
+            ++b) {
+        parameter_types.push_back((*b)->type);
+    }
+
+    std::string expected_args;
+    typesToString(&parameter_types, &expected_args);
+
+    std::string provided_args;
+    typesToString(call_arg_types, &provided_args);
 
     std::vector<llvm::Value *>::iterator citer =
         call_args->begin();
     std::vector<Type *>::iterator caiter =
         call_arg_types->begin();
 
-    /* Create strings describing the types, for use in a
-        * possible error message. */
-
-    std::string expected_args;
-    std::string provided_args;
-    while (miter != myarg_types.end()) {
-        (*miter)->type->toString(&expected_args);
-        expected_args.append(" ");
-        ++miter;
-    }
-    if (expected_args.size() == 0) {
-        expected_args.append("void");
-    } else {
-        expected_args.erase(expected_args.size() - 1, 1);
-    }
-    while (caiter != call_arg_types->end()) {
-        (*caiter)->toString(&provided_args);
-        provided_args.append(" ");
-        ++caiter;
-    }
-    if (provided_args.size() == 0) {
-        provided_args.append("void");
-    } else {
-        provided_args.erase(provided_args.size() - 1, 1);
-    }
-    miter = myarg_types.begin();
+    std::vector<Variable *>::iterator miter = parameters.begin();
     caiter = call_arg_types->begin();
     int size = call_args->size();
 
@@ -372,12 +372,12 @@ processExternCFunction(Context *ctx,
         return false;
     }
 
-    while (miter != myarg_types.end()
+    while (miter != parameters.end()
             && citer != call_args->end()
             && caiter != call_arg_types->end()) {
         if ((*caiter)->isEqualTo((*miter)->type, 1)) {
-            call_args_newer.push_back((*citer));
-            call_arg_types_newer.push_back((*caiter));
+            call_args_final.push_back((*citer));
+            call_arg_types_final.push_back((*caiter));
             ++miter;
             ++citer;
             ++caiter;
@@ -419,16 +419,16 @@ processExternCFunction(Context *ctx,
             return false;
         }
         block = mytemp.block;
-        call_args_newer.push_back(mytemp.getValue(ctx));
-        call_arg_types_newer.push_back(mytemp.type);
+        call_args_final.push_back(mytemp.getValue(ctx));
+        call_arg_types_final.push_back(mytemp.type);
 
         ++miter;
         ++citer;
         ++caiter;
     }
 
-    *call_args = call_args_newer;
-    *call_arg_types = call_arg_types_newer;
+    *call_args = call_args_final;
+    *call_arg_types = call_arg_types_final;
     *args_cast = true;
 
     *fn_ptr = fn;
