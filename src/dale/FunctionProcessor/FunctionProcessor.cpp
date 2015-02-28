@@ -1,6 +1,6 @@
 #include "FunctionProcessor.h"
 
-#include "../ContextSavePoint/ContextSavePoint.h"
+#include "../SavePoint/SavePoint.h"
 #include "../Form/Proc/Inst/Inst.h"
 #include "../Operation/Coerce/Coerce.h"
 #include "../Operation/Cast/Cast.h"
@@ -366,12 +366,7 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
      * a macro, however, anything that occurred needs to be 'rolled
      * back'.  Have to do the same thing for the context. */
 
-    int current_block_count = dfn->llvm_function->size();
-    int current_instr_index = block->size();
-    int current_dgcount = dfn->deferred_gotos.size();
-    std::map<std::string, Label *> labels = dfn->labels;
-    llvm::BasicBlock *original_block = block;
-    ContextSavePoint *csp = new ContextSavePoint(ctx);
+    SavePoint sp(ctx, dfn, block);
 
     while (symlist_iter != lst->end()) {
         call_arg_nodes.push_back(*symlist_iter);
@@ -433,52 +428,10 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
      * macros.) */
 
     if (fn && fn->is_macro) {
-        /* Remove any basic blocks that have been added by way of
-         * the parsing of the macro arguments, and remove any
-         * extra instructions added to the current block. Restore
-         * the context save point. */
-
-        int block_pop_back =
-            dfn->llvm_function->size() - current_block_count;
-        while (block_pop_back--) {
-            llvm::Function::iterator
-            bi = dfn->llvm_function->begin(),
-            be = dfn->llvm_function->end(),
-            bl;
-
-            while (bi != be) {
-                bl = bi;
-                ++bi;
-            }
-            bl->eraseFromParent();
-        }
-
-        int to_pop_back = original_block->size() - current_instr_index;
-        while (to_pop_back--) {
-            llvm::BasicBlock::iterator
-            bi = original_block->begin(),
-            be = original_block->end(), bl;
-
-            while (bi != be) {
-                bl = bi;
-                ++bi;
-            }
-            bl->eraseFromParent();
-        }
-
-        int dg_to_pop_back = dfn->deferred_gotos.size() - current_dgcount;
-        while (dg_to_pop_back--) {
-            dfn->deferred_gotos.pop_back();
-        }
-        dfn->labels = labels;
-
-        csp->restore();
-        delete csp;
-
+        sp.restore();
         *macro_to_call = fn;
         return false;
     }
-    delete csp;
 
     /* If the function is not a macro, and errors were encountered
      * during argument processing, then this function has been

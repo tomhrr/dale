@@ -25,6 +25,13 @@ struct SPNode
 */
 class ContextSavePoint
 {
+private:
+    Context *src_ctx;
+    SPNode *nsps;
+    NSNode *active;
+    int active_count;
+    int used_count;
+
 public:
     /*! Construct a new savepoint using the given context.
      *  @param ctx The context.
@@ -35,13 +42,6 @@ public:
      *  instantiation.
      */
     bool restore(void);
-
-private:
-    Context *src_ctx;
-    SPNode *nsps;
-    NSNode *active;
-    int active_count;
-    int used_count;
 };
 }
 
