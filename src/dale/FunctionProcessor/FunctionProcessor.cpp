@@ -23,9 +23,10 @@ FunctionProcessor::~FunctionProcessor()
 }
 
 void
-FunctionProcessor::processRetval(Type *return_type, llvm::BasicBlock *block,
-                                 ParseResult *pr,
-                                 std::vector<llvm::Value*> *call_args)
+processRetval(Context *ctx, 
+              Type *return_type, llvm::BasicBlock *block,
+              ParseResult *pr,
+              std::vector<llvm::Value*> *call_args)
 {
     if (!return_type->is_retval) {
         return;
@@ -42,7 +43,7 @@ FunctionProcessor::processRetval(Type *return_type, llvm::BasicBlock *block,
 
     llvm::IRBuilder<> builder(block);
     llvm::Type *et =
-        units->top()->ctx->toLLVMType(return_type, NULL, false, false);
+        ctx->toLLVMType(return_type, NULL, false, false);
     if (!et) {
         return;
     }
@@ -50,7 +51,7 @@ FunctionProcessor::processRetval(Type *return_type, llvm::BasicBlock *block,
         llvm::cast<llvm::Value>(builder.CreateAlloca(et));
     call_args->push_back(retval_ptr);
     pr->retval = retval_ptr;
-    pr->retval_type = units->top()->ctx->tr->getPointerType(return_type);
+    pr->retval_type = ctx->tr->getPointerType(return_type);
 }
 
 bool
@@ -227,7 +228,7 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
         return false;
     }
 
-    processRetval(fn_ptr->return_type,
+    processRetval(units->top()->ctx, fn_ptr->return_type,
                   block, pr, &call_args_final);
 
     llvm::Value *call_res =
@@ -737,7 +738,7 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
     }
 
     /* Make the necessary retval adjustments. */
-    processRetval(fn->return_type, block, pr, &call_args_final);
+    processRetval(ctx, fn->return_type, block, pr, &call_args_final);
 
     /* Finally: actually call the function. */
     llvm::Value *call_res =

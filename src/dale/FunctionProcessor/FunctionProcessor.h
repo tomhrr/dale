@@ -18,19 +18,6 @@ private:
     /*! The units context. */
     Units *units;
 
-    /*! Prepare to call a retval function.
-     *  @param return_type The return type of the function being called.
-     *  @param block The current block.
-     *  @param pr The parse result to use for the function result.
-     *  @param call_args The arguments for the function.
-     *
-     *  This should be called before the corresponding CreateCall.  If
-     *  the return type is not a retval type, this function is a
-     *  no-op.
-     */
-    void processRetval(Type *return_type, llvm::BasicBlock *block,
-                       ParseResult *pr, std::vector<llvm::Value*> *call_args);
-
 public:
     /*! Construct a new function processor.
      *  @param units The units context.
