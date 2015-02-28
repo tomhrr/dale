@@ -352,10 +352,6 @@ processExternCFunction(Context *ctx,
     std::vector<llvm::Value *> call_args_final;
     std::vector<Type *> call_arg_types_final;
 
-    /* Get this single function, try to cast each integral call_arg to
-     * the expected type. If that succeeds without error, then keep
-     * going. */
-
     Function *fn = ctx->getFunction(name, NULL, NULL, 0);
 
     std::vector<Variable *> parameters = fn->parameter_types;
@@ -546,39 +542,22 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
         return false;
     }
 
-    symlist *lst = n->list;
-
-    Node *nfn_name = (*lst)[0];
-
-    if (!nfn_name->is_token) {
-        Error *e = new Error(FirstListElementMustBeAtom, nfn_name);
+    std::vector<Node*> *lst = n->list;
+    Node *proc_name_node = lst->at(0);
+    if (!proc_name_node->is_token) {
+        Error *e = new Error(FirstListElementMustBeAtom, proc_name_node);
         er->addError(e);
         return false;
     }
 
-    Token *t = nfn_name->token;
-
-    if (t->type != TokenType::String) {
-        Error *e = new Error(FirstListElementMustBeSymbol, nfn_name);
+    Token *proc_name_token = proc_name_node->token;
+    if (proc_name_token->type != TokenType::String) {
+        Error *e = new Error(FirstListElementMustBeSymbol, proc_name_node);
         er->addError(e);
         return false;
     }
 
-    /* Put all of the arguments into a list. */
-
-    std::vector<Node *>::iterator symlist_iter;
-
-    std::vector<llvm::Value *> call_args;
-    std::vector<Node *> call_arg_nodes;
-    std::vector<ParseResult> call_arg_prs;
-    std::vector<Type *> call_arg_types;
-
-    std::vector<llvm::Value *> call_args_newer;
-    std::vector<Type *> call_arg_types_newer;
-
-    symlist_iter = lst->begin();
-    /* Skip the function name. */
-    ++symlist_iter;
+    const char *proc_name = proc_name_token->str_value.c_str();
 
     /* The processing further down is only required when the
      * function/macro name is overloaded.  For now, short-circuit for
@@ -586,7 +565,7 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
      * and avoiding the later work in those cases makes things much
      * quicker. */
 
-    if (!ctx->isOverloadedFunction(t->str_value.c_str())) {
+    if (!ctx->isOverloadedFunction(proc_name)) {
         if (isUnoverloadedMacro(units, name, lst, macro_to_call)) {
             return false;
         }
@@ -594,29 +573,33 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
 
     std::vector<Error*> errors;
 
-    /* Record the number of blocks and the instruction index in the
-     * current block.  If the underlying Function to call is a
-     * function, then there's no problem with using the modifications
-     * caused by the repeated FormProcInstParse calls below.  If it's
-     * a macro, however, anything that occurred needs to be 'rolled
-     * back'.  Have to do the same thing for the context. */
+    std::vector<llvm::Value *> call_args;
+    std::vector<Node *> call_arg_nodes;
+    std::vector<ParseResult> call_arg_prs;
+    std::vector<Type *> call_arg_types;
+
+    /* If the underlying procedure is a macro, then the state prior to
+     * argument evaluation needs to be restored before the macro is
+     * called, hence the save point. */
 
     SavePoint sp(ctx, dfn, block);
 
-    while (symlist_iter != lst->end()) {
-        call_arg_nodes.push_back(*symlist_iter);
+    for (std::vector<Node *>::iterator b = (lst->begin() + 1),
+                                       e = lst->end();
+            b != e;
+            ++b) {
+        call_arg_nodes.push_back(*b);
         int error_count = er->getErrorTypeCount(ErrorType::Error);
 
-        ParseResult p;
-        bool res =
-            FormProcInstParse(units, dfn, block, (*symlist_iter),
-                              false, false, NULL, &p, true);
+        ParseResult arg_pr;
+        bool res = FormProcInstParse(units, dfn, block, (*b),
+                                     false, false, NULL, &arg_pr, true);
 
         int diff = er->getErrorTypeCount(ErrorType::Error) - error_count;
 
         if (!res || diff) {
             /* May be a macro call (could be an unparseable
-             * argument). Pop and store errors for the time being
+             * argument).  Pop and store errors for the time being
              * and treat this argument as a (p DNode). */
 
             if (diff) {
@@ -631,32 +614,25 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
 
             call_args.push_back(NULL);
             call_arg_types.push_back(ctx->tr->type_pdnode);
-            ++symlist_iter;
             continue;
         }
 
-        block = p.block;
-        if (p.type->is_array) {
-            p = ParseResult(block, p.type_of_address_of_value,
-                            p.address_of_value);
+        block = arg_pr.block;
+        if (arg_pr.type->is_array) {
+            arg_pr = ParseResult(block, arg_pr.type_of_address_of_value,
+                                 arg_pr.address_of_value);
         }
-        call_args.push_back(p.getValue(ctx));
-        call_arg_types.push_back(p.type);
-        call_arg_prs.push_back(p);
-
-        ++symlist_iter;
+        call_args.push_back(arg_pr.getValue(ctx));
+        call_arg_types.push_back(arg_pr.type);
+        call_arg_prs.push_back(arg_pr);
     }
 
-    /* Now have all the argument types. Get the function out of
-     * the context. */
+    /* Retrieve the function (if present) from the context, based on
+     * the argument types. */
 
     Function *closest_fn = NULL;
-
-    Function *fn =
-        ctx->getFunction(t->str_value.c_str(),
-                         &call_arg_types,
-                         &closest_fn,
-                         0);
+    Function *fn = ctx->getFunction(proc_name, &call_arg_types,
+                                    &closest_fn, 0);
 
     /* If the function is a macro, set macro_to_call and return false.
      * (It's the caller's responsibility to handle processing of
@@ -672,11 +648,11 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
      * during argument processing, then this function has been
      * loaded in error (it will be a normal function taking a (p
      * DNode) argument, but the argument is not a real (p DNode)
-     * value). Replace all the errors and return NULL. */
+     * value).  Replace all the errors and return NULL. */
 
     if (errors.size() && fn && !fn->is_macro) {
         for (std::vector<Error*>::reverse_iterator b = errors.rbegin(),
-                e = errors.rend();
+                                                   e = errors.rend();
                 b != e;
                 ++b) {
             er->addError(*b);
@@ -687,16 +663,15 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
     bool args_cast = false;
 
     if (!fn) {
-        /* If no function was found, and there are errors related
-         * to argument parsing, then push those errors back onto
-         * the reporter and return. (May change this later to be a
-         * bit more friendly - probably if there are any macros or
-         * functions with the same name, this should show the
-         * overload failure, rather than the parsing failure
-         * errors). */
+        /* If no function was found, and there are errors related to
+         * argument parsing, then push those errors back onto the
+         * reporter and return.  (May change this later to be a bit
+         * more friendly.  If there are any macros or functions with
+         * the same name, this should show the overload failure,
+         * rather than the parsing failure errors). */
         if (errors.size()) {
             for (std::vector<Error*>::reverse_iterator b = errors.rbegin(),
-                    e = errors.rend();
+                                                       e = errors.rend();
                     b != e;
                     ++b) {
                 er->addError(*b);
@@ -704,8 +679,10 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
             return false;
         }
 
-        if (ctx->existsExternCFunction(t->str_value.c_str())) {
-            bool res = processExternCFunction(ctx, t->str_value.c_str(),
+        /* If there's an extern-C function with this name, try casting
+         * things accordingly. */
+        if (ctx->existsExternCFunction(proc_name)) {
+            bool res = processExternCFunction(ctx, proc_name,
                                               n, &fn, block,
                                               &call_args,
                                               &call_arg_types,
@@ -713,31 +690,26 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
             if (!res) {
                 return false;
             }
-        } else if (!t->str_value.compare("destroy")) {
+        } else if (!strcmp(proc_name, "destroy")) {
             /* Return a no-op ParseResult if the function name is
-             * 'destroy', because it's tedious to have to check in
-             * generic code whether a particular value can be
-             * destroyed or not. */
+             * 'destroy' and no candidate exists, because it's tedious
+             * to have to check in generic code whether a particular
+             * value can be destroyed or not. */
             pr->set(block, ctx->tr->type_void, NULL);
             return true;
         } else {
             bool has_others =
-                ctx->existsNonExternCFunction(t->str_value.c_str());
+                ctx->existsNonExternCFunction(proc_name);
 
-            addNotFoundError(&call_arg_types,
-                             t->str_value.c_str(), n,
-                             closest_fn, has_others,
-                             er);
+            addNotFoundError(&call_arg_types, proc_name, n,
+                             closest_fn, has_others, er);
             return false;
         }
     }
 
     llvm::IRBuilder<> builder(block);
 
-    /* If this function is varargs, find the point at which the
-     * varargs begin, and then promote any call_args floats to
-     * doubles, and any integer types smaller than the native
-     * integer size to native integer size. */
+    /* If this function is varargs, promote arguments accordingly. */
 
     if (fn->isVarArgs()) {
         args_cast = true;
@@ -757,25 +729,26 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
     }
     std::vector<llvm::Value *> call_args_final = call_args;
     bool res = processReferenceTypes(&call_args, &call_args_final,
-                                &call_arg_nodes, &call_arg_prs, dfn,
-                                &parameter_types,
-                                ctx, args_cast, 0);
+                                     &call_arg_nodes, &call_arg_prs, dfn,
+                                     &parameter_types,
+                                     ctx, args_cast, 0);
     if (!res) {
         return false;
     }
 
+    /* Make the necessary retval adjustments. */
     processRetval(fn->return_type, block, pr, &call_args_final);
 
-    llvm::Value *call_res = builder.CreateCall(
-                                fn->llvm_function,
-                                llvm::ArrayRef<llvm::Value*>(call_args_final));
-
+    /* Finally: actually call the function. */
+    llvm::Value *call_res =
+        builder.CreateCall(fn->llvm_function,
+                           llvm::ArrayRef<llvm::Value*>(call_args_final));
     pr->set(block, fn->return_type, call_res);
 
-    /* If the return type of the function is one that should be
-     * copied with an overridden setf, that will occur in the
-     * function, so prevent the value from being re-copied here
-     * (because no corresponding destructor call will occur). */
+    /* If the return type of the function is one that should be copied
+     * with an overridden setf, that will occur in the function, so
+     * prevent the value from being re-copied here (because no
+     * corresponding destructor call will occur). */
 
     pr->do_not_copy_with_setf = 1;
 
