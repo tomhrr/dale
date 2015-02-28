@@ -437,6 +437,65 @@ processExternCFunction(Context *ctx,
 }
 
 bool
+processVarArgsFunction(Context *ctx, Function *fn,
+                       std::vector<llvm::Value *> *call_args,
+                       std::vector<Type *> *call_arg_types,
+                       llvm::IRBuilder<> *builder)
+{
+    int n = fn->numberOfRequiredArgs();
+
+    std::vector<llvm::Value *>::iterator call_args_iter
+    = call_args->begin();
+    std::vector<Type *>::iterator call_arg_types_iter
+    = call_arg_types->begin();
+
+    while (n--) {
+        ++call_args_iter;
+        ++call_arg_types_iter;
+    }
+    while (call_args_iter != call_args->end()) {
+        if ((*call_arg_types_iter)->base_type == BaseType::Float) {
+            (*call_args_iter) =
+                builder->CreateFPExt(
+                    (*call_args_iter),
+                    llvm::Type::getDoubleTy(llvm::getGlobalContext())
+                );
+            (*call_arg_types_iter) =
+                ctx->tr->type_double;
+        } else if ((*call_arg_types_iter)->isIntegerType()) {
+            int real_size =
+                ctx->nt->internalSizeToRealSize(
+                    (*call_arg_types_iter)->getIntegerSize()
+                );
+
+            if (real_size < ctx->nt->getNativeIntSize()) {
+                if ((*call_arg_types_iter)->isSignedIntegerType()) {
+                    /* Target integer is signed - use sext. */
+                    (*call_args_iter) =
+                        builder->CreateSExt((*call_args_iter),
+                                            ctx->toLLVMType(
+                                                ctx->tr->type_int,
+                                                            NULL, false));
+                    (*call_arg_types_iter) = ctx->tr->type_int;
+                } else {
+                    /* Target integer is not signed - use zext. */
+                    (*call_args_iter) =
+                        builder->CreateZExt((*call_args_iter),
+                                            ctx->toLLVMType(
+                                                ctx->tr->type_uint,
+                                                            NULL, false));
+                    (*call_arg_types_iter) = ctx->tr->type_uint;
+                }
+            }
+        }
+        ++call_args_iter;
+        ++call_arg_types_iter;
+    }
+
+    return true;
+}
+
+bool
 FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
                                      Node *n, const char *name,
                                      bool get_address, bool prefixed_with_core,
@@ -688,55 +747,8 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
 
     if (fn->isVarArgs()) {
         args_cast = true;
-        int n = fn->numberOfRequiredArgs();
-
-        std::vector<llvm::Value *>::iterator call_args_iter
-        = call_args.begin();
-        std::vector<Type *>::iterator call_arg_types_iter
-        = call_arg_types.begin();
-
-        while (n--) {
-            ++call_args_iter;
-            ++call_arg_types_iter;
-        }
-        while (call_args_iter != call_args.end()) {
-            if ((*call_arg_types_iter)->base_type == BaseType::Float) {
-                (*call_args_iter) =
-                    builder.CreateFPExt(
-                        (*call_args_iter),
-                        llvm::Type::getDoubleTy(llvm::getGlobalContext())
-                    );
-                (*call_arg_types_iter) =
-                    ctx->tr->type_double;
-            } else if ((*call_arg_types_iter)->isIntegerType()) {
-                int real_size =
-                    ctx->nt->internalSizeToRealSize(
-                        (*call_arg_types_iter)->getIntegerSize()
-                    );
-
-                if (real_size < ctx->nt->getNativeIntSize()) {
-                    if ((*call_arg_types_iter)->isSignedIntegerType()) {
-                        /* Target integer is signed - use sext. */
-                        (*call_args_iter) =
-                            builder.CreateSExt((*call_args_iter),
-                                               ctx->toLLVMType(
-                                                    ctx->tr->type_int,
-                                                              NULL, false));
-                        (*call_arg_types_iter) = ctx->tr->type_int;
-                    } else {
-                        /* Target integer is not signed - use zext. */
-                        (*call_args_iter) =
-                            builder.CreateZExt((*call_args_iter),
-                                               ctx->toLLVMType(
-                                                    ctx->tr->type_uint,
-                                                              NULL, false));
-                        (*call_arg_types_iter) = ctx->tr->type_uint;
-                    }
-                }
-            }
-            ++call_args_iter;
-            ++call_arg_types_iter;
-        }
+        processVarArgsFunction(ctx, fn, &call_args, &call_arg_types,
+                               &builder);
     }
 
     /* Iterate over the types of the found function. For the reference
