@@ -297,6 +297,146 @@ isUnoverloadedMacro(Units *units, const char *name,
 }
 
 bool
+processExternCFunction(Context *ctx,
+                       const char *name, Node *n, Function **fn_ptr,
+                       llvm::BasicBlock *block,
+                       std::vector<llvm::Value *> *call_args,
+                       std::vector<Type *> *call_arg_types,
+                       bool *args_cast)
+{
+    ErrorReporter *er = ctx->er;
+
+    /* Get this single function, try to cast each integral
+     * call_arg to the expected type. If that succeeds
+     * without error, then keep going. */
+
+    std::vector<llvm::Value *> call_args_newer;
+    std::vector<Type *> call_arg_types_newer;
+
+    Function *fn = ctx->getFunction(name, NULL, NULL, 0);
+
+    std::vector<Variable *> myarg_types =
+        fn->parameter_types;
+    std::vector<Variable *>::iterator miter =
+        myarg_types.begin();
+
+    std::vector<llvm::Value *>::iterator citer =
+        call_args->begin();
+    std::vector<Type *>::iterator caiter =
+        call_arg_types->begin();
+
+    /* Create strings describing the types, for use in a
+        * possible error message. */
+
+    std::string expected_args;
+    std::string provided_args;
+    while (miter != myarg_types.end()) {
+        (*miter)->type->toString(&expected_args);
+        expected_args.append(" ");
+        ++miter;
+    }
+    if (expected_args.size() == 0) {
+        expected_args.append("void");
+    } else {
+        expected_args.erase(expected_args.size() - 1, 1);
+    }
+    while (caiter != call_arg_types->end()) {
+        (*caiter)->toString(&provided_args);
+        provided_args.append(" ");
+        ++caiter;
+    }
+    if (provided_args.size() == 0) {
+        provided_args.append("void");
+    } else {
+        provided_args.erase(provided_args.size() - 1, 1);
+    }
+    miter = myarg_types.begin();
+    caiter = call_arg_types->begin();
+    int size = call_args->size();
+
+    if (size < fn->numberOfRequiredArgs()) {
+        Error *e = new Error(FunctionNotInScope, n,
+                                name,
+                                provided_args.c_str(),
+                                expected_args.c_str());
+        er->addError(e);
+        return false;
+    }
+    if (!fn->isVarArgs()
+            && size != fn->numberOfRequiredArgs()) {
+        Error *e = new Error(FunctionNotInScope, n,
+                                name,
+                                provided_args.c_str(),
+                                expected_args.c_str());
+        er->addError(e);
+        return false;
+    }
+
+    while (miter != myarg_types.end()
+            && citer != call_args->end()
+            && caiter != call_arg_types->end()) {
+        if ((*caiter)->isEqualTo((*miter)->type, 1)) {
+            call_args_newer.push_back((*citer));
+            call_arg_types_newer.push_back((*caiter));
+            ++miter;
+            ++citer;
+            ++caiter;
+            continue;
+        }
+        if (!(*miter)->type->isIntegerType()
+                and (*miter)->type->base_type != BaseType::Bool) {
+            Error *e = new Error(FunctionNotInScope, n,
+                                    name,
+                                    provided_args.c_str(),
+                                    expected_args.c_str());
+            er->addError(e);
+            return false;
+        }
+        if (!(*caiter)->isIntegerType()
+                and (*caiter)->base_type != BaseType::Bool) {
+            Error *e = new Error(FunctionNotInScope, n,
+                                    name,
+                                    provided_args.c_str(),
+                                    expected_args.c_str());
+            er->addError(e);
+            return false;
+        }
+
+        ParseResult mytemp;
+        bool res = Operation::Cast(ctx, block,
+                    (*citer),
+                    (*caiter),
+                    (*miter)->type,
+                    n,
+                    IMPLICIT,
+                    &mytemp);
+        if (!res) {
+            Error *e = new Error(FunctionNotInScope, n,
+                                    name,
+                                    provided_args.c_str(),
+                                    expected_args.c_str());
+            er->addError(e);
+            return false;
+        }
+        block = mytemp.block;
+        call_args_newer.push_back(mytemp.getValue(ctx));
+        call_arg_types_newer.push_back(mytemp.type);
+
+        ++miter;
+        ++citer;
+        ++caiter;
+    }
+
+    *call_args = call_args_newer;
+    *call_arg_types = call_arg_types_newer;
+    *args_cast = true;
+
+    *fn_ptr = fn;
+
+    return true;
+}
+
+bool
 FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
                                      Node *n, const char *name,
                                      bool get_address, bool prefixed_with_core,
@@ -470,129 +610,14 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
         }
 
         if (ctx->existsExternCFunction(t->str_value.c_str())) {
-            /* The function name is not overloaded. */
-            /* Get this single function, try to cast each integral
-             * call_arg to the expected type. If that succeeds
-             * without error, then keep going. */
-
-            fn = ctx->getFunction(t->str_value.c_str(),
-                                  NULL, NULL, 0);
-
-            std::vector<Variable *> myarg_types =
-                fn->parameter_types;
-            std::vector<Variable *>::iterator miter =
-                myarg_types.begin();
-
-            std::vector<llvm::Value *>::iterator citer =
-                call_args.begin();
-            std::vector<Type *>::iterator caiter =
-                call_arg_types.begin();
-
-            /* Create strings describing the types, for use in a
-             * possible error message. */
-
-            std::string expected_args;
-            std::string provided_args;
-            while (miter != myarg_types.end()) {
-                (*miter)->type->toString(&expected_args);
-                expected_args.append(" ");
-                ++miter;
-            }
-            if (expected_args.size() == 0) {
-                expected_args.append("void");
-            } else {
-                expected_args.erase(expected_args.size() - 1, 1);
-            }
-            while (caiter != call_arg_types.end()) {
-                (*caiter)->toString(&provided_args);
-                provided_args.append(" ");
-                ++caiter;
-            }
-            if (provided_args.size() == 0) {
-                provided_args.append("void");
-            } else {
-                provided_args.erase(provided_args.size() - 1, 1);
-            }
-            miter = myarg_types.begin();
-            caiter = call_arg_types.begin();
-            int size = call_args.size();
-
-            if (size < fn->numberOfRequiredArgs()) {
-                Error *e = new Error(FunctionNotInScope, n,
-                                     t->str_value.c_str(),
-                                     provided_args.c_str(),
-                                     expected_args.c_str());
-                er->addError(e);
+            bool res = processExternCFunction(ctx, t->str_value.c_str(),
+                                              n, &fn, block,
+                                              &call_args,
+                                              &call_arg_types,
+                                              &args_cast);
+            if (!res) {
                 return false;
             }
-            if (!fn->isVarArgs()
-                    && size != fn->numberOfRequiredArgs()) {
-                Error *e = new Error(FunctionNotInScope, n,
-                                     t->str_value.c_str(),
-                                     provided_args.c_str(),
-                                     expected_args.c_str());
-                er->addError(e);
-                return false;
-            }
-
-            while (miter != myarg_types.end()
-                    && citer != call_args.end()
-                    && caiter != call_arg_types.end()) {
-                if ((*caiter)->isEqualTo((*miter)->type, 1)) {
-                    call_args_newer.push_back((*citer));
-                    call_arg_types_newer.push_back((*caiter));
-                    ++miter;
-                    ++citer;
-                    ++caiter;
-                    continue;
-                }
-                if (!(*miter)->type->isIntegerType()
-                        and (*miter)->type->base_type != BaseType::Bool) {
-                    Error *e = new Error(FunctionNotInScope, n,
-                                         t->str_value.c_str(),
-                                         provided_args.c_str(),
-                                         expected_args.c_str());
-                    er->addError(e);
-                    return false;
-                }
-                if (!(*caiter)->isIntegerType()
-                        and (*caiter)->base_type != BaseType::Bool) {
-                    Error *e = new Error(FunctionNotInScope, n,
-                                         t->str_value.c_str(),
-                                         provided_args.c_str(),
-                                         expected_args.c_str());
-                    er->addError(e);
-                    return false;
-                }
-
-                ParseResult mytemp;
-                bool res = Operation::Cast(ctx, block,
-                           (*citer),
-                           (*caiter),
-                           (*miter)->type,
-                           n,
-                           IMPLICIT,
-                           &mytemp);
-                if (!res) {
-                    Error *e = new Error(FunctionNotInScope, n,
-                                         t->str_value.c_str(),
-                                         provided_args.c_str(),
-                                         expected_args.c_str());
-                    er->addError(e);
-                    return false;
-                }
-                block = mytemp.block;
-                call_args_newer.push_back(mytemp.getValue(ctx));
-                call_arg_types_newer.push_back(mytemp.type);
-
-                ++miter;
-                ++citer;
-                ++caiter;
-            }
-
-            call_args = call_args_newer;
-            call_arg_types = call_arg_types_newer;
-            args_cast = true;
         } else if (ctx->existsNonExternCFunction(t->str_value.c_str())) {
             /* Return a no-op ParseResult if the function name is
              * 'destroy', because it's tedious to have to check in
