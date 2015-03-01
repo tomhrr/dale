@@ -367,8 +367,9 @@ past_sl_parse:
             *macro_to_call = NULL;
 
             bool res = units->top()->fp->parseFunctionCall(fn, block, n,
-                                   t->str_value.c_str(), get_address,
-                                   false, macro_to_call, pr);
+                                   t->str_value.c_str(),
+                                   get_address,
+                                   macro_to_call, pr);
             if (res) {
                 return true;
             }
@@ -648,10 +649,9 @@ past_sl_parse:
 
                 std::vector<llvm::Value*> extra_args;
                 extra_args.push_back(try_fnp.value);
-                return units->top()->fp->parseFuncallInternal(
+                return units->top()->fp->parseFunctionPointerCall(
                            fn,
                            n,
-                           get_address,
                            &supertemp,
                            1,
                            &extra_args,

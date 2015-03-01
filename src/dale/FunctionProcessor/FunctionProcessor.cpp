@@ -123,12 +123,11 @@ processReferenceTypes(std::vector<llvm::Value *> *call_args,
 }
 
 bool
-FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
-                                        bool get_address,
-                                        ParseResult *fn_ptr_pr,
-                                        int skip,
-                                        std::vector<llvm::Value*> *extra_call_args,
-                                        ParseResult *pr)
+FunctionProcessor::parseFunctionPointerCall(Function *dfn, Node *n,
+                                            ParseResult *fn_ptr_pr, int skip,
+                                            std::vector<llvm::Value*>
+                                                *extra_call_args,
+                                            ParseResult *pr)
 {
     Type *fn_ptr = fn_ptr_pr->type->points_to;
 
@@ -163,7 +162,7 @@ FunctionProcessor::parseFuncallInternal(Function *dfn, Node *n,
             b != e;
             ++b) {
         ParseResult arg_pr;
-        bool res = FormProcInstParse(units, dfn, block, (*b), get_address,
+        bool res = FormProcInstParse(units, dfn, block, (*b), false,
                                      false, NULL, &arg_pr, true);
         if (!res) {
             return false;
@@ -531,7 +530,7 @@ addNotFoundError(std::vector<Type *> *call_arg_types, const char *name,
 bool
 FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
                                      Node *n, const char *name,
-                                     bool get_address, bool prefixed_with_core,
+                                     bool get_address,
                                      Function **macro_to_call, ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;

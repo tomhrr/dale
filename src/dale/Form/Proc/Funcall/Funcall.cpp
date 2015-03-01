@@ -50,10 +50,9 @@ FormProcFuncallParse(Units *units,
         return false;
     }
 
-    res = units->top()->fp->parseFuncallInternal(
+    res = units->top()->fp->parseFunctionPointerCall(
                fn,
                node,
-               get_address,
                &fn_ptr,
                2,
                NULL,
