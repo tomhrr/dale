@@ -17,7 +17,7 @@ FormTopLevelNamespaceParse(Units *units,
 
     symlist *lst = node->list;
     Node *n = (*lst)[1];
-    n = units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parsePotentialMacroCall(n);
     if (!n) {
         return false;
     }

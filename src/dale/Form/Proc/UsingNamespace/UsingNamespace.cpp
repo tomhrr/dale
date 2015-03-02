@@ -26,7 +26,7 @@ FormProcUsingNamespaceParse(Units *units,
 
     symlist *lst = node->list;
     Node *n2 = (*lst)[1];
-    n2 = units->top()->mp->parseOptionalMacroCall(n2);
+    n2 = units->top()->mp->parsePotentialMacroCall(n2);
     if (!n2) {
         return false;
     }

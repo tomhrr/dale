@@ -6,7 +6,6 @@
 
 using namespace dale;
 
-static int function_count = 0;
 std::map<std::string, std::vector<std::string>*> fn_by_args;
 
 extern "C" {
@@ -25,13 +24,13 @@ types_2D_equal(MContext *mc, DNode *t1, DNode *t2)
     Units *units = (dale::Units*) mc->units;
 
     Node *n = units->top()->dnc->toNode(t1);
-    n = units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parsePotentialMacroCall(n);
     if (!n) {
         return false;
     }
 
     Node *n2 = units->top()->dnc->toNode(t2);
-    n2 = units->top()->mp->parseOptionalMacroCall(n2);
+    n2 = units->top()->mp->parsePotentialMacroCall(n2);
     if (!n2) {
         return false;
     }
@@ -54,7 +53,7 @@ is_2D_char_2D_type(MContext *mc, DNode *t)
 {
     Units *units = (dale::Units*) mc->units;
     Node *n = units->top()->dnc->toNode(t);
-    n = units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parsePotentialMacroCall(n);
     return (n && n->token && !n->token->str_value.compare("char"));
 }
 
@@ -63,7 +62,7 @@ get_type(MContext *mc, DNode *dnode, Type **type)
 {
     Units *units = (dale::Units*) mc->units;
     Node *n = units->top()->dnc->toNode(dnode);
-    n = units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parsePotentialMacroCall(n);
     if (!n) {
         return false;
     }
@@ -141,13 +140,13 @@ is_2D_pointer_2D_to_2D_type(MContext *mc, DNode *t, DNode *pointee)
 {
     Units *units = (dale::Units*) mc->units;
     Node *n = units->top()->dnc->toNode(t);
-    n = units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parsePotentialMacroCall(n);
     if (!n) {
         return false;
     }
 
     Node *n2 = units->top()->dnc->toNode(pointee);
-    n2 = units->top()->mp->parseOptionalMacroCall(n2);
+    n2 = units->top()->mp->parsePotentialMacroCall(n2);
     if (!n2) {
         return false;
     }
@@ -253,7 +252,7 @@ has_2D_errors(MContext *mc, DNode *form)
 
     /* POMC may succeed, but the underlying macro may return a null
      * DNode pointer.  This is not necessarily an error. */
-    n = units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parsePotentialMacroCall(n);
     if (n) {
         FormProcInstParse(units, units->top()->getGlobalFunction(),
                           units->top()->getGlobalBlock(),
@@ -393,7 +392,7 @@ exists_2D_variable(MContext *mc, DNode *form)
     dale::Units *units = (dale::Units*) mc->units;
 
     Node *n = units->top()->dnc->toNode(form);
-    n = units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parsePotentialMacroCall(n);
     if (!n) {
         return false;
     }
@@ -688,7 +687,7 @@ arity(MContext *mc, DNode *name)
     dale::Units *units = (dale::Units*) mc->units;
 
     Node *fn_node = units->top()->dnc->toNode(name);
-    fn_node = units->top()->mp->parseOptionalMacroCall(fn_node);
+    fn_node = units->top()->mp->parsePotentialMacroCall(fn_node);
     if (!fn_node) {
         return -1;
     }
@@ -759,7 +758,7 @@ input_2D_type(MContext *mc, DNode *fn_name_nd, int index)
     dale::Units *units = (dale::Units*) mc->units;
 
     Node *fn_node = units->top()->dnc->toNode(fn_name_nd);
-    fn_node = units->top()->mp->parseOptionalMacroCall(fn_node);
+    fn_node = units->top()->mp->parsePotentialMacroCall(fn_node);
     if (!fn_node) {
         return NULL;
     }
@@ -785,7 +784,7 @@ struct_2D_member_2D_type(MContext *mc, DNode *name, int index)
     dale::Units *units = (dale::Units*) mc->units;
 
     Node *struct_node = units->top()->dnc->toNode(name);
-    struct_node = units->top()->mp->parseOptionalMacroCall(struct_node);
+    struct_node = units->top()->mp->parsePotentialMacroCall(struct_node);
     if (!struct_node || !struct_node->token) {
         return NULL;
     }
@@ -807,7 +806,7 @@ struct_2D_member_2D_name(MContext *mc, DNode *name, int index)
     dale::Units *units = (dale::Units*) mc->units;
 
     Node *struct_node = units->top()->dnc->toNode(name);
-    struct_node = units->top()->mp->parseOptionalMacroCall(struct_node);
+    struct_node = units->top()->mp->parsePotentialMacroCall(struct_node);
     if (!struct_node || !struct_node->token) {
         return NULL;
     }
@@ -829,7 +828,7 @@ struct_2D_member_2D_count(MContext *mc, DNode *name)
     dale::Units *units = (dale::Units*) mc->units;
 
     Node *struct_node = units->top()->dnc->toNode(name);
-    struct_node = units->top()->mp->parseOptionalMacroCall(struct_node);
+    struct_node = units->top()->mp->parsePotentialMacroCall(struct_node);
     if (!struct_node || !struct_node->token) {
         return -1;
     }

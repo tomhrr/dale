@@ -38,7 +38,7 @@ FormTopLevelDefParse(Units *units,
 
     Node *n = (*lst)[1];
 
-    n = units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parsePotentialMacroCall(n);
     if (!n) {
         return false;
     }
@@ -76,7 +76,7 @@ FormTopLevelDefParse(Units *units,
         return false;
     }
 
-    n = units->top()->mp->parseOptionalMacroCall(n);
+    n = units->top()->mp->parsePotentialMacroCall(n);
     if (!n) {
         return false;
     }

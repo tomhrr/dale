@@ -111,7 +111,7 @@ FormProcSrefParse(Units *units,
     }
 
     Node *ref = (*lst)[2];
-    ref = units->top()->mp->parseOptionalMacroCall(ref);
+    ref = units->top()->mp->parsePotentialMacroCall(ref);
     if (!ref) {
         return false;
     }

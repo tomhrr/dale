@@ -102,7 +102,7 @@ FormTopLevelInstParse(Units *units, Node *node)
         return true;
     }
 
-    Node *newtop = units->top()->mp->parseOptionalMacroCall(top);
+    Node *newtop = units->top()->mp->parsePotentialMacroCall(top);
     if (!newtop) {
         return false;
     }

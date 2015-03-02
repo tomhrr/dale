@@ -65,7 +65,7 @@ FormProcSetfParse(Units *units,
     }
 
     Node *val_node = (*lst)[2];
-    val_node = units->top()->mp->parseOptionalMacroCall(val_node);
+    val_node = units->top()->mp->parsePotentialMacroCall(val_node);
     if (!val_node) {
         return false;
     }

@@ -33,8 +33,9 @@ MacroProcessor::~MacroProcessor()
 static DNode *
 callmacro(int arg_count, void *units, void *mac, DNode **dnodes, MContext *mc)
 {
-    ffi_type **args = (ffi_type **) malloc(arg_count * sizeof(ffi_type *));
-    void **vals =     (void **)     malloc(arg_count * sizeof(void *));
+    ffi_type *args[arg_count];
+    void *vals[arg_count];
+
     args[0] = &ffi_type_pointer;
     vals[0] = (void*) &mc;
 
@@ -52,9 +53,6 @@ callmacro(int arg_count, void *units, void *mac, DNode **dnodes, MContext *mc)
     DNode *ret_node = NULL;
     ffi_call(&cif, (void (*)(void)) mac, (void *) &ret_node, vals);
 
-    free(args);
-    free(vals);
-
     return ret_node;
 }
 
@@ -70,34 +68,32 @@ MacroProcessor::setPoolfree(void)
 }
 
 Node *
-MacroProcessor::parseMacroCall(Node *n, const char *name,
-                               Function *macro_to_call)
+MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
 {
     std::vector<Node *> *lst = n->list;
 
-    Node *nmc_name = (*lst)[0];
-
-    if (!nmc_name->is_token) {
+    Node *macro_name_node = (*lst)[0];
+    if (!macro_name_node->is_token) {
         Error *e = new Error(FirstListElementMustBeAtom, n);
         ctx->er->addError(e);
         return NULL;
     }
 
-    Token *t = nmc_name->token;
-
+    Token *t = macro_name_node->token;
     if (t->type != TokenType::String) {
         Error *e = new Error(FirstListElementMustBeSymbol, n);
         ctx->er->addError(e);
         return NULL;
     }
 
+    const char *macro_name = t->str_value.c_str();
     Function *mc =
         macro_to_call
             ? macro_to_call
-            : ctx->getFunction(t->str_value.c_str(), NULL, NULL, 1);
+            : ctx->getFunction(macro_name, NULL, NULL, 1);
 
     if (!mc) {
-        Error *e = new Error(MacroNotInScope, n, t->str_value.c_str());
+        Error *e = new Error(MacroNotInScope, n, macro_name);
         ctx->er->addError(e);
         return NULL;
     }
@@ -107,7 +103,7 @@ MacroProcessor::parseMacroCall(Node *n, const char *name,
     if (mc->isVarArgs()) {
         if (size < mc->numberOfRequiredArgs()) {
             Error *e = new Error(IncorrectMinimumNumberOfArgs,
-                                 n, t->str_value.c_str(),
+                                 n, macro_name,
                                  (mc->numberOfRequiredArgs() - 1),
                                  size);
             ctx->er->addError(e);
@@ -116,7 +112,7 @@ MacroProcessor::parseMacroCall(Node *n, const char *name,
     } else {
         if (size != mc->numberOfRequiredArgs()) {
             Error *e = new Error(IncorrectNumberOfArgs,
-                                 n, t->str_value.c_str(),
+                                 n, macro_name,
                                  (mc->numberOfRequiredArgs() - 1),
                                  size);
             ctx->er->addError(e);
@@ -138,55 +134,41 @@ MacroProcessor::parseMacroCall(Node *n, const char *name,
     }
 
     PoolNode *pn = (PoolNode *) malloc(sizeof(PoolNode));
-    MContext mcontext;
     memset(pn, 0, sizeof(PoolNode));
+
+    MContext mcontext;
     memset(&mcontext, 0, sizeof(MContext));
+
     mcontext.arg_count = macro_args_count;
     mcontext.pool_node = pn;
     mcontext.units     = units;
 
     void *callmacro_fptr = (void*) &callmacro;
+    void *macro_fptr     = ee->getPointerToFunction(mc->llvm_function);
 
-    void *actualmacro_fptr =
-        ee->getPointerToFunction(mc->llvm_function);
+    DNode* (*callmacro_fptr_typed)
+        (int arg_count, void *units, void *mac_fn, DNode **dnodes,
+         MContext *mcp) =
+            (DNode* (*)(int, void*, void*, DNode**, MContext*)) callmacro_fptr;
 
-    /* Cast it to the correct type. */
+    DNode *result_dnode =
+        callmacro_fptr_typed(macro_args_count + 1, (void *) units,
+                             (char *) macro_fptr, macro_args, &mcontext);
 
-    DNode* (*FP)(int arg_count, void *units, void *mac_fn, DNode
-    **dnodes, MContext *mcp) =
-        (DNode* (*)(int, void*, void*, DNode**, MContext*))callmacro_fptr;
-
-    /* Get the returned dnode. */
-
-    DNode *mc_result_dnode = FP(macro_args_count + 1,
-                                (void *) units,
-                                (char *) actualmacro_fptr,
-                                macro_args,
-                                &mcontext);
-
-    /* Convert it to an internal node. */
-
-    Node *mc_result_node =
-        (mc_result_dnode) ? units->top()->dnc->toNode(mc_result_dnode)
-                          : NULL;
-
-    /* Free the pool node. */
+    Node *result_node =
+        (result_dnode) ? units->top()->dnc->toNode(result_dnode) : NULL;
 
     pool_free_fptr(&mcontext);
 
-    /* Add the macro position information to the nodes. */
-
-    if (mc_result_node) {
-        mc_result_node->addMacroPosition(n);
+    if (result_node) {
+        result_node->addMacroPosition(n);
     }
 
-    /* Finished: return the macro result node. */
-
-    return mc_result_node;
+    return result_node;
 }
 
 Node *
-MacroProcessor::parseOptionalMacroCall(Node *n)
+MacroProcessor::parsePotentialMacroCall(Node *n)
 {
     if (n->is_token || !n->is_list) {
         return n;
@@ -198,14 +180,11 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
     }
 
     Node *macro_name_node = (*lst)[0];
-
     if (!macro_name_node->is_token) {
         return n;
     }
 
     const char *macro_name = macro_name_node->token->str_value.c_str();
-
-    /* Core macros. */
 
     Node *(*core_mac)(Context *ctx, Node *n);
 
@@ -233,20 +212,18 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
         made_temp = true;
     }
 
-    int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
-
     std::vector<Type *> types;
     llvm::BasicBlock *block = &(global_fn->llvm_function->front());
 
+    int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
     for (std::vector<Node *>::iterator b = lst->begin() + 1,
-            e = lst->end();
+                                       e = lst->end();
             b != e;
             ++b) {
         ParseResult arg_pr;
         bool res =
             FormProcInstParse(units, global_fn, block, *b, false, false, NULL,
                               &arg_pr);
-
         if (res) {
             /* Add the type. */
             types.push_back(arg_pr.type);
@@ -263,14 +240,12 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
         units->top()->removeTemporaryGlobalFunction();
     }
 
-    /* Call getFunction with the new set of parameter types. */
     ffn = ctx->getFunction(macro_name, &types, 1);
     if (!ffn) {
         return n;
     }
 
-    Node *mac_node = parseMacroCall(n, macro_name, ffn);
-
+    Node *mac_node = parseMacroCall(n, ffn);
     if (!mac_node) {
         return NULL;
     }
@@ -284,9 +259,9 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
             && (mac_node->list->at(0)->is_token)
             && (mac_node->list->at(0)
                 ->token->str_value.compare("do") == 0)) {
-        return parseOptionalMacroCall(mac_node->list->at(1));
+        return parsePotentialMacroCall(mac_node->list->at(1));
     } else {
-        return parseOptionalMacroCall(mac_node);
+        return parsePotentialMacroCall(mac_node);
     }
 }
 }

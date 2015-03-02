@@ -28,7 +28,7 @@ FormProcArrayOfParse(Units *units,
         return false;
     }
 
-    Node *newnum = units->top()->mp->parseOptionalMacroCall((*lst)[1]);
+    Node *newnum = units->top()->mp->parsePotentialMacroCall((*lst)[1]);
     if (!newnum) {
         return false;
     }

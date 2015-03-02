@@ -102,7 +102,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
 
     /* If here, node is a list node. Try for a macro call. */
 
-    Node *newtop = units->top()->mp->parseOptionalMacroCall(top);
+    Node *newtop = units->top()->mp->parsePotentialMacroCall(top);
 
     if (newtop != top) {
         return FormTypeParse(units, newtop, allow_anon_structs,
@@ -158,7 +158,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             ctx->er->addError(e);
             return NULL;
         }
-        Node *new_type = units->top()->mp->parseOptionalMacroCall((*lst)[1]);
+        Node *new_type = units->top()->mp->parsePotentialMacroCall((*lst)[1]);
         if (!new_type) {
             return NULL;
         }
@@ -189,7 +189,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             ctx->er->addError(e);
             return NULL;
         }
-        Node *new_type = units->top()->mp->parseOptionalMacroCall((*lst)[1]);
+        Node *new_type = units->top()->mp->parsePotentialMacroCall((*lst)[1]);
         if (!new_type) {
             return NULL;
         }
@@ -284,7 +284,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        Node *newnum = units->top()->mp->parseOptionalMacroCall((*lst)[1]);
+        Node *newnum = units->top()->mp->parsePotentialMacroCall((*lst)[1]);
         if (!newnum) {
             return NULL;
         }
@@ -314,7 +314,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        Node *newnum = units->top()->mp->parseOptionalMacroCall((*lst)[1]);
+        Node *newnum = units->top()->mp->parsePotentialMacroCall((*lst)[1]);
         if (!newnum) {
             return NULL;
         }

@@ -356,7 +356,7 @@ parseLiteral(Units *units,
             && (!top->list->at(0)->token->str_value.compare("#"))
             && (type->points_to)) {
         Node *var = top->list->at(1);
-        var = units->top()->mp->parseOptionalMacroCall(var);
+        var = units->top()->mp->parsePotentialMacroCall(var);
         if (var && var->is_token) {
             Variable *gv =
                 ctx->getVariable(var->token->str_value.c_str());
@@ -677,7 +677,7 @@ FormTopLevelGlobalVariableParse(Units *units, Node *node)
 
     Node *n2 = NULL;
     if (has_initialiser) {
-        n2 = units->top()->mp->parseOptionalMacroCall((*lst)[3]);
+        n2 = units->top()->mp->parsePotentialMacroCall((*lst)[3]);
         if (!n2) {
             return false;
         }

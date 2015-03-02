@@ -30,7 +30,7 @@ FormProcOffsetOfParse(Units *units,
     /* First argument must be a struct name. */
 
     Node *struct_name = (*lst)[1];
-    struct_name = units->top()->mp->parseOptionalMacroCall(struct_name);
+    struct_name = units->top()->mp->parsePotentialMacroCall(struct_name);
     if (!struct_name) {
         return false;
     }

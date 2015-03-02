@@ -32,7 +32,7 @@ FormProcSizeofParse(Units *units,
     /* Get the type to which it is being cast. */
 
     Node *thing = (*lst)[1];
-    thing = units->top()->mp->parseOptionalMacroCall(thing);
+    thing = units->top()->mp->parsePotentialMacroCall(thing);
     if (!thing) {
         return false;
     }
