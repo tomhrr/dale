@@ -33,25 +33,12 @@ MacroProcessor::~MacroProcessor()
 }
 
 static DNode *
-callmacro(int arg_count, void *units, void *mac, DNode **dnodes,
-          MContext **mc_ptr)
+callmacro(int arg_count, void *units, void *mac, DNode **dnodes, MContext *mc)
 {
     ffi_type **args = (ffi_type **) malloc(arg_count * sizeof(ffi_type *));
     void **vals =     (void **)     malloc(arg_count * sizeof(void *));
-    PoolNode *pn =    (PoolNode *)  malloc(sizeof(PoolNode));
-    MContext *mc =    (MContext *)  malloc(sizeof(MContext));
-
-    *mc_ptr = mc;
-
-    memset(pn, 0, sizeof(PoolNode));
-    memset(mc, 0, sizeof(MContext));
     args[0] = &ffi_type_pointer;
     vals[0] = (void*) &mc;
-
-    int actual_arg_count = arg_count - 1;
-    mc->arg_count = actual_arg_count;
-    mc->pool_node = pn;
-    mc->units     = units;
 
     for (int i = 1; i < arg_count; i++) {
         args[i] = &ffi_type_pointer;
@@ -152,6 +139,14 @@ MacroProcessor::parseMacroCall(Node *n, const char *name,
         macro_args[macro_args_count++] = new_dnode;
     }
 
+    PoolNode *pn = (PoolNode *) malloc(sizeof(PoolNode));
+    MContext mcontext;
+    memset(pn, 0, sizeof(PoolNode));
+    memset(&mcontext, 0, sizeof(MContext));
+    mcontext.arg_count = macro_args_count;
+    mcontext.pool_node = pn;
+    mcontext.units     = units;
+
     void *callmacro_fptr = (void*) &callmacro;
 
     void *actualmacro_fptr =
@@ -160,12 +155,11 @@ MacroProcessor::parseMacroCall(Node *n, const char *name,
     /* Cast it to the correct type. */
 
     DNode* (*FP)(int arg_count, void *units, void *mac_fn, DNode
-    **dnodes, MContext **mcp) =
-        (DNode* (*)(int, void*, void*, DNode**, MContext**))callmacro_fptr;
+    **dnodes, MContext *mcp) =
+        (DNode* (*)(int, void*, void*, DNode**, MContext*))callmacro_fptr;
 
     /* Get the returned dnode. */
 
-    MContext *mcontext;
     DNode *mc_result_dnode = FP(macro_args_count + 1,
                                 (void *) units,
                                 (char *) actualmacro_fptr,
@@ -180,8 +174,7 @@ MacroProcessor::parseMacroCall(Node *n, const char *name,
 
     /* Free the pool node. */
 
-    pool_free_fptr(mcontext);
-    free(mcontext);
+    pool_free_fptr(&mcontext);
 
     /* Add the macro position information to the nodes. */
 
