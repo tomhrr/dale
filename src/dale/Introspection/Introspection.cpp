@@ -9,94 +9,6 @@ using namespace dale;
 static int function_count = 0;
 std::map<std::string, std::vector<std::string>*> fn_by_args;
 
-bool
-makeTemporaryGlobalFunction(Units *units,
-                            std::vector<DeferredGoto*> *dgs,
-                            std::map<std::string, Label*> *mls)
-{
-    Context *ctx = units->top()->ctx;
-
-    llvm::Type *llvm_return_type =
-        ctx->toLLVMType(ctx->tr->type_int, NULL, false);
-    if (!llvm_return_type) {
-        return false;
-    }
-
-    std::vector<llvm::Type*> empty_args;
-    llvm::FunctionType *ft =
-        getFunctionType(llvm_return_type, empty_args, false);
-
-    char buf[32];
-    sprintf(buf, "_intro%d", function_count++);
-
-    std::string new_name;
-    ctx->ns()->nameToSymbol(buf, &new_name);
-
-    if (units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
-        fprintf(stderr, "Internal error: "
-                "function already exists in module ('%s').\n",
-                new_name.c_str());
-        abort();
-    }
-
-    llvm::Constant *llvm_fnc =
-        units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
-    if (!llvm_fnc) {
-        fprintf(stderr, "Internal error: unable to add "
-                "function ('%s') to module.\n",
-                new_name.c_str());
-        abort();
-    }
-
-    llvm::Function *llvm_fn = llvm::dyn_cast<llvm::Function>(llvm_fnc);
-    if (!llvm_fn) {
-        fprintf(stderr, "Internal error: unable to convert "
-                "function constant to function "
-                "for function '%s'.\n",
-                new_name.c_str());
-        abort();
-    }
-
-    std::vector<Variable *> vars;
-    Function *fn =
-        new Function(ctx->tr->type_int, &vars, llvm_fn, 0,
-                     new std::string(new_name), 0);
-    fn->linkage = Linkage::Intern;
-    if (!fn) {
-        fprintf(stderr, "Internal error: unable to create new "
-                "function '%s'.\n",
-                new_name.c_str());
-        abort();
-    }
-
-    llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", llvm_fn);
-    int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
-
-    units->top()->pushGlobalFunction(fn);
-    units->top()->pushGlobalBlock(block);
-
-    ctx->activateAnonymousNamespace();
-
-    return error_count;
-}
-
-void
-removeTemporaryGlobalFunction(Units *units, int error_count,
-                              std::vector<DeferredGoto*> *dgs,
-                              std::map<std::string, Label*> *mls)
-{
-    Context *ctx = units->top()->ctx;
-    if (error_count >= 0) {
-        ctx->er->popErrors(error_count);
-    }
-    ctx->deactivateAnonymousNamespace();
-    Function *current = units->top()->getGlobalFunction();
-    units->top()->popGlobalFunction();
-    units->top()->popGlobalBlock();
-    current->llvm_function->eraseFromParent();
-}
-
 extern "C" {
 Node *
 WrapNode(Node *n)
@@ -333,7 +245,7 @@ has_2D_errors(MContext *mc, DNode *form)
     std::vector<DeferredGoto*> dgs;
     std::map<std::string, Label*> mls;
     if (!units->top()->getGlobalFunction()) {
-        makeTemporaryGlobalFunction(units, &dgs, &mls);
+        units->top()->makeTemporaryGlobalFunction();
         made_temp = true;
     }
 
@@ -349,7 +261,7 @@ has_2D_errors(MContext *mc, DNode *form)
     }
 
     if (made_temp) {
-        removeTemporaryGlobalFunction(units, -1, &dgs, &mls);
+        units->top()->removeTemporaryGlobalFunction();
     }
 
     int new_error_count =
@@ -638,7 +550,7 @@ type_2D_of(MContext *mc, DNode *form)
     std::vector<DeferredGoto*> dgs;
     std::map<std::string, Label*> mls;
     if (!units->top()->getGlobalFunction()) {
-        makeTemporaryGlobalFunction(units, &dgs, &mls);
+        units->top()->makeTemporaryGlobalFunction();
         made_temp = true;
     }
 
@@ -649,7 +561,7 @@ type_2D_of(MContext *mc, DNode *form)
                           n, false, false, NULL, &pr);
 
     if (made_temp) {
-        removeTemporaryGlobalFunction(units, -1, &dgs, &mls);
+        units->top()->removeTemporaryGlobalFunction();
     }
 
     if (!res) {

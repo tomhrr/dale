@@ -102,6 +102,12 @@ public:
     /*! Pop the top global block from the stack.
      */
     void popGlobalBlock(void);
+    /*! Add a temporary global function.
+     */
+    void makeTemporaryGlobalFunction(void);
+    /*! Remove a temporary global function.
+     */
+    void removeTemporaryGlobalFunction(void);
     /*! Add the necessary common declarations to this unit.
      */
     void addCommonDeclarations(void);

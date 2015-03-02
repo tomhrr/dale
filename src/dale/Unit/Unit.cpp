@@ -4,6 +4,8 @@
 #include "../llvm_Linker.h"
 #include "../CommonDecl/CommonDecl.h"
 
+static int function_count = 0;
+
 namespace dale
 {
 Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
@@ -107,6 +109,78 @@ Unit::popGlobalBlock(void)
     } else {
         global_block = NULL;
     }
+}
+
+void
+Unit::makeTemporaryGlobalFunction(void)
+{
+    llvm::Type *llvm_return_type =
+        ctx->toLLVMType(ctx->tr->type_int, NULL, false);
+
+    std::vector<llvm::Type*> empty_args;
+    llvm::FunctionType *ft =
+        getFunctionType(llvm_return_type, empty_args, false);
+
+    char buf[32];
+    sprintf(buf, "_intro%d", function_count++);
+
+    std::string new_name;
+    ctx->ns()->nameToSymbol(buf, &new_name);
+
+    if (module->getFunction(llvm::StringRef(new_name.c_str()))) {
+        fprintf(stderr, "Internal error: "
+                "function already exists in module ('%s').\n",
+                new_name.c_str());
+        abort();
+    }
+
+    llvm::Constant *llvm_fnc =
+        module->getOrInsertFunction(new_name.c_str(), ft);
+    if (!llvm_fnc) {
+        fprintf(stderr, "Internal error: unable to add "
+                "function ('%s') to module.\n",
+                new_name.c_str());
+        abort();
+    }
+
+    llvm::Function *llvm_fn = llvm::dyn_cast<llvm::Function>(llvm_fnc);
+    if (!llvm_fn) {
+        fprintf(stderr, "Internal error: unable to convert "
+                "function constant to function "
+                "for function '%s'.\n",
+                new_name.c_str());
+        abort();
+    }
+
+    std::vector<Variable *> vars;
+    Function *fn =
+        new Function(ctx->tr->type_int, &vars, llvm_fn, 0,
+                     new std::string(new_name), 0);
+    fn->linkage = Linkage::Intern;
+    if (!fn) {
+        fprintf(stderr, "Internal error: unable to create new "
+                "function '%s'.\n",
+                new_name.c_str());
+        abort();
+    }
+
+    llvm::BasicBlock *block =
+        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", llvm_fn);
+
+    pushGlobalFunction(fn);
+    pushGlobalBlock(block);
+
+    ctx->activateAnonymousNamespace();
+}
+
+void
+Unit::removeTemporaryGlobalFunction(void)
+{
+    ctx->deactivateAnonymousNamespace();
+    Function *current = getGlobalFunction();
+    popGlobalFunction();
+    popGlobalBlock();
+    current->llvm_function->eraseFromParent();
 }
 
 static bool added_common_declarations = false;

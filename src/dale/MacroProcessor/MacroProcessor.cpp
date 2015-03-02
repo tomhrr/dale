@@ -11,8 +11,6 @@
 
 #define eq(str) !strcmp(macro_name, str)
 
-static int myn = 0;
-
 using namespace dale::ErrorInst::Generator;
 
 namespace dale
@@ -227,54 +225,18 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
         return n;
     }
 
-    /* Create a temporary function for evaluating the arguments. */
-
-    llvm::Type *llvm_return_type =
-        ctx->toLLVMType(ctx->tr->type_int, NULL, false);
-    if (!llvm_return_type) {
-        return NULL;
+    bool made_temp = false;
+    Function *global_fn = units->top()->getGlobalFunction();
+    if (!global_fn) {
+        units->top()->makeTemporaryGlobalFunction();
+        global_fn = units->top()->getGlobalFunction();
+        made_temp = true;
     }
-
-    std::vector<llvm::Type*> mc_args;
-
-    llvm::FunctionType *ft = getFunctionType(llvm_return_type, mc_args,
-                                             false);
-
-    std::string new_name;
-    char buf[32];
-    sprintf(buf, "_gen%d", myn++);
-    ctx->ns()->nameToSymbol(buf, &new_name);
-
-    assert(!units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))
-            && "function already exists in module");
-
-    llvm::Constant *fnc =
-        units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
-    assert(fnc && "unable to add function to module");
-
-    llvm::Function *fn = llvm::dyn_cast<llvm::Function>(fnc);
-    assert(fn && "unable to convert function constant to function");
-
-    std::vector<Variable *> vars;
-    Function *dfn =
-        new Function(ctx->tr->type_int, &vars, fn, 0,
-                     new std::string(new_name), 0);
-    dfn->linkage = Linkage::Intern;
-
-    llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);
-
-    /* Iterate over the arguments and collect the types. Make
-     * backups of the existing state first. */
 
     int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    units->top()->pushGlobalFunction(dfn);
-    units->top()->pushGlobalBlock(block);
-
-    ctx->activateAnonymousNamespace();
-
     std::vector<Type *> types;
+    llvm::BasicBlock *block = &(global_fn->llvm_function->front());
 
     for (std::vector<Node *>::iterator b = lst->begin() + 1,
             e = lst->end();
@@ -282,7 +244,7 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
             ++b) {
         ParseResult arg_pr;
         bool res =
-            FormProcInstParse(units, dfn, block, *b, false, false, NULL,
+            FormProcInstParse(units, global_fn, block, *b, false, false, NULL,
                               &arg_pr);
 
         if (res) {
@@ -297,13 +259,9 @@ MacroProcessor::parseOptionalMacroCall(Node *n)
     }
     ctx->er->popErrors(error_count);
 
-    ctx->deactivateAnonymousNamespace();
-
-    units->top()->popGlobalFunction();
-    units->top()->popGlobalBlock();
-
-    /* Remove the temporary function. */
-    fn->eraseFromParent();
+    if (made_temp) {
+        units->top()->removeTemporaryGlobalFunction();
+    }
 
     /* Call getFunction with the new set of parameter types. */
     ffn = ctx->getFunction(macro_name, &types, 1);
