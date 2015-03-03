@@ -5,8 +5,13 @@
 #include "../../../Context/Context.h"
 
 namespace dale {
-Node *
-FormMacroStructDerefParse(Context *ctx, Node *node);
+/*! The struct-dereference core macro form.
+ *  @param ctx The context.
+ *  @param node The node list.
+ *
+ *  Expands (@: struct element) to (@ (: struct element)).
+ */
+Node *FormMacroStructDerefParse(Context *ctx, Node *node);
 }
 
 #endif
