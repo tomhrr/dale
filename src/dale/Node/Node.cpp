@@ -8,47 +8,29 @@ namespace dale
 {
 Node::Node()
 {
-    is_list  = false;
-    is_token = false;
-
-    list     = NULL;
-    token    = NULL;
-    filename = NULL;
-
-    list_begin.zero();
-    list_end.zero();
-    macro_begin.zero();
-    macro_end.zero();
+    init();
 }
 
 Node::Node(std::vector<Node*> *new_list)
 {
+    init();
     is_list  = true;
-    is_token = false;
-
     list     = new_list;
-    token    = NULL;
-    filename = NULL;
-
-    list_begin.zero();
-    list_end.zero();
-    macro_begin.zero();
-    macro_end.zero();
 }
 
 Node::Node(Token *new_token)
 {
-    is_list  = false;
+    init();
     is_token = true;
-
-    list     = NULL;
     token    = new_token;
-    filename = NULL;
+}
 
-    list_begin.zero();
-    list_end.zero();
-    macro_begin.zero();
-    macro_end.zero();
+Node::Node(const char *str)
+{
+    init();
+    is_token = true;
+    token    = new Token(TokenType::String);
+    token->str_value.append(str);
 }
 
 Node::~Node(void)
@@ -264,5 +246,21 @@ Node::addMacroPosition(Node *mp_node)
     }
 
     return;
+}
+
+void
+Node::init(void)
+{
+    is_list  = false;
+    is_token = false;
+
+    list     = NULL;
+    token    = NULL;
+    filename = NULL;
+
+    list_begin.zero();
+    list_end.zero();
+    macro_begin.zero();
+    macro_end.zero();
 }
 }

@@ -71,6 +71,12 @@ public:
      *  This takes ownership of the token.
      */
     Node(Token *token);
+    /*! Construct a token node from a string.
+     *  @param str The string.
+     *
+     *  This does not take ownership of the string.
+     */
+    Node(const char *str);
     /*! Construct a list node.
      *  @param list The list.
      *
@@ -109,6 +115,11 @@ public:
      *  that position is not overridden.
      */
     void addMacroPosition(Node *mp_node);
+    /*! Initialise the node.
+     *
+     *  This should only be used by constructors.
+     */
+    void init(void);
 };
 
 Node *nullNode(void);

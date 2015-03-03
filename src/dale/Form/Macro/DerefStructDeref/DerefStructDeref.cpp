@@ -4,48 +4,32 @@ namespace dale {
 Node *
 FormMacroDerefStructDerefParse(Context *ctx, Node *n)
 {
-    assert(n->list && "parseDerefStructDeref must receive a list!");
-
     if (!ctx->er->assertArgNums("@:@", n, 2, 2)) {
         return NULL;
     }
 
     std::vector<Node*> *lst = n->list;
 
-    // (@:@ array element) => (@ (: (@ array) element))
-
-    // Change the first token.
     (*lst)[0]->token->str_value.clear();
     (*lst)[0]->token->str_value.append("@");
 
-    // Create a new nodelist, first element @, second element the
-    // second element from the first list.
+    std::vector<Node*> *new_lst_inner = new std::vector<Node *>;
+    Node *deref_node = new Node("@");
+    (*lst)[1]->copyMetaTo(deref_node);
+    new_lst_inner->push_back(deref_node);
+    new_lst_inner->push_back((*lst)[1]);
 
-    std::vector<Node*> *newlst = new std::vector<Node *>;
-    Token *de = new Token(TokenType::String);
-    de->str_value.append("@");
-    Node *nde = new Node(de);
-    (*lst)[1]->copyMetaTo(nde);
-    newlst->push_back(nde);
-    newlst->push_back((*lst)[1]);
+    Node *new_lst_inner_node = new Node(new_lst_inner);
+    (*lst)[1]->copyMetaTo(new_lst_inner_node);
 
-    // Create a new nodelist, first element :, second element
-    // newlst, third element the third element from the first
-    // list. Adjust the original list to suit.
+    std::vector<Node*> *new_lst_sm = new std::vector<Node *>;
+    Node *struct_mem_node = new Node(":");
+    (*lst)[1]->copyMetaTo(struct_mem_node);
+    new_lst_sm->push_back(struct_mem_node);
+    new_lst_sm->push_back(new_lst_inner_node);
+    new_lst_sm->push_back((*lst)[2]);
 
-    std::vector<Node*> *newlst2 = new std::vector<Node *>;
-    Token *ad = new Token(TokenType::String);
-    ad->str_value.append(":");
-    Node *nad = new Node(ad);
-    (*lst)[1]->copyMetaTo(nad);
-    newlst2->push_back(nad);
-    Node *nnewlst = new Node(newlst);
-    (*lst)[1]->copyMetaTo(nnewlst);
-    newlst2->push_back(nnewlst);
-    newlst2->push_back((*lst)[2]);
-
-    (*lst)[1] = new Node(newlst2);
-    nnewlst->copyMetaTo((*lst)[1]);
+    (*lst)[1] = new Node(new_lst_sm);
     lst->pop_back();
 
     return n;
