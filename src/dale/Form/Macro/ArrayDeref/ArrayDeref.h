@@ -5,8 +5,13 @@
 #include "../../../Context/Context.h"
 
 namespace dale {
-Node *
-FormMacroArrayDerefParse(Context *ctx, Node *node);
+/*! The array-dereference core macro form.
+ *  @param ctx The context.
+ *  @param node The node list.
+ *
+ *  Expands (@$ array-ptr index) to (@ ($ array-ptr index)).
+ */
+Node *FormMacroArrayDerefParse(Context *ctx, Node *node);
 }
 
 #endif
