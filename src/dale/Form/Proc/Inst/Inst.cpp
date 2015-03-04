@@ -238,61 +238,63 @@ parsePotentialProcCall(Units *units,
 
     int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    if (fn_exists || mac_exists) {
-        /* A function (or macro) with this name exists. Call
-         * parseFunctionCall: if it returns a PR, then great.
-         * If it returns no PR, but sets macro_to_call, then
-         * pass off to parseMacroCall. If it returns no PR,
-         * then pop the errors and continue, but only if there
-         * is one error, and it's related to an overloaded
-         * function not being present. */
+    if (!fn_exists && !mac_exists) {
+        return true;
+    }
 
-        Function *macro_to_call_real;
-        Function **macro_to_call = &macro_to_call_real;
-        *macro_to_call = NULL;
+    /* A function (or macro) with this name exists. Call
+        * parseFunctionCall: if it returns a PR, then great.
+        * If it returns no PR, but sets macro_to_call, then
+        * pass off to parseMacroCall. If it returns no PR,
+        * then pop the errors and continue, but only if there
+        * is one error, and it's related to an overloaded
+        * function not being present. */
 
-        bool res = units->top()->fp->parseFunctionCall(fn, block, n,
-                                t->str_value.c_str(),
-                                get_address,
-                                macro_to_call, pr);
-        if (res) {
-            return true;
-        }
+    Function *macro_to_call_real;
+    Function **macro_to_call = &macro_to_call_real;
+    *macro_to_call = NULL;
 
-        if (*macro_to_call) {
-            Node *mac_node =
-                units->top()->mp->parseMacroCall(n, *macro_to_call);
-            if (!mac_node) {
-                return false;
-            }
-            bool res =
-                FormProcInstParse(units, fn, block, mac_node,
-                                    get_address, false, wanted_type,
-                                    pr);
+    bool res = units->top()->fp->parseFunctionCall(fn, block, n,
+                            t->str_value.c_str(),
+                            get_address,
+                            macro_to_call, pr);
+    if (res) {
+        return true;
+    }
 
-            delete mac_node;
-
-            return res;
-        }
-
-        int error_count2 =
-            ctx->er->getErrorTypeCount(ErrorType::Error);
-
-        if (error_count2 != (error_count + 1)) {
+    if (*macro_to_call) {
+        Node *mac_node =
+            units->top()->mp->parseMacroCall(n, *macro_to_call);
+        if (!mac_node) {
             return false;
         }
-        *backup_error = ctx->er->popLastError();
-        if ((*backup_error)->getType() != ErrorType::Error) {
-            ctx->er->addError(*backup_error);
-            return false;
-        }
-        if (((*backup_error)->instance !=
-                OverloadedFunctionOrMacroNotInScope)
-                && ((*backup_error)->instance !=
-                    OverloadedFunctionOrMacroNotInScopeWithClosest)) {
-            ctx->er->addError(*backup_error);
-            return false;
-        }
+        bool res =
+            FormProcInstParse(units, fn, block, mac_node,
+                                get_address, false, wanted_type,
+                                pr);
+
+        delete mac_node;
+
+        return res;
+    }
+
+    int error_count2 =
+        ctx->er->getErrorTypeCount(ErrorType::Error);
+
+    if (error_count2 != (error_count + 1)) {
+        return false;
+    }
+    *backup_error = ctx->er->popLastError();
+    if ((*backup_error)->getType() != ErrorType::Error) {
+        ctx->er->addError(*backup_error);
+        return false;
+    }
+    if (((*backup_error)->instance !=
+            OverloadedFunctionOrMacroNotInScope)
+            && ((*backup_error)->instance !=
+                OverloadedFunctionOrMacroNotInScopeWithClosest)) {
+        ctx->er->addError(*backup_error);
+        return false;
     }
 
     return true;
@@ -696,10 +698,7 @@ parseInternal(Units *units,
     block = try_fnp.block;
     if (try_fnp.type->points_to
             && try_fnp.type->points_to->is_function) {
-        Token *funcall_str_tok = new Token(TokenType::String);
-        funcall_str_tok->str_value.clear();
-        funcall_str_tok->str_value.append("funcall");
-        Node *funcall_str_node = new Node(funcall_str_tok);
+        Node *funcall_str_node = new Node("funcall");
         funcall_str_node->filename = ctx->er->current_filename;
         lst->insert(lst->begin(), funcall_str_node);
         bool res =
