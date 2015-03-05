@@ -1,6 +1,10 @@
 #ifndef DALE_COREFORMS
 #define DALE_COREFORMS
 
+#include "../Node/Node.h"
+#include "../Units/Units.h"
+#include "../llvm_Module.h"
+
 namespace dale
 {
 /*! CoreForms
@@ -9,6 +13,15 @@ namespace dale
     a core form, and for whether a given core form may be overridden.
     init must be called before exists or existsNoOverride is called.
 */
+
+typedef bool (*standard_core_form_t)(Units *units, Function *fn,
+                                     llvm::BasicBlock *block,
+                                     Node *node, bool get_address,
+                                     bool prefixed_with_core,
+                                     ParseResult *pr);
+
+typedef Node *(*macro_core_form_t)(Context *ctx, Node *n);
+
 namespace CoreForms
 {
 /*! Initialise the core form functions.
@@ -23,6 +36,19 @@ bool exists(const char *name);
  *  @param name The name of the binding.
  */
 bool existsNoOverride(const char *name);
+/*! Get the standard core form function pointer for the given name.
+ *  @param name The name of the binding.
+ *
+ *  Standard core forms are those not implemented internally as
+ *  macros.
+ */
+standard_core_form_t getStandard(const char *name);
+/*! Get the macro core form function pointer for the given name.
+ *  @param name The name of the binding.
+ *
+ *  Macro core forms are those implemented internally as macros.
+ */
+macro_core_form_t getMacro(const char *name);
 }
 }
 

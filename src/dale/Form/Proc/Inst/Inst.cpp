@@ -6,43 +6,10 @@
 #include "../../../Function/Function.h"
 #include "../../../llvm_Function.h"
 #include "../../../Operation/Copy/Copy.h"
+#include "../../../CoreForms/CoreForms.h"
 
 #include "../Token/Token.h"
-#include "../Goto/Goto.h"
-#include "../If/If.h"
-#include "../Label/Label.h"
-#include "../Return/Return.h"
-#include "../Setf/Setf.h"
-#include "../Dereference/Dereference.h"
-#include "../Sref/Sref.h"
-#include "../AddressOf/AddressOf.h"
-#include "../Aref/Aref.h"
-#include "../PtrEquals/PtrEquals.h"
-#include "../PtrAdd/PtrAdd.h"
-#include "../PtrSubtract/PtrSubtract.h"
-#include "../PtrLessThan/PtrLessThan.h"
-#include "../PtrGreaterThan/PtrGreaterThan.h"
-#include "../VaStart/VaStart.h"
-#include "../VaEnd/VaEnd.h"
-#include "../VaArg/VaArg.h"
-#include "../Null/Null.h"
-#include "../GetDNodes/GetDNodes.h"
-#include "../Def/Def.h"
-#include "../NullPtr/NullPtr.h"
-#include "../Do/Do.h"
-#include "../Cast/Cast.h"
-#include "../Sizeof/Sizeof.h"
-#include "../Offsetof/Offsetof.h"
-#include "../Alignmentof/Alignmentof.h"
 #include "../Funcall/Funcall.h"
-#include "../UsingNamespace/UsingNamespace.h"
-#include "../NewScope/NewScope.h"
-#include "../ArrayOf/ArrayOf.h"
-#include "../../Macro/ArrayDeref/ArrayDeref.h"
-#include "../../Macro/StructDeref/StructDeref.h"
-#include "../../Macro/DerefStructDeref/DerefStructDeref.h"
-#include "../../Macro/DerefStruct/DerefStruct.h"
-#include "../../Macro/Setv/Setv.h"
 #include "../../Function/Function.h"
 #include "../../Literal/Struct/Struct.h"
 #include "../../Literal/Enum/Enum.h"
@@ -298,61 +265,6 @@ parsePotentialProcCall(Units *units,
     }
 
     return true;
-}
-
-bool
-(*getCoreFunction(const char *str))(Units *units,
-                        Function *fn,
-                        llvm::BasicBlock *block,
-                        Node *node,
-                        bool get_address,
-                        bool prefixed_with_core,
-                        ParseResult *pr)
-{
-    return
-          (eq("goto"))            ? &FormProcGotoParse
-        : (eq("if"))              ? &FormProcIfParse
-        : (eq("label"))           ? &FormProcLabelParse
-        : (eq("return"))          ? &FormProcReturnParse
-        : (eq("setf"))            ? &FormProcSetfParse
-        : (eq("@"))               ? &FormProcDereferenceParse
-        : (eq(":"))               ? &FormProcSrefParse
-        : (eq("#"))               ? &FormProcAddressOfParse
-        : (eq("$"))               ? &FormProcArefParse
-        : (eq("p="))              ? &FormProcPtrEqualsParse
-        : (eq("p+"))              ? &FormProcPtrAddParse
-        : (eq("p-"))              ? &FormProcPtrSubtractParse
-        : (eq("p<"))              ? &FormProcPtrLessThanParse
-        : (eq("p>"))              ? &FormProcPtrGreaterThanParse
-        : (eq("va-arg"))          ? &FormProcVaArgParse
-        : (eq("va-start"))        ? &FormProcVaStartParse
-        : (eq("va-end"))          ? &FormProcVaEndParse
-        : (eq("null"))            ? &FormProcNullParse
-        : (eq("get-dnodes"))      ? &FormProcGetDNodesParse
-        : (eq("def"))             ? &FormProcDefParse
-        : (eq("nullptr"))         ? &FormProcNullPtrParse
-        : (eq("do"))              ? &FormProcDoParse
-        : (eq("cast"))            ? &FormProcCastParse
-        : (eq("sizeof"))          ? &FormProcSizeofParse
-        : (eq("offsetof"))        ? &FormProcOffsetOfParse
-        : (eq("alignmentof"))     ? &FormProcAlignmentOfParse
-        : (eq("funcall"))         ? &FormProcFuncallParse
-        : (eq("using-namespace")) ? &FormProcUsingNamespaceParse
-        : (eq("new-scope"))       ? &FormProcNewScopeParse
-        : (eq("array-of"))        ? &FormProcArrayOfParse
-                                  : NULL;
-}
-
-Node*
-(*getCoreMacro(const char *str))(Context *ctx, Node *n)
-{
-    return
-        (eq("setv"))   ? &FormMacroSetvParse
-      : (eq("@$"))     ? &FormMacroArrayDerefParse
-      : (eq(":@"))     ? &FormMacroDerefStructParse
-      : (eq("@:"))     ? &FormMacroStructDerefParse
-      : (eq("@:@"))    ? &FormMacroDerefStructDerefParse
-                       : NULL;
 }
 
 bool
@@ -620,14 +532,8 @@ parseInternal(Units *units,
 
     /* Core forms (at least at this point). */
 
-    bool (* core_fn)(Units *units,
-                     Function *fn,
-                     llvm::BasicBlock *block,
-                     Node *node,
-                     bool get_address,
-                     bool prefixed_with_core,
-                     ParseResult *pr)
-        = getCoreFunction(t->str_value.c_str());
+    standard_core_form_t core_fn =
+        CoreForms::getStandard(t->str_value.c_str());
 
     if (core_fn) {
         return core_fn(units, fn, block, n,
@@ -636,8 +542,8 @@ parseInternal(Units *units,
 
     /* Not core form - look for core macro. */
 
-    Node* (*core_mac)(Context *ctx, Node *n) =
-        getCoreMacro(t->str_value.c_str());
+    macro_core_form_t core_mac =
+        CoreForms::getMacro(t->str_value.c_str());
 
     if (core_mac) {
         /* Going to assume similarly here, re the error messages. */
