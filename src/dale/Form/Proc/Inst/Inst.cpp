@@ -25,14 +25,9 @@ namespace dale
 static int anoncount = 0;
 
 bool
-createAnonymousFunction(Units *units,
-                   Function *fn,
-                   llvm::BasicBlock *block,
-                   Node *n,
-                   bool get_address,
-                   bool prefixed_with_core,
-                   Type *wanted_type,
-                   ParseResult *pr)
+createAnonymousFunction(Units *units, Function *fn, llvm::BasicBlock *block,
+                        Node *n, bool get_address, bool prefixed_with_core,
+                        Type *wanted_type, ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
     int preindex = ctx->lv_index;
@@ -41,80 +36,66 @@ createAnonymousFunction(Units *units,
     std::vector<NSNode *> used_ns_nodes   = ctx->used_ns_nodes;
     ctx->popUntilNamespace(units->prefunction_ns);
 
-    char buf[255];
+    int error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
+
+    char buf[16];
     sprintf(buf, "_anon_%d", anoncount++);
-    Function *myanonfn = NULL;
-    int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
+    Function *anon_fn = NULL;
+    FormFunctionParse(units, n, buf, &anon_fn, Linkage::Intern, 1);
 
-    FormFunctionParse(units, n, buf, &myanonfn, Linkage::Intern, 1);
+    int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    int diff = ctx->er->getErrorTypeCount(ErrorType::Error)
-                - error_count;
-
-    if (diff) {
+    if (error_count_begin != error_count_end) {
         ctx->active_ns_nodes = active_ns_nodes;
-        ctx->used_ns_nodes = used_ns_nodes;
+        ctx->used_ns_nodes   = used_ns_nodes;
         return false;
     }
 
-    Type *fntype = new Type();
-    fntype->is_function = 1;
-    fntype->return_type = myanonfn->return_type;
+    Type *fn_type = new Type();
+    fn_type->is_function = 1;
+    fn_type->return_type = anon_fn->return_type;
 
-    std::vector<Type *> parameter_types;
-    std::vector<Variable *>::iterator iter;
-
-    iter = myanonfn->parameter_types.begin();
-
-    while (iter != myanonfn->parameter_types.end()) {
-        parameter_types.push_back((*iter)->type);
-        ++iter;
+    for (std::vector<Variable *>::iterator
+            b = anon_fn->parameter_types.begin(),
+            e = anon_fn->parameter_types.end();
+            b != e;
+            ++b) {
+        fn_type->parameter_types.push_back((*b)->type);
     }
 
-    fntype->parameter_types = parameter_types;
+    pr->set(block, ctx->tr->getPointerType(fn_type),
+            llvm::cast<llvm::Value>(anon_fn->llvm_function));
 
-    pr->set(
-        block,
-        ctx->tr->getPointerType(fntype),
-        llvm::cast<llvm::Value>(myanonfn->llvm_function)
-    );
-
-    std::vector<Variable *> myvars;
-    ctx->ns()->getVarsAfterIndex(preindex, &myvars);
-    for (std::vector<Variable *>::iterator
-            b = myvars.begin(),
-            e = myvars.end();
+    std::vector<Variable *> vars;
+    ctx->ns()->getVarsAfterIndex(preindex, &vars);
+    for (std::vector<Variable *>::iterator b = vars.begin(),
+                                           e = vars.end();
             b != e;
             ++b) {
         (*b)->index = 0;
     }
 
     ctx->active_ns_nodes = active_ns_nodes;
-    ctx->used_ns_nodes = used_ns_nodes;
+    ctx->used_ns_nodes   = used_ns_nodes;
 
     return true;
 }
 
 bool
-createWantedStructLiteral(Units *units,
-                   Function *fn,
-                   llvm::BasicBlock *block,
-                   Node *n,
-                   bool get_address,
-                   bool prefixed_with_core,
-                   Type *wanted_type,
-                   ParseResult *pr)
+createWantedStructLiteral(Units *units, Function *fn, llvm::BasicBlock *block,
+                          Node *n, bool get_address, bool prefixed_with_core,
+                          Type *wanted_type, ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
     Struct *str =
         ctx->getStruct(wanted_type->struct_name.c_str(),
-                        &(wanted_type->namespaces));
+                       &(wanted_type->namespaces));
     assert(str && "cannot load struct");
 
     bool res =
         FormLiteralStructParse(units, fn, block, n,
-                                wanted_type->struct_name.c_str(),
-                                str, wanted_type, get_address, pr);
+                               wanted_type->struct_name.c_str(),
+                               str, wanted_type, get_address, pr);
     return res;
 }
 
@@ -175,8 +156,8 @@ createStructLiteral(Units *units,
         ctx->er->getErrorTypeCount(ErrorType::Error);
 
     bool res = FormLiteralStructParse(units, fn, block, (*lst)[1],
-                                        "asdf", str, structtype,
-                                        get_address, pr);
+                                      "flsp", str, structtype,
+                                      get_address, pr);
     if (!res) {
         ctx->er->popErrors(original_error_count);
     }
@@ -184,15 +165,10 @@ createStructLiteral(Units *units,
 }
 
 bool
-parsePotentialProcCall(Units *units,
-                   Function *fn,
-                   llvm::BasicBlock *block,
-                   Node *n,
-                   bool get_address,
-                   bool prefixed_with_core,
-                   Type *wanted_type,
-                   ParseResult *pr,
-                   Error **backup_error)
+parsePotentialProcCall(Units *units, Function *fn, llvm::BasicBlock *block,
+                       Node *n, bool get_address, bool prefixed_with_core,
+                       Type *wanted_type, ParseResult *pr,
+                       Error **backup_error)
 {
     Context *ctx = units->top()->ctx;
     std::vector<Node *> *lst = n->list;
@@ -203,59 +179,54 @@ parsePotentialProcCall(Units *units,
     Function *mac_exists =
         ctx->getFunction(t->str_value.c_str(), NULL, NULL, 1);
 
-    int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
-
     if (!fn_exists && !mac_exists) {
         return true;
     }
 
-    /* A function (or macro) with this name exists. Call
-        * parseFunctionCall: if it returns a PR, then great.
-        * If it returns no PR, but sets macro_to_call, then
-        * pass off to parseMacroCall. If it returns no PR,
-        * then pop the errors and continue, but only if there
-        * is one error, and it's related to an overloaded
-        * function not being present. */
+    int error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    Function *macro_to_call_real;
-    Function **macro_to_call = &macro_to_call_real;
-    *macro_to_call = NULL;
+    /* A function (or macro) with this name exists.  Call
+     * parseFunctionCall: if it returns a PR, then great.  If it
+     * returns no PR, but sets macro_to_call, then pass off to
+     * parseMacroCall.  If it returns no PR, then pop the errors and
+     * continue, but only if there is one error, and it's related to
+     * an overloaded function not being present. */
 
-    bool res = units->top()->fp->parseFunctionCall(fn, block, n,
-                            t->str_value.c_str(),
-                            get_address,
-                            macro_to_call, pr);
+    Function *macro_to_call = NULL;
+
+    bool res =
+        units->top()->fp->parseFunctionCall(fn, block, n,
+                                            t->str_value.c_str(),
+                                            get_address,
+                                            &macro_to_call, pr);
     if (res) {
         return true;
     }
 
-    if (*macro_to_call) {
-        Node *mac_node =
-            units->top()->mp->parseMacroCall(n, *macro_to_call);
+    if (macro_to_call) {
+        Node *mac_node = units->top()->mp->parseMacroCall(n, macro_to_call);
         if (!mac_node) {
             return false;
         }
         bool res =
             FormProcInstParse(units, fn, block, mac_node,
-                                get_address, false, wanted_type,
-                                pr);
-
+                              get_address, false, wanted_type, pr);
         delete mac_node;
-
         return res;
     }
 
-    int error_count2 =
-        ctx->er->getErrorTypeCount(ErrorType::Error);
+    int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    if (error_count2 != (error_count + 1)) {
+    if (error_count_end != (error_count_begin + 1)) {
         return false;
     }
+
     *backup_error = ctx->er->popLastError();
     if ((*backup_error)->getType() != ErrorType::Error) {
         ctx->er->addError(*backup_error);
         return false;
     }
+
     if (((*backup_error)->instance !=
             OverloadedFunctionOrMacroNotInScope)
             && ((*backup_error)->instance !=
@@ -270,19 +241,15 @@ parsePotentialProcCall(Units *units,
 bool
 isFunctionObject(Context *ctx, ParseResult *pr)
 {
-    if (pr->type->points_to
-            && pr->type->points_to->struct_name.size()) {
+    Type *inner_type = pr->type->points_to;
+
+    if (inner_type && inner_type->struct_name.size()) {
         /* Struct must implement 'apply' to be considered a
          * function object. */
-        Type *inner_type = pr->type->points_to;
-        Struct *mystruct =
-            ctx->getStruct(
-                inner_type->struct_name.c_str(),
-                &(inner_type->namespaces)
-            );
-        if (mystruct) {
-            Type *apply =
-                mystruct->memberToType("apply");
+        Struct *st = ctx->getStruct(inner_type->struct_name.c_str(),
+                                    &(inner_type->namespaces));
+        if (st) {
+            Type *apply = st->memberToType("apply");
             if (apply
                     && apply->points_to
                     && apply->points_to->is_function) {
@@ -295,82 +262,59 @@ isFunctionObject(Context *ctx, ParseResult *pr)
 }
 
 bool
-parseFunctionObjectCall(Units *units,
-                   Function *fn,
-                   llvm::BasicBlock *block,
-                   Node *n,
-                   bool get_address,
-                   bool prefixed_with_core,
-                   Type *wanted_type,
-                   ParseResult *pr,
-                   ParseResult *try_fnp)
+parseFunctionObjectCall(Units *units, Function *fn, llvm::BasicBlock *block,
+                        Node *n, bool get_address, bool prefixed_with_core,
+                        Type *wanted_type, ParseResult *pr,
+                        ParseResult *try_fnp)
 {
     Context *ctx = units->top()->ctx;
     std::vector<Node *> *lst = n->list;
 
     Type *try_fnp_inner_type = try_fnp->type->points_to;
-    Struct *mystruct =
-        ctx->getStruct(
-            try_fnp_inner_type->struct_name.c_str(),
-            &(try_fnp_inner_type->namespaces)
-        );
-    Type *apply =
-        mystruct->memberToType("apply");
-    /* The first argument of this function must be a
-        * pointer to this particular struct type. */
-    Type *applyfn = apply->points_to;
-    if (!(applyfn->parameter_types.size())) {
-        Error *e = new Error(
-            ApplyMustTakePointerToStructAsFirstArgument,
-            (*lst)[0]
-        );
+    Struct *st = ctx->getStruct(try_fnp_inner_type->struct_name.c_str(),
+                                &(try_fnp_inner_type->namespaces));
+    Type *apply = st->memberToType("apply");
+
+    /* The first argument of this function must be a pointer to this
+     * particular struct type. */
+    Type *apply_fn = apply->points_to;
+    if (!(apply_fn->parameter_types.size())) {
+        Error *e = new Error(ApplyMustTakePointerToStructAsFirstArgument,
+                             (*lst)[0]);
         ctx->er->addError(e);
         return false;
     }
-    if (!(applyfn->parameter_types.at(0)->isEqualTo(
-                try_fnp->type))) {
-        Error *e = new Error(
-            ApplyMustTakePointerToStructAsFirstArgument,
-            (*lst)[0]
-        );
+    if (!(apply_fn->parameter_types.at(0)->isEqualTo(try_fnp->type))) {
+        Error *e = new Error(ApplyMustTakePointerToStructAsFirstArgument,
+                             (*lst)[0]);
         ctx->er->addError(e);
         return false;
     }
+
     /* Get the function pointer value. */
     std::vector<llvm::Value *> indices;
     STL::push_back2(&indices,
                     ctx->nt->getLLVMZero(),
                     ctx->nt->getNativeInt(
-                        mystruct->memberToIndex("apply")));
+                        st->memberToIndex("apply")));
 
     llvm::IRBuilder<> builder(block);
     llvm::Value *res =
-        builder.CreateGEP(
-            try_fnp->value,
-            llvm::ArrayRef<llvm::Value*>(indices)
-        );
+        builder.CreateGEP(try_fnp->value,
+                          llvm::ArrayRef<llvm::Value*>(indices));
 
-    ParseResult supertemp;
-    supertemp.type  = apply;
-    supertemp.block = block;
-    llvm::Value *pvalue =
-        llvm::cast<llvm::Value>(builder.CreateLoad(res));
-    supertemp.value = pvalue;
+    ParseResult apply_fn_pr;
+    apply_fn_pr.set(block, apply,
+                    llvm::cast<llvm::Value>(builder.CreateLoad(res)));
 
-    /* So a pointer to the struct is your first
-        * argument. Skip 1 element of the list when
-        * passing off (e.g. (adder 1)). */
+    /* So a pointer to the struct is your first argument.  Skip 1
+     * element of the list when passing off (e.g. (adder 1)). */
 
     std::vector<llvm::Value*> extra_args;
     extra_args.push_back(try_fnp->value);
-    return units->top()->fp->parseFunctionPointerCall(
-                fn,
-                n,
-                &supertemp,
-                1,
-                &extra_args,
-                pr
-            );
+    return
+        units->top()->fp->parseFunctionPointerCall(fn, n, &apply_fn_pr,
+                                                   1, &extra_args, pr);
 }
 
 bool
@@ -457,8 +401,8 @@ parseInternal(Units *units,
     /* If the first element matches a struct name, then make a
      * struct literal from the remainder of the form. */
 
-    Struct *mystruct = ctx->getStruct(t->str_value.c_str());
-    if (mystruct && (lst->size() == 2)) {
+    Struct *st = ctx->getStruct(t->str_value.c_str());
+    if (st && (lst->size() == 2)) {
         bool res = createStructLiteral(units, fn, block, n, get_address,
                                      prefixed_with_core, wanted_type, pr);
         if (res) {
