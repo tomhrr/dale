@@ -1,89 +1,57 @@
-#include "../../../Units/Units.h"
-#include "../../../Node/Node.h"
-#include "../../../ParseResult/ParseResult.h"
-#include "../../../Function/Function.h"
+#include "Token.h"
+
 #include "../../Literal/Enum/Enum.h"
-#include "../../../llvm_Function.h"
-#include "Config.h"
+
+using namespace dale::ErrorInst::Generator;
 
 namespace dale
 {
 llvm::Constant *
-parseStringLiteral(Units *units,
-                   Type *type,
-                   Node *top,
-                   int *size)
+parseStringLiteral(Units *units, Type *type, Node *node, int *size)
 {
     Context *ctx = units->top()->ctx;
 
+    if (!node->is_token) {
+        Error *e = new Error(UnexpectedElement, node,
+                             "atom", "literal", "list");
+        ctx->er->addError(e);
+        return NULL;
+    }
+    Token *t = node->token;
+
     if (type->base_type == BaseType::Int) {
-        if (!top->is_token) {
-            Error *e = new Error(
-                ErrorInst::Generator::UnexpectedElement,
-                top,
-                "atom", "literal", "list"
-            );
-            ctx->er->addError(e);
-            return NULL;
-        }
-        Token *t = top->token;
-
         if (t->type != TokenType::Int) {
-            Error *e = new Error(
-                ErrorInst::Generator::UnexpectedElement,
-                top,
-                "integer", "literal", t->tokenType()
-            );
+            Error *e = new Error(UnexpectedElement, node,
+                                 "integer", "literal", t->tokenType());
             ctx->er->addError(e);
             return NULL;
         }
 
-        llvm::Constant *myconstint =
+        return
             ctx->nt->getConstantInt(ctx->nt->getNativeIntType(),
                                     t->str_value.c_str());
-
-        llvm::Value *myconstvalue =
-            llvm::cast<llvm::Value>(myconstint);
-
-        llvm::Constant *myconstint2 =
-            llvm::cast<llvm::Constant>(myconstvalue);
-
-        return myconstint2;
     }
 
     int underlying_type =
           (!type->base_type && type->points_to) ? type->points_to->base_type
         : (type->is_array)                      ? type->array_type->base_type
-        : 0;
+                                                : 0;
 
     if (underlying_type == BaseType::Char) {
-        if (!top->is_token) {
-            Error *e = new Error(
-                ErrorInst::Generator::UnexpectedElement,
-                top,
-                "atom", "literal", "list"
-            );
-            ctx->er->addError(e);
-            return NULL;
-        }
-        Token *t = top->token;
-
         if (t->type != TokenType::StringLiteral) {
-            Error *e = new Error(
-                ErrorInst::Generator::UnexpectedElement,
-                top,
-                "string", "literal", t->tokenType()
-            );
+            Error *e = new Error(UnexpectedElement, node,
+                                 "string", "literal", t->tokenType());
             ctx->er->addError(e);
             return NULL;
         }
 
         size_t pos = 0;
-        while ((pos = t->str_value.find("\\n", pos)) != std::string::npos) {
-            t->str_value.replace(pos, 2, "\n");
+        std::string value = t->str_value;
+        while ((pos = value.find("\\n", pos)) != std::string::npos) {
+            value.replace(pos, 2, "\n");
         }
 
-        *size = strlen(t->str_value.c_str()) + 1;
+        *size = value.size() + 1;
 
         return
 #if D_LLVM_VERSION_MINOR < 2
@@ -91,18 +59,13 @@ parseStringLiteral(Units *units,
 #else
             llvm::ConstantDataArray::getString(
 #endif
-                                     llvm::getGlobalContext(),
-                                     t->str_value.c_str(),
-                                     true);
+                llvm::getGlobalContext(), value.c_str(), true
+            );
     }
 
-    std::string temp;
-    type->toString(&temp);
-    Error *e = new Error(
-        ErrorInst::Generator::CannotParseLiteral,
-        top,
-        temp.c_str()
-    );
+    std::string type_str;
+    type->toString(&type_str);
+    Error *e = new Error(CannotParseLiteral, node, type_str.c_str());
     ctx->er->addError(e);
     return NULL;
 }
@@ -282,7 +245,7 @@ tryvar:
             } else {
                 if (strlen(temp) != 1) {
                     Error *e = new Error(
-                        ErrorInst::Generator::InvalidChar,
+                        InvalidChar,
                         node,
                         temp
                     );
@@ -306,7 +269,7 @@ tryvar:
 
         if (!var) {
             Error *e = new Error(
-                ErrorInst::Generator::VariableNotInScope,
+                VariableNotInScope,
                 node,
                 t->str_value.c_str()
             );
@@ -406,7 +369,7 @@ tryvar:
 
         if (!avres) {
             Error *e = new Error(
-                ErrorInst::Generator::RedefinitionOfVariable,
+                RedefinitionOfVariable,
                 node,
                 varname.c_str()
             );
@@ -429,7 +392,7 @@ tryvar:
         return true;
     } else {
         Error *e = new Error(
-            ErrorInst::Generator::UnableToParseForm,
+            UnableToParseForm,
             node
         );
         ctx->er->addError(e);
