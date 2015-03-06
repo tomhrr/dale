@@ -70,209 +70,191 @@ parseStringLiteral(Units *units, Type *type, Node *node, int *size)
     return NULL;
 }
 
+void
+parseFloatingPointLiteral(Context *ctx, Type *wanted_type,
+                          llvm::BasicBlock *block, Token *t,
+                          ParseResult *pr)
+{
+    if (wanted_type
+            && wanted_type->base_type == BaseType::Float) {
+        pr->set(block, ctx->tr->type_float,
+                llvm::ConstantFP::get(
+                    llvm::Type::getFloatTy(llvm::getGlobalContext()),
+                    llvm::StringRef(t->str_value.c_str())
+                ));
+    } else if (wanted_type
+                && wanted_type->base_type == BaseType::Double) {
+        pr->set(block, ctx->tr->type_double,
+                llvm::ConstantFP::get(
+                    llvm::Type::getDoubleTy(llvm::getGlobalContext()),
+                    llvm::StringRef(t->str_value.c_str())
+                ));
+    } else if (wanted_type
+                && wanted_type->base_type == BaseType::LongDouble) {
+        pr->set(block, ctx->tr->type_longdouble,
+                llvm::ConstantFP::get(
+                    ctx->nt->getNativeLongDoubleType(),
+                    llvm::StringRef(t->str_value.c_str())
+                ));
+    } else {
+        pr->set(block, ctx->tr->type_float,
+                llvm::ConstantFP::get(
+                    llvm::Type::getFloatTy(llvm::getGlobalContext()),
+                    llvm::StringRef(t->str_value.c_str())
+                ));
+    }
+
+    return;
+}
+
+void
+parseIntegerLiteral(Context *ctx, Type *wanted_type,
+                    llvm::BasicBlock *block, Token *t,
+                    ParseResult *pr)
+{
+    if (wanted_type && wanted_type->isIntegerType()) {
+        int int_size =
+            ctx->nt->internalSizeToRealSize(wanted_type->getIntegerSize());
+        pr->set(block,
+                ctx->tr->getBasicType(wanted_type->base_type),
+                ctx->nt->getConstantInt(
+                    llvm::IntegerType::get(llvm::getGlobalContext(),
+                                            int_size),
+                    t->str_value.c_str()
+                ));
+    } else {
+        pr->set(block, ctx->tr->type_int,
+                ctx->nt->getConstantInt(ctx->nt->getNativeIntType(),
+                                        t->str_value.c_str()));
+    }
+
+    return;
+}
+
+void
+parseBoolLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
+                 ParseResult *pr)
+{
+    Token *t = node->token;
+    int is_true  = !t->str_value.compare("true");
+    int is_false = !t->str_value.compare("false");
+
+    if (is_true || is_false) {
+        pr->set(block, ctx->tr->type_bool,
+                llvm::ConstantInt::get(
+                    llvm::Type::getInt1Ty(llvm::getGlobalContext()),
+                    is_true
+                ));
+    }
+}
+
+void
+parseCharLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
+                 ParseResult *pr)
+{
+    Token *t = node->token;
+
+    if ((t->str_value.size() >= 3)
+            && (t->str_value.at(0) == '#')
+            && (t->str_value.at(1) == '\\')) {
+        const char *value = t->str_value.c_str();
+        value += 2;
+        char c;
+
+        if (!strcmp(value, "NULL")) {
+            c = '\0';
+        } else if (!strcmp(value, "TAB")) {
+            c = '\t';
+        } else if (!strcmp(value, "SPACE")) {
+            c = ' ';
+        } else if (!strcmp(value, "NEWLINE")) {
+            c = '\n';
+        } else if (!strcmp(value, "CARRIAGE")) {
+            c = '\r';
+        } else if (!strcmp(value, "EOF")) {
+            c = EOF;
+        } else {
+            if (strlen(value) != 1) {
+                Error *e = new Error(InvalidChar, node, value);
+                ctx->er->addError(e);
+                return;
+            }
+            c = value[0];
+        }
+
+        pr->set(block, ctx->tr->type_char,
+                llvm::ConstantInt::get(ctx->nt->getNativeCharType(), c));
+    }
+}
+
 bool
-FormProcTokenParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           Type *wanted_type,
-           ParseResult *pr)
+FormProcTokenParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                   Node *node, bool get_address, bool prefixed_with_core,
+                   Type *wanted_type, ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
     NativeTypes *nt = ctx->nt;
+
     Type *type_char   = ctx->tr->type_char;
     Type *type_cchar  = ctx->tr->getConstType(type_char);
     Type *type_pcchar = ctx->tr->getPointerType(type_cchar);
+
     std::vector<llvm::Value *> two_zero_indices;
     STL::push_back2(&two_zero_indices,
                     nt->getLLVMZero(), nt->getLLVMZero());
 
     Token *t = node->token;
 
-    /* Check if we are expecting an enum. */
+    if (t->type == TokenType::Int) {
+        parseIntegerLiteral(ctx, wanted_type, block, t, pr);
+        return true;
+    } else if (t->type == TokenType::FloatingPoint) {
+        parseFloatingPointLiteral(ctx, wanted_type, block, t, pr);
+        return true;
+    }
 
-    Enum *myenum2;
+    Enum *enum_obj;
     if (wanted_type
             && (wanted_type->struct_name.size())
-            && (myenum2 =
-                    ctx->getEnum(wanted_type->struct_name.c_str()))) {
+            && (enum_obj = ctx->getEnum(wanted_type->struct_name.c_str()))) {
 
-        Struct *myenumstruct2 =
-            ctx->getStruct(wanted_type->struct_name.c_str());
+        Struct *st = ctx->getStruct(wanted_type->struct_name.c_str());
+        assert(st && "no struct associated with enum");
 
-        if (!myenumstruct2) {
-            fprintf(stderr,
-                    "Internal error: no struct associated "
-                    "with enum.\n");
-            abort();
-        }
-
-        int original_error_count =
+        int error_count_begin =
             ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        /* Will fail here where the token is not a valid
-            * literal, so in that case just continue onwards
-            * (token could be a var name). */
-
-        bool res =
-            FormLiteralEnumParse(
-                                units, block, node,
-                                myenum2,
-                                wanted_type,
-                                myenumstruct2,
-                                get_address,
-                                pr);
-
+        /* This will fail when the token is not a valid literal, so
+         * in that case just continue onwards, because the token may
+         * be validly parsed in other ways. */
+        bool res = FormLiteralEnumParse(units, block, node, enum_obj,
+                                        wanted_type, st, get_address,
+                                        pr);
         if (res) {
             return res;
         } else {
-            ctx->er->popErrors(original_error_count);
-            goto tryvar;
+            ctx->er->popErrors(error_count_begin);
         }
-    } else if (t->type == TokenType::Int) {
-        if (wanted_type
-                && wanted_type->isIntegerType()) {
-            int mysize =
-                nt->internalSizeToRealSize(wanted_type->getIntegerSize());
-            pr->set(
-                        block,
-                        ctx->tr->getBasicType(wanted_type->base_type),
-                        nt->getConstantInt(
-                            llvm::IntegerType::get(
-                                llvm::getGlobalContext(),
-                                mysize
-                            ),
-                            t->str_value.c_str()
-                        )
-                    );
-            return true;
-        } else {
-            pr->set(
-                        block,
-                        ctx->tr->type_int,
-                        nt->getConstantInt(
-                            nt->getNativeIntType(),
-                            t->str_value.c_str()
-                        )
-                    );
-            return true;
-        }
-    } else if (t->type == TokenType::FloatingPoint) {
-        if (wanted_type
-                && wanted_type->base_type == BaseType::Float) {
-            pr->set(
-                        block,
-                        ctx->tr->type_float,
-                        llvm::ConstantFP::get(
-                            llvm::Type::getFloatTy(llvm::getGlobalContext()),
-                            llvm::StringRef(t->str_value.c_str())
-                        )
-                    );
-            return true;
-        } else if (wanted_type
-                    && wanted_type->base_type == BaseType::Double) {
-            pr->set(
-                        block,
-                        ctx->tr->type_double,
-                        llvm::ConstantFP::get(
-                            llvm::Type::getDoubleTy(llvm::getGlobalContext()),
-                            llvm::StringRef(t->str_value.c_str())
-                        )
-                    );
-            return true;
-        } else if (wanted_type
-                    && wanted_type->base_type == BaseType::LongDouble) {
-            pr->set(
-                        block,
-                        ctx->tr->type_longdouble,
-                        llvm::ConstantFP::get(
-                            nt->getNativeLongDoubleType(),
-                            llvm::StringRef(t->str_value.c_str())
-                        )
-                    );
-            return true;
-        } else {
-            pr->set(
-                        block,
-                        ctx->tr->type_float,
-                        llvm::ConstantFP::get(
-                            llvm::Type::getFloatTy(llvm::getGlobalContext()),
-                            llvm::StringRef(t->str_value.c_str())
-                        )
-                    );
-            return true;
-        }
-    } else if (t->type == TokenType::String) {
-tryvar:
-        /* Special cases - boolean values. */
-        int is_true  = !t->str_value.compare("true");
-        int is_false = !t->str_value.compare("false");
+    }
 
-        if (is_true || is_false) {
-            pr->set(
-                        block,
-                        ctx->tr->type_bool,
-                        llvm::ConstantInt::get(
-                            llvm::Type::getInt1Ty(llvm::getGlobalContext()),
-                            is_true
-                        )
-                    );
+    if (t->type == TokenType::String) {
+        pr->value = NULL;
+        parseBoolLiteral(ctx, block, node, pr);
+        if (pr->value) {
             return true;
         }
 
-        /* Special case - characters. */
-        if ((t->str_value.size() >= 3)
-                && (t->str_value.at(0) == '#')
-                && (t->str_value.at(1) == '\\')) {
-            const char *temp = t->str_value.c_str();
-            temp += 2;
-            char c;
-
-            if (!strcmp(temp, "NULL")) {
-                c = '\0';
-            } else if (!strcmp(temp, "TAB")) {
-                c = '\t';
-            } else if (!strcmp(temp, "SPACE")) {
-                c = ' ';
-            } else if (!strcmp(temp, "NEWLINE")) {
-                c = '\n';
-            } else if (!strcmp(temp, "CARRIAGE")) {
-                c = '\r';
-            } else if (!strcmp(temp, "EOF")) {
-                c = EOF;
-            } else {
-                if (strlen(temp) != 1) {
-                    Error *e = new Error(
-                        InvalidChar,
-                        node,
-                        temp
-                    );
-                    ctx->er->addError(e);
-                    return false;
-                }
-                c = t->str_value.at(2);
-            }
-
-            pr->set(
-                        block,
-                        ctx->tr->type_char,
-                        llvm::ConstantInt::get(nt->getNativeCharType(), c)
-                    );
+        parseCharLiteral(ctx, block, node, pr);
+        if (pr->value) {
             return true;
         }
 
-        /* Plain string - has to be variable. */
-        Variable *var =
-            ctx->getVariable(t->str_value.c_str());
+        /* Variables. */
+        Variable *var = ctx->getVariable(t->str_value.c_str());
 
         if (!var) {
-            Error *e = new Error(
-                VariableNotInScope,
-                node,
-                t->str_value.c_str()
-            );
+            Error *e = new Error(VariableNotInScope, node,
+                                 t->str_value.c_str());
             ctx->er->addError(e);
             return false;
         }
@@ -280,121 +262,87 @@ tryvar:
         llvm::IRBuilder<> builder(block);
 
         if (get_address) {
-            pr->set(
-                        block,
-                        ctx->tr->getPointerType(var->type),
-                        var->value
-                    );
-            return true;
-        } else {
-            if (var->type->is_array) {
-                /* If the variable is an array, return a pointer of
-                 * the array's type. */
-                llvm::Value *p_to_array =
-                    builder.CreateGEP(
-                        var->value,
-                        llvm::ArrayRef<llvm::Value*>(two_zero_indices)
-                    );
-
-                pr->set(
-                    block,
-                    ctx->tr->getPointerType(var->type->array_type),
-                    p_to_array
-                );
-                pr->address_of_value = var->value;
-                pr->value_is_lvalue = 1;
-                pr->type_of_address_of_value =
-                    ctx->tr->getPointerType(var->type);
-                return true;
-            }
-
-            /* Return the dereferenced variable. */
-            pr->set(
-                        block,
-                        var->type,
-                        llvm::cast<llvm::Value>(
-                            builder.CreateLoad(var->value)
-                        )
-                    );
-            pr->address_of_value = var->value;
-            pr->value_is_lvalue = 1;
+            pr->set(block, ctx->tr->getPointerType(var->type), var->value);
             return true;
         }
+
+        /* Array-type variables. */
+        if (var->type->is_array) {
+            llvm::Value *ptr_to_array =
+                builder.CreateGEP(
+                    var->value,
+                    llvm::ArrayRef<llvm::Value*>(two_zero_indices)
+                );
+
+            pr->set(block, ctx->tr->getPointerType(var->type->array_type),
+                    ptr_to_array);
+
+            pr->address_of_value = var->value;
+            pr->value_is_lvalue = true;
+            pr->type_of_address_of_value =
+                ctx->tr->getPointerType(var->type);
+            return true;
+        }
+
+        /* All other variables. */
+        pr->set(block, var->type,
+                llvm::cast<llvm::Value>(builder.CreateLoad(var->value)));
+        pr->address_of_value = var->value;
+        pr->value_is_lvalue = 1;
+        return true;
     } else if (t->type == TokenType::StringLiteral) {
-
-        /* Add the variable to the module. */
-
+        /* Add a new variable for this string literal. */
         int size = 0;
         llvm::Constant *init = parseStringLiteral(units, type_pcchar,
                                                   node, &size);
         if (!init) {
             return false;
         }
-        Type *temp =
-            ctx->tr->getArrayType(
-                ctx->tr->getConstType(type_char),
-                size
-            );
+        Type *str_type_sized =
+            ctx->tr->getArrayType(ctx->tr->getConstType(type_char), size);
 
         llvm::Type *llvm_type =
-            ctx->toLLVMType(temp, NULL, false);
+            ctx->toLLVMType(str_type_sized, NULL, false);
         if (!llvm_type) {
             return false;
         }
 
-        /* Have to check for existing variables with this
-         * name, due to modules. */
-
         std::string varname;
-        llvm::GlobalVariable *var;
         units->top()->getUnusedVarname(&varname);
 
-        var =
+        llvm::GlobalVariable *llvm_var =
             llvm::cast<llvm::GlobalVariable>(
                 units->top()->module->getOrInsertGlobal(varname.c_str(),
-                                            llvm_type)
+                                                        llvm_type)
             );
 
-        var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
-        var->setInitializer(init);
-        var->setConstant(true);
+        llvm_var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+        llvm_var->setInitializer(init);
+        llvm_var->setConstant(true);
 
-        Variable *var2 = new Variable();
-        var2->name.append(varname.c_str());
-        var2->internal_name.append(varname);
-        var2->type = temp;
-        var2->value = llvm::cast<llvm::Value>(var);
-        var2->linkage = Linkage::Intern;
-        int avres = ctx->ns()->addVariable(varname.c_str(), var2);
+        Variable *var = new Variable();
+        var->name.append(varname.c_str());
+        var->internal_name.append(varname);
+        var->type = str_type_sized;
+        var->value = llvm::cast<llvm::Value>(llvm_var);
+        var->linkage = Linkage::Intern;
 
-        if (!avres) {
-            Error *e = new Error(
-                RedefinitionOfVariable,
-                node,
-                varname.c_str()
-            );
+        bool res = ctx->ns()->addVariable(varname.c_str(), var);
+        if (!res) {
+            Error *e = new Error(RedefinitionOfVariable, node,
+                                 varname.c_str());
             ctx->er->addError(e);
             return false;
         }
 
         llvm::IRBuilder<> builder(block);
-
-        llvm::Value *charpointer =
-            builder.CreateGEP(
-                llvm::cast<llvm::Value>(var2->value),
-                llvm::ArrayRef<llvm::Value*>(two_zero_indices));
-
-        pr->set(
-                    block,
-                    type_pcchar,
-                    charpointer
-                );
+        llvm::Value *char_ptr =
+            builder.CreateGEP(llvm::cast<llvm::Value>(var->value),
+                              llvm::ArrayRef<llvm::Value*>(two_zero_indices));
+        pr->set(block, type_pcchar, char_ptr);
         return true;
     } else {
-        Error *e = new Error(
-            UnableToParseForm,
-            node
-        );
+        Error *e = new Error(UnableToParseForm, node);
         ctx->er->addError(e);
         return false;
     }
