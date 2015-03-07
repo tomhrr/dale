@@ -192,9 +192,9 @@ storeValue(Context *ctx, Node *node, Type *type,
 }
 
 bool
-parseImpliedVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
-                          const char *name, Node *node,
-                          bool get_address, int linkage, ParseResult *pr)
+parseImplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
+                           const char *name, Node *node,
+                           bool get_address, int linkage, ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
     Node *value_node = node->list->at(2);
@@ -207,32 +207,30 @@ parseImpliedVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    ParseResult p;
+    ParseResult value_pr;
     bool res = processValue(units, fn, block, node, get_address,
-                            NULL, &p);
+                            NULL, &value_pr);
     if (!res) {
         return false;
     }
 
-    Type *type = p.type;
-    block = p.block;
-    llvm::IRBuilder<> builder(block);
-
-    llvm::Type *et = ctx->toLLVMType(type, (*value_node_list)[2],
-                                     false, false, false);
-    if (!et) {
+    Type *type = value_pr.type;
+    block = value_pr.block;
+    llvm::Type *llvm_type = ctx->toLLVMType(type, (*value_node_list)[2],
+                                            false, false, false);
+    if (!llvm_type) {
         return false;
     }
 
-    llvm::Value *new_ptr = llvm::cast<llvm::Value>(
-                            builder.CreateAlloca(et)
-                        );
-    Variable *var2 = new Variable();
-    var2->name.append(name);
-    var2->type = type;
-    var2->value = new_ptr;
-    var2->linkage = Linkage::Auto;
-    int avres = ctx->ns()->addVariable(name, var2);
+    llvm::IRBuilder<> builder(block);
+    llvm::Value *dst_ptr =
+        llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
+    Variable *var = new Variable();
+    var->name.append(name);
+    var->type = type;
+    var->value = dst_ptr;
+    var->linkage = Linkage::Auto;
+    int avres = ctx->ns()->addVariable(name, var);
 
     if (!avres) {
         Error *e = new Error(RedefinitionOfVariable, node, name);
@@ -240,39 +238,38 @@ parseImpliedVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    if (p.retval_used) {
-        var2->value = p.retval;
-        pr->block = p.block;
+    if (value_pr.retval_used) {
+        var->value = value_pr.retval;
+        pr->block = value_pr.block;
         return true;
     }
 
-    /* If the constant int 0 is returned, and this isn't an
-        * integer type (or bool), then skip this part (assume that
-        * the variable has been initialised by the user).  This is to
-        * save pointless copies/destructs, while still allowing the
-        * variable to be fully initialised once the define is
-        * complete. */
+    /* If the constant int 0 is returned, and this isn't an integer
+     * type (or bool), then skip this part (assume that the variable
+     * has been initialised by the user).  This is to save pointless
+     * copies/destructs, while still allowing the variable to be fully
+     * initialised once the define is complete. */
 
     if (!(type->isIntegerType()) && (type->base_type != BaseType::Bool)) {
         if (llvm::ConstantInt *temp =
-                    llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
+                    llvm::dyn_cast<llvm::ConstantInt>(value_pr.value)) {
             if (temp->getValue().getLimitedValue() == 0) {
-                pr->block = p.block;
+                pr->block = value_pr.block;
                 return true;
             }
         }
     }
 
-    if (!ctx->er->assertTypeEquality("def", node, p.type, type, 1)) {
+    if (!ctx->er->assertTypeEquality("def", node, value_pr.type, type, 1)) {
         return false;
     }
 
-    res = storeValue(ctx, node, type, &builder, new_ptr, &p);
+    res = storeValue(ctx, node, type, &builder, dst_ptr, &value_pr);
     if (!res) {
         return false;
     }
     ParseResult temp;
-    bool mres = Operation::Destruct(ctx, &p, &temp);
+    bool mres = Operation::Destruct(ctx, &value_pr, &temp);
     if (!mres) {
         return false;
     }
@@ -317,22 +314,21 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     /* Add an alloca instruction for this variable. */
 
     llvm::IRBuilder<> builder(block);
-    llvm::Type *et = ctx->toLLVMType(type, (*value_node_list)[2], false,
-                                    false, true);
-    if (!et) {
+    llvm::Type *llvm_type =
+        ctx->toLLVMType(type, (*value_node_list)[2], false, false, true);
+    if (!llvm_type) {
         return false;
     }
 
-    llvm::Value *new_ptr = llvm::cast<llvm::Value>(
-                            builder.CreateAlloca(et)
-                        );
-    Variable *var2 = new Variable();
-    var2->name.append(name);
-    var2->type = type;
-    var2->value = new_ptr;
-    var2->linkage = linkage;
-    int avres = ctx->ns()->addVariable(name, var2);
-    if (!avres) {
+    llvm::Value *dst_ptr =
+        llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
+    Variable *var = new Variable();
+    var->name.append(name);
+    var->type = type;
+    var->value = dst_ptr;
+    var->linkage = linkage;
+    bool res = ctx->ns()->addVariable(name, var);
+    if (!res) {
         Error *e = new Error(RedefinitionOfVariable, node, name);
         ctx->er->addError(e);
         return false;
@@ -341,12 +337,12 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     if (value_node_list->size() == 3) {
         if (type->is_const && !init_fn) {
             Error *e = new Error(MustHaveInitialiserForConstType,
-                                    value_node);
+                                 value_node);
             ctx->er->addError(e);
             return false;
         }
 
-        initialise(ctx, &builder, type, new_ptr, init_fn);
+        initialise(ctx, &builder, type, dst_ptr, init_fn);
 
         pr->set(block, ctx->tr->type_int,
                 llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
@@ -355,10 +351,9 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     ParseResult p;
-    p.retval      = new_ptr;
+    p.retval      = dst_ptr;
     p.retval_type = ctx->tr->getPointerType(type);
-    bool res = processValue(units, fn, block, node, get_address,
-                            type, &p);
+    res = processValue(units, fn, block, node, get_address, type, &p);
     if (!res) {
         return false;
     }
@@ -401,17 +396,17 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     /* Handle arrays that were given a length of 0. */
     if (is_zero_sized) {
         type = p.type;
-        var2->type = type;
-        et = ctx->toLLVMType(type, (*value_node_list)[2], false, false);
-        new_ptr = llvm::cast<llvm::Value>(
-                    builder.CreateAlloca(et)
-                );
-        var2->value = new_ptr;
+        var->type = type;
+        llvm_type =
+            ctx->toLLVMType(type, (*value_node_list)[2], false, false);
+        dst_ptr =
+            llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
+        var->value = dst_ptr;
     }
 
     llvm::IRBuilder<> builder2(p.block);
 
-    res = storeValue(ctx, node, type, &builder2, new_ptr, &p);
+    res = storeValue(ctx, node, type, &builder2, dst_ptr, &p);
     if (!res) {
         return false;
     }
@@ -460,9 +455,9 @@ parseVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
 
     if ((*value_node_list)[2]->is_token &&
             !(*value_node_list)[2]->token->str_value.compare("\\")) {
-        return parseImpliedVarDefinition(units, fn, block, name,
-                                         node, get_address, linkage,
-                                         pr);
+        return parseImplicitVarDefinition(units, fn, block, name,
+                                          node, get_address, linkage,
+                                          pr);
     } else {
         return parseExplicitVarDefinition(units, fn, block, name,
                                           node, get_address, linkage,
