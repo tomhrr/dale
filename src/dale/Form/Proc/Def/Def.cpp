@@ -192,6 +192,240 @@ storeValue(Context *ctx, Node *node, Type *type,
 }
 
 bool
+parseImpliedVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
+                          const char *name, Node *node,
+                          bool get_address, int linkage, ParseResult *pr)
+{
+    Context *ctx = units->top()->ctx;
+    Node *value_node = node->list->at(2);
+    std::vector<Node *> *value_node_list = value_node->list;
+
+    if (value_node_list->size() != 4) {
+        Error *e = new Error(MustHaveInitialiserForImpliedType,
+                             value_node);
+        ctx->er->addError(e);
+        return false;
+    }
+
+    ParseResult p;
+    bool res = processValue(units, fn, block, node, get_address,
+                            NULL, &p);
+    if (!res) {
+        return false;
+    }
+
+    Type *type = p.type;
+    block = p.block;
+    llvm::IRBuilder<> builder(block);
+
+    llvm::Type *et = ctx->toLLVMType(type, (*value_node_list)[2],
+                                     false, false, false);
+    if (!et) {
+        return false;
+    }
+
+    llvm::Value *new_ptr = llvm::cast<llvm::Value>(
+                            builder.CreateAlloca(et)
+                        );
+    Variable *var2 = new Variable();
+    var2->name.append(name);
+    var2->type = type;
+    var2->value = new_ptr;
+    var2->linkage = Linkage::Auto;
+    int avres = ctx->ns()->addVariable(name, var2);
+
+    if (!avres) {
+        Error *e = new Error(RedefinitionOfVariable, node, name);
+        ctx->er->addError(e);
+        return false;
+    }
+
+    if (p.retval_used) {
+        var2->value = p.retval;
+        pr->block = p.block;
+        return true;
+    }
+
+    /* If the constant int 0 is returned, and this isn't an
+        * integer type (or bool), then skip this part (assume that
+        * the variable has been initialised by the user).  This is to
+        * save pointless copies/destructs, while still allowing the
+        * variable to be fully initialised once the define is
+        * complete. */
+
+    if (!(type->isIntegerType()) && (type->base_type != BaseType::Bool)) {
+        if (llvm::ConstantInt *temp =
+                    llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
+            if (temp->getValue().getLimitedValue() == 0) {
+                pr->block = p.block;
+                return true;
+            }
+        }
+    }
+
+    if (!ctx->er->assertTypeEquality("def", node, p.type, type, 1)) {
+        return false;
+    }
+
+    res = storeValue(ctx, node, type, &builder, new_ptr, &p);
+    if (!res) {
+        return false;
+    }
+    ParseResult temp;
+    bool mres = Operation::Destruct(ctx, &p, &temp);
+    if (!mres) {
+        return false;
+    }
+
+    pr->block = temp.block;
+    return true;
+}
+
+bool
+parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
+                           const char *name, Node *node,
+                           bool get_address, int linkage, ParseResult *pr)
+{
+    Context *ctx = units->top()->ctx;
+    Node *value_node = node->list->at(2);
+    std::vector<Node *> *value_node_list = value_node->list;
+
+    /* Parse the type. */
+    Type *type = FormTypeParse(units, (*value_node_list)[2], false, false);
+    if (!type) {
+        return false;
+    }
+
+    /* Find the init function, if it exists. */
+    std::vector<Type *> init_arg_types;
+    init_arg_types.push_back(type);
+    Function *init_fn =
+        ctx->getFunction("init", &init_arg_types, NULL, 0);
+
+    /* If it's a struct, check if it's must-init. */
+    if (type->struct_name.size()) {
+        Struct *st = ctx->getStruct(type);
+        if (st->must_init && (value_node_list->size() == 3) && !init_fn) {
+            Error *e = new Error(MustHaveInitialiserForType, value_node);
+            ctx->er->addError(e);
+            return false;
+        }
+    }
+
+    bool is_zero_sized = (type->array_type && (type->array_size == 0));
+
+    /* Add an alloca instruction for this variable. */
+
+    llvm::IRBuilder<> builder(block);
+    llvm::Type *et = ctx->toLLVMType(type, (*value_node_list)[2], false,
+                                    false, true);
+    if (!et) {
+        return false;
+    }
+
+    llvm::Value *new_ptr = llvm::cast<llvm::Value>(
+                            builder.CreateAlloca(et)
+                        );
+    Variable *var2 = new Variable();
+    var2->name.append(name);
+    var2->type = type;
+    var2->value = new_ptr;
+    var2->linkage = linkage;
+    int avres = ctx->ns()->addVariable(name, var2);
+    if (!avres) {
+        Error *e = new Error(RedefinitionOfVariable, node, name);
+        ctx->er->addError(e);
+        return false;
+    }
+
+    if (value_node_list->size() == 3) {
+        if (type->is_const && !init_fn) {
+            Error *e = new Error(MustHaveInitialiserForConstType,
+                                    value_node);
+            ctx->er->addError(e);
+            return false;
+        }
+
+        initialise(ctx, &builder, type, new_ptr, init_fn);
+
+        pr->set(block, ctx->tr->type_int,
+                llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
+
+        return true;
+    }
+
+    ParseResult p;
+    p.retval      = new_ptr;
+    p.retval_type = ctx->tr->getPointerType(type);
+    bool res = processValue(units, fn, block, node, get_address,
+                            type, &p);
+    if (!res) {
+        return false;
+    }
+
+    /* If the retval was used, then there's no need for anything
+        * following. */
+
+    if (p.retval_used) {
+        pr->block = p.block;
+        return true;
+    }
+
+    Node *last = (*value_node_list)[3];
+    if (last->is_list) {
+        Node *first = last->list->at(0);
+        if (first && first->is_token
+                && !(first->token->str_value.compare("init"))) {
+            return true;
+        }
+    }
+
+    /* If the constant int 0 is returned and this isn't an integer
+        * type, or the initialisation form is a list where the first
+        * token is 'init', then skip this part (assume that the
+        * variable has been initialised by the user). This is to save
+        * pointless copies/destructs, while still allowing the
+        * variable to be fully initialised once the define is
+        * complete. */
+
+    if (!(type->isIntegerType()) && (type->base_type != BaseType::Bool)) {
+        if (llvm::ConstantInt *temp =
+                    llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
+            if (temp->getValue().getLimitedValue() == 0) {
+                pr->block = p.block;
+                return true;
+            }
+        }
+    }
+
+    /* Handle arrays that were given a length of 0. */
+    if (is_zero_sized) {
+        type = p.type;
+        var2->type = type;
+        et = ctx->toLLVMType(type, (*value_node_list)[2], false, false);
+        new_ptr = llvm::cast<llvm::Value>(
+                    builder.CreateAlloca(et)
+                );
+        var2->value = new_ptr;
+    }
+
+    llvm::IRBuilder<> builder2(p.block);
+
+    res = storeValue(ctx, node, type, &builder2, new_ptr, &p);
+    if (!res) {
+        return false;
+    }
+    ParseResult temp;
+    bool mres = Operation::Destruct(ctx, &p, &temp);
+    if (!mres) {
+        return false;
+    }
+
+    pr->block = temp.block;
+    return true;
+}
+
+bool
 parseVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
                    const char *name, Node *node,
                    bool get_address, ParseResult *pr)
@@ -220,248 +454,21 @@ parseVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     pr->do_not_destruct       = true;
     pr->do_not_copy_with_setf = true;
 
-    Type *type = NULL;
-
     /* Check if the type is a single token string equal to "\". If it
      * is, then the type is implied based on the result of parsing the
      * later expression. */
 
     if ((*value_node_list)[2]->is_token &&
             !(*value_node_list)[2]->token->str_value.compare("\\")) {
-        if (value_node_list->size() != 4) {
-            Error *e = new Error(MustHaveInitialiserForImpliedType,
-                                 value_node);
-            ctx->er->addError(e);
-            return false;
-        }
-
-        ParseResult p;
-        bool res = processValue(units, fn, block, node, get_address,
-                                NULL, &p);
-        if (!res) {
-            return false;
-        }
-
-        type  = p.type;
-        block = p.block;
-        llvm::IRBuilder<> builder(block);
-
-        llvm::Type *et = ctx->toLLVMType(type, (*value_node_list)[2],
-                                         false, false, false);
-        if (!et) {
-            return false;
-        }
-
-        llvm::Value *new_ptr = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(et)
-                            );
-        Variable *var2 = new Variable();
-        var2->name.append(name);
-        var2->type = type;
-        var2->value = new_ptr;
-        var2->linkage = Linkage::Auto;
-        int avres = ctx->ns()->addVariable(name, var2);
-
-        if (!avres) {
-            Error *e = new Error(
-                RedefinitionOfVariable,
-                node,
-                name
-            );
-            ctx->er->addError(e);
-            return false;
-        }
-
-        if (p.retval_used) {
-            var2->value = p.retval;
-            pr->block = p.block;
-            return true;
-        }
-
-        /* If the constant int 0 is returned, and this isn't an
-         * integer type (or bool), then skip this part (assume that
-         * the variable has been initialised by the user).  This is to
-         * save pointless copies/destructs, while still allowing the
-         * variable to be fully initialised once the define is
-         * complete. */
-
-        if (!(type->isIntegerType()) && (type->base_type != BaseType::Bool)) {
-            if (llvm::ConstantInt *temp =
-                        llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
-                if (temp->getValue().getLimitedValue() == 0) {
-                    pr->block = p.block;
-                    return true;
-                }
-            }
-        }
-
-        if (!ctx->er->assertTypeEquality("def", node, p.type, type, 1)) {
-            return false;
-        }
-
-        res = storeValue(ctx, node, type, &builder, new_ptr, &p);
-        if (!res) {
-            return false;
-        }
-        ParseResult temp;
-        bool mres = Operation::Destruct(ctx, &p, &temp);
-        if (!mres) {
-            return false;
-        }
-
-        pr->block = temp.block;
-        return true;
+        return parseImpliedVarDefinition(units, fn, block, name,
+                                         node, get_address, linkage,
+                                         pr);
     } else {
-        /* Parse the type. */
-        type = FormTypeParse(units, (*value_node_list)[2], false, false);
-        if (!type) {
-            return false;
-        }
-
-        /* Find the init function, if it exists. */
-        std::vector<Type *> init_arg_types;
-        init_arg_types.push_back(type);
-        Function *init_fn =
-            ctx->getFunction("init", &init_arg_types, NULL, 0);
-
-        /* If it's a struct, check if it's must-init. */
-        if (type->struct_name.size()) {
-            Struct *mine =
-                ctx->getStruct(
-                    type->struct_name.c_str(),
-                    &(type->namespaces)
-                );
-            if (mine->must_init && (value_node_list->size() == 3) && !init_fn) {
-                Error *e = new Error(
-                    MustHaveInitialiserForType,
-                    value_node
-                );
-                ctx->er->addError(e);
-                return false;
-            }
-        }
-
-        bool is_zero_sized =
-            (type->array_type && (type->array_size == 0));
-
-        /* Add an alloca instruction for this variable. */
-
-        llvm::IRBuilder<> builder(block);
-        llvm::Type *et = ctx->toLLVMType(type, (*value_node_list)[2], false,
-                                        false, true);
-        if (!et) {
-            return false;
-        }
-
-        llvm::Value *new_ptr = llvm::cast<llvm::Value>(
-                                builder.CreateAlloca(et)
-                            );
-        Variable *var2 = new Variable();
-        var2->name.append(name);
-        var2->type = type;
-        var2->value = new_ptr;
-        var2->linkage = linkage;
-        int avres = ctx->ns()->addVariable(name, var2);
-        if (!avres) {
-            Error *e = new Error(
-                RedefinitionOfVariable,
-                node,
-                name
-            );
-            ctx->er->addError(e);
-            return false;
-        }
-
-        if (value_node_list->size() == 3) {
-            if (type->is_const && !init_fn) {
-                Error *e = new Error(
-                    MustHaveInitialiserForConstType,
-                    value_node
-                );
-                ctx->er->addError(e);
-                return false;
-            }
-
-            initialise(ctx, &builder, type, new_ptr, init_fn);
-
-            pr->set(block, ctx->tr->type_int,
-                    llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
-
-            return true;
-        }
-
-        ParseResult p;
-        p.retval      = new_ptr;
-        p.retval_type = ctx->tr->getPointerType(type);
-        bool res = processValue(units, fn, block, node, get_address,
-                                type, &p);
-        if (!res) {
-            return false;
-        }
-
-        /* If the retval was used, then there's no need for anything
-         * following. */
-
-        if (p.retval_used) {
-            pr->block = p.block;
-            return true;
-        }
-
-        /* If the constant int 0 is returned and this isn't an integer
-         * type, or the initialisation form is a list where the first
-         * token is 'init', then skip this part (assume that the
-         * variable has been initialised by the user). This is to save
-         * pointless copies/destructs, while still allowing the
-         * variable to be fully initialised once the define is
-         * complete. */
-
-        Node *last = (*value_node_list)[3];
-        if (last->is_list) {
-            Node *first = last->list->at(0);
-            if (first && first->is_token
-                    && !(first->token->str_value.compare("init"))) {
-                return true;
-            }
-        }
-
-        if (!(type->isIntegerType()) && (type->base_type != BaseType::Bool)) {
-            if (llvm::ConstantInt *temp =
-                        llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
-                if (temp->getValue().getLimitedValue() == 0) {
-                    pr->block = p.block;
-                    return true;
-                }
-            }
-        }
-
-        /* Handle arrays that were given a length of 0. */
-        if (is_zero_sized) {
-            type = p.type;
-            var2->type = type;
-            et = ctx->toLLVMType(type, (*value_node_list)[2], false, false);
-            new_ptr = llvm::cast<llvm::Value>(
-                        builder.CreateAlloca(et)
-                    );
-            var2->value = new_ptr;
-        }
-
-        llvm::IRBuilder<> builder2(p.block);
-
-        res = storeValue(ctx, node, type, &builder2, new_ptr, &p);
-        if (!res) {
-            return false;
-        }
-        ParseResult temp;
-        bool mres = Operation::Destruct(ctx, &p, &temp);
-        if (!mres) {
-            return false;
-        }
-
-        pr->block = temp.block;
-        return true;
+        return parseExplicitVarDefinition(units, fn, block, name,
+                                          node, get_address, linkage,
+                                          pr);
     }
 }
-
 
 bool
 FormProcDefParse(Units *units, Function *fn, llvm::BasicBlock *block,
