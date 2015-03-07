@@ -16,8 +16,6 @@
 #include "../../Literal/Array/Array.h"
 #include "../../Type/Type.h"
 
-#define eq(str_arg) !strcmp(str, str_arg)
-
 using namespace dale::ErrorInst::Generator;
 
 namespace dale

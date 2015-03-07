@@ -9,11 +9,12 @@
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 Function *
-get_init_fn(Context *ctx,
-            Type *type)
+get_init_fn(Context *ctx, Type *type)
 {
     std::vector<Type *> init_arg_types;
     init_arg_types.push_back(type);
@@ -21,11 +22,8 @@ get_init_fn(Context *ctx,
 }
 
 bool
-initialise(Context *ctx,
-                llvm::IRBuilder<> *builder,
-                Type *type,
-                llvm::Value *value,
-                Function *init_fn)
+initialise(Context *ctx, llvm::IRBuilder<> *builder, Type *type,
+           llvm::Value *value, Function *init_fn)
 {
     if (!init_fn) {
         init_fn = get_init_fn(ctx, type);
@@ -34,10 +32,8 @@ initialise(Context *ctx,
     if (init_fn) {
         std::vector<llvm::Value *> call_args;
         call_args.push_back(value);
-        builder->CreateCall(
-            init_fn->llvm_function, 
-            llvm::ArrayRef<llvm::Value*>(call_args)
-        );
+        builder->CreateCall(init_fn->llvm_function,
+                            llvm::ArrayRef<llvm::Value*>(call_args));
         return true;
     }
 
@@ -51,9 +47,7 @@ initialise(Context *ctx,
         indices.push_back(ctx->nt->getLLVMZero());
         for (int i = 0; i < type->array_size; i++) {
             indices.push_back(
-                llvm::cast<llvm::Value>(
-                    ctx->nt->getNativeInt(i)
-                )
+                llvm::cast<llvm::Value>(ctx->nt->getNativeInt(i))
             );
             llvm::Value *aref = builder->Insert(
                 llvm::GetElementPtrInst::Create(
@@ -62,8 +56,7 @@ initialise(Context *ctx,
                 ),
                 "aref"
             );
-            initialise(ctx, builder, type->array_type,
-                        aref, init_fn);
+            initialise(ctx, builder, type->array_type, aref, init_fn);
             indices.pop_back();
         }
 
@@ -71,23 +64,18 @@ initialise(Context *ctx,
     }
 
     if (type->struct_name.size()) {
-        Struct *sp =
-            ctx->getStruct(
-                type->struct_name.c_str(),
-                &(type->namespaces)
-            );
-        int i = 0;
+        Struct *st = ctx->getStruct(type);
         std::vector<llvm::Value *> indices;
         indices.push_back(ctx->nt->getLLVMZero());
-        for (std::vector<Type *>::iterator
-                b = sp->member_types.begin(),
-                e = sp->member_types.end();
+        int i = 0;
+        for (std::vector<Type *>::iterator b = st->member_types.begin(),
+                                           e = st->member_types.end();
                 b != e;
                 ++b) {
-            Type *t = (*b);
+            Type *type = (*b);
             indices.push_back(
                 llvm::cast<llvm::Value>(
-                    ctx->nt->getNativeInt(i)
+                    ctx->nt->getNativeInt(i++)
                 )
             );
             llvm::Value *sref = builder->Insert(
@@ -98,8 +86,7 @@ initialise(Context *ctx,
                 "sref"
             );
             indices.pop_back();
-            i++;
-            initialise(ctx, builder, t, sref, NULL);
+            initialise(ctx, builder, type, sref, NULL);
         }
         return true;
     }
@@ -108,155 +95,112 @@ initialise(Context *ctx,
 }
 
 bool
-FormProcDefParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+processValue(Units *units, Function *fn, llvm::BasicBlock *block,
+             Node *node, bool get_address, Type *wanted_type,
+             ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
+    std::vector<Node *> *value_node_list = node->list->at(2)->list;
 
-    assert(node->list && "must receive a list!");
+    Node *var_value_node = (*value_node_list)[3];
+    std::vector<Node *> *var_value_node_list = var_value_node->list;
+    Variable *var_value = NULL;
+    llvm::IRBuilder<> builder(block);
 
-    if (!ctx->er->assertArgNums("def", node, 2, 2)) {
-        return false;
-    }
-
-    symlist *lst = node->list;
-    Node *nname = (*lst)[1];
-
-    if (!ctx->er->assertArgIsAtom("def", nname, "1")) {
-        return false;
-    }
-    if (!ctx->er->assertAtomIsSymbol("def", nname, "1")) {
-        return false;
-    }
-
-    Token *t = nname->token;
-    char name[255];
-    strncpy(name, t->str_value.c_str(), 255);
-
-    Node *ndef = (*lst)[2];
-
-    if (!ctx->er->assertArgIsList("def", ndef, "2")) {
-        return false;
-    }
-
-    Node *nvar = NULL;
-
-    if ((ndef->list->size() < (int) 1)
-            || (!(nvar = (*(ndef->list))[0]))
-            || (!(nvar->is_token))
-            || (!(nvar->token->type == TokenType::String))) {
-        if (nvar->token->str_value.compare("var")
-                && nvar->token->str_value.compare("struct")) {
-            Error *e = new Error(
-                ErrorInst::Generator::OnlyVarPermitted,
-                ndef
+    if (var_value_node->is_token
+            && (var_value = ctx->getVariable(
+                    var_value_node->token->str_value.c_str()))) {
+        pr->set(block, var_value->type,
+                builder.CreateLoad(var_value->value));
+        pr->do_not_destruct = true;
+    } else if (var_value_node->is_list
+            && (var_value_node_list->size() == 2)
+            && (var_value_node_list->at(0)->is_token)
+            && (!var_value_node_list->at(0)->token->str_value.compare("@"))
+            && (var_value_node_list->at(1)->is_token)
+            && (var_value = ctx->getVariable(
+                    var_value_node_list->at(1)->token->str_value.c_str()))) {
+        pr->set(block, var_value->type->points_to,
+                builder.CreateLoad(builder.CreateLoad(var_value->value)));
+        pr->do_not_destruct = true;
+    } else {
+        bool res =
+            FormProcInstParse(units,
+                fn, block, var_value_node, get_address, false,
+                wanted_type, pr
             );
-            ctx->er->addError(e);
+        if (!res) {
             return false;
         }
     }
 
-    if (!(nvar->token->str_value.compare("struct"))) {
-        FormStructParse(units, ndef, name);
-        pr->set(block, ctx->tr->type_int,
-              llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
-        return true;
-    }
+    return true;
+}
 
-    symlist *newlist = ndef->list;
-    nvar = (*newlist)[0];
+bool
+parseVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
+                   const char *name, Node *node,
+                   bool get_address, ParseResult *pr)
+{
+    Context *ctx = units->top()->ctx;
+    Node *value_node = node->list->at(2);
+    std::vector<Node *> *value_node_list = value_node->list;
 
     /* Parse linkage. */
 
-    int linkage = FormLinkageParse(ctx, (*newlist)[1]);
+    int linkage = FormLinkageParse(ctx, (*value_node_list)[1]);
     if (!linkage) {
         return false;
     }
 
     if ((linkage != Linkage::Auto)
             && (linkage != Linkage::Intern)
-            && (newlist->size() > 3)) {
-        Error *e = new Error(
-            ErrorInst::Generator::HasBothExternAndInitialiser,
-            ndef
-        );
+            && (value_node_list->size() > 3)) {
+        Error *e = new Error(HasBothExternAndInitialiser, value_node);
         ctx->er->addError(e);
         return false;
     }
 
-    /* Check if the type is a single token string equal to "\". If
-     * it is, then the type is implied based on the result of
-     * parsing the later expression. */
-
     pr->set(block, ctx->tr->type_int,
-          llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
-    pr->do_not_destruct       = 1;
-    pr->do_not_copy_with_setf = 1;
+        llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
+    pr->do_not_destruct       = true;
+    pr->do_not_copy_with_setf = true;
 
-    Type *type;
+    Type *type = NULL;
 
-    if ((*newlist)[2]->is_token &&
-            !(*newlist)[2]->token->str_value.compare("\\")) {
-        if (newlist->size() != 4) {
-            Error *e = new Error(
-                ErrorInst::Generator::MustHaveInitialiserForImpliedType,
-                ndef
-            );
+    /* Check if the type is a single token string equal to "\". If it
+     * is, then the type is implied based on the result of parsing the
+     * later expression. */
+
+    if ((*value_node_list)[2]->is_token &&
+            !(*value_node_list)[2]->token->str_value.compare("\\")) {
+        if (value_node_list->size() != 4) {
+            Error *e = new Error(MustHaveInitialiserForImpliedType,
+                                 value_node);
             ctx->er->addError(e);
             return false;
         }
 
         ParseResult p;
-        Node *last = (*newlist)[3];
-        symlist *vlst = last->list;
-        Variable *var_value = NULL;
-        llvm::IRBuilder<> builder(block);
-        if (last->is_token
-                && (var_value = ctx->getVariable(
-                        last->token->str_value.c_str()))) {
-            p.value = builder.CreateLoad(var_value->value);
-            p.type  = var_value->type;
-            p.do_not_destruct = 1;
-            p.block = block;
-        } else if (last->is_list
-                && (vlst->size() == 2)
-                && (vlst->at(0)->is_token)
-                && (!vlst->at(0)->token->str_value.compare("@"))
-                && (vlst->at(1)->is_token)
-                && (var_value = ctx->getVariable(
-                        vlst->at(1)->token->str_value.c_str()))) {
-            p.value = builder.CreateLoad(builder.CreateLoad(var_value->value));
-            p.type  = var_value->type->points_to;
-            p.do_not_destruct = 1;
-            p.block = block;
-        } else {
-            bool res =
-                FormProcInstParse(units,
-                    fn, block, last, get_address, false, NULL, &p
-                );
-            if (!res) {
-                return false;
-            }
+        bool res = processValue(units, fn, block, node, get_address,
+                                NULL, &p);
+        if (!res) {
+            return false;
         }
 
         type  = p.type;
         block = p.block;
-        builder.SetInsertPoint(block);
+        llvm::IRBuilder<> builder(block);
 
-        llvm::Type *et = ctx->toLLVMType(type, (*newlist)[2], 
+        llvm::Type *et = ctx->toLLVMType(type, (*value_node_list)[2],
                                          false, false, false);
         if (!et) {
             return false;
         }
 
         llvm::Value *new_ptr = llvm::cast<llvm::Value>(
-                                   builder.CreateAlloca(et)
-                               );
+                                builder.CreateAlloca(et)
+                            );
         Variable *var2 = new Variable();
         var2->name.append(name);
         var2->type = type;
@@ -266,7 +210,7 @@ FormProcDefParse(Units *units,
 
         if (!avres) {
             Error *e = new Error(
-                ErrorInst::Generator::RedefinitionOfVariable,
+                RedefinitionOfVariable,
                 node,
                 name
             );
@@ -281,11 +225,11 @@ FormProcDefParse(Units *units,
         }
 
         /* If the constant int 0 is returned, and this isn't an
-         * integer type (or bool), then skip this part (assume
-         * that the variable has been initialised by the user).
-         * This is to save pointless copies/destructs, while still
-         * allowing the variable to be fully initialised once the
-         * define is complete. */
+        * integer type (or bool), then skip this part (assume
+        * that the variable has been initialised by the user).
+        * This is to save pointless copies/destructs, while still
+        * allowing the variable to be fully initialised once the
+        * define is complete. */
 
         if (!(type->isIntegerType()) && (type->base_type != BaseType::Bool)) {
             if (llvm::ConstantInt *temp =
@@ -306,14 +250,14 @@ FormProcDefParse(Units *units,
         call_arg_types.push_back(ctx->tr->getPointerType(type));
         Function *or_setf =
             ctx->getFunction("setf-copy", &call_arg_types,
-                             NULL, 0);
+                            NULL, 0);
         if (or_setf && type->isEqualTo(p.type)) {
             std::vector<llvm::Value *> call_args2;
             call_args2.push_back(new_ptr);
             llvm::Value *new_ptr2 =
                 llvm::cast<llvm::Value>(
                     builder.CreateAlloca(ctx->toLLVMType(type, NULL,
-                                                         false, false))
+                                                        false, false))
                 );
             builder.CreateStore(p.value, new_ptr2);
             call_args2.push_back(new_ptr2);
@@ -325,7 +269,7 @@ FormProcDefParse(Units *units,
             call_arg_types.push_back(p.type);
             Function *or_setf2 =
                 ctx->getFunction("setf-copy", &call_arg_types,
-                                 NULL, 0);
+                                NULL, 0);
             if (or_setf2) {
                 std::vector<llvm::Value *> call_args2;
                 call_args2.push_back(new_ptr);
@@ -347,11 +291,11 @@ FormProcDefParse(Units *units,
         return true;
     } else {
         /* Parse the type. */
-        type = FormTypeParse(units, (*newlist)[2], false, false);
+        type = FormTypeParse(units, (*value_node_list)[2], false, false);
         if (!type) {
             return false;
         }
-        
+
         /* Find the init function, if it exists. */
         std::vector<Type *> init_arg_types;
         init_arg_types.push_back(type);
@@ -365,10 +309,10 @@ FormProcDefParse(Units *units,
                     type->struct_name.c_str(),
                     &(type->namespaces)
                 );
-            if (mine->must_init && (newlist->size() == 3) && !init_fn) {
+            if (mine->must_init && (value_node_list->size() == 3) && !init_fn) {
                 Error *e = new Error(
-                    ErrorInst::Generator::MustHaveInitialiserForType,
-                    ndef
+                    MustHaveInitialiserForType,
+                    value_node
                 );
                 ctx->er->addError(e);
                 return false;
@@ -381,15 +325,15 @@ FormProcDefParse(Units *units,
         /* Add an alloca instruction for this variable. */
 
         llvm::IRBuilder<> builder(block);
-        llvm::Type *et = ctx->toLLVMType(type, (*newlist)[2], false,
-                                         false, true);
+        llvm::Type *et = ctx->toLLVMType(type, (*value_node_list)[2], false,
+                                        false, true);
         if (!et) {
             return false;
         }
 
         llvm::Value *new_ptr = llvm::cast<llvm::Value>(
-                                   builder.CreateAlloca(et)
-                               );
+                                builder.CreateAlloca(et)
+                            );
         Variable *var2 = new Variable();
         var2->name.append(name);
         var2->type = type;
@@ -398,7 +342,7 @@ FormProcDefParse(Units *units,
         int avres = ctx->ns()->addVariable(name, var2);
         if (!avres) {
             Error *e = new Error(
-                ErrorInst::Generator::RedefinitionOfVariable,
+                RedefinitionOfVariable,
                 node,
                 name
             );
@@ -406,11 +350,11 @@ FormProcDefParse(Units *units,
             return false;
         }
 
-        if (newlist->size() == 3) {
+        if (value_node_list->size() == 3) {
             if (type->is_const && !init_fn) {
                 Error *e = new Error(
-                    ErrorInst::Generator::MustHaveInitialiserForConstType,
-                    ndef
+                    MustHaveInitialiserForConstType,
+                    value_node
                 );
                 ctx->er->addError(e);
                 return false;
@@ -419,51 +363,26 @@ FormProcDefParse(Units *units,
             initialise(ctx, &builder, type, new_ptr, init_fn);
 
             pr->set(block, ctx->tr->type_int,
-                  llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
+                    llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
 
             return true;
         }
 
         ParseResult p;
-        Node *last = (*newlist)[3];
-        symlist *vlst = last->list;
-        Variable *var_value = NULL;
-        /* Add the pointer as the retval. */
         p.retval      = new_ptr;
         p.retval_type = ctx->tr->getPointerType(type);
-        if (last->is_token
-                && (var_value = ctx->getVariable(
-                        last->token->str_value.c_str()))) {
-            p.value = builder.CreateLoad(var_value->value);
-            p.type  = var_value->type;
-            p.do_not_destruct = 1;
-            p.block = block;
-        } else if (last->is_list
-                && (vlst->size() == 2)
-                && (vlst->at(0)->is_token)
-                && (!vlst->at(0)->token->str_value.compare("@"))
-                && (vlst->at(1)->is_token)
-                && (var_value = ctx->getVariable(
-                        vlst->at(1)->token->str_value.c_str()))) {
-            p.value = builder.CreateLoad(builder.CreateLoad(var_value->value));
-            p.type  = var_value->type->points_to;
-            p.do_not_destruct = 1;
-            p.block = block;
-        } else {
-            bool res =
-                FormProcInstParse(units,
-                    fn, block, last, get_address, false, type, &p
-                );
-            if (!res) {
-                return false;
-            }
+        bool res = processValue(units, fn, block, node, get_address,
+                                type, &p);
+        if (!res) {
+            return false;
+        }
 
-            /* If the retval was used, then there's no need for anything
-             * following. */
-            if (p.retval_used) {
-                pr->block = p.block;
-                return true;
-            }
+        /* If the retval was used, then there's no need for anything
+         * following. */
+
+        if (p.retval_used) {
+            pr->block = p.block;
+            return true;
         }
 
         /* If the constant int 0 is returned and this isn't an integer
@@ -474,10 +393,11 @@ FormProcDefParse(Units *units,
          * variable to be fully initialised once the define is
          * complete. */
 
+        Node *last = (*value_node_list)[3];
         if (last->is_list) {
             Node *first = last->list->at(0);
-            if (first && first->is_token 
-                      && !(first->token->str_value.compare("init"))) {
+            if (first && first->is_token
+                    && !(first->token->str_value.compare("init"))) {
                 return true;
             }
         }
@@ -496,10 +416,10 @@ FormProcDefParse(Units *units,
         if (is_zero_sized) {
             type = p.type;
             var2->type = type;
-            et = ctx->toLLVMType(type, (*newlist)[2], false, false);
+            et = ctx->toLLVMType(type, (*value_node_list)[2], false, false);
             new_ptr = llvm::cast<llvm::Value>(
-                          builder.CreateAlloca(et)
-                      );
+                        builder.CreateAlloca(et)
+                    );
             var2->value = new_ptr;
         }
 
@@ -510,14 +430,14 @@ FormProcDefParse(Units *units,
         call_arg_types.push_back(ctx->tr->getPointerType(type));
         Function *or_setf =
             ctx->getFunction("setf-copy", &call_arg_types,
-                             NULL, 0);
+                            NULL, 0);
         if (or_setf && type->isEqualTo(p.type)) {
             std::vector<llvm::Value *> call_args2;
             call_args2.push_back(new_ptr);
             llvm::Value *new_ptr2 =
                 llvm::cast<llvm::Value>(
                     builder2.CreateAlloca(ctx->toLLVMType(type, NULL,
-                                                          false, false))
+                                                        false, false))
                 );
             builder2.CreateStore(p.value, new_ptr2);
             call_args2.push_back(new_ptr2);
@@ -530,7 +450,7 @@ FormProcDefParse(Units *units,
             call_arg_types.push_back(p.type);
             Function *or_setf2 =
                 ctx->getFunction("setf-copy", &call_arg_types,
-                                 NULL, 0);
+                                NULL, 0);
             if (or_setf2) {
                 std::vector<llvm::Value *> call_args2;
                 call_args2.push_back(new_ptr);
@@ -542,7 +462,7 @@ FormProcDefParse(Units *units,
                 int old_const = p.type->is_const;
                 p.type->is_const = 0;
                 bool res = ctx->er->assertTypeEquality("def", node,
-                                                       p.type, type, 1);
+                                                    p.type, type, 1);
                 p.type->is_const = old_const;
                 if (!res) {
                     return false;
@@ -558,6 +478,63 @@ FormProcDefParse(Units *units,
 
         pr->block = temp.block;
         return true;
+    }
+}
+
+
+bool
+FormProcDefParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                 Node *node, bool get_address, bool prefixed_with_core,
+                 ParseResult *pr)
+{
+    Context *ctx = units->top()->ctx;
+
+    if (!ctx->er->assertArgNums("def", node, 2, 2)) {
+        return false;
+    }
+
+    std::vector<Node *> *lst = node->list;
+    Node *name_node = (*lst)[1];
+
+    if (!ctx->er->assertArgIsAtom("def", name_node, "1")) {
+        return false;
+    }
+    if (!ctx->er->assertAtomIsSymbol("def", name_node, "1")) {
+        return false;
+    }
+
+    Token *t = name_node->token;
+    const char *name = t->str_value.c_str();
+
+    Node *value_node = (*lst)[2];
+    if (!ctx->er->assertArgIsList("def", value_node, "2")) {
+        return false;
+    }
+    std::vector<Node *> *value_node_list = value_node->list;
+    if (value_node_list->size() == 0) {
+        Error *e = new Error(NoEmptyLists, value_node);
+        ctx->er->addError(e);
+        return false;
+    }
+
+    Node *def_type = value_node_list->at(0);
+    if (!(def_type->token->str_value.compare("struct"))) {
+        FormStructParse(units, value_node, name);
+        pr->set(block, ctx->tr->type_int,
+              llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
+        return true;
+    } else if (!(def_type->token->str_value.compare("var"))) {
+        return parseVarDefinition(units, fn, block, name, node,
+                                  get_address, pr);
+
+
+    } else {
+        Error *e = new Error(
+            OnlyVarAndStructPermitted,
+            value_node
+        );
+        ctx->er->addError(e);
+        return false;
     }
 }
 }

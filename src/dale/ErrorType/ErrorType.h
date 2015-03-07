@@ -104,7 +104,7 @@ enum
     FieldDoesNotExistInStruct,
     EnumValueDoesNotExist,
     IfBranchesHaveDifferentTypes,
-    OnlyVarPermitted,
+    OnlyVarAndStructPermitted,
     UnableToParseForm,
     InvalidChar,
     TypeNotSupportedForMacro,

@@ -184,7 +184,7 @@ errorInstanceToString(int error_instance)
         ret = "'if' branches must have the same type "
               "(got %s and %s)";
         break;
-    case ErrorInst::Generator::OnlyVarPermitted:
+    case ErrorInst::Generator::OnlyVarAndStructPermitted:
         ret = "'def' within a function may only be used "
               "for var and struct forms";
         break;
