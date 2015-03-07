@@ -230,9 +230,9 @@ parseImplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     var->type = type;
     var->value = dst_ptr;
     var->linkage = Linkage::Auto;
-    int avres = ctx->ns()->addVariable(name, var);
 
-    if (!avres) {
+    res = ctx->ns()->addVariable(name, var);
+    if (!res) {
         Error *e = new Error(RedefinitionOfVariable, node, name);
         ctx->er->addError(e);
         return false;
@@ -251,9 +251,9 @@ parseImplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
      * initialised once the define is complete. */
 
     if (!(type->isIntegerType()) && (type->base_type != BaseType::Bool)) {
-        if (llvm::ConstantInt *temp =
-                    llvm::dyn_cast<llvm::ConstantInt>(value_pr.value)) {
-            if (temp->getValue().getLimitedValue() == 0) {
+        if (llvm::ConstantInt *int_value =
+                llvm::dyn_cast<llvm::ConstantInt>(value_pr.value)) {
+            if (int_value->getValue().getLimitedValue() == 0) {
                 pr->block = value_pr.block;
                 return true;
             }
@@ -268,13 +268,14 @@ parseImplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     if (!res) {
         return false;
     }
-    ParseResult temp;
-    bool mres = Operation::Destruct(ctx, &value_pr, &temp);
-    if (!mres) {
+
+    ParseResult destruct_pr;
+    res = Operation::Destruct(ctx, &value_pr, &destruct_pr);
+    if (!res) {
         return false;
     }
 
-    pr->block = temp.block;
+    pr->block = destruct_pr.block;
     return true;
 }
 
@@ -287,19 +288,13 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     Node *value_node = node->list->at(2);
     std::vector<Node *> *value_node_list = value_node->list;
 
-    /* Parse the type. */
     Type *type = FormTypeParse(units, (*value_node_list)[2], false, false);
     if (!type) {
         return false;
     }
 
-    /* Find the init function, if it exists. */
-    std::vector<Type *> init_arg_types;
-    init_arg_types.push_back(type);
-    Function *init_fn =
-        ctx->getFunction("init", &init_arg_types, NULL, 0);
+    Function *init_fn = get_init_fn(ctx, type);
 
-    /* If it's a struct, check if it's must-init. */
     if (type->struct_name.size()) {
         Struct *st = ctx->getStruct(type);
         if (st->must_init && (value_node_list->size() == 3) && !init_fn) {
@@ -310,8 +305,6 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     bool is_zero_sized = (type->array_type && (type->array_size == 0));
-
-    /* Add an alloca instruction for this variable. */
 
     llvm::IRBuilder<> builder(block);
     llvm::Type *llvm_type =
@@ -327,6 +320,7 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     var->type = type;
     var->value = dst_ptr;
     var->linkage = linkage;
+
     bool res = ctx->ns()->addVariable(name, var);
     if (!res) {
         Error *e = new Error(RedefinitionOfVariable, node, name);
@@ -350,52 +344,48 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         return true;
     }
 
-    ParseResult p;
-    p.retval      = dst_ptr;
-    p.retval_type = ctx->tr->getPointerType(type);
-    res = processValue(units, fn, block, node, get_address, type, &p);
+    ParseResult value_pr;
+    value_pr.retval      = dst_ptr;
+    value_pr.retval_type = ctx->tr->getPointerType(type);
+    res = processValue(units, fn, block, node, get_address, type,
+                       &value_pr);
     if (!res) {
         return false;
     }
 
-    /* If the retval was used, then there's no need for anything
-        * following. */
-
-    if (p.retval_used) {
-        pr->block = p.block;
+    if (value_pr.retval_used) {
+        pr->block = value_pr.block;
         return true;
     }
 
-    Node *last = (*value_node_list)[3];
-    if (last->is_list) {
-        Node *first = last->list->at(0);
+    /* If the constant int 0 is returned and this isn't an integer
+     * type, or the initialisation form is a list where the first
+     * token is 'init', then skip this part (assume that the variable
+     * has been initialised by the user). This is to save pointless
+     * copies/destructs, while still allowing the variable to be fully
+     * initialised once the define is complete. */
+
+    Node *var_value_node = (*value_node_list)[3];
+    if (var_value_node->is_list) {
+        Node *first = var_value_node->list->at(0);
         if (first && first->is_token
                 && !(first->token->str_value.compare("init"))) {
             return true;
         }
     }
 
-    /* If the constant int 0 is returned and this isn't an integer
-        * type, or the initialisation form is a list where the first
-        * token is 'init', then skip this part (assume that the
-        * variable has been initialised by the user). This is to save
-        * pointless copies/destructs, while still allowing the
-        * variable to be fully initialised once the define is
-        * complete. */
-
     if (!(type->isIntegerType()) && (type->base_type != BaseType::Bool)) {
-        if (llvm::ConstantInt *temp =
-                    llvm::dyn_cast<llvm::ConstantInt>(p.value)) {
-            if (temp->getValue().getLimitedValue() == 0) {
-                pr->block = p.block;
+        if (llvm::ConstantInt *int_value =
+                llvm::dyn_cast<llvm::ConstantInt>(value_pr.value)) {
+            if (int_value->getValue().getLimitedValue() == 0) {
+                pr->block = value_pr.block;
                 return true;
             }
         }
     }
 
-    /* Handle arrays that were given a length of 0. */
     if (is_zero_sized) {
-        type = p.type;
+        type = value_pr.type;
         var->type = type;
         llvm_type =
             ctx->toLLVMType(type, (*value_node_list)[2], false, false);
@@ -404,19 +394,19 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         var->value = dst_ptr;
     }
 
-    llvm::IRBuilder<> builder2(p.block);
+    builder.SetInsertPoint(value_pr.block);
 
-    res = storeValue(ctx, node, type, &builder2, dst_ptr, &p);
+    res = storeValue(ctx, node, type, &builder, dst_ptr, &value_pr);
     if (!res) {
         return false;
     }
-    ParseResult temp;
-    bool mres = Operation::Destruct(ctx, &p, &temp);
-    if (!mres) {
+    ParseResult destruct_pr;
+    res = Operation::Destruct(ctx, &value_pr, &destruct_pr);
+    if (!res) {
         return false;
     }
 
-    pr->block = temp.block;
+    pr->block = destruct_pr.block;
     return true;
 }
 
@@ -428,8 +418,6 @@ parseVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     Context *ctx = units->top()->ctx;
     Node *value_node = node->list->at(2);
     std::vector<Node *> *value_node_list = value_node->list;
-
-    /* Parse linkage. */
 
     int linkage = FormLinkageParse(ctx, (*value_node_list)[1]);
     if (!linkage) {
