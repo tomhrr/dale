@@ -8,6 +8,8 @@
 #include <string>
 
 #include "../llvm_Module.h"
+#include "../Type/Type.h"
+#include "../Variable/Variable.h"
 
 #define _unused(x) ((void)x)
 
@@ -68,6 +70,33 @@ bool isValidModuleName(const std::string *name);
  */
 llvm::FunctionType *getFunctionType(llvm::Type *t,
                                     std::vector<llvm::Type*> &v, bool b);
+
+/*! Stringify a collection of types.
+ *  @param begin The beginning iterator.
+ *  @param end The ending iterator.
+ *  @param buf The buffer for the result.
+ */
+bool typesToString(std::vector<Type *>::iterator begin,
+                   std::vector<Type *>::iterator end,
+                   std::string *buf);
+/*! Stringify a collection of types.
+ *  @param types The types to stringify.
+ *  @param buf The buffer for the result.
+ */
+bool typesToString(std::vector<Type *> *types, std::string *buf);
+/*! Stringify a collection of types.
+ *  @param begin The beginning iterator.
+ *  @param end The ending iterator.
+ *  @param buf The buffer for the result.
+ */
+bool typesToString(std::vector<Variable *>::iterator begin,
+                   std::vector<Variable *>::iterator end,
+                   std::string *buf);
+/*! Stringify a collection of types.
+ *  @param vars The variables containing the types to stringify.
+ *  @param buf The buffer for the result.
+ */
+bool typesToString(std::vector<Variable *> *types, std::string *buf);
 }
 
 #endif

@@ -7,214 +7,142 @@
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 bool
-FormProcAddressOfParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcAddressOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                       Node *node, bool get_address, bool prefixed_with_core,
+                       ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-
-    assert(node->list && "parseAddressOf must receive a list!");
 
     if (!ctx->er->assertArgNums("#", node, 1, -1)) {
         return false;
     }
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
 
-    /* If the argument is a single token, and that token
-     * designates a variable, then return the address directly. */
-    Node *nn = (*lst)[1];
-    if (nn->is_token) {
-        Variable *var =
-            ctx->getVariable(nn->token->str_value.c_str());
+    /* If the argument is a single token, and that token denotes a
+     * variable, then return the address directly. */
+
+    Node *target = (*lst)[1];
+    const char *target_str =
+        (target->is_token ? target->token->str_value.c_str() : NULL);
+
+    if (target->is_token) {
+        Variable *var = ctx->getVariable(target_str);
         if (var) {
-            pr->set(block,
-                    ctx->tr->getPointerType(var->type),
+            pr->set(block, ctx->tr->getPointerType(var->type),
                     var->value);
             return true;
         }
     }
 
-    int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
+    int error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    /* There's no destruction of the argument here, because
-     * there's no corresponding copy with setf (or an overloaded
-     * setf). (todo: this comment does not appear to be correct.) */
+    bool res = FormProcInstParse(units, fn, block, (*lst)[1], false,
+                                 false, NULL, pr);
 
-    bool res =
-        FormProcInstParse(units, 
-            fn, block, (*lst)[1], false, false, NULL, pr
-        );
-
-    int diff = ctx->er->getErrorTypeCount(ErrorType::Error)
-               - error_count;
-
-    if (!res) {
-        std::vector<Error*> errors;
-        while (diff--) {
-            errors.push_back(ctx->er->popLastError());
+    if (res) {
+        if (!pr->value_is_lvalue) {
+            Error *e = new Error(CannotTakeAddressOfNonLvalue, target);
+            ctx->er->addError(e);
+            return false;
         }
 
-        /* If the second element is a token, check if it is the name
-         * of a function. If it is, return a pointer to that
-         * function. */
+        ParseResult newpr;
+        bool ga_res = pr->getAddressOfValue(ctx, &newpr);
+        if (!ga_res) {
+            return false;
+        }
 
-        Function *fn;
+        newpr.copyTo(pr);
+        pr->value_is_lvalue = 0;
+        pr->address_of_value = NULL;
+        pr->type_of_address_of_value = NULL;
 
-        if (((*lst)[1])->is_token &&
-                (fn =
-                     ctx->getFunction(
-                         ((*lst)[1])->token->str_value.c_str(),
-                         NULL,
-                         NULL,
-                         0
-                     )
-                )
-           ) {
-            /* Also do the 'typed' version where types have been
-             * provided (lst->size > 2), regardless of whether it's
-             * overloaded. */
+        return true;
+    }
 
-            int is_overloaded =
-                ctx->isOverloadedFunction(
-                    ((*lst)[1])->token->str_value.c_str()
-                );
-            int lst_size = lst->size();
+    /* If standard parsing is unsuccessful, see if the target node
+     * refers to a function.  If it does not, then return immediately,
+     * since the error reporter already contains the errors related to
+     * the previous parse instruction. */
 
-            if (is_overloaded || lst_size > 2) {
-                /* Parse each type, add it to a vector of types, get
-                 * the relevant function, return it. */
+    Function *target_fn =
+        (target_str ? ctx->getFunction(target_str, NULL, NULL, 0)
+                    : NULL);
 
-                std::vector<Type *> types;
-                std::vector<Node *>::iterator iter = lst->begin();
-                ++iter;
-                ++iter;
-                while (iter != lst->end()) {
-                    Type *type = FormTypeParse(units, (*iter),
-                                                         false, false);
-                    if (!type) {
-                        return false;
-                    }
-                    types.push_back(type);
-                    ++iter;
-                }
-                if (types.empty()) {
-                    types.push_back(ctx->tr->type_void);
-                }
+    if (!target_str || !target_fn) {
+        return false;
+    }
 
-                Function *closest_fn = NULL;
+    ctx->er->popErrors(error_count_begin);
 
-                fn =
-                    ctx->getFunction(((*lst)[1])->token->str_value.c_str(),
-                                     &types,
-                                     &closest_fn,
-                                     0);
+    bool is_overloaded = ctx->isOverloadedFunction(target_str);
+    int lst_size = lst->size();
 
-                std::vector<Type *>::iterator titer =
-                    types.begin();
+    /* The target node refers to a function.  Handle the 'typed'
+     * version here, when the function is overloaded or when types
+     * have been provided (lst->size > 2). */
 
-                std::string args;
-                while (titer != types.end()) {
-                    (*titer)->toString(&args);
-                    ++titer;
-                    if (titer != types.end()) {
-                        args.append(" ");
-                    }
-                }
-                if (!fn) {
-                    Error *e;
-                    if (closest_fn) {
-                        std::string expected;
-                        std::vector<Variable *>::iterator viter;
-                        viter = closest_fn->parameter_types.begin();
-                        if (closest_fn->is_macro) {
-                            ++viter;
-                        }
-                        while (viter != closest_fn->parameter_types.end()) {
-                            (*viter)->type->toString(&expected);
-                            expected.append(" ");
-                            ++viter;
-                        }
-                        if (expected.size() > 0) {
-                            expected.erase(expected.size() - 1, 1);
-                        }
-                        e = new Error(
-                            ErrorInst::Generator::OverloadedFunctionOrMacroNotInScopeWithClosest,
-                            node,
-                            ((*lst)[1])->token->str_value.c_str(),
-                            args.c_str(),
-                            expected.c_str()
-                        );
-
-                    } else {
-                        e = new Error(
-                            ErrorInst::Generator::OverloadedFunctionOrMacroNotInScope,
-                            node,
-                            ((*lst)[1])->token->str_value.c_str(),
-                            args.c_str()
-                        );
-                    }
-                    ctx->er->addError(e);
-                    return false;
-                }
+    if (is_overloaded || (lst_size > 2)) {
+        std::vector<Type *> types;
+        for (std::vector<Node *>::iterator b = lst->begin() + 2,
+                                           e = lst->end();
+                b != e;
+                ++b) {
+            Type *type = FormTypeParse(units, (*b), false, false);
+            if (!type) {
+                return false;
             }
+            types.push_back(type);
+        }
+        if (types.empty()) {
+            types.push_back(ctx->tr->type_void);
+        }
 
-            Type *type = new Type();
-            type->is_function = 1;
-            type->return_type = fn->return_type;
+        Function *closest_fn = NULL;
+        target_fn = ctx->getFunction(target_str, &types, &closest_fn, 0);
 
-            std::vector<Type *> parameter_types;
-            std::vector<Variable *>::iterator iter;
+        std::string args;
+        typesToString(&types, &args);
 
-            iter = fn->parameter_types.begin();
-
-            while (iter != fn->parameter_types.end()) {
-                parameter_types.push_back((*iter)->type);
-                ++iter;
+        if (!target_fn) {
+            Error *e;
+            if (closest_fn) {
+                std::string expected;
+                typesToString(closest_fn->parameter_types.begin()
+                              + (closest_fn->is_macro ? 1 : 0),
+                              closest_fn->parameter_types.end(),
+                              &expected);
+                e = new Error(OverloadedFunctionOrMacroNotInScopeWithClosest,
+                              node, target_str, args.c_str(),
+                              expected.c_str());
+            } else {
+                e = new Error(OverloadedFunctionOrMacroNotInScope,
+                              node, target_str, args.c_str());
             }
-
-            type->parameter_types = parameter_types;
-            pr->set(block, ctx->tr->getPointerType(type),
-                       llvm::cast<llvm::Value>(fn->llvm_function)
-                   );
-            return pr;
-        } else {
-            for (std::vector<Error*>::iterator b = errors.begin(),
-                    e = errors.end();
-                    b != e;
-                    ++b) {
-                ctx->er->addError((*b));
-            }
+            ctx->er->addError(e);
             return false;
         }
     }
 
-    if (!pr->value_is_lvalue) {
-        Error *e = new Error(
-            ErrorInst::Generator::CannotTakeAddressOfNonLvalue,
-            (*lst)[1]
-        );
-        ctx->er->addError(e);
-        return false;
+    Type *type = new Type();
+    type->is_function = 1;
+    type->return_type = target_fn->return_type;
+
+    for (std::vector<Variable *>::iterator
+            b = target_fn->parameter_types.begin(),
+            e = target_fn->parameter_types.end();
+            b != e;
+            ++b) {
+        type->parameter_types.push_back((*b)->type);
     }
 
-    ParseResult newpr;
-    bool ga_res = pr->getAddressOfValue(ctx, &newpr);
-    if (!ga_res) {
-        return false;
-    }
-
-    newpr.copyTo(pr);
-    pr->value_is_lvalue = 0;
-    pr->address_of_value = NULL;
-    pr->type_of_address_of_value = NULL;
-
-    return true;
+    pr->set(block, ctx->tr->getPointerType(type),
+            llvm::cast<llvm::Value>(target_fn->llvm_function));
+    return pr;
 }
 }

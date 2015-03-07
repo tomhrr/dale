@@ -3,7 +3,7 @@
 
 namespace dale
 {
-/*! Parse a procedure-body def statement.
+/*! Parse a procedure-body def form.
  *  @param units The units context.
  *  @param fn The function currently in scope.
  *  @param block The current block.

@@ -6,6 +6,7 @@
 #include "../Operation/Cast/Cast.h"
 #include "../Operation/Destruct/Destruct.h"
 #include "../Operation/Copy/Copy.h"
+#include "../Utils/Utils.h"
 
 #define IMPLICIT 1
 
@@ -292,52 +293,6 @@ isUnoverloadedMacro(Units *units, const char *name,
     }
 
     return false;
-}
-
-bool
-typesToString(std::vector<Type *>::iterator begin,
-              std::vector<Type *>::iterator end,
-              std::string *buf)
-{
-    if (begin == end) {
-        buf->append("void");
-        return true;
-    }
-
-    for (; begin != end; ++begin) {
-        (*begin)->toString(buf);
-        if ((begin + 1) != end) {
-            buf->append(" ");
-        }
-    }
-
-    return true;
-}
-
-bool
-typesToString(std::vector<Variable *>::iterator begin,
-              std::vector<Variable *>::iterator end,
-              std::string *buf)
-{
-    if (begin == end) {
-        buf->append("void");
-        return true;
-    }
-
-    for (; begin != end; ++begin) {
-        (*begin)->type->toString(buf);
-        if ((begin + 1) != end) {
-            buf->append(" ");
-        }
-    }
-
-    return true;
-}
-
-bool
-typesToString(std::vector<Type *> *types, std::string *buf)
-{
-    return typesToString(types->begin(), types->end(), buf);
 }
 
 bool
