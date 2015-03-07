@@ -138,6 +138,60 @@ processValue(Units *units, Function *fn, llvm::BasicBlock *block,
 }
 
 bool
+storeValue(Context *ctx, Node *node, Type *type,
+           llvm::IRBuilder<> *builder, llvm::Value *dst_ptr, ParseResult *pr)
+{
+    std::vector<Type *> param_types;
+    param_types.push_back(ctx->tr->getPointerType(type));
+    param_types.push_back(ctx->tr->getPointerType(type));
+    Function *or_setf =
+        ctx->getFunction("setf-copy", &param_types, NULL, 0);
+
+    if (or_setf && type->isEqualTo(pr->type)) {
+        std::vector<llvm::Value *> call_args;
+        call_args.push_back(dst_ptr);
+
+        llvm::Value *src_ptr =
+            llvm::cast<llvm::Value>(
+                builder->CreateAlloca(ctx->toLLVMType(type, NULL,
+                                                      false, false))
+            );
+        builder->CreateStore(pr->value, src_ptr);
+        call_args.push_back(src_ptr);
+
+        builder->CreateCall(or_setf->llvm_function,
+                            llvm::ArrayRef<llvm::Value*>(call_args));
+        return true;
+    }
+
+    param_types.pop_back();
+    param_types.push_back(pr->type);
+
+    or_setf =
+        ctx->getFunction("setf-copy", &param_types, NULL, 0);
+    if (or_setf) {
+        std::vector<llvm::Value *> call_args;
+        call_args.push_back(dst_ptr);
+        call_args.push_back(pr->value);
+        builder->CreateCall(or_setf->llvm_function,
+                            llvm::ArrayRef<llvm::Value*>(call_args));
+        return true;
+    }
+
+    bool old_const = pr->type->is_const;
+    pr->type->is_const = false;
+    bool res = ctx->er->assertTypeEquality("def", node,
+                                           pr->type, type, 1);
+    pr->type->is_const = old_const;
+    if (!res) {
+        return false;
+    }
+
+    builder->CreateStore(pr->value, dst_ptr);
+    return true;
+}
+
+bool
 parseVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
                    const char *name, Node *node,
                    bool get_address, ParseResult *pr)
@@ -225,11 +279,11 @@ parseVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         }
 
         /* If the constant int 0 is returned, and this isn't an
-        * integer type (or bool), then skip this part (assume
-        * that the variable has been initialised by the user).
-        * This is to save pointless copies/destructs, while still
-        * allowing the variable to be fully initialised once the
-        * define is complete. */
+         * integer type (or bool), then skip this part (assume that
+         * the variable has been initialised by the user).  This is to
+         * save pointless copies/destructs, while still allowing the
+         * variable to be fully initialised once the define is
+         * complete. */
 
         if (!(type->isIntegerType()) && (type->base_type != BaseType::Bool)) {
             if (llvm::ConstantInt *temp =
@@ -245,41 +299,9 @@ parseVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
             return false;
         }
 
-        std::vector<Type *> call_arg_types;
-        call_arg_types.push_back(ctx->tr->getPointerType(type));
-        call_arg_types.push_back(ctx->tr->getPointerType(type));
-        Function *or_setf =
-            ctx->getFunction("setf-copy", &call_arg_types,
-                            NULL, 0);
-        if (or_setf && type->isEqualTo(p.type)) {
-            std::vector<llvm::Value *> call_args2;
-            call_args2.push_back(new_ptr);
-            llvm::Value *new_ptr2 =
-                llvm::cast<llvm::Value>(
-                    builder.CreateAlloca(ctx->toLLVMType(type, NULL,
-                                                        false, false))
-                );
-            builder.CreateStore(p.value, new_ptr2);
-            call_args2.push_back(new_ptr2);
-            builder.CreateCall(
-                or_setf->llvm_function,
-                llvm::ArrayRef<llvm::Value*>(call_args2));
-        } else {
-            call_arg_types.pop_back();
-            call_arg_types.push_back(p.type);
-            Function *or_setf2 =
-                ctx->getFunction("setf-copy", &call_arg_types,
-                                NULL, 0);
-            if (or_setf2) {
-                std::vector<llvm::Value *> call_args2;
-                call_args2.push_back(new_ptr);
-                call_args2.push_back(p.value);
-                builder.CreateCall(
-                    or_setf2->llvm_function,
-                    llvm::ArrayRef<llvm::Value*>(call_args2));
-            } else {
-                builder.CreateStore(p.value, new_ptr);
-            }
+        res = storeValue(ctx, node, type, &builder, new_ptr, &p);
+        if (!res) {
+            return false;
         }
         ParseResult temp;
         bool mres = Operation::Destruct(ctx, &p, &temp);
@@ -425,50 +447,9 @@ parseVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
 
         llvm::IRBuilder<> builder2(p.block);
 
-        std::vector<Type *> call_arg_types;
-        call_arg_types.push_back(ctx->tr->getPointerType(type));
-        call_arg_types.push_back(ctx->tr->getPointerType(type));
-        Function *or_setf =
-            ctx->getFunction("setf-copy", &call_arg_types,
-                            NULL, 0);
-        if (or_setf && type->isEqualTo(p.type)) {
-            std::vector<llvm::Value *> call_args2;
-            call_args2.push_back(new_ptr);
-            llvm::Value *new_ptr2 =
-                llvm::cast<llvm::Value>(
-                    builder2.CreateAlloca(ctx->toLLVMType(type, NULL,
-                                                        false, false))
-                );
-            builder2.CreateStore(p.value, new_ptr2);
-            call_args2.push_back(new_ptr2);
-            builder2.CreateCall(
-                or_setf->llvm_function,
-                llvm::ArrayRef<llvm::Value*>(call_args2));
-        } else {
-            call_arg_types.clear();
-            call_arg_types.push_back(ctx->tr->getPointerType(type));
-            call_arg_types.push_back(p.type);
-            Function *or_setf2 =
-                ctx->getFunction("setf-copy", &call_arg_types,
-                                NULL, 0);
-            if (or_setf2) {
-                std::vector<llvm::Value *> call_args2;
-                call_args2.push_back(new_ptr);
-                call_args2.push_back(p.value);
-                builder2.CreateCall(
-                    or_setf2->llvm_function,
-                    llvm::ArrayRef<llvm::Value*>(call_args2));
-            } else {
-                int old_const = p.type->is_const;
-                p.type->is_const = 0;
-                bool res = ctx->er->assertTypeEquality("def", node,
-                                                    p.type, type, 1);
-                p.type->is_const = old_const;
-                if (!res) {
-                    return false;
-                }
-                builder2.CreateStore(p.value, new_ptr);
-            }
+        res = storeValue(ctx, node, type, &builder2, new_ptr, &p);
+        if (!res) {
+            return false;
         }
         ParseResult temp;
         bool mres = Operation::Destruct(ctx, &p, &temp);
@@ -526,8 +507,6 @@ FormProcDefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     } else if (!(def_type->token->str_value.compare("var"))) {
         return parseVarDefinition(units, fn, block, name, node,
                                   get_address, pr);
-
-
     } else {
         Error *e = new Error(
             OnlyVarAndStructPermitted,
