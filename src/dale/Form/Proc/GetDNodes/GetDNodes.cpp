@@ -22,6 +22,48 @@ getNullConstant(llvm::Type *llvm_type)
     );
 }
 
+llvm::GlobalVariable *
+createTokenGV(Units *units, std::string *value)
+{
+    Context *ctx = units->top()->ctx;
+
+    llvm::Constant *str_value =
+#if D_LLVM_VERSION_MINOR < 2
+        llvm::ConstantArray::get(
+#else
+        llvm::ConstantDataArray::getString(
+#endif
+            llvm::getGlobalContext(), value->c_str(), true
+        );
+
+    std::string varname_str;
+    units->top()->getUnusedVarname(&varname_str);
+
+    Type *archar =
+        ctx->tr->getArrayType(ctx->tr->type_char,
+                              value->size() + 1);
+
+    llvm::GlobalVariable *token_gv =
+        llvm::cast<llvm::GlobalVariable>(
+            units->top()->module->getOrInsertGlobal(
+                varname_str.c_str(),
+                ctx->toLLVMType(archar, NULL, false)
+            )
+        );
+
+    token_gv->setInitializer(str_value);
+    token_gv->setConstant(true);
+    token_gv->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+
+    token_cache.insert(
+        std::pair<std::string, llvm::GlobalVariable*>(
+            value->c_str(), token_gv
+        )
+    );
+
+    return token_gv;
+}
+
 llvm::Value *
 IntNodeToStaticDNode(Units *units, Node *node, llvm::Value *next_node)
 {
@@ -73,40 +115,7 @@ IntNodeToStaticDNode(Units *units, Node *node, llvm::Value *next_node)
         }
 
         if (!token_gv) {
-            llvm::Constant *str_value =
-#if D_LLVM_VERSION_MINOR < 2
-                llvm::ConstantArray::get(
-#else
-                llvm::ConstantDataArray::getString(
-#endif
-                    llvm::getGlobalContext(), t->str_value.c_str(),
-                    true
-                );
-
-            std::string varname_str;
-            units->top()->getUnusedVarname(&varname_str);
-
-            Type *archar =
-                ctx->tr->getArrayType(ctx->tr->type_char,
-                                      t->str_value.size() + 1);
-
-            token_gv =
-                llvm::cast<llvm::GlobalVariable>(
-                    units->top()->module->getOrInsertGlobal(
-                        varname_str.c_str(),
-                        ctx->toLLVMType(archar, NULL, false)
-                    )
-                );
-
-            token_gv->setInitializer(str_value);
-            token_gv->setConstant(true);
-            token_gv->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
-
-            token_cache.insert(
-                std::pair<std::string, llvm::GlobalVariable*>(
-                    t->str_value, token_gv
-                )
-            );
+            token_gv = createTokenGV(units, &(t->str_value));
         }
 
         llvm::Value *two_zero_indices[2] = { ctx->nt->getNativeInt(0),
@@ -118,30 +127,23 @@ IntNodeToStaticDNode(Units *units, Node *node, llvm::Value *next_node)
             );
 
         constants.push_back(ptr_to_token);
+        constants.push_back(getNullConstant(llvm_r_type));
     } else {
         llvm::Type *type = ctx->toLLVMType(ctx->tr->type_pchar, NULL, false);
         constants.push_back(getNullConstant(type));
-    }
 
-    if (node->is_list) {
         std::vector<Node *> *list = node->list;
         std::vector<Node *>::reverse_iterator list_iter = list->rbegin();
         llvm::Value *sub_next_node = NULL;
 
         while (list_iter != list->rend()) {
-            llvm::Value *temp_value =
+            llvm::Value *sub_node =
                 IntNodeToStaticDNode(units, (*list_iter), sub_next_node);
-            sub_next_node = temp_value;
+            sub_next_node = sub_node;
             ++list_iter;
         }
 
-        constants.push_back(
-            llvm::cast<llvm::Constant>(
-                sub_next_node
-            )
-        );
-    } else {
-        constants.push_back(getNullConstant(llvm_r_type));
+        constants.push_back(llvm::cast<llvm::Constant>(sub_next_node));
     }
 
     if (next_node) {
@@ -179,46 +181,34 @@ IntNodeToStaticDNode(Units *units, Node *node, llvm::Value *next_node)
 }
 
 bool
-FormProcGetDNodesParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcGetDNodesParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                       Node *node, bool get_address, bool prefixed_with_core,
+                       ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
 
     if (!llvm_type_dnode) {
         llvm::Type *dnode =
             ctx->toLLVMType(ctx->tr->type_dnode, NULL, false);
-        if (!dnode) {
-            fprintf(stderr, "Unable to fetch DNode type.\n");
-            abort();
-        }
+        assert(dnode && "unable to fetch DNode type");
 
         llvm::Type *pointer_to_dnode =
             ctx->toLLVMType(ctx->tr->type_pdnode, NULL, false);
-        if (!pointer_to_dnode) {
-            fprintf(stderr, "Unable to fetch pointer to DNode type.\n");
-            abort();
-        }
+        assert(dnode && "unable to fetch pointer-to-DNode type");
 
-        intptr_t temp = (intptr_t) pointer_to_dnode;
-        llvm_type_pdnode = (llvm::Type *) temp;
-        intptr_t temp1 = (intptr_t) dnode;
-        llvm_type_dnode = (llvm::Type *) temp1;
+        intptr_t intptr_value = (intptr_t) pointer_to_dnode;
+        llvm_type_pdnode = (llvm::Type *) intptr_value;
+        intptr_value = (intptr_t) dnode;
+        llvm_type_dnode = (llvm::Type *) intptr_value;
     }
 
     if (!ctx->er->assertArgNums("get-dnodes", node, 1, 1)) {
         return false;
     }
 
-    llvm::Value *v = IntNodeToStaticDNode(units, node->list->at(1), NULL);
-
-    llvm::IRBuilder<> builder(block);
-
-    pr->set(block, ctx->tr->type_pdnode, v);
+    llvm::Value *static_dnode =
+        IntNodeToStaticDNode(units, node->list->at(1), NULL);
+    pr->set(block, ctx->tr->type_pdnode, static_dnode);
     return true;
 }
 }
