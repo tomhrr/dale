@@ -7,7 +7,7 @@ using namespace dale::ErrorInst::Generator;
 namespace dale
 {
 llvm::Constant *
-parseStringLiteral(Units *units, Type *type, Node *node, int *size)
+stringLiteralToConstant(Units *units, Type *type, Node *node, int *size)
 {
     Context *ctx = units->top()->ctx;
 
@@ -68,6 +68,68 @@ parseStringLiteral(Units *units, Type *type, Node *node, int *size)
     Error *e = new Error(CannotParseLiteral, node, type_str.c_str());
     ctx->er->addError(e);
     return NULL;
+}
+
+bool
+parseStringLiteral(Units *units, Context *ctx, llvm::BasicBlock *block,
+                   Node *node, ParseResult *pr)
+{
+    Type *type_char   = ctx->tr->type_char;
+    Type *type_cchar  = ctx->tr->getConstType(type_char);
+    Type *type_pcchar = ctx->tr->getPointerType(type_cchar);
+
+    std::vector<llvm::Value *> two_zero_indices;
+    STL::push_back2(&two_zero_indices,
+                    ctx->nt->getLLVMZero(), ctx->nt->getLLVMZero());
+
+    int size = 0;
+    llvm::Constant *init = stringLiteralToConstant(units, type_pcchar,
+                                                   node, &size);
+    if (!init) {
+        return false;
+    }
+    Type *str_type_sized =
+        ctx->tr->getArrayType(ctx->tr->getConstType(type_char), size);
+
+    llvm::Type *llvm_type = ctx->toLLVMType(str_type_sized, NULL, false);
+    if (!llvm_type) {
+        return false;
+    }
+
+    std::string varname;
+    units->top()->getUnusedVarname(&varname);
+
+    llvm::GlobalVariable *llvm_var =
+        llvm::cast<llvm::GlobalVariable>(
+            units->top()->module->getOrInsertGlobal(varname.c_str(),
+                                                    llvm_type)
+        );
+
+    llvm_var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+    llvm_var->setInitializer(init);
+    llvm_var->setConstant(true);
+
+    Variable *var = new Variable();
+    var->name.append(varname.c_str());
+    var->internal_name.append(varname);
+    var->type = str_type_sized;
+    var->value = llvm::cast<llvm::Value>(llvm_var);
+    var->linkage = Linkage::Intern;
+
+    bool res = ctx->ns()->addVariable(varname.c_str(), var);
+    if (!res) {
+        Error *e = new Error(RedefinitionOfVariable, node,
+                             varname.c_str());
+        ctx->er->addError(e);
+        return false;
+    }
+
+    llvm::IRBuilder<> builder(block);
+    llvm::Value *char_ptr =
+        builder.CreateGEP(llvm::cast<llvm::Value>(var->value),
+                          llvm::ArrayRef<llvm::Value*>(two_zero_indices));
+    pr->set(block, type_pcchar, char_ptr);
+    return true;
 }
 
 void
@@ -187,6 +249,56 @@ parseCharLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
     }
 }
 
+void
+parseVariableLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
+                     bool get_address, ParseResult *pr)
+{
+    Token *t = node->token;
+    Variable *var = ctx->getVariable(t->str_value.c_str());
+
+    if (!var) {
+        Error *e = new Error(VariableNotInScope, node,
+                             t->str_value.c_str());
+        ctx->er->addError(e);
+        return;
+    }
+
+    llvm::IRBuilder<> builder(block);
+
+    if (get_address) {
+        pr->set(block, ctx->tr->getPointerType(var->type), var->value);
+        return;
+    }
+
+    /* Array-type variables. */
+    if (var->type->is_array) {
+        std::vector<llvm::Value *> two_zero_indices;
+        STL::push_back2(&two_zero_indices,
+                        ctx->nt->getLLVMZero(), ctx->nt->getLLVMZero());
+
+        llvm::Value *ptr_to_array =
+            builder.CreateGEP(
+                var->value,
+                llvm::ArrayRef<llvm::Value*>(two_zero_indices)
+            );
+
+        pr->set(block, ctx->tr->getPointerType(var->type->array_type),
+                ptr_to_array);
+
+        pr->address_of_value = var->value;
+        pr->value_is_lvalue = true;
+        pr->type_of_address_of_value =
+            ctx->tr->getPointerType(var->type);
+        return;
+    }
+
+    /* All other variables. */
+    pr->set(block, var->type,
+            llvm::cast<llvm::Value>(builder.CreateLoad(var->value)));
+    pr->address_of_value = var->value;
+    pr->value_is_lvalue = 1;
+}
+
 bool
 FormProcTokenParse(Units *units, Function *fn, llvm::BasicBlock *block,
                    Node *node, bool get_address, bool prefixed_with_core,
@@ -194,10 +306,6 @@ FormProcTokenParse(Units *units, Function *fn, llvm::BasicBlock *block,
 {
     Context *ctx = units->top()->ctx;
     NativeTypes *nt = ctx->nt;
-
-    Type *type_char   = ctx->tr->type_char;
-    Type *type_cchar  = ctx->tr->getConstType(type_char);
-    Type *type_pcchar = ctx->tr->getPointerType(type_cchar);
 
     std::vector<llvm::Value *> two_zero_indices;
     STL::push_back2(&two_zero_indices,
@@ -249,98 +357,15 @@ FormProcTokenParse(Units *units, Function *fn, llvm::BasicBlock *block,
             return true;
         }
 
-        /* Variables. */
-        Variable *var = ctx->getVariable(t->str_value.c_str());
-
-        if (!var) {
-            Error *e = new Error(VariableNotInScope, node,
-                                 t->str_value.c_str());
-            ctx->er->addError(e);
+        parseVariableLiteral(ctx, block, node, get_address, pr);
+        if (pr->value) {
+            return true;
+        } else {
             return false;
         }
-
-        llvm::IRBuilder<> builder(block);
-
-        if (get_address) {
-            pr->set(block, ctx->tr->getPointerType(var->type), var->value);
-            return true;
-        }
-
-        /* Array-type variables. */
-        if (var->type->is_array) {
-            llvm::Value *ptr_to_array =
-                builder.CreateGEP(
-                    var->value,
-                    llvm::ArrayRef<llvm::Value*>(two_zero_indices)
-                );
-
-            pr->set(block, ctx->tr->getPointerType(var->type->array_type),
-                    ptr_to_array);
-
-            pr->address_of_value = var->value;
-            pr->value_is_lvalue = true;
-            pr->type_of_address_of_value =
-                ctx->tr->getPointerType(var->type);
-            return true;
-        }
-
-        /* All other variables. */
-        pr->set(block, var->type,
-                llvm::cast<llvm::Value>(builder.CreateLoad(var->value)));
-        pr->address_of_value = var->value;
-        pr->value_is_lvalue = 1;
-        return true;
     } else if (t->type == TokenType::StringLiteral) {
-        /* Add a new variable for this string literal. */
-        int size = 0;
-        llvm::Constant *init = parseStringLiteral(units, type_pcchar,
-                                                  node, &size);
-        if (!init) {
-            return false;
-        }
-        Type *str_type_sized =
-            ctx->tr->getArrayType(ctx->tr->getConstType(type_char), size);
-
-        llvm::Type *llvm_type =
-            ctx->toLLVMType(str_type_sized, NULL, false);
-        if (!llvm_type) {
-            return false;
-        }
-
-        std::string varname;
-        units->top()->getUnusedVarname(&varname);
-
-        llvm::GlobalVariable *llvm_var =
-            llvm::cast<llvm::GlobalVariable>(
-                units->top()->module->getOrInsertGlobal(varname.c_str(),
-                                                        llvm_type)
-            );
-
-        llvm_var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
-        llvm_var->setInitializer(init);
-        llvm_var->setConstant(true);
-
-        Variable *var = new Variable();
-        var->name.append(varname.c_str());
-        var->internal_name.append(varname);
-        var->type = str_type_sized;
-        var->value = llvm::cast<llvm::Value>(llvm_var);
-        var->linkage = Linkage::Intern;
-
-        bool res = ctx->ns()->addVariable(varname.c_str(), var);
-        if (!res) {
-            Error *e = new Error(RedefinitionOfVariable, node,
-                                 varname.c_str());
-            ctx->er->addError(e);
-            return false;
-        }
-
-        llvm::IRBuilder<> builder(block);
-        llvm::Value *char_ptr =
-            builder.CreateGEP(llvm::cast<llvm::Value>(var->value),
-                              llvm::ArrayRef<llvm::Value*>(two_zero_indices));
-        pr->set(block, type_pcchar, char_ptr);
-        return true;
+        pr->value = NULL;
+        return parseStringLiteral(units, ctx, block, node, pr);
     } else {
         Error *e = new Error(UnableToParseForm, node);
         ctx->er->addError(e);
