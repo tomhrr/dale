@@ -6,6 +6,7 @@
 #include "../../Linkage/Linkage.h"
 #include "../../Type/Type.h"
 #include "../../Struct/Struct.h"
+#include "../../Utils/Utils.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
@@ -95,49 +96,6 @@ initialise(Context *ctx, llvm::IRBuilder<> *builder, Type *type,
 }
 
 bool
-processValue(Units *units, Function *fn, llvm::BasicBlock *block,
-             Node *node, bool get_address, Type *wanted_type,
-             ParseResult *pr)
-{
-    Context *ctx = units->top()->ctx;
-    std::vector<Node *> *value_node_list = node->list->at(2)->list;
-
-    Node *var_value_node = (*value_node_list)[3];
-    std::vector<Node *> *var_value_node_list = var_value_node->list;
-    Variable *var_value = NULL;
-    llvm::IRBuilder<> builder(block);
-
-    if (var_value_node->is_token
-            && (var_value = ctx->getVariable(
-                    var_value_node->token->str_value.c_str()))) {
-        pr->set(block, var_value->type,
-                builder.CreateLoad(var_value->value));
-        pr->do_not_destruct = true;
-    } else if (var_value_node->is_list
-            && (var_value_node_list->size() == 2)
-            && (var_value_node_list->at(0)->is_token)
-            && (!var_value_node_list->at(0)->token->str_value.compare("@"))
-            && (var_value_node_list->at(1)->is_token)
-            && (var_value = ctx->getVariable(
-                    var_value_node_list->at(1)->token->str_value.c_str()))) {
-        pr->set(block, var_value->type->points_to,
-                builder.CreateLoad(builder.CreateLoad(var_value->value)));
-        pr->do_not_destruct = true;
-    } else {
-        bool res =
-            FormProcInstParse(units,
-                fn, block, var_value_node, get_address, false,
-                wanted_type, pr
-            );
-        if (!res) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool
 storeValue(Context *ctx, Node *node, Type *type,
            llvm::IRBuilder<> *builder, llvm::Value *dst_ptr, ParseResult *pr)
 {
@@ -208,8 +166,9 @@ parseImplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     ParseResult value_pr;
-    bool res = processValue(units, fn, block, node, get_address,
-                            NULL, &value_pr);
+    bool res = FormProcessValue(units, fn, block,
+                                node->list->at(2)->list->at(3),
+                                get_address, NULL, &value_pr);
     if (!res) {
         return false;
     }
@@ -347,8 +306,9 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     ParseResult value_pr;
     value_pr.retval      = dst_ptr;
     value_pr.retval_type = ctx->tr->getPointerType(type);
-    res = processValue(units, fn, block, node, get_address, type,
-                       &value_pr);
+    res = FormProcessValue(units, fn, block,
+                           node->list->at(2)->list->at(3),
+                           get_address, type, &value_pr);
     if (!res) {
         return false;
     }

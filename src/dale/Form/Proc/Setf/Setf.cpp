@@ -4,6 +4,7 @@
 #include "../../../Function/Function.h"
 #include "../../../Operation/Destruct/Destruct.h"
 #include "../Inst/Inst.h"
+#include "../../Utils/Utils.h"
 #include "../../../llvm_Function.h"
 
 namespace dale
@@ -75,47 +76,20 @@ FormProcSetfParse(Units *units,
     pr_value.retval = pr_variable.value;
     pr_value.retval_type = pr_variable.type;
     Variable *var_value = NULL;
-    symlist *vlst = val_node->list;
 
     /* If the value is a variable, or a variable dereference, load the
      * underlying value directly, to shortcut setf-copy for types that
      * define it. */
 
-    if (val_node->is_token
-            && (var_value = ctx->getVariable(
-                    val_node->token->str_value.c_str()))) {
-        pr_value.value = var_value->value;
-        pr_value.type  = ctx->tr->getPointerType(var_value->type);
-        pr_value.do_not_destruct = 1;
-        pr_value.block = pr_variable.block;
-    } else if (val_node->is_list
-                && (vlst->size() == 2)
-                && (vlst->at(0)->is_token)
-                && (!vlst->at(0)->token->str_value.compare("@"))
-                && (vlst->at(1)->is_token)
-                && (var_value = ctx->getVariable(
-                        vlst->at(1)->token->str_value.c_str()))) {
-        pr_value.value = builder.CreateLoad(var_value->value);
-        pr_value.type  = var_value->type;
-        pr_value.do_not_destruct = 1;
-        pr_value.block = pr_variable.block;
-    } else {
-        res =
-            FormProcInstParse(units, 
-                fn, pr_variable.block, val_node, false,
-                false,
-                pr_variable.type->points_to,
-                &pr_value
-            );
-
-        if (!res) {
-            return false;
-        }
-        if (pr_value.retval_used) {
-            pr->block = pr_value.block;
-            pr->type = ctx->tr->getBasicType(BaseType::Void);
-            return true;
-        }
+    res = FormProcessValue(units, fn, block, val_node, get_address,
+                           pr_variable.type->points_to, &pr_value);
+    if (!res) {
+        return false;
+    }
+    if (pr_value.retval_used) {
+        pr->block = pr_value.block;
+        pr->type = ctx->tr->getBasicType(BaseType::Void);
+        return true;
     }
 
     builder.SetInsertPoint(pr_value.block);
