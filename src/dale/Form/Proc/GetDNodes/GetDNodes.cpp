@@ -7,27 +7,28 @@
 
 namespace dale
 {
-std::map<std::string, llvm::GlobalVariable*> string_cache;
+static std::map<std::string, llvm::GlobalVariable*> token_cache;
 
 llvm::Type *llvm_type_dnode = NULL;
 llvm::Type *llvm_type_pdnode = NULL;
 
-llvm::Value *
-IntNodeToStaticDNode(Units *units,
-                     Node *node,
-                     llvm::Value *next_node)
+llvm::Constant *
+getNullConstant(llvm::Type *llvm_type)
 {
-    if (!node) {
-        fprintf(stderr, "Internal error: null node passed to "
-                "IntNodeToStaticNode.\n");
-        abort();
-    }
+    return llvm::cast<llvm::Constant>(
+        llvm::ConstantPointerNull::get(
+            llvm::cast<llvm::PointerType>(llvm_type)
+        )
+    );
+}
 
-    /* If it's one node, add the dnode. */
+llvm::Value *
+IntNodeToStaticDNode(Units *units, Node *node, llvm::Value *next_node)
+{
+    assert(node && "null node passed to conversion function");
+
     std::string varname;
     units->top()->getUnusedVarname(&varname);
-
-    /* Add the variable to the module. */
 
     llvm::Type *llvm_type = llvm_type_dnode;
     llvm::Type *llvm_r_type = llvm_type_pdnode;
@@ -60,73 +61,66 @@ IntNodeToStaticDNode(Units *units,
          * the global variable in the cache belongs to the current
          * module, then use that global variable. */
 
-        llvm::GlobalVariable *svar2 = NULL;
+        llvm::GlobalVariable *token_gv = NULL;
 
-        std::map<std::string, llvm::GlobalVariable*>::iterator f
-        = string_cache.find(t->str_value);
-        if (f != string_cache.end()) {
-            llvm::GlobalVariable *temp = f->second;
-            if (temp->getParent() == units->top()->module) {
-                svar2 = temp;
+        std::map<std::string, llvm::GlobalVariable*>::iterator
+            f = token_cache.find(t->str_value);
+        if (f != token_cache.end()) {
+            llvm::GlobalVariable *existing_token_gv = f->second;
+            if (existing_token_gv->getParent() == units->top()->module) {
+                token_gv = existing_token_gv;
             }
         }
 
-        if (!svar2) {
-            llvm::Constant *arr =
+        if (!token_gv) {
+            llvm::Constant *str_value =
 #if D_LLVM_VERSION_MINOR < 2
                 llvm::ConstantArray::get(
 #else
                 llvm::ConstantDataArray::getString(
 #endif
-                                         llvm::getGlobalContext(),
-                                         t->str_value.c_str(),
-                                         true);
-            std::string varname2;
-            units->top()->getUnusedVarname(&varname2);
+                    llvm::getGlobalContext(), t->str_value.c_str(),
+                    true
+                );
+
+            std::string varname_str;
+            units->top()->getUnusedVarname(&varname_str);
 
             Type *archar =
                 ctx->tr->getArrayType(ctx->tr->type_char,
-                                 t->str_value.size() + 1);
+                                      t->str_value.size() + 1);
 
-            svar2 =
+            token_gv =
                 llvm::cast<llvm::GlobalVariable>(
-                    units->top()->module->getOrInsertGlobal(varname2.c_str(),
-                                           ctx->toLLVMType(archar, NULL, false))
+                    units->top()->module->getOrInsertGlobal(
+                        varname_str.c_str(),
+                        ctx->toLLVMType(archar, NULL, false)
+                    )
                 );
 
-            svar2->setInitializer(arr);
-            svar2->setConstant(true);
-            svar2->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+            token_gv->setInitializer(str_value);
+            token_gv->setConstant(true);
+            token_gv->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
-            string_cache.insert(std::pair<std::string,
-                                llvm::GlobalVariable*>(
-                                    t->str_value,
-                                    svar2
-                                ));
+            token_cache.insert(
+                std::pair<std::string, llvm::GlobalVariable*>(
+                    t->str_value, token_gv
+                )
+            );
         }
 
-        llvm::Value *temps[2];
-        temps[0] = ctx->nt->getNativeInt(0);
-        temps[1] = ctx->nt->getNativeInt(0);
-
-        llvm::Constant *pce =
+        llvm::Value *two_zero_indices[2] = { ctx->nt->getNativeInt(0),
+                                             ctx->nt->getNativeInt(0) };
+        llvm::Constant *ptr_to_token =
             llvm::ConstantExpr::getGetElementPtr(
-                llvm::cast<llvm::Constant>(svar2),
-                temps,
-                2
+                llvm::cast<llvm::Constant>(token_gv),
+                two_zero_indices, 2
             );
 
-        constants.push_back(pce);
+        constants.push_back(ptr_to_token);
     } else {
-        constants.push_back(
-            llvm::cast<llvm::Constant>(
-                llvm::ConstantPointerNull::get(
-                    llvm::cast<llvm::PointerType>(
-                        ctx->toLLVMType(ctx->tr->type_pchar, NULL, false)
-                    )
-                )
-            )
-        );
+        llvm::Type *type = ctx->toLLVMType(ctx->tr->type_pchar, NULL, false);
+        constants.push_back(getNullConstant(type));
     }
 
     if (node->is_list) {
@@ -147,33 +141,13 @@ IntNodeToStaticDNode(Units *units,
             )
         );
     } else {
-        constants.push_back(
-            llvm::cast<llvm::Constant>(
-                llvm::ConstantPointerNull::get(
-                    llvm::cast<llvm::PointerType>(
-                        llvm_r_type
-                    )
-                )
-            )
-        );
+        constants.push_back(getNullConstant(llvm_r_type));
     }
 
     if (next_node) {
-        constants.push_back(
-            llvm::cast<llvm::Constant>(
-                next_node
-            )
-        );
+        constants.push_back(llvm::cast<llvm::Constant>(next_node));
     } else {
-        constants.push_back(
-            llvm::cast<llvm::Constant>(
-                llvm::ConstantPointerNull::get(
-                    llvm::cast<llvm::PointerType>(
-                        llvm_r_type
-                    )
-                )
-            )
-        );
+        constants.push_back(getNullConstant(llvm_r_type));
     }
 
     int pos[8] = { node->getBeginPos()->getLineNumber(),
@@ -190,22 +164,13 @@ IntNodeToStaticDNode(Units *units,
         );
     }
 
-    constants.push_back(
-        llvm::cast<llvm::Constant>(
-            llvm::ConstantPointerNull::get(
-                llvm::cast<llvm::PointerType>(
-                    ctx->toLLVMType(ctx->tr->type_pchar, NULL, false)
-                )
-            )
-        )
-    );
+    llvm::Type *type = ctx->toLLVMType(ctx->tr->type_pchar, NULL, false);
+    constants.push_back(getNullConstant(type));
+
     llvm::StructType *st =
         llvm::cast<llvm::StructType>(llvm_type);
     llvm::Constant *init =
-        llvm::ConstantStruct::get(
-            st,
-            constants
-        );
+        llvm::ConstantStruct::get(st, constants);
     var->setInitializer(init);
 
     var->setConstant(true);
