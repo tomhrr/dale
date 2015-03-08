@@ -222,7 +222,7 @@ FormProcBodyParse(Units *units,
             dfn->deferred_gotos.begin();
 
         while (dgiter != dfn->deferred_gotos.end()) {
-            std::string *ln     = (*dgiter)->label_name;
+            std::string *ln     = &((*dgiter)->label_name);
             Label *ell = dfn->getLabel(ln->c_str());
             if (!ell) {
                 Error *e = new Error(
@@ -232,7 +232,6 @@ FormProcBodyParse(Units *units,
                 );
                 ctx->er->addError(e);
 
-                delete ln;
                 delete (*dgiter);
 
                 ++dgiter;
@@ -377,7 +376,6 @@ FormProcBodyParse(Units *units,
             }
 
             builder.CreateBr(b);
-            delete ln;
             delete (*dgiter);
 
             ++dgiter;

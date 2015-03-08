@@ -23,7 +23,7 @@ public:
      *  be the first instruction within the relevant block. */
     llvm::Instruction *marker;
     /*! The name of the label to which the goto should branch. */
-    std::string *label_name;
+    std::string label_name;
     /*! The block to which the goto should be added. */
     llvm::BasicBlock *block_marker;
     /*! The namespace to which the label's function belongs. */
