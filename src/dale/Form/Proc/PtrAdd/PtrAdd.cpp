@@ -11,109 +11,108 @@
 namespace dale
 {
 bool
-FormProcPtrAddParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcPtrAddParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                    Node *node, bool get_address, bool prefixed_with_core,
+                    ParseResult *pr)
 {
-    Context *ctx = units->top()->ctx; 
-
-    assert(node->list && "must receive a list!");
+    Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("p+", node, 2, 2)) {
         return false;
     }
 
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
+    Node *ptr_node    = (*lst)[1];
+    Node *addend_node = (*lst)[2];
 
-    ParseResult ptr;
-    bool mres = FormProcInstParse(units, 
-                         fn, block, (*lst)[1], get_address, false, NULL, &ptr
-                     );
-    if (!mres) {
+    ParseResult pr_ptr;
+    bool res = FormProcInstParse(units, fn, block, ptr_node, get_address,
+                                 false, NULL, &pr_ptr);
+    if (!res) {
         return false;
     }
-    if (!ctx->er->assertIsPointerType("p+", (*lst)[1], ptr.type, "1")) {
-        return false;
-    }
-
-    ParseResult val;
-    mres = FormProcInstParse(units, 
-                 fn, ptr.block, (*lst)[2], get_address, false, NULL, &val
-          );
-    if (!mres) {
-        return false;
-    }
-    if (!ctx->er->assertIsPointerOrIntegerType("p+", (*lst)[2], val.type, "2")) {
+    if (!ctx->er->assertIsPointerType("p+", (*lst)[1], pr_ptr.type, "1")) {
         return false;
     }
 
-    llvm::BasicBlock *mynextb;
-    ParseResult temp2;
+    ParseResult pr_addend;
+    res = FormProcInstParse(units, fn, pr_ptr.block, addend_node,
+                            get_address, false, NULL, &pr_addend);
+    if (!res) {
+        return false;
+    }
+    if (!ctx->er->assertIsPointerOrIntegerType("p+", (*lst)[2],
+                                               pr_addend.type, "2")) {
+        return false;
+    }
 
-    if (val.type->isIntegerType()) {
-        ParseResult size;
-        mres = Operation::Sizeof(ctx, val.block, 
-                                          ptr.type->points_to, &size);
-        if (!mres) {
+    block = pr_addend.block;
+    llvm::Value *addend_value;
+
+    if (pr_addend.type->isIntegerType()) {
+        ParseResult size_pr;
+        res = Operation::Sizeof(ctx, pr_addend.block,
+                                pr_ptr.type->points_to, &size_pr);
+        if (!res) {
             return false;
         }
-        mres = 
-            Operation::Cast(ctx, size.block, size.value, size.type,
-                     ctx->tr->type_intptr, (*lst)[2], 0, &temp2);
-        if (!mres) {
+
+        ParseResult addend_value_pr;
+        res = Operation::Cast(ctx, size_pr.block, size_pr.value,
+                              size_pr.type, ctx->tr->type_intptr,
+                              addend_node, 0, &addend_value_pr);
+        if (!res) {
             return false;
         }
-        mynextb = temp2.block;
-    } else {
-        mynextb = val.block;
+        block = addend_value_pr.block;
+        addend_value = addend_value_pr.value;
     }
 
-    ParseResult cast1;
-    ParseResult cast2;
-    mres = Operation::Cast(ctx, mynextb, ptr.value, ptr.type,
-                 ctx->tr->type_intptr, (*lst)[1], 0, &cast1);
-    if (!mres) {
-        return false;
-    }
-    mres = Operation::Cast(ctx, cast1.block, val.value, val.type,
-                 ctx->tr->type_intptr, (*lst)[2], 0, &cast2);
-    if (!mres) {
+    ParseResult ptr_cast_pr;
+    res = Operation::Cast(ctx, block, pr_ptr.value, pr_ptr.type,
+                          ctx->tr->type_intptr, ptr_node, 0, &ptr_cast_pr);
+    if (!res) {
         return false;
     }
 
-    llvm::Value *res;
-
-    {
-        llvm::IRBuilder<> builder(cast2.block);
-
-        if (val.type->isIntegerType()) {
-            res = llvm::cast<llvm::Value>(
-                      builder.CreateAdd(cast1.value,
-                                        builder.CreateMul(
-                                            temp2.value, cast2.value))
-                  );
-        } else {
-            res = llvm::cast<llvm::Value>(
-                      builder.CreateAdd(cast1.value, cast2.value)
-                  );
-        }
+    ParseResult addend_cast_pr;
+    res = Operation::Cast(ctx, ptr_cast_pr.block, pr_addend.value,
+                          pr_addend.type, ctx->tr->type_intptr,
+                          addend_node, 0, &addend_cast_pr);
+    if (!res) {
+        return false;
     }
+
+    llvm::IRBuilder<> builder(addend_cast_pr.block);
+    llvm::Value *final_addend =
+        (pr_addend.type->isIntegerType())
+            ? builder.CreateMul(addend_value,
+                                addend_cast_pr.value)
+            : addend_cast_pr.value;
+
+    llvm::Value *sum =
+        llvm::cast<llvm::Value>(
+            builder.CreateAdd(ptr_cast_pr.value, final_addend)
+        );
 
     ParseResult final_res;
-    Operation::Cast(ctx, cast2.block, res, ctx->tr->type_intptr, 
-                             ptr.type, node, 0, &final_res);
+    Operation::Cast(ctx, addend_cast_pr.block, sum, ctx->tr->type_intptr,
+                    pr_ptr.type, node, 0, &final_res);
 
-    ptr.block = final_res.block;
-    ParseResult temp;
-    Operation::Destruct(ctx, &ptr, &temp);
-    val.block = temp.block;
-    Operation::Destruct(ctx, &val, &temp);
-    final_res.block = temp.block;
-    pr->set(final_res.block, ptr.type, final_res.value);
+    pr_ptr.block = final_res.block;
+    ParseResult pr_destruct;
+    res = Operation::Destruct(ctx, &pr_ptr, &pr_destruct);
+    if (!res) {
+        return false;
+    }
+    pr_addend.block = pr_destruct.block;
+    res = Operation::Destruct(ctx, &pr_addend, &pr_destruct);
+    if (!res) {
+        return false;
+    }
+
+    final_res.block = pr_destruct.block;
+    pr->set(final_res.block, pr_ptr.type, final_res.value);
 
     return true;
 }
