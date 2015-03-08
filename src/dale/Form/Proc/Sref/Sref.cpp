@@ -6,156 +6,119 @@
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 bool
-FormProcSrefParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                  Node *node, bool get_address, bool prefixed_with_core,
+                  ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
 
-    assert(node->list && "must receive a list!");
-
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
+    Node *struct_node = (*lst)[1];
+    Node *member_node = (*lst)[2];
 
     if (!ctx->er->assertArgNums(":", node, 2, 2)) {
         return false;
     }
 
-    get_address = true;
-
-    int original_error_count =
+    int error_count_begin =
         ctx->er->getErrorTypeCount(ErrorType::Error);
 
     ParseResult pr_struct;
-    bool res =
-        FormProcInstParse(units, fn, block, (*lst)[1], get_address,
-                               false,
-                               NULL, &pr_struct);
+    bool res = FormProcInstParse(units, fn, block, struct_node, true,
+                                 false, NULL, &pr_struct);
 
     if (!res) {
         /* If the error message is 'cannot take address of
-         * non-lvalue', make get_address false and go from there. */
-        if (ctx->er->getErrorTypeCount(ErrorType::Error) ==
-                original_error_count + 1) {
-            Error *e = ctx->er->popLastError();
-            if (e->instance ==
-                    ErrorInst::Generator::CannotTakeAddressOfNonLvalue) {
-                res =
-                    FormProcInstParse(units, 
-                        fn, block, (*lst)[1], false, 
-                        false, NULL, &pr_struct
-                    );
-                if (!res) {
-                    ctx->er->addError(e);
-                    return false;
-                }
-                get_address = false;
-            } else {
-                ctx->er->addError(e);
-                return false;
-            }
-        } else {
+         * non-lvalue', retry the parse operation without get_address,
+         * and adjust things so that later code can operate as per
+         * normal. */
+        int error_count_end =
+            ctx->er->getErrorTypeCount(ErrorType::Error);
+        if (error_count_end != (error_count_begin + 1)) {
             return false;
         }
-    }
+        Error *e = ctx->er->popLastError();
+        if (e->instance != CannotTakeAddressOfNonLvalue) {
+            ctx->er->addError(e);
+            return false;
+        }
+        res = FormProcInstParse(units, fn, block, struct_node,
+                                false, false, NULL,
+                                &pr_struct);
+        if (!res) {
+            ctx->er->addError(e);
+            return false;
+        }
 
-    /* If get_address is false, allocate space for the struct and
-     * modify pr_struct so that the rest of the code continues to
-     * work. */
-
-    if (!get_address) {
-        llvm::IRBuilder<> builder(pr_struct.block);
         llvm::Type *llvm_type =
             ctx->toLLVMType(pr_struct.type, NULL, false, false);
         if (!llvm_type) {
             return false;
         }
-        llvm::Value *store =
-            builder.CreateAlloca(llvm_type);
+
+        llvm::IRBuilder<> builder(pr_struct.block);
+        llvm::Value *store = builder.CreateAlloca(llvm_type);
         builder.CreateStore(pr_struct.value, store);
         pr_struct.type = ctx->tr->getPointerType(pr_struct.type);
         pr_struct.value = store;
     }
 
-    /* Able to assume points_to here, because get_address was set
-     * to true in the preceding pfbi call. */
+    Type *st = pr_struct.type->points_to;
 
-    int is_const = pr_struct.type->points_to->is_const;
-
-    if (pr_struct.type->points_to->struct_name.size() == 0) {
-        std::string temp;
-        pr_struct.type->points_to->toString(&temp);
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            ((*lst)[1]),
-            ":", "a struct", "1", temp.c_str()
-        );
+    if (st->struct_name.size() == 0) {
+        std::string type_str;
+        st->toString(&type_str);
+        Error *e = new Error(IncorrectArgType, struct_node,
+                             ":", "a struct", "1", type_str.c_str());
         ctx->er->addError(e);
         return false;
     }
 
-    if (ctx->getEnum(pr_struct.type->points_to->struct_name.c_str())) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            ((*lst)[1]),
-            ":", "a struct", "1", "an enum"
-        );
+    if (ctx->getEnum(st->struct_name.c_str())) {
+        Error *e = new Error(IncorrectArgType, struct_node,
+                             ":", "a struct", "1", "an enum");
         ctx->er->addError(e);
         return false;
     }
 
-    Node *ref = (*lst)[2];
-    ref = units->top()->mp->parsePotentialMacroCall(ref);
-    if (!ref) {
+    member_node = units->top()->mp->parsePotentialMacroCall(member_node);
+    if (!member_node) {
         return false;
     }
-    if (!ctx->er->assertArgIsAtom(":", ref, "2")) {
+    if (!ctx->er->assertArgIsAtom(":", member_node, "2")) {
         return false;
     }
-    if (!ctx->er->assertAtomIsSymbol(":", ref, "2")) {
+    if (!ctx->er->assertAtomIsSymbol(":", member_node, "2")) {
         return false;
     }
 
-    Token *t = ref->token;
-
-    Struct *structp =
-        ctx->getStruct(
-            pr_struct.type->points_to->struct_name.c_str(),
-            &(pr_struct.type->points_to->namespaces)
-        );
-
+    Struct *structp = ctx->getStruct(st);
     if (!structp) {
-        Error *e = new Error(
-            ErrorInst::Generator::NotInScope,
-            ((*lst)[1]),
-            pr_struct.type->points_to->struct_name.c_str()
-        );
+        Error *e = new Error(NotInScope, struct_node,
+                             st->struct_name.c_str());
         ctx->er->addError(e);
         return false;
     }
 
-    int index = structp->memberToIndex(t->str_value.c_str());
+    const char *member_name = member_node->token->str_value.c_str();
+    int index = structp->memberToIndex(member_name);
 
     if (index == -1) {
-        Error *e = new Error(
-            ErrorInst::Generator::FieldDoesNotExistInStruct,
-            ((*lst)[2]),
-            t->str_value.c_str(),
-            pr_struct.type->points_to->struct_name.c_str()
-        );
+        Error *e = new Error(FieldDoesNotExistInStruct,
+                             member_node, member_name,
+                             st->struct_name.c_str());
         ctx->er->addError(e);
         return false;
     }
 
-    Type *eltype = structp->indexToType(index);
-    if (is_const) {
-        eltype = ctx->tr->getConstType(eltype);
+    Type *member_type = structp->indexToType(index);
+    if (st->is_const) {
+        member_type = ctx->tr->getConstType(member_type);
     }
 
     std::vector<llvm::Value *> indices;
@@ -167,18 +130,14 @@ FormProcSrefParse(Units *units,
         builder.CreateGEP(pr_struct.value,
                           llvm::ArrayRef<llvm::Value*>(indices));
 
-    /* This has changed - sref will always return a pointer,
-     * regardless of get_address (it is as if get_address was always
-     * enabled). */
+    pr->set(pr_struct.block, ctx->tr->getPointerType(member_type), vres);
 
-    pr->set(pr_struct.block, ctx->tr->getPointerType(eltype), vres);
-
-    ParseResult temp;
-    res = Operation::Destruct(ctx, &pr_struct, &temp);
+    ParseResult pr_destruct;
+    res = Operation::Destruct(ctx, &pr_struct, &pr_destruct);
     if (!res) {
         return false;
     }
-    pr->block = temp.block;
+    pr->block = pr_destruct.block;
 
     return true;
 }
