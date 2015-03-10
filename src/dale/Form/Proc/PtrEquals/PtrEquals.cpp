@@ -2,69 +2,66 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
-#include "../../../Operation/Destruct/Destruct.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
+#include "../../../Operation/Destruct/Destruct.h"
 
 namespace dale
 {
 bool
-FormProcPtrEqualsParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcPtrEqualsParse(Units *units, Function *fn,
+                       llvm::BasicBlock *block, Node *node,
+                       bool get_address, bool prefixed_with_core,
+                       ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-
-    assert(node->list && "must receive a list!");
 
     if (!ctx->er->assertArgNums("p=", node, 2, 2)) {
         return false;
     }
 
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
+    Node *ptr1_node = (*lst)[1];
+    Node *ptr2_node = (*lst)[2];
 
-    ParseResult p1;
-    bool mres = FormProcInstParse(units, 
-                         fn, block, (*lst)[1], get_address, false, NULL, &p1
-                     );
-    if (!mres) {
+    ParseResult pr_ptr1;
+    bool res = FormProcInstParse(units, fn, block, ptr1_node, get_address,
+                                 false, NULL, &pr_ptr1);
+    if (!res) {
         return false;
     }
-    if (!ctx->er->assertIsPointerType("p=", node, p1.type, "1")) {
-        return false;
-    }
-
-    ParseResult p2;
-    mres = FormProcInstParse(units, 
-                          fn, p1.block, (*lst)[2], get_address, 
-                          false, NULL,
-                          &p2
-                      );
-    if (!mres) {
-        return false;
-    }
-    if (!ctx->er->assertIsPointerType("p=", node, p2.type, "2")) {
+    if (!ctx->er->assertIsPointerType("p=", ptr1_node, pr_ptr1.type, "1")) {
         return false;
     }
 
-    llvm::IRBuilder<> builder(p2.block);
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           builder.CreateICmpEQ(p1.value, p2.value)
-                       );
+    ParseResult pr_ptr2;
+    res = FormProcInstParse(units, fn, pr_ptr1.block, ptr2_node, get_address,
+                            false, NULL, &pr_ptr2);
+    if (!res) {
+        return false;
+    }
+    if (!ctx->er->assertIsPointerType("p=", ptr2_node, pr_ptr2.type, "2")) {
+        return false;
+    }
 
-    pr->set(p2.block, ctx->tr->type_bool, res);
+    llvm::IRBuilder<> builder(pr_ptr2.block);
+    llvm::Value *cmp_res =
+        llvm::cast<llvm::Value>(builder.CreateICmpEQ(pr_ptr1.value,
+                                                     pr_ptr2.value));
 
-    p1.block = p2.block;
-    ParseResult ret;
-    ret.block = p2.block;
-    Operation::Destruct(ctx, &p1, &ret);
-    p2.block = ret.block;
-    Operation::Destruct(ctx, &p2, &ret);
-    pr->block = ret.block;
+    pr_ptr1.block = pr_ptr2.block;
+    ParseResult pr_destruct;
+    res = Operation::Destruct(ctx, &pr_ptr1, &pr_destruct);
+    if (!res) {
+        return false;
+    }
+    pr_ptr2.block = pr_destruct.block;
+    res = Operation::Destruct(ctx, &pr_ptr2, &pr_destruct);
+    if (!res) {
+        return false;
+    }
+
+    pr->set(pr_destruct.block, ctx->tr->type_bool, cmp_res);
 
     return true;
 }
