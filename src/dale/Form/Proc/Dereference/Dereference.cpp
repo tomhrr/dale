@@ -6,95 +6,81 @@
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 bool
-FormProcDereferenceParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcDereferenceParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                         Node *node, bool get_address, bool prefixed_with_core,
+                         ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-
-    assert(node->list && "parseDereference must receive a list!");
-
-    symlist *lst = node->list;
 
     if (!ctx->er->assertArgNums("@", node, 1, 1)) {
         return false;
     }
 
-    ParseResult p;
-    bool res =
-        FormProcInstParse(units, fn, block, (*lst)[1], false, 
-                                    false, NULL,
-                                    &p);
+    std::vector<Node *> *lst = node->list;
+    Node *ptr = (*lst)[1];
 
+    ParseResult pr_ptr;
+    bool res = FormProcInstParse(units, fn, block, ptr, false, false, NULL,
+                                 &pr_ptr);
     if (!res) {
         return false;
     }
 
-    /* It should be a pointer. */
+    Type *ptr_type = pr_ptr.type;
 
-    if (!(p.type->points_to)) {
-        std::string temp;
-        p.type->toString(&temp);
-        Error *e = new Error(
-            ErrorInst::Generator::CannotDereferenceNonPointer,
-            node,
-            temp.c_str()
-        );
+    if (!ptr_type->points_to) {
+        std::string type_str;
+        ptr_type->toString(&type_str);
+        Error *e = new Error(CannotDereferenceNonPointer, node,
+                             type_str.c_str());
         ctx->er->addError(e);
         return false;
     }
 
-    if (p.type->points_to->base_type == BaseType::Void) {
-        Error *e = new Error(
-            ErrorInst::Generator::CannotDereferenceVoidPointer,
-            node
-        );
+    if (ptr_type->points_to->base_type == BaseType::Void) {
+        Error *e = new Error(CannotDereferenceVoidPointer, node);
         ctx->er->addError(e);
         return false;
     }
 
-    /* If get_address is false (the usual case), append a load
-     * instruction, otherwise just return the value. */
-
-    pr->set(p.block, NULL, NULL);
+    pr->set(pr_ptr.block, NULL, NULL);
 
     if (!get_address) {
-        llvm::IRBuilder<> builder(p.block);
-        llvm::Value *res =
-            llvm::cast<llvm::Value>(builder.CreateLoad(p.value));
+        llvm::IRBuilder<> builder(pr_ptr.block);
+        llvm::Value *val =
+            llvm::cast<llvm::Value>(builder.CreateLoad(pr_ptr.value));
 
-        pr->address_of_value = p.value;
-        pr->value_is_lvalue = 1;
-        pr->type_of_address_of_value = p.type;
+        pr->address_of_value = pr_ptr.value;
+        pr->value_is_lvalue = true;
+        pr->type_of_address_of_value = ptr_type;
 
-        pr->type  = p.type->points_to;
-        pr->value = res;
+        pr->type  = ptr_type->points_to;
+        pr->value = val;
     } else {
-        pr->type  = p.type;
-        pr->value = p.value;
+        pr->type  = ptr_type;
+        pr->value = pr_ptr.value;
     }
 
-    /* If this isn't here, then an overloaded setf that calls @
-     * on the pointer to the underlying value will not be able to
-     * work, because even (core @ x) will return a pointee to x,
-     * which will be copied to the caller of this function. */
+    /* Core dereference call results should not be copied.  Otherwise,
+     * an overloaded setf that calls @ on the pointer to the
+     * underlying value will not be able to work, because even (core @
+     * x) will return a pointee to x, which will be copied to the
+     * caller of this function. */
     if (prefixed_with_core) {
-        pr->do_not_copy_with_setf = 1;
+        pr->do_not_copy_with_setf = true;
     }
 
-    ParseResult temp;
-    res = Operation::Destruct(ctx, &p, &temp);
+    ParseResult pr_destruct;
+    res = Operation::Destruct(ctx, &pr_ptr, &pr_destruct);
     if (!res) {
         return false;
     }
-    pr->block = temp.block;
+    pr->block = pr_destruct.block;
 
     return true;
 }
