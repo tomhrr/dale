@@ -30,7 +30,7 @@ FormProcPtrLessThanParse(Units *units, Function *fn,
     if (!res) {
         return false;
     }
-    if (!ctx->er->assertIsPointerType("p>", ptr1_node, pr_ptr1.type, "1")) {
+    if (!ctx->er->assertIsPointerType("p<", ptr1_node, pr_ptr1.type, "1")) {
         return false;
     }
 
@@ -40,7 +40,7 @@ FormProcPtrLessThanParse(Units *units, Function *fn,
     if (!res) {
         return false;
     }
-    if (!ctx->er->assertIsPointerType("p>", ptr2_node, pr_ptr2.type, "2")) {
+    if (!ctx->er->assertIsPointerType("p<", ptr2_node, pr_ptr2.type, "2")) {
         return false;
     }
 
