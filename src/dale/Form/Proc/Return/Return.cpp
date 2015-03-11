@@ -9,79 +9,58 @@
 namespace dale
 {
 bool
-FormProcReturnParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcReturnParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                    Node *node, bool get_address, bool prefixed_with_core,
+                    ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
 
-    assert(node->list && "parseReturn must receive a list!");
-
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
 
     if (!ctx->er->assertArgNums("return", node, 0, 1)) {
         return false;
     }
+
+    pr->do_not_destruct       = true;
+    pr->do_not_copy_with_setf = true;
+    pr->treat_as_terminator   = true;
+
     if (lst->size() == 1) {
         llvm::IRBuilder<> builder(block);
         Operation::CloseScope(ctx, fn, block, NULL, true);
         builder.CreateRetVoid();
         pr->set(block, ctx->tr->type_void, NULL);
-        pr->do_not_destruct       = 1;
-        pr->do_not_copy_with_setf = 1;
-        pr->treat_as_terminator   = 1;
         return true;
     }
 
-    ParseResult p;
-    bool res =
-        FormProcInstParse(units, 
-            fn, block, (*lst)[1], get_address, false, NULL, &p
-        );
+    ParseResult pr_value;
+    bool res = FormProcInstParse(units, fn, block, (*lst)[1], get_address,
+                                 false, NULL, &pr_value);
     if (!res) {
         return false;
     }
+
     Type *real_return_type =
-        (fn->hasRetval() ? ctx->tr->getBasicType(BaseType::Void)
-                         : fn->return_type);
-    if (!ctx->er->assertTypeEquality("return", node, p.type,
+        (fn->hasRetval() ? ctx->tr->type_void : fn->return_type);
+    if (!ctx->er->assertTypeEquality("return", node, pr_value.type,
                                      real_return_type, false)) {
         return false;
     }
-    block = p.block;
+
+    block = pr_value.block;
+    Operation::CloseScope(ctx, fn, block, NULL, true);
+
     llvm::IRBuilder<> builder(block);
-    /* Both branches here create a ParseResult with an integer
-     * value but a type that is the same as the return type of the
-     * function. This is purposeful - the type is so that if other
-     * instructions occur between here and the conclusion of the
-     * function (for whatever reason), the last value continues to
-     * have the correct type, and in any event the value from a
-     * parseReturn parse result should never be used. (Woops, this
-     * last part isn't correct - see e.g. the call to CreateCondBr
-     * in parseIf. So, return the proper value in the second
-     * branch.) */
-    if (p.type->base_type == BaseType::Void) {
-        Operation::CloseScope(ctx, fn, block, NULL, true);
-        builder.SetInsertPoint(block);
+    builder.SetInsertPoint(block);
+
+    if (pr_value.type->base_type == BaseType::Void) {
         builder.CreateRetVoid();
         pr->set(block, ctx->tr->type_void, NULL);
-        pr->do_not_destruct       = 1;
-        pr->do_not_copy_with_setf = 1;
-        pr->treat_as_terminator   = 1;
-        return true;
     } else {
-        Operation::CloseScope(ctx, fn, block, NULL, true);
-        builder.SetInsertPoint(block);
-        builder.CreateRet(p.value);
-        pr->set(block, fn->return_type, p.value);
-        pr->do_not_destruct       = 1;
-        pr->do_not_copy_with_setf = 1;
-        pr->treat_as_terminator   = 1;
-        return true;
+        builder.CreateRet(pr_value.value);
+        pr->set(block, fn->return_type, pr_value.value);
     }
+
+    return true;
 }
 }
