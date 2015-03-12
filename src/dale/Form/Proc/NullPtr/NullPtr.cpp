@@ -8,17 +8,11 @@
 namespace dale
 {
 bool
-FormProcNullPtrParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcNullPtrParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                     Node *node, bool get_address, bool prefixed_with_core,
+                     ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-
-    assert(node->list && "must receive a list!");
 
     if (!ctx->er->assertArgNums("nullptr", node, 1, 1)) {
         return false;
@@ -30,27 +24,17 @@ FormProcNullPtrParse(Units *units,
     if (!type) {
         return false;
     }
-    /* Create a pointer to the provided type. */
-    Type *ptype = ctx->tr->getPointerType(type);
+    Type *ptr_type = ctx->tr->getPointerType(type);
 
-    llvm::IRBuilder<> builder(block);
-    llvm::Type *llvm_ptype =
-        ctx->toLLVMType(ptype, NULL, false, false);
-    if (!llvm_ptype) {
+    llvm::Type *llvm_ptr_type = ctx->toLLVMType(ptr_type, NULL, false, false);
+    if (!llvm_ptr_type) {
         return false;
     }
 
-    llvm::Value *res =
-        builder.CreateAlloca(llvm_ptype);
-
-    llvm::Value *val =
-        builder.CreateIntToPtr(
-            ctx->nt->getLLVMZero(),
-            llvm_ptype
-        );
-
-    builder.CreateStore(val, res);
-    pr->set(block, ptype, val);
+    llvm::IRBuilder<> builder(block);
+    llvm::Value *null_ptr = builder.CreateIntToPtr(ctx->nt->getLLVMZero(),
+                                                   llvm_ptr_type);
+    pr->set(block, ptr_type, null_ptr);
 
     return true;
 }
