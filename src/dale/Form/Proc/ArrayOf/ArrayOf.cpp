@@ -10,53 +10,41 @@
 namespace dale
 {
 bool
-FormProcArrayOfParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcArrayOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                     Node *node, bool get_address, bool prefixed_with_core,
+                     ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-
-    assert(node->list && "must receive a list!");
-
-    std::vector<Node *> *lst = node->list;
 
     if (!ctx->er->assertArgNums("array-of", node, 3, -1)) {
         return false;
     }
 
-    Node *newnum = units->top()->mp->parsePotentialMacroCall((*lst)[1]);
-    if (!newnum) {
+    std::vector<Node *> *lst = node->list;
+    Node *size_node = (*lst)[1];
+    Node *type_node = (*lst)[2];
+    Node *data_node = (*lst)[3];
+
+    Node *array_size = units->top()->mp->parsePotentialMacroCall(size_node);
+    if (!array_size) {
         return false;
     }
 
-    int size = FormLiteralIntegerParse(newnum, ctx->er);
+    int size = FormLiteralIntegerParse(array_size, ctx->er);
     if (size == -1) {
         return false;
     }
 
-    Type *type = FormTypeParse(units, (*lst)[2], false, false);
+    Type *type = FormTypeParse(units, type_node, false, false);
     if (!type) {
         return false;
     }
 
-    Type *arrtype = ctx->tr->getArrayType(type, size);
+    Type *array_type = ctx->tr->getArrayType(type, size);
 
-    int size2;
-    return
-        FormLiteralArrayParse(
-            units,
-            fn,
-            block,
-            ((*lst)[3]),
-            "array literal",
-            arrtype,
-            get_address,
-            &size2,
-            pr
-        );
+    int unused_size;
+    return FormLiteralArrayParse(units, fn, block, data_node,
+                                 "array literal", array_type,
+                                 get_address, &unused_size, pr);
 }
 }
