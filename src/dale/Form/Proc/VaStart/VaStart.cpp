@@ -28,7 +28,6 @@ FormProcVaStartParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    llvm::IRBuilder<> builder(pr_valist.block);
     llvm::Function *va_start =
         units->top()->module->getFunction(llvm::StringRef("llvm.va_start"));
 
@@ -42,6 +41,7 @@ FormProcVaStartParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     std::vector<llvm::Value*> call_args;
     call_args.push_back(pr_pchar.value);
+    llvm::IRBuilder<> builder(pr_valist.block);
     builder.CreateCall(va_start, llvm::ArrayRef<llvm::Value*>(call_args));
 
     pr->set(pr_pchar.block, ctx->tr->type_void, NULL);

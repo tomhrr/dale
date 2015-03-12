@@ -123,8 +123,6 @@ public:
 };
 
 Node *nullNode(void);
-
-typedef std::vector<Node *> symlist;
 }
 
 #endif

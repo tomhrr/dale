@@ -24,7 +24,7 @@ FormProcNullPtrParse(Units *units,
         return false;
     }
 
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
 
     Type *type = FormTypeParse(units, (*lst)[1], false, false);
     if (!type) {

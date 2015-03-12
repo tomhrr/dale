@@ -44,7 +44,7 @@ FormFunctionParse(Units *units,
         return false;
     }
 
-    symlist *lst = n->list;
+    std::vector<Node *> *lst = n->list;
 
     if (lst->size() < 4) {
         Error *e = new Error(
@@ -76,7 +76,7 @@ FormFunctionParse(Units *units,
             && test->list->at(0)->is_token
             && !(test->list->at(0)->token
                  ->str_value.compare("attr"))) {
-        symlist *attr_list = test->list;
+        std::vector<Node *> *attr_list = test->list;
         std::vector<Node*>::iterator b = attr_list->begin(),
                                      e = attr_list->end();
         ++b;
@@ -143,7 +143,7 @@ FormFunctionParse(Units *units,
         return false;
     }
 
-    symlist *args = nargs->list;
+    std::vector<Node *> *args = nargs->list;
 
     Variable *var;
 

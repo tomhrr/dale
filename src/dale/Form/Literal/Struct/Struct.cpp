@@ -29,7 +29,7 @@ FormLiteralStructParse(Units *units,
         return false;
     }
 
-    symlist *slst = struct_list->list;
+    std::vector<Node *> *slst = struct_list->list;
 
     std::vector<Node *>::iterator siter = slst->begin();
 
@@ -49,7 +49,7 @@ FormLiteralStructParse(Units *units,
             ctx->er->addError(e);
             return false;
         }
-        symlist *sellst = sel->list;
+        std::vector<Node *> *sellst = sel->list;
         if (sellst->size() != 2) {
             Error *e = new Error(
                 ErrorInst::Generator::UnexpectedElement, sel,

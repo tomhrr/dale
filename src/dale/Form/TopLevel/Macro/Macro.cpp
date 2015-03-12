@@ -29,7 +29,7 @@ FormTopLevelMacroParse(Units *units, Node *node)
         return false;
     }
 
-    symlist *lst = top->list;
+    std::vector<Node *> *lst = top->list;
 
     if (lst->size() < 3) {
         Error *e = new Error(
@@ -63,7 +63,7 @@ FormTopLevelMacroParse(Units *units, Node *node)
         return false;
     }
 
-    symlist *args = nargs->list;
+    std::vector<Node *> *args = nargs->list;
 
     Variable *var;
 

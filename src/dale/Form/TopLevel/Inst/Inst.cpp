@@ -53,7 +53,7 @@ FormTopLevelInstParse(Units *units, Node *node)
         return false;
     }
 
-    symlist *lst = top->list;
+    std::vector<Node *> *lst = top->list;
 
     if (lst->size() == 0) {
         Error *e = new Error(

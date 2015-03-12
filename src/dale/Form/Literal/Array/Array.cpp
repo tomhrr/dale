@@ -28,7 +28,7 @@ FormLiteralArrayParse(Units *units,
         return false;
     }
 
-    symlist *lst = array_list->list;
+    std::vector<Node *> *lst = array_list->list;
 
     std::vector<Node *>::iterator iter = lst->begin();
     ++iter;

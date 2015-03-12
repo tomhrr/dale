@@ -23,7 +23,7 @@ FormProcCastParse(Units *units,
 
     assert(node->list && "must receive a list!");
 
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
 
     if (!ctx->er->assertArgNums("cast", node, 2, 2)) {
         return false;

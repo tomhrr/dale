@@ -22,7 +22,7 @@ FormProcArrayOfParse(Units *units,
 
     assert(node->list && "must receive a list!");
 
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
 
     if (!ctx->er->assertArgNums("array-of", node, 3, -1)) {
         return false;

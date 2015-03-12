@@ -8,7 +8,7 @@ bool
 FormTopLevelStructParse(Units *units,
       Node *top)
 {
-    symlist *lst = top->list;
+    std::vector<Node *> *lst = top->list;
     Node *name = units->top()->mp->parsePotentialMacroCall(lst->at(1));
     Node *n = lst->at(2);
 

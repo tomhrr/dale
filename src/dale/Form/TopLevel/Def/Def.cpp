@@ -24,7 +24,7 @@ FormTopLevelDefParse(Units *units,
 {
     Context *ctx = units->top()->ctx;
 
-    symlist *lst = top->list;
+    std::vector<Node *> *lst = top->list;
 
     if (lst->size() != 3) {
         Error *e = new Error(
@@ -81,7 +81,7 @@ FormTopLevelDefParse(Units *units,
         return false;
     }
 
-    symlist *sublst = n->list;
+    std::vector<Node *> *sublst = n->list;
 
     Node *subn = (*sublst)[0];
 

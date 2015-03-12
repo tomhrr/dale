@@ -23,7 +23,7 @@ FormProcLabelParse(Units *units,
         return false;
     }
 
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
     Node *lname = (*lst)[1];
 
     if (!ctx->er->assertArgIsAtom("label", lname, "1")) {

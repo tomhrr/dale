@@ -20,7 +20,7 @@ FormTopLevelEnumParse(Units *units, Node *node)
     Node *top = node->list->at(2);
     const char *name = node->list->at(1)->token->str_value.c_str();
 
-    symlist *lst = top->list;
+    std::vector<Node *> *lst = top->list;
 
     if (lst->size() < 4) {
         Error *e = new Error(
@@ -107,7 +107,7 @@ FormTopLevelEnumParse(Units *units, Node *node)
             if (!n) {
                 return false;
             }
-            symlist *mylst = n->list;
+            std::vector<Node *> *mylst = n->list;
             if (mylst->size() != 2) {
                 Error *e = new Error(
                     ErrorInst::Generator::IncorrectNumberOfArgs,

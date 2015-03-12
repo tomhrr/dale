@@ -33,7 +33,7 @@ FormTopLevelModuleParse(Units *units, Node *node)
         return false;
     }
 
-    symlist *lst = top->list;
+    std::vector<Node *> *lst = top->list;
     Node *n = (*lst)[1];
     n = units->top()->mp->parsePotentialMacroCall(n);
     if (!n) {
@@ -78,7 +78,7 @@ FormTopLevelModuleParse(Units *units, Node *node)
             return false;
         }
 
-        symlist *attr_list = n->list;
+        std::vector<Node *> *attr_list = n->list;
         std::vector<Node*>::iterator b = attr_list->begin(),
                                      e = attr_list->end();
         ++b;

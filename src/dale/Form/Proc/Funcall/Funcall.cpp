@@ -26,7 +26,7 @@ FormProcFuncallParse(Units *units,
         return false;
     }
 
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
 
     ParseResult fn_ptr;
     bool res =

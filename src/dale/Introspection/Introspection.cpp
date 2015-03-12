@@ -284,7 +284,7 @@ exists_2D_fn(MContext *mc, DNode *form)
         return false;
     }
 
-    symlist *lst = n->list;
+    std::vector<Node *> *lst = n->list;
 
     Node *node_return_type   = (*lst)[0];
     Node *node_function_name = (*lst)[1];
@@ -335,7 +335,7 @@ exists_2D_type(MContext *mc, DNode *t)
         return false;
     }
 
-    symlist *lst = n->list;
+    std::vector<Node *> *lst = n->list;
     int error_count = units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
     Type *type = FormTypeParse(units, (*lst)[0], false, false);
     units->top()->ctx->er->popErrors(error_count);
@@ -357,7 +357,7 @@ exists_2D_macro(MContext *mc, DNode *form)
     int original_error_count =
         units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    symlist *lst = n->list;
+    std::vector<Node *> *lst = n->list;
     Node *function_name = (*lst)[0];
 
     std::vector<Type *> parameter_types;
@@ -424,7 +424,7 @@ fn_2D_by_2D_args_2D_count(MContext *mc, DNode *form, const char *prefix)
     int original_error_count =
         units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    symlist *lst = n->list;
+    std::vector<Node *> *lst = n->list;
 
     std::vector<Node *>::iterator iter = lst->begin();
 
@@ -502,7 +502,7 @@ fn_2D_by_2D_args_2D_name(MContext *mc, DNode *form, int index)
     int original_error_count =
         units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    symlist *lst = n->list;
+    std::vector<Node *> *lst = n->list;
     std::vector<Node *>::iterator iter = lst->begin();
 
     std::string map_key;
@@ -715,7 +715,7 @@ DNode *codomain(MContext *mc, DNode *form)
         return NULL;
     }
 
-    symlist *lst = n->list;
+    std::vector<Node *> *lst = n->list;
 
     Node *function_name = (*lst)[0];
 

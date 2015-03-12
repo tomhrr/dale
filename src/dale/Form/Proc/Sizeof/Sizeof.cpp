@@ -27,7 +27,7 @@ FormProcSizeofParse(Units *units,
         return false;
     }
 
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
 
     /* Get the type to which it is being cast. */
 

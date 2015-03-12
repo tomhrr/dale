@@ -7,8 +7,6 @@
 
 namespace dale
 {
-typedef std::vector<Node*> symlist;
-
 ErrorReporter::ErrorReporter(const char *current_filename)
 {
     if (!strcmp(current_filename, "")) {
@@ -207,7 +205,7 @@ bool
 ErrorReporter::assertArgNums(const char *form_name, Node *n,
                              int min_args, int max_args)
 {
-    symlist *lst = n->list;
+    std::vector<Node *> *lst = n->list;
     assert(lst);
 
     int num_args = (int) lst->size() - 1;

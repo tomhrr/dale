@@ -109,7 +109,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
                          allow_bitfields, allow_refs, allow_retvals);
     }
 
-    symlist *lst = top->list;
+    std::vector<Node *> *lst = top->list;
 
     Node *n = (*lst)[0];
 
@@ -386,7 +386,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        symlist *plst = params->list;
+        std::vector<Node *> *plst = params->list;
 
         Variable *var;
 

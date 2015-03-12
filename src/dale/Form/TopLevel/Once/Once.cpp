@@ -19,7 +19,7 @@ FormTopLevelOnceParse(Units *units,
     if (!ctx->er->assertArgNums("once", top, 1, 1)) {
         return false;
     }
-    symlist *lst = top->list;
+    std::vector<Node *> *lst = top->list;
     Node *n = (*lst)[1];
     n = units->top()->mp->parsePotentialMacroCall(n);
     if (!n) {

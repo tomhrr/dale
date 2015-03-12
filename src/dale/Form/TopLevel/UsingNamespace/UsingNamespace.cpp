@@ -14,7 +14,7 @@ FormTopLevelUsingNamespaceParse(Units *units, Node *node)
         return false;
     }
 
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
     Node *n = (*lst)[1];
     n = units->top()->mp->parsePotentialMacroCall(n);
     if (!n) {

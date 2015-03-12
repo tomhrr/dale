@@ -58,7 +58,7 @@ bool FormArgumentParse(Units *units,
             return false;
         }
     }
-    symlist *lst = top->list;
+    std::vector<Node *> *lst = top->list;
 
     if (lst->size() != 2) {
         Error *e = new Error(

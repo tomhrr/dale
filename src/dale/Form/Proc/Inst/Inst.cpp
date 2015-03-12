@@ -315,7 +315,7 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
                                   prefixed_with_core, wanted_type, pr);
     }
 
-    symlist *lst = n->list;
+    std::vector<Node *> *lst = n->list;
     if (lst->size() == 0) {
         Error *e = new Error(NoEmptyLists, n);
         ctx->er->addError(e);

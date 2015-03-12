@@ -25,7 +25,7 @@ FormProcAlignmentOfParse(Units *units,
         return false;
     }
 
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
 
     Node *mytype = (*lst)[1];
     mytype = units->top()->mp->parsePotentialMacroCall(mytype);

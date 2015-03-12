@@ -24,7 +24,7 @@ FormProcBodyParse(Units *units,
 {
     Context *ctx = units->top()->ctx;
 
-    symlist *lst = n->list;
+    std::vector<Node *> *lst = n->list;
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", fn);

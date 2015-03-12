@@ -25,7 +25,7 @@ FormProcOffsetOfParse(Units *units,
         return false;
     }
 
-    symlist *lst = node->list;
+    std::vector<Node *> *lst = node->list;
 
     /* First argument must be a struct name. */
 

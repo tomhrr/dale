@@ -101,7 +101,7 @@ FormStructParse(Units *units,
         return false;
     }
 
-    symlist *lst = top->list;
+    std::vector<Node *> *lst = top->list;
     int must_init = 0;
 
     /* Struct attributes. */
@@ -112,7 +112,7 @@ FormStructParse(Units *units,
             && test->list->at(0)->is_token
             && !(test->list->at(0)->token
                  ->str_value.compare("attr"))) {
-        symlist *attr_list = test->list;
+        std::vector<Node *> *attr_list = test->list;
         std::vector<Node*>::iterator b = attr_list->begin(),
                                      e = attr_list->end();
         ++b;
@@ -172,7 +172,7 @@ FormStructParse(Units *units,
         return false;
     }
 
-    symlist *elements = nelements->list;
+    std::vector<Node *> *elements = nelements->list;
 
     Variable *var;
 

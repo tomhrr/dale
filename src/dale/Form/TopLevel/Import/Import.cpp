@@ -17,7 +17,7 @@ FormTopLevelImportParse(Units *units, Node *node)
         return false;
     }
 
-    symlist *lst = top->list;
+    std::vector<Node *> *lst = top->list;
     Node *n = (*lst)[1];
     n = units->top()->mp->parsePotentialMacroCall(n);
     if (!n) {
@@ -35,8 +35,8 @@ FormTopLevelImportParse(Units *units, Node *node)
         if (!ctx->er->assertArgIsList("import", n, "2")) {
             return false;
         }
-        symlist *formlst = n->list;
-        for (symlist::iterator b = formlst->begin(),
+        std::vector<Node *> *formlst = n->list;
+        for (std::vector<Node *>::iterator b = formlst->begin(),
                 e = formlst->end();
                 b != e;
                 ++b) {
