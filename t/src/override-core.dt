@@ -2,18 +2,18 @@
 (import macros)
 
 (def setf-both
-  (fn intern void ((dst (p float)) (src (p float)))
+  (fn intern bool ((dst (p float)) (src (p float)))
     (printf "Overrode setf for float: old %0.2f, new %0.2f\n" 
             (core @ dst) (core @ src))
     (core setf dst (core @ src))
-    (return)))
+    (return true)))
 
 (def setf-assign
-  (fn intern void ((dst (p float)) (src (p float)))
+  (fn intern bool ((dst (p float)) (src (p float)))
     (setf-both dst src)))
 
 (def setf-copy
-  (fn intern void ((dst (p float)) (src (p float)))
+  (fn intern bool ((dst (p float)) (src (p float)))
     (setf-both dst src)))
 
 (def main
