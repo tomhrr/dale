@@ -10,31 +10,25 @@
 namespace dale
 {
 bool
-FormProcNewScopeParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcNewScopeParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                      Node *node, bool get_address, bool prefixed_with_core,
+                      ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-    assert(node->list && "must receive a list!");
+
     if (!ctx->er->assertArgNums("new-scope", node, 1, -1)) {
         return false;
     }
 
     ctx->activateAnonymousNamespace();
-    std::string anon_name = ctx->ns()->name;
+    std::string ns_name = ctx->ns()->name;
 
-    bool success = FormProcDoParse(units, fn, block, node,
-                                         get_address,
-                                         prefixed_with_core,
-                                         pr);
+    bool res = FormProcDoParse(units, fn, block, node, get_address,
+                               prefixed_with_core, pr);
 
     Operation::CloseScope(ctx, fn, block, NULL, false);
-    ctx->deactivateNamespace(anon_name.c_str());
+    ctx->deactivateNamespace(ns_name.c_str());
 
-    return success;
+    return res;
 }
 }
