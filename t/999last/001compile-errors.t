@@ -23,7 +23,7 @@ for my $file (@error_files) {
     my ($filename) = ($file =~ /.*\/(.*)$/);
     my @res = map { chomp; $_ } `dalec $ENV{"DALE_TEST_ARGS"} $file $opts 2>&1`; 
     ok(@res, 'Got compilation errors');
-    open my $fh, '<', $file.'.errors' or die $!;
+    open my $fh, '<', $file.'.errors' or die "$file.errors: $!";
     my $data = do { local $/; <$fh> };
     close $fh;
     my @errors = split /\n/, $data;

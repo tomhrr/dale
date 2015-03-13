@@ -1,0 +1,1 @@
+./t/error-src/invalid-offsetof.dt:4:17: error: 'offsetof' requires an atom for argument 2 (got a list instead)

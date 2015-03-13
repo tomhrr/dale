@@ -1,0 +1,5 @@
+(def myn (struct intern ((a int) (b int))))
+
+(def main (fn extern-c int (void)
+  (offsetof myn (1 2 3))
+  0))

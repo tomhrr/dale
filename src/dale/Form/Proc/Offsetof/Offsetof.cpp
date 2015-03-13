@@ -6,67 +6,55 @@
 #include "../../Type/Type.h"
 #include "../../../llvm_Function.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 bool
-FormProcOffsetOfParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcOffsetOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                      Node *node, bool get_address, bool prefixed_with_core,
+                      ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-
-    assert(node->list && "must receive a list!");
 
     if (!ctx->er->assertArgNums("offsetof", node, 2, 2)) {
         return false;
     }
 
     std::vector<Node *> *lst = node->list;
+    Node *struct_node = (*lst)[1];
+    Node *member_node = (*lst)[2];
 
-    /* First argument must be a struct name. */
-
-    Node *struct_name = (*lst)[1];
-    struct_name = units->top()->mp->parsePotentialMacroCall(struct_name);
-    if (!struct_name) {
+    struct_node = units->top()->mp->parsePotentialMacroCall(struct_node);
+    if (!struct_node) {
         return false;
     }
 
-    Type *mytype = FormTypeParse(units, struct_name,
-                                           false,
-                                           false);
-    if (!mytype) {
+    Type *type = FormTypeParse(units, struct_node, false, false);
+    if (!type) {
         return false;
     }
 
-    if (!mytype->struct_name.size()) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement, node,
-            "struct", "offsetof", "not a struct"
-        );
+    if (!type->struct_name.size()) {
+        Error *e = new Error(UnexpectedElement, node, "struct",
+                             "offsetof", "not a struct");
         ctx->er->addError(e);
         return false;
     }
 
-    Struct *str =
-        ctx->getStruct(
-            mytype->struct_name.c_str(),
-            &(mytype->namespaces)
-        );
-
-    if (!str) {
-        fprintf(stderr, "Internal error: invalid struct name.\n");
-        abort();
+    member_node = units->top()->mp->parsePotentialMacroCall(member_node);
+    if (!member_node) {
+        return false;
+    }
+    if (!ctx->er->assertArgIsAtom("offsetof", member_node, "2")) {
+        return false;
+    }
+    if (!ctx->er->assertAtomIsSymbol("offsetof", member_node, "2")) {
+        return false;
     }
 
-    /* Second argument is struct field. */
-
-    bool res = Operation::Offsetof(ctx, block, mytype,
-                           (*lst)[2]->token->str_value.c_str(),
-                           pr);
-    return res;
+    return Operation::Offsetof(ctx, block, type,
+                               member_node->token->str_value.c_str(),
+                               pr);
 }
 }
