@@ -9,16 +9,10 @@
 namespace dale
 {
 bool
-FormProcAlignmentOfParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcAlignmentOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                         Node *node, bool get_address, bool prefixed_with_core,
+                         ParseResult *pr)
 {
-    assert(node->list && "must receive a list!");
-
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("alignmentof", node, 1, 1)) {
@@ -26,19 +20,18 @@ FormProcAlignmentOfParse(Units *units,
     }
 
     std::vector<Node *> *lst = node->list;
+    Node *type_node = (*lst)[1];
 
-    Node *mytype = (*lst)[1];
-    mytype = units->top()->mp->parsePotentialMacroCall(mytype);
-    if (!mytype) {
+    type_node = units->top()->mp->parsePotentialMacroCall(type_node);
+    if (!type_node) {
         return false;
     }
-    Type *type = FormTypeParse(units, mytype, false,
-                                         false);
+
+    Type *type = FormTypeParse(units, type_node, false, false);
     if (!type) {
         return false;
     }
 
-    bool res = Operation::Alignmentof(ctx, block, type, pr);
-    return res;
+    return Operation::Alignmentof(ctx, block, type, pr);
 }
 }
