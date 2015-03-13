@@ -5,68 +5,56 @@
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 bool
-FormProcUsingNamespaceParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcUsingNamespaceParse(Units *units, Function *fn,
+                            llvm::BasicBlock *block, Node *node,
+                            bool get_address, bool prefixed_with_core,
+                            ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-
-    assert(node->list && "must receive a list!");
 
     if (!ctx->er->assertArgNums("using-namespace", node, 1, -1)) {
         return false;
     }
 
     std::vector<Node *> *lst = node->list;
-    Node *n2 = (*lst)[1];
-    n2 = units->top()->mp->parsePotentialMacroCall(n2);
-    if (!n2) {
+    Node *ns_name_node = (*lst)[1];
+
+    ns_name_node = units->top()->mp->parsePotentialMacroCall(ns_name_node);
+    if (!ns_name_node) {
         return false;
     }
-    if (!ctx->er->assertArgIsAtom("using-namespace", n2, "1")) {
+    if (!ctx->er->assertArgIsAtom("using-namespace", ns_name_node, "1")) {
         return false;
     }
-    if (!ctx->er->assertAtomIsSymbol("using-namespace", n2, "1")) {
+    if (!ctx->er->assertAtomIsSymbol("using-namespace", ns_name_node, "1")) {
         return false;
     }
 
-    Token *t = n2->token;
+    const char *ns_name = ns_name_node->token->str_value.c_str();
 
-    bool res = ctx->useNamespace(t->str_value.c_str());
+    bool res = ctx->useNamespace(ns_name);
     if (!res) {
-        Error *e = new Error(
-            ErrorInst::Generator::NamespaceNotInScope,
-            node,
-            t->str_value.c_str()
-        );
+        Error *e = new Error(NamespaceNotInScope, node, ns_name);
         ctx->er->addError(e);
         return false;
     }
 
-    std::vector<Node *>::iterator node_iter;
-    node_iter = lst->begin();
-    ++node_iter;
-    ++node_iter;
-
     pr->block = block;
-    while (node_iter != lst->end()) {
-        bool res = FormProcInstParse(units, 
-                       fn, pr->block, (*node_iter), get_address, 
-                       false, NULL, pr
-                   );
+    for (std::vector<Node *>::iterator b = (lst->begin() + 2),
+                                       e = lst->end();
+            b != e;
+            ++b) {
+        bool res = FormProcInstParse(units, fn, pr->block, (*b),
+                                     get_address, false, NULL, pr);
         if (!res) {
             return false;
         }
-        ++node_iter;
     }
-
     ctx->unuseNamespace();
 
     return true;
