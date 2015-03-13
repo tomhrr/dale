@@ -11,71 +11,55 @@
 namespace dale
 {
 bool
-FormProcCastParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcCastParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                  Node *node, bool get_address, bool prefixed_with_core,
+                  ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-
-    assert(node->list && "must receive a list!");
-
-    std::vector<Node *> *lst = node->list;
 
     if (!ctx->er->assertArgNums("cast", node, 2, 2)) {
         return false;
     }
 
-    /* Get the value that is being cast. */
+    std::vector<Node *> *lst = node->list;
+    Node *value_node = (*lst)[1];
+    Node *type_node  = (*lst)[2];
 
     ParseResult pr_value;
-    bool res =
-        FormProcInstParse(units, fn, block, (*lst)[1], false, 
-                                    false, NULL,
-                                    &pr_value);
-
+    bool res = FormProcInstParse(units, fn, block, value_node, false,
+                                 false, NULL, &pr_value);
     if (!res) {
         return false;
     }
 
-    /* Get the type to which it is being cast. (It is allowable to
-     * cast to a bitfield type, because there's no other way to
-     * set a bitfield value.) */
+    /* It is allowable to cast to a bitfield type, because there's no
+     * other way to set a bitfield value. */
 
-    Type *type = FormTypeParse(units, (*lst)[2], false, true);
+    Type *type = FormTypeParse(units, type_node, false, true);
     if (!type) {
         return false;
     }
-
-    /* If the type of the value and the target type are the same,
-     * return the original value. */
 
     if (pr_value.type->isEqualTo(type)) {
         pr_value.copyTo(pr);
         return true;
     }
 
-    ParseResult temp;
-    res = Operation::Cast(ctx,
-                pr_value.block,
-                pr_value.value,
-                pr_value.type,
-                type,
-                node,
-                0,
-                &temp);
+    ParseResult pr_cast;
+    res = Operation::Cast(ctx, pr_value.block, pr_value.value,
+                          pr_value.type, type, node, 0, &pr_cast);
     if (!res) {
         return false;
     }
-    pr_value.block = temp.block;
-    ParseResult temp2;
-    res = Operation::Destruct(ctx, &pr_value, &temp2);
-    temp.block = temp2.block;
 
-    pr->set(temp.block, temp.type, temp.value);
+    pr_value.block = pr_cast.block;
+    ParseResult pr_destruct;
+    res = Operation::Destruct(ctx, &pr_value, &pr_destruct);
+    if (!res) {
+        return false;
+    }
+
+    pr->set(pr_destruct.block, pr_cast.type, pr_cast.value);
     return true;
 }
 }
