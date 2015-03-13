@@ -11,82 +11,62 @@
 namespace dale
 {
 bool
-FormProcSizeofParse(Units *units,
-           Function *fn,
-           llvm::BasicBlock *block,
-           Node *node,
-           bool get_address,
-           bool prefixed_with_core,
-           ParseResult *pr)
+FormProcSizeofParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                    Node *node, bool get_address, bool prefixed_with_core,
+                    ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-
-    assert(node->list && "must receive a list!");
 
     if (!ctx->er->assertArgNums("sizeof", node, 1, -1)) {
         return false;
     }
 
     std::vector<Node *> *lst = node->list;
+    Node *type_node = (*lst)[1];
 
-    /* Get the type to which it is being cast. */
-
-    Node *thing = (*lst)[1];
-    thing = units->top()->mp->parsePotentialMacroCall(thing);
-    if (!thing) {
+    type_node = units->top()->mp->parsePotentialMacroCall(type_node);
+    if (!type_node) {
         return false;
     }
 
-    Type *type = FormTypeParse(units, (*lst)[1], false, false);
+    /* The process here is: try to parse a type; failing that, try to
+     * parse the form with get_address turned on; failing that, try to
+     * parse the form with get_address turned off. */
+
+    int error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
+    Type *type = FormTypeParse(units, type_node, false, false);
 
     if (!type) {
-        ctx->er->popLastError();
+        ctx->er->popErrors(error_count_begin);
+        error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
-
-        ParseResult expr_res;
-        bool res =
-            FormProcInstParse(units, 
-                fn, block, (*lst)[1], true, false, NULL, &expr_res
-            );
+        ParseResult pr_expr;
+        bool res = FormProcInstParse(units, fn, block, type_node,
+                                     true, false, NULL, &pr_expr);
 
         if (!res) {
-            ctx->er->popErrors(error_count);
+            ctx->er->popErrors(error_count_begin);
 
-            bool res =
-                FormProcInstParse(units, 
-                    fn, block, (*lst)[1], false, false, NULL, &expr_res
-                );
+            res = FormProcInstParse(units, fn, block, type_node,
+                                    false, false, NULL, &pr_expr);
             if (!res) {
                 return false;
             }
-            type  = expr_res.type;
-            block = expr_res.block;
-
-            ParseResult temp;
-            res = Operation::Destruct(ctx, &expr_res, &temp);
-            if (!res) {
-                return false;
-            }
-            block = temp.block;
+            type  = pr_expr.type;
+            block = pr_expr.block;
         } else {
-            type =
-                (expr_res.type->points_to)
-                ? expr_res.type->points_to
-                : expr_res.type;
-            block = expr_res.block;
-            ParseResult temp;
-            bool res = Operation::Destruct(ctx, &expr_res, &temp);
-            if (!res) {
-                return false;
-            }
-            block = temp.block;
+            type  = pr_expr.type->points_to;
+            block = pr_expr.block;
         }
+
+        ParseResult pr_destruct;
+        res = Operation::Destruct(ctx, &pr_expr, &pr_destruct);
+        if (!res) {
+            return false;
+        }
+        block = pr_destruct.block;
     }
 
-
-    bool res = Operation::Sizeof(ctx, block, type, pr);
-
-    return res;
+    return Operation::Sizeof(ctx, block, type, pr);
 }
 }
