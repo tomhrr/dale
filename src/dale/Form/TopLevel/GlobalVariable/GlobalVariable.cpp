@@ -9,38 +9,39 @@
 #include "../../Type/Type.h"
 #include "Config.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 llvm::Constant *
-parseLiteralElement(Units *units,
-                    Node *top,
-                    char *thing,
-                    Type *type,
+apIntToConstant(llvm::APInt & ap_int)
+{
+    llvm::ConstantInt *const_int =
+        llvm::ConstantInt::get(llvm::getGlobalContext(), ap_int);
+    return llvm::cast<llvm::Constant>(const_int);
+}
+
+llvm::Constant *
+parseLiteralInteger(int size, const char *value)
+{
+    llvm::APInt ap_int(size, *value);
+    return apIntToConstant(ap_int);
+}
+
+llvm::Constant *
+parseLiteralElement(Units *units, Node *top, char *thing, Type *type,
                     int *size)
 {
     Context *ctx = units->top()->ctx;
     NativeTypes *nt = ctx->nt;
     TypeRegister *tr = ctx->tr;
 
-    std::string t;
-    type->toString(&t);
-
     if (type->base_type == BaseType::Bool) {
-        llvm::APInt myint(1,
-                          *thing);
-        llvm::ConstantInt *myconstint =
-            llvm::ConstantInt::get(llvm::getGlobalContext(),
-                                   myint);
-        return llvm::cast<llvm::Constant>(myconstint);
+        return parseLiteralInteger(1, thing);
     }
 
     if (type->base_type == BaseType::Char) {
-        llvm::APInt myint(8,
-                          *thing);
-        llvm::ConstantInt *myconstint =
-            llvm::ConstantInt::get(llvm::getGlobalContext(),
-                                   myint);
-        return llvm::cast<llvm::Constant>(myconstint);
+        return parseLiteralInteger(8, thing);
     }
 
     if (type->isIntegerType()) {
@@ -62,13 +63,8 @@ parseLiteralElement(Units *units,
                 bling.udata[i - 8] = *(thing + i);
             }
             nvalues[1] = bling.nvalue;
-            llvm::APInt myint((unsigned) pr_size,
-                              2,
-                              nvalues);
-            llvm::ConstantInt *myconstint =
-                llvm::ConstantInt::get(llvm::getGlobalContext(),
-                                       myint);
-            return llvm::cast<llvm::Constant>(myconstint);
+            llvm::APInt myint((unsigned) pr_size, 2, nvalues);
+            return apIntToConstant(myint);
         } else {
             bling.nvalue = 0;
             for (i = 0; i < (pr_size / 8); i++) {
@@ -76,10 +72,7 @@ parseLiteralElement(Units *units,
             }
             llvm::APInt myint(pr_size,
                               bling.nvalue);
-            llvm::ConstantInt *myconstint =
-                llvm::ConstantInt::get(llvm::getGlobalContext(),
-                                       myint);
-            return llvm::cast<llvm::Constant>(myconstint);
+            return apIntToConstant(myint);
         }
     }
 
@@ -88,10 +81,9 @@ parseLiteralElement(Units *units,
             unsigned char udata[4];
             float         fvalue;
         } bling;
-        bling.udata[3] = thing[3];
-        bling.udata[2] = thing[2];
-        bling.udata[1] = thing[1];
-        bling.udata[0] = thing[0];
+        for (int i = 3; i >= 0; i--) {
+            bling.udata[i] = thing[i];
+        }
         llvm::APFloat myfloat(bling.fvalue);
         llvm::ConstantFP *myconstfloat =
             llvm::ConstantFP::get(llvm::getGlobalContext(),
@@ -104,15 +96,9 @@ parseLiteralElement(Units *units,
             unsigned char udata[8];
             double        dvalue;
         } bling;
-        bling.udata[7] = thing[7];
-        bling.udata[6] = thing[6];
-        bling.udata[5] = thing[5];
-        bling.udata[4] = thing[4];
-
-        bling.udata[3] = thing[3];
-        bling.udata[2] = thing[2];
-        bling.udata[1] = thing[1];
-        bling.udata[0] = thing[0];
+        for (int i = 7; i >= 0; i--) {
+            bling.udata[i] = thing[i];
+        }
         llvm::APFloat mydouble(bling.dvalue);
         llvm::ConstantFP *myconstdouble =
             llvm::ConstantFP::get(llvm::getGlobalContext(),
@@ -145,10 +131,7 @@ parseLiteralElement(Units *units,
                 padding = (offset - last_offset - last_el_size);
             }
             if (padding) {
-                Error *e = new Error(
-                    ErrorInst::Generator::StructContainsPadding,
-                    top
-                );
+                Error *e = new Error(StructContainsPadding, top);
                 ctx->er->addError(e);
             }
             incr += padding;
@@ -255,10 +238,7 @@ parseLiteralElement(Units *units,
                     goto a;
                 }
             }
-            Error *e = new Error(
-                ErrorInst::Generator::NonNullPointerInGlobalStructDeclaration,
-                top
-            );
+            Error *e = new Error(NonNullPointerInGlobalStructDeclaration, top);
             ctx->er->addError(e);
         }
 a:
@@ -320,11 +300,10 @@ a:
         return mine;
     }
 
-    Error *e = new Error(
-        ErrorInst::Generator::CannotParseLiteral,
-        top,
-        t.c_str()
-    );
+    std::string type_str;
+    type->toString(&type_str);
+
+    Error *e = new Error(CannotParseLiteral, top, type_str.c_str());
     ctx->er->addError(e);
 
     return NULL;
@@ -365,12 +344,8 @@ parseLiteral(Units *units,
                 std::string got;
                 gv->type->toString(&got);
                 type->toString(&want);
-                Error *e = new Error(
-                    ErrorInst::Generator::IncorrectType,
-                    top,
-                    want.c_str(),
-                    got.c_str()
-                );
+                Error *e = new Error(IncorrectType, top,
+                                     want.c_str(), got.c_str());
                 ctx->er->addError(e);
                 return NULL;
             }
@@ -607,13 +582,9 @@ parseLiteral(Units *units,
         return parsed;
     }
 
-    std::string temp2;
-    type->toString(&temp2);
-    Error *e = new Error(
-        ErrorInst::Generator::CannotParseLiteral,
-        top,
-        temp2.c_str()
-    );
+    std::string type_str;
+    type->toString(&type_str);
+    Error *e = new Error(CannotParseLiteral, top, type_str.c_str());
     ctx->er->addError(e);
     return NULL;
 }
@@ -631,14 +602,8 @@ FormTopLevelGlobalVariableParse(Units *units, Node *node)
     int has_initialiser;
 
     if (lst->size() < 3) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectMinimumNumberOfArgs,
-            top,
-            "var", "2"
-        );
-        char buf[100];
-        sprintf(buf, "%d", (int) lst->size() - 1);
-        e->addArgString(buf);
+        Error *e = new Error(IncorrectMinimumNumberOfArgs, top,
+                             "var", "2", (lst->size() - 1));
         ctx->er->addError(e);
         return false;
     } else if (lst->size() == 3) {
@@ -646,14 +611,8 @@ FormTopLevelGlobalVariableParse(Units *units, Node *node)
     } else if (lst->size() == 4) {
         has_initialiser = 1;
     } else {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectMaximumNumberOfArgs,
-            top,
-            "var", "3"
-        );
-        char buf[100];
-        sprintf(buf, "%d", (int) lst->size() - 1);
-        e->addArgString(buf);
+        Error *e = new Error(IncorrectMaximumNumberOfArgs, top,
+                             "var", "3", (lst->size() - 1));
         ctx->er->addError(e);
         return false;
     }
@@ -665,10 +624,7 @@ FormTopLevelGlobalVariableParse(Units *units, Node *node)
         return false;
     }
     if (r_type->array_type && (r_type->array_size == 0)) {
-        Error *e = new Error(
-            ErrorInst::Generator::ZeroLengthGlobalArraysAreUnsupported,
-            top
-        );
+        Error *e = new Error(ZeroLengthGlobalArraysAreUnsupported, top);
         ctx->er->addError(e);
         return false;
     }
@@ -719,11 +675,7 @@ FormTopLevelGlobalVariableParse(Units *units, Node *node)
     int avres = ctx->ns()->addVariable(name, var2);
 
     if (!avres) {
-        Error *e = new Error(
-            ErrorInst::Generator::RedefinitionOfVariable,
-            top,
-            name
-        );
+        Error *e = new Error(RedefinitionOfVariable, top, name);
         ctx->er->addError(e);
         return false;
     }

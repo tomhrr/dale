@@ -65,6 +65,11 @@ public:
           Node *node,
           const char *str1,
           const char *str2,
+          int num1);
+    Error(int instance,
+          Node *node,
+          const char *str1,
+          const char *str2,
           int num1,
           const char *str3);
     Error(int instance,
