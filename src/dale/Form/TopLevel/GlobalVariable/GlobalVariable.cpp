@@ -255,9 +255,6 @@ parseLiteralArray(Units *units, Node *top, char *data, Type *type,
 
     for (int i = 0; i < members; i++) {
         memset(mem, 0, 256);
-
-        /* Offset data by the index, cast to a char pointer, and copy
-         * x elements into the new block. */
         char *member_ptr = ((char*) data) + (i * member_size);
         memcpy(mem, member_ptr, member_size);
 
@@ -333,30 +330,28 @@ parseLiteralElement(Units *units, Node *top, char *data, Type *type,
 llvm::Constant *
 parseLiteral(Units *units, Type *type, Node *top, int *size)
 {
-    /* size is only set when you parsing a string literal; it will
-     * contain the final size of the returned array. */
+    /* The size argument is only set when parsing a string literal; it
+     * will contain the final size of the returned array. */
 
     Context *ctx = units->top()->ctx;
 
-    /* Extreme special-case - if top is a two-element list, and
-     * the first element is #, and the second element is a global
-     * variable name, then return the address of that global
-     * variable as a constant value. This is to get around the
+    /* If the argument node is an address-of form for a global
+     * variable name, return the address of that global
+     * variable as a constant value.  This is to get around the
      * fact that arbitrary pointer values returned from the
      * function created below will not be valid with respect to
-     * global variables. (todo - not as useful as you thought it
-     * was.) */
+     * global variables. */
 
     if (top->is_list
             && (top->list->size() == 2)
             && (top->list->at(0)->is_token)
             && (!top->list->at(0)->token->str_value.compare("#"))
             && (type->points_to)) {
-        Node *var = top->list->at(1);
-        var = units->top()->mp->parsePotentialMacroCall(var);
-        if (var && var->is_token) {
+        Node *var_node = top->list->at(1);
+        var_node = units->top()->mp->parsePotentialMacroCall(var_node);
+        if (var_node && var_node->is_token) {
             Variable *gv =
-                ctx->getVariable(var->token->str_value.c_str());
+                ctx->getVariable(var_node->token->str_value.c_str());
             if (!(type->points_to->isEqualTo(gv->type))) {
                 std::string want;
                 std::string got;
@@ -367,216 +362,160 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
                 ctx->er->addError(e);
                 return NULL;
             }
-            llvm::Constant *pce =
+            llvm::Constant *const_ptr =
                 llvm::cast<llvm::Constant>(gv->value);
-            return pce;
+            return const_ptr;
         }
     }
 
     std::string str;
     type->toString(&str);
 
-    // Create an empty no-argument function that returns the
-    // specified type.
+    /* Create an empty no-argument function that returns the specified
+     * type. */
 
-    llvm::Type *llvm_return_type =
-        ctx->toLLVMType(type, top, false);
+    llvm::Type *llvm_return_type = ctx->toLLVMType(type, top, false);
     if (!llvm_return_type) {
         return NULL;
     }
 
-    std::vector<llvm::Type*> mc_args;
-
-    llvm::FunctionType *ft =
-        getFunctionType(
-            llvm_return_type,
-            mc_args,
-            false
-        );
+    std::vector<llvm::Type*> empty_args;
+    llvm::FunctionType *ft = getFunctionType(llvm_return_type,
+                                             empty_args, false);
 
     std::string new_name;
     units->top()->getUnusedFunctionName(&new_name);
 
-    llvm::Constant *fnc =
-        units->top()->module->getOrInsertFunction(
-            new_name.c_str(),
-            ft
-        );
+    llvm::Constant *const_fn =
+        units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
+
+    llvm::Function *llvm_fn = llvm::cast<llvm::Function>(const_fn);
+    llvm_fn->setCallingConv(llvm::CallingConv::C);
+    llvm_fn->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_C));
 
     std::vector<Variable*> args;
+    Function *fn = new Function(type, &args, llvm_fn, 0, &new_name);
 
-    llvm::Function *fn = llvm::cast<llvm::Function>(fnc);
-
-    fn->setCallingConv(llvm::CallingConv::C);
-
-    fn->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_C));
-
-    Function *dfn =
-        new Function(type, &args, fn, 0,
-                              &new_name);
-    dfn->linkage = Linkage::Intern;
-    int error_count =
-        ctx->er->getErrorTypeCount(ErrorType::Error);
+    fn->linkage = Linkage::Intern;
+    int error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
 
     std::vector<Node*> nodes;
     nodes.push_back(top);
-    Node *topwrapper = new Node(&nodes);
+    Node *wrapper_top = new Node(&nodes);
 
-    FormProcBodyParse(units, topwrapper, dfn, fn, 0, 0);
-    int error_post_count =
-        ctx->er->getErrorTypeCount(ErrorType::Error);
-    if (error_count != error_post_count) {
+    FormProcBodyParse(units, wrapper_top, fn, llvm_fn, 0, 0);
+    int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
+    if (error_count_begin != error_count_end) {
         return NULL;
     }
 
-    llvm::Type *tttt = ctx->toLLVMType(
-        ctx->tr->type_void, NULL, true);
-    llvm::FunctionType *wrapft =
-        getFunctionType(
-            tttt,
-            mc_args,
-            false
-        );
+    llvm::Type *llvm_type_void =
+        ctx->toLLVMType(ctx->tr->type_void, NULL, true);
+    llvm::FunctionType *wrapper_ft =
+        getFunctionType(llvm_type_void, empty_args, false);
 
-    std::string wrap_new_name;
-    units->top()->getUnusedFunctionName(&wrap_new_name);
+    std::string wrapper_new_name;
+    units->top()->getUnusedFunctionName(&wrapper_new_name);
 
-    llvm::Constant *wrap_fnc =
+    llvm::Constant *wrapper_const_fn =
         units->top()->module->getOrInsertFunction(
-            wrap_new_name.c_str(),
-            wrapft
+            wrapper_new_name.c_str(), wrapper_ft
         );
-
-    llvm::Function *wrap_fn =
-        llvm::cast<llvm::Function>(wrap_fnc);
+    llvm::Function *wrapper_fn =
+        llvm::cast<llvm::Function>(wrapper_const_fn);
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                 "entry", wrap_fn);
+        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+                                 wrapper_fn);
     llvm::IRBuilder<> builder(block);
 
     std::vector<llvm::Value *> call_args;
-    llvm::Value *ret = builder.CreateCall(
-                           fn, llvm::ArrayRef<llvm::Value*>(call_args)
-                       );
+    llvm::Value *ret =
+        builder.CreateCall(llvm_fn, llvm::ArrayRef<llvm::Value*>(call_args));
 
-    llvm::Value *reta = builder.CreateAlloca(
-                            llvm_return_type
-                        );
-    llvm::Value *reta2 = builder.CreateAlloca(
-                             llvm_return_type
-                         );
-    builder.CreateStore(ret, reta2);
+    llvm::Value *ret_storage1 = builder.CreateAlloca(llvm_return_type);
+    llvm::Value *ret_storage2 = builder.CreateAlloca(llvm_return_type);
+    builder.CreateStore(ret, ret_storage2);
 
     std::vector<Type *> call_arg_types;
-    Type *ptype = ctx->tr->getPointerType(type);
-    STL::push_back2(&call_arg_types, ptype, ptype);
-
-    std::vector<llvm::Value *> call_args2;
-    STL::push_back2(&call_args2, reta, reta2);
+    Type *ptr_type = ctx->tr->getPointerType(type);
+    STL::push_back2(&call_arg_types, ptr_type, ptr_type);
 
     if (Function *or_setf =
-                ctx->getFunction("setf-assign", &call_arg_types, NULL, 0)) {
+            ctx->getFunction("setf-assign", &call_arg_types, NULL, 0)) {
+        std::vector<llvm::Value *> or_call_args;
+        STL::push_back2(&or_call_args, ret_storage1, ret_storage2);
         builder.CreateCall(
             or_setf->llvm_function,
-            llvm::ArrayRef<llvm::Value*>(call_args2)
+            llvm::ArrayRef<llvm::Value*>(or_call_args)
         );
     } else {
-        builder.CreateStore(ret, reta);
+        builder.CreateStore(ret, ret_storage1);
     }
 
-    ParseResult temp_pr;
-    bool res =
-        Operation::Cast(ctx,
-               block,
-               reta,
-               ctx->tr->getPointerType(type),
-               ctx->tr->type_pvoid,
-               top, 0, &temp_pr);
+    ParseResult pr_cast;
+    bool res = Operation::Cast(ctx, block, ret_storage1,
+                               ctx->tr->getPointerType(type),
+                               ctx->tr->type_pvoid, top, 0, &pr_cast);
     if (!res) {
         return NULL;
     }
-    block = temp_pr.block;
-    llvm::Value *retaa = temp_pr.value;
+    block = pr_cast.block;
+    llvm::Value *ret_cast = pr_cast.value;
 
-    typedef struct temp_t {
-        char c[256];
-    } temp;
-    temp thing;
-    memset(&thing, 0, 256);
+    char data[256];
+    memset(data, 0, 256);
 
-    char buf6[100];
-    sprintf(buf6, "%lld", (long long int) &thing);
+    char ptr_int[64];
+    sprintf(ptr_int, "%lld", (long long int) &data);
 
-    llvm::Value *v =
+    llvm::Value *ptr_value =
         ctx->nt->getConstantInt(
-            llvm::IntegerType::get(
-                llvm::getGlobalContext(),
-                sizeof(char*) * 8
-            ),
-            buf6
+            llvm::IntegerType::get(llvm::getGlobalContext(),
+                                   sizeof(char*) * 8),
+            ptr_int
         );
-    ParseResult storeor;
-    res =
-        Operation::Cast(ctx, 
-               block,
-               v,
-               ctx->tr->type_intptr,
-               ctx->tr->type_pvoid,
-               top, 0, &storeor
-              );
+    ParseResult pr_cast_ptr;
+    res = Operation::Cast(ctx, block, ptr_value, ctx->tr->type_intptr,
+                          ctx->tr->type_pvoid, top, 0, &pr_cast_ptr);
     if (!res) {
         return NULL;
     }
-    llvm::Value *store = storeor.value;
-    builder.SetInsertPoint(storeor.block);
-    Function *memcpy = ctx->getFunction("memcpy", NULL,
-                                NULL, 0);
-    if (!memcpy) {
-        fprintf(stderr,
-                "Internal error: no memcpy function available.\n");
-        abort();
-    }
 
-    size_t struct_size =
-        Operation::SizeofGet(units->top(), type);
-    char buf5[5];
-    sprintf(buf5, "%u", (unsigned) struct_size);
+    llvm::Value *store = pr_cast_ptr.value;
+    builder.SetInsertPoint(pr_cast_ptr.block);
+    Function *memcpy = ctx->getFunction("memcpy", NULL, NULL, 0);
+    assert(memcpy && "no memcpy function available");
+
+    size_t struct_size = Operation::SizeofGet(units->top(), type);
+    char struct_size_str[5];
+    sprintf(struct_size_str, "%u", (unsigned) struct_size);
 
     std::vector<llvm::Value*> memcpy_args;
     memcpy_args.push_back(store);
-    memcpy_args.push_back(retaa);
+    memcpy_args.push_back(ret_cast);
     memcpy_args.push_back(
         ctx->nt->getConstantInt(
-            (llvm::IntegerType*) ctx->toLLVMType(ctx->tr->type_size, NULL, false),
-            buf5
+            (llvm::IntegerType*) ctx->toLLVMType(ctx->tr->type_size, NULL,
+                                                 false),
+            struct_size_str
         )
     );
 
     builder.CreateCall(memcpy->llvm_function,
-                       llvm::ArrayRef<llvm::Value*>(memcpy_args)
-                      );
-
-    /* Take this value, put it in the struct pointer. */
-
+                       llvm::ArrayRef<llvm::Value*>(memcpy_args));
     builder.CreateRetVoid();
 
-    void* fptr =
-        units->top()->ee->getPointerToFunction(wrap_fn);
-    if (!fptr) {
-        fprintf(stderr,
-                "Internal error: could not get pointer "
-                "to function for literal.\n");
-        abort();
-    }
+    void* fptr = units->top()->ee->getPointerToFunction(wrapper_fn);
+    assert(fptr && "could not get pointer to function for literal");
 
     ((void (*)(void)) fptr)();
 
     llvm::Constant *parsed =
-        parseLiteralElement(units, top, (char*) &thing, type, size);
+        parseLiteralElement(units, top, (char*) &data, type, size);
 
-    wrap_fn->eraseFromParent();
-    (llvm::cast<llvm::Function>(fnc))->eraseFromParent();
+    wrapper_fn->eraseFromParent();
+    (llvm::cast<llvm::Function>(const_fn))->eraseFromParent();
 
     if (parsed) {
         return parsed;
