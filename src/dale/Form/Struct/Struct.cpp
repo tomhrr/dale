@@ -11,98 +11,103 @@
 #include "../ProcBody/ProcBody.h"
 #include "../../llvm_Function.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
-static int anonstructcount = 0;
+static int anon_struct_index = 0;
+static int retain_struct_index = 0;
 
 bool
-addOpaqueStruct(Units *units, const char *name, Node *top,
-                int linkage, int must_init)
+addOpaqueStruct(Units *units, const char *name, Node *top, int linkage,
+                int must_init)
 {
     Context *ctx = units->top()->ctx;
 
-    if (!top) {
-        top = new Node();
-    }
+    llvm::StructType *llvm_st =
+        llvm::StructType::create(llvm::getGlobalContext(),
+                                 "created_opaque_type");
 
-    llvm::StructType *sty = llvm::StructType::create(
-                                llvm::getGlobalContext(), "created_opaque_type");
+    std::string symbol;
+    ctx->ns()->nameToSymbol(name, &symbol);
 
-    std::string name2;
-    name2.append("struct_");
-    std::string name3;
-    ctx->ns()->nameToSymbol(name, &name3);
-    name2.append(name3);
+    std::string llvm_st_name;
+    llvm_st_name.append("struct_");
+    llvm_st_name.append(symbol);
 
-    sty->setName(name2.c_str());
+    llvm_st->setName(llvm_st_name.c_str());
 
-    Struct *new_struct = new Struct();
-    new_struct->must_init = must_init;
-    new_struct->type = sty;
-    new_struct->is_opaque = 1;
-    new_struct->linkage = linkage;
-    new_struct->internal_name.append(name2.c_str());
-    new_struct->once_tag = units->top()->once_tag;
+    Struct *st = new Struct();
+    st->must_init = must_init;
+    st->type = llvm_st;
+    st->is_opaque = true;
+    st->linkage = linkage;
+    st->internal_name.append(llvm_st_name.c_str());
+    st->once_tag = units->top()->once_tag;
 
-    if (!ctx->ns()->addStruct(name, new_struct)) {
-        /* Only an error if there is not an existing struct. This
-         * used to add an error message if the struct had already
-         * been fully defined, but that is not an error in C, so
-         * it won't be here, either. */
-        Struct *temp = ctx->getStruct(name);
-        if (!temp) {
-            Error *e = new Error(
-                ErrorInst::Generator::UnableToParseForm,
-                top
-            );
+    if (!ctx->ns()->addStruct(name, st)) {
+        /* If the struct already exists, this is not an error. */
+        if (!ctx->getStruct(name)) {
+            Error *e = new Error(UnableToParseForm, nullNode());
             ctx->er->addError(e);
             return false;
         }
     }
 
-    /* On upgrading to 3, if a struct was not used in a module, it
-     * was not included when the module was output. To maintain
-     * the previous behaviour, add an intern function declaration
-     * that takes no arguments and returns a value of the type of
-     * this struct. */
+    /* If a struct is not used in a module, it is not included when
+     * the module is serialised.  Add an intern function declaration
+     * that takes no arguments and returns a value of the type of this
+     * struct, so as to ensure the struct will always be included when
+     * serialising. */
+
+    char buf[16];
+    sprintf(buf, "__rs%d", ++retain_struct_index);
+    assert(!units->top()->module->getFunction(buf));
 
     std::vector<llvm::Type*> args;
-    llvm::FunctionType *ft =
-        getFunctionType(
-            sty,
-            args,
-            false
-        );
-
-    int index = 0;
-    char buf[100];
-    for (;;) {
-        sprintf(buf, "__retain_struct_%d", index);
-        if (!units->top()->module->getFunction(buf)) {
-            units->top()->module->getOrInsertFunction(buf, ft);
-            break;
-        }
-        ++index;
-    }
+    llvm::FunctionType *ft = getFunctionType(llvm_st, args, false);
+    units->top()->module->getOrInsertFunction(buf, ft);
 
     return true;
 }
 
-bool 
-FormStructParse(Units *units,
-      Node *top,
-      const char *name)
+bool
+parseStructAttributes(Context *ctx, Node *attr_list_node, bool *must_init)
+{
+    std::vector<Node *> *attr_list = attr_list_node->list;
+    for (std::vector<Node *>::iterator b = (attr_list->begin() + 1),
+                                       e = attr_list->end();
+            b != e;
+            ++b) {
+        if ((*b)->is_list) {
+            Error *e = new Error(InvalidAttribute, (*b));
+            ctx->er->addError(e);
+            return false;
+        }
+        if (!((*b)->token->str_value.compare("must-init"))) {
+            *must_init = true;
+        } else {
+            Error *e = new Error(InvalidAttribute, (*b));
+            ctx->er->addError(e);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool
+FormStructParse(Units *units, Node *top, const char *name)
 {
     Context *ctx = units->top()->ctx;
-
-    anonstructcount++;
 
     if (!ctx->er->assertArgNums("struct", top, 1, 3)) {
         return false;
     }
 
+    ++anon_struct_index;
+
     std::vector<Node *> *lst = top->list;
-    int must_init = 0;
+    bool must_init = false;
 
     /* Struct attributes. */
 
@@ -110,31 +115,10 @@ FormStructParse(Units *units,
     Node *test = ((*lst)[next_index]);
     if (test->is_list
             && test->list->at(0)->is_token
-            && !(test->list->at(0)->token
-                 ->str_value.compare("attr"))) {
-        std::vector<Node *> *attr_list = test->list;
-        std::vector<Node*>::iterator b = attr_list->begin(),
-                                     e = attr_list->end();
-        ++b;
-        for (; b != e; ++b) {
-            if ((*b)->is_list) {
-                Error *e = new Error(
-                    ErrorInst::Generator::InvalidAttribute,
-                    (*b)
-                );
-                ctx->er->addError(e);
-                return false;
-            }
-            if (!((*b)->token->str_value.compare("must-init"))) {
-                must_init = 1;
-            } else {
-                Error *e = new Error(
-                    ErrorInst::Generator::InvalidAttribute,
-                    (*b)
-                );
-                ctx->er->addError(e);
-                return false;
-            }
+            && !(test->list->at(0)->token->str_value.compare("attr"))) {
+        bool res = parseStructAttributes(ctx, test, &must_init);
+        if (!res) {
+            return false;
         }
         ++next_index;
     }
@@ -150,184 +134,106 @@ FormStructParse(Units *units,
         return false;
     }
 
-    /* If the list contains two elements (name and linkage), or
-     * three elements (name, attributes and linkage), the struct
+    /* If the list contains two members (name and linkage), or
+     * three members (name, attributes and linkage), the struct
      * is actually opaque, so return now. */
 
     if ((lst->size() == 2) || ((lst->size() == 3) && (next_index == 3))) {
         return true;
     }
 
-    /* Parse elements - push onto the list that gets created. */
+    /* Parse the struct members. */
 
-    Node *nelements = (*lst)[next_index];
+    Node *members_node = (*lst)[next_index];
 
-    if (!nelements->is_list) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectArgType,
-            nelements,
-            "struct", "a list", "1", "an atom"
-        );
+    if (!members_node->is_list) {
+        Error *e = new Error(IncorrectArgType, members_node,
+                             "struct", "a list", "1", "an atom");
         ctx->er->addError(e);
         return false;
     }
 
-    std::vector<Node *> *elements = nelements->list;
+    std::vector<Node *> *members = members_node->list;
 
-    Variable *var;
-
-    std::vector<Variable *> *elements_internal =
-        new std::vector<Variable *>;
-
-    std::vector<Node *>::iterator node_iter;
-    node_iter = elements->begin();
-
-    while (node_iter != elements->end()) {
-
-        var = new Variable();
+    std::vector<Variable *> members_internal;
+    for (std::vector<Node *>::iterator b = members->begin(),
+                                       e = members->end();
+            b != e;
+            ++b) {
+        Variable *var = new Variable();
         var->type = NULL;
 
-        FormArgumentParse(units, var, (*node_iter), true, true, false);
-        if (!var || !var->type) {
-            Error *e = new Error(
-                ErrorInst::Generator::InvalidType,
-                (*node_iter)
-            );
+        FormArgumentParse(units, var, (*b), true, true, false);
+        if (!var->type) {
+            Error *e = new Error(InvalidType, (*b));
             ctx->er->addError(e);
+            delete var;
             return false;
         }
 
-        /* Can't have non-pointer void. */
         if (var->type->base_type == BaseType::Void) {
-            Error *e = new Error(
-                ErrorInst::Generator::TypeNotAllowedInStruct,
-                (*node_iter),
-                "void"
-            );
+            Error *e = new Error(TypeNotAllowedInStruct, (*b), "void");
             ctx->er->addError(e);
             delete var;
             return false;
         }
 
-        /* This code can't be hit at the moment, but is left here
-         * just in case. */
-        if (var->type->base_type == BaseType::VarArgs) {
-            Error *e = new Error(
-                ErrorInst::Generator::TypeNotAllowedInStruct,
-                (*node_iter),
-                "varargs"
-            );
-            ctx->er->addError(e);
-            delete var;
-            return false;
-        }
-
-        elements_internal->push_back(var);
-
-        ++node_iter;
+        members_internal.push_back(var);
     }
 
-    /* Convert to llvm args and add the struct to the module. */
+    /* Convert the members to LLVM types and add the struct to the
+     * module. */
 
-    std::vector<llvm::Type*> elements_llvm;
-
-    std::vector<Variable *>::iterator iter;
-    iter = elements_internal->begin();
-    llvm::Type *temp;
-
-    while (iter != elements_internal->end()) {
-        temp = ctx->toLLVMType((*iter)->type, NULL, false);
-        if (!temp) {
+    std::vector<llvm::Type*> members_llvm;
+    for (std::vector<Variable *>::iterator b = members_internal.begin(),
+                                           e = members_internal.end();
+            b != e;
+            ++b) {
+        llvm::Type *type = ctx->toLLVMType((*b)->type, NULL, false);
+        if (!type) {
             return false;
         }
-        elements_llvm.push_back(temp);
-        ++iter;
+        members_llvm.push_back(type);
     }
 
-    std::string name2;
+    std::string symbol;
+    ctx->ns()->nameToSymbol(name, &symbol);
 
-    std::string name3;
-    ctx->ns()->nameToSymbol(name, &name3);
-    name2.append(name3);
-
-    bool already_exists = true;
-
-    Struct *new_struct;
-
-    if (already_exists) {
-        /* If the struct does not already exist in context, then
-         * there has been some strange error. */
-        Struct *temp = ctx->getStruct(name);
-        if (!temp) {
-            Error *e = new Error(
-                ErrorInst::Generator::UnableToParseForm,
-                top
-            );
-            ctx->er->addError(e);
-            return false;
-        }
-
-        /* If it does exist, but is not opaque, then it cannot be
-         * redefined. */
-
-        if (!temp->is_opaque) {
-            Error *e = new Error(
-                ErrorInst::Generator::RedeclarationOfStruct,
-                top,
-                name
-            );
-            ctx->er->addError(e);
-            return false;
-        }
-
-        /* If it does exist, and is opaque, get its Type, cast it
-         * to a StructType and add the elements. */
-
-        llvm::StructType *opaque_struct_type =
-            llvm::cast<llvm::StructType>(temp->type);
-        opaque_struct_type->setBody(
-            llvm::ArrayRef<llvm::Type*>(elements_llvm)
-        );
-        new_struct = temp;
-        new_struct->is_opaque = 0;
-    } else {
-        new_struct = new Struct();
+    /* If the struct does not already exist in context, then there has
+     * been some strange error. */
+    Struct *st = ctx->getStruct(name);
+    if (!st) {
+        Error *e = new Error(UnableToParseForm, top);
+        ctx->er->addError(e);
+        return false;
     }
 
-    /* Re-get the type from the module, because the type in
-     * llvm_new_struct will be buggered if the module factors
-     * types out (e.g. where the current structure is the same as
-     * some previously defined structure and has a
-     * self-reference). */
-
-    new_struct->internal_name.clear();
-    new_struct->internal_name.append(name2.c_str());
-
-    new_struct->linkage = linkage;
-
-    iter = elements_internal->begin();
-
-    while (iter != elements_internal->end()) {
-        new_struct->addMember((*iter)->name.c_str(),
-                              (*iter)->type);
-        delete (*iter);
-        ++iter;
+    /* If it does exist, but is not opaque, then it cannot be
+     * redefined. */
+    if (!st->is_opaque) {
+        Error *e = new Error(RedeclarationOfStruct, top, name);
+        ctx->er->addError(e);
+        return false;
     }
 
-    elements_internal->clear();
-    delete elements_internal;
+    /* Get the struct's type, cast it to a  StructType, and add the
+     * members. */
+    llvm::StructType *opaque_struct_type =
+        llvm::cast<llvm::StructType>(st->type);
+    opaque_struct_type->setBody(llvm::ArrayRef<llvm::Type*>(members_llvm));
+    st->is_opaque = false;
 
-    if (!already_exists) {
-        if (!ctx->ns()->addStruct(name, new_struct)) {
-            printf("Does not already exist, but can't add\n");
-            Error *e = new Error(
-                ErrorInst::Generator::RedeclarationOfStruct,
-                top,
-                name
-            );
-            ctx->er->addError(e);
-            return false;
-        }
+    st->internal_name.clear();
+    st->internal_name.append(symbol.c_str());
+
+    st->linkage = linkage;
+
+    for (std::vector<Variable *>::iterator b = members_internal.begin(),
+                                           e = members_internal.end();
+            b != e;
+            ++b) {
+        st->addMember((*b)->name.c_str(), (*b)->type);
+        delete (*b);
     }
 
     return true;
