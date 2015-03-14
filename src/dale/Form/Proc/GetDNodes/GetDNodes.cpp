@@ -15,11 +15,7 @@ llvm::Type *llvm_type_pdnode = NULL;
 llvm::Constant *
 getNullConstant(llvm::Type *llvm_type)
 {
-    return llvm::cast<llvm::Constant>(
-        llvm::ConstantPointerNull::get(
-            llvm::cast<llvm::PointerType>(llvm_type)
-        )
-    );
+    return llvm::cast<llvm::Constant>(getNullPointer(llvm_type));
 }
 
 llvm::GlobalVariable *

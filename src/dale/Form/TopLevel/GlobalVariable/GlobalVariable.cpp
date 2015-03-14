@@ -232,12 +232,7 @@ parseLiteralPointer(Units *units, Node *top, char *data, Type *type,
         return NULL;
     }
 
-    llvm::Constant *const_ptr =
-        llvm::ConstantPointerNull::get(
-            llvm::cast<llvm::PointerType>(llvm_type)
-        );
-
-    return const_ptr;
+    return getNullPointer(llvm_type);
 }
 
 llvm::Constant *
