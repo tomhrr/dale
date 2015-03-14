@@ -38,8 +38,12 @@ private:
     Function *global_function;
     /*! The current global block. */
     llvm::BasicBlock *global_block;
-    /*! The current unused variable index. */
+    /*! The current variable index. */
     int var_count;
+    /*! The current function index. */
+    int fn_count;
+    /*! The unused name prefix. */
+    char unused_name_prefix[4];
 
 public:
     /*! The unit's LLVM module. */
@@ -113,7 +117,10 @@ public:
     void addCommonDeclarations(void);
     /*! Get an unused LLVM variable name.
      */
-    void getUnusedVarname(std::string *buf);
+    void getUnusedVarName(std::string *buf);
+    /*! Get an unused LLVM function name.
+     */
+    void getUnusedFunctionName(std::string *buf);
 };
 }
 

@@ -30,7 +30,7 @@ createTokenGV(Units *units, std::string *value)
     llvm::Constant *str_value = getStringConstantArray(value->c_str());
 
     std::string varname_str;
-    units->top()->getUnusedVarname(&varname_str);
+    units->top()->getUnusedVarName(&varname_str);
 
     Type *archar =
         ctx->tr->getArrayType(ctx->tr->type_char,
@@ -63,7 +63,7 @@ IntNodeToStaticDNode(Units *units, Node *node, llvm::Value *next_node)
     assert(node && "null node passed to conversion function");
 
     std::string varname;
-    units->top()->getUnusedVarname(&varname);
+    units->top()->getUnusedVarName(&varname);
 
     llvm::Type *llvm_type = llvm_type_dnode;
     llvm::Type *llvm_r_type = llvm_type_pdnode;

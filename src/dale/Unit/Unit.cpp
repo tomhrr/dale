@@ -4,8 +4,6 @@
 #include "../llvm_Linker.h"
 #include "../CommonDecl/CommonDecl.h"
 
-static int function_count = 0;
-
 namespace dale
 {
 Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
@@ -38,6 +36,13 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
     this->ee = ee;
     this->is_x86_64 = is_x86_64;
     var_count = 0;
+    fn_count  = 0;
+
+    /* For now, the unused prefix name will be a randomly-generated
+     * string. */
+    for (int i = 0; i < 4; i++) {
+        unused_name_prefix[i] = (rand() % 25 + 97);
+    }
 }
 
 Unit::~Unit(void)
@@ -122,7 +127,7 @@ Unit::makeTemporaryGlobalFunction(void)
         getFunctionType(llvm_return_type, empty_args, false);
 
     char buf[32];
-    sprintf(buf, "_intro%d", function_count++);
+    sprintf(buf, "_intro%d", fn_count++);
 
     std::string new_name;
     ctx->ns()->nameToSymbol(buf, &new_name);
@@ -207,12 +212,34 @@ Unit::addCommonDeclarations(void)
 }
 
 void
-Unit::getUnusedVarname(std::string *buf)
+Unit::getUnusedVarName(std::string *buf)
 {
     char ibuf[16];
     do {
-        sprintf(ibuf, "_dv%d", var_count++);
+        sprintf(ibuf, "_dv%c%c%c%c%d",
+                unused_name_prefix[0],
+                unused_name_prefix[1],
+                unused_name_prefix[2],
+                unused_name_prefix[3],
+                var_count++);
     } while (module->getGlobalVariable(llvm::StringRef(ibuf)));
+
+    buf->append(ibuf);
+    return;
+}
+
+void
+Unit::getUnusedFunctionName(std::string *buf)
+{
+    char ibuf[16];
+    do {
+        sprintf(ibuf, "_fn%c%c%c%c%d",
+                unused_name_prefix[0],
+                unused_name_prefix[1],
+                unused_name_prefix[2],
+                unused_name_prefix[3],
+                fn_count++);
+    } while (module->getFunction(llvm::StringRef(ibuf)));
 
     buf->append(ibuf);
     return;

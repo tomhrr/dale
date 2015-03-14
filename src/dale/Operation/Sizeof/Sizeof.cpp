@@ -27,8 +27,6 @@ Sizeof(Context *ctx, llvm::BasicBlock *block, Type *type,
     return true;
 }
 
-static int function_count = 0;
-
 size_t 
 SizeofGet(Unit *unit,
           Type *type)
@@ -46,11 +44,8 @@ SizeofGet(Unit *unit,
     llvm::FunctionType *ft =
         getFunctionType(llvm_return_type, mc_args, false);
 
-    char buf[32];
-    sprintf(buf, "_so%d", function_count++);
     std::string new_name;
-    ctx->ns()->nameToSymbol(buf, &new_name);
-    assert(!unit->module->getFunction(llvm::StringRef(new_name.c_str())));
+    unit->getUnusedFunctionName(&new_name);
 
     llvm::Constant *llvm_fnc =
         unit->module->getOrInsertFunction(new_name.c_str(), ft);

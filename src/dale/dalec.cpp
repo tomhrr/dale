@@ -113,6 +113,8 @@ copyFile(const char *to_path, FILE *from)
 int
 main(int argc, char **argv)
 {
+    srand(time(NULL) + getpid());
+
     progname = argv[0];
 
     int opt;

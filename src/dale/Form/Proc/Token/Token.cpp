@@ -90,7 +90,7 @@ parseStringLiteral(Units *units, Context *ctx, llvm::BasicBlock *block,
     }
 
     std::string varname;
-    units->top()->getUnusedVarname(&varname);
+    units->top()->getUnusedVarName(&varname);
 
     llvm::GlobalVariable *llvm_var =
         llvm::cast<llvm::GlobalVariable>(

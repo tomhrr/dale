@@ -181,7 +181,7 @@ parseLiteralString(Units *units, Node *top, char *data, Type *type,
     llvm::Constant *constr_str = getStringConstantArray(str);
 
     std::string var_name;
-    units->top()->getUnusedVarname(&var_name);
+    units->top()->getUnusedVarName(&var_name);
 
     Type *char_array_type = tr->getArrayType(tr->type_char, *size);
     llvm::Type *llvm_type = ctx->toLLVMType(char_array_type, NULL, false);
@@ -330,7 +330,6 @@ parseLiteralElement(Units *units, Node *top, char *data, Type *type,
     return NULL;
 }
 
-static int myn = 0;
 llvm::Constant *
 parseLiteral(Units *units, Type *type, Node *top, int *size)
 {
@@ -396,16 +395,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
         );
 
     std::string new_name;
-    char buf[32];
-    sprintf(buf, "_gv%d", myn++);
-    ctx->ns()->nameToSymbol(buf, &new_name);
-
-    if (units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
-        fprintf(stderr, "Internal error: "
-                "function already exists in module ('%s').\n",
-                new_name.c_str());
-        abort();
-    }
+    units->top()->getUnusedFunctionName(&new_name);
 
     llvm::Constant *fnc =
         units->top()->module->getOrInsertFunction(
@@ -449,16 +439,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
         );
 
     std::string wrap_new_name;
-    char wrap_buf[32];
-    sprintf(wrap_buf, "_gv%d", myn++);
-    ctx->ns()->nameToSymbol(wrap_buf, &wrap_new_name);
-
-    if (units->top()->module->getFunction(llvm::StringRef(wrap_new_name.c_str()))) {
-        fprintf(stderr, "Internal error: "
-                "function already exists in module ('%s').\n",
-                wrap_new_name.c_str());
-        abort();
-    }
+    units->top()->getUnusedFunctionName(&wrap_new_name);
 
     llvm::Constant *wrap_fnc =
         units->top()->module->getOrInsertFunction(
