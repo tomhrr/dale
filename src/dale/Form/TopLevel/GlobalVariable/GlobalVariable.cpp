@@ -43,31 +43,31 @@ parseSmallLiteralInteger(int size, const char *data)
 llvm::Constant *
 parseLiteralInteger(int size, const char *data)
 {
-    union mynum {
-        unsigned char udata[8];
-        uint64_t      nvalue;
-    } bling;
-    bling.nvalue = 0;
+    union uchar_uint64 {
+        unsigned char c[8];
+        uint64_t      n;
+    } num;
+    num.n = 0;
 
     int i;
     if (size == 128) {
-        uint64_t nvalues[2];
+        uint64_t ns[2];
         for (i = 0; i < 8; i++) {
-            bling.udata[i] = *(data + i);
+            num.c[i] = data[i];
         }
-        nvalues[0] = bling.nvalue;
+        ns[0] = num.n;
         for (i = 8; i < 16; i++) {
-            bling.udata[i - 8] = *(data + i);
+            num.c[i - 8] = data[i];
         }
-        nvalues[1] = bling.nvalue;
-        llvm::APInt myint((unsigned) size, 2, nvalues);
+        ns[1] = num.n;
+        llvm::APInt myint((unsigned) size, 2, ns);
         return apIntToConstant(myint);
     } else {
-        bling.nvalue = 0;
+        num.n = 0;
         for (i = 0; i < (size / 8); i++) {
-            bling.udata[i] = *(data + i);
+            num.c[i] = data[i];
         }
-        llvm::APInt myint(size, bling.nvalue);
+        llvm::APInt myint(size, num.n);
         return apIntToConstant(myint);
     }
 }
@@ -75,29 +75,33 @@ parseLiteralInteger(int size, const char *data)
 llvm::Constant *
 parseLiteralFloat(char *data)
 {
-    union float_hex {
-        unsigned char udata[4];
-        float         fvalue;
-    } bling;
+    union uchar_float {
+        unsigned char c[4];
+        float         n;
+    } num;
+    num.n = 0;
+
     for (int i = 3; i >= 0; i--) {
-        bling.udata[i] = data[i];
+        num.c[i] = data[i];
     }
-    llvm::APFloat myfloat(bling.fvalue);
-    return apFloatToConstant(myfloat);
+    llvm::APFloat ap_float(num.n);
+    return apFloatToConstant(ap_float);
 }
 
 llvm::Constant *
 parseLiteralDouble(char *data)
 {
-    union double_hex {
-        unsigned char udata[8];
-        double        dvalue;
-    } bling;
+    union uchar_double {
+        unsigned char c[8];
+        double        n;
+    } num;
+    num.n = 0;
+
     for (int i = 7; i >= 0; i--) {
-        bling.udata[i] = data[i];
+        num.c[i] = data[i];
     }
-    llvm::APFloat mydouble(bling.dvalue);
-    return apFloatToConstant(mydouble);
+    llvm::APFloat ap_float(num.n);
+    return apFloatToConstant(ap_float);
 }
 
 llvm::Constant *
