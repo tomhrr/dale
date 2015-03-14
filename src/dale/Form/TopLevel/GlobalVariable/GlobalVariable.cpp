@@ -216,27 +216,27 @@ parseLiteralPointer(Units *units, Node *top, char *data, Type *type,
     Context *ctx = units->top()->ctx;
 
     if (*data) {
-        uint64_t value = *(uint64_t*)data;
-        if (sizeof(char*) == 4) {
+        uint64_t value = *(uint64_t *) data;
+        if (sizeof(char *) == 4) {
             value <<= 32;
-            if (!value) {
-                goto a;
-            }
         }
-        Error *e = new Error(NonNullPointerInGlobalStructDeclaration, top);
-        ctx->er->addError(e);
+        if (value) {
+            Error *e = new Error(NonNullPointerInGlobalStructDeclaration, top);
+            ctx->er->addError(e);
+        }
     }
-a:
-    llvm::Type *llvm_type =
-        ctx->toLLVMType(type, NULL, false);
+
+    llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
     if (!llvm_type) {
         return NULL;
     }
-    llvm::Constant *pce =
+
+    llvm::Constant *const_ptr =
         llvm::ConstantPointerNull::get(
             llvm::cast<llvm::PointerType>(llvm_type)
         );
-    return pce;
+
+    return const_ptr;
 }
 
 llvm::Constant *
@@ -245,41 +245,29 @@ parseLiteralArray(Units *units, Node *top, char *data, Type *type,
 {
     Context *ctx = units->top()->ctx;
 
-    /* Take the portion devoted to whatever the element is,
-      * and re-call this function. */
-    size_t el_size =
-        Operation::SizeofGet(units->top(), type->array_type);
-    int i = 0;
-    int els = type->array_size;
+    size_t member_size = Operation::SizeofGet(units->top(), type->array_type);
+    assert((member_size <= 256) && "array member size too large");
+    int members = type->array_size;
     std::vector<llvm::Constant *> constants;
 
-    char elmemm[256];
-    char *elmem = elmemm;
+    char mem_array[256];
+    char *mem = mem_array;
 
-    for (i = 0; i < els; i++) {
-        // Memset it to nodata.
+    for (int i = 0; i < members; i++) {
+        memset(mem, 0, 256);
 
-        memset(elmem, 0, 256);
+        /* Offset data by the index, cast to a char pointer, and copy
+         * x elements into the new block. */
+        char *member_ptr = ((char*) data) + (i * member_size);
+        memcpy(mem, member_ptr, member_size);
 
-        // Offset data by the index, cast to a char pointer, and
-        // copy x elements into the new block.
-        char *mp = (char*) data;
-        mp += (i * el_size);
-        memcpy(elmem, mp, el_size);
+        llvm::Constant *const_member =
+            parseLiteralElement(units, top, mem, type->array_type, size);
 
-        // Re-call parseLiteralElement, push the new constant onto
-        // the vector.
-        llvm::Constant *mycon =
-            parseLiteralElement(units,
-                                top,
-                                elmem,
-                                type->array_type,
-                                size);
-
-        constants.push_back(mycon);
+        constants.push_back(const_member);
     }
 
-    llvm::Constant *mine =
+    llvm::Constant *const_arr =
         llvm::ConstantArray::get(
             llvm::cast<llvm::ArrayType>(
                 ctx->toLLVMType(type, top, false, false)
@@ -287,7 +275,7 @@ parseLiteralArray(Units *units, Node *top, char *data, Type *type,
             constants
         );
 
-    return mine;
+    return const_arr;
 }
 
 llvm::Constant *
@@ -343,14 +331,12 @@ parseLiteralElement(Units *units, Node *top, char *data, Type *type,
 }
 
 static int myn = 0;
-/* Size is only set when you are parsing a string literal - it
- * will contain the final size of the returned array. */
 llvm::Constant *
-parseLiteral(Units *units,
-             Type *type,
-             Node *top,
-             int *size)
+parseLiteral(Units *units, Type *type, Node *top, int *size)
 {
+    /* size is only set when you parsing a string literal; it will
+     * contain the final size of the returned array. */
+
     Context *ctx = units->top()->ctx;
 
     /* Extreme special-case - if top is a two-element list, and
