@@ -101,6 +101,10 @@ bool typesToString(std::vector<Variable *> *types, std::string *buf);
  *  @param data The data for the array.
  */
 llvm::Constant *getStringConstantArray(const char *data);
+/*! Construct an LLVM null pointer for the type.
+ *  @param type The type.
+ */
+llvm::ConstantPointerNull *getNullPointer(llvm::Type *type);
 }
 
 #endif

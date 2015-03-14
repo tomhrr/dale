@@ -241,4 +241,13 @@ getStringConstantArray(const char *data)
             )
         );
 }
+
+llvm::ConstantPointerNull *
+getNullPointer(llvm::Type *type)
+{
+    return
+        llvm::ConstantPointerNull::get(
+            llvm::cast<llvm::PointerType>(type)
+        );
+}
 }

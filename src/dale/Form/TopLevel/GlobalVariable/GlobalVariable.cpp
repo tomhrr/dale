@@ -1,4 +1,5 @@
 #include "GlobalVariable.h"
+#include "../../../Linkage/Linkage.h"
 #include "../../../Units/Units.h"
 #include "../../../Node/Node.h"
 #include "../../../Operation/Cast/Cast.h"
@@ -488,7 +489,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     assert(memcpy && "no memcpy function available");
 
     size_t struct_size = Operation::SizeofGet(units->top(), type);
-    char struct_size_str[5];
+    char struct_size_str[8];
     sprintf(struct_size_str, "%u", (unsigned) struct_size);
 
     std::vector<llvm::Value*> memcpy_args;
@@ -533,58 +534,60 @@ FormTopLevelGlobalVariableParse(Units *units, Node *node)
 {
     Context *ctx = units->top()->ctx;
 
-    Node *name_node = (*(node->list))[1];
+    std::vector<Node *> *top_lst = node->list;
+    Node *name_node = (*top_lst)[1];
+    Node *def_node  = (*top_lst)[2];
+
     const char *name = name_node->token->str_value.c_str();
-    Node *top = (*(node->list))[2];
 
-    std::vector<Node *> *lst = top->list;
-    int has_initialiser;
+    std::vector<Node *> *lst = def_node->list;
+    Node *linkage_node = (*lst)[1];
+    Node *type_node    = (*lst)[2];
+    Node *value_node   = (*lst)[3];
 
+    bool has_initialiser;
     if (lst->size() < 3) {
-        Error *e = new Error(IncorrectMinimumNumberOfArgs, top,
+        Error *e = new Error(IncorrectMinimumNumberOfArgs, def_node,
                              "var", "2", (lst->size() - 1));
         ctx->er->addError(e);
         return false;
     } else if (lst->size() == 3) {
-        has_initialiser = 0;
+        has_initialiser = false;
     } else if (lst->size() == 4) {
-        has_initialiser = 1;
+        has_initialiser = true;
     } else {
-        Error *e = new Error(IncorrectMaximumNumberOfArgs, top,
+        Error *e = new Error(IncorrectMaximumNumberOfArgs, def_node,
                              "var", "3", (lst->size() - 1));
         ctx->er->addError(e);
         return false;
     }
 
-    int linkage = FormLinkageParse(ctx, (*lst)[1]);
+    int linkage = FormLinkageParse(ctx, linkage_node);
 
-    Type *r_type = FormTypeParse(units, (*lst)[2], false, false);
-    if (r_type == NULL) {
+    Type *ret_type = FormTypeParse(units, type_node, false, false);
+    if (ret_type == NULL) {
         return false;
     }
-    if (r_type->array_type && (r_type->array_size == 0)) {
-        Error *e = new Error(ZeroLengthGlobalArraysAreUnsupported, top);
+    if (ret_type->array_type && (ret_type->array_size == 0)) {
+        Error *e = new Error(ZeroLengthGlobalArraysAreUnsupported, def_node);
         ctx->er->addError(e);
         return false;
     }
 
-    int size = 0;
-
-    Node *n2 = NULL;
     if (has_initialiser) {
-        n2 = units->top()->mp->parsePotentialMacroCall((*lst)[3]);
-        if (!n2) {
+        value_node = units->top()->mp->parsePotentialMacroCall(value_node);
+        if (!value_node) {
             return false;
         }
     }
 
-    llvm::Constant *init =
-        (has_initialiser)
-        ? parseLiteral(units, r_type, n2, &size)
-        : NULL;
-
-    if ((init == NULL) && (has_initialiser)) {
-        return true;
+    int size = 0;
+    llvm::Constant *init = NULL;
+    if (has_initialiser) {
+        init = parseLiteral(units, ret_type, value_node, &size);
+        if (!init) {
+            return false;
+        }
     }
 
     std::string new_name;
@@ -594,102 +597,82 @@ FormTopLevelGlobalVariableParse(Units *units, Node *node)
         ctx->ns()->nameToSymbol(name, &new_name);
     }
 
-    Variable *check = ctx->getVariable(name);
-    if (check
-            && check->type->isEqualTo(r_type)
-            && (check->linkage == linkage)
+    Variable *existing_var = ctx->getVariable(name);
+    if (existing_var
+            && existing_var->type->isEqualTo(ret_type)
+            && (existing_var->linkage == linkage)
             && !has_initialiser) {
-        /* Redeclaration of global variable - no problem. */
+        /* A redeclaration of a global variable is a no-op. */
         return true;
     }
 
-    /* Add the variable to the context. */
+    Variable *var = new Variable();
+    var->name.append(name);
+    var->type = ret_type;
+    var->internal_name.append(new_name);
+    var->once_tag = units->top()->once_tag;
+    var->linkage = linkage;
 
-    Variable *var2 = new Variable();
-    var2->name.append(name);
-    var2->type = r_type;
-    var2->internal_name.append(new_name);
-    var2->once_tag = units->top()->once_tag;
-    var2->linkage = linkage;
-    int avres = ctx->ns()->addVariable(name, var2);
-
-    if (!avres) {
-        Error *e = new Error(RedefinitionOfVariable, top, name);
+    bool res = ctx->ns()->addVariable(name, var);
+    if (!res) {
+        Error *e = new Error(RedefinitionOfVariable, def_node, name);
         ctx->er->addError(e);
         return false;
     }
 
-    /* todo: an 'is_extern_linkage' function. */
-    int has_extern_linkage =
-        ((linkage != Linkage::Auto)
-         && (linkage != Linkage::Intern));
-
-    llvm::Type *rdttype =
-        ctx->toLLVMType(r_type, top, false,
-                       (has_extern_linkage && !has_initialiser));
-    if (!rdttype) {
+    llvm::Type *llvm_ret_type =
+        ctx->toLLVMType(ret_type, def_node, false,
+                        (Linkage::isExternAll(linkage) && !has_initialiser));
+    if (!llvm_ret_type) {
         return false;
     }
 
-    /* Add the variable to the module. */
+    assert(!units->top()->module->getGlobalVariable(
+               llvm::StringRef(new_name.c_str())
+           ) && "variable already exists in module");
 
-    if (units->top()->module->getGlobalVariable(llvm::StringRef(new_name.c_str()))) {
-        fprintf(stderr, "Internal error: "
-                "global variable already exists in "
-                "module ('%s').\n",
-                new_name.c_str());
-        abort();
-    }
-
-    llvm::GlobalVariable *var =
+    llvm::GlobalVariable *llvm_var =
         llvm::cast<llvm::GlobalVariable>(
             units->top()->module->getOrInsertGlobal(new_name.c_str(),
-                                   rdttype)
+                                                    llvm_ret_type)
         );
-
-    var->setLinkage(ctx->toLLVMLinkage(linkage));
+    llvm_var->setLinkage(ctx->toLLVMLinkage(linkage));
 
     if (init) {
-        var->setInitializer(init);
+        llvm_var->setInitializer(init);
     } else {
-        if ((linkage != Linkage::Extern)
-                && (linkage != Linkage::Extern_C)
-                && (linkage != Linkage::Extern_Weak)) {
-            has_initialiser = 1;
-            if (r_type->points_to) {
-                llvm::ConstantPointerNull *mynullptr =
-                    llvm::ConstantPointerNull::get(
-                        llvm::cast<llvm::PointerType>(rdttype)
-                    );
-                var->setInitializer(mynullptr);
-            } else if (r_type->struct_name.size()) {
+        if (!Linkage::isExternAll(linkage)) {
+            has_initialiser = true;
+            if (ret_type->points_to) {
+                llvm_var->setInitializer(getNullPointer(llvm_ret_type));
+            } else if (ret_type->struct_name.size()) {
                 llvm::ConstantAggregateZero* const_values_init =
-                    llvm::ConstantAggregateZero::get(rdttype);
-                var->setInitializer(const_values_init);
-            } else if (r_type->is_array) {
+                    llvm::ConstantAggregateZero::get(llvm_ret_type);
+                llvm_var->setInitializer(const_values_init);
+            } else if (ret_type->is_array) {
                 llvm::ConstantAggregateZero* const_values_init =
-                    llvm::ConstantAggregateZero::get(rdttype);
-                var->setInitializer(const_values_init);
-            } else if (r_type->isIntegerType()) {
-                var->setInitializer(
+                    llvm::ConstantAggregateZero::get(llvm_ret_type);
+                llvm_var->setInitializer(const_values_init);
+            } else if (ret_type->isIntegerType()) {
+                llvm_var->setInitializer(
                     ctx->nt->getConstantInt(
                         llvm::IntegerType::get(
                             llvm::getGlobalContext(),
                             ctx->nt->internalSizeToRealSize(
-                                r_type->getIntegerSize()
+                                ret_type->getIntegerSize()
                             )
                         ),
                         "0"
                     )
                 );
             } else {
-                has_initialiser = 0;
+                has_initialiser = false;
             }
-            var2->has_initialiser = has_initialiser;
+            var->has_initialiser = has_initialiser;
         }
     }
 
-    var2->value = llvm::cast<llvm::Value>(var);
+    var->value = llvm::cast<llvm::Value>(llvm_var);
 
     return true;
 }
