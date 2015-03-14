@@ -115,66 +115,56 @@ parseLiteralStruct(Units *units, Node *top, char *data, Type *type,
     Struct *st = ctx->getStruct(type);
     assert(st);
 
-    std::vector<Type *>::iterator begin =
-        st->member_types.begin();
+    int last_member_size = -1;
+    int last_offset      = -1;
+    int index            = 0;
+    int total_padding    = 0;
 
-    int i = 0;
-    int last_el_size = -1;
-    int last_offset = -1;
-    int incr = 0;
+    for (std::vector<Type *>::iterator b = st->member_types.begin(),
+                                       e = st->member_types.end();
+            b != e;
+            ++b) {
+        Type *member_type = (*b);
 
-    while (begin != st->member_types.end()) {
-        Type *current = (*begin);
-        size_t el_size =
-            Operation::SizeofGet(units->top(), current);
-        size_t offset =
-            Operation::OffsetofGetByIndex(units->top(), type, i);
+        size_t member_size = Operation::SizeofGet(units->top(), member_type);
+        size_t offset = Operation::OffsetofGetByIndex(units->top(),
+                                                      type, index);
         size_t padding = 0;
-        if (i != 0) {
-            padding = (offset - last_offset - last_el_size);
+        if (index != 0) {
+            padding = (offset - last_offset - last_member_size);
         }
         if (padding) {
             Error *e = new Error(StructContainsPadding, top);
             ctx->er->addError(e);
         }
-        incr += padding;
-        char *addr = data;
-        addr += offset;
-        char aligned[256];
-        memcpy(aligned, addr, el_size);
+        total_padding += padding;
 
-        llvm::Constant *el =
-            parseLiteralElement(units,
-                                top,
-                                (char*) aligned,
-                                current,
-                                size);
-        if (!el) {
+        assert((member_size <= 256) && "struct member size too large");
+        char *addr = data + offset;
+        char aligned[256];
+        memcpy(aligned, addr, member_size);
+
+        llvm::Constant *member_value =
+            parseLiteralElement(units, top, (char*) aligned, member_type, size);
+        if (!member_value) {
             return NULL;
         }
-        constants.push_back(el);
-        last_offset  = offset - incr;
-        last_el_size = el_size;
-        ++i;
-        ++begin;
+        constants.push_back(member_value);
+
+        last_offset = offset - total_padding;
+        last_member_size = member_size;
+        ++index;
     }
 
-    llvm::Type *llvm_type =
-        ctx->toLLVMType(type, NULL, false);
+    llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
     if (!llvm_type) {
         return NULL;
     }
 
-    llvm::StructType *llvm_st =
-        llvm::cast<llvm::StructType>(llvm_type);
+    llvm::StructType *llvm_st = llvm::cast<llvm::StructType>(llvm_type);
+    llvm::Constant *const_st = llvm::ConstantStruct::get(llvm_st, constants);
 
-    llvm::Constant *init =
-        llvm::ConstantStruct::get(
-            llvm_st,
-            constants
-        );
-
-    return init;
+    return const_st;
 }
 
 llvm::Constant *
