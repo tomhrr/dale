@@ -175,48 +175,38 @@ parseLiteralString(Units *units, Node *top, char *data, Type *type,
     NativeTypes *nt = ctx->nt;
     TypeRegister *tr = ctx->tr;
 
-    char *temp =
-        *(char**)
-        (((uintptr_t) data));
-    *size = strlen(temp) + 1;
-    llvm::Constant *myconststr = getStringConstantArray(temp);
+    /* data contains a char pointer, hence the cast. */
+    char *str = *(char**) data;
+    *size = strlen(str) + 1;
+    llvm::Constant *constr_str = getStringConstantArray(str);
 
-    std::string varname2;
-    units->top()->getUnusedVarname(&varname2);
+    std::string var_name;
+    units->top()->getUnusedVarname(&var_name);
 
-    Type *archar =
-        tr->getArrayType(tr->type_char, *size);
+    Type *char_array_type = tr->getArrayType(tr->type_char, *size);
+    llvm::Type *llvm_type = ctx->toLLVMType(char_array_type, NULL, false);
 
-    if (units->top()->module->getGlobalVariable(llvm::StringRef(varname2.c_str()))) {
-        fprintf(stderr, "Internal error: "
-                "global variable already exists "
-                "in module ('%s').\n",
-                varname2.c_str());
-        abort();
-    }
+    llvm::Module *mod = units->top()->module;
+    assert(!mod->getGlobalVariable(llvm::StringRef(var_name.c_str())));
 
-    llvm::GlobalVariable *svar2 =
+    llvm::GlobalVariable *var =
         llvm::cast<llvm::GlobalVariable>(
-            units->top()->module->getOrInsertGlobal(varname2.c_str(),
-                                    ctx->toLLVMType(archar, NULL, false))
+            mod->getOrInsertGlobal(var_name.c_str(), llvm_type)
         );
 
-    svar2->setInitializer(myconststr);
-    svar2->setConstant(true);
-    svar2->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+    var->setInitializer(constr_str);
+    var->setConstant(true);
+    var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
-    llvm::Value *temps[2];
-    temps[0] = nt->getLLVMZero();
-    temps[1] = nt->getLLVMZero();
+    llvm::Value *two_zero_indices[2];
+    two_zero_indices[0] = nt->getLLVMZero();
+    two_zero_indices[1] = nt->getLLVMZero();
 
-    llvm::Constant *pce =
-        llvm::ConstantExpr::getGetElementPtr(
-            llvm::cast<llvm::Constant>(svar2),
-            temps,
-            2
-        );
+    llvm::Constant *const_pchar =
+        llvm::ConstantExpr::getGetElementPtr(llvm::cast<llvm::Constant>(var),
+                                             two_zero_indices, 2);
 
-    return pce;
+    return const_pchar;
 }
 
 llvm::Constant *
