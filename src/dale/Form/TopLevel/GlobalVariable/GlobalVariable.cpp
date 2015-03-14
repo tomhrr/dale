@@ -185,17 +185,7 @@ parseLiteralString(Units *units, Node *top, char *data, Type *type,
         *(char**)
         (((uintptr_t) data));
     *size = strlen(temp) + 1;
-    llvm::Constant *myconststr =
-        llvm::cast<llvm::Constant>(
-#if D_LLVM_VERSION_MINOR < 2
-            llvm::ConstantArray::get(
-#else
-            llvm::ConstantDataArray::getString(
-#endif
-                                        llvm::getGlobalContext(),
-                                        temp,
-                                        true)
-        );
+    llvm::Constant *myconststr = getStringConstantArray(temp);
 
     std::string varname2;
     units->top()->getUnusedVarname(&varname2);

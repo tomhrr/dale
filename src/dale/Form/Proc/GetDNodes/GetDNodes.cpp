@@ -27,14 +27,7 @@ createTokenGV(Units *units, std::string *value)
 {
     Context *ctx = units->top()->ctx;
 
-    llvm::Constant *str_value =
-#if D_LLVM_VERSION_MINOR < 2
-        llvm::ConstantArray::get(
-#else
-        llvm::ConstantDataArray::getString(
-#endif
-            llvm::getGlobalContext(), value->c_str(), true
-        );
+    llvm::Constant *str_value = getStringConstantArray(value->c_str());
 
     std::string varname_str;
     units->top()->getUnusedVarname(&varname_str);

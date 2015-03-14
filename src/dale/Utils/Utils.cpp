@@ -120,7 +120,7 @@ appendInt(std::string *to, int num)
     return;
 }
 
-void 
+void
 splitString(std::string *str, std::vector<std::string> *lst, char c)
 {
     int index = 0;
@@ -223,5 +223,22 @@ bool
 typesToString(std::vector<Variable *> *vars, std::string *buf)
 {
     return typesToString(vars->begin(), vars->end(), buf);
+}
+
+llvm::Constant *
+getStringConstantArray(const char *data)
+{
+    return
+        llvm::cast<llvm::Constant>(
+#if D_LLVM_VERSION_MINOR < 2
+            llvm::ConstantArray::get(
+#else
+            llvm::ConstantDataArray::getString(
+#endif
+                llvm::getGlobalContext(),
+                data,
+                true
+            )
+        );
 }
 }

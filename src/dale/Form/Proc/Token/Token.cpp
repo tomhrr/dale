@@ -53,14 +53,7 @@ stringLiteralToConstant(Units *units, Type *type, Node *node, int *size)
 
         *size = value.size() + 1;
 
-        return
-#if D_LLVM_VERSION_MINOR < 2
-            llvm::ConstantArray::get(
-#else
-            llvm::ConstantDataArray::getString(
-#endif
-                llvm::getGlobalContext(), value.c_str(), true
-            );
+        return getStringConstantArray(value.c_str());
     }
 
     std::string type_str;

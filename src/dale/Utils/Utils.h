@@ -97,6 +97,10 @@ bool typesToString(std::vector<Variable *>::iterator begin,
  *  @param buf The buffer for the result.
  */
 bool typesToString(std::vector<Variable *> *types, std::string *buf);
+/*! Construct an LLVM string constant data array.
+ *  @param data The data for the array.
+ */
+llvm::Constant *getStringConstantArray(const char *data);
 }
 
 #endif
