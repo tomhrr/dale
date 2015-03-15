@@ -4,6 +4,8 @@
 #include "../../../CommonDecl/CommonDecl.h"
 #include "../../../Node/Node.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 bool
@@ -16,78 +18,58 @@ FormTopLevelIncludeParse(Units *units, Node *node)
     }
 
     std::vector<Node *> *lst = node->list;
-    Node *n = (*lst)[1];
-    n = units->top()->mp->parsePotentialMacroCall(n);
-    if (!n) {
+    Node *path_node = (*lst)[1];
+    path_node = units->top()->mp->parsePotentialMacroCall(path_node);
+    if (!path_node) {
         return false;
     }
-    if (!ctx->er->assertArgIsAtom("include", n, "1")) {
+    if (!ctx->er->assertArgIsAtom("include", path_node, "1")) {
         return false;
     }
-    if (!ctx->er->assertAtomIsStringLiteral("include", n, "1")) {
+    if (!ctx->er->assertAtomIsStringLiteral("include", path_node, "1")) {
         return false;
     }
-
-    Token *t = n->token;
-
-    std::string filename_buf(t->str_value.c_str());
 
     /* Check if the file exists in the current directory, or in
      * ./include.  If it doesn't, go through each of the -I
      * (include_directory_paths) directories.  If it doesn't exist in
-     * any of them, check DALE_INCLUDE_PATH (set at compile time -
-     * used to be an environment variable).  Otherwise, print an error
-     * and return nothing. */
+     * any of those, check DALE_INCLUDE_PATH, which is set at compile
+     * time.  Otherwise, report an error and return nothing. */
 
-    FILE *include_file = fopen(filename_buf.c_str(), "r");
+    std::string path_buf;
 
-    if (!include_file) {
-        filename_buf.clear();
-        filename_buf.append("./include/");
-        filename_buf.append(t->str_value.c_str());
-        include_file = fopen(filename_buf.c_str(), "r");
-        if (!include_file) {
-            std::vector<const char *> *idp =
-                units->mr->include_directory_paths;
-            for (std::vector<const char*>::iterator b = idp->begin(),
-                                                    e = idp->end();
-                    b != e;
-                    ++b) {
-                filename_buf.clear();
-                filename_buf.append(*b)
-                    .append("/")
-                    .append(t->str_value.c_str());
-                include_file = fopen(filename_buf.c_str(), "r");
-                if (include_file) {
-                    break;
-                }
-            }
-        }
-        if (!include_file) {
-            filename_buf.clear();
-            filename_buf.append(DALE_INCLUDE_PATH)
-            .append("/")
-            .append(t->str_value.c_str());
+    std::vector<const char *> include_paths;
+    include_paths.push_back("");
+    include_paths.push_back("./include/");
+    std::copy(units->mr->include_directory_paths->begin(),
+              units->mr->include_directory_paths->end(),
+              back_inserter(include_paths));
+    std::string standard_include_path(DALE_INCLUDE_PATH);
+    standard_include_path.append("/");
+    include_paths.push_back(standard_include_path.c_str());
 
-            include_file = fopen(filename_buf.c_str(), "r");
-
-            if (!include_file) {
-                Error *e = new Error(
-                    ErrorInst::Generator::FileError,
-                    n,
-                    filename_buf.c_str(),
-                    strerror(errno)
-                );
-                ctx->er->addError(e);
-                return false;
-            }
+    FILE *include_file = NULL;
+    for (std::vector<const char *>::iterator b = include_paths.begin(),
+                                             e = include_paths.end();
+            b != e;
+            ++b) {
+        path_buf.clear();
+        path_buf.append((*b));
+        path_buf.append(path_node->token->str_value.c_str());
+        include_file = fopen(path_buf.c_str(), "r");
+        if (include_file) {
+            break;
         }
     }
-    /* Add the current parser/module/context to their respective
-     * stacks, create new parser/module/context for the new file.
-     * */
 
-    Unit *unit = new Unit(filename_buf.c_str(), units, ctx->er, ctx->nt,
+    if (!include_file) {
+        Error *e = new Error(FileError, path_node, path_buf.c_str(),
+                             strerror(errno));
+        ctx->er->addError(e);
+        return false;
+    }
+
+    Unit *unit = new Unit(path_buf.c_str(), units, ctx->er, ctx->nt,
                           ctx->tr, units->top()->ee,
                           units->top()->is_x86_64);
     units->push(unit);
@@ -101,7 +83,8 @@ FormTopLevelIncludeParse(Units *units, Node *node)
             units->top()->addCommonDeclarations();
         } else {
             std::vector<const char*> import_forms;
-            units->mr->run(ctx, units->top()->module, nullNode(), "drt", &import_forms);
+            units->mr->run(ctx, units->top()->module, nullNode(), "drt",
+                           &import_forms);
         }
     }
 

@@ -5,8 +5,11 @@
 
 namespace dale
 {
-bool
-FormTopLevelIncludeParse(Units *units, Node *node);
+/*! Parse a top-level include form.
+ *  @param units The units context.
+ *  @param node The node being parsed.
+ */
+bool FormTopLevelIncludeParse(Units *units, Node *node);
 }
 
 #endif
