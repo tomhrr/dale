@@ -5,9 +5,11 @@
 
 namespace dale
 {
-bool
-FormTopLevelStructParse(Units *units,
-           Node *n);
+/*! Parse a top-level struct form.
+ *  @param units The units context.
+ *  @param node The node being parsed.
+ */
+bool FormTopLevelStructParse(Units *units, Node *n);
 }
 
 #endif
