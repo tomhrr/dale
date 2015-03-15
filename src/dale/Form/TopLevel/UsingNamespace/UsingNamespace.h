@@ -5,8 +5,11 @@
 
 namespace dale
 {
-bool
-FormTopLevelUsingNamespaceParse(Units *units, Node *node);
+/*! Parse a top-level using-namespace form.
+ *  @param units The units context.
+ *  @param node The node being parsed.
+ */
+bool FormTopLevelUsingNamespaceParse(Units *units, Node *node);
 }
 
 #endif

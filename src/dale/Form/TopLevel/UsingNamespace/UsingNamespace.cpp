@@ -3,6 +3,8 @@
 #include "../../../Node/Node.h"
 #include "../Inst/Inst.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 bool
@@ -15,43 +17,32 @@ FormTopLevelUsingNamespaceParse(Units *units, Node *node)
     }
 
     std::vector<Node *> *lst = node->list;
-    Node *n = (*lst)[1];
-    n = units->top()->mp->parsePotentialMacroCall(n);
-    if (!n) {
+    Node *ns_node = (*lst)[1];
+    ns_node = units->top()->mp->parsePotentialMacroCall(ns_node);
+    if (!ns_node) {
         return false;
     }
-    if (!ctx->er->assertArgIsAtom("using-namespace", n, "1")) {
+    if (!ctx->er->assertArgIsAtom("using-namespace", ns_node, "1")) {
         return false;
     }
-    if (!ctx->er->assertAtomIsSymbol("using-namespace", n, "1")) {
+    if (!ctx->er->assertAtomIsSymbol("using-namespace", ns_node, "1")) {
         return false;
     }
 
-    Token *t = n->token;
-
-    int res = ctx->useNamespace(t->str_value.c_str());
+    const char *name = ns_node->token->str_value.c_str();
+    bool res = ctx->useNamespace(name);
     if (!res) {
-        Error *e = new Error(
-            ErrorInst::Generator::NamespaceNotInScope,
-            n,
-            t->str_value.c_str()
-        );
+        Error *e = new Error(NamespaceNotInScope, ns_node, name);
         ctx->er->addError(e);
         return false;
     }
 
-    std::vector<Node *>::iterator symlist_iter;
-    symlist_iter = lst->begin();
-
-    /* Skip the namespace token and the name token/form. */
-
-    ++symlist_iter;
-    ++symlist_iter;
-
-    while (symlist_iter != lst->end()) {
-        FormTopLevelInstParse(units, (*symlist_iter));
+    for (std::vector<Node *>::iterator b = (lst->begin() + 2),
+                                       e = lst->end();
+            b != e;
+            ++b) {
+        FormTopLevelInstParse(units, (*b));
         ctx->er->flush();
-        ++symlist_iter;
     }
 
     ctx->unuseNamespace();
