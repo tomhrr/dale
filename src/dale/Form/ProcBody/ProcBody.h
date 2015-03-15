@@ -5,14 +5,18 @@
 
 namespace dale
 {
-bool
-FormProcBodyParse(Units *units,
-      Node *n,
-      Function *dfn,
-      llvm::Function *fn,
-      int skip,
-      int is_anonymous,
-      llvm::Value *return_value = NULL);
+/*! Parse a procedure body form.
+ *  @param units The units context.
+ *  @param node The node containing the procedure body.
+ *  @param fn The current function.
+ *  @param llvm_fn The LLVM function for the current function.
+ *  @param skip The number of nodes to skip in node.
+ *  @param is_anonymous Whether the current function is anonymous.
+ *  @param return_value The retval value, if applicable.
+ */
+bool FormProcBodyParse(Units *units, Node *node, Function *fn,
+                       llvm::Function *llvm_fn, int skip, bool is_anonymous,
+                       llvm::Value *return_value = NULL);
 }
 
 #endif

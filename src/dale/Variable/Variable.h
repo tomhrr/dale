@@ -58,13 +58,17 @@ public:
 
     ~Variable();
 
+    /*! Copy the current variable's details to another.
+     *  @param var The other variable.
+     */
+    void copyTo(Variable *other);
     /*! Check whether a variable is equal to another variable.
      *  @param var The other variable.
      *
      *  Two variables are considered equal if their types compare
      *  equal, as per dale::Type::isEqualTo.
      */
-    bool isEqualTo(Variable *var);
+    bool isEqualTo(Variable *other);
 };
 }
 
