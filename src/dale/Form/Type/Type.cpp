@@ -84,6 +84,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             std::string fqsn;
             bool b = ctx->setFullyQualifiedStructName(typs, &fqsn);
             assert(b && "unable to set struct name");
+            _unused(b);
             return ctx->tr->getStructType(fqsn);
         }
 

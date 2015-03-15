@@ -32,6 +32,7 @@ FormTopLevelNamespaceParse(Units *units,
 
     int success = ctx->activateNamespace(t->str_value.c_str());
     assert(success && "cannot activate namespace");
+    _unused(success);
 
     std::vector<Node *>::iterator symlist_iter;
     symlist_iter = lst->begin();

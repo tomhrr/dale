@@ -10,29 +10,26 @@
 #include "../../llvm_Function.h"
 #include "Config.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
-bool FormArgumentParse(Units *units,
-            Variable *var,
-            Node *top,
-            bool allow_anon_structs,
-            bool allow_bitfields,
-            bool allow_refs)
+bool
+FormArgumentParse(Units *units, Variable *var, Node *node,
+                  bool allow_anon_structs, bool allow_bitfields,
+                  bool allow_refs)
 {
     Context *ctx = units->top()->ctx;
 
     var->linkage = Linkage::Auto;
 
-    if (!top->is_list) {
+    if (!node->is_list) {
         /* Can only be void or varargs. */
-        Token *t = top->token;
+        Token *t = node->token;
 
         if (t->type != TokenType::String) {
-            Error *e = new Error(
-                ErrorInst::Generator::IncorrectSingleParameterType,
-                top,
-                "symbol", t->tokenType()
-            );
+            Error *e = new Error(IncorrectSingleParameterType,
+                                 node, "symbol", t->tokenType());
             ctx->er->addError(e);
             return false;
         }
@@ -44,58 +41,46 @@ bool FormArgumentParse(Units *units,
             var->type = ctx->tr->type_varargs;
             return true;
         } else {
-            Error *e = new Error(
-                ErrorInst::Generator::IncorrectSingleParameterType,
-                top,
-                "'void'/'...'"
-            );
-            std::string temp;
-            temp.append("'")
-            .append(t->str_value.c_str())
-            .append("'");
-            e->addArgString(&temp);
+            Error *e = new Error(IncorrectSingleParameterType,
+                                 node, "void/...", t->str_value.c_str());
             ctx->er->addError(e);
             return false;
         }
     }
-    std::vector<Node *> *lst = top->list;
+
+    std::vector<Node *> *lst = node->list;
 
     if (lst->size() != 2) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectParameterTypeNumberOfArgs,
-            top,
-            2, (int) lst->size()
-        );
+        Error *e = new Error(IncorrectParameterTypeNumberOfArgs,
+                             node, 2, (int) lst->size());
         ctx->er->addError(e);
         return false;
     }
-    Node *nname = (*lst)[0];
+    Node *name_node = (*lst)[0];
 
-    if (!nname->is_token) {
-        Error *e = new Error(
-            ErrorInst::Generator::FirstListElementMustBeAtom,
-            nname
-        );
+    if (!name_node->is_token) {
+        Error *e = new Error(FirstListElementMustBeAtom, name_node);
         ctx->er->addError(e);
         return false;
     }
 
-    Token *tname = nname->token;
+    Token *name_token = name_node->token;
 
-    if (tname->type != TokenType::String) {
-        Error *e = new Error(
-            ErrorInst::Generator::FirstListElementMustBeSymbol,
-            nname
-        );
+    if (name_token->type != TokenType::String) {
+        Error *e = new Error(FirstListElementMustBeSymbol, name_node);
         ctx->er->addError(e);
         return false;
     }
 
     var->name.clear();
-    var->name.append(tname->str_value.c_str());
+    var->name.append(name_token->str_value.c_str());
 
     Type *type = FormTypeParse(units, (*lst)[1], allow_anon_structs,
-                                    allow_bitfields, allow_refs);
+                               allow_bitfields, allow_refs);
+    if (!type) {
+        return false;
+    }
+
     var->type = type;
 
     return true;
