@@ -176,6 +176,7 @@ linkModule(llvm::Linker *linker, llvm::Module *mod)
     result = linker->linkInModule(mod, &error);
 #endif
     assert(!result && "unable to link module");
+    _unused(result);
 }
 
 void
@@ -184,21 +185,17 @@ linkFile(llvm::Linker *linker, const char *path)
 #if D_LLVM_VERSION_MINOR <= 2
     const llvm::sys::Path bb(path);
     bool is_native = false;
-    if (linker->LinkInFile(bb, is_native)) {
-        fprintf(stderr, "Internal error: unable to link bitcode file.\n");
-        abort();
-    }
+    bool res = linker->LinkInFile(bb, is_native);
+    assert(!res && "unable to link bitcode file");
 #else
     llvm::SMDiagnostic sm_error;
     llvm::Module *path_mod = llvm::ParseIRFile(path, sm_error,
                                                llvm::getGlobalContext());
     std::string error;
-    if (linker->linkInModule(path_mod, &error)) {
-        fprintf(stderr, "Internal error: unable to link bitcode file "
-                "module: %s.\n", error.c_str());
-        abort();
-    }
+    bool res = linker->linkInModule(path_mod, &error);
+    assert(!res && "unable to link bitcode file module");
 #endif
+    _unused(res);
 }
 
 void
@@ -238,14 +235,9 @@ getTargetMachine(llvm::Module *last_module)
     }
 
     std::string Err;
-    const llvm::Target *target = llvm::TargetRegistry::lookupTarget(
-                                        triple.getTriple(), Err);
-    if (target == 0) {
-        fprintf(stderr,
-                "Internal error: cannot auto-select target "
-                "for module: %s\n", Err.c_str());
-        abort();
-    }
+    const llvm::Target *target =
+        llvm::TargetRegistry::lookupTarget(triple.getTriple(), Err);
+    assert(target && "cannot auto-select target for module");
 
 #if D_LLVM_VERSION_MINOR >= 2
     llvm::TargetOptions target_options;
@@ -601,11 +593,8 @@ Generator::run(std::vector<const char *> *file_paths,
             pass_manager, *ostream_formatted,
             llvm::TargetMachine::CGFT_AssemblyFile,
             level, NULL);
-        if (res) {
-            fprintf(stderr,
-                    "Internal error: unable to add passes to emit file.\n");
-            abort();
-        }
+        assert(!res && "unable to add passes to emit file");
+        _unused(res);
     }
 
     if (debug) {

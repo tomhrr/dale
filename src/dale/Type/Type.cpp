@@ -407,10 +407,7 @@ void Type::toSymbolString(std::string *to)
 
     if (base_type) {
         char c = baseTypeToSymbolChar(base_type);
-        if (c == '?') {
-            fprintf(stderr, "Invalid base type (%d).\n", base_type);
-            abort();
-        }
+        assert((c != '?') && "invalid base type");
         to->push_back(c);
         return;
     }
