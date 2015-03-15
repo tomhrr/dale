@@ -474,12 +474,8 @@ FormFunctionParse(Units *units,
         Function *ic =
             ctx->getFunction("init-channels", &tempparams,
                              NULL, 0);
-        if (!ic or !ic->llvm_function) {
-            fprintf(stderr,
-                    "Internal error: cannot find init-channels "
-                    "function.\n");
-            abort();
-        }
+        assert(ic && ic->llvm_function &&
+               "cannot find init-channels function");
 
         llvm::Function::iterator i = fn->begin();
         llvm::BasicBlock *b = i;

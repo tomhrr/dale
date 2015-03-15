@@ -132,42 +132,21 @@ Unit::makeTemporaryGlobalFunction(void)
     std::string new_name;
     ctx->ns()->nameToSymbol(buf, &new_name);
 
-    if (module->getFunction(llvm::StringRef(new_name.c_str()))) {
-        fprintf(stderr, "Internal error: "
-                "function already exists in module ('%s').\n",
-                new_name.c_str());
-        abort();
-    }
+    assert(!module->getFunction(llvm::StringRef(new_name.c_str())) &&
+           "function already exists in module");
 
     llvm::Constant *llvm_fnc =
         module->getOrInsertFunction(new_name.c_str(), ft);
-    if (!llvm_fnc) {
-        fprintf(stderr, "Internal error: unable to add "
-                "function ('%s') to module.\n",
-                new_name.c_str());
-        abort();
-    }
+    assert(llvm_fnc && "unable to add function to module");
 
     llvm::Function *llvm_fn = llvm::dyn_cast<llvm::Function>(llvm_fnc);
-    if (!llvm_fn) {
-        fprintf(stderr, "Internal error: unable to convert "
-                "function constant to function "
-                "for function '%s'.\n",
-                new_name.c_str());
-        abort();
-    }
+    assert(llvm_fn && "unable to convert function constant to function");
 
     std::vector<Variable *> vars;
     Function *fn =
         new Function(ctx->tr->type_int, &vars, llvm_fn, 0,
                      new std::string(new_name), 0);
     fn->linkage = Linkage::Intern;
-    if (!fn) {
-        fprintf(stderr, "Internal error: unable to create new "
-                "function '%s'.\n",
-                new_name.c_str());
-        abort();
-    }
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", llvm_fn);

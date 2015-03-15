@@ -47,6 +47,7 @@
 #endif
 
 #include "../../Serialise/Serialise.h"
+#include "../../Utils/Utils.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -85,12 +86,7 @@ Reader::loadModule(std::string *path, bool materialize)
 #else
     llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> eo =
         llvm::MemoryBuffer::getFileOrSTDIN(*path);
-    if (eo.getError()) {
-        fprintf(stderr, 
-                "Internal error: cannot load module: %s\n", 
-                eo.getError().message().c_str());
-        abort();
-    }
+    assert(!eo.getError() && "cannot load module");
     std::unique_ptr<llvm::MemoryBuffer> buffer = std::move(eo.get());
 #endif
 
@@ -112,12 +108,7 @@ Reader::loadModule(std::string *path, bool materialize)
     buffer.release();
 #endif
 
-    if (!module) {
-        fprintf(stderr,
-                "Internal error: cannot load module: %s\n",
-                errmsg.c_str());
-        abort();
-    }
+    assert(module && "cannot load module");
 
     std::string ma_error;
 #if D_LLVM_VERSION_MINOR <= 4
@@ -129,20 +120,16 @@ Reader::loadModule(std::string *path, bool materialize)
         ma_error = ec.message();
     }
 #endif
-    if (ma) {
-        fprintf(stderr, "Internal error: failed to materialize "
-                        "module (%s): %s\n",
-                        path->c_str(), ma_error.c_str());
-        abort();
-    }
+    assert(!ma && "failed to materialize module");
+    _unused(ma);
 
     return module;
 }
 
 bool
 Reader::addLib(const char *lib_path,
-                int add_to_so_paths,
-                int add_nm_to_so_paths)
+               int add_to_so_paths,
+               int add_nm_to_so_paths)
 {
     std::string temp;
 
@@ -174,9 +161,7 @@ Reader::addLib(const char *lib_path,
                 }
             }
         }
-        fprintf(stderr,
-                "Internal error: unable to load library %s\n",
-                temp.c_str());
+        assert(true && "unable to load library");
         return false;
     } else {
         if (add_nm_to_so_paths) {
@@ -297,17 +282,15 @@ Reader::run(Context *ctx, llvm::Module *mod, Node *n, const char *my_module_name
 
     int fd = fileno(test);
     struct stat buf;
-    if (fstat(fd, &buf)) {
-        fprintf(stderr, "Unable to fstat file\n");
-        abort();
-    }
+    int fstat_res = fstat(fd, &buf);
+    assert(!fstat_res && "unable to fstat file");
+    _unused(fstat_res);
     int size = buf.st_size;
     char *data = (char*) malloc(size);
     char *original_data = data;
-    if (fread(data, 1, size, test) != (size_t) size) {
-        fprintf(stderr, "Unable to read module file.\n");
-        abort();
-    }
+    size_t res = fread(data, 1, size, test);
+    assert((res == (size_t) size) && "unable to read module file");
+    _unused(res);
 
     data = deserialise(ctx->tr, data, mynewcontext);
     std::set<std::string> temponcetags;
@@ -362,13 +345,8 @@ Reader::run(Context *ctx, llvm::Module *mod, Node *n, const char *my_module_name
     /* Never add to so_paths if you are making a module (it's
      * pointless - it only matters when you are linking an
      * executable). */
-    bool res = addLib(tmn4.c_str(), 0,
-                      //((module_name.size() == 0) && add_to_so_paths))
-                      add_to_so_paths);
-    if (!res) {
-        fprintf(stderr, "Cannot addlib\n");
-        abort();
-    }
+    res = addLib(tmn4.c_str(), 0, add_to_so_paths);
+    assert(res && "unable to add library");
 
     /* Get the union of temponcetags and included_once_tags.
      * Remove from the module any structs/enums that have a once

@@ -31,12 +31,7 @@ FormTopLevelNamespaceParse(Units *units,
     Token *t = n->token;
 
     int success = ctx->activateNamespace(t->str_value.c_str());
-    if (!success) {
-        fprintf(stderr, "Internal error: cannot activate "
-                "namespace '%s'.\n",
-                t->str_value.c_str());
-        abort();
-    }
+    assert(success && "cannot activate namespace");
 
     std::vector<Node *>::iterator symlist_iter;
     symlist_iter = lst->begin();

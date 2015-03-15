@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cassert>
 #include "../ErrorType/ErrorType.h"
 
 namespace dale
@@ -191,9 +192,7 @@ void Error::toString(std::string *to)
                                        arg_strings[2].c_str(),
                                        arg_strings[3].c_str());
     } else {
-        fprintf(stderr,
-                "Internal error: too many argument strings (>4) "
-                "in the error.\n");
+        assert(false && "too many argument strings (>4) in the error");
         abort();
     }
 

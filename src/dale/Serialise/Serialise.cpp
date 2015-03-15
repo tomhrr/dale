@@ -1,5 +1,7 @@
 #include "Serialise.h"
 
+#include <cassert>
+
 namespace dale
 {
 void xfwrite(const void *a, size_t b, size_t c, FILE *d)
@@ -61,13 +63,8 @@ char *deserialise(TypeRegister *tr, char *in, char *a)
 
 void serialise(FILE *out, int a)
 {
-    if ((a < 0) || (a > 255)) {
-        fprintf(stderr, "Internal error: assuming ints for "
-                        "serialising are between 0 and 255 "
-                        "inclusive (got %d).", a);
-        abort();
-    }
-
+    assert(((a >= 0) && (a <= 255)) &&
+           "serialised ints must be between 0 and 255 inclusive");
     uint8_t aa = (uint8_t) a;
     xfwrite(&aa, sizeof(uint8_t), 1, out);
 }
@@ -210,12 +207,7 @@ char *deserialise(TypeRegister *tr, char *in, Type **t)
         *t = tr->getBasicType(base_type);
         return in;
     }
-    if (c != 'N') {
-        fprintf(stderr,
-                "got wrong char, expected N, got '%c' (%d)\n",
-                c, c);
-        abort();
-    }
+    assert((c == 'N') && "got invalid char on deserialising");
 
     Type temp;
 

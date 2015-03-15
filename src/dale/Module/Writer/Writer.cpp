@@ -2,6 +2,7 @@
 #include "Config.h"
 
 #include "../../Serialise/Serialise.h"
+#include "../../Utils/Utils.h"
 
 namespace dale
 {
@@ -67,10 +68,8 @@ Writer::writeSharedObject(const char *suffix)
        .append(asm_path);
 
     int res = system(cmd.c_str());
-    if (res != 0) {
-        fprintf(stderr, "Internal error: unable to assemble bitcode.\n");
-        return false;
-    }
+    assert(!res && "unable to assemble bitcode");
+    _unused(res);
 
     std::string lib_path(module_prefix);
     lib_path.append(suffix);
@@ -83,18 +82,10 @@ Writer::writeSharedObject(const char *suffix)
        .append(lib_path);
 
     res = system(cmd.c_str());
-    if (res) {
-        fprintf(stderr, "Internal error: unable to make library.\n");
-        return false;
-    }
+    assert(!res && "unable to make library");
 
     res = remove(asm_path.c_str());
-    if (res) {
-        fprintf(stderr, "Internal error: unable to remove "
-                "temporary assembly file (%s).\n",
-                asm_path.c_str());
-        return false;
-    }
+    assert(!res && "unable to remove temporary assembly file");
 
     return true;
 }
@@ -108,10 +99,7 @@ Writer::writeContext(void)
     module_prefix.append(".dtm");
     
     FILE *mod_data = fopen(module_prefix.c_str(), "w");
-    if (!mod_data) {
-        perror("Cannot create module file");
-        return false;
-    }
+    assert(mod_data && "cannot create module file");
     serialise(mod_data, ctx);
     serialise(mod_data, included_once_tags);
     serialise(mod_data, included_modules);

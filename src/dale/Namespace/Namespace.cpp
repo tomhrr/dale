@@ -664,12 +664,8 @@ Namespace::getVariables(std::vector<Variable *> *vars)
 bool
 Namespace::merge(Namespace *other)
 {
-    if (name.compare(other->name)) {
-        fprintf(stderr,
-                "Merging namespaces with different names: %s, %s\n",
-                name.c_str(), other->name.c_str());
-        abort();
-    }
+    assert(!name.compare(other->name) &&
+           "merging namespaces with different names");
 
     if (other->lv_index > lv_index) {
         lv_index = lv_index + 1;
@@ -691,12 +687,8 @@ Namespace::merge(Namespace *other)
                 continue;
             }
             bool added = addFunction(b->first.c_str(), fn, NULL);
-            if (!added) {
-                fprintf(stderr,
-                        "Unable to merge function: %s.\n",
-                        b->first.c_str());
-                abort();
-            }
+            assert(added && "unable to merge function");
+            _unused(added);
         }
     }
 
@@ -712,12 +704,8 @@ Namespace::merge(Namespace *other)
             continue;
         }
         bool added = addEnum(b->first.c_str(), b->second);
-        if (!added) {
-            fprintf(stderr,
-                    "Unable to merge enum: %s.\n",
-                    b->first.c_str());
-            abort();
-        }
+        assert(added && "unable to merge enum");
+        _unused(added);
     }
 
     for (std::map<std::string, Variable*>::iterator
@@ -732,12 +720,8 @@ Namespace::merge(Namespace *other)
             continue;
         }
         bool added = addVariable(b->first.c_str(), b->second);
-        if (!added) {
-            fprintf(stderr,
-                    "Unable to merge variable: %s.\n",
-                    b->first.c_str());
-            abort();
-        }
+        assert(added && "unable to merge variable");
+        _unused(added);
     }
 
     for (std::map<std::string, Struct*>::iterator
@@ -752,12 +736,8 @@ Namespace::merge(Namespace *other)
             continue;
         }
         bool added = addStruct(b->first.c_str(), b->second);
-        if (!added) {
-            fprintf(stderr,
-                    "Unable to merge struct: %s.\n",
-                    b->first.c_str());
-            abort();
-        }
+        assert(added && "unable to merge struct");
+        _unused(added);
     }
 
     return true;
@@ -785,11 +765,7 @@ Namespace::regetStructPointers(llvm::Module *mod)
             type_name.append(st->internal_name);
             llvm_st = mod->getTypeByName(type_name);
         }
-        if (!llvm_st) {
-            fprintf(stderr, "Could not get type for struct %s.\n",
-                    st->internal_name.c_str());
-            abort();
-        }
+        assert(llvm_st && "could not get type for struct");
         st->type = llvm_st;
     }
 
@@ -826,11 +802,7 @@ Namespace::regetVariablePointers(llvm::Module *mod)
                     )->getElementType()
                 )
             );
-        if (!var->value) {
-            fprintf(stderr, "Unable to re-get global variable: %s\n",
-                    in->c_str());
-            abort();
-        }
+        assert(var->value && "unable to re-get global variable");
     }
 
     return true;

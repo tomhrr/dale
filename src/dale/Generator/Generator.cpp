@@ -151,11 +151,7 @@ lazyFunctionCreator(const std::string &name)
         }
     }
 
-    fprintf(stderr,
-            "Internal warning: can't find symbol '%s' in installed "
-            "lazy function creator.\n",
-            name.c_str());
-
+    assert(false && "unable to find symbol in LFC");
     return NULL;
 }
 
@@ -179,12 +175,7 @@ linkModule(llvm::Linker *linker, llvm::Module *mod)
 #else
     result = linker->linkInModule(mod, &error);
 #endif
-    if (result) {
-        fprintf(stderr,
-                "Internal error: unable to link Dale module: %s\n",
-                error.c_str());
-        abort();
-    }
+    assert(!result && "unable to link module");
 }
 
 void

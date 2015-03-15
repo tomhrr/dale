@@ -832,23 +832,14 @@ Context::rebuildFunction(Function *fn, const char *name,
         if (var_type->base_type == BaseType::VarArgs) {
             break;
         }
-        llvm::Type *llvm_type =
-            toLLVMType(var_type, NULL, false, false);
-        if (!llvm_type) {
-            er->flush();
-            fprintf(stderr, "Failed conversion (%s).\n", name);
-            abort();
-        }
+        llvm::Type *llvm_type = toLLVMType(var_type, NULL, false, false);
+        assert(llvm_type && "failed type conversion");
         types.push_back(llvm_type);
     }
 
     llvm::Type *llvm_return_type =
         toLLVMType(fn->return_type, NULL, true, false);
-    if (!llvm_return_type) {
-        er->flush();
-        fprintf(stderr, "Failed conversion (%s).\n", name);
-        abort();
-    }
+    assert(llvm_return_type && "failed type conversion");
 
     bool varargs = fn->isVarArgs();
 
@@ -863,12 +854,7 @@ Context::rebuildFunction(Function *fn, const char *name,
         llvm::dyn_cast<llvm::Function>(
             mod->getOrInsertFunction(fn->internal_name.c_str(), ft)
         );
-    if (!fn->llvm_function) {
-        fprintf(stderr, "Internal error: unable to re-get "
-                "function (%s).\n",
-                fn->internal_name.c_str());
-        abort();
-    }
+    assert(fn->llvm_function && "unable to re-get function");
 
     return true;
 }
@@ -931,12 +917,7 @@ Context::rebuildVariable(Variable *var, const char *name,
                 )->getElementType()
             )
         );
-    if (!var->value) {
-        fprintf(stderr, "Internal error: unable to re-get "
-                "global variable (%s, %s).\n",
-                name, var->internal_name.c_str());
-        abort();
-    }
+    assert(var->value && "unable to re-get global variable");
 
     return true;
 }
@@ -1082,16 +1063,8 @@ Context::toLLVMTypePointer(Type *type,
         * instead. */
     if (temp_type->isVoidTy()) {
         Struct *structp = getStruct("_vp", NULL);
-        if (!structp) {
-            fprintf(stderr, "Internal error: no _vp struct.\n");
-            abort();
-        }
-        if (!structp->type) {
-            fprintf(stderr, "Internal error: found vp struct, "
-                    "but it doesn't have a type. (%s)\n",
-                    type->struct_name.c_str());
-            abort();
-        }
+        assert(structp && "no _vp struct");
+        assert(structp->type && "no _vp struct type");
         return llvm::PointerType::getUnqual(structp->type);
     }
     return llvm::PointerType::getUnqual(temp_type);
@@ -1141,12 +1114,7 @@ Context::toLLVMTypeStruct(Type *type,
         getStruct(type->struct_name.c_str(), &(type->namespaces));
 
     if (structp) {
-        if (!structp->type) {
-            fprintf(stderr, "Internal error: found struct, "
-                    "but it doesn't have a type. (%s)\n",
-                    type->struct_name.c_str());
-            abort();
-        }
+        assert(structp->type && "found struct, but it does not have a type");
         return structp->type;
     }
 

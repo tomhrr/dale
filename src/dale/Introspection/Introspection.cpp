@@ -638,11 +638,8 @@ type_2D_to_2D_string(MContext *mc, DNode *t, char *buf)
 
     std::string symbol_string;
     type->toSymbolString(&symbol_string);
-    if (symbol_string.size() > 255) {
-        fprintf(stderr, "Internal error: encoded type "
-                "string is too long (>255 characters): %s.\n",
-                symbol_string.c_str());
-    }
+    assert((symbol_string.size() <= 255)
+           && "encoded type string is too long (>255 characters)");
     std::copy(symbol_string.begin(), symbol_string.end(), buf);
     buf[symbol_string.size()] = '\0';
 

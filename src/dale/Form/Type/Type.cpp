@@ -10,7 +10,7 @@ static int anonstructcount = 0;
 namespace dale {
 Type *
 FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
-      bool allow_bitfields, bool allow_refs, bool allow_retvals)
+              bool allow_bitfields, bool allow_refs, bool allow_retvals)
 {
     if (!top) {
         return NULL;
@@ -83,11 +83,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
         if ((temp_struct = ctx->getStruct(typs))) {
             std::string fqsn;
             bool b = ctx->setFullyQualifiedStructName(typs, &fqsn);
-            if (!b) {
-                fprintf(stderr, "Internal error: unable to set struct "
-                                "name (%s).\n", typs);
-                abort();
-            }
+            assert(b && "unable to set struct name");
             return ctx->tr->getStructType(fqsn);
         }
 
@@ -237,11 +233,8 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
         Token *name = new Token(TokenType::String);
         name->str_value.append(buf);
         Type *myst = FormTypeParse(units, new Node(name), false,
-                                        false);
-        if (!myst) {
-            fprintf(stderr, "Unable to retrieve anonymous struct.\n");
-            abort();
-        }
+                                   false);
+        assert(myst && "unable to retrieve anonymous struct");
         return myst;
     }
 

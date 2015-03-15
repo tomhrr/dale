@@ -34,10 +34,6 @@ Alignmentof(Context *ctx, llvm::BasicBlock *block, Type *type,
     final_name.append(as_name_symbol);
 
     llvm_as_struct->setName(as_name_symbol.c_str());
-    if (llvm_as_struct->getName() != llvm::StringRef(as_name_symbol)) {
-        fprintf(stderr, "Internal error: unable to add struct.");
-        abort();
-    }
 
     llvm::IRBuilder<> builder(block);
     llvm::PointerType *lpt = llvm::PointerType::getUnqual(llvm_as_struct);
