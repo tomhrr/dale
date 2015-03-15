@@ -12,22 +12,40 @@ using namespace dale::ErrorInst::Generator;
 
 namespace dale
 {
+void
+removeMacro(Context *ctx, const char *name)
+{
+    std::map<std::string, std::vector<Function*>*>::iterator b =
+        ctx->ns()->functions.find(name);
+
+    if (b != ctx->ns()->functions.end()) {
+        for (std::vector<Function *>::iterator j = b->second->begin(),
+                                               k = b->second->end();
+                j != k;
+                ++j) {
+            if ((*j)->is_macro) {
+                b->second->erase(j);
+                break;
+            }
+        }
+    }
+}
+
 bool
 FormTopLevelMacroParse(Units *units, Node *node)
 {
     Context *ctx = units->top()->ctx;
 
     const char *name = (*node->list)[1]->token->str_value.c_str();
+    Node *top = (*node->list)[2];
 
     if (CoreForms::exists(name)) {
-        Error *e = new Error(NoCoreFormNameInMacro, (*node->list)[2]);
+        Error *e = new Error(NoCoreFormNameInMacro, top);
         ctx->er->addError(e);
         return false;
     }
 
-    Node *top = (*node->list)[2];
     std::vector<Node *> *lst = top->list;
-
     if (lst->size() < 3) {
         Error *e = new Error(IncorrectMinimumNumberOfArgs, top,
                              "macro", 2, (int) (lst->size() - 1));
@@ -96,6 +114,7 @@ FormTopLevelMacroParse(Units *units, Node *node)
                 var = new Variable();
                 var->type = ctx->tr->type_varargs;
                 var->linkage = Linkage::Auto;
+                varargs = true;
                 mc_params_internal.push_back(var);
                 break;
             }
@@ -123,34 +142,25 @@ FormTopLevelMacroParse(Units *units, Node *node)
             b != e;
             ++b) {
         if ((*b)->type->base_type == BaseType::VarArgs) {
-            varargs = true;
             break;
         }
-        llvm::Type *temp = ctx->toLLVMType(ret_type, NULL, false);
-        if (!temp) {
+        llvm::Type *llvm_type = ctx->toLLVMType(ret_type, NULL, false);
+        if (!llvm_type) {
             return false;
         }
-        mc_params.push_back(temp);
+        mc_params.push_back(llvm_type);
     }
 
-    llvm::Type *temp = ctx->toLLVMType(ret_type, NULL, false);
-    if (!temp) {
+    llvm::Type *llvm_ret_type = ctx->toLLVMType(ret_type, NULL, false);
+    if (!llvm_ret_type) {
         return false;
     }
-
-    llvm::FunctionType *ft =
-        getFunctionType(
-            temp,
-            mc_params,
-            varargs
-        );
+    llvm::FunctionType *ft = getFunctionType(llvm_ret_type, mc_params,
+                                             varargs);
 
     std::string new_name;
-
-    ctx->ns()->functionNameToSymbol(name,
-                            &new_name,
-                            linkage,
-                            &mc_params_internal);
+    ctx->ns()->functionNameToSymbol(name, &new_name, linkage,
+                                    &mc_params_internal);
 
     if (units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
         Error *e = new Error(RedeclarationOfFunctionOrMacro, top, name);
@@ -159,31 +169,16 @@ FormTopLevelMacroParse(Units *units, Node *node)
     }
 
     llvm::Constant *fnc =
-        units->top()->module->getOrInsertFunction(
-            new_name.c_str(),
-            ft
-        );
+        units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
+    llvm::Function *llvm_fn = llvm::dyn_cast<llvm::Function>(fnc);
+    llvm_fn->setCallingConv(llvm::CallingConv::C);
+    llvm_fn->setLinkage(ctx->toLLVMLinkage(linkage));
 
-    llvm::Function *fn = llvm::dyn_cast<llvm::Function>(fnc);
+    /* Note that the values of the Variables of the macro's parameter
+     * list will not necessarily match the Types of those variables,
+     * because of the support for overloading. */
 
-    /* This is probably unnecessary, given the previous
-     * getFunction call. */
-    if ((!fn) || (fn->size())) {
-        Error *e = new Error(RedeclarationOfFunctionOrMacro, top, name);
-        ctx->er->addError(e);
-        return false;
-    }
-
-    fn->setCallingConv(llvm::CallingConv::C);
-
-    fn->setLinkage(ctx->toLLVMLinkage(linkage));
-
-    llvm::Function::arg_iterator lparams = fn->arg_begin();
-
-    /* Note that the values of the Variables of the macro's
-     * parameter list will not necessarily match the Types of
-     * those variables (to support overloading). */
-
+    llvm::Function::arg_iterator llvm_param_iter = llvm_fn->arg_begin();
     for (std::vector<Variable *>::iterator b = mc_params_internal.begin(),
                                            e = mc_params_internal.end();
             b != e;
@@ -191,69 +186,42 @@ FormTopLevelMacroParse(Units *units, Node *node)
         if ((*b)->type->base_type == BaseType::VarArgs) {
             break;
         }
-        llvm::Value *temp = lparams;
-        ++lparams;
-        temp->setName((*b)->name.c_str());
-        (*b)->value = temp;
+        llvm::Value *llvm_param = llvm_param_iter;
+        ++llvm_param_iter;
+        llvm_param->setName((*b)->name.c_str());
+        (*b)->value = llvm_param;
     }
 
-    /* Add the macro to the context. */
-    Function *dfn =
-        new Function(ret_type, &mc_params_internal, fn, 1,
-                              &new_name);
-    dfn->linkage = linkage;
+    Function *fn = new Function(ret_type, &mc_params_internal, llvm_fn,
+                                true, &new_name);
+    fn->linkage = linkage;
 
-    if (!ctx->ns()->addFunction(name, dfn, top)) {
+    if (!ctx->ns()->addFunction(name, fn, top)) {
         return false;
     }
     if (units->top()->once_tag.length() > 0) {
-        dfn->once_tag = units->top()->once_tag;
+        fn->once_tag = units->top()->once_tag;
     }
 
-    /* If the list has only three arguments, the macro is a
-     * declaration and you can return straightaway. */
-
+    /* If the list has only three arguments, the macro is a declaration. */
     if (lst->size() == 3) {
         return true;
     }
 
-    /* Previously, Generator had a variable called
-     * has_defined_extern_macro, which was set here if the macro had
-     * extern scope.  Later, if that variable wasn't set,
-     * createConstantMergePass could be added to the pass list.  If
-     * problems are had later with that pass, the absence of that
-     * variable and associated behaviour probably have something to do
-     * with it.  */
-
-    int error_count =
-        ctx->er->getErrorTypeCount(ErrorType::Error);
+    int error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
 
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;
-
-    units->top()->pushGlobalFunction(dfn);
-    FormProcBodyParse(units, top, dfn, fn, 3, 0);
+    units->top()->pushGlobalFunction(fn);
+    FormProcBodyParse(units, top, fn, llvm_fn, 3, 0);
     units->top()->popGlobalFunction();
-
     ctx->deactivateNamespace(anon_name.c_str());
 
-    int error_post_count =
-        ctx->er->getErrorTypeCount(ErrorType::Error);
-    if (error_count != error_post_count) {
-        std::map<std::string, std::vector<Function*>*
-        >::iterator i = ctx->ns()->functions.find(name);
-        if (i != ctx->ns()->functions.end()) {
-            for (std::vector<Function *>::iterator
-                    j = i->second->begin(),
-                    k = i->second->end();
-                    j != k;
-                    ++j) {
-                if ((*j)->is_macro) {
-                    i->second->erase(j);
-                    break;
-                }
-            }
-        }
+    int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
+
+    if (error_count_begin != error_count_end) {
+        removeMacro(ctx, name);
+        return false;
     }
 
     return true;
