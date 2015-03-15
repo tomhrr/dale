@@ -8,6 +8,8 @@
 #include "../../ProcBody/ProcBody.h"
 #include "../../Argument/Argument.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 bool
@@ -15,28 +17,20 @@ FormTopLevelMacroParse(Units *units, Node *node)
 {
     Context *ctx = units->top()->ctx;
 
-    Node *top = node->list->at(2);
-    const char *name = node->list->at(1)->token->str_value.c_str();
+    const char *name = (*node->list)[1]->token->str_value.c_str();
 
-    /* Ensure this isn't core (core forms cannot be overridden
-     * with a macro). */
     if (CoreForms::exists(name)) {
-        Error *e = new Error(
-            ErrorInst::Generator::NoCoreFormNameInMacro,
-            top
-        );
+        Error *e = new Error(NoCoreFormNameInMacro, (*node->list)[2]);
         ctx->er->addError(e);
         return false;
     }
 
+    Node *top = (*node->list)[2];
     std::vector<Node *> *lst = top->list;
 
     if (lst->size() < 3) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectMinimumNumberOfArgs,
-            top,
-            "macro", 2, (int) (lst->size() - 1)
-        );
+        Error *e = new Error(IncorrectMinimumNumberOfArgs, top,
+                             "macro", 2, (int) (lst->size() - 1));
         ctx->er->addError(e);
         return false;
     }
@@ -46,130 +40,100 @@ FormTopLevelMacroParse(Units *units, Node *node)
         return false;
     }
 
-    Type *r_type =
-        ctx->tr->getPointerType(ctx->tr->getStructType("DNode"));
+    Type *ret_type = ctx->tr->type_pdnode;
 
-    /* Parse arguments - push onto the list that gets created. */
-
-    Node *nargs = (*lst)[2];
-
-    if (!nargs->is_list) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement,
-            nargs,
-            "list", "macro parameters", "atom"
-        );
+    Node *macro_params = (*lst)[2];
+    if (!macro_params->is_list) {
+        Error *e = new Error(UnexpectedElement, macro_params,
+                             "list", "macro parameters", "atom");
         ctx->er->addError(e);
         return false;
     }
 
-    std::vector<Node *> *args = nargs->list;
-
-    Variable *var;
-
-    std::vector<Variable *> *mc_args_internal =
-        new std::vector<Variable *>;
-
-    /* Parse argument - need to keep names. */
-
-    std::vector<Node *>::iterator node_iter;
-    node_iter = args->begin();
-
-    bool varargs = false;
+    std::vector<Variable *> mc_params_internal;
 
     /* An implicit MContext argument is added to every macro. */
 
-    Type *pst = ctx->tr->getStructType("MContext");
-    Type *ptt = ctx->tr->getPointerType(pst);
+    Type *mc_type  = ctx->tr->getStructType("MContext");
+    Type *pmc_type = ctx->tr->getPointerType(mc_type);
+    Variable *mc_var = new Variable("mc", pmc_type);
+    mc_var->linkage = Linkage::Auto;
+    mc_params_internal.push_back(mc_var);
 
-    Variable *var1 = new Variable(
-        (char*)"mc", ptt
-    );
-    var1->linkage = Linkage::Auto;
-    mc_args_internal->push_back(var1);
+    bool past_first = false;
+    bool varargs = false;
 
-    int past_first = 0;
-
-    while (node_iter != args->end()) {
-        if (!(*node_iter)->is_token) {
+    std::vector<Node *> *params = macro_params->list;
+    for (std::vector<Node *>::iterator b = params->begin(),
+                                       e = params->end();
+            b != e;
+            ++b) {
+        Variable *var = NULL;
+        if (!(*b)->is_token) {
             var = new Variable();
-            FormArgumentParse(units, var, (*node_iter), false, false, false);
+            FormArgumentParse(units, var, (*b), false, false, false);
             if (!var->type) {
                 return false;
             }
-            mc_args_internal->push_back(var);
-            ++node_iter;
+            mc_params_internal.push_back(var);
         } else {
-            if (!((*node_iter)->token->str_value.compare("void"))) {
-                if (past_first || (args->size() > 1)) {
-                    Error *e = new Error(
-                        ErrorInst::Generator::VoidMustBeTheOnlyParameter,
-                        nargs
-                    );
+            std::string *value = &((*b)->token->str_value);
+            if (!value->compare("void")) {
+                if (past_first || (params->size() > 1)) {
+                    Error *e = new Error(VoidMustBeTheOnlyParameter,
+                                         macro_params);
                     ctx->er->addError(e);
                     return false;
                 }
                 break;
-            }
-            if (!((*node_iter)->token->str_value.compare("..."))) {
-                if ((args->end() - node_iter) != 1) {
-                    Error *e = new Error(
-                        ErrorInst::Generator::VarArgsMustBeLastParameter,
-                        nargs
-                    );
+            } else if (!value->compare("...")) {
+                if ((e - b) != 1) {
+                    Error *e = new Error(VarArgsMustBeLastParameter,
+                                         macro_params);
                     ctx->er->addError(e);
                     return false;
                 }
                 var = new Variable();
                 var->type = ctx->tr->type_varargs;
                 var->linkage = Linkage::Auto;
-                mc_args_internal->push_back(var);
+                mc_params_internal.push_back(var);
                 break;
             }
             var = new Variable();
-            var->type = r_type;
+            var->type = ret_type;
             var->linkage = Linkage::Auto;
-            var->name.append((*node_iter)->token->str_value);
-            past_first = 1;
-            mc_args_internal->push_back(var);
-            ++node_iter;
+            var->name.append((*b)->token->str_value);
+            past_first = true;
+            mc_params_internal.push_back(var);
         }
     }
 
-    std::vector<llvm::Type*> mc_args;
+    std::vector<llvm::Type*> mc_params;
 
-    /* Convert to llvm args. The MContext argument is converted as per
-     * its actual type. The remaining arguments, notwithstanding the
-     * macro argument's 'actual' type, will always be (p DNode)s. */
+    /* Convert to LLVM parameters.  The MContext argument is converted
+     * as per its actual type.  The remaining arguments,
+     * notwithstanding the macro parameters' 'actual' types, will
+     * always be (p DNode)s. */
 
-    std::vector<Variable *>::iterator iter;
-    iter = mc_args_internal->begin();
-    llvm::Type *temp;
+    mc_params.push_back(ctx->toLLVMType(mc_params_internal[0]->type,
+                                        NULL, false));
 
-    int count = 0;
-    while (iter != mc_args_internal->end()) {
-        if ((*iter)->type->base_type == BaseType::VarArgs) {
-            /* Varargs - finish. */
+    for (std::vector<Variable *>::iterator b = mc_params_internal.begin() + 1,
+                                           e = mc_params_internal.end();
+            b != e;
+            ++b) {
+        if ((*b)->type->base_type == BaseType::VarArgs) {
             varargs = true;
             break;
         }
-        if (count == 0) {
-            temp = ctx->toLLVMType((*iter)->type, NULL, false);
-            if (!temp) {
-                return false;
-            }
-        } else {
-            temp = ctx->toLLVMType(r_type, NULL, false);
-            if (!temp) {
-                return false;
-            }
+        llvm::Type *temp = ctx->toLLVMType(ret_type, NULL, false);
+        if (!temp) {
+            return false;
         }
-        mc_args.push_back(temp);
-        ++count;
-        ++iter;
+        mc_params.push_back(temp);
     }
 
-    temp = ctx->toLLVMType(r_type, NULL, false);
+    llvm::Type *temp = ctx->toLLVMType(ret_type, NULL, false);
     if (!temp) {
         return false;
     }
@@ -177,7 +141,7 @@ FormTopLevelMacroParse(Units *units, Node *node)
     llvm::FunctionType *ft =
         getFunctionType(
             temp,
-            mc_args,
+            mc_params,
             varargs
         );
 
@@ -186,14 +150,10 @@ FormTopLevelMacroParse(Units *units, Node *node)
     ctx->ns()->functionNameToSymbol(name,
                             &new_name,
                             linkage,
-                            mc_args_internal);
+                            &mc_params_internal);
 
     if (units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
-        Error *e = new Error(
-            ErrorInst::Generator::RedeclarationOfFunctionOrMacro,
-            top,
-            name
-        );
+        Error *e = new Error(RedeclarationOfFunctionOrMacro, top, name);
         ctx->er->addError(e);
         return false;
     }
@@ -209,11 +169,7 @@ FormTopLevelMacroParse(Units *units, Node *node)
     /* This is probably unnecessary, given the previous
      * getFunction call. */
     if ((!fn) || (fn->size())) {
-        Error *e = new Error(
-            ErrorInst::Generator::RedeclarationOfFunctionOrMacro,
-            top,
-            name
-        );
+        Error *e = new Error(RedeclarationOfFunctionOrMacro, top, name);
         ctx->er->addError(e);
         return false;
     }
@@ -222,28 +178,28 @@ FormTopLevelMacroParse(Units *units, Node *node)
 
     fn->setLinkage(ctx->toLLVMLinkage(linkage));
 
-    llvm::Function::arg_iterator largs = fn->arg_begin();
+    llvm::Function::arg_iterator lparams = fn->arg_begin();
 
     /* Note that the values of the Variables of the macro's
      * parameter list will not necessarily match the Types of
      * those variables (to support overloading). */
 
-    iter = mc_args_internal->begin();
-    while (iter != mc_args_internal->end()) {
-        if ((*iter)->type->base_type == BaseType::VarArgs) {
+    for (std::vector<Variable *>::iterator b = mc_params_internal.begin(),
+                                           e = mc_params_internal.end();
+            b != e;
+            ++b) {
+        if ((*b)->type->base_type == BaseType::VarArgs) {
             break;
         }
-
-        llvm::Value *temp = largs;
-        ++largs;
-        temp->setName((*iter)->name.c_str());
-        (*iter)->value = temp;
-        ++iter;
+        llvm::Value *temp = lparams;
+        ++lparams;
+        temp->setName((*b)->name.c_str());
+        (*b)->value = temp;
     }
 
     /* Add the macro to the context. */
     Function *dfn =
-        new Function(r_type, mc_args_internal, fn, 1,
+        new Function(ret_type, &mc_params_internal, fn, 1,
                               &new_name);
     dfn->linkage = linkage;
 

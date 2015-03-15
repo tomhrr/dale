@@ -524,6 +524,32 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     return NULL;
 }
 
+void
+zeroInitialise(Context *ctx, llvm::GlobalVariable *llvm_var,
+               llvm::Type *llvm_type, Type *type, bool *has_initialiser)
+{
+    if (type->points_to) {
+        llvm_var->setInitializer(getNullPointer(llvm_type));
+    } else if (type->struct_name.size() || type->is_array) {
+        llvm_var->setInitializer(
+            llvm::ConstantAggregateZero::get(llvm_type)
+        );
+    } else if (type->isIntegerType()) {
+        llvm_var->setInitializer(
+            ctx->nt->getConstantInt(
+                llvm::IntegerType::get(
+                    llvm::getGlobalContext(),
+                    ctx->nt->internalSizeToRealSize(type->getIntegerSize())
+                ),
+                "0"
+            )
+        );
+    } else {
+        *has_initialiser = false;
+    }
+    return;
+}
+
 bool
 FormTopLevelGlobalVariableParse(Units *units, Node *node)
 {
@@ -635,36 +661,11 @@ FormTopLevelGlobalVariableParse(Units *units, Node *node)
 
     if (init) {
         llvm_var->setInitializer(init);
-    } else {
-        if (!Linkage::isExternAll(linkage)) {
-            has_initialiser = true;
-            if (ret_type->points_to) {
-                llvm_var->setInitializer(getNullPointer(llvm_ret_type));
-            } else if (ret_type->struct_name.size()) {
-                llvm::ConstantAggregateZero* const_values_init =
-                    llvm::ConstantAggregateZero::get(llvm_ret_type);
-                llvm_var->setInitializer(const_values_init);
-            } else if (ret_type->is_array) {
-                llvm::ConstantAggregateZero* const_values_init =
-                    llvm::ConstantAggregateZero::get(llvm_ret_type);
-                llvm_var->setInitializer(const_values_init);
-            } else if (ret_type->isIntegerType()) {
-                llvm_var->setInitializer(
-                    ctx->nt->getConstantInt(
-                        llvm::IntegerType::get(
-                            llvm::getGlobalContext(),
-                            ctx->nt->internalSizeToRealSize(
-                                ret_type->getIntegerSize()
-                            )
-                        ),
-                        "0"
-                    )
-                );
-            } else {
-                has_initialiser = false;
-            }
-            var->has_initialiser = has_initialiser;
-        }
+    } else if (!Linkage::isExternAll(linkage)) {
+        has_initialiser = true;
+        zeroInitialise(ctx, llvm_var, llvm_ret_type, ret_type,
+                       &has_initialiser);
+        var->has_initialiser = has_initialiser;
     }
 
     var->value = llvm::cast<llvm::Value>(llvm_var);
