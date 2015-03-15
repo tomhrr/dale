@@ -5,8 +5,11 @@
 
 namespace dale
 {
-bool
-FormTopLevelFunctionParse(Units *units, Node *node);
+/*! Parse a top-level function form.
+ *  @param units The units context.
+ *  @param node The node being parsed.
+ */
+bool FormTopLevelFunctionParse(Units *units, Node *node);
 }
 
 #endif
