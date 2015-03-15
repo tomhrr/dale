@@ -5,8 +5,11 @@
 
 namespace dale
 {
-bool
-FormTopLevelEnumParse(Units *units, Node *node);
+/*! Parse a top-level enum form.
+ *  @param units The units context.
+ *  @param node The node being parsed.
+ */
+bool FormTopLevelEnumParse(Units *units, Node *node);
 }
 
 #endif
