@@ -104,6 +104,40 @@ addRetval(Context *ctx, Node *node, Function *fn,
 }
 
 bool
+gotoCrossesDeclaration(DeferredGoto *dg, Label *label)
+{
+    /* If the label's namespace, or any namespace in which the label's
+     * namespace is located, has a variable declaration with an index
+     * smaller than that of the label, then the goto is going to cross
+     * that variable declaration.  This is an error, because the
+     * declaration may result in a destructor being called on scope
+     * close, and the variable may not be initialised when the goto is
+     * reached. */
+
+    std::vector<Variable *> vars_before;
+    Namespace *label_ns = label->ns;
+    while (label_ns) {
+        vars_before.clear();
+        label_ns->getVarsBeforeIndex(label->index, &vars_before);
+        if (vars_before.size() > 0) {
+            for
+            (std::vector<Variable*>::iterator
+                    vvb = vars_before.begin(),
+                    vve = vars_before.end();
+                    vvb != vve;
+                    ++vvb) {
+                if ((*vvb)->index >= dg->index) {
+                    return true;
+                }
+            }
+        }
+        label_ns = label_ns->parent_namespace;
+    }
+
+    return false;
+}
+
+bool
 resolveDeferredGotos(Context *ctx, Node *node, Function *fn,
                      llvm::BasicBlock *block)
 {
@@ -111,88 +145,43 @@ resolveDeferredGotos(Context *ctx, Node *node, Function *fn,
                                                e = fn->deferred_gotos.end();
             b != e;
             ++b) {
-        std::string *ln = &((*b)->label_name);
-        Label *ell = fn->getLabel(ln->c_str());
-        if (!ell) {
-            Error *e = new Error(
-                LabelNotInScope,
-                node,
-                ln->c_str()
-            );
+        DeferredGoto *dg = (*b);
+        const char *label_name = dg->label_name.c_str();
+        Label *label = fn->getLabel(label_name);
+        if (!label) {
+            Error *e = new Error(LabelNotInScope, node, label_name);
             ctx->er->addError(e);
             continue;
         }
-        llvm::BasicBlock *block = ell->block;
 
-        /* Load an llvm::IRBuilder and point it to the correct
-            * spot. */
-        llvm::BasicBlock *block_marker = (*b)->block_marker;
-        llvm::Instruction *marker      = (*b)->marker;
+        llvm::BasicBlock *block        = label->block;
+        llvm::BasicBlock *block_marker = dg->block_marker;
+        llvm::Instruction *marker      = dg->marker;
+
         llvm::IRBuilder<> builder(block_marker);
-        builder.SetInsertPoint(block_marker);
 
-        if (!((*b)->marker)) {
-            if (block_marker->size() == 0) {
-                builder.SetInsertPoint(block_marker);
-            } else {
-                llvm::Instruction *fnp =
-                    block_marker->getFirstNonPHI();
-
-                /* Get the instruction after the first non-PHI
-                    * node, and set that as the insertion point.
-                    * If such an instruction doesn't exist, then
-                    * the previous SetInsertPoint call will do
-                    * the trick. */
-
-                llvm::BasicBlock::iterator bi, be;
-
-                for (bi = block_marker->begin(),
-                        be = block_marker->end();
-                        bi != be;
-                        ++bi) {
-                    llvm::Instruction *i = bi;
-                    if (i == fnp) {
-                        ++bi;
-                        if (bi != be) {
-                            builder.SetInsertPoint(bi);
-                            break;
-                        } else {
-                            break;
-                        }
-                    }
-                }
-            }
-        } else {
-            llvm::BasicBlock::iterator bi, be;
-
-            for (bi = block_marker->begin(),
-                    be = block_marker->end();
-                    bi != be;
-                    ++bi) {
-                llvm::Instruction *i = bi;
-                if (i == marker) {
-                    ++bi;
-                    if (bi != be) {
-                        builder.SetInsertPoint(bi);
-                        break;
-                    } else {
-                        break;
-                    }
-                }
+        if (!marker && (block_marker->size() != 0)) {
+            marker = block_marker->getFirstNonPHI();
+        }
+        if (marker) {
+            llvm::BasicBlock::iterator bi = marker;
+            ++bi;
+            if (bi != block_marker->end()) {
+                builder.SetInsertPoint(bi);
             }
         }
 
-        /* Get the goto's namespace. */
-        Namespace *goto_ns = (*b)->ns;
+        /* Create a vector of variables to destruct.  This will
+         * comprise all variables in the goto's namespace and upwards,
+         * until either null (top of function) or the label's
+         * namespace is reached. */
 
-        /* Create a vector of variables to destruct. This will
-            * be the vector of all variables in the goto_namespace
-            * and upwards, until either null (top of function) or
-            * the other context is hit. Variables in the other
-            * context are excluded. */
         std::vector<Variable *> variables;
+
+        Namespace *goto_ns = dg->ns;
         Namespace *current_ns = goto_ns;
-        while (current_ns != ell->ns) {
+
+        while (current_ns != label->ns) {
             current_ns->getVariables(&variables);
             current_ns = current_ns->parent_namespace;
             if (!current_ns) {
@@ -200,59 +189,25 @@ resolveDeferredGotos(Context *ctx, Node *node, Function *fn,
             }
         }
 
-        if (current_ns != ell->ns) {
-            Namespace *ell_ns = ell->ns;
-            /* Didn't hit the label's namespace on the way
-                * upwards. If the label's namespace, or any namespace
-                * in which the label's namespace is located, has a
-                * variable declaration with an index smaller than
-                * that of the label, then the goto is going to
-                * cross that variable declaration, in which case
-                * you want to bail. (This is because the
-                * declaration may result in a destructor being
-                * called on scope close, and the variable may not be
-                * initialised when the goto is reached.) */
-            std::vector<Variable *> vars_before;
-            std::vector<Variable *> real_vars_before;
-            while (ell_ns) {
-                vars_before.clear();
-                ell_ns->getVarsBeforeIndex(ell->index, &vars_before);
-                if (vars_before.size() > 0) {
-                    for
-                    (std::vector<Variable*>::iterator
-                            vvb = vars_before.begin(),
-                            vve = vars_before.end();
-                            vvb != vve;
-                            ++vvb) {
-                        if ((*vvb)->index >= (*b)->index) {
-                            real_vars_before.push_back((*vvb));
-                        }
-                    }
-                    if (real_vars_before.size() > 0) {
-                        Error *e = new Error(
-                            GotoWillCrossDeclaration,
-                            (*b)->node
-                        );
-                        ctx->er->addError(e);
-                        return false;
-                    }
-                }
-                ell_ns = ell_ns->parent_namespace;
+        if (current_ns != label->ns) {
+            if (gotoCrossesDeclaration(dg, label)) {
+                Error *e = new Error(GotoWillCrossDeclaration, dg->node);
+                ctx->er->addError(e);
+                return false;
             }
         }
 
         /* Add the destructors for the collected variables. */
-        for (std::vector<Variable *>::iterator
-                vb = variables.begin(),
-                ve = variables.end();
+        ParseResult pr_var;
+        for (std::vector<Variable *>::iterator vb = variables.begin(),
+                                               ve = variables.end();
                 vb != ve;
                 ++vb) {
-            Variable *v = (*vb);
-            ParseResult pr_variable;
-            ParseResult temp;
-            pr_variable.set(NULL, v->type, v->value);
-            bool res = Operation::Destruct(ctx, &pr_variable,
-                                            &temp, &builder);
+            Variable *var = (*vb);
+            ParseResult pr_destruct;
+            pr_var.set(NULL, var->type, var->value);
+            bool res = Operation::Destruct(ctx, &pr_var, &pr_destruct,
+                                           &builder);
             if (!res) {
                 return false;
             }
@@ -263,6 +218,7 @@ resolveDeferredGotos(Context *ctx, Node *node, Function *fn,
 
     STL::deleteElements(&(fn->deferred_gotos));
     fn->deferred_gotos.clear();
+    fn->labels.clear();
 
     return true;
 }
@@ -272,6 +228,13 @@ terminateBlocks(Context *ctx, Function *fn, llvm::Function *llvm_fn,
                 llvm::Value *last_value, Type *last_type,
                 Node *last_position)
 {
+    /* Iterate over the blocks in the function. If the block ends in a
+     * terminator, all is well.  If it doesn't: if the block is the
+     * last block in the function, create a return instruction
+     * containing the last value evaluated, otherwise create a branch
+     * instruction that moves to the next block.
+     */
+
     int bcount = 1;
     int bmax = llvm_fn->size();
     for (llvm::Function::iterator b = llvm_fn->begin(),
@@ -293,11 +256,9 @@ terminateBlocks(Context *ctx, Function *fn, llvm::Function *llvm_fn,
                         got_type->toString(&gotstr);
                         std::string expstr;
                         fn->return_type->toString(&expstr);
-                        Error *e = new Error(
-                            IncorrectReturnType,
-                            last_position,
-                            expstr.c_str(), gotstr.c_str()
-                        );
+                        Error *e = new Error(IncorrectReturnType,
+                                             last_position,
+                                             expstr.c_str(), gotstr.c_str());
                         ctx->er->addError(e);
                         return false;
                     }
@@ -332,6 +293,43 @@ terminateBlocks(Context *ctx, Function *fn, llvm::Function *llvm_fn,
     return true;
 }
 
+void
+removePostTerminators(llvm::Function *llvm_fn)
+{
+    /* Iterate over the blocks in the function. Delete all
+     * instructions that occur after the first terminating
+     * instruction. */
+
+    for (llvm::Function::iterator b = llvm_fn->begin(),
+                                  e = llvm_fn->end();
+            b != e;
+            ++b) {
+        for (llvm::BasicBlock::iterator ib = b->begin(),
+                                        ie = b->end();
+                ib != ie;
+                ++ib) {
+            if (!(*ib).isTerminator()) {
+                continue;
+            }
+            ++ib;
+            if (ib == ie) {
+                break;
+            }
+            /* Subtraction is not publicly available on the LLVM
+             * iterator classes. */
+            int count = 0;
+            while (ib != ie) {
+                ++count;
+                ++ib;
+            }
+            while (count--) {
+                b->getInstList().pop_back();
+            }
+            break;
+        }
+    }
+}
+
 bool
 FormProcBodyParse(Units *units, Node *node, Function *fn,
                   llvm::Function *llvm_fn, int skip, bool is_anonymous,
@@ -358,9 +356,6 @@ FormProcBodyParse(Units *units, Node *node, Function *fn,
     llvm::Value *last_value = NULL;
     Type *last_type = NULL;
     Node *last_position = NULL;
-
-    /* Skip the fn token, the linkage, the return type and the
-     * arg list. */
 
     for (std::vector<Node *>::iterator b = (lst->begin() + skip),
                                        e = lst->end();
@@ -396,50 +391,15 @@ FormProcBodyParse(Units *units, Node *node, Function *fn,
         return false;
     }
 
-    /* Iterate over the blocks in the function. If the block ends
-     * in a terminator, all is well. If it doesn't: if the block
-     * is the last block in the function, create a return
-     * instruction containing the last value evaluated, otherwise
-     * create a branch instruction that moves to the next block.
-     */
-
     res = terminateBlocks(ctx, fn, llvm_fn, last_value, last_type,
                           last_position);
     if (!res) {
         return false;
     }
 
-    /* Iterate over the blocks in the function. Delete all
-     * instructions that occur after the first terminating
-     * instruction. */
-
-    for (llvm::Function::iterator i = llvm_fn->begin(), e = llvm_fn->end();
-            i != e; ++i) {
-        llvm::BasicBlock::iterator bi;
-        llvm::BasicBlock::iterator be;
-
-        for (bi = i->begin(), be = i->end(); bi != be; ++bi) {
-            if ((*bi).isTerminator()) {
-                ++bi;
-                if (bi == be) {
-                    break;
-                }
-                int count = 0;
-                while (bi != be) {
-                    count++;
-                    ++bi;
-                }
-                while (count--) {
-                    i->getInstList().pop_back();
-                }
-                break;
-            }
-        }
-    }
-
-    fn->labels.clear();
+    removePostTerminators(llvm_fn);
     units->top()->popGlobalBlock();
 
-    return res;
+    return true;
 }
 }
