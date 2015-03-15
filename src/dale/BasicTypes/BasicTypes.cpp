@@ -4,6 +4,7 @@
 #define ADD_INTF(name, fn) makeFunction(ctx, mod, once_tag, name, fn, type, type);
 #define ADD_FLTF(name, fn) makeFloatFunction(ctx, mod, once_tag, name, fn, type, type);
 #define ADD_ENMF(name, fn) makeEnumFunction(ctx, mod, once_tag, name, fn, enum_type, enum_type, linkage, llvm_enum_int_type);
+#define ADD_ENMF2(name, fn) makeEnumFunction(ctx, mod, once_tag, name, fn, enum_type, enum_type, linkage);
 #define ADD_CMPF(name, fn) makeFunction(ctx, mod, once_tag, name, fn, type_bool, type);
 #define ADD_ENMCMPF(name, fn) makeEnumFunction(ctx, mod, once_tag, name, fn, type_bool, enum_type, linkage);
 
@@ -688,15 +689,17 @@ addEnum(Context *ctx,
     ADD_ENMCMPF(">",  &llvm::IRBuilder<>::CreateICmpSGT);
     ADD_ENMCMPF(">=", &llvm::IRBuilder<>::CreateICmpSGE);
 
+    ADD_ENMF2("&", &llvm::IRBuilder<>::CreateAnd);
+    ADD_ENMF2("|", &llvm::IRBuilder<>::CreateOr);
+    ADD_ENMF2("^", &llvm::IRBuilder<>::CreateXor);
+
     Type *type_int = ctx->tr->type_int;
 
     {
-        Function *fn =
-            addSimpleBinaryFunction(ctx, mod, once_tag, "<<", enum_type, enum_type, type_int);
+        Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, "<<",
+                                               enum_type, enum_type, type_int);
         fn->linkage = linkage;
-        fn->llvm_function->setLinkage(
-            ctx->toLLVMLinkage(linkage)
-        );
+        fn->llvm_function->setLinkage(ctx->toLLVMLinkage(linkage));
 
         std::vector<Variable *>::iterator iter;
         iter = fn->parameter_types.begin();
@@ -707,11 +710,11 @@ addEnum(Context *ctx,
 
         llvm::IRBuilder<> builder(block);
 
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(ctx->toLLVMType(enum_type, NULL, false))
-                                );
-        builder.CreateStore((*iter)->value,
-                            new_ptr1);
+        llvm::Value *new_ptr1 =
+            llvm::cast<llvm::Value>(
+                builder.CreateAlloca(ctx->toLLVMType(enum_type, NULL, false))
+            );
+        builder.CreateStore((*iter)->value, new_ptr1);
 
         llvm::Value *one =
             builder.CreateLoad(
@@ -721,38 +724,36 @@ addEnum(Context *ctx,
                                   ))
             );
 
-        ParseResult temp;
+        ParseResult pr_cast;
         Operation::Cast(ctx, block, (*(iter + 1))->value,
-                                 type_int, enum_int_type, NULL, false, &temp);
-        builder.SetInsertPoint(temp.block);
+                        type_int, enum_int_type, NULL, false, &pr_cast);
+        builder.SetInsertPoint(pr_cast.block);
 
         llvm::Twine unused_twine;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateShl(one, temp.value, unused_twine)
-                           );
-        llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
-                                      builder.CreateAlloca(llvm_enum_int_type)
-                                  );
-        builder.CreateStore(res,
-                            store_ptr1);
+        llvm::Value *res =
+            llvm::cast<llvm::Value>(
+                builder.CreateShl(one, pr_cast.value, unused_twine)
+            );
+        llvm::Value *store_ptr1 =
+            llvm::cast<llvm::Value>(
+                builder.CreateAlloca(llvm_enum_int_type)
+            );
+        builder.CreateStore(res, store_ptr1);
 
         llvm::Value *sp =
             builder.CreateBitCast(
                 store_ptr1, ctx->toLLVMType(ctx->tr->getPointerType(enum_type),
                                             NULL, false)
             );
-        llvm::Value *newint =
-            builder.CreateLoad(sp);
+        llvm::Value *newint = builder.CreateLoad(sp);
         builder.CreateRet(newint);
     }
 
     {
-        Function *fn =
-            addSimpleBinaryFunction(ctx, mod, once_tag, ">>", enum_type, enum_type, type_int);
+        Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, ">>",
+                                               enum_type, enum_type, type_int);
         fn->linkage = linkage;
-        fn->llvm_function->setLinkage(
-            ctx->toLLVMLinkage(linkage)
-        );
+        fn->llvm_function->setLinkage(ctx->toLLVMLinkage(linkage));
 
         std::vector<Variable *>::iterator iter;
         iter = fn->parameter_types.begin();
@@ -763,11 +764,11 @@ addEnum(Context *ctx,
 
         llvm::IRBuilder<> builder(block);
 
-        llvm::Value *new_ptr1 = llvm::cast<llvm::Value>(
-                                    builder.CreateAlloca(ctx->toLLVMType(enum_type, NULL, false))
-                                );
-        builder.CreateStore((*iter)->value,
-                            new_ptr1);
+        llvm::Value *new_ptr1 =
+            llvm::cast<llvm::Value>(
+                builder.CreateAlloca(ctx->toLLVMType(enum_type, NULL, false))
+            );
+        builder.CreateStore((*iter)->value, new_ptr1);
 
         llvm::Value *one =
             builder.CreateLoad(
@@ -777,20 +778,21 @@ addEnum(Context *ctx,
                                   ))
             );
 
-        ParseResult temp;
+        ParseResult pr_cast;
         Operation::Cast(ctx, block, (*(iter + 1))->value,
-                                 type_int, enum_int_type, NULL, false, &temp);
-        builder.SetInsertPoint(temp.block);
+                        type_int, enum_int_type, NULL, false, &pr_cast);
+        builder.SetInsertPoint(pr_cast.block);
 
         llvm::Twine unused_twine;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateLShr(one, temp.value, unused_twine)
-                           );
-        llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
-                                      builder.CreateAlloca(llvm_enum_int_type)
-                                  );
-        builder.CreateStore(res,
-                            store_ptr1);
+        llvm::Value *res =
+            llvm::cast<llvm::Value>(
+                builder.CreateLShr(one, pr_cast.value, unused_twine)
+            );
+        llvm::Value *store_ptr1 =
+            llvm::cast<llvm::Value>(
+                builder.CreateAlloca(llvm_enum_int_type)
+            );
+        builder.CreateStore(res, store_ptr1);
 
         llvm::Value *sp =
             builder.CreateBitCast(
@@ -801,19 +803,6 @@ addEnum(Context *ctx,
             builder.CreateLoad(sp);
         builder.CreateRet(newint);
     }
-
-    /*
-    No more structural equivalence, so make_enum_function needs to not
-    return a value of the underlying enum type here.  Just disabling
-    it for now, because they aren't used anywhere important, IIRC.
-    (This has since been fixed.)
-    */
-
-    makeEnumFunction(ctx, mod, once_tag, "&",  &llvm::IRBuilder<>::CreateAnd,     enum_type,       enum_type, linkage);
-    makeEnumFunction(ctx, mod, once_tag, "|",  &llvm::IRBuilder<>::CreateOr,      enum_type,       enum_type, linkage);
-    makeEnumFunction(ctx, mod, once_tag, "^",  &llvm::IRBuilder<>::CreateXor,     enum_type,       enum_type, linkage);
-
-    return;
 }
 }
 }
