@@ -85,6 +85,13 @@ int getUnsignedIntegerType(int size);
  *  returned.
  */
 const char *baseTypeToString(int base_type);
+/*! Get the base type from a string.
+ *  @param str The base type as a string.
+ *
+ *  If the string does not represent a base type, the value -1 will be
+ *  returned.
+ */
+int stringToBaseType(const char *str);
 /*! Get the base type as a symbol character.
  *  @param base_type The base type.
  *

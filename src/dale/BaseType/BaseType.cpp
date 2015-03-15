@@ -1,5 +1,7 @@
 #include "BaseType.h"
 
+#include <cstring>
+
 namespace dale
 {
 int
@@ -62,6 +64,34 @@ baseTypeToString(int base_type)
         default:                   ret = "[unknown]";
     }
     return ret;
+}
+
+int
+stringToBaseType(const char *str)
+{
+    return
+          (!strcmp(str, "int"))         ? BaseType::Int
+        : (!strcmp(str, "void"))        ? BaseType::Void
+        : (!strcmp(str, "char"))        ? BaseType::Char
+        : (!strcmp(str, "bool"))        ? BaseType::Bool
+        : (!strcmp(str, "uint" ))       ? BaseType::UInt
+        : (!strcmp(str, "int8"))        ? BaseType::Int8
+        : (!strcmp(str, "uint8"))       ? BaseType::UInt8
+        : (!strcmp(str, "int16"))       ? BaseType::Int16
+        : (!strcmp(str, "uint16"))      ? BaseType::UInt16
+        : (!strcmp(str, "int32"))       ? BaseType::Int32
+        : (!strcmp(str, "uint32"))      ? BaseType::UInt32
+        : (!strcmp(str, "int64"))       ? BaseType::Int64
+        : (!strcmp(str, "uint64"))      ? BaseType::UInt64
+        : (!strcmp(str, "int128"))      ? BaseType::Int128
+        : (!strcmp(str, "uint128"))     ? BaseType::UInt128
+        : (!strcmp(str, "intptr"))      ? BaseType::IntPtr
+        : (!strcmp(str, "size"))        ? BaseType::Size
+        : (!strcmp(str, "ptrdiff"))     ? BaseType::PtrDiff
+        : (!strcmp(str, "float"))       ? BaseType::Float
+        : (!strcmp(str, "double"))      ? BaseType::Double
+        : (!strcmp(str, "long-double")) ? BaseType::LongDouble
+                                        : -1;
 }
 
 char

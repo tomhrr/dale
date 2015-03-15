@@ -5,58 +5,34 @@
 #include "../Argument/Argument.h"
 #include "../Literal/Integer/Integer.h"
 
+using namespace dale::ErrorInst::Generator;
+
 static int anonstructcount = 0;
 
 namespace dale {
 Type *
-FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
+FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
               bool allow_bitfields, bool allow_refs, bool allow_retvals)
 {
-    if (!top) {
+    if (!node) {
         return NULL;
     }
 
     Context *ctx = units->top()->ctx;
 
-    if (top->is_token) {
-        Token *t = top->token;
+    if (node->is_token) {
+        Token *t = node->token;
 
         if (t->type != TokenType::String) {
-            Error *e = new Error(
-                ErrorInst::Generator::IncorrectSingleParameterType,
-                top,
-                "symbol", t->tokenType()
-            );
+            Error *e = new Error(IncorrectSingleParameterType, node,
+                                 "symbol", t->tokenType());
             ctx->er->addError(e);
             return NULL;
         }
 
         const char *typs = t->str_value.c_str();
 
-        int bmt =
-              (!strcmp(typs, "int" ))        ? BaseType::Int
-            : (!strcmp(typs, "void"))        ? BaseType::Void
-            : (!strcmp(typs, "char"))        ? BaseType::Char
-            : (!strcmp(typs, "bool"))        ? BaseType::Bool
-            : (!strcmp(typs, "uint" ))       ? BaseType::UInt
-            : (!strcmp(typs, "int8"))        ? BaseType::Int8
-            : (!strcmp(typs, "uint8"))       ? BaseType::UInt8
-            : (!strcmp(typs, "int16"))       ? BaseType::Int16
-            : (!strcmp(typs, "uint16"))      ? BaseType::UInt16
-            : (!strcmp(typs, "int32"))       ? BaseType::Int32
-            : (!strcmp(typs, "uint32"))      ? BaseType::UInt32
-            : (!strcmp(typs, "int64"))       ? BaseType::Int64
-            : (!strcmp(typs, "uint64"))      ? BaseType::UInt64
-            : (!strcmp(typs, "int128"))      ? BaseType::Int128
-            : (!strcmp(typs, "uint128"))     ? BaseType::UInt128
-            : (!strcmp(typs, "intptr"))      ? BaseType::IntPtr
-            : (!strcmp(typs, "size"))        ? BaseType::Size
-            : (!strcmp(typs, "ptrdiff"))     ? BaseType::PtrDiff
-            : (!strcmp(typs, "float"))       ? BaseType::Float
-            : (!strcmp(typs, "double"))      ? BaseType::Double
-            : (!strcmp(typs, "long-double")) ? BaseType::LongDouble
-                                             : -1;
-
+        int bmt = stringToBaseType(typs);
         if (bmt != -1) {
             Type *mt = units->top()->ctx->tr->getBasicType(bmt);
 
@@ -64,11 +40,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
                 if (!units->top()->is_x86_64
                         && (mt->base_type == BaseType::Int128
                             || mt->base_type == BaseType::UInt128)) {
-                    Error *e = new Error(
-                        ErrorInst::Generator::TypeNotSupported,
-                        top,
-                        typs
-                    );
+                    Error *e = new Error(TypeNotSupported, node, typs);
                     ctx->er->addError(e);
                     return NULL;
                 }
@@ -88,33 +60,26 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             return ctx->tr->getStructType(fqsn);
         }
 
-        Error *err = new Error(
-            ErrorInst::Generator::TypeNotInScope,
-            top,
-            typs
-        );
+        Error *err = new Error(TypeNotInScope, node, typs);
         ctx->er->addError(err);
         return NULL;
     }
 
     /* If here, node is a list node. Try for a macro call. */
 
-    Node *newtop = units->top()->mp->parsePotentialMacroCall(top);
+    Node *newnode = units->top()->mp->parsePotentialMacroCall(node);
 
-    if (newtop != top) {
-        return FormTypeParse(units, newtop, allow_anon_structs,
+    if (newnode != node) {
+        return FormTypeParse(units, newnode, allow_anon_structs,
                          allow_bitfields, allow_refs, allow_retvals);
     }
 
-    std::vector<Node *> *lst = top->list;
+    std::vector<Node *> *lst = node->list;
 
     Node *n = (*lst)[0];
 
     if (!n->is_token) {
-        Error *e = new Error(
-            ErrorInst::Generator::FirstListElementMustBeAtom,
-            n
-        );
+        Error *e = new Error(FirstListElementMustBeAtom, n);
         ctx->er->addError(e);
         return NULL;
     }
@@ -122,10 +87,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
     Token *t = n->token;
 
     if (t->type != TokenType::String) {
-        Error *e = new Error(
-            ErrorInst::Generator::FirstListElementMustBeSymbol,
-            n
-        );
+        Error *e = new Error(FirstListElementMustBeSymbol, n);
         ctx->er->addError(e);
         return NULL;
     }
@@ -148,10 +110,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             && lst->at(0)->is_token
             && !(lst->at(0)->token->str_value.compare("ref"))) {
         if (!allow_refs) {
-            Error *e = new Error(
-                ErrorInst::Generator::RefsNotPermittedHere,
-                top
-            );
+            Error *e = new Error(RefsNotPermittedHere, node);
             ctx->er->addError(e);
             return NULL;
         }
@@ -160,7 +119,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        /* Reference types are only permitted at the 'top level' of
+        /* Reference types are only permitted at the 'node level' of
          * the type. */
         Type *reference_type =
             FormTypeParse(units, (*lst)[1], allow_anon_structs,
@@ -179,10 +138,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             && lst->at(0)->is_token
             && !(lst->at(0)->token->str_value.compare("retval"))) {
         if (!allow_retvals) {
-            Error *e = new Error(
-                ErrorInst::Generator::RetvalsNotPermittedHere,
-                top
-            );
+            Error *e = new Error(RetvalsNotPermittedHere, node);
             ctx->er->addError(e);
             return NULL;
         }
@@ -191,7 +147,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             return NULL;
         }
 
-        /* Retval types are only permitted at the 'top level' of
+        /* Retval types are only permitted at the 'node level' of
          * the type. */
         Type *retval_type =
             FormTypeParse(units, (*lst)[1], allow_anon_structs,
@@ -250,10 +206,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
         Type *bf_type =
             FormTypeParse(units, lst->at(1), false, false);
         if (!(bf_type->isIntegerType())) {
-            Error *e = new Error(
-                ErrorInst::Generator::BitfieldMustHaveIntegerType,
-                top
-            );
+            Error *e = new Error(BitfieldMustHaveIntegerType, node);
             ctx->er->addError(e);
             return NULL;
         }
@@ -266,14 +219,8 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
 
     if (!strcmp(t->str_value.c_str(), "const")) {
         if (lst->size() != 2) {
-            Error *e = new Error(
-                ErrorInst::Generator::IncorrectNumberOfArgs,
-                top,
-                "const", "1"
-            );
-            char buf[100];
-            sprintf(buf, "%d", (int) lst->size() - 1);
-            e->addArgString(buf);
+            Error *e = new Error(IncorrectNumberOfArgs, node,
+                                 "const", "1", ((int) lst->size() - 1));
             ctx->er->addError(e);
             return NULL;
         }
@@ -296,14 +243,8 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
 
     if (!strcmp(t->str_value.c_str(), "array-of")) {
         if (lst->size() != 3) {
-            Error *e = new Error(
-                ErrorInst::Generator::IncorrectNumberOfArgs,
-                top,
-                "array-of", "2"
-            );
-            char buf[100];
-            sprintf(buf, "%d", (int) lst->size() - 1);
-            e->addArgString(buf);
+            Error *e = new Error(IncorrectNumberOfArgs, node,
+                                 "array-of", "2", ((int) lst->size() - 1));
             ctx->er->addError(e);
             return NULL;
         }
@@ -332,7 +273,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
     }
 
     if (!strcmp(t->str_value.c_str(), "p")) {
-        if (!ctx->er->assertArgNums("p", top, 1, 1)) {
+        if (!ctx->er->assertArgNums("p", node, 1, 1)) {
             return NULL;
         }
 
@@ -348,7 +289,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
     }
 
     if (!strcmp(t->str_value.c_str(), "fn")) {
-        if (!ctx->er->assertArgNums("fn", top, 2, 2)) {
+        if (!ctx->er->assertArgNums("fn", node, 2, 2)) {
             return NULL;
         }
 
@@ -360,10 +301,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             return NULL;
         }
         if (ret_type->is_array) {
-            Error *e = new Error(
-                ErrorInst::Generator::ReturnTypesCannotBeArrays,
-                n
-            );
+            Error *e = new Error(ReturnTypesCannotBeArrays, n);
             ctx->er->addError(e);
             return NULL;
         }
@@ -371,11 +309,8 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
         Node *params = (*lst)[2];
 
         if (!params->is_list) {
-            Error *e = new Error(
-                ErrorInst::Generator::UnexpectedElement,
-                n,
-                "list", "fn parameters", "symbol"
-            );
+            Error *e = new Error(UnexpectedElement, n,
+                                 "list", "fn parameters", "symbol");
             ctx->er->addError(e);
             return NULL;
         }
@@ -406,10 +341,8 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             if (var->type->base_type == BaseType::Void) {
                 delete var;
                 if (plst->size() != 1) {
-                    Error *e = new Error(
-                        ErrorInst::Generator::VoidMustBeTheOnlyParameter,
-                        params
-                    );
+                    Error *e = new Error(VoidMustBeTheOnlyParameter,
+                                         params);
                     ctx->er->addError(e);
                     return NULL;
                 }
@@ -420,23 +353,19 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
             if (var->type->base_type == BaseType::VarArgs) {
                 if ((plst->end() - node_iter) != 1) {
                     delete var;
-                    Error *e = new Error(
-                        ErrorInst::Generator::VarArgsMustBeLastParameter,
-                        params
-                    );
+                    Error *e = new Error(VarArgsMustBeLastParameter,
+                                         params);
                     ctx->er->addError(e);
                     return NULL;
                 }
                 parameter_types.push_back(var->type);
                 break;
             }
-
+;
             if (var->type->is_function) {
                 delete var;
-                Error *e = new Error(
-                    ErrorInst::Generator::NonPointerFunctionParameter,
-                    (*node_iter)
-                );
+                Error *e = new Error(NonPointerFunctionParameter,
+                                     (*node_iter));
                 ctx->er->addError(e);
                 return NULL;
             }
@@ -453,10 +382,7 @@ FormTypeParse(Units *units, Node *top, bool allow_anon_structs,
         return type;
     }
 
-    Error *e = new Error(
-        ErrorInst::Generator::InvalidType,
-        top
-    );
+    Error *e = new Error(InvalidType, node);
     ctx->er->addError(e);
 
     return NULL;
