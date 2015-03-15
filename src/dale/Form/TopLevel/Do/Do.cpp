@@ -4,6 +4,8 @@
 #include "../../../Node/Node.h"
 #include "../Inst/Inst.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 bool
@@ -14,23 +16,17 @@ FormTopLevelDoParse(Units *units, Node *node)
     std::vector<Node *> *lst = node->list;
 
     if (lst->size() < 2) {
-        Error *e = new Error(
-            ErrorInst::Generator::NoEmptyDo,
-            node
-        );
+        Error *e = new Error(ErrorInst::Generator::NoEmptyDo, node);
         ctx->er->addError(e);
         return false;
     }
 
-    std::vector<Node *>::iterator node_iter;
-    node_iter = lst->begin();
-
-    ++node_iter;
-
-    while (node_iter != lst->end()) {
-        FormTopLevelInstParse(units, (*node_iter));
+    for (std::vector<Node *>::iterator b = (lst->begin() + 1),
+                                       e = lst->end();
+            b != e;
+            ++b) {
+        FormTopLevelInstParse(units, (*b));
         ctx->er->flush();
-        ++node_iter;
     }
 
     return true;
