@@ -1,6 +1,10 @@
 #include "BasicTypes.h"
 #include "Config.h"
 
+#define ADD_INTF(name, fn) makeFunction(ctx, mod, once_tag, name, fn, type, type);
+#define ADD_FLTF(name, fn) makeFloatFunction(ctx, mod, once_tag, name, fn, type, type);
+#define ADD_CMPF(name, fn) makeFunction(ctx, mod, once_tag, name, fn, type_bool, type);
+
 namespace dale
 {
 namespace BasicTypes
@@ -20,95 +24,85 @@ setStandardAttributes(llvm::Function *fn)
 }
 
 Function *
-addSimpleUnaryFunction(Context *ctx,
-                       llvm::Module *mod,
-                       std::string *once_tag,
-                       const char *name,
-                       Type *return_type,
-                       Type *type1)
+addSimpleFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
+                  const char *name, int linkage, std::string *symbol_name,
+                  Type *return_type, std::vector<Variable *> *params)
+{
+    std::vector<llvm::Type *> llvm_param_types;
+    for (std::vector<Variable *>::iterator b = params->begin(),
+                                           e = params->end();
+            b != e;
+            ++b) {
+        llvm::Type *arg_type = ctx->toLLVMType((*b)->type, NULL, false);
+        if (!arg_type) {
+            return NULL;
+        }
+        llvm_param_types.push_back(arg_type);
+    }
+
+    llvm::Type *llvm_ret_type = ctx->toLLVMType(return_type, NULL, false);
+    if (!llvm_ret_type) {
+        return NULL;
+    }
+
+    llvm::ArrayRef<llvm::Type*> llvm_array_param_types(llvm_param_types);
+    llvm::FunctionType *ft =
+        llvm::FunctionType::get(llvm_ret_type, llvm_array_param_types, false);
+
+    std::string new_name;
+    ctx->ns()->functionNameToSymbol(name, &new_name, linkage, params);
+
+    llvm::Function *llvm_fn =
+        llvm::cast<llvm::Function>(
+            mod->getOrInsertFunction(new_name.c_str(), ft)
+        );
+
+    llvm_fn->setCallingConv(llvm::CallingConv::C);
+    llvm_fn->setLinkage(llvm::GlobalValue::LinkOnceAnyLinkage);
+    setStandardAttributes(llvm_fn);
+
+    Function *fn = new Function(return_type, params, llvm_fn,
+                                0, &new_name);
+    fn->linkage = linkage;
+    fn->once_tag = *once_tag;
+
+    ctx->ns()->addFunction(name, fn, NULL);
+
+    llvm::Function::arg_iterator llvm_arg_iter = llvm_fn->arg_begin();
+    for (std::vector<Variable *>::iterator b = params->begin(),
+                                           e = params->end();
+            b != e;
+            ++b) {
+        llvm::Value *llvm_value = llvm_arg_iter;
+        ++llvm_arg_iter;
+        llvm_value->setName((*b)->name.c_str());
+        (*b)->value = llvm_value;
+    }
+
+    return fn;
+}
+
+Function *
+addSimpleUnaryFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
+                       const char *name, Type *return_type, Type *type1)
 {
     int linkage = Linkage::Extern;
 
     type1 = ctx->tr->getConstType(type1);
 
-    std::vector<Variable*> *new_args_ctx =
-        new std::vector<Variable*>;
-
-    new_args_ctx->push_back(
-        new Variable((char *) "a", type1));
-
-    std::vector<llvm::Type*> new_args;
-
-    llvm::Type *llvm_type1 = ctx->toLLVMType(type1, NULL, false);
-    if (!llvm_type1) {
-        return NULL;
-    }
-    new_args.push_back(llvm_type1);
-
-    llvm::Type *llvm_ret_type =
-        ctx->toLLVMType(return_type, NULL, false);
-    if (!llvm_ret_type) {
-        return NULL;
-    }
-
-    llvm::ArrayRef<llvm::Type*> llvm_new_args(new_args);
-    llvm::FunctionType *new_ft =
-        llvm::FunctionType::get(
-            llvm_ret_type,
-            llvm_new_args,
-            false
-        );
+    std::vector<Variable*> new_args_ctx;
+    new_args_ctx.push_back(new Variable((char *) "a", type1));
 
     std::string new_name;
-    ctx->ns()->functionNameToSymbol(name,
-                                    &new_name,
-                                    linkage,
-                                    new_args_ctx);
+    ctx->ns()->functionNameToSymbol(name, &new_name, linkage, &new_args_ctx);
 
-    llvm::Function *new_fn =
-        llvm::cast<llvm::Function>(
-            mod->getOrInsertFunction(new_name.c_str(), new_ft)
-        );
-
-    new_fn->setCallingConv(llvm::CallingConv::C);
-    new_fn->setLinkage(llvm::GlobalValue::LinkOnceAnyLinkage);
-    setStandardAttributes(new_fn);
-
-    Function *myfn =
-        new Function(
-        return_type,
-        new_args_ctx,
-        new_fn,
-        0,
-        &new_name
-    );
-    myfn->linkage = linkage;
-    myfn->once_tag = *once_tag;
-
-    ctx->ns()->addFunction(name, myfn, NULL);
-
-    llvm::Function::arg_iterator largs = new_fn->arg_begin();
-    std::vector<Variable *>::iterator iter;
-    iter = new_args_ctx->begin();
-
-    while (iter != new_args_ctx->end()) {
-        llvm::Value *temp = largs;
-        ++largs;
-        temp->setName((*iter)->name.c_str());
-        (*iter)->value = temp;
-        ++iter;
-    }
-
-    return myfn;
+    return addSimpleFunction(ctx, mod, once_tag, name, linkage,
+                             &new_name, return_type, &new_args_ctx);
 }
 
 Function *
-addSimpleBinaryFunction(Context *ctx,
-                        llvm::Module *mod,
-                        std::string *once_tag,
-                        const char *name,
-                        Type *return_type,
-                        Type *type1,
+addSimpleBinaryFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
+                        const char *name, Type *return_type, Type *type1,
                         Type *type2)
 {
     int linkage = Linkage::Extern;
@@ -116,90 +110,19 @@ addSimpleBinaryFunction(Context *ctx,
     type1 = ctx->tr->getConstType(type1);
     type2 = ctx->tr->getConstType(type2);
 
-    std::vector<Variable*> *new_args_ctx =
-        new std::vector<Variable*>;
-    new_args_ctx->reserve(2);
-
-    new_args_ctx->push_back(
-        new Variable((char *) "a", type1));
-    new_args_ctx->push_back(
-        new Variable((char *) "b", type2));
-
-    std::vector<llvm::Type*> new_args;
-    new_args.reserve(2);
-    llvm::Type *llvm_type1 = ctx->toLLVMType(type1, NULL, false);
-    if (!llvm_type1) {
-        return NULL;
-    }
-    llvm::Type *llvm_type2 = ctx->toLLVMType(type2, NULL, false);
-    if (!llvm_type2) {
-        return NULL;
-    }
-    new_args.push_back(llvm_type1);
-    new_args.push_back(llvm_type2);
+    std::vector<Variable *> new_args_ctx;
+    new_args_ctx.push_back(new Variable((char *) "a", type1));
+    new_args_ctx.push_back(new Variable((char *) "b", type2));
 
     std::string new_name;
-    new_name.reserve(20);
-    ctx->ns()->functionNameToSymbol(name,
-                                    &new_name,
-                                    linkage,
-                                    new_args_ctx);
+    ctx->ns()->functionNameToSymbol(name, &new_name, linkage, &new_args_ctx);
 
-    llvm::Type *llvm_return_type =
-        ctx->toLLVMType(return_type, NULL, false);
-    if (!llvm_return_type) {
-        return NULL;
-    }
-
-    llvm::ArrayRef<llvm::Type*> llvm_new_args(new_args);
-    llvm::FunctionType *new_ft =
-        llvm::FunctionType::get(
-            llvm_return_type,
-            llvm_new_args,
-            false
-        );
-
-    llvm::Function *new_fn =
-        llvm::cast<llvm::Function>(
-            mod->getOrInsertFunction(new_name.c_str(), new_ft)
-        );
-
-    new_fn->setCallingConv(llvm::CallingConv::C);
-    new_fn->setLinkage(llvm::GlobalValue::LinkOnceAnyLinkage);
-    setStandardAttributes(new_fn);
-
-    Function *myfn =
-        new Function(
-            return_type,
-            new_args_ctx,
-            new_fn,
-            0,
-            &new_name
-        );
-    myfn->linkage = linkage;
-    myfn->once_tag = *once_tag;
-
-    ctx->ns()->addFunction(name, myfn, NULL);
-
-    llvm::Function::arg_iterator largs = new_fn->arg_begin();
-    std::vector<Variable *>::iterator iter;
-    iter = new_args_ctx->begin();
-
-    while (iter != new_args_ctx->end()) {
-        llvm::Value *temp = largs;
-        ++largs;
-        temp->setName((*iter)->name.c_str());
-        (*iter)->value = temp;
-        ++iter;
-    }
-
-    return myfn;
+    return addSimpleFunction(ctx, mod, once_tag, name, linkage,
+                             &new_name, return_type, &new_args_ctx);
 }
 
 void
-makeFloatFunction(Context *ctx,
-                  llvm::Module *mod,
-                  std::string *once_tag,
+makeFloatFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                   const char *name,
                   llvm::Value* (llvm::IRBuilder<>:: *method_name)
                       (llvm::Value*, llvm::Value*, const llvm::Twine &
@@ -207,12 +130,10 @@ makeFloatFunction(Context *ctx,
                       , llvm::MDNode *
 #endif
                       ),
-                  Type *ret_type,
-                  Type *type)
+                  Type *ret_type, Type *type)
 {
-    Function *fn =
-        addSimpleBinaryFunction(ctx, mod, once_tag,
-                                name, ret_type, type, type);
+    Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, name,
+                                           ret_type, type, type);
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameter_types.begin();
@@ -222,31 +143,30 @@ makeFloatFunction(Context *ctx,
                                  fn->llvm_function);
 
     llvm::IRBuilder<> builder(block);
-    llvm::Twine bling;
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           ((builder).*(method_name))((*iter)->value, (*(iter +
-                                   1))->value, bling
+    llvm::Twine unused_twine;
+    llvm::Value *ret_val =
+        llvm::cast<llvm::Value>(
+            ((builder).*(method_name))((*iter)->value,
+                                       (*(iter + 1))->value,
+                                       unused_twine
 #if D_LLVM_VERSION_MINOR >= 2
-                                   , NULL
+                                       , NULL
 #endif
-                                   ));
+                                       )
+        );
 
-    builder.CreateRet(res);
+    builder.CreateRet(ret_val);
 }
 
 void
-makeFunction(Context *ctx,
-             llvm::Module *mod,
-             std::string *once_tag,
+makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
              const char *name,
              llvm::Value* (llvm::IRBuilder<>:: *method_name)
                 (llvm::Value*, llvm::Value*, const llvm::Twine &),
-             Type *ret_type,
-             Type *type)
+             Type *ret_type, Type *type)
 {
-    Function *fn =
-        addSimpleBinaryFunction(ctx, mod, once_tag,
-                                name, ret_type, type, type);
+    Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, name,
+                                           ret_type, type, type);
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameter_types.begin();
@@ -256,26 +176,25 @@ makeFunction(Context *ctx,
                                  fn->llvm_function);
 
     llvm::IRBuilder<> builder(block);
-    llvm::Twine bling;
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           ((builder).*(method_name))((*iter)->value, (*(iter +
-                                   1))->value, bling));
-    builder.CreateRet(res);
+    llvm::Twine unused_twine;
+    llvm::Value *ret_val =
+        llvm::cast<llvm::Value>(
+            ((builder).*(method_name))((*iter)->value,
+                                       (*(iter + 1))->value,
+                                       unused_twine)
+        );
+    builder.CreateRet(ret_val);
 }
 
 void
-makeFunction(Context *ctx,
-             llvm::Module *mod,
-             std::string *once_tag,
+makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
              const char *name,
              llvm::Value* (llvm::IRBuilder<>:: *method_name)
                 (llvm::Value*, llvm::Value*, const llvm::Twine &, bool),
-             Type *ret_type,
-             Type *type)
+             Type *ret_type, Type *type)
 {
-    Function *fn =
-        addSimpleBinaryFunction(ctx, mod, once_tag,
-                                name, ret_type, type, type);
+    Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, name,
+                                           ret_type, type, type);
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameter_types.begin();
@@ -285,26 +204,26 @@ makeFunction(Context *ctx,
                                  fn->llvm_function);
 
     llvm::IRBuilder<> builder(block);
-    llvm::Twine bling;
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           ((builder).*(method_name))((*iter)->value, (*(iter +
-                                   1))->value, bling, false));
-    builder.CreateRet(res);
+    llvm::Twine unused_twine;
+    llvm::Value *ret_val =
+        llvm::cast<llvm::Value>(
+            ((builder).*(method_name))((*iter)->value,
+                                       (*(iter + 1))->value,
+                                       unused_twine,
+                                       false)
+        );
+    builder.CreateRet(ret_val);
 }
 
 void
-makeFunction(Context *ctx,
-             llvm::Module *mod,
-             std::string *once_tag,
+makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
              const char *name,
              llvm::Value* (llvm::IRBuilder<>:: *method_name)
                 (llvm::Value*, llvm::Value*, const llvm::Twine &, bool, bool),
-             Type *ret_type,
-             Type *type)
+             Type *ret_type, Type *type)
 {
-    Function *fn =
-        addSimpleBinaryFunction(ctx, mod, once_tag,
-                                name, ret_type, type, type);
+    Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, name,
+                                           ret_type, type, type);
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameter_types.begin();
@@ -314,27 +233,27 @@ makeFunction(Context *ctx,
                                  fn->llvm_function);
 
     llvm::IRBuilder<> builder(block);
-    llvm::Twine bling;
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           ((builder).*(method_name))((*iter)->value, (*(iter +
-                                   1))->value, bling, false, true));
-    builder.CreateRet(res);
+    llvm::Twine unused_twine;
+    llvm::Value *ret_val =
+        llvm::cast<llvm::Value>(
+            ((builder).*(method_name))((*iter)->value,
+                                       (*(iter + 1))->value,
+                                       unused_twine,
+                                       false,
+                                       true)
+        );
+    builder.CreateRet(ret_val);
 }
 
 void
-makeFunction(Context *ctx,
-             llvm::Module *mod,
-             std::string *once_tag,
+makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
              const char *name,
              llvm::Value* (llvm::IRBuilder<>:: *method_name)
                 (llvm::Value*, llvm::Value*, const llvm::Twine &, bool, bool),
-             Type *ret_type,
-             Type *type1,
-             Type *type2)
+             Type *ret_type, Type *type1, Type *type2)
 {
-    Function *fn =
-        addSimpleBinaryFunction(ctx, mod, once_tag,
-                                name, ret_type, type1, type2);
+    Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, name,
+                                           ret_type, type1, type2);
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameter_types.begin();
@@ -344,36 +263,34 @@ makeFunction(Context *ctx,
                                  fn->llvm_function);
 
     llvm::IRBuilder<> builder(block);
-    llvm::Twine bling;
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           ((builder).*(method_name))((*iter)->value, (*(iter +
-                                   1))->value, bling, false, true));
-    builder.CreateRet(res);
+    llvm::Twine unused_twine;
+    llvm::Value *ret_val =
+        llvm::cast<llvm::Value>(
+            ((builder).*(method_name))((*iter)->value,
+                                       (*(iter + 1))->value,
+                                       unused_twine,
+                                       false,
+                                       true)
+        );
+    builder.CreateRet(ret_val);
 }
 
 void
-makeEnumFunction(Context *ctx,
-                 llvm::Module *mod,
-                 std::string *once_tag,
+makeEnumFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                  const char *name,
                  llvm::Value* (llvm::IRBuilder<>:: *method_name)
                      (llvm::Value*, llvm::Value*, const llvm::Twine &),
-                 Type *ret_type,
-                 Type *type,
-                 int mylinkage)
+                 Type *ret_type, Type *type, int linkage)
 {
     std::vector<llvm::Value *> two_zero_indices;
     llvm::Value *llvm_native_zero = ctx->nt->getNativeInt(0);
     two_zero_indices.push_back(llvm_native_zero);
     two_zero_indices.push_back(llvm_native_zero);
 
-    Function *fn =
-        addSimpleBinaryFunction(ctx, mod, once_tag, name,
-                                ret_type, type, type);
-    fn->linkage = mylinkage;
-    fn->llvm_function->setLinkage(
-        ctx->toLLVMLinkage(mylinkage)
-    );
+    Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, name,
+                                           ret_type, type, type);
+    fn->linkage = linkage;
+    fn->llvm_function->setLinkage(ctx->toLLVMLinkage(linkage));
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameter_types.begin();
@@ -392,10 +309,8 @@ makeEnumFunction(Context *ctx,
         llvm::cast<llvm::Value>(
             builder.CreateAlloca(ctx->toLLVMType(type, NULL, false))
         );
-    builder.CreateStore((*iter)->value,
-                        new_ptr1);
-    builder.CreateStore((*(iter + 1))->value,
-                        new_ptr2);
+    builder.CreateStore((*iter)->value,       new_ptr1);
+    builder.CreateStore((*(iter + 1))->value, new_ptr2);
 
     llvm::Value *one =
         builder.CreateLoad(
@@ -412,265 +327,192 @@ makeEnumFunction(Context *ctx,
                               ))
         );
 
-    llvm::Twine bling;
-    llvm::Value *res = llvm::cast<llvm::Value>(
-                           ((builder).*(method_name))(one, two, bling)
-                       );
+    llvm::Twine unused_twine;
+    llvm::Value *res =
+        llvm::cast<llvm::Value>(
+            ((builder).*(method_name))(one, two, unused_twine)
+        );
 
     if (ret_type != type) {
-        /* It is assumed in this case that the method provided
-         * will create a value of ret_type. */
+        /* It is assumed in this case that the method provided will
+         * create a value of ret_type. */
         builder.CreateRet(res);
     } else {
-        /* Otherwise, store the value created by the method,
-         * bitcast to a pointer to type and load that value. */
-        llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
-                                      builder.CreateAlloca(res->getType())
-                                  );
-        builder.CreateStore(res,
-                            store_ptr1);
-        llvm::Value *sp =
-            builder.CreateBitCast(
-                store_ptr1, ctx->toLLVMType(ctx->tr->getPointerType(type),
-                                            NULL, false)
+        /* Otherwise, store the value created by the method, bitcast
+         * to a pointer to type, and load that value. */
+        llvm::Value *store_ptr =
+            llvm::cast<llvm::Value>(
+                builder.CreateAlloca(res->getType())
             );
-        llvm::Value *newint =
-            builder.CreateLoad(sp);
-        builder.CreateRet(newint);
+        builder.CreateStore(res, store_ptr);
+        llvm::Value *ptr_val =
+            builder.CreateBitCast(
+                store_ptr, ctx->toLLVMType(ctx->tr->getPointerType(type),
+                                           NULL, false)
+            );
+        llvm::Value *ret_val = builder.CreateLoad(ptr_val);
+        builder.CreateRet(ret_val);
     }
 }
 
 void
-addSignedInt(Context *ctx,
-             llvm::Module *mod,
-             std::string *once_tag,
+makeShlFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
+                Type *type)
+{
+    Type *type_int  = ctx->tr->type_int;
+
+    Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, "<<",
+                                           type, type, type_int);
+
+    std::vector<Variable *>::iterator iter;
+    iter = fn->parameter_types.begin();
+
+    llvm::BasicBlock *block =
+        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+                                 fn->llvm_function);
+
+    ParseResult pr_cast;
+    Operation::Cast(ctx, block, (*(iter + 1))->value,
+                    type_int, type, NULL, false, &pr_cast);
+
+    llvm::IRBuilder<> builder(pr_cast.block);
+    llvm::Twine unused_twine;
+    llvm::Value *res =
+        llvm::cast<llvm::Value>(
+            builder.CreateShl((*iter)->value, pr_cast.value, unused_twine)
+        );
+    builder.CreateRet(res);
+}
+
+void
+makeShrFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
+                Type *type)
+{
+    Type *type_int  = ctx->tr->type_int;
+
+    Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, ">>",
+                                           type, type, type_int);
+
+    std::vector<Variable *>::iterator iter;
+    iter = fn->parameter_types.begin();
+
+    llvm::BasicBlock *block =
+        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+                                 fn->llvm_function);
+
+    ParseResult pr_cast;
+    Operation::Cast(ctx, block, (*(iter + 1))->value,
+                    type_int, type, NULL, false, &pr_cast);
+
+    llvm::IRBuilder<> builder(pr_cast.block);
+    llvm::Twine unused_twine;
+    llvm::Value *res =
+        llvm::cast<llvm::Value>(
+            builder.CreateLShr((*iter)->value, pr_cast.value, unused_twine)
+        );
+    builder.CreateRet(res);
+}
+
+void
+addSignedInt(Context *ctx, llvm::Module *mod, std::string *once_tag,
              Type *type)
 {
     Type *type_bool = ctx->tr->type_bool;
-    Type *type_int  = ctx->tr->type_int;
 
-    makeFunction(ctx, mod, once_tag, "+",
-                 &llvm::IRBuilder<>::CreateAdd,  type, type);
-    makeFunction(ctx, mod, once_tag, "-",
-                 &llvm::IRBuilder<>::CreateSub,  type, type);
-    makeFunction(ctx, mod, once_tag, "/",
-                 &llvm::IRBuilder<>::CreateSDiv, type, type);
-    makeFunction(ctx, mod, once_tag, "*",
-                 &llvm::IRBuilder<>::CreateMul,  type, type);
-    makeFunction(ctx, mod, once_tag, "=",
-                 &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, type);
-    makeFunction(ctx, mod, once_tag, "!=",
-                 &llvm::IRBuilder<>::CreateICmpNE,  type_bool, type);
-    makeFunction(ctx, mod, once_tag, "<",
-                 &llvm::IRBuilder<>::CreateICmpSLT, type_bool, type);
-    makeFunction(ctx, mod, once_tag, "<=",
-                 &llvm::IRBuilder<>::CreateICmpSLE, type_bool, type);
-    makeFunction(ctx, mod, once_tag, ">",
-                 &llvm::IRBuilder<>::CreateICmpSGT, type_bool, type);
-    makeFunction(ctx, mod, once_tag, ">=",
-                 &llvm::IRBuilder<>::CreateICmpSGE, type_bool, type);
-    makeFunction(ctx, mod, once_tag, "&",
-                 &llvm::IRBuilder<>::CreateAnd,     type,      type);
-    makeFunction(ctx, mod, once_tag, "|",
-                 &llvm::IRBuilder<>::CreateOr,      type,      type);
-    makeFunction(ctx, mod, once_tag, "^",
-                 &llvm::IRBuilder<>::CreateXor,     type,      type);
+    ADD_INTF("+", &llvm::IRBuilder<>::CreateAdd);
+    ADD_INTF("-", &llvm::IRBuilder<>::CreateSub);
+    ADD_INTF("/", &llvm::IRBuilder<>::CreateSDiv);
+    ADD_INTF("*", &llvm::IRBuilder<>::CreateMul);
 
-    {
-        Function *fn =
-            addSimpleBinaryFunction(ctx, mod, once_tag,
-                                    "<<", type, type, type_int);
+    ADD_INTF("&", &llvm::IRBuilder<>::CreateAnd);
+    ADD_INTF("|", &llvm::IRBuilder<>::CreateOr);
+    ADD_INTF("^", &llvm::IRBuilder<>::CreateXor);
 
-        std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types.begin();
+    ADD_CMPF("=",  &llvm::IRBuilder<>::CreateICmpEQ);
+    ADD_CMPF("!=", &llvm::IRBuilder<>::CreateICmpNE);
+    ADD_CMPF("<",  &llvm::IRBuilder<>::CreateICmpSLT);
+    ADD_CMPF("<=", &llvm::IRBuilder<>::CreateICmpSLE);
+    ADD_CMPF(">",  &llvm::IRBuilder<>::CreateICmpSGT);
+    ADD_CMPF(">=", &llvm::IRBuilder<>::CreateICmpSGE);
 
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        ParseResult temp;
-        Operation::Cast(ctx, block, (*(iter + 1))->value,
-                                 type_int, type, NULL, false, &temp);
-
-        llvm::IRBuilder<> builder(temp.block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateShl((*iter)->value, temp.value,
-                                                 bling)
-                           );
-        builder.CreateRet(res);
-    }
-    {
-        Function *fn =
-            addSimpleBinaryFunction(ctx, mod, once_tag,
-                                    ">>", type, type, type_int);
-
-        std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types.begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        ParseResult temp;
-        Operation::Cast(ctx, block, (*(iter + 1))->value,
-                                 type_int, type, NULL, false, &temp);
-
-        llvm::IRBuilder<> builder(temp.block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateLShr((*iter)->value,
-                                                  temp.value, bling)
-                           );
-        builder.CreateRet(res);
-    }
-    return;
+    makeShlFunction(ctx, mod, once_tag, type);
+    makeShrFunction(ctx, mod, once_tag, type);
 }
 
 void
-addFloatingPoint(Context *ctx,
-                 llvm::Module *mod,
-                 std::string *once_tag,
+makeNegateFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
+                   Type *type)
+{
+    Function *fn = addSimpleUnaryFunction(ctx, mod, once_tag, "~", type, type);
+
+    std::vector<Variable *>::iterator iter;
+    iter = fn->parameter_types.begin();
+
+    llvm::BasicBlock *block =
+        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+                                 fn->llvm_function);
+    llvm::IRBuilder<> builder(block);
+
+    llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
+    if (!llvm_type) {
+        return;
+    }
+
+    llvm::Value *zero = llvm::ConstantInt::get(llvm_type, 0);
+    llvm::Value *max =
+        builder.CreateSub(zero, llvm::ConstantInt::get(llvm_type, 1));
+
+    llvm::Value *ret_val =
+        llvm::cast<llvm::Value>(
+            builder.CreateXor((*iter)->value, max)
+        );
+    builder.CreateRet(ret_val);
+}
+
+void
+addUnsignedInt(Context *ctx, llvm::Module *mod, std::string *once_tag,
+               Type *type)
+{
+    Type *type_bool = ctx->tr->type_bool;
+
+    ADD_INTF("+", &llvm::IRBuilder<>::CreateAdd);
+    ADD_INTF("-", &llvm::IRBuilder<>::CreateSub);
+    ADD_INTF("/", &llvm::IRBuilder<>::CreateSDiv);
+    ADD_INTF("*", &llvm::IRBuilder<>::CreateMul);
+
+    ADD_INTF("&", &llvm::IRBuilder<>::CreateAnd);
+    ADD_INTF("|", &llvm::IRBuilder<>::CreateOr);
+    ADD_INTF("^", &llvm::IRBuilder<>::CreateXor);
+
+    ADD_CMPF("=",  &llvm::IRBuilder<>::CreateICmpEQ);
+    ADD_CMPF("!=", &llvm::IRBuilder<>::CreateICmpNE);
+    ADD_CMPF("<",  &llvm::IRBuilder<>::CreateICmpSLT);
+    ADD_CMPF("<=", &llvm::IRBuilder<>::CreateICmpSLE);
+    ADD_CMPF(">",  &llvm::IRBuilder<>::CreateICmpSGT);
+    ADD_CMPF(">=", &llvm::IRBuilder<>::CreateICmpSGE);
+
+    makeShlFunction(ctx, mod, once_tag, type);
+    makeShrFunction(ctx, mod, once_tag, type);
+    makeNegateFunction(ctx, mod, once_tag, type);
+}
+
+void
+addFloatingPoint(Context *ctx, llvm::Module *mod, std::string *once_tag,
                  Type *type)
 {
     Type *type_bool = ctx->tr->type_bool;
 
-    makeFloatFunction(ctx, mod, once_tag, "+",
-                      &llvm::IRBuilder<>::CreateFAdd, type, type);
-    makeFloatFunction(ctx, mod, once_tag, "-",
-                      &llvm::IRBuilder<>::CreateFSub, type, type);
-    makeFloatFunction(ctx, mod, once_tag, "/",
-                      &llvm::IRBuilder<>::CreateFDiv, type, type);
-    makeFloatFunction(ctx, mod, once_tag, "*",
-                      &llvm::IRBuilder<>::CreateFMul, type, type);
-    makeFunction(ctx, mod, once_tag, "=",
-                 &llvm::IRBuilder<>::CreateFCmpOEQ, type_bool, type);
-    makeFunction(ctx, mod, once_tag, "!=",
-                 &llvm::IRBuilder<>::CreateFCmpONE, type_bool, type);
-    makeFunction(ctx, mod, once_tag, "<",
-                 &llvm::IRBuilder<>::CreateFCmpOLT, type_bool, type);
-    makeFunction(ctx, mod, once_tag, "<=",
-                 &llvm::IRBuilder<>::CreateFCmpOLE, type_bool, type);
-    makeFunction(ctx, mod, once_tag, ">",
-                 &llvm::IRBuilder<>::CreateFCmpOGT, type_bool, type);
-    makeFunction(ctx, mod, once_tag, ">=",
-                 &llvm::IRBuilder<>::CreateFCmpOGE, type_bool, type);
-    return;
-}
+    ADD_FLTF("+", &llvm::IRBuilder<>::CreateFAdd);
+    ADD_FLTF("-", &llvm::IRBuilder<>::CreateFSub);
+    ADD_FLTF("/", &llvm::IRBuilder<>::CreateFDiv);
+    ADD_FLTF("*", &llvm::IRBuilder<>::CreateFMul);
 
-void
-addUnsignedInt(Context *ctx,
-               llvm::Module *mod,
-               std::string *once_tag,
-               Type *type)
-{
-    Type *type_bool = ctx->tr->type_bool;
-    Type *type_int  = ctx->tr->type_int;
-
-    makeFunction(ctx, mod, once_tag, "+",
-                 &llvm::IRBuilder<>::CreateAdd,  type, type);
-    makeFunction(ctx, mod, once_tag, "-",
-                 &llvm::IRBuilder<>::CreateSub,  type, type);
-    makeFunction(ctx, mod, once_tag, "/",
-                 &llvm::IRBuilder<>::CreateUDiv, type, type);
-    makeFunction(ctx, mod, once_tag, "*",
-                 &llvm::IRBuilder<>::CreateMul,  type, type);
-    makeFunction(ctx, mod, once_tag, "=",
-                 &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, type);
-    makeFunction(ctx, mod, once_tag, "!=",
-                 &llvm::IRBuilder<>::CreateICmpNE,  type_bool, type);
-    makeFunction(ctx, mod, once_tag, "<",
-                 &llvm::IRBuilder<>::CreateICmpULT, type_bool, type);
-    makeFunction(ctx, mod, once_tag, "<=",
-                 &llvm::IRBuilder<>::CreateICmpULE, type_bool, type);
-    makeFunction(ctx, mod, once_tag, ">",
-                 &llvm::IRBuilder<>::CreateICmpUGT, type_bool, type);
-    makeFunction(ctx, mod, once_tag, ">=",
-                 &llvm::IRBuilder<>::CreateICmpUGE, type_bool, type);
-    {
-        Function *fn =
-            addSimpleBinaryFunction(ctx, mod, once_tag, "<<", type, type, type_int);
-
-        std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types.begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        ParseResult temp;
-        Operation::Cast(ctx, block, (*(iter + 1))->value,
-                                 type_int, type, NULL, false, &temp);
-
-        llvm::IRBuilder<> builder(temp.block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateShl((*iter)->value, temp.value,
-                                                 bling)
-                           );
-        builder.CreateRet(res);
-    }
-    {
-        Function *fn =
-            addSimpleBinaryFunction(ctx, mod, once_tag, ">>", type, type, type_int);
-
-        std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types.begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-
-        ParseResult temp;
-        Operation::Cast(ctx, block, (*(iter + 1))->value,
-                                 type_int, type, NULL, false, &temp);
-
-        llvm::IRBuilder<> builder(temp.block);
-        llvm::Twine bling;
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateLShr((*iter)->value,
-                                                  temp.value, bling)
-                           );
-        builder.CreateRet(res);
-    }
-    makeFunction(ctx, mod, once_tag, "&",  &llvm::IRBuilder<>::CreateAnd,     type,      type);
-    makeFunction(ctx, mod, once_tag, "|",  &llvm::IRBuilder<>::CreateOr,      type,      type);
-    makeFunction(ctx, mod, once_tag, "^",  &llvm::IRBuilder<>::CreateXor,     type,      type);
-
-    {
-        Function *fn =
-            addSimpleUnaryFunction(ctx, mod, once_tag, "~", type, type);
-
-        std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types.begin();
-
-        llvm::BasicBlock *block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
-                                     fn->llvm_function);
-        llvm::IRBuilder<> builder(block);
-
-        llvm::Type *llvm_type =
-            ctx->toLLVMType(type, NULL, false);
-        if (!llvm_type) {
-            return;
-        }
-
-        llvm::Value *max =
-            llvm::ConstantInt::get(llvm_type, 0);
-
-        llvm::Value *real_max =
-            builder.CreateSub(
-                max,
-                llvm::ConstantInt::get(llvm_type, 1)
-            );
-
-        llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateXor((*iter)->value, real_max)
-                           );
-        builder.CreateRet(res);
-    }
-
-    return;
+    ADD_CMPF("=",  &llvm::IRBuilder<>::CreateFCmpOEQ);
+    ADD_CMPF("!=", &llvm::IRBuilder<>::CreateFCmpONE);
+    ADD_CMPF("<",  &llvm::IRBuilder<>::CreateFCmpOLT);
+    ADD_CMPF("<=", &llvm::IRBuilder<>::CreateFCmpOLE);
+    ADD_CMPF(">",  &llvm::IRBuilder<>::CreateFCmpOGT);
+    ADD_CMPF(">=", &llvm::IRBuilder<>::CreateFCmpOGE);
 }
 
 void
@@ -680,7 +522,7 @@ addEnum(Context *ctx,
         Type *enum_type,
         Type *enum_int_type,
         llvm::Type *llvm_enum_int_type,
-        int flinkage)
+        int linkage)
 {
     std::vector<llvm::Value *> two_zero_indices;
     llvm::Value *llvm_native_zero = ctx->nt->getNativeInt(0);
@@ -690,9 +532,9 @@ addEnum(Context *ctx,
     {
         Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "+", enum_type, enum_type, enum_type);
-        fn->linkage = flinkage;
+        fn->linkage = linkage;
         fn->llvm_function->setLinkage(
-            ctx->toLLVMLinkage(flinkage)
+            ctx->toLLVMLinkage(linkage)
         );
 
         std::vector<Variable *>::iterator iter;
@@ -730,9 +572,9 @@ addEnum(Context *ctx,
                                   ))
             );
 
-        llvm::Twine bling;
+        llvm::Twine unused_twine;
         llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateAdd(one, two, bling)
+                               builder.CreateAdd(one, two, unused_twine)
                            );
 
         llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
@@ -754,9 +596,9 @@ addEnum(Context *ctx,
     {
         Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "-", enum_type, enum_type, enum_type);
-        fn->linkage = flinkage;
+        fn->linkage = linkage;
         fn->llvm_function->setLinkage(
-            ctx->toLLVMLinkage(flinkage)
+            ctx->toLLVMLinkage(linkage)
         );
 
         std::vector<Variable *>::iterator iter;
@@ -794,9 +636,9 @@ addEnum(Context *ctx,
                                   ))
             );
 
-        llvm::Twine bling;
+        llvm::Twine unused_twine;
         llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateSub(one, two, bling)
+                               builder.CreateSub(one, two, unused_twine)
                            );
         llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
                                       builder.CreateAlloca(llvm_enum_int_type)
@@ -817,9 +659,9 @@ addEnum(Context *ctx,
     {
         Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "*", enum_type, enum_type, enum_type);
-        fn->linkage = flinkage;
+        fn->linkage = linkage;
         fn->llvm_function->setLinkage(
-            ctx->toLLVMLinkage(flinkage)
+            ctx->toLLVMLinkage(linkage)
         );
 
         std::vector<Variable *>::iterator iter;
@@ -857,9 +699,9 @@ addEnum(Context *ctx,
                                   ))
             );
 
-        llvm::Twine bling;
+        llvm::Twine unused_twine;
         llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateMul(one, two, bling)
+                               builder.CreateMul(one, two, unused_twine)
                            );
         llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
                                       builder.CreateAlloca(llvm_enum_int_type)
@@ -880,9 +722,9 @@ addEnum(Context *ctx,
     {
         Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "/", enum_type, enum_type, enum_type);
-        fn->linkage = flinkage;
+        fn->linkage = linkage;
         fn->llvm_function->setLinkage(
-            ctx->toLLVMLinkage(flinkage)
+            ctx->toLLVMLinkage(linkage)
         );
 
         std::vector<Variable *>::iterator iter;
@@ -920,9 +762,9 @@ addEnum(Context *ctx,
                                   ))
             );
 
-        llvm::Twine bling;
+        llvm::Twine unused_twine;
         llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateSDiv(one, two, bling)
+                               builder.CreateSDiv(one, two, unused_twine)
                            );
 
         llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
@@ -941,19 +783,19 @@ addEnum(Context *ctx,
         builder.CreateRet(newint);
     }
     Type *type_bool = ctx->tr->type_bool;
-    makeEnumFunction(ctx, mod, once_tag, "=",  &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, enum_type, flinkage);
-    makeEnumFunction(ctx, mod, once_tag, "!=", &llvm::IRBuilder<>::CreateICmpNE,  type_bool, enum_type, flinkage);
-    makeEnumFunction(ctx, mod, once_tag, "<",  &llvm::IRBuilder<>::CreateICmpULT, type_bool, enum_type, flinkage);
-    makeEnumFunction(ctx, mod, once_tag, "<=", &llvm::IRBuilder<>::CreateICmpULE, type_bool, enum_type, flinkage);
-    makeEnumFunction(ctx, mod, once_tag, ">",  &llvm::IRBuilder<>::CreateICmpUGT, type_bool, enum_type, flinkage);
-    makeEnumFunction(ctx, mod, once_tag, ">=", &llvm::IRBuilder<>::CreateICmpUGE, type_bool, enum_type, flinkage);
+    makeEnumFunction(ctx, mod, once_tag, "=",  &llvm::IRBuilder<>::CreateICmpEQ,  type_bool, enum_type, linkage);
+    makeEnumFunction(ctx, mod, once_tag, "!=", &llvm::IRBuilder<>::CreateICmpNE,  type_bool, enum_type, linkage);
+    makeEnumFunction(ctx, mod, once_tag, "<",  &llvm::IRBuilder<>::CreateICmpULT, type_bool, enum_type, linkage);
+    makeEnumFunction(ctx, mod, once_tag, "<=", &llvm::IRBuilder<>::CreateICmpULE, type_bool, enum_type, linkage);
+    makeEnumFunction(ctx, mod, once_tag, ">",  &llvm::IRBuilder<>::CreateICmpUGT, type_bool, enum_type, linkage);
+    makeEnumFunction(ctx, mod, once_tag, ">=", &llvm::IRBuilder<>::CreateICmpUGE, type_bool, enum_type, linkage);
     Type *type_int = ctx->tr->type_int;
     {
         Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, "<<", enum_type, enum_type, type_int);
-        fn->linkage = flinkage;
+        fn->linkage = linkage;
         fn->llvm_function->setLinkage(
-            ctx->toLLVMLinkage(flinkage)
+            ctx->toLLVMLinkage(linkage)
         );
 
         std::vector<Variable *>::iterator iter;
@@ -984,9 +826,9 @@ addEnum(Context *ctx,
                                  type_int, enum_int_type, NULL, false, &temp);
         builder.SetInsertPoint(temp.block);
 
-        llvm::Twine bling;
+        llvm::Twine unused_twine;
         llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateShl(one, temp.value, bling)
+                               builder.CreateShl(one, temp.value, unused_twine)
                            );
         llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
                                       builder.CreateAlloca(llvm_enum_int_type)
@@ -1007,9 +849,9 @@ addEnum(Context *ctx,
     {
         Function *fn =
             addSimpleBinaryFunction(ctx, mod, once_tag, ">>", enum_type, enum_type, type_int);
-        fn->linkage = flinkage;
+        fn->linkage = linkage;
         fn->llvm_function->setLinkage(
-            ctx->toLLVMLinkage(flinkage)
+            ctx->toLLVMLinkage(linkage)
         );
 
         std::vector<Variable *>::iterator iter;
@@ -1040,9 +882,9 @@ addEnum(Context *ctx,
                                  type_int, enum_int_type, NULL, false, &temp);
         builder.SetInsertPoint(temp.block);
 
-        llvm::Twine bling;
+        llvm::Twine unused_twine;
         llvm::Value *res = llvm::cast<llvm::Value>(
-                               builder.CreateLShr(one, temp.value, bling)
+                               builder.CreateLShr(one, temp.value, unused_twine)
                            );
         llvm::Value *store_ptr1 = llvm::cast<llvm::Value>(
                                       builder.CreateAlloca(llvm_enum_int_type)
@@ -1067,12 +909,11 @@ addEnum(Context *ctx,
     (This has since been fixed.)
     */
 
-    makeEnumFunction(ctx, mod, once_tag, "&",  &llvm::IRBuilder<>::CreateAnd,     enum_type,       enum_type, flinkage);
-    makeEnumFunction(ctx, mod, once_tag, "|",  &llvm::IRBuilder<>::CreateOr,      enum_type,       enum_type, flinkage);
-    makeEnumFunction(ctx, mod, once_tag, "^",  &llvm::IRBuilder<>::CreateXor,     enum_type,       enum_type, flinkage);
+    makeEnumFunction(ctx, mod, once_tag, "&",  &llvm::IRBuilder<>::CreateAnd,     enum_type,       enum_type, linkage);
+    makeEnumFunction(ctx, mod, once_tag, "|",  &llvm::IRBuilder<>::CreateOr,      enum_type,       enum_type, linkage);
+    makeEnumFunction(ctx, mod, once_tag, "^",  &llvm::IRBuilder<>::CreateXor,     enum_type,       enum_type, linkage);
 
     return;
 }
-
 }
 }

@@ -559,9 +559,8 @@ Namespace::functionNameToSymbol(const char *name,
 
     nameToSymbol(name, new_name);
 
-    for (std::vector<Variable *>::iterator
-            b = types->begin(),
-            e = types->end();
+    for (std::vector<Variable *>::iterator b = types->begin(),
+                                           e = types->end();
             b != e;
             ++b) {
         (*b)->type->toSymbolString(new_name);

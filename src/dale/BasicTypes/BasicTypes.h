@@ -36,12 +36,8 @@ namespace BasicTypes
  *  required.
  */
 Function *
-addSimpleUnaryFunction(Context *ctx,
-                       llvm::Module *mod,
-                       std::string *once_tag,
-                       const char *name,
-                       Type *return_type,
-                       Type *type1);
+addSimpleUnaryFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
+                       const char *name, Type *return_type, Type *type1);
 
 /*! Add a binary function to the context and module.
  *  @param ctx The context.
@@ -56,12 +52,8 @@ addSimpleUnaryFunction(Context *ctx,
  *  to the body of the function, if required.
  */
 Function *
-addSimpleBinaryFunction(Context *ctx,
-                        llvm::Module *mod,
-                        std::string *once_tag,
-                        const char *name,
-                        Type *return_type,
-                        Type *type1,
+addSimpleBinaryFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
+                        const char *name, Type *return_type, Type *type1,
                         Type *type2);
 
 /*! Instantiate the functions required for the given signed integer type.
@@ -74,9 +66,7 @@ addSimpleBinaryFunction(Context *ctx,
  *  >=, <<, >>, &, | and ^.
  */
 void
-addSignedInt(Context *ctx,
-             llvm::Module *mod,
-             std::string *once_tag,
+addSignedInt(Context *ctx, llvm::Module *mod, std::string *once_tag,
              Type *type);
 
 /*! Instantiate the functions required for the given floating point type.
@@ -89,9 +79,7 @@ addSignedInt(Context *ctx,
  *  >=.
  */
 void
-addFloatingPoint(Context *ctx,
-                 llvm::Module *mod,
-                 std::string *once_tag,
+addFloatingPoint(Context *ctx, llvm::Module *mod, std::string *once_tag,
                  Type *type);
 
 /*! Instantiate the functions required for the given unsigned integer type.
@@ -104,9 +92,7 @@ addFloatingPoint(Context *ctx,
  *  except that complement (~) is also defined over unsigned integers.
  */
 void
-addUnsignedInt(Context *ctx,
-               llvm::Module *mod,
-               std::string *once_tag,
+addUnsignedInt(Context *ctx, llvm::Module *mod, std::string *once_tag,
                Type *type);
 
 /*! Instantiate the functions required for the given enum type.
@@ -118,13 +104,9 @@ addUnsignedInt(Context *ctx,
  *  The functions defined are the same as those for signed integers.
  */
 void
-addEnum(Context *ctx,
-        llvm::Module *mod,
-        std::string *once_tag,
-        Type *enum_type,
-        Type *enum_int_type,
-        llvm::Type *llvm_enum_int_type,
-        int flinkage);
+addEnum(Context *ctx, llvm::Module *mod, std::string *once_tag,
+        Type *enum_type, Type *enum_int_type,
+        llvm::Type *llvm_enum_int_type, int linkage);
 }
 }
 
