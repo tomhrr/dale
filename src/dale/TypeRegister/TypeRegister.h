@@ -65,7 +65,7 @@ public:
     Type *getBitfieldType(Type *type, size_t size);
     /*! Return an instance of a struct type.
      *  @param name The fully-qualified name of the struct. */
-    Type *getStructType(std::string name);
+    Type *getStructType(const char *name);
 
     /*! Takes a type, and returns a previously-generated type object,
      *  if possible. Otherwise, stores the type in the appropriate

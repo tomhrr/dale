@@ -213,7 +213,7 @@ TypeRegister::getRetvalType(Type *type)
 }
 
 Type*
-TypeRegister::getStructType(std::string name)
+TypeRegister::getStructType(const char *name)
 {
     std::map<std::string, Type*>::iterator
         b = struct_types.find(name), e = struct_types.end();
@@ -222,7 +222,8 @@ TypeRegister::getStructType(std::string name)
     }
 
     std::vector<std::string> name_parts;
-    splitString(&name, &name_parts, '.');
+    std::string ss(name);
+    splitString(&ss, &name_parts, '.');
     Type *struct_type = new Type(); 
     struct_type->struct_name = name_parts.back();
     name_parts.pop_back();
@@ -263,7 +264,7 @@ TypeRegister::getType(Type *type)
             name.append(".");
         }
         name.append(type->struct_name);
-        final = getStructType(name);
+        final = getStructType(name.c_str());
     } else if (type->bitfield_size) {
         size_t bitfield_size = type->bitfield_size;
         type->bitfield_size = 0;

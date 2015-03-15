@@ -11,6 +11,50 @@ static int anonstructcount = 0;
 
 namespace dale {
 Type *
+parseTypeToken(Units *units, Node *node)
+{
+    Context *ctx = units->top()->ctx;
+
+    Token *token = node->token;
+    if (token->type != TokenType::String) {
+        Error *e = new Error(IncorrectSingleParameterType, node,
+                             "symbol", token->tokenType());
+        ctx->er->addError(e);
+        return NULL;
+    }
+
+    const char *type_str = token->str_value.c_str();
+
+    int base_type = stringToBaseType(type_str);
+    if (base_type != -1) {
+        Type *type = ctx->tr->getBasicType(base_type);
+        if (type) {
+            if (!units->top()->is_x86_64
+                    && (type->base_type == BaseType::Int128
+                     || type->base_type == BaseType::UInt128)) {
+                Error *e = new Error(TypeNotSupported, node, type_str);
+                ctx->er->addError(e);
+                return NULL;
+            }
+            return type;
+        }
+    }
+
+    Struct *st = NULL;
+    if ((st = ctx->getStruct(type_str))) {
+        std::string st_name;
+        bool res = ctx->setFullyQualifiedStructName(type_str, &st_name);
+        assert(res && "unable to set struct name");
+        _unused(res);
+        return ctx->tr->getStructType(st_name.c_str());
+    }
+
+    Error *err = new Error(TypeNotInScope, node, type_str);
+    ctx->er->addError(err);
+    return NULL;
+}
+
+Type *
 FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
               bool allow_bitfields, bool allow_refs, bool allow_retvals)
 {
@@ -21,48 +65,7 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
     Context *ctx = units->top()->ctx;
 
     if (node->is_token) {
-        Token *t = node->token;
-
-        if (t->type != TokenType::String) {
-            Error *e = new Error(IncorrectSingleParameterType, node,
-                                 "symbol", t->tokenType());
-            ctx->er->addError(e);
-            return NULL;
-        }
-
-        const char *typs = t->str_value.c_str();
-
-        int bmt = stringToBaseType(typs);
-        if (bmt != -1) {
-            Type *mt = units->top()->ctx->tr->getBasicType(bmt);
-
-            if (mt) {
-                if (!units->top()->is_x86_64
-                        && (mt->base_type == BaseType::Int128
-                            || mt->base_type == BaseType::UInt128)) {
-                    Error *e = new Error(TypeNotSupported, node, typs);
-                    ctx->er->addError(e);
-                    return NULL;
-                }
-                return mt;
-            }
-        }
-
-        /* Not a simple type - check if it is a struct. */
-
-        Struct *temp_struct;
-
-        if ((temp_struct = ctx->getStruct(typs))) {
-            std::string fqsn;
-            bool b = ctx->setFullyQualifiedStructName(typs, &fqsn);
-            assert(b && "unable to set struct name");
-            _unused(b);
-            return ctx->tr->getStructType(fqsn);
-        }
-
-        Error *err = new Error(TypeNotInScope, node, typs);
-        ctx->er->addError(err);
-        return NULL;
+        return parseTypeToken(units, node);
     }
 
     /* If here, node is a list node. Try for a macro call. */
