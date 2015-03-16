@@ -395,48 +395,16 @@ FormFunctionParse(Units *units, Node *node, const char *name,
                           is_anonymous, lv_return_value);
     units->top()->popGlobalFunction();
 
-    if (!strcmp(name, "main")
-            && ctx->getVariable("stdin")
-            && ctx->getVariable("stdout")
-            && ctx->getVariable("stderr")) {
-
-        std::vector<llvm::Value *> call_args;
-        std::vector<Type *> tempparams;
-        Function *ic =
-            ctx->getFunction("init-channels", &tempparams,
-                             NULL, 0);
-        assert(ic && ic->llvm_function &&
-               "cannot find init-channels function");
-
-        llvm::Function::iterator i = fn->begin();
-        llvm::BasicBlock *b = i;
-
-        if (b->empty()) {
-            llvm::CallInst::Create(
-                ic->llvm_function,
-                llvm::ArrayRef<llvm::Value*>(call_args),
-                "",
-                b
-            );
-        } else {
-            llvm::Instruction *fnp = b->getFirstNonPHI();
-            if (fnp) {
-                llvm::CallInst::Create(
-                    ic->llvm_function,
-                    llvm::ArrayRef<llvm::Value*>(call_args),
-                    "",
-                    fnp
-                );
-            } else {
-                llvm::CallInst::Create(
-                    ic->llvm_function,
-                    llvm::ArrayRef<llvm::Value*>(call_args),
-                    "",
-                    b
-                );
-            }
-        }
-    }
+    /* Previously, the init-channels function was called at this
+     * point, if it was present and the current function's name was
+     * 'main'.  That function initialised stdin, stdout, and stderr by
+     * calling fdopen.  However, that isn't safe: for example,
+     * interleaved calls to printf and puts would yield
+     * incorrectly-ordered output when fully buffered.  Consequently,
+     * init-channels has been removed, and the compiler depends on the
+     * handles being present as variables and preinitialised.  This is
+     * likely not true for all platforms, given that it isn't required
+     * by the C standard. */
 
     ctx->deactivateNamespace(anon_name2.c_str());
 

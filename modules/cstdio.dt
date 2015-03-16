@@ -52,23 +52,6 @@ The standard error handle.
   (fn extern-c (p file) ((fd int) (mode (p (const char))))))
 
 #|
-@fn init-channels
-
-This function is used implicitly by the compiler to initialise
-`stdin`, `stdout` and `stderr`.  Previously, it would set those
-handles by using `fdopen`.  However, this isn't safe: for example,
-interleaved calls to `printf` and `puts` would yield
-incorrectly-ordered output when fully buffered.  Consequently, this
-depends on those handles being present as variables and already set.
-This is likely not true for all platforms, given that the C standard
-does not require the same.
-
-|#
-(def init-channels
-  (fn extern int (void)
-    0))
-
-#|
 @enum buffer-mode
 |#
 (def buffer-mode
