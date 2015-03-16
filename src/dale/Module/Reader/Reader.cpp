@@ -54,6 +54,8 @@
 
 #include <unistd.h>
 
+using namespace dale::ErrorInst;
+
 namespace dale
 {
 namespace Module
@@ -247,12 +249,8 @@ Reader::run(Context *ctx, llvm::Module *mod, Node *n, const char *my_module_name
             .append(".dtm");
             test = fopen(whole_name.c_str(), "r");
             if (!test) {
-                Error *e = new Error(
-                    ErrorInst::FileError,
-                    n,
-                    whole_name.c_str(),
-                    strerror(errno)
-                );
+                Error *e = new Error(FileError, n, whole_name.c_str(),
+                                     strerror(errno));
                 ctx->er->addError(e);
                 return 0;
             }
@@ -428,12 +426,8 @@ Reader::run(Context *ctx, llvm::Module *mod, Node *n, const char *my_module_name
             std::string temp_mod_name(real_module_name);
             // Get rid of "^lib".
             temp_mod_name.replace(0, 3, "");
-            Error *e = new Error(
-                ErrorInst::ModuleDoesNotProvideForms,
-                n,
-                temp_mod_name.c_str(),
-                all.c_str()
-            );
+            Error *e = new Error(ModuleDoesNotProvideForms, n,
+                                 temp_mod_name.c_str(), all.c_str());
             ctx->er->addError(e);
             return 0;
         }

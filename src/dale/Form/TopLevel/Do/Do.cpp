@@ -16,7 +16,7 @@ FormTopLevelDoParse(Units *units, Node *node)
     std::vector<Node *> *lst = node->list;
 
     if (lst->size() < 2) {
-        Error *e = new Error(ErrorInst::NoEmptyDo, node);
+        Error *e = new Error(NoEmptyDo, node);
         ctx->er->addError(e);
         return false;
     }

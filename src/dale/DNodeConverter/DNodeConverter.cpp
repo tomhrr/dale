@@ -3,6 +3,8 @@
 #include <cstring>
 #include "../Utils/Utils.h"
 
+using namespace dale::ErrorInst;
+
 namespace dale
 {
 DNodeConverter::DNodeConverter(ErrorReporter *er)
@@ -46,10 +48,7 @@ DNodeConverter::numberAtomToNode(DNode *dnode, Node *error_node)
 
     if (strchr(dnode->token_str, '.')) {
         if (!isSimpleFloat(dnode->token_str)) {
-            Error *e = new Error(
-                ErrorInst::InvalidFloatingPointNumber,
-                n
-            );
+            Error *e = new Error(InvalidFloatingPointNumber, n);
             delete token;
             er->addError(e);
             return NULL;
@@ -58,10 +57,7 @@ DNodeConverter::numberAtomToNode(DNode *dnode, Node *error_node)
         }
     } else {
         if (!isSimpleInt(dnode->token_str)) {
-            Error *e = new Error(
-                ErrorInst::InvalidInteger,
-                n
-            );
+            Error *e = new Error(InvalidInteger, n);
             delete token;
             er->addError(e);
             return NULL;
@@ -111,10 +107,7 @@ Node*
 DNodeConverter::atomToNode(DNode *dnode, Node *error_node)
 {
     if (!dnode->token_str || (strlen(dnode->token_str) == 0)) {
-        Error *e = new Error(
-            ErrorInst::DNodeHasNoString,
-            error_node
-        );
+        Error *e = new Error(DNodeHasNoString, error_node);
         er->addError(e);
         return NULL;
     }
@@ -163,10 +156,7 @@ DNodeConverter::toNode(DNode *dnode)
     } else if (dnode->is_list) {
         return listToNode(dnode);
     } else {
-        Error *e = new Error(
-            ErrorInst::DNodeIsNeitherTokenNorList,
-            &error_node
-        );
+        Error *e = new Error(DNodeIsNeitherTokenNorList, &error_node);
         er->addError(e);
         return NULL;
     }

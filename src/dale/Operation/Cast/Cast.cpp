@@ -2,6 +2,8 @@
 
 #include "../../ErrorType/ErrorType.h"
 
+using namespace dale::ErrorInst;
+
 namespace dale
 {
 namespace Operation
@@ -18,13 +20,11 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
     STL::push_back2(&two_zero_indices,
                     ctx->nt->getLLVMZero(), ctx->nt->getLLVMZero());
 
-    llvm::Type *llvm_from_type =
-        ctx->toLLVMType(from_type, NULL, false);
+    llvm::Type *llvm_from_type = ctx->toLLVMType(from_type, NULL, false);
     if (!llvm_from_type) {
         return false;
     }
-    llvm::Type *llvm_to_type =
-        ctx->toLLVMType(to_type, NULL, false);
+    llvm::Type *llvm_to_type = ctx->toLLVMType(to_type, NULL, false);
     if (!llvm_to_type) {
         return false;
     }
@@ -173,10 +173,7 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
         from_type->toString(&fts);
         to_type->toString(&tts);
 
-        Error *e = new Error(
-            ErrorInst::InvalidCast, n,
-            fts.c_str(), tts.c_str()
-        );
+        Error *e = new Error(InvalidCast, n, fts.c_str(), tts.c_str());
         ctx->er->addError(e);
         return false;
     }

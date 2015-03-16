@@ -3,6 +3,8 @@
 #include "../llvm_LinkAll.h"
 #include "../Utils/Utils.h"
 
+using namespace dale::ErrorInst;
+
 namespace dale
 {
 Context::Context(void)
@@ -116,22 +118,16 @@ bool
 Context::deactivateNamespace(const char *name)
 {
     if (strcmp(name, active_ns_nodes.back()->ns->name.c_str())) {
-        Error *e = new Error(
-            ErrorInst::CannotDeactivateInactiveNamespace,
-            nullNode(),
-            name
-        );
+        Error *e = new Error(CannotDeactivateInactiveNamespace,
+                             nullNode(), name);
         er->addError(e);
         return false;
     }
 
     if (strcmp(name, used_ns_nodes.back()->ns->name.c_str())) {
         used_ns_nodes.back()->ns->print();
-        Error *e = new Error(
-            ErrorInst::CannotDeactivateNonLastNamespace,
-            nullNode(),
-            name
-        );
+        Error *e = new Error(CannotDeactivateNonLastNamespace,
+                             nullNode(), name);
         er->addError(e);
         return false;
     }
@@ -1165,11 +1161,8 @@ Context::toLLVMType_(Type *type,
 
     std::string type_str;
     type->toString(&type_str);
-    Error *e = new Error(
-        ErrorInst::UnableToConvertTypeToLLVMType,
-        (n ? n : nullNode()),
-        type_str.c_str()
-    );
+    Error *e = new Error(UnableToConvertTypeToLLVMType,
+                         (n ? n : nullNode()), type_str.c_str());
     er->addError(e);
 
     return NULL;
@@ -1196,10 +1189,8 @@ Context::toLLVMType(Type *type,
                 if (((structp->linkage == StructLinkage::Opaque)
                         || (structp->member_types.size() == 0))
                         && !externally_defined) {
-                    Error *e = new Error(
-                        ErrorInst::CannotInstantiateOpaqueStruct,
-                        (n ? n : nullNode())
-                    );
+                    Error *e = new Error(CannotInstantiateOpaqueStruct,
+                                         (n ? n : nullNode()));
                     er->addError(e);
                     return NULL;
                 }
@@ -1225,11 +1216,8 @@ Context::toLLVMType(Type *type,
         }
         std::string temp;
         type->toString(&temp);
-        Error *e = new Error(
-            ErrorInst::TypeIsNotFirstClass,
-            (n ? n : nullNode()),
-            temp.c_str()
-        );
+        Error *e = new Error(TypeIsNotFirstClass, (n ? n : nullNode()),
+                             temp.c_str());
         er->addError(e);
         return NULL;
     }
