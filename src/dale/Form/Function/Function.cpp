@@ -16,6 +16,32 @@ using namespace dale::ErrorInst::Generator;
 
 namespace dale
 {
+bool
+parseFunctionAttributes(Context *ctx, std::vector<Node *> *attr_list,
+                        bool *always_inline, bool *cto)
+{
+    for (std::vector<Node*>::iterator b = (attr_list->begin() + 1),
+                                      e = attr_list->end();
+            b != e;
+            ++b) {
+        if ((*b)->is_list) {
+            Error *e = new Error(InvalidAttribute, (*b));
+            ctx->er->addError(e);
+            return false;
+        }
+        if (!((*b)->token->str_value.compare("inline"))) {
+            *always_inline = true;
+        } else if (!((*b)->token->str_value.compare("cto"))) {
+            *cto = true;
+        } else {
+            Error *e = new Error(InvalidAttribute, (*b));
+            ctx->er->addError(e);
+            return false;
+        }
+    }
+    return true;
+}
+
 bool 
 FormFunctionParse(Units *units, Node *node, const char *name,
                   Function **new_fn, int override_linkage,
@@ -63,27 +89,11 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     Node *test = ((*lst)[next_index]);
     if (test->is_list
             && test->list->at(0)->is_token
-            && !(test->list->at(0)->token
-                 ->str_value.compare("attr"))) {
-        std::vector<Node *> *attr_list = test->list;
-        std::vector<Node*>::iterator b = attr_list->begin(),
-                                     e = attr_list->end();
-        ++b;
-        for (; b != e; ++b) {
-            if ((*b)->is_list) {
-                Error *e = new Error(InvalidAttribute, (*b));
-                ctx->er->addError(e);
-                return false;
-            }
-            if (!((*b)->token->str_value.compare("inline"))) {
-                always_inline = true;
-            } else if (!((*b)->token->str_value.compare("cto"))) {
-                my_cto = true;
-            } else {
-                Error *e = new Error(InvalidAttribute, (*b));
-                ctx->er->addError(e);
-                return false;
-            }
+            && !(test->list->at(0)->token->str_value.compare("attr"))) {
+        bool res = parseFunctionAttributes(ctx, test->list,
+                                           &always_inline, &my_cto);
+        if (!res) {
+            return false;
         }
         ++next_index;
     }
@@ -392,7 +402,7 @@ FormFunctionParse(Units *units, Node *node, const char *name,
 
     units->top()->pushGlobalFunction(dfn);
     FormProcBodyParse(units, node, dfn, fn, (next_index + 2),
-                          is_anonymous, lv_return_value);
+                      is_anonymous, lv_return_value);
     units->top()->popGlobalFunction();
 
     /* Previously, the init-channels function was called at this
