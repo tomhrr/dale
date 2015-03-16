@@ -816,7 +816,7 @@ struct_2D_member_2D_name(MContext *mc, DNode *name, int index)
     if ((int) st->member_types.size() < index) {
         return NULL;
     }
-    return st->indexToMember(index);
+    return st->indexToName(index);
 }
 
 int

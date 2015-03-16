@@ -57,7 +57,7 @@ FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
         }
 
         const char *name = name_node->token->str_value.c_str();
-        Type *type = st->memberToType(name);
+        Type *type = st->nameToType(name);
         if (!type) {
             Error *e = new Error(FieldDoesNotExistInStruct,
                                  name_node, name, struct_name);
@@ -65,7 +65,7 @@ FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
             return false;
         }
 
-        int index = st->memberToIndex(name);
+        int index = st->nameToIndex(name);
 
         std::vector<llvm::Value *> indices;
         STL::push_back2(&indices, ctx->nt->getLLVMZero(),

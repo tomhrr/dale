@@ -12,7 +12,7 @@ nameToIndex(Context *ctx,
     Struct *st = ctx->getStruct(type);
     assert(st);
 
-    int index = st->memberToIndex(member_name);
+    int index = st->nameToIndex(member_name);
     assert(index != -1);
 
     return index;

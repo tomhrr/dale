@@ -106,7 +106,7 @@ FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     const char *member_name = member_node->token->str_value.c_str();
-    int index = st->memberToIndex(member_name);
+    int index = st->nameToIndex(member_name);
 
     if (index == -1) {
         Error *e = new Error(FieldDoesNotExistInStruct,

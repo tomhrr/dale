@@ -233,7 +233,7 @@ isFunctionObject(Context *ctx, ParseResult *pr)
         Struct *st = ctx->getStruct(inner_type->struct_name.c_str(),
                                     &(inner_type->namespaces));
         if (st) {
-            Type *apply = st->memberToType("apply");
+            Type *apply = st->nameToType("apply");
             if (apply
                     && apply->points_to
                     && apply->points_to->is_function) {
@@ -257,7 +257,7 @@ parseFunctionObjectCall(Units *units, Function *fn, llvm::BasicBlock *block,
     Type *try_fp_inner_type = try_fp->type->points_to;
     Struct *st = ctx->getStruct(try_fp_inner_type->struct_name.c_str(),
                                 &(try_fp_inner_type->namespaces));
-    Type *apply = st->memberToType("apply");
+    Type *apply = st->nameToType("apply");
 
     /* The first argument of this function must be a pointer to this
      * particular struct type. */
@@ -280,7 +280,7 @@ parseFunctionObjectCall(Units *units, Function *fn, llvm::BasicBlock *block,
     STL::push_back2(&indices,
                     ctx->nt->getLLVMZero(),
                     ctx->nt->getNativeInt(
-                        st->memberToIndex("apply")));
+                        st->nameToIndex("apply")));
 
     llvm::IRBuilder<> builder(block);
     llvm::Value *res =

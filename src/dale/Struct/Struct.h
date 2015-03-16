@@ -26,7 +26,7 @@ public:
     /* The types of the struct's members. */
     std::vector<Type *> member_types;
     /* A map from member name to index. */
-    std::map<std::string, int> member_to_index;
+    std::map<std::string, int> name_to_index;
     /* The struct's once tag. */
     std::string once_tag;
     /* The struct's linkage. */
@@ -56,13 +56,13 @@ public:
      *
      *  Returns null if no member with the given name exists.
      */
-    Type* memberToType(const char *name);
+    Type* nameToType(const char *name);
     /*! Get the index of a given member.
      *  @param name The member's name.
      *
      *  Returns -1 if no member with the given name exists.
      */
-    int memberToIndex(const char *name);
+    int nameToIndex(const char *name);
     /*! Get the type at a given index.
      *  @param index The index.
      *
@@ -74,7 +74,7 @@ public:
      *
      *  Returns null if no member with the given name exists.
      */
-    const char *indexToMember(int index);
+    const char *indexToName(int index);
 };
 }
 

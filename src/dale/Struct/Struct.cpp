@@ -19,11 +19,11 @@ Struct::~Struct()
 bool
 Struct::addMember(const char *name, Type *type)
 {
-    if (memberToType(name)) {
+    if (nameToType(name)) {
         return false;
     }
 
-    member_to_index.insert(
+    name_to_index.insert(
         std::pair<std::string, int>(name, member_types.size())
     );
 
@@ -33,9 +33,9 @@ Struct::addMember(const char *name, Type *type)
 }
 
 Type *
-Struct::memberToType(const char *name)
+Struct::nameToType(const char *name)
 {
-    int index = memberToIndex(name);
+    int index = nameToIndex(name);
 
     return (index == -1) ? NULL : member_types[index];
 }
@@ -47,12 +47,12 @@ Struct::indexToType(int index)
 }
 
 int
-Struct::memberToIndex(const char *name)
+Struct::nameToIndex(const char *name)
 {
     std::map<std::string, int>::iterator iter =
-        member_to_index.find(name);
+        name_to_index.find(name);
 
-    if (iter == member_to_index.end()) {
+    if (iter == name_to_index.end()) {
         return -1;
     } else {
         return iter->second;
@@ -60,12 +60,12 @@ Struct::memberToIndex(const char *name)
 }
 
 const char *
-Struct::indexToMember(int index)
+Struct::indexToName(int index)
 {
     std::map<std::string, int>::iterator iter;
 
-    iter = member_to_index.begin();
-    while (iter != member_to_index.end()) {
+    iter = name_to_index.begin();
+    while (iter != name_to_index.end()) {
         if (iter->second == index) {
             return iter->first.c_str();
         }

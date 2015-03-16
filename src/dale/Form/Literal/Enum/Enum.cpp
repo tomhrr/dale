@@ -21,12 +21,12 @@ FormLiteralEnumParse(Units *units, llvm::BasicBlock *block, Node *node,
     }
 
     const char *member_name = node->token->str_value.c_str();
-    if (!enum_obj->existsMember(member_name)) {
+    if (!enum_obj->existsName(member_name)) {
         Error *e = new Error(EnumValueDoesNotExist, node, member_name);
         ctx->er->addError(e);
         return false;
     }
-    int member_index = enum_obj->memberToIndex(member_name);
+    int member_index = enum_obj->nameToIndex(member_name);
 
     llvm::IRBuilder<> builder(block);
     llvm::Value *storage =
