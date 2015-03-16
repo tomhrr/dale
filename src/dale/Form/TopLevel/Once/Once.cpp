@@ -8,42 +8,40 @@
 #include "../../Type/Type.h"
 #include "../../ProcBody/ProcBody.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 bool
-FormTopLevelOnceParse(Units *units,
-           Node *top)
+FormTopLevelOnceParse(Units *units, Node *node)
 {
     Context *ctx = units->top()->ctx;
 
-    if (!ctx->er->assertArgNums("once", top, 1, 1)) {
+    if (!ctx->er->assertArgNums("once", node, 1, 1)) {
         return false;
     }
-    std::vector<Node *> *lst = top->list;
-    Node *n = (*lst)[1];
-    n = units->top()->mp->parsePotentialMacroCall(n);
-    if (!n) {
+    std::vector<Node *> *lst = node->list;
+    Node *once_tag_node = (*lst)[1];
+    once_tag_node = units->top()->mp->parsePotentialMacroCall(once_tag_node);
+    if (!once_tag_node) {
         return false;
     }
-    if (!ctx->er->assertArgIsAtom("once", n, "1")) {
+    if (!ctx->er->assertArgIsAtom("once", once_tag_node, "1")) {
         return false;
     }
-    const char *once_name = n->token->str_value.c_str();
+    const char *once_name = once_tag_node->token->str_value.c_str();
     std::string once_tag(once_name);
 
     if (units->mr->included_once_tags.find(once_tag) !=
             units->mr->included_once_tags.end()) {
         if (units->size() == 1) {
-            Error *e = new Error(
-                ErrorInst::Generator::CannotOnceTheLastOpenFile,
-                n
-            );
+            Error *e = new Error(CannotOnceTheLastOpenFile, once_tag_node);
             ctx->er->addError(e);
             return false;
         }
         units->pop();
         Unit *unit = units->top();
-        units->top()->ctx    = unit->ctx;
+        units->top()->ctx = unit->ctx;
         units->top()->once_tag.clear();
         units->top()->once_tag = unit->once_tag;
     }

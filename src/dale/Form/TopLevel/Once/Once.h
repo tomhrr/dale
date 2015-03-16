@@ -5,9 +5,11 @@
 
 namespace dale
 {
-bool
-FormTopLevelOnceParse(Units *units,
-           Node *node);
+/*! Parse a top-level once form.
+ *  @param units The units context.
+ *  @param node The node containing the once form.
+ */
+bool FormTopLevelOnceParse(Units *units, Node *node);
 }
 
 #endif
