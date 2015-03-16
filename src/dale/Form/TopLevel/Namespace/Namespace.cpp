@@ -6,8 +6,7 @@
 namespace dale
 {
 bool
-FormTopLevelNamespaceParse(Units *units,
-           Node *node)
+FormTopLevelNamespaceParse(Units *units, Node *node)
 {
     Context *ctx = units->top()->ctx;
 
@@ -16,39 +15,32 @@ FormTopLevelNamespaceParse(Units *units,
     }
 
     std::vector<Node *> *lst = node->list;
-    Node *n = (*lst)[1];
-    n = units->top()->mp->parsePotentialMacroCall(n);
-    if (!n) {
+    Node *ns_node = (*lst)[1];
+    ns_node = units->top()->mp->parsePotentialMacroCall(ns_node);
+    if (!ns_node) {
         return false;
     }
-    if (!ctx->er->assertArgIsAtom("namespace", n, "1")) {
+    if (!ctx->er->assertArgIsAtom("namespace", ns_node, "1")) {
         return false;
     }
-    if (!ctx->er->assertAtomIsSymbol("namespace", n, "1")) {
+    if (!ctx->er->assertAtomIsSymbol("namespace", ns_node, "1")) {
         return false;
     }
 
-    Token *t = n->token;
+    const char *ns_name = ns_node->token->str_value.c_str();
+    bool res = ctx->activateNamespace(ns_name);
+    assert(res && "cannot activate namespace");
+    _unused(res);
 
-    int success = ctx->activateNamespace(t->str_value.c_str());
-    assert(success && "cannot activate namespace");
-    _unused(success);
-
-    std::vector<Node *>::iterator symlist_iter;
-    symlist_iter = lst->begin();
-
-    /* Skip the namespace token and the name token/form. */
-
-    ++symlist_iter;
-    ++symlist_iter;
-
-    while (symlist_iter != lst->end()) {
-        FormTopLevelInstParse(units, (*symlist_iter));
+    for (std::vector<Node *>::iterator b = (lst->begin() + 2),
+                                       e = lst->end();
+            b != e;
+            ++b) {
+        FormTopLevelInstParse(units, (*b));
         ctx->er->flush();
-        ++symlist_iter;
     }
 
-    ctx->deactivateNamespace(t->str_value.c_str());
+    ctx->deactivateNamespace(ns_name);
 
     return true;
 }
