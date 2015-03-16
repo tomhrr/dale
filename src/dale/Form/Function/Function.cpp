@@ -42,6 +42,70 @@ parseFunctionAttributes(Context *ctx, std::vector<Node *> *attr_list,
     return true;
 }
 
+bool
+parseArguments(Units *units, Node *args_node,
+               std::vector<Variable *> *fn_args_internal)
+{
+    Context *ctx = units->top()->ctx;
+    std::vector<Node *> *args = args_node->list;
+
+    for (std::vector<Node *>::iterator b = args->begin(),
+                                       e = args->end();
+            b != e;
+            ++b) {
+        Variable *var = new Variable();
+        var->type = NULL;
+
+        FormArgumentParse(units, var, (*b), false, false, true);
+        if (var->type == NULL) {
+            delete var;
+            return false;
+        }
+
+        if (var->type->is_array) {
+            delete var;
+            Error *e = new Error(ArraysCannotBeFunctionParameters,
+                                 (*b));
+            ctx->er->addError(e);
+            return false;
+        }
+
+        if (var->type->base_type == BaseType::Void) {
+            delete var;
+            if (args->size() != 1) {
+                Error *e = new Error(VoidMustBeTheOnlyParameter,
+                                     args_node);
+                ctx->er->addError(e);
+                return false;
+            }
+            break;
+        }
+
+        if (var->type->base_type == BaseType::VarArgs) {
+            if ((args->end() - b) != 1) {
+                delete var;
+                Error *e = new Error(VarArgsMustBeLastParameter,
+                                     args_node);
+                ctx->er->addError(e);
+                return false;
+            }
+            fn_args_internal->push_back(var);
+            break;
+        }
+
+        if (var->type->is_function) {
+            delete var;
+            Error *e = new Error(NonPointerFunctionParameter, (*b));
+            ctx->er->addError(e);
+            return false;
+        }
+
+        fn_args_internal->push_back(var);
+    }
+
+    return true;
+}
+
 bool 
 FormFunctionParse(Units *units, Node *node, const char *name,
                   Function **new_fn, int override_linkage,
@@ -120,63 +184,15 @@ FormFunctionParse(Units *units, Node *node, const char *name,
         return false;
     }
 
-    std::vector<Node *> *args = args_node->list;
     std::vector<Variable *> fn_args_internal;
-
+    bool res = parseArguments(units, args_node, &fn_args_internal);
+    if (!res) {
+        return false;
+    }
     bool varargs = false;
-    for (std::vector<Node *>::iterator b = args->begin(),
-                                       e = args->end();
-            b != e;
-            ++b) {
-        Variable *var = new Variable();
-        var->type = NULL;
-
-        FormArgumentParse(units, var, (*b), false, false, true);
-        if (var->type == NULL) {
-            delete var;
-            return false;
-        }
-
-        if (var->type->is_array) {
-            delete var;
-            Error *e = new Error(ArraysCannotBeFunctionParameters,
-                                 (*b));
-            ctx->er->addError(e);
-            return false;
-        }
-
-        if (var->type->base_type == BaseType::Void) {
-            delete var;
-            if (args->size() != 1) {
-                Error *e = new Error(VoidMustBeTheOnlyParameter,
-                                     args_node);
-                ctx->er->addError(e);
-                return false;
-            }
-            break;
-        }
-
-        if (var->type->base_type == BaseType::VarArgs) {
-            if ((args->end() - b) != 1) {
-                delete var;
-                Error *e = new Error(VarArgsMustBeLastParameter,
-                                     args_node);
-                ctx->er->addError(e);
-                return false;
-            }
-            varargs = true;
-            fn_args_internal.push_back(var);
-            break;
-        }
-
-        if (var->type->is_function) {
-            delete var;
-            Error *e = new Error(NonPointerFunctionParameter, (*b));
-            ctx->er->addError(e);
-            return false;
-        }
-
-        fn_args_internal.push_back(var);
+    if (fn_args_internal.size()
+            && (fn_args_internal.back()->type->base_type == BaseType::VarArgs)) {
+        varargs = true;
     }
 
     std::vector<llvm::Type*> fn_args;
@@ -337,10 +353,10 @@ FormFunctionParse(Units *units, Node *node, const char *name,
         (*b)->value = llvm_arg;
     }
 
-    llvm::Value *lv_return_value = NULL;
+    llvm::Value *llvm_return_value = NULL;
     if (ret_type->is_retval) {
-        lv_return_value = llvm_arg_iter;
-        lv_return_value->setName("retval");
+        llvm_return_value = llvm_arg_iter;
+        llvm_return_value->setName("retval");
     }
 
     fn->llvm_function = llvm_fn;
@@ -360,11 +376,11 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     }
 
     ctx->activateAnonymousNamespace();
-    std::string anon_name2 = ctx->ns()->name;
+    anon_name = ctx->ns()->name;
 
     units->top()->pushGlobalFunction(fn);
     FormProcBodyParse(units, node, fn, llvm_fn, (next_index + 2),
-                      is_anonymous, lv_return_value);
+                      is_anonymous, llvm_return_value);
     units->top()->popGlobalFunction();
 
     /* Previously, the init-channels function was called at this
@@ -378,7 +394,7 @@ FormFunctionParse(Units *units, Node *node, const char *name,
      * likely not true for all platforms, given that it isn't required
      * by the C standard. */
 
-    ctx->deactivateNamespace(anon_name2.c_str());
+    ctx->deactivateNamespace(anon_name.c_str());
 
     return true;
 }
