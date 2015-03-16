@@ -12,62 +12,51 @@
 #include "../../llvm_Function.h"
 #include "Config.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 bool 
-FormFunctionParse(Units *units,
-      Node *n,
-      const char *name,
-      Function **new_function,
-      int override_linkage,
-      int is_anonymous)
+FormFunctionParse(Units *units, Node *node, const char *name,
+                  Function **new_fn, int override_linkage,
+                  bool is_anonymous)
 {
     Context *ctx = units->top()->ctx;
 
     if (!name) {
-        Node *name_node = (*(n->list))[1];
+        Node *name_node = (*(node->list))[1];
         name = name_node->token->str_value.c_str();
-        n = (*(n->list))[2];
+        node = (*(node->list))[2];
     }
 
     if (!is_anonymous) {
         units->prefunction_ns = ctx->ns();
     }
 
-    /* Ensure this isn't a no-override core form. */
     if (CoreForms::existsNoOverride(name)) {
-        Error *e = new Error(
-            ErrorInst::Generator::ThisCoreFormCannotBeOverridden,
-            n
-        );
+        Error *e = new Error(ThisCoreFormCannotBeOverridden, node);
         ctx->er->addError(e);
         return false;
     }
 
-    std::vector<Node *> *lst = n->list;
+    std::vector<Node *> *lst = node->list;
 
     if (lst->size() < 4) {
-        Error *e = new Error(
-            ErrorInst::Generator::IncorrectMinimumNumberOfArgs,
-            n,
-            "fn", "3"
-        );
-        char buf[100];
-        sprintf(buf, "%d", (int) lst->size() - 1);
-        e->addArgString(buf);
+        Error *e = new Error(IncorrectMinimumNumberOfArgs, node, "fn",
+                             "3", (lst->size() - 1));
         ctx->er->addError(e);
         return false;
     }
 
     int next_index = 1;
-    int always_inline = 0;
-    /* Whole modules, as well as specific functions, can be
-     * declared as being compile-time-only. If the global cto
-     * value is set to one, that overrides a zero value here.
-     * However, a global cto value of zero does not take
-     * precedence when a function has explicitly declared that it
-     * should be CTO. */
-    int my_cto = 0;
+    bool always_inline = false;
+    bool my_cto = false;
+
+    /* Whole modules, as well as specific functions, can be declared
+     * compile-time-only. If the global CTO value is true, that
+     * overrides a zero value here.  However, a false global CTO value
+     * does not take precedence when a function has explicitly
+     * declared that it should be CTO. */
 
     /* Function attributes. */
 
@@ -82,22 +71,16 @@ FormFunctionParse(Units *units,
         ++b;
         for (; b != e; ++b) {
             if ((*b)->is_list) {
-                Error *e = new Error(
-                    ErrorInst::Generator::InvalidAttribute,
-                    (*b)
-                );
+                Error *e = new Error(InvalidAttribute, (*b));
                 ctx->er->addError(e);
                 return false;
             }
             if (!((*b)->token->str_value.compare("inline"))) {
-                always_inline = 1;
+                always_inline = true;
             } else if (!((*b)->token->str_value.compare("cto"))) {
-                my_cto = 1;
+                my_cto = true;
             } else {
-                Error *e = new Error(
-                    ErrorInst::Generator::InvalidAttribute,
-                    (*b)
-                );
+                Error *e = new Error(InvalidAttribute, (*b));
                 ctx->er->addError(e);
                 return false;
             }
@@ -106,15 +89,15 @@ FormFunctionParse(Units *units,
     }
 
     if (units->cto) {
-        my_cto = 1;
+        my_cto = true;
     }
 
     /* Linkage. */
 
     int linkage =
         (override_linkage)
-        ? override_linkage
-        : FormLinkageParse(ctx, (*lst)[next_index]);
+            ? override_linkage
+            : FormLinkageParse(ctx, (*lst)[next_index]);
 
     if (!linkage) {
         return false;
@@ -134,11 +117,8 @@ FormFunctionParse(Units *units,
     Node *nargs = (*lst)[next_index + 1];
 
     if (!nargs->is_list) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement,
-            nargs,
-            "list", "parameters", "symbol"
-        );
+        Error *e = new Error(UnexpectedElement, nargs,
+                             "list", "parameters", "symbol");
         ctx->er->addError(e);
         return false;
     }
@@ -157,11 +137,14 @@ FormFunctionParse(Units *units,
 
     bool varargs = false;
 
-    while (node_iter != args->end()) {
+    for (std::vector<Node *>::iterator b = args->begin(),
+                                       e = args->end();
+            b != e;
+            ++b) {
         var = new Variable();
         var->type = NULL;
 
-        FormArgumentParse(units, var, (*node_iter), false, false, true);
+        FormArgumentParse(units, var, (*b), false, false, true);
         if (var->type == NULL) {
             delete var;
             return false;
@@ -169,10 +152,8 @@ FormFunctionParse(Units *units,
 
         if (var->type->is_array) {
             delete var;
-            Error *e = new Error(
-                ErrorInst::Generator::ArraysCannotBeFunctionParameters,
-                (*node_iter)
-            );
+            Error *e = new Error(ArraysCannotBeFunctionParameters,
+                                 (*b));
             ctx->er->addError(e);
             return false;
         }
@@ -180,24 +161,19 @@ FormFunctionParse(Units *units,
         if (var->type->base_type == BaseType::Void) {
             delete var;
             if (args->size() != 1) {
-                Error *e = new Error(
-                    ErrorInst::Generator::VoidMustBeTheOnlyParameter,
-                    nargs
-                );
+                Error *e = new Error(VoidMustBeTheOnlyParameter,
+                                     nargs);
                 ctx->er->addError(e);
                 return false;
             }
             break;
         }
 
-        /* Have to check that none comes after this. */
         if (var->type->base_type == BaseType::VarArgs) {
-            if ((args->end() - node_iter) != 1) {
+            if ((args->end() - b) != 1) {
                 delete var;
-                Error *e = new Error(
-                    ErrorInst::Generator::VarArgsMustBeLastParameter,
-                    nargs
-                );
+                Error *e = new Error(VarArgsMustBeLastParameter,
+                                     nargs);
                 ctx->er->addError(e);
                 return false;
             }
@@ -208,17 +184,12 @@ FormFunctionParse(Units *units,
 
         if (var->type->is_function) {
             delete var;
-            Error *e = new Error(
-                ErrorInst::Generator::NonPointerFunctionParameter,
-                (*node_iter)
-            );
+            Error *e = new Error(NonPointerFunctionParameter, (*b));
             ctx->er->addError(e);
             return false;
         }
 
         fn_args_internal->push_back(var);
-
-        ++node_iter;
     }
 
     std::vector<llvm::Type*> fn_args;
@@ -270,10 +241,8 @@ FormFunctionParse(Units *units,
         return false;
     }
     if (r_type->is_array) {
-        Error *e = new Error(
-            ErrorInst::Generator::ReturnTypesCannotBeArrays,
-            (*lst)[next_index]
-        );
+        Error *e = new Error(ReturnTypesCannotBeArrays,
+                             (*lst)[next_index]);
         ctx->er->addError(e);
         return false;
     }
@@ -330,10 +299,8 @@ FormFunctionParse(Units *units,
 
     if (dfn->is_setf_fn) {
         if (!r_type->isEqualTo(ctx->tr->type_bool)) {
-            Error *e = new Error(
-                ErrorInst::Generator::SetfOverridesMustReturnBool,
-                (*lst)[return_type_index]
-            );
+            Error *e = new Error(SetfOverridesMustReturnBool,
+                                 (*lst)[return_type_index]);
             ctx->er->addError(e);
             return false;
         }
@@ -348,20 +315,14 @@ FormFunctionParse(Units *units,
             ctx->getFunction(new_name.c_str(), NULL,
                              NULL, 0);
         if (temp25 && !temp25->isEqualTo(dfn)) {
-            Error *e = new Error(
-                ErrorInst::Generator::RedeclarationOfFunctionOrMacro,
-                n,
-                name
-            );
+            Error *e = new Error(RedeclarationOfFunctionOrMacro,
+                                 node, name);
             ctx->er->addError(e);
             return false;
         }
         if (temp25 && !temp25->attrsAreEqual(dfn)) {
-            Error *e = new Error(
-                ErrorInst::Generator::AttributesOfDeclAndDefAreDifferent,
-                n,
-                name
-            );
+            Error *e = new Error(AttributesOfDeclAndDefAreDifferent,
+                                 node, name);
             ctx->er->addError(e);
             return false;
         }
@@ -385,11 +346,8 @@ FormFunctionParse(Units *units,
      * then it's an invalid redefinition. */
 
     if ((!fn) || (fn->size())) {
-        Error *e = new Error(
-            ErrorInst::Generator::RedeclarationOfFunctionOrMacro,
-            n,
-            name
-        );
+        Error *e = new Error(RedeclarationOfFunctionOrMacro,
+                             node, name);
         ctx->er->addError(e);
         return false;
     }
@@ -441,12 +399,12 @@ FormFunctionParse(Units *units,
 
     /* Add the function to the context. */
     dfn->llvm_function = fn;
-    if (!ctx->ns()->addFunction(name, dfn, n)) {
+    if (!ctx->ns()->addFunction(name, dfn, node)) {
         return false;
     }
 
-    if (new_function) {
-        *new_function = dfn;
+    if (new_fn) {
+        *new_fn = dfn;
     }
 
     /* If the list has only four arguments, function is a
@@ -460,7 +418,7 @@ FormFunctionParse(Units *units,
     std::string anon_name2 = ctx->ns()->name;
 
     units->top()->pushGlobalFunction(dfn);
-    FormProcBodyParse(units, n, dfn, fn, (next_index + 2),
+    FormProcBodyParse(units, node, dfn, fn, (next_index + 2),
                           is_anonymous, lv_return_value);
     units->top()->popGlobalFunction();
 
