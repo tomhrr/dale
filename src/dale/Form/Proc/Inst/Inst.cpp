@@ -230,8 +230,7 @@ isFunctionObject(Context *ctx, ParseResult *pr)
     if (inner_type && inner_type->struct_name.size()) {
         /* Struct must implement 'apply' to be considered a
          * function object. */
-        Struct *st = ctx->getStruct(inner_type->struct_name.c_str(),
-                                    &(inner_type->namespaces));
+        Struct *st = ctx->getStruct(inner_type);
         if (st) {
             Type *apply = st->nameToType("apply");
             if (apply
@@ -255,8 +254,7 @@ parseFunctionObjectCall(Units *units, Function *fn, llvm::BasicBlock *block,
     std::vector<Node *> *lst = n->list;
 
     Type *try_fp_inner_type = try_fp->type->points_to;
-    Struct *st = ctx->getStruct(try_fp_inner_type->struct_name.c_str(),
-                                &(try_fp_inner_type->namespaces));
+    Struct *st = ctx->getStruct(try_fp_inner_type);
     Type *apply = st->nameToType("apply");
 
     /* The first argument of this function must be a pointer to this

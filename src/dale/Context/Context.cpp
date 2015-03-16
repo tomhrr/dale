@@ -1106,9 +1106,7 @@ llvm::Type *
 Context::toLLVMTypeStruct(Type *type,
                           Node *n)
 {
-    Struct *st =
-        getStruct(type->struct_name.c_str(), &(type->namespaces));
-
+    Struct *st = getStruct(type);
     if (st) {
         assert(st->type && "found struct, but it does not have a type");
         return st->type;
