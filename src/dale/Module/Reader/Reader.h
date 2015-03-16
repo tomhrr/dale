@@ -19,8 +19,17 @@ namespace Module
 class Reader
 {
 private:
-    std::vector<const char*> *module_directory_paths; // mod_paths
-    std::set<std::string> cto_module_names; // cto_modules
+    std::vector<const char*> *module_directory_paths;
+    std::set<std::string> cto_module_names;
+    /*! Find the specified module.
+     *  @param lib_module_name The name of the module.
+     *  @param fh Storage for the file pointer.
+     *  @param prefix The path prefix for the module.
+     *
+     *  This will populate fh and prefix on success.
+     */
+    bool findModule(Context *ctx, Node *n, std::string *lib_module_name,
+                    FILE **fh, std::string *prefix);
 
 public:
     std::vector<std::string> *so_paths;
