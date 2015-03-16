@@ -4,20 +4,6 @@
 #include "../../../Node/Node.h"
 #include "../../../CoreForms/CoreForms.h"
 
-#include "../Namespace/Namespace.h"
-#include "../UsingNamespace/UsingNamespace.h"
-#include "../Include/Include.h"
-#include "../Import/Import.h"
-#include "../Do/Do.h"
-#include "../GlobalVariable/GlobalVariable.h"
-#include "../Function/Function.h"
-#include "../Struct/Struct.h"
-#include "../Macro/Macro.h"
-#include "../Enum/Enum.h"
-#include "../Def/Def.h"
-#include "../Once/Once.h"
-#include "../Module/Module.h"
-
 using namespace dale::ErrorInst;
 
 namespace dale

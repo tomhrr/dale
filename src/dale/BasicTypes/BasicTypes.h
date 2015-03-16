@@ -6,13 +6,7 @@
 #include "../ParseResult/ParseResult.h"
 #include "../Operation/Cast/Cast.h"
 
-#include "../llvm_LLVMContext.h"
 #include "../llvm_Module.h"
-#include "llvm/LinkAllPasses.h"
-#include "../llvm_Linker.h"
-#include "../llvm_Function.h"
-#include "llvm/PassManager.h"
-#include "../llvm_CallingConv.h"
 
 namespace dale
 {

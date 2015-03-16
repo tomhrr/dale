@@ -4,7 +4,6 @@
 #include "../Context/Context.h"
 #include "../NamespaceSavePoint/NamespaceSavePoint.h"
 
-#include <vector>
 #include <string>
 #include <map>
 
