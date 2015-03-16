@@ -393,7 +393,6 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
             && (!strcmp(t->str_value.c_str(), "array"))) {
         int size;
         bool res = FormLiteralArrayParse(units, fn, block, n,
-                                         "array literal",
                                          wanted_type, get_address,
                                          &size, pr);
         return res;

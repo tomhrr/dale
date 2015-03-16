@@ -44,7 +44,6 @@ FormProcArrayOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     int unused_size;
     return FormLiteralArrayParse(units, fn, block, data_node,
-                                 "array literal", array_type,
-                                 get_address, &unused_size, pr);
+                                 array_type, get_address, &unused_size, pr);
 }
 }
