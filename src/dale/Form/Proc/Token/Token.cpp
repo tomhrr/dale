@@ -2,7 +2,7 @@
 
 #include "../../Literal/Enum/Enum.h"
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale
 {

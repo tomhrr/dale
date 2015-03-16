@@ -5,7 +5,7 @@
 #include "../Argument/Argument.h"
 #include "../Literal/Integer/Integer.h"
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 static int anon_struct_count = 0;
 

@@ -154,8 +154,8 @@ Namespace::addFunction(const char *name,
                                          fn_pt_end)) {
                 Error *e = new Error(
                     ((fn->is_macro)
-                        ? ErrorInst::Generator::FunctionHasSameParamsAsMacro
-                        : ErrorInst::Generator::MacroHasSameParamsAsFunction),
+                        ? ErrorInst::FunctionHasSameParamsAsMacro
+                        : ErrorInst::MacroHasSameParamsAsFunction),
                     (n ? n : nullNode()),
                     name
                 );

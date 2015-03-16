@@ -10,348 +10,348 @@ errorInstanceToString(int error_instance)
 {
     const char *ret;
     switch (error_instance) {
-    case ErrorInst::Lexer::Null:
+    case ErrorInst::Null:
         ret = "Null";
         break;
-    case ErrorInst::Parser::ExpectedLeftParen:
+    case ErrorInst::ExpectedLeftParen:
         ret = "expected left parenthesis";
         break;
-    case ErrorInst::Parser::MissingLeftParen:
+    case ErrorInst::MissingLeftParen:
         ret = "missing left parenthesis";
         break;
-    case ErrorInst::Parser::MissingRightParen:
+    case ErrorInst::MissingRightParen:
         ret = "missing right parenthesis";
         break;
-    case ErrorInst::Lexer::UnterminatedStringLiteral:
+    case ErrorInst::UnterminatedStringLiteral:
         ret = "unterminated string literal";
         break;
-    case ErrorInst::Lexer::InvalidInteger:
+    case ErrorInst::InvalidInteger:
         ret = "invalid integer";
         break;
-    case ErrorInst::Lexer::InvalidFloatingPointNumber:
+    case ErrorInst::InvalidFloatingPointNumber:
         ret = "invalid floating point number";
         break;
-    case ErrorInst::Generator::CannotOnceTheLastOpenFile:
+    case ErrorInst::CannotOnceTheLastOpenFile:
         ret = "'once' cannot be used in the last open file";
         break;
-    case ErrorInst::Generator::OnlyListsAtTopLevel:
+    case ErrorInst::OnlyListsAtTopLevel:
         ret = "top level elements must be lists";
         break;
-    case ErrorInst::Generator::NoEmptyLists:
+    case ErrorInst::NoEmptyLists:
         ret = "lists cannot be empty";
         break;
-    case ErrorInst::Generator::FirstListElementMustBeAtom:
+    case ErrorInst::FirstListElementMustBeAtom:
         ret = "first list element must be atom";
         break;
-    case ErrorInst::Generator::FirstListElementMustBeSymbol:
+    case ErrorInst::FirstListElementMustBeSymbol:
         ret = "first list element must be symbol";
         break;
-    case ErrorInst::Generator::NoEmptyDo:
+    case ErrorInst::NoEmptyDo:
         ret = "'do' form must not be empty";
         break;
-    case ErrorInst::Generator::IncorrectNumberOfArgs:
+    case ErrorInst::IncorrectNumberOfArgs:
         ret = "'%s' requires %s arguments (got %s instead)";
         break;
-    case ErrorInst::Generator::IncorrectMinimumNumberOfArgs:
+    case ErrorInst::IncorrectMinimumNumberOfArgs:
         ret = "'%s' requires at least %s arguments "
               "(got %s instead)";
         break;
-    case ErrorInst::Generator::IncorrectMaximumNumberOfArgs:
+    case ErrorInst::IncorrectMaximumNumberOfArgs:
         ret = "'%s' takes at most %s arguments "
               "(got %s instead)";
         break;
-    case ErrorInst::Generator::IncorrectArgType:
+    case ErrorInst::IncorrectArgType:
         ret = "'%s' requires %s for argument %s (got %s instead)";
         break;
-    case ErrorInst::Generator::IncorrectSingleParameterType:
+    case ErrorInst::IncorrectSingleParameterType:
         ret = "single parameter type must be %s (got %s instead)";
         break;
-    case ErrorInst::Generator::IncorrectParameterTypeNumberOfArgs:
+    case ErrorInst::IncorrectParameterTypeNumberOfArgs:
         ret = "parameter type requires %s arguments "
               "(got %s instead)";
         break;
-    case ErrorInst::Generator::LabelNotInScope:
+    case ErrorInst::LabelNotInScope:
         ret = "label not in scope: '%s'";
         break;
-    case ErrorInst::Generator::TypeNotInScope:
+    case ErrorInst::TypeNotInScope:
         ret = "type not in scope: '%s'";
         break;
-    case ErrorInst::Generator::MacroNotInScope:
+    case ErrorInst::MacroNotInScope:
         ret = "macro not in scope: '%s'";
         break;
-    case ErrorInst::Generator::NamespaceNotInScope:
+    case ErrorInst::NamespaceNotInScope:
         ret = "namespace not in scope: '%s'";
         break;
-    case ErrorInst::Generator::OverloadedFunctionOrMacroNotInScope:
+    case ErrorInst::OverloadedFunctionOrMacroNotInScope:
         ret = "overloaded function/macro not in scope: '%s' "
               "(parameters are %s)";
         break;
-    case ErrorInst::Generator::OverloadedFunctionOrMacroNotInScopeWithClosest:
+    case ErrorInst::OverloadedFunctionOrMacroNotInScopeWithClosest:
         ret = "overloaded function/macro not in scope: '%s' "
               "(parameters are %s, closest candidate expects %s)";
         break;
-    case ErrorInst::Generator::NotInScope:
+    case ErrorInst::NotInScope:
         ret = "not in scope: '%s'";
         break;
-    case ErrorInst::Generator::VariableNotInScope:
+    case ErrorInst::VariableNotInScope:
         ret = "variable not in scope: '%s'";
         break;
-    case ErrorInst::Generator::UnexpectedElement:
+    case ErrorInst::UnexpectedElement:
         ret = "expected %s for %s (got %s instead)";
         break;
-    case ErrorInst::Generator::VoidMustBeTheOnlyParameter:
+    case ErrorInst::VoidMustBeTheOnlyParameter:
         ret = "'void' must be the only parameter";
         break;
-    case ErrorInst::Generator::VarArgsMustBeLastParameter:
+    case ErrorInst::VarArgsMustBeLastParameter:
         ret = "the varargs specifier must be the last parameter";
         break;
-    case ErrorInst::Generator::TypeNotAllowedInStruct:
+    case ErrorInst::TypeNotAllowedInStruct:
         ret = "'%s' fields are not allowed in structs";
         break;
-    case ErrorInst::Generator::CannotInitialiseExternVar:
+    case ErrorInst::CannotInitialiseExternVar:
         ret = "'extern' variables cannot be initialised";
         break;
-    case ErrorInst::Generator::InvalidType:
+    case ErrorInst::InvalidType:
         ret = "invalid type";
         break;
-    case ErrorInst::Generator::CannotParseLiteral:
+    case ErrorInst::CannotParseLiteral:
         ret = "parsing literals of type %s is not supported";
         break;
-    case ErrorInst::Generator::RedefinitionOfVariable:
+    case ErrorInst::RedefinitionOfVariable:
         ret = "variable '%s' has already been defined in "
               "this scope";
         break;
-    case ErrorInst::Generator::RedeclarationOfEnum:
+    case ErrorInst::RedeclarationOfEnum:
         ret = "enum '%s' has already been defined";
         break;
-    case ErrorInst::Generator::RedeclarationOfEnumElement:
+    case ErrorInst::RedeclarationOfEnumElement:
         ret = "enum element '%s' has already been defined";
         break;
-    case ErrorInst::Generator::RedeclarationOfStruct:
+    case ErrorInst::RedeclarationOfStruct:
         ret = "struct '%s' has already been defined in "
               "this scope";
         break;
-    case ErrorInst::Generator::RedeclarationOfLabel:
+    case ErrorInst::RedeclarationOfLabel:
         ret = "label '%s' has already been defined in "
               "this scope";
         break;
-    case ErrorInst::Generator::RedeclarationOfFunctionOrMacro:
+    case ErrorInst::RedeclarationOfFunctionOrMacro:
         ret = "function/macro '%s' has already been defined in "
               "this scope";
         break;
-    case ErrorInst::Generator::NonPointerFunctionParameter:
+    case ErrorInst::NonPointerFunctionParameter:
         ret = "all function parameters must be pointers to "
               "functions";
         break;
-    case ErrorInst::Generator::ExternCInNamespace:
+    case ErrorInst::ExternCInNamespace:
         ret = "functions with extern-c linkage cannot be "
               "defined within a namespace";
         break;
-    case ErrorInst::Generator::IncorrectType:
+    case ErrorInst::IncorrectType:
         ret = "expected expression with type %s (got type "
               "%s instead)";
         break;
-    case ErrorInst::Generator::IncorrectReturnType:
+    case ErrorInst::IncorrectReturnType:
         ret = "expected return expression with type %s (got type "
               "%s instead)";
         break;
-    case ErrorInst::Generator::CannotDereferenceNonPointer:
+    case ErrorInst::CannotDereferenceNonPointer:
         ret = "cannot dereference non-pointer (type is %s)";
         break;
-    case ErrorInst::Generator::CannotDereferenceVoidPointer:
+    case ErrorInst::CannotDereferenceVoidPointer:
         ret = "cannot dereference void pointer (type is %s)";
         break;
-    case ErrorInst::Generator::OverloadedFunctionAddressWithoutTypes:
+    case ErrorInst::OverloadedFunctionAddressWithoutTypes:
         ret = "cannot take address of overloaded function "
               "without also providing the function's types";
         break;
-    case ErrorInst::Generator::NoSuchFileOrDirectory:
+    case ErrorInst::NoSuchFileOrDirectory:
         ret = "%s: no such file or directory";
         break;
-    case ErrorInst::Generator::FileError:
+    case ErrorInst::FileError:
         ret = "%s: %s";
         break;
-    case ErrorInst::Generator::InvalidCast:
+    case ErrorInst::InvalidCast:
         ret = "unable to cast from type %s to type %s";
         break;
-    case ErrorInst::Generator::FieldDoesNotExistInStruct:
+    case ErrorInst::FieldDoesNotExistInStruct:
         ret = "field '%s' does not exist in struct %s";
         break;
-    case ErrorInst::Generator::EnumValueDoesNotExist:
+    case ErrorInst::EnumValueDoesNotExist:
         ret = "value '%s' does not exist for enum";
         break;
-    case ErrorInst::Generator::IfBranchesHaveDifferentTypes:
+    case ErrorInst::IfBranchesHaveDifferentTypes:
         ret = "'if' branches must have the same type "
               "(got %s and %s)";
         break;
-    case ErrorInst::Generator::OnlyVarAndStructPermitted:
+    case ErrorInst::OnlyVarAndStructPermitted:
         ret = "'def' within a function may only be used "
               "for var and struct forms";
         break;
         // this is very much a 'last resort' error.
-    case ErrorInst::Generator::UnableToParseForm:
+    case ErrorInst::UnableToParseForm:
         ret = "unable to parse form";
         break;
-    case ErrorInst::Generator::InvalidChar:
+    case ErrorInst::InvalidChar:
         ret = "'%s' is not a valid char literal";
         break;
-    case ErrorInst::Generator::TypeNotSupportedForMacro:
+    case ErrorInst::TypeNotSupportedForMacro:
         ret = "type %s cannot be used for macro parameters";
         break;
-    case ErrorInst::Generator::GotNullPointerFromMacroCall:
+    case ErrorInst::GotNullPointerFromMacroCall:
         ret = "macro '%s' returned a null pointer";
         break;
-    case ErrorInst::Generator::UnableToParseInteger:
+    case ErrorInst::UnableToParseInteger:
         ret = "unable to parse integer %s";
         break;
-    case ErrorInst::Generator::UnableToConvertTypeToLLVMType:
+    case ErrorInst::UnableToConvertTypeToLLVMType:
         ret = "unable to convert type %s to LLVM type";
         break;
-    case ErrorInst::Generator::DNodeHasNoString:
+    case ErrorInst::DNodeHasNoString:
         ret = "DNode returned by macro is an atom but "
               "has no string";
         break;
-    case ErrorInst::Generator::DNodeIsNeitherTokenNorList:
+    case ErrorInst::DNodeIsNeitherTokenNorList:
         ret = "DNode returned by macro is neither token "
               "nor list";
         break;
-    case ErrorInst::Generator::NodeIsNeitherTokenNorList:
+    case ErrorInst::NodeIsNeitherTokenNorList:
         ret = "internal node is neither token nor list";
         break;
-    case ErrorInst::Generator::TypeIsNotFirstClass:
+    case ErrorInst::TypeIsNotFirstClass:
         ret = "type %s cannot be used, because it is not "
               "a first-class type";
         break;
-    case ErrorInst::Generator::ExternalError:
+    case ErrorInst::ExternalError:
         ret = "%s";
         break;
-    case ErrorInst::Generator::NamespaceNotInContext:
+    case ErrorInst::NamespaceNotInContext:
         ret = "namespace '%s' does not exist in context";
         break;
-    case ErrorInst::Generator::CannotDeactivateInactiveNamespace:
+    case ErrorInst::CannotDeactivateInactiveNamespace:
         ret = "cannot deactivate inactive namespace '%s'";
         break;
-    case ErrorInst::Generator::CannotDeactivateNonLastNamespace:
+    case ErrorInst::CannotDeactivateNonLastNamespace:
         ret = "cannot deactivate namespace '%s'; it is not "
               "the most recently used namespace";
         break;
-    case ErrorInst::Generator::ArraysCannotBeFunctionParameters:
+    case ErrorInst::ArraysCannotBeFunctionParameters:
         ret = "arrays cannot be function parameters; use a "
               "pointer instead";
         break;
-    case ErrorInst::Generator::IncorrectNumberOfArrayElements:
+    case ErrorInst::IncorrectNumberOfArrayElements:
         ret = "incorrect number of array elements (got "
               "%s, expected %s)";
         break;
-    case ErrorInst::Generator::CanOnlyIndexIntoPointersAndArrays:
+    case ErrorInst::CanOnlyIndexIntoPointersAndArrays:
         ret = "can only index into pointers and arrays (type "
               "of value is %s)";
         break;
-    case ErrorInst::Generator::EnumTypeMustBeInteger:
+    case ErrorInst::EnumTypeMustBeInteger:
         ret = "enum types must be integers";
         break;
-    case ErrorInst::Generator::ExternCXorOtherLinkageForName:
+    case ErrorInst::ExternCXorOtherLinkageForName:
         ret = "cannot have extern-c function for name "
               "as well as extern/intern functions for "
               "name: %s";
         break;
-    case ErrorInst::Generator::ReturnTypesCannotBeArrays:
+    case ErrorInst::ReturnTypesCannotBeArrays:
         ret = "return types cannot be arrays (use a pointer "
               "instead)";
         break;
-    case ErrorInst::Generator::CannotTakeAddressOfNonLvalue:
+    case ErrorInst::CannotTakeAddressOfNonLvalue:
         ret = "cannot take address of non-lvalue";
         break;
-    case ErrorInst::Generator::FunctionNotInScope:
+    case ErrorInst::FunctionNotInScope:
         ret = "function not in scope: '%s' (parameters are %s, "
               "function expects %s)";
         break;
-    case ErrorInst::Generator::MustHaveInitialiserForImpliedType:
+    case ErrorInst::MustHaveInitialiserForImpliedType:
         ret = "must have initialiser for variable with implied "
               "type";
         break;
-    case ErrorInst::Generator::MustHaveInitialiserForConstType:
+    case ErrorInst::MustHaveInitialiserForConstType:
         ret = "must have initialiser for variable with const "
               "type";
         break;
-    case ErrorInst::Generator::MustHaveInitialiserForType:
+    case ErrorInst::MustHaveInitialiserForType:
         ret = "must have initialiser for variable of this type";
         break;
-    case ErrorInst::Generator::StructContainsPadding:
+    case ErrorInst::StructContainsPadding:
         ret = "struct contains padding, may cause problems";
         break;
-    case ErrorInst::Generator::NonNullPointerInGlobalStructDeclaration:
+    case ErrorInst::NonNullPointerInGlobalStructDeclaration:
         ret = "cannot have non-null non-char pointer value "
               "in global struct declaration";
         break;
-    case ErrorInst::Generator::TypeNotSupported:
+    case ErrorInst::TypeNotSupported:
         ret = "type %s is not supported on this platform";
         break;
-    case ErrorInst::Generator::ValueWillNeverBeNull:
+    case ErrorInst::ValueWillNeverBeNull:
         ret = "this value will never be null";
         break;
-    case ErrorInst::Generator::NoCoreFormNameInMacro:
+    case ErrorInst::NoCoreFormNameInMacro:
         ret = "core form names cannot be used as macro names";
         break;
-    case ErrorInst::Generator::ThisCoreFormCannotBeOverridden:
+    case ErrorInst::ThisCoreFormCannotBeOverridden:
         ret = "this core form cannot be overridden";
         break;
-    case ErrorInst::Generator::InvalidAttribute:
+    case ErrorInst::InvalidAttribute:
         ret = "invalid attribute";
         break;
-    case ErrorInst::Generator::AttributesOfDeclAndDefAreDifferent:
+    case ErrorInst::AttributesOfDeclAndDefAreDifferent:
         ret = "attributes for the declaration of function '%s' "
               "do not match the attributes for the definition";
         break;
-    case ErrorInst::Generator::ApplyMustTakePointerToStructAsFirstArgument:
+    case ErrorInst::ApplyMustTakePointerToStructAsFirstArgument:
         ret = "the 'apply' function must take a pointer to "
               "the relevant struct as its first argument";
         break;
-    case ErrorInst::Generator::HasBothExternAndInitialiser:
+    case ErrorInst::HasBothExternAndInitialiser:
         ret = "a function-scoped variable cannot have extern "
               "linkage as well as an initialiser";
         break;
-    case ErrorInst::Generator::CannotInstantiateOpaqueStruct:
+    case ErrorInst::CannotInstantiateOpaqueStruct:
         ret = "cannot instantiate opaque struct";
         break;
-    case ErrorInst::Generator::ModuleDoesNotProvideForms:
+    case ErrorInst::ModuleDoesNotProvideForms:
         ret = "module '%s' does not provide the following forms: %s";
         break;
-    case ErrorInst::Generator::UnableToLoadModule:
+    case ErrorInst::UnableToLoadModule:
         ret = "unable to load module '%s'";
         break;
-    case ErrorInst::Generator::InvalidModuleName:
+    case ErrorInst::InvalidModuleName:
         ret = "module name '%s' is invalid: module names may "
               "only comprise alphanumeric characters, periods, "
               "hyphens and underscores";
         break;
-    case ErrorInst::Generator::BitfieldMustHaveIntegerType:
+    case ErrorInst::BitfieldMustHaveIntegerType:
         ret = "bitfields must have an integer type";
         break;
-    case ErrorInst::Generator::ZeroLengthGlobalArraysAreUnsupported:
+    case ErrorInst::ZeroLengthGlobalArraysAreUnsupported:
         ret = "zero-length global arrays are currently unsupported";
         break;
-    case ErrorInst::Generator::GotoWillCrossDeclaration:
+    case ErrorInst::GotoWillCrossDeclaration:
         ret = "this goto will cross a declaration";
         break;
-    case ErrorInst::Generator::FunctionHasSameParamsAsMacro:
+    case ErrorInst::FunctionHasSameParamsAsMacro:
         ret = "function '%s' has same parameters as an "
               "existing macro of that name";
         break;
-    case ErrorInst::Generator::MacroHasSameParamsAsFunction:
+    case ErrorInst::MacroHasSameParamsAsFunction:
         ret = "macro '%s' has same parameters as an "
               "existing function of that name";
         break;
-    case ErrorInst::Generator::CannotModifyConstVariable:
+    case ErrorInst::CannotModifyConstVariable:
         ret = "cannot modify const variable";
         break;
-    case ErrorInst::Generator::SetfOverridesMustReturnBool:
+    case ErrorInst::SetfOverridesMustReturnBool:
         ret = "setf overrides must return bool";
         break;
-    case ErrorInst::Generator::RefsNotPermittedHere:
+    case ErrorInst::RefsNotPermittedHere:
         ret = "reference types not permitted in this context";
         break;
-    case ErrorInst::Generator::RetvalsNotPermittedHere:
+    case ErrorInst::RetvalsNotPermittedHere:
         ret = "retval types not permitted in this context";
         break;
     default:
@@ -365,10 +365,10 @@ errorInstanceToType(int error_instance)
 {
     int type;
     switch (error_instance) {
-        case ErrorInst::Lexer::Null:
+        case ErrorInst::Null:
             type = ErrorType::Diagnostic;
             break;
-        case ErrorInst::Generator::StructContainsPadding:
+        case ErrorInst::StructContainsPadding:
             type = ErrorType::Warning;
             break;
         default:

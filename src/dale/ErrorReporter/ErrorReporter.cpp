@@ -111,7 +111,7 @@ ErrorReporter::assertIsIntegerType(const char *form_name,
     std::string type_str;
     type->toString(&type_str);
     Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
+        ErrorInst::IncorrectArgType,
         n,
         form_name, "int", arg_number, type_str.c_str()
     );
@@ -131,7 +131,7 @@ ErrorReporter::assertIsPointerOrIntegerType(const char *form_name,
     std::string type_str;
     type->toString(&type_str);
     Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
+        ErrorInst::IncorrectArgType,
         n,
         form_name, "a pointer or integer", arg_number, type_str.c_str()
     );
@@ -151,7 +151,7 @@ ErrorReporter::assertIsPointerType(const char *form_name,
     std::string type_str;
     type->toString(&type_str);
     Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
+        ErrorInst::IncorrectArgType,
         n,
         form_name, "a pointer", arg_number, type_str.c_str()
     );
@@ -175,8 +175,8 @@ ErrorReporter::assertTypeEquality(const char *form_name, Node *n,
 
     Error *e = new Error(
         ((!strcmp(form_name, "return"))
-            ? ErrorInst::Generator::IncorrectReturnType
-            : ErrorInst::Generator::IncorrectType),
+            ? ErrorInst::IncorrectReturnType
+            : ErrorInst::IncorrectType),
         n,
         expected_type_str.c_str(), got_type_str.c_str()
     );
@@ -193,7 +193,7 @@ ErrorReporter::assertAtomIsStringLiteral(const char *form_name,
     }
 
     Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
+        ErrorInst::IncorrectArgType,
         n,
         form_name, "a string literal", arg_number, n->token->tokenType()
     );
@@ -215,7 +215,7 @@ ErrorReporter::assertArgNums(const char *form_name, Node *n,
             return 1;
         } else {
             Error *e = new Error(
-                ErrorInst::Generator::IncorrectNumberOfArgs,
+                ErrorInst::IncorrectNumberOfArgs,
                 n,
                 form_name, min_args, max_args
             );
@@ -226,7 +226,7 @@ ErrorReporter::assertArgNums(const char *form_name, Node *n,
 
     if (num_args < min_args) {
         Error *e = new Error(
-            ErrorInst::Generator::IncorrectMinimumNumberOfArgs,
+            ErrorInst::IncorrectMinimumNumberOfArgs,
             n,
             form_name, min_args, max_args
         );
@@ -236,7 +236,7 @@ ErrorReporter::assertArgNums(const char *form_name, Node *n,
 
     if ((max_args != -1) && (num_args > max_args)) {
         Error *e = new Error(
-            ErrorInst::Generator::IncorrectMaximumNumberOfArgs,
+            ErrorInst::IncorrectMaximumNumberOfArgs,
             n,
             form_name, min_args, max_args
         );
@@ -256,7 +256,7 @@ ErrorReporter::assertArgIsAtom(const char *form_name, Node *n,
     }
 
     Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
+        ErrorInst::IncorrectArgType,
         n,
         form_name, "an atom", arg_number, "a list"
     );
@@ -273,7 +273,7 @@ ErrorReporter::assertArgIsList(const char *form_name,
     }
 
     Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
+        ErrorInst::IncorrectArgType,
         n,
         form_name, "a list", arg_number, "a symbol"
     );
@@ -290,7 +290,7 @@ ErrorReporter::assertAtomIsSymbol(const char *form_name,
     }
 
     Error *e = new Error(
-        ErrorInst::Generator::IncorrectArgType,
+        ErrorInst::IncorrectArgType,
         n,
         form_name, "a symbol", arg_number, n->token->tokenType()
     );

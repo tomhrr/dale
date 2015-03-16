@@ -16,7 +16,7 @@
 #include "../../Literal/Array/Array.h"
 #include "../../Type/Type.h"
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale
 {

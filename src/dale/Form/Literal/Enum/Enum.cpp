@@ -2,7 +2,7 @@
 #include "../../../Linkage/Linkage.h"
 #include "../../../Error/Error.h"
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale {
 bool 

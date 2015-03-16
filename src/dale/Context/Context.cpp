@@ -117,7 +117,7 @@ Context::deactivateNamespace(const char *name)
 {
     if (strcmp(name, active_ns_nodes.back()->ns->name.c_str())) {
         Error *e = new Error(
-            ErrorInst::Generator::CannotDeactivateInactiveNamespace,
+            ErrorInst::CannotDeactivateInactiveNamespace,
             nullNode(),
             name
         );
@@ -128,7 +128,7 @@ Context::deactivateNamespace(const char *name)
     if (strcmp(name, used_ns_nodes.back()->ns->name.c_str())) {
         used_ns_nodes.back()->ns->print();
         Error *e = new Error(
-            ErrorInst::Generator::CannotDeactivateNonLastNamespace,
+            ErrorInst::CannotDeactivateNonLastNamespace,
             nullNode(),
             name
         );
@@ -1166,7 +1166,7 @@ Context::toLLVMType_(Type *type,
     std::string type_str;
     type->toString(&type_str);
     Error *e = new Error(
-        ErrorInst::Generator::UnableToConvertTypeToLLVMType,
+        ErrorInst::UnableToConvertTypeToLLVMType,
         (n ? n : nullNode()),
         type_str.c_str()
     );
@@ -1197,7 +1197,7 @@ Context::toLLVMType(Type *type,
                         || (structp->member_types.size() == 0))
                         && !externally_defined) {
                     Error *e = new Error(
-                        ErrorInst::Generator::CannotInstantiateOpaqueStruct,
+                        ErrorInst::CannotInstantiateOpaqueStruct,
                         (n ? n : nullNode())
                     );
                     er->addError(e);
@@ -1226,7 +1226,7 @@ Context::toLLVMType(Type *type,
         std::string temp;
         type->toString(&temp);
         Error *e = new Error(
-            ErrorInst::Generator::TypeIsNotFirstClass,
+            ErrorInst::TypeIsNotFirstClass,
             (n ? n : nullNode()),
             temp.c_str()
         );

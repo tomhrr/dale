@@ -2,7 +2,7 @@
 #include "../../../Units/Units.h"
 #include "../../Struct/Struct.h"
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale
 {

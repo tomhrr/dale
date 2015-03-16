@@ -76,7 +76,7 @@ Lexer::ungetToken(Token *token)
 bool
 Lexer::getNextToken(Token *token, Error *error)
 {
-    error->instance = ErrorInst::Lexer::Null;
+    error->instance = ErrorInst::Null;
 
     if (!(ungot_tokens.empty())) {
         Token *popped_token = ungot_tokens.back();
@@ -185,7 +185,7 @@ Lexer::getNextToken(Token *token, Error *error)
             }
             if (c == EOF) {
                 error->instance =
-                    ErrorInst::Lexer::UnterminatedStringLiteral;
+                    ErrorInst::UnterminatedStringLiteral;
             } else {
                 end_col_count++;
             }
@@ -274,18 +274,18 @@ Lexer::getNextToken(Token *token, Error *error)
             token->type = TokenType::FloatingPoint;
             if (!isSimpleFloat(token->str_value.c_str())) {
                 error->instance =
-                    ErrorInst::Lexer::InvalidFloatingPointNumber;
+                    ErrorInst::InvalidFloatingPointNumber;
             }
         } else {
             if (!isSimpleInt(token->str_value.c_str())) {
-                error->instance = ErrorInst::Lexer::InvalidInteger;
+                error->instance = ErrorInst::InvalidInteger;
             }
         }
     }
 
     current.setLineAndColumn(end_line_count, end_col_count);
 
-    if (error->instance == ErrorInst::Lexer::Null) {
+    if (error->instance == ErrorInst::Null) {
         token->begin.setLineAndColumn(
             begin_line_count,
             begin_col_count

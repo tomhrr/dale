@@ -361,7 +361,7 @@ Generator::run(std::vector<const char *> *file_paths,
         if (bare_module_name.length() > 0) {
             if (!isValidModuleName(&bare_module_name)) {
                 Error *e = new Error(
-                    ErrorInst::Generator::InvalidModuleName, NULL,
+                    ErrorInst::InvalidModuleName, NULL,
                     bare_module_name.c_str()
                 );
                 er.addError(e);

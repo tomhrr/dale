@@ -44,11 +44,11 @@ Parser::getNextList(void)
     Token te(TokenType::Null);
     Node n;
     n.filename = filename;
-    Error e(ErrorInst::Lexer::Null, &n);
+    Error e(ErrorInst::Null, &n);
 
     lexer->getNextToken(&ts, &e);
 
-    if (e.instance != ErrorInst::Lexer::Null) {
+    if (e.instance != ErrorInst::Null) {
         erep->addError(e);
         return NULL;
     }
@@ -60,7 +60,7 @@ Parser::getNextList(void)
     if (ts.type != TokenType::LeftParen) {
         e.begin = new Position(ts.begin);
         e.end   = new Position(ts.end);
-        e.instance = ErrorInst::Parser::ExpectedLeftParen;
+        e.instance = ErrorInst::ExpectedLeftParen;
         erep->addError(e);
         return NULL;
     }
@@ -77,7 +77,7 @@ Parser::getNextList(void)
 
     lexer->getNextToken(&te, &e);
 
-    if (e.instance != ErrorInst::Lexer::Null) {
+    if (e.instance != ErrorInst::Null) {
         erep->addError(e);
         deleteNodeList(list);
         return NULL;
@@ -86,7 +86,7 @@ Parser::getNextList(void)
     if (te.type != TokenType::RightParen) {
         e.begin = new Position(te.begin);
         e.end   = new Position(te.end);
-        e.instance = ErrorInst::Parser::MissingRightParen;
+        e.instance = ErrorInst::MissingRightParen;
         erep->addError(e);
         deleteNodeList(list);
         return NULL;
@@ -106,15 +106,15 @@ Parser::getNextListInternal(std::vector<Node*> *list)
     Token t(TokenType::Null);
     Node n;
     n.filename = filename;
-    Error e(ErrorInst::Lexer::Null, &n);
+    Error e(ErrorInst::Null, &n);
 
     do {
         lexer->getNextToken(&t, &e);
-        if (e.instance == ErrorInst::Lexer::Null) {
+        if (e.instance == ErrorInst::Null) {
             break;
         } else {
             erep->addError(e);
-            e.instance = ErrorInst::Lexer::Null;
+            e.instance = ErrorInst::Null;
         }
     } while (1);
 
@@ -140,7 +140,7 @@ Parser::getNextListInternal(std::vector<Node*> *list)
 
         lexer->getNextToken(&t, &e);
 
-        if (e.instance != ErrorInst::Lexer::Null) {
+        if (e.instance != ErrorInst::Null) {
             erep->addError(e);
             return 0;
         }
@@ -148,7 +148,7 @@ Parser::getNextListInternal(std::vector<Node*> *list)
         if (t.type != TokenType::RightParen) {
             e.begin = new Position(t.begin);
             e.end   = new Position(t.end);
-            e.instance = ErrorInst::Parser::MissingRightParen;
+            e.instance = ErrorInst::MissingRightParen;
             erep->addError(e);
             return 0;
         }

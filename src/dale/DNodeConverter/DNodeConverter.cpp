@@ -47,7 +47,7 @@ DNodeConverter::numberAtomToNode(DNode *dnode, Node *error_node)
     if (strchr(dnode->token_str, '.')) {
         if (!isSimpleFloat(dnode->token_str)) {
             Error *e = new Error(
-                ErrorInst::Lexer::InvalidFloatingPointNumber,
+                ErrorInst::InvalidFloatingPointNumber,
                 n
             );
             delete token;
@@ -59,7 +59,7 @@ DNodeConverter::numberAtomToNode(DNode *dnode, Node *error_node)
     } else {
         if (!isSimpleInt(dnode->token_str)) {
             Error *e = new Error(
-                ErrorInst::Lexer::InvalidInteger,
+                ErrorInst::InvalidInteger,
                 n
             );
             delete token;
@@ -112,7 +112,7 @@ DNodeConverter::atomToNode(DNode *dnode, Node *error_node)
 {
     if (!dnode->token_str || (strlen(dnode->token_str) == 0)) {
         Error *e = new Error(
-            ErrorInst::Generator::DNodeHasNoString,
+            ErrorInst::DNodeHasNoString,
             error_node
         );
         er->addError(e);
@@ -164,7 +164,7 @@ DNodeConverter::toNode(DNode *dnode)
         return listToNode(dnode);
     } else {
         Error *e = new Error(
-            ErrorInst::Generator::DNodeIsNeitherTokenNorList,
+            ErrorInst::DNodeIsNeitherTokenNorList,
             &error_node
         );
         er->addError(e);

@@ -4,7 +4,7 @@
 #include "../../../CommonDecl/CommonDecl.h"
 #include "../../../Node/Node.h"
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale
 {

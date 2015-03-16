@@ -3,7 +3,7 @@
 #include "../../../Error/Error.h"
 #include "../../Proc/Inst/Inst.h"
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale {
 bool

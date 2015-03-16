@@ -674,7 +674,7 @@ report_2D_error(MContext *mc, DNode *form, char *str)
 
     Node *n = units->top()->dnc->toNode(form);
 
-    Error *e = new Error(ErrorInst::Generator::ExternalError, n, str);
+    Error *e = new Error(ErrorInst::ExternalError, n, str);
     units->top()->ctx->er->addError(e);
 }
 

@@ -4,7 +4,7 @@
 #include "../../../Function/Function.h"
 #include "../../../llvm_Function.h"
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale
 {

@@ -24,33 +24,16 @@ enum
 
 namespace ErrorInst
 {
-namespace Lexer
-{
 enum
 {
     Null = 1,
     UnterminatedStringLiteral,
     InvalidInteger,
-    InvalidFloatingPointNumber
-};
-}
+    InvalidFloatingPointNumber,
 
-namespace Parser
-{
-enum
-{
-    Null = 1001,
     MissingLeftParen,
     MissingRightParen,
-    ExpectedLeftParen
-};
-}
-
-namespace Generator
-{
-enum
-{
-    Null = 2001,
+    ExpectedLeftParen,
 
     CannotRemoveInternalFunction,
     CannotRemoveInternalVariable,
@@ -158,7 +141,6 @@ enum
 
     StructContainsPadding
 };
-}
 }
 /*! Get the error string for the given error instance.
  *  @param error_instance The error instance.

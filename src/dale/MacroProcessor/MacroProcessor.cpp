@@ -11,7 +11,7 @@
 
 #define eq(str) !strcmp(macro_name, str)
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale
 {

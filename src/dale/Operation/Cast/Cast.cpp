@@ -174,7 +174,7 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
         to_type->toString(&tts);
 
         Error *e = new Error(
-            ErrorInst::Generator::InvalidCast, n,
+            ErrorInst::InvalidCast, n,
             fts.c_str(), tts.c_str()
         );
         ctx->er->addError(e);

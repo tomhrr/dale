@@ -4,7 +4,7 @@
 #include "../../../Node/Node.h"
 #include "../Inst/Inst.h"
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale
 {
@@ -16,7 +16,7 @@ FormTopLevelDoParse(Units *units, Node *node)
     std::vector<Node *> *lst = node->list;
 
     if (lst->size() < 2) {
-        Error *e = new Error(ErrorInst::Generator::NoEmptyDo, node);
+        Error *e = new Error(ErrorInst::NoEmptyDo, node);
         ctx->er->addError(e);
         return false;
     }

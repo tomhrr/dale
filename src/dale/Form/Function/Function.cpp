@@ -12,7 +12,7 @@
 #include "../../llvm_Function.h"
 #include "Config.h"
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale
 {

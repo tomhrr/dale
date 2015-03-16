@@ -18,7 +18,7 @@
 #include "../Once/Once.h"
 #include "../Module/Module.h"
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale
 {

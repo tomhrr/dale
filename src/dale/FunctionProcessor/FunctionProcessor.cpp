@@ -10,7 +10,7 @@
 
 #define IMPLICIT 1
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale
 {

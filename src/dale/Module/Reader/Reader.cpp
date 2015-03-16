@@ -248,7 +248,7 @@ Reader::run(Context *ctx, llvm::Module *mod, Node *n, const char *my_module_name
             test = fopen(whole_name.c_str(), "r");
             if (!test) {
                 Error *e = new Error(
-                    ErrorInst::Generator::FileError,
+                    ErrorInst::FileError,
                     n,
                     whole_name.c_str(),
                     strerror(errno)
@@ -429,7 +429,7 @@ Reader::run(Context *ctx, llvm::Module *mod, Node *n, const char *my_module_name
             // Get rid of "^lib".
             temp_mod_name.replace(0, 3, "");
             Error *e = new Error(
-                ErrorInst::Generator::ModuleDoesNotProvideForms,
+                ErrorInst::ModuleDoesNotProvideForms,
                 n,
                 temp_mod_name.c_str(),
                 all.c_str()

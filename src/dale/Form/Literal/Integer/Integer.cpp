@@ -6,7 +6,7 @@
 
 #define DECIMAL_RADIX 10
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale
 {

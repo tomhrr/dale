@@ -8,7 +8,7 @@
 #include "../../Type/Type.h"
 #include "../../ProcBody/ProcBody.h"
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale
 {

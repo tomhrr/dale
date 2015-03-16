@@ -3,7 +3,7 @@
 #include "../../../Node/Node.h"
 #include "../Inst/Inst.h"
 
-using namespace dale::ErrorInst::Generator;
+using namespace dale::ErrorInst;
 
 namespace dale
 {
