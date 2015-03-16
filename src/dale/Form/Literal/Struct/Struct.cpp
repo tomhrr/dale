@@ -4,57 +4,45 @@
 #include "../../../Operation/Cast/Cast.h"
 #include "../../Proc/Inst/Inst.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale {
 bool
-FormLiteralStructParse(Units *units,
-      Function *dfn,
-      llvm::BasicBlock *block,
-      Node *n,
-      const char *struct_name,
-      Struct *str,
-      Type *structtype,
-      bool get_address,
-      ParseResult *pr)
+FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                       Node *node, const char *struct_name, Struct *st,
+                       Type *st_type, bool get_address, ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
 
-    Node *struct_list = n;
-
-    if (!struct_list->is_list) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement, struct_list,
-            "list", "struct initialisers", "atom"
-        );
+    if (!node->is_list) {
+        Error *e = new Error(UnexpectedElement, node,
+                             "list", "struct initialisers", "atom");
         ctx->er->addError(e);
         return false;
     }
 
-    std::vector<Node *> *slst = struct_list->list;
-
-    std::vector<Node *>::iterator siter = slst->begin();
+    std::vector<Node *> *lst = node->list;
 
     llvm::IRBuilder<> builder(block);
 
-    llvm::Value *sp = llvm::cast<llvm::Value>(
-                          builder.CreateAlloca(str->type)
-                      );
+    llvm::Value *storage =
+        llvm::cast<llvm::Value>(builder.CreateAlloca(st->type));
 
-    while (siter != slst->end()) {
-        Node *sel = (*siter);
+    for (std::vector<Node *>::iterator b = lst->begin(),
+                                       e = lst->end();
+            b != e;
+            ++b) {
+        Node *sel = (*b);
         if (!sel->is_list) {
-            Error *e = new Error(
-                ErrorInst::Generator::UnexpectedElement, sel,
-                "list", "struct initialiser", "atom"
-            );
+            Error *e = new Error(UnexpectedElement, sel,
+                                 "list", "struct initialiser", "atom");
             ctx->er->addError(e);
             return false;
         }
         std::vector<Node *> *sellst = sel->list;
         if (sellst->size() != 2) {
-            Error *e = new Error(
-                ErrorInst::Generator::UnexpectedElement, sel,
-                "list", "struct initialiser", "atom"
-            );
+            Error *e = new Error(UnexpectedElement, sel,
+                                 "list", "struct initialiser", "atom");
             ctx->er->addError(e);
             return false;
         }
@@ -62,41 +50,36 @@ FormLiteralStructParse(Units *units,
         Node *namevalue = (*sellst)[1];
 
         if (!name->is_token) {
-            Error *e = new Error(
-                ErrorInst::Generator::UnexpectedElement, sel,
-                "atom", "struct field name", "list"
-            );
+            Error *e = new Error(UnexpectedElement, sel,
+                                 "atom", "struct field name", "list");
             ctx->er->addError(e);
             return false;
         }
 
         Type *nametype =
-            str->memberToType(name->token->str_value.c_str());
+            st->memberToType(name->token->str_value.c_str());
 
         if (!nametype) {
-            Error *e = new Error(
-                ErrorInst::Generator::FieldDoesNotExistInStruct,
-                name, name->token->str_value.c_str(),
-                struct_name
-            );
+            Error *e = new Error(FieldDoesNotExistInStruct,
+                                 name, name->token->str_value.c_str(),
+                                 struct_name);
             ctx->er->addError(e);
             return false;
         }
 
-        int index = str->memberToIndex(name->token->str_value.c_str());
+        int index = st->memberToIndex(name->token->str_value.c_str());
 
         std::vector<llvm::Value *> indices;
         STL::push_back2(&indices, ctx->nt->getLLVMZero(),
                         ctx->nt->getNativeInt(index));
 
-        llvm::Value *res =
-            builder.CreateGEP(sp,
+        llvm::Value *storage_ptr =
+            builder.CreateGEP(storage,
                               llvm::ArrayRef<llvm::Value*>(indices));
 
         ParseResult newvalue;
-        bool mres =
-            FormProcInstParse(units, dfn, block, namevalue, false,
-                                   false, NULL, &newvalue);
+        bool mres = FormProcInstParse(units, fn, block, namevalue, false,
+                                      false, NULL, &newvalue);
 
         if (!mres) {
             return false;
@@ -107,17 +90,9 @@ FormLiteralStructParse(Units *units,
                     || (nametype->isFloatingPointType()
                         && newvalue.type->isFloatingPointType())) {
                 ParseResult casttemp;
-                bool res =
-                    Operation::Cast(
-                           ctx,
-                           newvalue.block,
-                           newvalue.value,
-                           newvalue.type,
-                           nametype,
-                           sel,
-                           0,
-                           &casttemp
-                          );
+                bool res = Operation::Cast(ctx, newvalue.block,
+                                           newvalue.value, newvalue.type,
+                                           nametype, sel, 0, &casttemp);
                 if (!res) {
                     return false;
                 }
@@ -127,11 +102,8 @@ FormLiteralStructParse(Units *units,
                 std::string gotstr;
                 nametype->toString(&expstr);
                 newvalue.type->toString(&gotstr);
-                Error *e = new Error(
-                    ErrorInst::Generator::IncorrectType,
-                    name,
-                    expstr.c_str(), gotstr.c_str()
-                );
+                Error *e = new Error(IncorrectType, name,
+                                     expstr.c_str(), gotstr.c_str());
                 ctx->er->addError(e);
                 return false;
             }
@@ -139,20 +111,16 @@ FormLiteralStructParse(Units *units,
 
         block = newvalue.block;
         builder.SetInsertPoint(block);
-
-        builder.CreateStore(newvalue.value,
-                            res);
-
-        ++siter;
+        builder.CreateStore(newvalue.value, storage_ptr);
     }
 
     if (get_address) {
-        pr->set(block, ctx->tr->getPointerType(structtype), sp);
+        pr->set(block, ctx->tr->getPointerType(st_type), storage);
     } else {
-        llvm::Value *final_value = builder.CreateLoad(sp);
-        pr->set(block, structtype, final_value);
-        pr->address_of_value = sp;
-        pr->value_is_lvalue = 1;
+        llvm::Value *final_value = builder.CreateLoad(storage);
+        pr->set(block, st_type, final_value);
+        pr->address_of_value = storage;
+        pr->value_is_lvalue = true;
     }
     return true;
 }
