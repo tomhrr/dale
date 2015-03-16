@@ -30,27 +30,12 @@ FormTopLevelIncludeParse(Units *units, Node *node)
         return false;
     }
 
-    /* Check if the file exists in the current directory, or in
-     * ./include.  If it doesn't, go through each of the -I
-     * (include_directory_paths) directories.  If it doesn't exist in
-     * any of those, check DALE_INCLUDE_PATH, which is set at compile
-     * time.  Otherwise, report an error and return nothing. */
-
     std::string path_buf;
 
-    std::vector<const char *> include_paths;
-    include_paths.push_back("");
-    include_paths.push_back("./include/");
-    std::copy(units->mr->include_directory_paths->begin(),
-              units->mr->include_directory_paths->end(),
-              back_inserter(include_paths));
-    std::string standard_include_path(DALE_INCLUDE_PATH);
-    standard_include_path.append("/");
-    include_paths.push_back(standard_include_path.c_str());
-
     FILE *include_file = NULL;
-    for (std::vector<const char *>::iterator b = include_paths.begin(),
-                                             e = include_paths.end();
+    for (std::vector<const char *>::iterator
+                b = units->mr->include_directory_paths.begin(),
+                e = units->mr->include_directory_paths.end();
             b != e;
             ++b) {
         path_buf.clear();

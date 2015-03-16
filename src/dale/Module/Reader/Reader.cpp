@@ -64,17 +64,32 @@ namespace dale
 {
 namespace Module
 {
-Reader::Reader(std::vector<const char*> *module_directory_paths,
+Reader::Reader(std::vector<const char *> *module_directory_paths,
                std::vector<std::string> *so_paths,
-               std::vector<const char*> *include_directory_paths)
+               std::vector<const char *> *include_directory_paths)
 {
-    this->module_directory_paths = module_directory_paths;
-    this->include_directory_paths = include_directory_paths;
+    cwd = getcwd(NULL, 0);
+    this->module_directory_paths.push_back(cwd);
+    std::copy(module_directory_paths->begin(),
+              module_directory_paths->end(),
+              back_inserter(this->module_directory_paths));
+    this->module_directory_paths.push_back(DALE_MODULE_PATH);
+
+    this->include_directory_paths.push_back("");
+    this->include_directory_paths.push_back("./include/");
+    std::copy(include_directory_paths->begin(),
+              include_directory_paths->end(),
+              back_inserter(this->include_directory_paths));
+    std::string standard_include_path(DALE_INCLUDE_PATH);
+    standard_include_path.append("/");
+    this->include_directory_paths.push_back(standard_include_path.c_str());
+
     this->so_paths = so_paths;
 }
 
 Reader::~Reader()
 {
+    free(cwd);
 }
 
 llvm::Module *
@@ -247,18 +262,10 @@ bool
 Reader::findModule(Context *ctx, Node *n, std::string *lib_module_name,
                    FILE **fh, std::string *prefix)
 {
-    std::vector<const char *> module_paths;
-    char *cwd = getcwd(NULL, 0);
-    module_paths.push_back(cwd);
-    std::copy(module_directory_paths->begin(),
-              module_directory_paths->end(),
-              back_inserter(module_paths));
-    module_paths.push_back(DALE_MODULE_PATH);
-
     std::string dtm_path;
 
-    for (std::vector<const char *>::iterator b = module_paths.begin(),
-                                             e = module_paths.end();
+    for (std::vector<const char *>::iterator b = module_directory_paths.begin(),
+                                             e = module_directory_paths.end();
             b != e;
             ++b) {
         bool append_slash = (*b)[strlen(*b) - 1] != '/';
@@ -276,7 +283,7 @@ Reader::findModule(Context *ctx, Node *n, std::string *lib_module_name,
         ctx->er->addError(e);
         return false;
     }
-    free(cwd);
+
     return true;
 }
 

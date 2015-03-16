@@ -19,7 +19,8 @@ namespace Module
 class Reader
 {
 private:
-    std::vector<const char*> *module_directory_paths;
+    char *cwd;
+    std::vector<const char *> module_directory_paths;
     std::set<std::string> cto_module_names;
     /*! Find the specified module.
      *  @param lib_module_name The name of the module.
@@ -35,8 +36,8 @@ public:
     std::vector<std::string> *so_paths;
     std::set<std::string> included_modules;
     std::set<std::string> included_once_tags;
-    std::vector<const char*> *include_directory_paths;
-    std::map<std::string, llvm::Module*> dtm_modules;
+    std::vector<const char *> include_directory_paths;
+    std::map<std::string, llvm::Module *> dtm_modules;
     std::map<std::string, std::string> dtm_nm_modules;
 
     /*! Construct a new Module::Reader.
