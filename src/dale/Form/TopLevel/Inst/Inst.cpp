@@ -18,6 +18,8 @@
 #include "../Once/Once.h"
 #include "../Module/Module.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale
 {
 bool
@@ -26,82 +28,66 @@ FormTopLevelInstParse(Units *units, Node *node)
     Context *ctx = units->top()->ctx;
 
     ctx->deleteAnonymousNamespaces();
-    Node *top = node;
 
-    if (!top) {
+    if (!node) {
         return false;
     }
 
-    if (!top->is_token && !top->is_list) {
+    if (!node->is_token && !node->is_list) {
         units->pop();
         if (!units->empty()) {
             Unit *unit = units->top();
-            units->top()->ctx    = unit->ctx;
-            units->top()->once_tag.clear();
+            units->top()->ctx = unit->ctx;
             units->top()->once_tag = unit->once_tag;
-            return 1;
+            return true;
         }
         return false;
     }
 
-    if (!top->is_list) {
-        Error *e = new Error(
-            ErrorInst::Generator::OnlyListsAtTopLevel, top
-        );
+    if (!node->is_list) {
+        Error *e = new Error(OnlyListsAtTopLevel, node);
         ctx->er->addError(e);
         return false;
     }
 
-    std::vector<Node *> *lst = top->list;
-
-    if (lst->size() == 0) {
-        Error *e = new Error(
-            ErrorInst::Generator::NoEmptyLists, top
-        );
+    std::vector<Node *> *lst = node->list;
+    if (!lst->size()) {
+        Error *e = new Error(NoEmptyLists, node);
         ctx->er->addError(e);
         return false;
     }
 
-    Node *n = (*lst)[0];
-
-    if (!n->is_token) {
-        Error *e = new Error(
-            ErrorInst::Generator::FirstListElementMustBeAtom,
-            n
-        );
+    Node *form_node = (*lst)[0];
+    if (!form_node->is_token) {
+        Error *e = new Error(FirstListElementMustBeAtom, form_node);
         ctx->er->addError(e);
         return false;
     }
 
-    Token *t = n->token;
-
-    if (t->type != TokenType::String) {
-        Error *e = new Error(
-            ErrorInst::Generator::FirstListElementMustBeSymbol, n
-        );
+    Token *form_token = form_node->token;
+    if (form_token->type != TokenType::String) {
+        Error *e = new Error(FirstListElementMustBeSymbol, form_node);
         ctx->er->addError(e);
         return false;
     }
 
+    const char *form = form_token->str_value.c_str();
     bool (*toplevel_form)(Units *units, Node *n) =
-        CoreForms::getTopLevel(t->str_value.c_str());
+        CoreForms::getTopLevel(form);
     if (toplevel_form) {
-        toplevel_form(units, top);
+        toplevel_form(units, node);
         return true;
     }
 
-    Node *newtop = units->top()->mp->parsePotentialMacroCall(top);
-    if (!newtop) {
+    Node *new_node = units->top()->mp->parsePotentialMacroCall(node);
+    if (!new_node) {
         return false;
     }
-    if (newtop != top) {
-        return FormTopLevelInstParse(units, newtop);
+    if (new_node != node) {
+        return FormTopLevelInstParse(units, new_node);
     }
-    Error *e = new Error(
-        ErrorInst::Generator::NotInScope,
-        n,
-        t->str_value.c_str()
-    );
+
+    Error *e = new Error(NotInScope, form_node, form);
     ctx->er->addError(e);
     return false;
 }
