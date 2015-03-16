@@ -109,7 +109,7 @@ createEnumLiteral(Units *units, Function *fn, llvm::BasicBlock *block,
     Type *enum_type = FormTypeParse(units, (*lst)[0], false, false);
     assert(enum_type && "no type associated with enum");
 
-    int original_error_count =
+    int error_count_begin =
         ctx->er->getErrorTypeCount(ErrorType::Error);
 
     Enum *enum_obj = ctx->getEnum(name);
@@ -117,7 +117,7 @@ createEnumLiteral(Units *units, Function *fn, llvm::BasicBlock *block,
                                     enum_obj, enum_type,
                                     st, get_address, pr);
     if (!res) {
-        ctx->er->popErrors(original_error_count);
+        ctx->er->popErrors(error_count_begin);
     }
     return res;
 }
@@ -137,14 +137,14 @@ createStructLiteral(Units *units, Function *fn, llvm::BasicBlock *block,
     Type *struct_type = FormTypeParse(units, (*lst)[0], false, false);
     assert(struct_type && "struct type does not exist");
 
-    int original_error_count =
+    int error_count_begin =
         ctx->er->getErrorTypeCount(ErrorType::Error);
 
     bool res = FormLiteralStructParse(units, fn, block, (*lst)[1],
                                       "flsp", st, struct_type,
                                       get_address, pr);
     if (!res) {
-        ctx->er->popErrors(original_error_count);
+        ctx->er->popErrors(error_count_begin);
     }
     return res;
 }
