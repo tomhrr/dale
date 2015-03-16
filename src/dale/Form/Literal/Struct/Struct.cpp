@@ -32,42 +32,40 @@ FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
                                        e = lst->end();
             b != e;
             ++b) {
-        Node *sel = (*b);
-        if (!sel->is_list) {
-            Error *e = new Error(UnexpectedElement, sel,
+        Node *member_node = (*b);
+        if (!member_node->is_list) {
+            Error *e = new Error(UnexpectedElement, member_node,
                                  "list", "struct initialiser", "atom");
             ctx->er->addError(e);
             return false;
         }
-        std::vector<Node *> *sellst = sel->list;
-        if (sellst->size() != 2) {
-            Error *e = new Error(UnexpectedElement, sel,
+        std::vector<Node *> *member_lst = member_node->list;
+        if (member_lst->size() != 2) {
+            Error *e = new Error(UnexpectedElement, member_node,
                                  "list", "struct initialiser", "atom");
             ctx->er->addError(e);
             return false;
         }
-        Node *name      = (*sellst)[0];
-        Node *namevalue = (*sellst)[1];
+        Node *name_node  = (*member_lst)[0];
+        Node *value_node = (*member_lst)[1];
 
-        if (!name->is_token) {
-            Error *e = new Error(UnexpectedElement, sel,
+        if (!name_node->is_token) {
+            Error *e = new Error(UnexpectedElement, name_node,
                                  "atom", "struct field name", "list");
             ctx->er->addError(e);
             return false;
         }
 
-        Type *nametype =
-            st->memberToType(name->token->str_value.c_str());
-
-        if (!nametype) {
+        const char *name = name_node->token->str_value.c_str();
+        Type *type = st->memberToType(name);
+        if (!type) {
             Error *e = new Error(FieldDoesNotExistInStruct,
-                                 name, name->token->str_value.c_str(),
-                                 struct_name);
+                                 name_node, name, struct_name);
             ctx->er->addError(e);
             return false;
         }
 
-        int index = st->memberToIndex(name->token->str_value.c_str());
+        int index = st->memberToIndex(name);
 
         std::vector<llvm::Value *> indices;
         STL::push_back2(&indices, ctx->nt->getLLVMZero(),
@@ -77,41 +75,41 @@ FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
             builder.CreateGEP(storage,
                               llvm::ArrayRef<llvm::Value*>(indices));
 
-        ParseResult newvalue;
-        bool mres = FormProcInstParse(units, fn, block, namevalue, false,
-                                      false, NULL, &newvalue);
-
-        if (!mres) {
+        ParseResult pr_value;
+        bool res = FormProcInstParse(units, fn, block, value_node, false,
+                                      false, NULL, &pr_value);
+        if (!res) {
             return false;
         }
-        if (!newvalue.type->isEqualTo(nametype, 1)) {
-            if ((nametype->isIntegerType()
-                    && newvalue.type->isIntegerType())
-                    || (nametype->isFloatingPointType()
-                        && newvalue.type->isFloatingPointType())) {
-                ParseResult casttemp;
-                bool res = Operation::Cast(ctx, newvalue.block,
-                                           newvalue.value, newvalue.type,
-                                           nametype, sel, 0, &casttemp);
+
+        if (!pr_value.type->isEqualTo(type, 1)) {
+            if ((type->isIntegerType()
+                    && pr_value.type->isIntegerType())
+                    || (type->isFloatingPointType()
+                        && pr_value.type->isFloatingPointType())) {
+                ParseResult pr_cast;
+                res = Operation::Cast(ctx, pr_value.block,
+                                      pr_value.value, pr_value.type,
+                                      type, member_node, 0, &pr_cast);
                 if (!res) {
                     return false;
                 }
-                casttemp.copyTo(&newvalue);
+                pr_cast.copyTo(&pr_value);
             } else {
-                std::string expstr;
-                std::string gotstr;
-                nametype->toString(&expstr);
-                newvalue.type->toString(&gotstr);
-                Error *e = new Error(IncorrectType, name,
-                                     expstr.c_str(), gotstr.c_str());
+                std::string wanted;
+                std::string got;
+                type->toString(&wanted);
+                pr_value.type->toString(&got);
+                Error *e = new Error(IncorrectType, name_node,
+                                     wanted.c_str(), got.c_str());
                 ctx->er->addError(e);
                 return false;
             }
         }
 
-        block = newvalue.block;
+        block = pr_value.block;
         builder.SetInsertPoint(block);
-        builder.CreateStore(newvalue.value, storage_ptr);
+        builder.CreateStore(pr_value.value, storage_ptr);
     }
 
     if (get_address) {
