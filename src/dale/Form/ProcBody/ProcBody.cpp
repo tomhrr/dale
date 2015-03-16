@@ -116,20 +116,19 @@ gotoCrossesDeclaration(DeferredGoto *dg, Label *label)
 
     std::vector<Variable *> vars_before;
     Namespace *label_ns = label->ns;
+
     while (label_ns) {
-        vars_before.clear();
         label_ns->getVarsBeforeIndex(label->index, &vars_before);
         if (vars_before.size() > 0) {
-            for
-            (std::vector<Variable*>::iterator
-                    vvb = vars_before.begin(),
-                    vve = vars_before.end();
-                    vvb != vve;
-                    ++vvb) {
-                if ((*vvb)->index >= dg->index) {
+            for (std::vector<Variable*>::iterator b = vars_before.begin(),
+                                                  e = vars_before.end();
+                    b != e;
+                    ++b) {
+                if ((*b)->index >= dg->index) {
                     return true;
                 }
             }
+            vars_before.clear();
         }
         label_ns = label_ns->parent_namespace;
     }
@@ -235,59 +234,49 @@ terminateBlocks(Context *ctx, Function *fn, llvm::Function *llvm_fn,
      * instruction that moves to the next block.
      */
 
-    int bcount = 1;
-    int bmax = llvm_fn->size();
     for (llvm::Function::iterator b = llvm_fn->begin(),
                                   e = llvm_fn->end();
             b != e;
             ++b) {
-        if ((b->size() == 0) || !(b->back().isTerminator())) {
-            llvm::IRBuilder<> builder(b);
-
-            /* The underlying error here will have been
-             * reported earlier, if there is no
-             * last_value. */
-            if ((bcount == bmax) && !fn->hasRetval()) {
-                if (last_value) {
-                    Type *got_type = last_type;
-
-                    if (!fn->return_type->isEqualTo(got_type)) {
-                        std::string gotstr;
-                        got_type->toString(&gotstr);
-                        std::string expstr;
-                        fn->return_type->toString(&expstr);
-                        Error *e = new Error(IncorrectReturnType,
-                                             last_position,
-                                             expstr.c_str(), gotstr.c_str());
-                        ctx->er->addError(e);
-                        return false;
-                    }
-                    if (fn->return_type->base_type == BaseType::Void) {
-                        Operation::CloseScope(ctx, fn, b, NULL, true);
-                        builder.CreateRetVoid();
-                    } else {
-                        ParseResult x;
-                        x.set(b, last_type, last_value);
-                        Operation::CloseScope(ctx, fn, x.block, NULL, true);
-                        builder.CreateRet(x.value);
-                    }
-                } else {
-                    Operation::CloseScope(ctx, fn, b, NULL, true);
-                    builder.CreateRetVoid();
-                }
-            } else {
-                if (bcount == bmax) {
-                    Operation::CloseScope(ctx, fn, b, NULL, true);
-                    builder.CreateRetVoid();
-                } else {
-                    /* Get the next block and create a branch to it. */
-                    ++b;
-                    builder.CreateBr(b);
-                    --b;
-                }
-            }
+        if (b->size() && b->back().isTerminator()) {
+            continue;
         }
-        ++bcount;
+        llvm::IRBuilder<> builder(b);
+        ++b;
+        if (b != e) {
+            builder.CreateBr(b);
+            --b;
+            continue;
+        }
+        --b;
+
+        Operation::CloseScope(ctx, fn, b, NULL, true);
+
+        /* The underlying error here will have been reported earlier,
+         * if there is no last_value. */
+        if (!fn->hasRetval() && last_value) {
+            Type *got_type = last_type;
+
+            if (!fn->return_type->isEqualTo(got_type)) {
+                std::string wanted;
+                fn->return_type->toString(&wanted);
+                std::string got;
+                got_type->toString(&got);
+                Error *e = new Error(IncorrectReturnType,
+                                     last_position,
+                                     wanted.c_str(), got.c_str());
+                ctx->er->addError(e);
+                return false;
+            }
+
+            if (fn->return_type->base_type == BaseType::Void) {
+                builder.CreateRetVoid();
+            } else {
+                builder.CreateRet(last_value);
+            }
+        } else {
+            builder.CreateRetVoid();
+        }
     }
 
     return true;
