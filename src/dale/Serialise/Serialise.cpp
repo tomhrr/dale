@@ -385,10 +385,10 @@ char *deserialise(TypeRegister *tr, char *in, Struct *st)
 
 char *deserialise(TypeRegister *tr, char *in, Struct **st)
 {
-    Struct *stt = new Struct();
-    stt->serialise = false;
-    *st = stt;
-    return deserialise(tr, in, stt);
+    Struct *st_ = new Struct();
+    st_->serialise = false;
+    *st = st_;
+    return deserialise(tr, in, st_);
 }
 
 void serialise(FILE *out, Enum *en)

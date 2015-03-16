@@ -68,18 +68,18 @@ FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
         pr_struct.value = store;
     }
 
-    Type *st = pr_struct.type->points_to;
+    Type *st_type = pr_struct.type->points_to;
 
-    if (st->struct_name.size() == 0) {
+    if (st_type->struct_name.size() == 0) {
         std::string type_str;
-        st->toString(&type_str);
+        st_type->toString(&type_str);
         Error *e = new Error(IncorrectArgType, struct_node,
                              ":", "a struct", "1", type_str.c_str());
         ctx->er->addError(e);
         return false;
     }
 
-    if (ctx->getEnum(st->struct_name.c_str())) {
+    if (ctx->getEnum(st_type->struct_name.c_str())) {
         Error *e = new Error(IncorrectArgType, struct_node,
                              ":", "a struct", "1", "an enum");
         ctx->er->addError(e);
@@ -97,27 +97,27 @@ FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    Struct *structp = ctx->getStruct(st);
-    if (!structp) {
+    Struct *st = ctx->getStruct(st_type);
+    if (!st) {
         Error *e = new Error(NotInScope, struct_node,
-                             st->struct_name.c_str());
+                             st_type->struct_name.c_str());
         ctx->er->addError(e);
         return false;
     }
 
     const char *member_name = member_node->token->str_value.c_str();
-    int index = structp->memberToIndex(member_name);
+    int index = st->memberToIndex(member_name);
 
     if (index == -1) {
         Error *e = new Error(FieldDoesNotExistInStruct,
                              member_node, member_name,
-                             st->struct_name.c_str());
+                             st_type->struct_name.c_str());
         ctx->er->addError(e);
         return false;
     }
 
-    Type *member_type = structp->indexToType(index);
-    if (st->is_const) {
+    Type *member_type = st->indexToType(index);
+    if (st_type->is_const) {
         member_type = ctx->tr->getConstType(member_type);
     }
 

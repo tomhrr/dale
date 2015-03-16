@@ -84,15 +84,13 @@ createWantedStructLiteral(Units *units, Function *fn, llvm::BasicBlock *block,
                           Type *wanted_type, ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-    Struct *str =
-        ctx->getStruct(wanted_type->struct_name.c_str(),
-                       &(wanted_type->namespaces));
-    assert(str && "cannot load struct");
+    Struct *st = ctx->getStruct(wanted_type);
+    assert(st && "cannot load struct");
 
     bool res =
         FormLiteralStructParse(units, fn, block, n,
                                wanted_type->struct_name.c_str(),
-                               str, wanted_type, get_address, pr);
+                               st, wanted_type, get_address, pr);
     return res;
 }
 

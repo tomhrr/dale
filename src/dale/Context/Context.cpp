@@ -1058,10 +1058,10 @@ Context::toLLVMTypePointer(Type *type,
     /* If this is a pointer to void, then return a _vp struct
         * instead. */
     if (temp_type->isVoidTy()) {
-        Struct *structp = getStruct("_vp", NULL);
-        assert(structp && "no _vp struct");
-        assert(structp->type && "no _vp struct type");
-        return llvm::PointerType::getUnqual(structp->type);
+        Struct *st = getStruct("_vp", NULL);
+        assert(st && "no _vp struct");
+        assert(st->type && "no _vp struct type");
+        return llvm::PointerType::getUnqual(st->type);
     }
     return llvm::PointerType::getUnqual(temp_type);
 }
@@ -1106,12 +1106,12 @@ llvm::Type *
 Context::toLLVMTypeStruct(Type *type,
                           Node *n)
 {
-    Struct *structp =
+    Struct *st =
         getStruct(type->struct_name.c_str(), &(type->namespaces));
 
-    if (structp) {
-        assert(structp->type && "found struct, but it does not have a type");
-        return structp->type;
+    if (st) {
+        assert(st->type && "found struct, but it does not have a type");
+        return st->type;
     }
 
     return NULL;
@@ -1182,12 +1182,10 @@ Context::toLLVMType(Type *type,
      * instantiation. */
     if (!allow_non_first_class) {
         if (type->struct_name.size()) {
-            Struct *structp =
-                getStruct(type->struct_name.c_str(),
-                          &(type->namespaces));
-            if (structp) {
-                if (((structp->linkage == StructLinkage::Opaque)
-                        || (structp->member_types.size() == 0))
+            Struct *st = getStruct(type);
+            if (st) {
+                if (((st->linkage == StructLinkage::Opaque)
+                        || (st->member_types.size() == 0))
                         && !externally_defined) {
                     Error *e = new Error(CannotInstantiateOpaqueStruct,
                                          (n ? n : nullNode()));
