@@ -132,11 +132,7 @@ FormFunctionParse(Units *units, Node *node, const char *name,
 
     /* Parse argument - need to keep names. */
 
-    std::vector<Node *>::iterator node_iter;
-    node_iter = args->begin();
-
     bool varargs = false;
-
     for (std::vector<Node *>::iterator b = args->begin(),
                                        e = args->end();
             b != e;
@@ -192,15 +188,14 @@ FormFunctionParse(Units *units, Node *node, const char *name,
         fn_args_internal->push_back(var);
     }
 
+    /* Convert to LLVM arguments. */
+
     std::vector<llvm::Type*> fn_args;
-
-    /* Convert to llvm args. */
-
-    std::vector<Variable *>::iterator iter;
-    iter = fn_args_internal->begin();
-
-    while (iter != fn_args_internal->end()) {
-        Type *type = (*iter)->type;
+    for (std::vector<Variable *>::iterator b = fn_args_internal->begin(),
+                                           e = fn_args_internal->end();
+            b != e;
+            ++b) {
+        Type *type = (*b)->type;
         if (type->is_reference) {
             type = ctx->tr->getPointerType(type);
         }
@@ -212,83 +207,66 @@ FormFunctionParse(Units *units, Node *node, const char *name,
             return false;
         }
         fn_args.push_back(llvm_type);
-        ++iter;
     }
 
-    /* Return type. First, activate an anonymous namespace and add
-     * all of the function parameters to it. This is so that if
-     * the return type uses a macro that depends on one of those
+    /* Return type.  First, activate an anonymous namespace and add
+     * all of the function parameters to it. This is so that if the
+     * return type uses a macro that depends on one of those
      * parameters, it will work properly. */
 
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;
 
-    for (std::vector<Variable *>::iterator
-            b = fn_args_internal->begin(),
-            e = fn_args_internal->end();
+    for (std::vector<Variable *>::iterator b = fn_args_internal->begin(),
+                                           e = fn_args_internal->end();
             b != e;
             ++b) {
         ctx->ns()->addVariable((*b)->name.c_str(), (*b));
     }
 
-    Type *r_type = 
-        FormTypeParse(units, (*lst)[return_type_index], false,
-                          false, false, true);
+    Type *ret_type = FormTypeParse(units, (*lst)[return_type_index],
+                                   false, false, false, true);
 
     ctx->deactivateNamespace(anon_name.c_str());
 
-    if (r_type == NULL) {
+    if (ret_type == NULL) {
         return false;
     }
-    if (r_type->is_array) {
-        Error *e = new Error(ReturnTypesCannotBeArrays,
-                             (*lst)[next_index]);
+    if (ret_type->is_array) {
+        Error *e = new Error(ReturnTypesCannotBeArrays, (*lst)[next_index]);
         ctx->er->addError(e);
         return false;
     }
 
-    llvm::Type *llvm_r_type =
-        ctx->toLLVMType(r_type, NULL, true);
-    if (!llvm_r_type) {
+    llvm::Type *llvm_ret_type = ctx->toLLVMType(ret_type, NULL, true);
+    if (!llvm_ret_type) {
         return false;
     }
 
-    /* Create the LLVM function type. If the retval attribute is
+    /* Create the LLVM function type.  If the retval attribute is
      * present, then the LLVM function type will have a return type of
      * void, and a pointer to a value of the return type will be the
      * final parameter. */
 
-    if (r_type->is_retval) {
-        fn_args.push_back(ctx->toLLVMType(ctx->tr->getPointerType(r_type),
+    if (ret_type->is_retval) {
+        fn_args.push_back(ctx->toLLVMType(ctx->tr->getPointerType(ret_type),
                                           NULL, true));
-        llvm_r_type =
-            ctx->toLLVMType(ctx->tr->getBasicType(BaseType::Void),
-                            NULL, true);
+        llvm_ret_type = ctx->toLLVMType(ctx->tr->getBasicType(BaseType::Void),
+                                        NULL, true);
     }
 
-    llvm::FunctionType *ft =
-        getFunctionType(
-            llvm_r_type,
-            fn_args,
-            varargs
-        );
+    llvm::FunctionType *ft = getFunctionType(llvm_ret_type, fn_args,
+                                             varargs);
 
     std::string new_name;
-    ctx->ns()->functionNameToSymbol(name,
-                                    &new_name,
-                                    linkage,
+    ctx->ns()->functionNameToSymbol(name, &new_name, linkage,
                                     fn_args_internal);
 
-    /* todo: extern_c functions in namespaces. */
-
-    Function *dfn =
-        new Function(r_type, fn_args_internal, NULL, 0,
-                              &new_name, always_inline);
+    Function *dfn = new Function(ret_type, fn_args_internal, NULL, 0,
+                                 &new_name, always_inline);
     dfn->linkage = linkage;
     dfn->cto = my_cto;
-    if (!strcmp(name, "setf-copy")) {
-        dfn->is_setf_fn = 1;
-    } else if (!strcmp(name, "setf-assign")) {
+    if (!strcmp(name, "setf-copy") || !strcmp(name, "setf-assign")) {
         dfn->is_setf_fn = 1;
     } else if (!strcmp(name, "destroy")) {
         dfn->is_destructor = 1;
@@ -298,7 +276,7 @@ FormFunctionParse(Units *units, Node *node, const char *name,
      * bool. */
 
     if (dfn->is_setf_fn) {
-        if (!r_type->isEqualTo(ctx->tr->type_bool)) {
+        if (!ret_type->isEqualTo(ctx->tr->type_bool)) {
             Error *e = new Error(SetfOverridesMustReturnBool,
                                  (*lst)[return_type_index]);
             ctx->er->addError(e);
@@ -309,18 +287,18 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     /* If the function already exists, but has a different
      * prototype, then fail. */
 
-    llvm::Function *temp23;
-    if ((temp23 = units->top()->module->getFunction(new_name.c_str()))) {
-        Function *temp25 =
-            ctx->getFunction(new_name.c_str(), NULL,
-                             NULL, 0);
-        if (temp25 && !temp25->isEqualTo(dfn)) {
+    llvm::Function *existing_llvm_fn =
+        units->top()->module->getFunction(new_name.c_str());
+    if (existing_llvm_fn) {
+        Function *existing_fn = ctx->getFunction(new_name.c_str(), NULL,
+                                                 NULL, 0);
+        if (existing_fn && !existing_fn->isEqualTo(dfn)) {
             Error *e = new Error(RedeclarationOfFunctionOrMacro,
                                  node, name);
             ctx->er->addError(e);
             return false;
         }
-        if (temp25 && !temp25->attrsAreEqual(dfn)) {
+        if (existing_fn && !existing_fn->attrsAreEqual(dfn)) {
             Error *e = new Error(AttributesOfDeclAndDefAreDifferent,
                                  node, name);
             ctx->er->addError(e);
@@ -333,21 +311,17 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     }
 
     llvm::Constant *fnc =
-        units->top()->module->getOrInsertFunction(
-            new_name.c_str(),
-            ft
-        );
+        units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
 
     llvm::Function *fn = llvm::dyn_cast<llvm::Function>(fnc);
 
-    /* If fn is null, then the function already exists and the
-     * extant function has a different prototype, so it's an
-     * invalid redeclaration. If fn is not null, but has content,
-     * then it's an invalid redefinition. */
+    /* If fn is null, then the function already exists and the extant
+     * function has a different prototype, so it's an invalid
+     * redeclaration.  If fn is not null, but has content, then it's an
+     * invalid redefinition. */
 
-    if ((!fn) || (fn->size())) {
-        Error *e = new Error(RedeclarationOfFunctionOrMacro,
-                             node, name);
+    if (!fn || fn->size()) {
+        Error *e = new Error(RedeclarationOfFunctionOrMacro, node, name);
         ctx->er->addError(e);
         return false;
     }
@@ -363,28 +337,27 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     fn->setCallingConv(llvm::CallingConv::C);
     fn->setLinkage(
         (lst->size() == (unsigned) (next_index + 2))
-        ? (ctx->toLLVMLinkage(override_linkage))
-        : (ctx->toLLVMLinkage(linkage))
+            ? ctx->toLLVMLinkage(override_linkage)
+            : ctx->toLLVMLinkage(linkage)
     );
 
-    llvm::Function::arg_iterator largs = fn->arg_begin();
-
-    iter = fn_args_internal->begin();
-    while (iter != fn_args_internal->end()) {
-        if ((*iter)->type->base_type == BaseType::VarArgs) {
+    llvm::Function::arg_iterator llvm_arg_iter = fn->arg_begin();
+    for (std::vector<Variable *>::iterator b = fn_args_internal->begin(),
+                                           e = fn_args_internal->end();
+            b != e;
+            ++b) {
+        if ((*b)->type->base_type == BaseType::VarArgs) {
             break;
         }
-
-        llvm::Value *temp = largs;
-        ++largs;
-        temp->setName((*iter)->name.c_str());
-        (*iter)->value = temp;
-        ++iter;
+        llvm::Value *llvm_arg = llvm_arg_iter;
+        ++llvm_arg_iter;
+        llvm_arg->setName((*b)->name.c_str());
+        (*b)->value = llvm_arg;
     }
 
     llvm::Value *lv_return_value = NULL;
-    if (r_type->is_retval) {
-        lv_return_value = largs;
+    if (ret_type->is_retval) {
+        lv_return_value = llvm_arg_iter;
         lv_return_value->setName("retval");
     }
 
