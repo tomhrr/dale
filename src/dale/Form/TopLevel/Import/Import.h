@@ -5,8 +5,11 @@
 
 namespace dale
 {
-bool
-FormTopLevelImportParse(Units *units, Node *node);
+/*! Parse a top-level import form.
+ *  @param units The units context.
+ *  @param node The node containing the import form.
+ */
+bool FormTopLevelImportParse(Units *units, Node *node);
 }
 
 #endif
