@@ -1,29 +1,25 @@
 #include "Reader.h"
 #include "Config.h"
 
-#include "llvm/Support/DynamicLibrary.h"
-#include "llvm/Support/Host.h"
-#include "llvm/Support/Signals.h"
-#if D_LLVM_VERSION_MINOR <= 4
-#include "llvm/Support/system_error.h"
-#else
-#include "llvm/Object/Error.h"
-#endif
 #include "../../llvm_LLVMContext.h"
 #include "../../llvm_Module.h"
-#include "llvm/LinkAllPasses.h"
 #include "../../llvm_Linker.h"
 #include "../../llvm_Function.h"
 #include "../../llvm_CallingConv.h"
 #include "../../llvm_AssemblyPrintModulePass.h"
+#include "../../llvm_ValueSymbolTable.h"
+#include "../../llvm_AnalysisVerifier.h"
+
+#include "llvm/Support/DynamicLibrary.h"
+#include "llvm/Support/Host.h"
+#include "llvm/Support/Signals.h"
+#include "llvm/LinkAllPasses.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/JIT.h"
 #include "llvm/ExecutionEngine/Interpreter.h"
-#include "../../llvm_ValueSymbolTable.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/PassManager.h"
 #include "llvm/Analysis/Passes.h"
-#include "../../llvm_AnalysisVerifier.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
@@ -41,6 +37,11 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 
+#if D_LLVM_VERSION_MINOR <= 4
+#include "llvm/Support/system_error.h"
+#else
+#include "llvm/Object/Error.h"
+#endif
 #if D_LLVM_VERSION_MINOR >= 3
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/IRReader/IRReader.h"
@@ -51,10 +52,13 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-
 #include <unistd.h>
 
 using namespace dale::ErrorInst;
+
+static const char *bc_suffix    = ".bc";
+static const char *bc_nm_suffix = "-nomacros.bc";
+static const char *so_suffix    = ".so";
 
 namespace dale
 {
@@ -74,7 +78,7 @@ Reader::~Reader()
 }
 
 llvm::Module *
-Reader::loadModule(std::string *path, bool materialize)
+Reader::loadModule(std::string *path)
 {
 #if D_LLVM_VERSION_MINOR <= 4
     llvm::OwningPtr<llvm::MemoryBuffer> buffer;
@@ -86,355 +90,287 @@ Reader::loadModule(std::string *path, bool materialize)
 #elif D_LLVM_VERSION_MINOR <= 4
     llvm::MemoryBuffer::getFileOrSTDIN(*path, buffer);
 #else
-    llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> eo =
+    llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> eo_buffer =
         llvm::MemoryBuffer::getFileOrSTDIN(*path);
-    assert(!eo.getError() && "cannot load module");
-    std::unique_ptr<llvm::MemoryBuffer> buffer = std::move(eo.get());
+    assert(!eo_buffer.getError() && "cannot load module");
+    std::unique_ptr<llvm::MemoryBuffer> buffer = std::move(eo_buffer.get());
 #endif
 
 #if D_LLVM_VERSION_MINOR <= 4
-    std::string errmsg;
-    llvm::Module *module = 
+    std::string error_msg;
+    llvm::Module *module =
         llvm::getLazyBitcodeModule(buffer.get(),
                                    llvm::getGlobalContext(),
-                                   &errmsg);
+                                   &error_msg);
 #else
-    std::string errmsg;
-    llvm::ErrorOr<llvm::Module *> err =
+    std::string error_msg;
+    llvm::ErrorOr<llvm::Module *> eo_module =
         llvm::getLazyBitcodeModule(buffer.get(),
                                    llvm::getGlobalContext());
-    llvm::Module *module = err.get();
+    llvm::Module *module = eo_module.get();
     if (!module) {
-        errmsg = err.getError().message();
+        error_msg = eo_module.getError().message();
     }
     buffer.release();
 #endif
 
     assert(module && "cannot load module");
 
-    std::string ma_error;
 #if D_LLVM_VERSION_MINOR <= 4
-    bool ma = module->MaterializeAll(&ma_error);
+    bool materialized = module->MaterializeAll(&error_msg);
 #else
     std::error_code ec = module->materializeAllPermanently();
-    bool ma = (bool) ec;
+    bool materialized = (bool) ec;
     if (ec) {
-        ma_error = ec.message();
+        error_msg = ec.message();
     }
 #endif
-    assert(!ma && "failed to materialize module");
-    _unused(ma);
+    assert(!materialized && "failed to materialize module");
+    _unused(materialized);
 
     return module;
 }
 
 bool
-Reader::addLib(const char *lib_path,
-               int add_to_so_paths,
-               int add_nm_to_so_paths)
+Reader::addDynamicLibrary(const char *path, bool add_to_so_paths,
+                          bool add_nm_to_so_paths)
 {
-    std::string temp;
-
+    std::string error_msg;
     bool res =
         llvm::sys::DynamicLibrary::LoadLibraryPermanently(
-            lib_path,
-            &temp
+            path,
+            &error_msg
         );
+
+    int len = strlen(path);
+    bool is_so = (len >= 3) && !strcmp((path + len - 3), so_suffix);
+
     if (res) {
-        /* If this is Darwin, and .so is at the end of lib_path, try
-         * replacing it with dylib. */
-        if (!strcmp(SYSTEM_NAME, "Darwin")) {
-            int len = strlen(lib_path);
-            if ((len >= 3) && !strcmp((lib_path + len - 3), ".so")) {
-                char lib_path_dylib[256];
-                strcpy(lib_path_dylib, lib_path);
-                strcpy((lib_path_dylib + len - 2),
-                       "dylib");
-                bool res =
-                    llvm::sys::DynamicLibrary::LoadLibraryPermanently(
-                        lib_path_dylib,
-                        &temp
-                    );
-                if (!res) {
-                    /* This only generates SOs - the dylib stuff
-                     * is only for internal Mac libraries, not for
-                     * dale modules. */
-                    goto done;
-                }
-            }
+        /* If this is Darwin, and .so is at the end of path, try
+         * replacing it with dylib.  Note that dylib is only for
+         * internal Mac libraries, not for Dale modules. */
+        if (!strcmp(SYSTEM_NAME, "Darwin") && is_so) {
+            std::string dylib_path;
+            dylib_path.append(path);
+            dylib_path.erase((dylib_path.size() - 3), 3);
+            dylib_path.append(so_suffix);
+            return addDynamicLibrary(dylib_path.c_str(), add_to_so_paths,
+                                     add_nm_to_so_paths);
         }
         assert(true && "unable to load library");
         return false;
-    } else {
-        if (add_nm_to_so_paths) {
-            std::string temp;
-            temp.append(lib_path);
-            temp.erase((temp.size() - 3), 3);
-            temp.append("-nomacros.so");
-            so_paths->push_back(temp);
-        } else if (add_to_so_paths) {
-            std::string temp;
-            temp.append(lib_path);
-            so_paths->push_back(temp);
-        }
     }
-done:
 
-    return !res;
+    if (add_nm_to_so_paths) {
+        std::string nm_path;
+        nm_path.append(path);
+        nm_path.erase((nm_path.size() - 3), 3);
+        nm_path.append("-nomacros.so");
+        so_paths->push_back(nm_path);
+    } else if (add_to_so_paths) {
+        std::string m_path;
+        m_path.append(path);
+        so_paths->push_back(m_path);
+    }
+
+    return true;
 }
 
-
-
 bool
-Reader::run(Context *ctx, llvm::Module *mod, Node *n, const char *my_module_name,
-    std::vector<const char*> *import_forms)
+Reader::run(Context *ctx, llvm::Module *mod, Node *n, const char *module_name,
+            std::vector<const char*> *import_forms)
 {
-    std::vector<const char*> temp;
+    std::vector<const char *> empty_forms;
     if (import_forms == NULL) {
-        import_forms = &temp;
+        import_forms = &empty_forms;
     }
 
-    std::string real_module_name;
-    if (!(strstr(my_module_name, "lib") == my_module_name)) {
-        real_module_name.append("lib");
+    std::string lib_module_name;
+    if (!(strstr(module_name, "lib") == module_name)) {
+        lib_module_name.append("lib");
     }
-    real_module_name.append(my_module_name);
+    lib_module_name.append(module_name);
 
-    /* If the module has already been added, then skip it. */
-
-    if (included_modules.find(real_module_name)
-            != included_modules.end()) {
-        return 1;
+    if (included_modules.find(lib_module_name) != included_modules.end()) {
+        return true;
     }
 
-    /* Look for the module in the current directory, then the
-     * specified directories, then the modules directory. */
+    std::vector<const char *> module_paths;
+    char *cwd = getcwd(NULL, 0);
+    module_paths.push_back(cwd);
+    std::copy(module_directory_paths->begin(),
+              module_directory_paths->end(),
+              back_inserter(module_paths));
+    module_paths.push_back(DALE_MODULE_PATH);
 
-    std::string tmn(real_module_name);
-    std::string tmn2(real_module_name);
-    std::string tmn4;
-    const char *bc_suffix    = ".bc";
-    const char *bc_nm_suffix = "-nomacros.bc";
-    const char *so_suffix    = ".so";
-    tmn.append(".dtm");
-    FILE *test = fopen(tmn.c_str(), "r");
-    if (!test) {
-        for (std::vector<const char*>::iterator b = module_directory_paths->begin(),
-                                                e = module_directory_paths->end();
-                b != e;
-                ++b) {
-            std::string whole_name(*b);
-            whole_name.append("/")
-            .append(real_module_name)
-            .append(".dtm");
-            test = fopen(whole_name.c_str(), "r");
-            if (test) {
-                tmn2 = std::string(*b);
-                tmn2.append("/")
-                .append(real_module_name)
-                .append(bc_suffix);
+    FILE *fh;
+    std::string prefix;
+    std::string dtm_path;
 
-                tmn4 = std::string(*b);
-                tmn4.append("/")
-                .append(real_module_name)
-                .append(so_suffix);
-                break;
-            }
+    for (std::vector<const char *>::iterator b = module_paths.begin(),
+                                             e = module_paths.end();
+            b != e;
+            ++b) {
+        bool append_slash = (*b)[strlen(*b) - 1] != '/';
+        prefix.clear();
+        prefix.append(*b).append(append_slash ? "/" : "");
+        dtm_path.clear();
+        dtm_path.append(prefix).append(lib_module_name).append(".dtm");
+        fh = fopen(dtm_path.c_str(), "r");
+        if (fh) {
+            break;
         }
-
-        if (!test) {
-            std::string whole_name(DALE_MODULE_PATH);
-            whole_name.append("/")
-            .append(real_module_name)
-            .append(".dtm");
-            test = fopen(whole_name.c_str(), "r");
-            if (!test) {
-                Error *e = new Error(FileError, n, whole_name.c_str(),
-                                     strerror(errno));
-                ctx->er->addError(e);
-                return 0;
-            }
-            tmn2 = std::string(DALE_MODULE_PATH);
-            tmn2.append("/")
-            .append(real_module_name)
-            .append(bc_suffix);
-
-            tmn4 = std::string(DALE_MODULE_PATH);
-            tmn4.append("/")
-            .append(real_module_name)
-            .append(so_suffix);
-        }
-    } else {
-        tmn2.append(bc_suffix);
-
-        char *cwd = getcwd(NULL, 0);
-        tmn4 = std::string(cwd);
-        free(cwd);
-
-        tmn4.append("/")
-        .append(real_module_name)
-        .append(so_suffix);
     }
+    if (!fh) {
+        Error *e = new Error(FileError, n, dtm_path.c_str(), strerror(errno));
+        ctx->er->addError(e);
+        return false;
+    }
+    std::string bc_path;
+    std::string so_path;
+    bc_path.append(prefix).append(lib_module_name).append(bc_suffix);
+    so_path.append(prefix).append(lib_module_name).append(so_suffix);
 
-    Context *mynewcontext = new Context(ctx->er, ctx->nt, ctx->tr);
+    free(cwd);
 
-    int fd = fileno(test);
+    Context *new_ctx = new Context(ctx->er, ctx->nt, ctx->tr);
+
+    int fd = fileno(fh);
     struct stat buf;
     int fstat_res = fstat(fd, &buf);
     assert(!fstat_res && "unable to fstat file");
     _unused(fstat_res);
+
     int size = buf.st_size;
     char *data = (char*) malloc(size);
     char *original_data = data;
-    size_t res = fread(data, 1, size, test);
+    size_t res = fread(data, 1, size, fh);
     assert((res == (size_t) size) && "unable to read module file");
     _unused(res);
 
-    data = deserialise(ctx->tr, data, mynewcontext);
-    std::set<std::string> temponcetags;
-    data = deserialise(ctx->tr, data, &temponcetags);
-    std::set<std::string> tempmodules;
-    data = deserialise(ctx->tr, data, &tempmodules);
-    int my_cto;
-    data = deserialise(ctx->tr, data, &my_cto);
-    std::map<std::string, std::string> new_typemap;
-    data = deserialise(ctx->tr, data, &new_typemap);
-    for (std::map<std::string, std::string>::iterator
-            b = new_typemap.begin(),
-            e = new_typemap.end();
-            b != e;
-            ++b) {
-        std::string x = (*b).first;
-        std::string y = (*b).second;
-        addTypeMapEntry(x.c_str(), y.c_str());
-    }
+    std::set<std::string> once_tags;
+    std::set<std::string> dependencies;
+    int cto;
+    std::map<std::string, std::string> typemap;
+
+    data = deserialise(ctx->tr, data, new_ctx);
+    data = deserialise(ctx->tr, data, &once_tags);
+    data = deserialise(ctx->tr, data, &dependencies);
+    data = deserialise(ctx->tr, data, &cto);
+    data = deserialise(ctx->tr, data, &typemap);
     free(original_data);
 
-    std::string module_path(tmn2);
-    std::string module_path_nomacros(tmn2);
+    for (std::map<std::string, std::string>::iterator
+            b = typemap.begin(),
+            e = typemap.end();
+            b != e;
+            ++b) {
+        std::string from = (*b).first;
+        std::string to   = (*b).second;
+        addTypeMapEntry(from.c_str(), to.c_str());
+    }
 
-    module_path_nomacros.replace(module_path_nomacros.find(".bc"), 
+    std::string module_path(bc_path);
+    std::string module_path_nomacros(bc_path);
+
+    module_path_nomacros.replace(module_path_nomacros.find(".bc"),
                                  3, bc_nm_suffix);
 
-    llvm::Module *new_module = loadModule(&module_path, false);
+    llvm::Module *new_module = loadModule(&module_path);
 
-    included_modules.insert(real_module_name);
+    included_modules.insert(lib_module_name);
 
     /* Load each dependent module, before loading this one. */
 
-    for (std::set<std::string>::iterator b = tempmodules.begin(),
-            e = tempmodules.end();
+    for (std::set<std::string>::iterator b = dependencies.begin(),
+                                         e = dependencies.end();
             b != e;
             ++b) {
         int res = run(ctx, mod, n, (*b).c_str(), NULL);
         if (!res) {
-            return 0;
+            return false;
         }
     }
 
-    if (my_cto) {
-        cto_module_names.insert(real_module_name);
+    if (cto) {
+        cto_module_names.insert(lib_module_name);
     }
 
     int add_to_so_paths =
-        (cto_module_names.find(std::string(real_module_name)) ==
+        (cto_module_names.find(std::string(lib_module_name)) ==
          cto_module_names.end());
 
-    /* Never add to so_paths if you are making a module (it's
-     * pointless - it only matters when you are linking an
-     * executable). */
-    res = addLib(tmn4.c_str(), 0, add_to_so_paths);
+    res = addDynamicLibrary(so_path.c_str(), false, add_to_so_paths);
     assert(res && "unable to add library");
 
-    /* Get the union of temponcetags and included_once_tags.
-     * Remove from the module any structs/enums that have a once
-     * tag from this set, remove the bodies of any
-     * functions/variables that have a once tag from this set, and
-     * remove from the context any structs/enums that have a once
-     * tag from this set (the functions and variables can stay,
-     * they won't cause any trouble.) todo: comment doesn't make
-     * any sense given what's below. */
-
-    std::set<std::string> common;
-    std::set_union(included_once_tags.begin(),
-                   included_once_tags.end(),
-                   temponcetags.begin(),
-                   temponcetags.end(),
+    std::set<std::string> all_once_tags;
+    std::set_union(included_once_tags.begin(), included_once_tags.end(),
+                   once_tags.begin(),          once_tags.end(),
                    std::insert_iterator<std::set<std::string> >(
-                       common,
-                       common.end()));
+                       all_once_tags,
+                       all_once_tags.end()
+                   ));
+    new_ctx->eraseOnceForms(&all_once_tags, new_module);
 
-    mynewcontext->eraseOnceForms(&common, new_module);
+    included_once_tags.clear();
+    std::copy(all_once_tags.begin(), all_once_tags.end(),
+              std::insert_iterator<std::set<std::string> >(
+                  included_once_tags,
+                  included_once_tags.end()
+              ));
 
-    std::set<std::string> current;
-    std::merge(included_once_tags.begin(),
-               included_once_tags.end(),
-               temponcetags.begin(),
-               temponcetags.end(),
-               std::insert_iterator<std::set<std::string> >(
-                   current,
-                   current.end()));
-    included_once_tags.erase(included_once_tags.begin(),
-                              included_once_tags.end());
-    included_once_tags.insert(current.begin(), current.end());
-
-    /* Add the module name to the set of included modules. */
-    included_modules.insert(real_module_name);
+    included_modules.insert(lib_module_name);
 
     dtm_modules.insert(std::pair<std::string, llvm::Module *>(
-                            std::string(real_module_name),
+                            std::string(lib_module_name),
                             new_module
-                        ));
-
+                       ));
     dtm_nm_modules.insert(std::pair<std::string, std::string>(
-                               std::string(real_module_name), 
+                               std::string(lib_module_name),
                                module_path_nomacros
-                           ));
-
-    /* Remove from mynewctx things not mentioned in import_forms,
-     * but only if at least one import form has been specified.
-     * */
+                          ));
 
     if (import_forms->size() > 0) {
         std::set<std::string> forms_set;
-        for (std::vector<const char*>::iterator
-                b = import_forms->begin(),
-                e = import_forms->end();
+        for (std::vector<const char*>::iterator b = import_forms->begin(),
+                                                e = import_forms->end();
                 b != e;
                 ++b) {
             forms_set.insert(std::string(*b));
         }
 
         std::set<std::string> found;
-        mynewcontext->removeUnneeded(&forms_set, &found);
+        new_ctx->removeUnneeded(&forms_set, &found);
 
         std::set<std::string> not_found;
         set_difference(forms_set.begin(), forms_set.end(),
                        found.begin(),     found.end(),
                        std::insert_iterator<std::set<std::string> >(
                            not_found,
-                           not_found.end()));
+                           not_found.end()
+                       ));
         if (not_found.size() > 0) {
-            std::string all;
+            std::string missing_forms;
             for (std::set<std::string>::iterator b = not_found.begin(),
-                    e = not_found.end();
+                                                 e = not_found.end();
                     b != e;
                     ++b) {
-                all.append(*b).append(", ");
+                missing_forms.append(*b).append(", ");
             }
-            all.erase(all.size() - 2, all.size() - 1);
-            std::string temp_mod_name(real_module_name);
-            // Get rid of "^lib".
-            temp_mod_name.replace(0, 3, "");
+            missing_forms.erase(missing_forms.size() - 2,
+                                missing_forms.size() - 1);
+            std::string bare_mod_name(lib_module_name);
+            bare_mod_name.replace(0, 3, "");
             Error *e = new Error(ModuleDoesNotProvideForms, n,
-                                 temp_mod_name.c_str(), all.c_str());
+                                 bare_mod_name.c_str(),
+                                 missing_forms.c_str());
             ctx->er->addError(e);
             return 0;
         }
 
     }
 
-    ctx->merge(mynewcontext);
+    ctx->merge(new_ctx);
     ctx->regetPointersForNewModule(mod);
     ctx->relink();
 

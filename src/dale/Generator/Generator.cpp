@@ -320,7 +320,7 @@ Generator::run(std::vector<const char *> *file_paths,
                                             e = compile_lib_paths->end();
             b != e;
             ++b) {
-        mr.addLib((*b), 0, 0);
+        mr.addDynamicLibrary((*b), false, false);
     }
 
     const char *libdrt_path = NULL;
@@ -333,7 +333,7 @@ Generator::run(std::vector<const char *> *file_paths,
             fprintf(stderr, "Unable to find libdrt.so.");
             abort();
         }
-        mr.addLib(libdrt_path, 0, 0);
+        mr.addDynamicLibrary(libdrt_path, false, false);
     }
     if (!module_name && libdrt_path) {
         shared_object_paths->push_back(libdrt_path);
@@ -538,7 +538,7 @@ Generator::run(std::vector<const char *> *file_paths,
                 static_dtm_modules.insert(
                     std::pair<std::string, llvm::Module*>(
                         b->first,
-                        mr.loadModule(&(b->second), true)
+                        mr.loadModule(&(b->second))
                     )
                 );
             }
