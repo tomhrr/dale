@@ -76,39 +76,30 @@ FormFunctionParse(Units *units, Node *node, const char *name,
 
     int next_index = 1;
     bool always_inline = false;
-    bool my_cto = false;
+    bool cto = units->cto;
 
     /* Whole modules, as well as specific functions, can be declared
-     * compile-time-only. If the global CTO value is true, that
-     * overrides a zero value here.  However, a false global CTO value
-     * does not take precedence when a function has explicitly
-     * declared that it should be CTO. */
-
-    /* Function attributes. */
+     * compile-time-only.  If global CTO is enabled, that overrides
+     * the absence of a CTO attribute here.  However, if a function
+     * explicitly declares that it is CTO, that will override the
+     * global setting. */
 
     Node *test = ((*lst)[next_index]);
     if (test->is_list
             && test->list->at(0)->is_token
             && !(test->list->at(0)->token->str_value.compare("attr"))) {
         bool res = parseFunctionAttributes(ctx, test->list,
-                                           &always_inline, &my_cto);
+                                           &always_inline, &cto);
         if (!res) {
             return false;
         }
         ++next_index;
     }
 
-    if (units->cto) {
-        my_cto = true;
-    }
-
-    /* Linkage. */
-
     int linkage =
         (override_linkage)
             ? override_linkage
             : FormLinkageParse(ctx, (*lst)[next_index]);
-
     if (!linkage) {
         return false;
     }
@@ -116,38 +107,28 @@ FormFunctionParse(Units *units, Node *node, const char *name,
         ++next_index;
     }
 
-    /* Store the return type index at this point. The return type
-     * is not parsed yet, because it may depend on the types of
-     * the function parameters. */
+    /* The return type is not parsed yet, because it may depend on the
+     * types of the function parameters. */
 
     int return_type_index = next_index;
 
-    /* Parse arguments - push onto the list that gets created. */
-
-    Node *nargs = (*lst)[next_index + 1];
-
-    if (!nargs->is_list) {
-        Error *e = new Error(UnexpectedElement, nargs,
+    Node *args_node = (*lst)[next_index + 1];
+    if (!args_node->is_list) {
+        Error *e = new Error(UnexpectedElement, args_node,
                              "list", "parameters", "symbol");
         ctx->er->addError(e);
         return false;
     }
 
-    std::vector<Node *> *args = nargs->list;
-
-    Variable *var;
-
-    std::vector<Variable *> *fn_args_internal =
-        new std::vector<Variable *>;
-
-    /* Parse argument - need to keep names. */
+    std::vector<Node *> *args = args_node->list;
+    std::vector<Variable *> fn_args_internal;
 
     bool varargs = false;
     for (std::vector<Node *>::iterator b = args->begin(),
                                        e = args->end();
             b != e;
             ++b) {
-        var = new Variable();
+        Variable *var = new Variable();
         var->type = NULL;
 
         FormArgumentParse(units, var, (*b), false, false, true);
@@ -168,7 +149,7 @@ FormFunctionParse(Units *units, Node *node, const char *name,
             delete var;
             if (args->size() != 1) {
                 Error *e = new Error(VoidMustBeTheOnlyParameter,
-                                     nargs);
+                                     args_node);
                 ctx->er->addError(e);
                 return false;
             }
@@ -179,12 +160,12 @@ FormFunctionParse(Units *units, Node *node, const char *name,
             if ((args->end() - b) != 1) {
                 delete var;
                 Error *e = new Error(VarArgsMustBeLastParameter,
-                                     nargs);
+                                     args_node);
                 ctx->er->addError(e);
                 return false;
             }
             varargs = true;
-            fn_args_internal->push_back(var);
+            fn_args_internal.push_back(var);
             break;
         }
 
@@ -195,14 +176,12 @@ FormFunctionParse(Units *units, Node *node, const char *name,
             return false;
         }
 
-        fn_args_internal->push_back(var);
+        fn_args_internal.push_back(var);
     }
 
-    /* Convert to LLVM arguments. */
-
     std::vector<llvm::Type*> fn_args;
-    for (std::vector<Variable *>::iterator b = fn_args_internal->begin(),
-                                           e = fn_args_internal->end();
+    for (std::vector<Variable *>::iterator b = fn_args_internal.begin(),
+                                           e = fn_args_internal.end();
             b != e;
             ++b) {
         Type *type = (*b)->type;
@@ -219,16 +198,16 @@ FormFunctionParse(Units *units, Node *node, const char *name,
         fn_args.push_back(llvm_type);
     }
 
-    /* Return type.  First, activate an anonymous namespace and add
-     * all of the function parameters to it. This is so that if the
-     * return type uses a macro that depends on one of those
+    /* For return type parsing, activate an anonymous namespace and
+     * add all of the function parameters to it.  This is so that if
+     * the return type uses a macro that depends on one of those
      * parameters, it will work properly. */
 
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;
 
-    for (std::vector<Variable *>::iterator b = fn_args_internal->begin(),
-                                           e = fn_args_internal->end();
+    for (std::vector<Variable *>::iterator b = fn_args_internal.begin(),
+                                           e = fn_args_internal.end();
             b != e;
             ++b) {
         ctx->ns()->addVariable((*b)->name.c_str(), (*b));
@@ -264,28 +243,24 @@ FormFunctionParse(Units *units, Node *node, const char *name,
         llvm_ret_type = ctx->toLLVMType(ctx->tr->getBasicType(BaseType::Void),
                                         NULL, true);
     }
-
     llvm::FunctionType *ft = getFunctionType(llvm_ret_type, fn_args,
                                              varargs);
 
-    std::string new_name;
-    ctx->ns()->functionNameToSymbol(name, &new_name, linkage,
-                                    fn_args_internal);
+    std::string symbol;
+    ctx->ns()->functionNameToSymbol(name, &symbol, linkage,
+                                    &fn_args_internal);
 
-    Function *dfn = new Function(ret_type, fn_args_internal, NULL, 0,
-                                 &new_name, always_inline);
-    dfn->linkage = linkage;
-    dfn->cto = my_cto;
+    Function *fn = new Function(ret_type, &fn_args_internal, NULL, 0,
+                                 &symbol, always_inline);
+    fn->linkage = linkage;
+    fn->cto = cto;
     if (!strcmp(name, "setf-copy") || !strcmp(name, "setf-assign")) {
-        dfn->is_setf_fn = 1;
+        fn->is_setf_fn = true;
     } else if (!strcmp(name, "destroy")) {
-        dfn->is_destructor = 1;
+        fn->is_destructor = true;
     }
 
-    /* If the function is a setf function, the return type must be
-     * bool. */
-
-    if (dfn->is_setf_fn) {
+    if (fn->is_setf_fn) {
         if (!ret_type->isEqualTo(ctx->tr->type_bool)) {
             Error *e = new Error(SetfOverridesMustReturnBool,
                                  (*lst)[return_type_index]);
@@ -294,21 +269,18 @@ FormFunctionParse(Units *units, Node *node, const char *name,
         }
     }
 
-    /* If the function already exists, but has a different
-     * prototype, then fail. */
-
     llvm::Function *existing_llvm_fn =
-        units->top()->module->getFunction(new_name.c_str());
+        units->top()->module->getFunction(symbol.c_str());
     if (existing_llvm_fn) {
-        Function *existing_fn = ctx->getFunction(new_name.c_str(), NULL,
+        Function *existing_fn = ctx->getFunction(symbol.c_str(), NULL,
                                                  NULL, 0);
-        if (existing_fn && !existing_fn->isEqualTo(dfn)) {
+        if (existing_fn && !existing_fn->isEqualTo(fn)) {
             Error *e = new Error(RedeclarationOfFunctionOrMacro,
                                  node, name);
             ctx->er->addError(e);
             return false;
         }
-        if (existing_fn && !existing_fn->attrsAreEqual(dfn)) {
+        if (existing_fn && !existing_fn->attrsAreEqual(fn)) {
             Error *e = new Error(AttributesOfDeclAndDefAreDifferent,
                                  node, name);
             ctx->er->addError(e);
@@ -317,20 +289,20 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     }
 
     if (units->top()->once_tag.length() > 0) {
-        dfn->once_tag = units->top()->once_tag;
+        fn->once_tag = units->top()->once_tag;
     }
 
     llvm::Constant *fnc =
-        units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
+        units->top()->module->getOrInsertFunction(symbol.c_str(), ft);
 
-    llvm::Function *fn = llvm::dyn_cast<llvm::Function>(fnc);
+    llvm::Function *llvm_fn = llvm::dyn_cast<llvm::Function>(fnc);
 
-    /* If fn is null, then the function already exists and the extant
+    /* If llvm_fn is null, then the function already exists and the extant
      * function has a different prototype, so it's an invalid
-     * redeclaration.  If fn is not null, but has content, then it's an
+     * redeclaration.  If llvm_fn is not null, but has content, then it's an
      * invalid redefinition. */
 
-    if (!fn || fn->size()) {
+    if (!llvm_fn || llvm_fn->size()) {
         Error *e = new Error(RedeclarationOfFunctionOrMacro, node, name);
         ctx->er->addError(e);
         return false;
@@ -338,22 +310,22 @@ FormFunctionParse(Units *units, Node *node, const char *name,
 
     if (always_inline) {
 #if D_LLVM_VERSION_MINOR == 2
-        fn->addFnAttr(llvm::Attributes::AlwaysInline);
+        llvm_fn->addFnAttr(llvm::Attributes::AlwaysInline);
 #else
-        fn->addFnAttr(llvm::Attribute::AlwaysInline);
+        llvm_fn->addFnAttr(llvm::Attribute::AlwaysInline);
 #endif
     }
 
-    fn->setCallingConv(llvm::CallingConv::C);
-    fn->setLinkage(
+    llvm_fn->setCallingConv(llvm::CallingConv::C);
+    llvm_fn->setLinkage(
         (lst->size() == (unsigned) (next_index + 2))
             ? ctx->toLLVMLinkage(override_linkage)
             : ctx->toLLVMLinkage(linkage)
     );
 
-    llvm::Function::arg_iterator llvm_arg_iter = fn->arg_begin();
-    for (std::vector<Variable *>::iterator b = fn_args_internal->begin(),
-                                           e = fn_args_internal->end();
+    llvm::Function::arg_iterator llvm_arg_iter = llvm_fn->arg_begin();
+    for (std::vector<Variable *>::iterator b = fn_args_internal.begin(),
+                                           e = fn_args_internal.end();
             b != e;
             ++b) {
         if ((*b)->type->base_type == BaseType::VarArgs) {
@@ -371,23 +343,13 @@ FormFunctionParse(Units *units, Node *node, const char *name,
         lv_return_value->setName("retval");
     }
 
-    /* If this is an extern-c function, if any non-extern-c function
-     * with this name already exists, don't add the current
-     * function, and vice-versa.
-     *
-     * (Dropping this for now, because you may well want
-     * non-extern-c and extern-c functions to coexist - think
-     * 'read', 'write', 'open'.)
-     */
-
-    /* Add the function to the context. */
-    dfn->llvm_function = fn;
-    if (!ctx->ns()->addFunction(name, dfn, node)) {
+    fn->llvm_function = llvm_fn;
+    if (!ctx->ns()->addFunction(name, fn, node)) {
         return false;
     }
 
     if (new_fn) {
-        *new_fn = dfn;
+        *new_fn = fn;
     }
 
     /* If the list has only four arguments, function is a
@@ -400,8 +362,8 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     ctx->activateAnonymousNamespace();
     std::string anon_name2 = ctx->ns()->name;
 
-    units->top()->pushGlobalFunction(dfn);
-    FormProcBodyParse(units, node, dfn, fn, (next_index + 2),
+    units->top()->pushGlobalFunction(fn);
+    FormProcBodyParse(units, node, fn, llvm_fn, (next_index + 2),
                       is_anonymous, lv_return_value);
     units->top()->popGlobalFunction();
 
