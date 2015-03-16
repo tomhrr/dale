@@ -73,7 +73,7 @@ const char *core_forms_no_override_strs[core_forms_no_override_max + 1] = {
 static bool initialised = false;
 
 void 
-init(void)
+init()
 {
     if (initialised) {
         return;

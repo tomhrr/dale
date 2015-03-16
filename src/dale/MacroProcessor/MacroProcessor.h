@@ -71,7 +71,7 @@ public:
      *  This must be done at least once before parseMacroCall is first
      *  called.
      */
-    void setPoolfree(void);
+    void setPoolfree();
 };
 }
 

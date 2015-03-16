@@ -18,7 +18,7 @@ Parser::~Parser()
 }
 
 Lexer *
-Parser::getLexer(void)
+Parser::getLexer()
 {
     return lexer;
 }
@@ -38,7 +38,7 @@ Parser::deleteNodeList(std::vector<Node *> *list)
 }
 
 Node *
-Parser::getNextList(void)
+Parser::getNextList()
 {
     Token ts(TokenType::Null);
     Token te(TokenType::Null);

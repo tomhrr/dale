@@ -25,7 +25,7 @@ Writer::Writer(std::string module_name, dale::Context *ctx,
     this->module_prefix.append(module_name);
 }
 
-Writer::~Writer(void)
+Writer::~Writer()
 {
 }
 
@@ -91,7 +91,7 @@ Writer::writeSharedObject(const char *suffix)
 }
 
 bool
-Writer::writeContext(void)
+Writer::writeContext()
 {
     ctx->removeDeserialised();
 
@@ -113,7 +113,7 @@ Writer::writeContext(void)
 }
 
 bool
-Writer::run(void)
+Writer::run()
 {
     writeBitcode("");
     writeSharedObject("");

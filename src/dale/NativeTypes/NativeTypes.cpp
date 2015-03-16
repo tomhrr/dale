@@ -37,103 +37,103 @@ NativeTypes::NativeTypes()
 }
 
 llvm::IntegerType *
-NativeTypes::getNativeIntType(void)
+NativeTypes::getNativeIntType()
 {
     return native_int_type;
 }
 
 llvm::IntegerType *
-NativeTypes::getNativeUIntType(void)
+NativeTypes::getNativeUIntType()
 {
     return native_uint_type;
 }
 
 llvm::IntegerType *
-NativeTypes::getNativeCharType(void)
+NativeTypes::getNativeCharType()
 {
     return native_char_type;
 }
 
 llvm::IntegerType *
-NativeTypes::getNativeIntptrType(void)
+NativeTypes::getNativeIntptrType()
 {
     return native_intptr_type;
 }
 
 llvm::IntegerType *
-NativeTypes::getNativePtrDiffType(void)
+NativeTypes::getNativePtrDiffType()
 {
     return native_ptrdiff_type;
 }
 
 llvm::Type *
-NativeTypes::getNativeFloatType(void)
+NativeTypes::getNativeFloatType()
 {
     return native_float_type;
 }
 
 llvm::Type *
-NativeTypes::getNativeDoubleType(void)
+NativeTypes::getNativeDoubleType()
 {
     return native_double_type;
 }
 
 llvm::Type *
-NativeTypes::getNativeLongDoubleType(void)
+NativeTypes::getNativeLongDoubleType()
 {
     return native_longdouble_type;
 }
 
 llvm::IntegerType *
-NativeTypes::getNativeSizeType(void)
+NativeTypes::getNativeSizeType()
 {
     return native_size_type;
 }
 
 int
-NativeTypes::getNativePtrSize(void)
+NativeTypes::getNativePtrSize()
 {
     return native_ptr_size;
 }
 
 int
-NativeTypes::getNativeIntSize(void)
+NativeTypes::getNativeIntSize()
 {
     return native_int_size;
 }
 
 int
-NativeTypes::getNativePtrDiffSize(void)
+NativeTypes::getNativePtrDiffSize()
 {
     return native_ptrdiff_size;
 }
 
 int
-NativeTypes::getNativeSizeSize(void)
+NativeTypes::getNativeSizeSize()
 {
     return native_size_size;
 }
 
 llvm::Value *
-NativeTypes::getLLVMTrue(void)
+NativeTypes::getLLVMTrue()
 {
     return llvm_true;
 }
 
 llvm::Value *
-NativeTypes::getLLVMFalse(void)
+NativeTypes::getLLVMFalse()
 {
     return llvm_false;
 }
 
 llvm::Value *
-NativeTypes::getLLVMZero(void)
+NativeTypes::getLLVMZero()
 {
     return llvm_zero;
 }
 
 llvm::Value *
-NativeTypes::getLLVMOne(void)
+NativeTypes::getLLVMOne()
 {
     return llvm_one;
 }

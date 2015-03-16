@@ -33,7 +33,7 @@ Node::Node(const char *str)
     token->str_value.append(str);
 }
 
-Node::~Node(void)
+Node::~Node()
 {
     if (is_token) {
         delete token;
@@ -48,7 +48,7 @@ Node::~Node(void)
 }
 
 Position *
-Node::getBeginPos(void)
+Node::getBeginPos()
 {
     if (is_list || (!is_token)) {
         return &list_begin;
@@ -58,7 +58,7 @@ Node::getBeginPos(void)
 }
 
 Position *
-Node::getEndPos(void)
+Node::getEndPos()
 {
     if (is_list || (!is_token)) {
         return &list_end;
@@ -68,7 +68,7 @@ Node::getEndPos(void)
 }
 
 void
-Node::print(void)
+Node::print()
 {
     if (is_token) {
         if (token->type == TokenType::StringLiteral) {
@@ -135,7 +135,7 @@ Node::copyMetaTo(Node *other)
 
 Node *null_node;
 Node *
-nullNode(void)
+nullNode()
 {
     if (null_node) {
         return null_node;
@@ -145,7 +145,7 @@ nullNode(void)
 }
 
 DNode *
-Node::toDNode(void)
+Node::toDNode()
 {
     if (is_token) {
         Token *t = token;
@@ -249,7 +249,7 @@ Node::addMacroPosition(Node *mp_node)
 }
 
 void
-Node::init(void)
+Node::init()
 {
     is_list  = false;
     is_token = false;

@@ -55,12 +55,12 @@ public:
      *
      *  This does not relinquish ownership of the lexer.
      */
-    Lexer *getLexer(void);
+    Lexer *getLexer();
     /*! Get the next list node.
      *
      *  Ownership of the new node list is passed to the caller.
      */
-    Node *getNextList(void);
+    Node *getNextList();
 };
 }
 

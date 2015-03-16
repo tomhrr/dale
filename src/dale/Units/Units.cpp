@@ -9,30 +9,30 @@ Units::Units(Module::Reader *mr)
     this->mr = mr;
 }
 
-Units::~Units(void)
+Units::~Units()
 {
 }
 
 Unit* 
-Units::top(void)
+Units::top()
 {
     return units.top();
 }
 
 bool
-Units::empty(void)
+Units::empty()
 {
     return units.empty();
 }
 
 size_t
-Units::size(void)
+Units::size()
 {
     return units.size();
 }
 
 void
-Units::pop(void)
+Units::pop()
 {
     Unit *popped = units.top();
     units.pop();

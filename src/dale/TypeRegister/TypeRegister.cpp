@@ -9,7 +9,7 @@
 
 namespace dale
 {
-TypeRegister::TypeRegister(void)
+TypeRegister::TypeRegister()
 {
     basic_types[BaseType::Bool]       = new Type(BaseType::Bool);
     basic_types[BaseType::Void]       = new Type(BaseType::Void);
@@ -66,7 +66,7 @@ TypeRegister::TypeRegister(void)
     type_pdnode = getPointerType(type_dnode);
 }
 
-TypeRegister::~TypeRegister(void)
+TypeRegister::~TypeRegister()
 {
     for (int i = 1; i < 23; i++) {
         delete basic_types[i];
@@ -278,7 +278,7 @@ TypeRegister::getType(Type *type)
 }
 
 void
-TypeRegister::print(void)
+TypeRegister::print()
 {
     fprintf(stderr, "Pointer type count: %lu\n", pointer_types.size());
     fprintf(stderr, "Const type count:   %lu\n", const_types.size());

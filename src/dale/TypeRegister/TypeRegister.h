@@ -103,7 +103,7 @@ public:
     Type *type_pdnode;
 
     /*! Dump debugging information to stderr. */
-    void print(void);
+    void print();
 };
 }
 

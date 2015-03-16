@@ -77,7 +77,7 @@ public:
 
     /*! Reset all fields of the type.
      */
-    void reset(void);
+    void reset();
     /*! Check whether a type is equal to another type.
      *  @param other type The other type.
      *  @param ignore_arg_constness
@@ -128,39 +128,39 @@ public:
      *  As with toString, the result will parse as the given type.
      *  Ownership of the node passes to the caller.
      */
-    Node *toNode(void);
+    Node *toNode();
 
     /*! Make a deep copy of the type.
      *
      *  TypeRegister should be the only client for this method.
      */
-    Type *makeCopy(void);
+    Type *makeCopy();
 
     /*! Check whether this type is an integer type.
      */
-    bool isIntegerType(void);
+    bool isIntegerType();
     /*! Check whether this type is a signed integer type.
      */
-    bool isSignedIntegerType(void);
+    bool isSignedIntegerType();
     /*! Get the size of this integer type.
      *
      *  See BaseType::integerTypeToSize.
      */
-    int getIntegerSize(void);
+    int getIntegerSize();
     /*! Check whether this type is a floating point type.
      */
-    bool isFloatingPointType(void);
+    bool isFloatingPointType();
     /*! Get the relative size of this floating point type.
      *
      *  See BaseType::floatingPointTypeToRelativeSize.
      */
-    int getFloatingPointRelativeSize(void);
+    int getFloatingPointRelativeSize();
     /*! Check whether this type is the VarArgs type.
      */
-    bool isVarArgs(void);
+    bool isVarArgs();
     /*! Get the number of arguments required by this function type.
      */
-    int numberOfRequiredArgs(void);
+    int numberOfRequiredArgs();
 };
 }
 

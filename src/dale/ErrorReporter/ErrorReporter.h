@@ -50,10 +50,10 @@ public:
     int getErrorTypeCount(int error_type);
     /*! Get the number of errors present in the reporter.
      */
-    int getErrorCount(void);
+    int getErrorCount();
     /*! Pop the last-added error from the reporter.
      */
-    Error *popLastError(void);
+    Error *popLastError();
     /*! Pop errors until the reporter contains the given number of errors.
      *  @param original_count The number of errors that should be
      *  present after the method completes.
@@ -61,7 +61,7 @@ public:
     void popErrors(int original_count);
     /*! Print all errors to standard error.
      */
-    void flush(void);
+    void flush();
 
     /*! Confirm that the argument node represents the native integer type.
      *  @param form_name The form name (for the error message).

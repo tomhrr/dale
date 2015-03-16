@@ -75,13 +75,13 @@ public:
     /*! Return a boolean indicating whether the function is a varargs
      *  function.
      */
-    bool isVarArgs(void);
+    bool isVarArgs();
     /*! Return the number of arguments required by the function.
      *  (This is not the same as the size of parameter_types, due to
      *  the possibility of a varargs parameter being present in that
      *  vector.)
      */
-    int numberOfRequiredArgs(void);
+    int numberOfRequiredArgs();
     /*! Check whether a function is equal to another function.
      *  @param fn The other function.
      *
@@ -104,10 +104,10 @@ public:
     bool addLabel(const char *name, Label *label);
     /*! Check whether a function is a declaration, rather than a definition.
      */
-    bool isDeclaration(void);
+    bool isDeclaration();
     /*! Check whether a function is a retval function.
      */
-    bool hasRetval(void);
+    bool hasRetval();
 };
 }
 

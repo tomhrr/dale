@@ -505,7 +505,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     void* fptr = units->top()->ee->getPointerToFunction(wrapper_fn);
     assert(fptr && "could not get pointer to function for literal");
 
-    ((void (*)(void)) fptr)();
+    ((void (*)()) fptr)();
 
     llvm::Constant *parsed =
         parseLiteralElement(units, top, (char*) &data, type, size);

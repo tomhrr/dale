@@ -60,7 +60,7 @@ Function::addLabel(const char *name, Label *label)
 }
 
 bool
-Function::isVarArgs(void)
+Function::isVarArgs()
 {
     if (parameter_types.size() == 0) {
         return false;
@@ -72,7 +72,7 @@ Function::isVarArgs(void)
 }
 
 int
-Function::numberOfRequiredArgs(void)
+Function::numberOfRequiredArgs()
 {
     if (parameter_types.size() == 0) {
         return 0;
@@ -108,13 +108,13 @@ Function::attrsAreEqual(Function *other_fn)
 }
 
 bool
-Function::isDeclaration(void)
+Function::isDeclaration()
 {
     return (!llvm_function || (llvm_function->size() == 0));
 }
 
 bool
-Function::hasRetval(void)
+Function::hasRetval()
 {
     return (return_type->is_retval != 0);
 }

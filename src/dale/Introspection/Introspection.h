@@ -209,7 +209,7 @@ extern "C" {
      *  This must be called at least once before
      *  find_introspection_function may be called.
      */
-    void init_introspection_functions(void);
+    void init_introspection_functions();
     /*! Find an introspection function.
      *  @param name The external name of the function (e.g. "type-of").
      *

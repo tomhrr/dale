@@ -81,19 +81,19 @@ public:
     Unit(const char *path, Units *units, ErrorReporter *er,
          NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee,
          bool is_x86_64);
-    ~Unit(void);
+    ~Unit();
     /*! Check whether this unit has a once tag.
      */
-    bool hasOnceTag(void);
+    bool hasOnceTag();
     /*! Set the once tag for this unit.
      */
     bool setOnceTag(std::string new_once_tag);
     /*! Get the current global function.
      */
-    Function *getGlobalFunction(void);
+    Function *getGlobalFunction();
     /*! Get the current global function.
      */
-    llvm::BasicBlock *getGlobalBlock(void);
+    llvm::BasicBlock *getGlobalBlock();
     /*! Push a new global function onto the stack.
      */
     void pushGlobalFunction(Function *fn);
@@ -102,19 +102,19 @@ public:
     void pushGlobalBlock(llvm::BasicBlock *block);
     /*! Pop the top global function from the stack.
      */
-    void popGlobalFunction(void);
+    void popGlobalFunction();
     /*! Pop the top global block from the stack.
      */
-    void popGlobalBlock(void);
+    void popGlobalBlock();
     /*! Add a temporary global function.
      */
-    void makeTemporaryGlobalFunction(void);
+    void makeTemporaryGlobalFunction();
     /*! Remove a temporary global function.
      */
-    void removeTemporaryGlobalFunction(void);
+    void removeTemporaryGlobalFunction();
     /*! Add the necessary common declarations to this unit.
      */
-    void addCommonDeclarations(void);
+    void addCommonDeclarations();
     /*! Get an unused LLVM variable name.
      */
     void getUnusedVarName(std::string *buf);

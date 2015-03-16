@@ -41,7 +41,7 @@ private:
      *  @param suffix A string to append to the module name. */
     bool writeSharedObject(const char *suffix);
     /*! Write the module's context to disk. */
-    bool writeContext(void);
+    bool writeContext();
 
 public:
     /*! The standard constructor.
@@ -63,7 +63,7 @@ public:
     ~Writer();
 
     /*! Write the standard module artifacts to disk. */
-    bool run(void);
+    bool run();
 };
 }
 }

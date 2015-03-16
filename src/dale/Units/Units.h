@@ -42,22 +42,22 @@ public:
      *  @param mr A module reader.
      */
     Units(Module::Reader *mr);
-    ~Units(void);
+    ~Units();
 
     /*! Get the unit at the top of the stack.
      */
-    Unit *top(void);
+    Unit *top();
     /*! Check whether the unit stack is empty.
      */
-    bool empty(void);
+    bool empty();
     /*! Get the size of the stack.
      */
-    size_t size(void);
+    size_t size();
     /*! Pop the top unit from the stack, merging the top unit's
      *  context into the next unit's context, and linking the top
      *  unit's module into the next unit's module.
      */
-    void pop(void);
+    void pop();
     /*! Push another unit onto the stack.  The context from the
      *  topmost unit is merged into the new unit's context.
      */

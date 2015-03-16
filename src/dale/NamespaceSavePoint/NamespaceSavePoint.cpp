@@ -25,11 +25,11 @@ NamespaceSavePoint::NamespaceSavePoint(Namespace *ns)
     src_ns = ns;
 }
 
-NamespaceSavePoint::~NamespaceSavePoint(void)
+NamespaceSavePoint::~NamespaceSavePoint()
 {
 }
 
-bool NamespaceSavePoint::restore(void)
+bool NamespaceSavePoint::restore()
 {
     std::map<std::string, std::vector<Function *>*>::iterator
         fb;

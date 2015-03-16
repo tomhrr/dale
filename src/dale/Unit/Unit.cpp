@@ -45,14 +45,14 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
     }
 }
 
-Unit::~Unit(void)
+Unit::~Unit()
 {
     delete ctx;
     delete parser;
 }
 
 bool
-Unit::hasOnceTag(void)
+Unit::hasOnceTag()
 {
     return (once_tag.size() ? true : false);
 }
@@ -69,13 +69,13 @@ Unit::setOnceTag(std::string new_once_tag)
 }
 
 Function*
-Unit::getGlobalFunction(void)
+Unit::getGlobalFunction()
 {
     return global_function;
 }
 
 llvm::BasicBlock*
-Unit::getGlobalBlock(void)
+Unit::getGlobalBlock()
 {
     return global_block;
 }
@@ -95,7 +95,7 @@ Unit::pushGlobalBlock(llvm::BasicBlock *block)
 }
 
 void
-Unit::popGlobalFunction(void)
+Unit::popGlobalFunction()
 {
     global_functions.pop_back();
     if (global_functions.size()) {
@@ -106,7 +106,7 @@ Unit::popGlobalFunction(void)
 }
 
 void
-Unit::popGlobalBlock(void)
+Unit::popGlobalBlock()
 {
     global_blocks.pop_back();
     if (global_blocks.size()) {
@@ -117,7 +117,7 @@ Unit::popGlobalBlock(void)
 }
 
 void
-Unit::makeTemporaryGlobalFunction(void)
+Unit::makeTemporaryGlobalFunction()
 {
     llvm::Type *llvm_return_type =
         ctx->toLLVMType(ctx->tr->type_int, NULL, false);
@@ -158,7 +158,7 @@ Unit::makeTemporaryGlobalFunction(void)
 }
 
 void
-Unit::removeTemporaryGlobalFunction(void)
+Unit::removeTemporaryGlobalFunction()
 {
     ctx->deactivateAnonymousNamespace();
     Function *current = getGlobalFunction();
@@ -170,7 +170,7 @@ Unit::removeTemporaryGlobalFunction(void)
 static bool added_common_declarations = false;
 
 void
-Unit::addCommonDeclarations(void)
+Unit::addCommonDeclarations()
 {
     CommonDecl::addBasicTypes(this, is_x86_64);
 

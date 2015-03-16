@@ -111,7 +111,7 @@ OffsetofGetByIndex(Unit *unit,
     void* fptr = unit->ee->getPointerToFunction(llvm_fn);
     assert(fptr);
 
-    size_t (*FPTR)(void) = (size_t (*)(void))fptr;
+    size_t (*FPTR)() = (size_t (*)())fptr;
     size_t offset = (size_t) FPTR();
 
     llvm_fn->eraseFromParent();

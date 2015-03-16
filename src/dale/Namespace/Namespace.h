@@ -86,7 +86,7 @@ public:
 
     /*! The void constructor, intended solely for use by the
      *  deserialisation procedures. */
-    Namespace(void);
+    Namespace();
     /*! The normal constructor.
      *  @param er The error reporter.
      *  @param name The namespace name.
@@ -100,7 +100,7 @@ public:
               std::string name,
               Namespace *parent_namespace,
               int lv_index);
-    ~Namespace(void);
+    ~Namespace();
 
     /*! Add a function to the namespace.
      *  @param name The bare name of the function.
@@ -223,13 +223,13 @@ public:
      *  remove the function binding itself from the namespace. This is
      *  used by the Generator when it writes the 'no-macros' module.
      */
-    void eraseLLVMMacros(void);
+    void eraseLLVMMacros();
     /*! Erase all LLVM macros and CTO functions from the namespace.
      *
      *  As per eraseLLVMMacros, but also erases functions that have
      *  been marked as compile-time only.
      */
-    void eraseLLVMMacrosAndCTOFunctions(void);
+    void eraseLLVMMacrosAndCTOFunctions();
 
     /*! Set the namespace names for the current namespace.
      *  @param namespaces A vector to which the namespace names will be added.
@@ -339,10 +339,10 @@ public:
                         std::set<std::string> *found_forms);
 
     /*! Remove bindings that were added by way of module import. */
-    bool removeDeserialised(void);
+    bool removeDeserialised();
 
     /*! Print the namespace's details to stderr. */
-    void print(void);
+    void print();
 };
 }
 

@@ -43,7 +43,7 @@ ErrorReporter::addError(Error& err)
 }
 
 void
-ErrorReporter::flush(void)
+ErrorReporter::flush()
 {
     assert(error_index > (int) errors.size());
 
@@ -77,13 +77,13 @@ ErrorReporter::getErrorTypeCount(int error_type)
 }
 
 int
-ErrorReporter::getErrorCount(void)
+ErrorReporter::getErrorCount()
 {
     return errors.size();
 }
 
 Error *
-ErrorReporter::popLastError(void)
+ErrorReporter::popLastError()
 {
     Error *last_error = errors.back();
     errors.pop_back();

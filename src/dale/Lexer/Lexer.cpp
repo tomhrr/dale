@@ -22,7 +22,7 @@ Lexer::Lexer(FILE *file, int line_number, int column_number)
     buf[0] = '\0';
 }
 
-Lexer::~Lexer(void)
+Lexer::~Lexer()
 {
 }
 

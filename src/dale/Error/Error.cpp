@@ -127,7 +127,7 @@ Error::~Error()
 {
 }
 
-int Error::getType(void)
+int Error::getType()
 {
     return errorInstanceToType(instance);
 }

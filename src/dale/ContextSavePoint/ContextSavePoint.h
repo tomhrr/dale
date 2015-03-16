@@ -40,7 +40,7 @@ public:
     /*! Restore the context so it is as it was prior to savepoint
      *  instantiation.
      */
-    bool restore(void);
+    bool restore();
 };
 }
 

@@ -32,7 +32,7 @@ Type::~Type()
 }
 
 void
-Type::reset(void)
+Type::reset()
 {
     base_type       = 0;
     is_array        = false;
@@ -155,7 +155,7 @@ Type::canBePassedFrom(Type *value_type,
 }
 
 Node *
-Type::toNode(void)
+Type::toNode()
 {
     if (struct_name.size()) {
         Token *t = new Token(TokenType::String);
@@ -347,7 +347,7 @@ void Type::toString(std::string *str)
     return;
 }
 
-Type *Type::makeCopy(void)
+Type *Type::makeCopy()
 {
     Type *new_type = new Type();
 
@@ -446,17 +446,17 @@ void Type::toSymbolString(std::string *to)
     if (DEBUG)  printf("ERROR: cannot yet handle encstr for this type\n");
 }
 
-bool Type::isIntegerType(void)
+bool Type::isIntegerType()
 {
     return baseTypeIsIntegerType(base_type);
 }
 
-bool Type::isSignedIntegerType(void)
+bool Type::isSignedIntegerType()
 {
     return baseTypeIsSignedIntegerType(base_type);
 }
 
-int Type::getIntegerSize(void)
+int Type::getIntegerSize()
 {
     if (bitfield_size) {
         return 1000 + bitfield_size;
@@ -464,17 +464,17 @@ int Type::getIntegerSize(void)
     return integerTypeToSize(base_type);
 }
 
-int Type::getFloatingPointRelativeSize(void)
+int Type::getFloatingPointRelativeSize()
 {
     return floatingPointTypeToRelativeSize(base_type);
 }
 
-bool Type::isFloatingPointType(void)
+bool Type::isFloatingPointType()
 {
     return baseTypeIsFloatingPointType(base_type);
 }
 
-bool Type::isVarArgs(void)
+bool Type::isVarArgs()
 {
     if (parameter_types.size() == 0) {
         return false;
@@ -485,7 +485,7 @@ bool Type::isVarArgs(void)
     return (back->base_type == BaseType::VarArgs);
 }
 
-int Type::numberOfRequiredArgs(void)
+int Type::numberOfRequiredArgs()
 {
     if (parameter_types.size() == 0) {
         return 0;

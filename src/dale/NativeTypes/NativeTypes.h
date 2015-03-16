@@ -35,19 +35,19 @@ private:
 
 public:
     NativeTypes();
-    llvm::IntegerType *getNativeIntType(void);
-    llvm::IntegerType *getNativeUIntType(void);
-    llvm::IntegerType *getNativeCharType(void);
-    llvm::IntegerType *getNativeIntptrType(void);
-    llvm::IntegerType *getNativePtrDiffType(void);
-    llvm::Type *getNativeFloatType(void);
-    llvm::Type *getNativeDoubleType(void);
-    llvm::Type *getNativeLongDoubleType(void);
-    llvm::IntegerType *getNativeSizeType(void);
-    int getNativeIntSize(void);
-    int getNativePtrSize(void);
-    int getNativeSizeSize(void);
-    int getNativePtrDiffSize(void);
+    llvm::IntegerType *getNativeIntType();
+    llvm::IntegerType *getNativeUIntType();
+    llvm::IntegerType *getNativeCharType();
+    llvm::IntegerType *getNativeIntptrType();
+    llvm::IntegerType *getNativePtrDiffType();
+    llvm::Type *getNativeFloatType();
+    llvm::Type *getNativeDoubleType();
+    llvm::Type *getNativeLongDoubleType();
+    llvm::IntegerType *getNativeSizeType();
+    int getNativeIntSize();
+    int getNativePtrSize();
+    int getNativeSizeSize();
+    int getNativePtrDiffSize();
     /*! Convert an internal size to a real size.
      *  @param size An internal size.
      *
@@ -57,16 +57,16 @@ public:
     int internalSizeToRealSize(int size);
     /*! Get an LLVM true boolean value.
      */
-    llvm::Value *getLLVMTrue(void);
+    llvm::Value *getLLVMTrue();
     /*! Get an LLVM false boolean value.
      */
-    llvm::Value *getLLVMFalse(void);
+    llvm::Value *getLLVMFalse();
     /*! Get an LLVM native integer value of zero.
      */
-    llvm::Value *getLLVMZero(void);
+    llvm::Value *getLLVMZero();
     /*! Get an LLVM native integer value of one.
      */
-    llvm::Value *getLLVMOne(void);
+    llvm::Value *getLLVMOne();
     /*! Get an LLVM native integer value for the given number.
      *  @param n The number.
      */

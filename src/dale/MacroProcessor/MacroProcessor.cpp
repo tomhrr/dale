@@ -51,13 +51,13 @@ callmacro(int arg_count, void *units, void *mac, DNode **dnodes, MContext *mc)
     assert((res == FFI_OK) && "prep_cif failed, cannot run macro");
 
     DNode *ret_node = NULL;
-    ffi_call(&cif, (void (*)(void)) mac, (void *) &ret_node, vals);
+    ffi_call(&cif, (void (*)()) mac, (void *) &ret_node, vals);
 
     return ret_node;
 }
 
 void
-MacroProcessor::setPoolfree(void)
+MacroProcessor::setPoolfree()
 {
     if (!pool_free_fptr) {
         pool_free_fn = ctx->getFunction("pool-free", NULL, 0)->llvm_function;

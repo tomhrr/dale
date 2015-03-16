@@ -28,10 +28,10 @@ public:
     Position(Position *other);
     /*! Get the line number of the position.
      */
-    int getLineNumber(void);
+    int getLineNumber();
     /*! Get the column number of the position.
      */
-    int getColumnNumber(void);
+    int getColumnNumber();
     /*! Copy the details of this position to another.
      *  @param other The other position.
      */
@@ -43,7 +43,7 @@ public:
     void setLineAndColumn(int line_number, int column_number);
     /*! Set the line and column numbers for this position to zero.
      */
-    void zero(void);
+    void zero();
 };
 }
 

@@ -493,8 +493,6 @@ fn_2D_by_2D_args_2D_name(MContext *mc, DNode *form, int index)
 
     Node *n = units->top()->dnc->toNode(form);
 
-    assert(n->list && "must receive a list!");
-
     if (!units->top()->ctx->er->assertArgNums("fn-by-args-name", n, 0, -1)) {
         return NULL;
     }
@@ -706,8 +704,6 @@ DNode *codomain(MContext *mc, DNode *form)
 
     Node *n = units->top()->dnc->toNode(form);
 
-    assert(n->list && "must receive a list!");
-
     if (!units->top()->ctx->er->assertArgNums("codomain", n, 0, -1)) {
         return NULL;
     }
@@ -841,7 +837,7 @@ struct_2D_member_2D_count(MContext *mc, DNode *name)
 static std::map<std::string, void*> fns;
 
 void
-init_introspection_functions(void)
+init_introspection_functions()
 {
     fns.clear();
     fns["exists-fn"]                = (void *) exists_2D_fn;

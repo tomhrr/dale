@@ -37,7 +37,7 @@ ContextSavePoint::ContextSavePoint(Context *ctx)
     used_count   = src_ctx->used_ns_nodes.size();
 }
 
-ContextSavePoint::~ContextSavePoint(void)
+ContextSavePoint::~ContextSavePoint()
 {
 }
 
@@ -78,7 +78,7 @@ eraseUnneeded(Context *ctx, SPNode *spnode, NSNode *nsnode)
 }
 
 bool
-ContextSavePoint::restore(void)
+ContextSavePoint::restore()
 {
     int current_active_count = src_ctx->active_ns_nodes.size();
     int current_used_count   = src_ctx->used_ns_nodes.size();

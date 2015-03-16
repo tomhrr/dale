@@ -7,7 +7,7 @@ using namespace dale::ErrorInst;
 
 namespace dale
 {
-Context::Context(void)
+Context::Context()
 {
     this->nt = NULL;
     this->er = NULL;
@@ -47,13 +47,13 @@ Context::deleteNamespaces(NSNode *node)
     delete node;
 }
 
-Context::~Context(void)
+Context::~Context()
 {
     deleteNamespaces(namespaces);
 }
 
 Namespace *
-Context::ns(void)
+Context::ns()
 {
     return active_ns_nodes.back()->ns;
 }
@@ -141,7 +141,7 @@ Context::deactivateNamespace(const char *name)
 static int anon_count = 0;
 
 bool
-Context::activateAnonymousNamespace(void)
+Context::activateAnonymousNamespace()
 {
     char buf[10];
     sprintf(buf, "anon%d", ++anon_count);
@@ -149,7 +149,7 @@ Context::activateAnonymousNamespace(void)
 }
 
 bool
-Context::deactivateAnonymousNamespace(void)
+Context::deactivateAnonymousNamespace()
 {
     active_ns_nodes.pop_back();
     used_ns_nodes.pop_back();
@@ -238,7 +238,7 @@ Context::useNamespace(const char *name)
 }
 
 bool
-Context::unuseNamespace(void)
+Context::unuseNamespace()
 {
     used_ns_nodes.pop_back();
     return true;
@@ -258,7 +258,7 @@ eraseLLVMMacros_(NSNode *node)
 }
 
 void
-Context::eraseLLVMMacros(void)
+Context::eraseLLVMMacros()
 {
     eraseLLVMMacros_(namespaces);
 }
@@ -277,7 +277,7 @@ eraseLLVMMacrosAndCTOFunctions_(NSNode *node)
 }
 
 void
-Context::eraseLLVMMacrosAndCTOFunctions(void)
+Context::eraseLLVMMacrosAndCTOFunctions()
 {
     eraseLLVMMacrosAndCTOFunctions_(namespaces);
 }
@@ -1320,7 +1320,7 @@ relink_(NSNode *nsnode)
 }
 
 void
-Context::relink(void)
+Context::relink()
 {
     relink_(namespaces);
 }
@@ -1342,7 +1342,7 @@ print_(NSNode *nsnode)
 }
 
 void
-Context::print(void)
+Context::print()
 {
     print_(namespaces);
 }
@@ -1375,7 +1375,7 @@ deleteAnonymousNamespaces_(NSNode *nsnode)
 }
 
 bool
-Context::deleteAnonymousNamespaces(void)
+Context::deleteAnonymousNamespaces()
 {
     return deleteAnonymousNamespaces_(namespaces);
 }
@@ -1397,7 +1397,7 @@ removeDeserialised_(NSNode *nsnode)
 }
 
 bool
-Context::removeDeserialised(void)
+Context::removeDeserialised()
 {
     return removeDeserialised_(namespaces);
 }

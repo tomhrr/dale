@@ -26,7 +26,7 @@ namespace CoreForms
 {
 /*! Initialise the core form functions.
  */
-void init(void);
+void init();
 /*! Check whether a given binding is a core form.
  *  @param name The name of the binding.
  */

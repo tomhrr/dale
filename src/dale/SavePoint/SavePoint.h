@@ -39,7 +39,7 @@ public:
     /*! Restore the context and function state so it is as it was
      *  prior to savepoint instantiation.
      */
-    bool restore(void);
+    bool restore();
 };
 }
 

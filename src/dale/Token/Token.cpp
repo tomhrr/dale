@@ -20,7 +20,7 @@ Token::Token(Token *other)
     other->copyTo(this);
 }
 
-Token::~Token(void)
+Token::~Token()
 {
 }
 
@@ -52,7 +52,7 @@ Token::copyTo(Token *token)
 }
 
 const char *
-Token::tokenType(void)
+Token::tokenType()
 {
     return tokenTypeToString(type);
 }

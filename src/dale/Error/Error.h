@@ -93,7 +93,7 @@ public:
      *
      *  See ErrorType.
      */
-    int getType(void);
+    int getType();
     /*! Add an argument string to this error.
      *  @param str The argument string.
      *

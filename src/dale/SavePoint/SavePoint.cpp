@@ -16,7 +16,7 @@ SavePoint::SavePoint(Context *ctx, Function *fn, llvm::BasicBlock *block)
     csp = new ContextSavePoint(ctx);
 }
 
-SavePoint::~SavePoint(void)
+SavePoint::~SavePoint()
 {
     if (csp != NULL) {
         delete csp;
@@ -24,7 +24,7 @@ SavePoint::~SavePoint(void)
 }
 
 bool
-SavePoint::restore(void)
+SavePoint::restore()
 {
     int block_pop_back = fn->llvm_function->size() - block_count;
     while (block_pop_back--) {

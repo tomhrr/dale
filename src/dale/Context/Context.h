@@ -67,7 +67,7 @@ public:
     /*! The void constructor, intended solely for use by the
      *  deserialisation procedures.
      */
-    Context(void);
+    Context();
     /*! The normal constructor.
      *  @param er The error reporter.
      *  @param nt The native types.
@@ -78,11 +78,11 @@ public:
     Context(ErrorReporter *er,
             NativeTypes *nt,
             TypeRegister *tr);
-    ~Context(void);
+    ~Context();
 
     /*! Get the currently-active namespace.
      */
-    Namespace *ns(void);
+    Namespace *ns();
     /*! Pop active/used namespaces until the given namespace has been reached.
      *  @param ns The namespace that needs to be reached.
      */
@@ -104,7 +104,7 @@ public:
     bool deactivateNamespace(const char *name);
 
     /*! Activate a new anonymous namespace. */
-    bool activateAnonymousNamespace(void);
+    bool activateAnonymousNamespace();
     /*! Deactivate an anonymous namespace.
      *
      *  The only difference between this method and
@@ -114,7 +114,7 @@ public:
      *  activateAnonymousNamespace call, by fetching the namespace's
      *  name manually after activation.
      */
-    bool deactivateAnonymousNamespace(void);
+    bool deactivateAnonymousNamespace();
 
     /*! Retrieve a namespace node by name.
      *  @param name The name of the namespace.
@@ -149,15 +149,15 @@ public:
     bool useNamespace(const char *name);
     /*! Remove the last-used namespace from the used list.
      */
-    bool unuseNamespace(void);
+    bool unuseNamespace();
 
     /*! Erase LLVM macros from all namespaces.
      */
-    void eraseLLVMMacros(void);
+    void eraseLLVMMacros();
     /*! Erase LLVM macros and compile-time functions from all
      * namespaces.
      */
-    void eraseLLVMMacrosAndCTOFunctions(void);
+    void eraseLLVMMacrosAndCTOFunctions();
 
     /*! Check whether an extern-c function with the given name exists.
      *  @param name The name of the function.
@@ -338,7 +338,7 @@ public:
      *
      *  See Namespace::removeDeserialised.
      */
-    bool removeDeserialised(void);
+    bool removeDeserialised();
     /*! Remove bindings that aren't included in the set of forms.
      *
      * See Namespace::removeUnneeded.
@@ -358,7 +358,7 @@ public:
                         llvm::Module *mod);
     /*! Delete all anonymous namespaces from this context.
      */
-    bool deleteAnonymousNamespaces(void);
+    bool deleteAnonymousNamespaces();
     /*! Delete the given namespace and all namespaces under it.
      *  @param node The namespace node.
      */
@@ -370,10 +370,10 @@ public:
      *  the parent namespace of each child node to that of the
      *  namespace from the namespace node.
      */
-    void relink(void);
+    void relink();
 
     /*! Print the context's details to stderr. */
-    void print(void);
+    void print();
 };
 }
 

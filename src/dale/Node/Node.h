@@ -64,7 +64,7 @@ public:
      *  used to construct error messages that do not need to refer to
      *  a node.
      */
-    Node(void);
+    Node();
     /*! Construct a token node.
      *  @param token The token.
      *
@@ -83,20 +83,20 @@ public:
      *  This takes ownership of the list.
      */
     Node(std::vector<Node *> *list);
-    ~Node(void);
+    ~Node();
     /*! Print the node to the standard output.
      */
-    void print(void);
+    void print();
     /*! Get the beginning position of the node.
      *
      *  This does not relinquish ownership of the position.
      */
-    Position *getBeginPos(void);
+    Position *getBeginPos();
     /*! Get the ending position of the node.
      *
      *  This does not relinquish ownership of the position.
      */
-    Position *getEndPos(void);
+    Position *getEndPos();
     /*! Copy position and filename information to the argument node.
      *  @param other The other node.
      */
@@ -107,7 +107,7 @@ public:
     void copyTo(Node *other);
     /*! Construct a DNode from this node.
      */
-    DNode *toDNode(void);
+    DNode *toDNode();
     /*! Set the current node's macro position from the argument node.
      *  @param mp_node The node from which to take the macro position.
      *
@@ -119,10 +119,10 @@ public:
      *
      *  This should only be used by constructors.
      */
-    void init(void);
+    void init();
 };
 
-Node *nullNode(void);
+Node *nullNode();
 }
 
 #endif

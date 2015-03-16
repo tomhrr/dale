@@ -27,13 +27,13 @@ Position::setLineAndColumn(int line_number, int column_number)
 }
 
 int
-Position::getLineNumber(void)
+Position::getLineNumber()
 {
     return line_number;
 }
 
 int
-Position::getColumnNumber(void)
+Position::getColumnNumber()
 {
     return column_number;
 }
@@ -46,7 +46,7 @@ Position::copyTo(Position *other)
 }
 
 void
-Position::zero(void)
+Position::zero()
 {
     line_number   = 0;
     column_number = 0;

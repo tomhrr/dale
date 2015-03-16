@@ -53,7 +53,7 @@ public:
     void copyTo(Token *other);
     /*! Get the token's type as a string.
      */
-    const char *tokenType(void);
+    const char *tokenType();
 };
 }
 

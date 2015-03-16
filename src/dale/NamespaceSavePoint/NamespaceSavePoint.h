@@ -22,11 +22,11 @@ public:
      *  @param ns The namespace.
      */
     NamespaceSavePoint(Namespace *ns);
-    ~NamespaceSavePoint(void);
+    ~NamespaceSavePoint();
     /*! Restore the context so it is as it was prior to savepoint
      *  instantiation.
      */
-    bool restore(void);
+    bool restore();
 
 private:
     std::map<std::string, int> function_count;

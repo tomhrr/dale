@@ -7,7 +7,7 @@
 
 namespace dale
 {
-Namespace::Namespace(void)
+Namespace::Namespace()
 {
     this->parent_namespace = NULL;
     this->er = NULL;
@@ -51,7 +51,7 @@ Namespace::Namespace(ErrorReporter *er,
     has_symbol_prefix = (symbol_prefix.size() ? true : false);
 }
 
-Namespace::~Namespace(void)
+Namespace::~Namespace()
 {
     for (std::map<std::string, std::vector<Function*>*>::iterator
             b = functions.begin(),
@@ -570,7 +570,7 @@ Namespace::functionNameToSymbol(const char *name,
 }
 
 void
-Namespace::eraseLLVMMacros(void)
+Namespace::eraseLLVMMacros()
 {
     std::vector<Function *>::reverse_iterator fn_b, fn_e;
 
@@ -597,7 +597,7 @@ Namespace::eraseLLVMMacros(void)
 }
 
 void
-Namespace::eraseLLVMMacrosAndCTOFunctions(void)
+Namespace::eraseLLVMMacrosAndCTOFunctions()
 {
     std::vector<Function *>::reverse_iterator fn_b, fn_e;
 
@@ -999,7 +999,7 @@ Namespace::removeUnneededFunctions(std::set<std::string> *forms,
 }
 
 bool
-Namespace::removeDeserialised(void)
+Namespace::removeDeserialised()
 {
     {
         std::map<std::string, Variable *>::iterator
@@ -1077,7 +1077,7 @@ Namespace::removeUnneeded(std::set<std::string> *forms,
 }
 
 void
-Namespace::print(void)
+Namespace::print()
 {
     fprintf(stderr, "Namespace: %s\n", name.c_str());
     fprintf(stderr, "Parent namespace: (%s)\n",
