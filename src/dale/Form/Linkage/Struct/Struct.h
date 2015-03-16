@@ -5,8 +5,11 @@
 #include "../../../Node/Node.h"
 
 namespace dale {
-int
-FormLinkageStructParse(Context *ctx, Node *n);
+/*! Parse a struct linkage form.
+ *  @param ctx The context.
+ *  @param node The node containing the linkage.
+ */
+int FormLinkageStructParse(Context *ctx, Node *node);
 }
 
 #endif
