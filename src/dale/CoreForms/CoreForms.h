@@ -19,8 +19,8 @@ typedef bool (*standard_core_form_t)(Units *units, Function *fn,
                                      Node *node, bool get_address,
                                      bool prefixed_with_core,
                                      ParseResult *pr);
-
-typedef Node *(*macro_core_form_t)(Context *ctx, Node *n);
+typedef Node *(*macro_core_form_t)(Context *ctx, Node *node);
+typedef bool (*toplevel_core_form_t)(Units *units, Node *node);
 
 namespace CoreForms
 {
@@ -49,6 +49,13 @@ standard_core_form_t getStandard(const char *name);
  *  Macro core forms are those implemented internally as macros.
  */
 macro_core_form_t getMacro(const char *name);
+/*! Get the top-level core form function pointer for the given name.
+ *  @param name The name of the binding.
+ *
+ *  Top-level core forms are those that may only be called at the
+ *  top level of a file.
+ */
+toplevel_core_form_t getTopLevel(const char *name);
 }
 }
 

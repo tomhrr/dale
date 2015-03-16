@@ -5,8 +5,7 @@
 
 namespace dale
 {
-bool
-FormTopLevelInstParse(Units *units, Node *node);
+bool FormTopLevelInstParse(Units *units, Node *node);
 }
 
 #endif

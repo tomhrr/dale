@@ -39,9 +39,18 @@
 #include "../Form/Macro/DerefStructDeref/DerefStructDeref.h"
 #include "../Form/Macro/DerefStruct/DerefStruct.h"
 #include "../Form/Macro/Setv/Setv.h"
+#include "../Form/TopLevel/Do/Do.h"
+#include "../Form/TopLevel/Def/Def.h"
+#include "../Form/TopLevel/Namespace/Namespace.h"
+#include "../Form/TopLevel/UsingNamespace/UsingNamespace.h"
+#include "../Form/TopLevel/Include/Include.h"
+#include "../Form/TopLevel/Module/Module.h"
+#include "../Form/TopLevel/Import/Import.h"
+#include "../Form/TopLevel/Once/Once.h"
 
 #define ADD_SC(a, b) standard_core_forms.insert(std::pair<std::string, standard_core_form_t>(a, b));
 #define ADD_MC(a, b) macro_core_forms.insert(std::pair<std::string, macro_core_form_t>(a, b));
+#define ADD_TC(a, b) toplevel_core_forms.insert(std::pair<std::string, toplevel_core_form_t>(a, b));
 
 namespace dale
 {
@@ -49,6 +58,7 @@ namespace CoreForms
 {
 std::map<std::string, standard_core_form_t> standard_core_forms;
 std::map<std::string, macro_core_form_t> macro_core_forms;
+std::map<std::string, toplevel_core_form_t> toplevel_core_forms;
 std::set<std::string> core_forms_no_override;
 
 const int core_forms_no_override_max = 31;
@@ -102,11 +112,20 @@ init(void)
     ADD_SC("new-scope",       &FormProcNewScopeParse);
     ADD_SC("array-of",        &FormProcArrayOfParse);
 
-    ADD_MC("setv", &FormMacroSetvParse);
-    ADD_MC("@$",   &FormMacroArrayDerefParse);
-    ADD_MC(":@",   &FormMacroDerefStructParse);
-    ADD_MC("@:",   &FormMacroStructDerefParse);
-    ADD_MC("@:@",  &FormMacroDerefStructDerefParse);
+    ADD_MC("setv",            &FormMacroSetvParse);
+    ADD_MC("@$",              &FormMacroArrayDerefParse);
+    ADD_MC(":@",              &FormMacroDerefStructParse);
+    ADD_MC("@:",              &FormMacroStructDerefParse);
+    ADD_MC("@:@",             &FormMacroDerefStructDerefParse);
+
+    ADD_TC("do",              &FormTopLevelDoParse);
+    ADD_TC("def",             &FormTopLevelDefParse);
+    ADD_TC("namespace",       &FormTopLevelNamespaceParse);
+    ADD_TC("using-namespace", &FormTopLevelUsingNamespaceParse);
+    ADD_TC("include",         &FormTopLevelIncludeParse);
+    ADD_TC("module",          &FormTopLevelModuleParse);
+    ADD_TC("import",          &FormTopLevelImportParse);
+    ADD_TC("once",            &FormTopLevelOnceParse);
 
     for (int i = 0; i < core_forms_no_override_max; i++) {
         core_forms_no_override.insert(core_forms_no_override_strs[i]);
@@ -143,6 +162,17 @@ getMacro(const char *name)
     std::map<std::string, macro_core_form_t>::iterator b =
         macro_core_forms.find(name);
     if (b == macro_core_forms.end()) {
+        return NULL;
+    }
+    return b->second;
+}
+
+toplevel_core_form_t
+getTopLevel(const char *name)
+{
+    std::map<std::string, toplevel_core_form_t>::iterator b =
+        toplevel_core_forms.find(name);
+    if (b == toplevel_core_forms.end()) {
         return NULL;
     }
     return b->second;

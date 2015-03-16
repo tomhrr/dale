@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "../../../Units/Units.h"
 #include "../../../Node/Node.h"
+#include "../../../CoreForms/CoreForms.h"
 
 #include "../Namespace/Namespace.h"
 #include "../UsingNamespace/UsingNamespace.h"
@@ -16,8 +17,6 @@
 #include "../Def/Def.h"
 #include "../Once/Once.h"
 #include "../Module/Module.h"
-
-#define eq(str) !strcmp(t->str_value.c_str(), str)
 
 namespace dale
 {
@@ -84,19 +83,8 @@ FormTopLevelInstParse(Units *units, Node *node)
         return false;
     }
 
-    bool (*toplevel_form)(Units *units, Node *n);
-
-    toplevel_form =
-        (eq("do"))              ? &FormTopLevelDoParse
-      : (eq("def"))             ? &FormTopLevelDefParse
-      : (eq("namespace"))       ? &FormTopLevelNamespaceParse
-      : (eq("using-namespace")) ? &FormTopLevelUsingNamespaceParse
-      : (eq("include"))         ? &FormTopLevelIncludeParse
-      : (eq("module"))          ? &FormTopLevelModuleParse
-      : (eq("import"))          ? &FormTopLevelImportParse
-      : (eq("once"))            ? &FormTopLevelOnceParse
-                                : NULL;
-
+    bool (*toplevel_form)(Units *units, Node *n) =
+        CoreForms::getTopLevel(t->str_value.c_str());
     if (toplevel_form) {
         toplevel_form(units, top);
         return true;
