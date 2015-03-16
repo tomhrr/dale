@@ -2,59 +2,44 @@
 #include "../../Linkage/Linkage.h"
 #include "../../Error/Error.h"
 
+using namespace dale::ErrorInst::Generator;
+
 namespace dale {
 int
-FormLinkageParse(Context *ctx, Node *n)
+FormLinkageParse(Context *ctx, Node *node)
 {
-    if (!n->is_token) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement,
-            n,
-            "atom", "linkage", "list"
-        );
+    if (!node->is_token) {
+        Error *e = new Error(UnexpectedElement, node,
+                             "atom", "linkage", "list");
         ctx->er->addError(e);
         return 0;
     }
 
-    if (n->token->type != TokenType::String) {
-        Error *e = new Error(
-            ErrorInst::Generator::UnexpectedElement,
-            n,
-            "symbol", "linkage", n->token->tokenType()
-        );
+    if (node->token->type != TokenType::String) {
+        Error *e = new Error(UnexpectedElement, node,
+                             "symbol", "linkage",
+                             node->token->tokenType());
         ctx->er->addError(e);
         return 0;
     }
 
-    const char *lnk = n->token->str_value.c_str();
+    const char *linkage = node->token->str_value.c_str();
 
-    if (!strcmp(lnk, "extern"))       {
+    if (!strcmp(linkage, "extern")) {
         return Linkage::Extern;
-    }
-    else if (!strcmp(lnk, "intern"))       {
+    } else if (!strcmp(linkage, "intern")) {
         return Linkage::Intern;
-    }
-    else if (!strcmp(lnk, "auto"))         {
+    } else if (!strcmp(linkage, "auto")) {
         return Linkage::Auto;
-    }
-    else if (!strcmp(lnk, "extern-c"))     {
+    } else if (!strcmp(linkage, "extern-c")) {
         return Linkage::Extern_C;
-    }
-    else if (!strcmp(lnk, "_extern-weak")) {
+    } else if (!strcmp(linkage, "_extern-weak")) {
         return Linkage::Extern_Weak;
     }
 
-    std::string temp;
-    temp.append("'")
-    .append(lnk)
-    .append("'");
-
-    Error *e = new Error(
-        ErrorInst::Generator::UnexpectedElement,
-        n,
-        "'extern'/'intern'/'auto'/'extern-c'", "linkage",
-        temp.c_str()
-    );
+    Error *e = new Error(UnexpectedElement, node,
+                         "extern/intern/auto/extern-c", "linkage",
+                         linkage);
     ctx->er->addError(e);
     return 0;
 }

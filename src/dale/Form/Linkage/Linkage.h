@@ -5,8 +5,11 @@
 #include "../../Node/Node.h"
 
 namespace dale {
-int
-FormLinkageParse(Context *ctx, Node *n);
+/*! Parse an enum linkage form.
+ *  @param ctx The context.
+ *  @param node The node containing the linkage.
+ */
+int FormLinkageParse(Context *ctx, Node *node);
 }
 
 #endif
