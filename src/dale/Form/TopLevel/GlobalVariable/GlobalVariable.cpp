@@ -134,10 +134,6 @@ parseLiteralStruct(Units *units, Node *top, char *data, Type *type,
         if (index != 0) {
             padding = (offset - last_offset - last_member_size);
         }
-        if (padding) {
-            Error *e = new Error(StructContainsPadding, top);
-            ctx->er->addError(e);
-        }
         total_padding += padding;
 
         assert((member_size <= 256) && "struct member size too large");
