@@ -1,8 +1,8 @@
 # Dale
 
-## 2.6 macros
-
 [Previous](./2-5-stdlib.md) | [Next](./2-7-assert.md)
+
+## 2.6 macros
 
 ### Details
 

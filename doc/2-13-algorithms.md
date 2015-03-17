@@ -1,8 +1,8 @@
 # Dale
 
-## 2.13 algorithms
-
 [Previous](./2-12-derivations.md) | [Next](./2-14-list.md)
+
+## 2.13 algorithms
 
 ### Details
 

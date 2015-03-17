@@ -1,8 +1,8 @@
 # Dale
 
-## 2.10 concepts
-
 [Previous](./2-9-concept-defs.md) | [Next](./2-11-utility.md)
+
+## 2.10 concepts
 
 ### Details
 

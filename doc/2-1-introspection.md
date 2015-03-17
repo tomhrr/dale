@@ -1,8 +1,8 @@
 # Dale
 
-## 2.1 introspection
-
 [Previous](./1-11-form-reference.md) | [Next](./2-2-ctype.md)
+
+## 2.1 introspection
 
 ### Details
 

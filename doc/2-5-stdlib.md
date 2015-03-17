@@ -1,8 +1,8 @@
 # Dale
 
-## 2.5 stdlib
-
 [Previous](./2-4-macros-core.md) | [Next](./2-6-macros.md)
+
+## 2.5 stdlib
 
 ### Details
 

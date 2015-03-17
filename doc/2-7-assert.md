@@ -1,8 +1,8 @@
 # Dale
 
-## 2.7 assert
-
 [Previous](./2-6-macros.md) | [Next](./2-8-concepts-core.md)
+
+## 2.7 assert
 
 ### Details
 

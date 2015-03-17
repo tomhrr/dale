@@ -1,8 +1,8 @@
 # Dale
 
-## 2.2 ctype
-
 [Previous](./2-1-introspection.md) | [Next](./2-3-math.md)
+
+## 2.2 ctype
 
 ### Details
 

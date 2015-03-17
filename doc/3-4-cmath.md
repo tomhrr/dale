@@ -1,8 +1,8 @@
 # Dale
 
-## 3.4 cmath
-
 [Previous](./3-3-clocale.md) | [Next](./3-5-csignal.md)
+
+## 3.4 cmath
 
 ### Details
 

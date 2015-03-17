@@ -1,8 +1,8 @@
 # Dale
 
-## 2.12 derivations
-
 [Previous](./2-11-utility.md) | [Next](./2-13-algorithms.md)
+
+## 2.12 derivations
 
 ### Details
 

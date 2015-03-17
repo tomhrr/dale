@@ -1,8 +1,8 @@
 # Dale
 
-## 2.11 utility
-
 [Previous](./2-10-concepts.md) | [Next](./2-12-derivations.md)
+
+## 2.11 utility
 
 ### Details
 

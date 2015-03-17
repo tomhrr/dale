@@ -1,8 +1,8 @@
 # Dale
 
-## 2.3 math
-
 [Previous](./2-2-ctype.md) | [Next](./2-4-macros-core.md)
+
+## 2.3 math
 
 ### Details
 

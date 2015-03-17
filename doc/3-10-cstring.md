@@ -1,8 +1,8 @@
 # Dale
 
-## 3.10 cstring
-
 [Previous](./3-9-cstdlib.md) | [Next](./3-11-cctype.md)
+
+## 3.10 cstring
 
 ### Details
 

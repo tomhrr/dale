@@ -1,8 +1,8 @@
 # Dale
 
-## 3.12 ctype
-
 [Previous](./3-11-cctype.md) | [Next](./3-13-csetjmp.md)
+
+## 3.12 ctype
 
 ### Details
 

@@ -1,8 +1,8 @@
 # Dale
 
-## 3.2 cfloat
-
 [Previous](./3-1-cerrno.md) | [Next](./3-3-clocale.md)
+
+## 3.2 cfloat
 
 ### Details
 

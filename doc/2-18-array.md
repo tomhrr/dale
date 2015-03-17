@@ -1,8 +1,8 @@
 # Dale
 
-## 2.18 array
-
 [Previous](./2-17-map.md) | [Next](./2-19-shared-ptr.md)
+
+## 2.18 array
 
 ### Details
 

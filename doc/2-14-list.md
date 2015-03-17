@@ -1,8 +1,8 @@
 # Dale
 
-## 2.14 list
-
 [Previous](./2-13-algorithms.md) | [Next](./2-15-vector.md)
+
+## 2.14 list
 
 ### Details
 

@@ -1,8 +1,8 @@
 # Dale
 
-## 2.8 concepts-core
-
 [Previous](./2-7-assert.md) | [Next](./2-9-concept-defs.md)
+
+## 2.8 concepts-core
 
 ### Details
 

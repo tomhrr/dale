@@ -1,8 +1,8 @@
 # Dale
 
-## 3.9 cstdlib
-
 [Previous](./3-8-ctime.md) | [Next](./3-10-cstring.md)
+
+## 3.9 cstdlib
 
 ### Details
 

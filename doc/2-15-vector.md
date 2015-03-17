@@ -1,8 +1,8 @@
 # Dale
 
-## 2.15 vector
-
 [Previous](./2-14-list.md) | [Next](./2-16-set.md)
+
+## 2.15 vector
 
 ### Details
 

@@ -1,8 +1,8 @@
 # Dale
 
-## 3.6 cstdio-core
-
 [Previous](./3-5-csignal.md) | [Next](./3-7-cstdio.md)
+
+## 3.6 cstdio-core
 
 ### Details
 

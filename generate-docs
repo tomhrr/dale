@@ -62,7 +62,7 @@ for (my $i = 0; $i < @files; $i++) {
     my $prev_file = ($i > 0)       ? $files[$i - 1] : undef;
     my $next_file = ($i < $#files) ? $files[$i + 1] : undef;
     open my $fh, '>', "doc/$file" or die $!;
-    print $fh "# Dale\n\n## $title\n\n";
+    print $fh "# Dale\n\n";
     my $nav_str = '';
     if (!$prev_file) {
         $prev_file = "1-11-form-reference.md";
@@ -74,6 +74,7 @@ for (my $i = 0; $i < @files; $i++) {
     }
     $nav_str .= "\n\n";
     print $fh "$nav_str";
+    print $fh "## $title\n\n";
     close $fh;
     my $res = system("./module-to-markdown < modules/$name.dt >> doc/$file");
     if ($res != 0) {

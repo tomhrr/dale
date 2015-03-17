@@ -1,8 +1,8 @@
 # Dale
 
-## 2.9 concept-defs
-
 [Previous](./2-8-concepts-core.md) | [Next](./2-10-concepts.md)
+
+## 2.9 concept-defs
 
 ### Details
 

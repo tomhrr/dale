@@ -1,8 +1,8 @@
 # Dale
 
-## 2.4 macros-core
-
 [Previous](./2-3-math.md) | [Next](./2-5-stdlib.md)
+
+## 2.4 macros-core
 
 ### Details
 

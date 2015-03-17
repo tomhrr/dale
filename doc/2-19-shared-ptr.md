@@ -1,8 +1,8 @@
 # Dale
 
-## 2.19 shared-ptr
-
 [Previous](./2-18-array.md) | [Next](./3-1-cerrno.md)
+
+## 2.19 shared-ptr
 
 ### Details
 

@@ -1,8 +1,8 @@
 # Dale
 
-## 3.3 clocale
-
 [Previous](./3-2-cfloat.md) | [Next](./3-4-cmath.md)
+
+## 3.3 clocale
 
 ### Details
 
