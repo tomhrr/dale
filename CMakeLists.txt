@@ -281,7 +281,7 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Operation/Destruct/Destruct.cpp
                       src/dale/Operation/Copy/Copy.cpp
                       src/dale/Operation/CloseScope/CloseScope.cpp
-                      src/dale/Form/Argument/Argument.cpp
+                      src/dale/Form/Parameter/Parameter.cpp
                       src/dale/Module/Reader/Reader.cpp
                       src/dale/SavePoint/SavePoint.cpp
                       src/dale/Form/Utils/Utils.cpp)

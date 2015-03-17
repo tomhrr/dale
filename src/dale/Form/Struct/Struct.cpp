@@ -7,7 +7,7 @@
 #include "../Linkage/Linkage.h"
 #include "../Linkage/Struct/Struct.h"
 #include "../Type/Type.h"
-#include "../Argument/Argument.h"
+#include "../Parameter/Parameter.h"
 #include "../ProcBody/ProcBody.h"
 #include "../../llvm_Function.h"
 
@@ -123,7 +123,7 @@ FormStructParse(Units *units, Node *top, const char *name)
         Variable *var = new Variable();
         var->type = NULL;
 
-        FormArgumentParse(units, var, (*b), true, true, false);
+        FormParameterParse(units, var, (*b), true, true, false);
         if (!var->type) {
             Error *e = new Error(InvalidType, (*b));
             ctx->er->addError(e);

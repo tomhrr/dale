@@ -2,7 +2,7 @@
 
 #include "../../Units/Units.h"
 #include "../Struct/Struct.h"
-#include "../Argument/Argument.h"
+#include "../Parameter/Parameter.h"
 #include "../Literal/Integer/Integer.h"
 
 using namespace dale::ErrorInst;
@@ -286,8 +286,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
             Variable *var = new Variable();
             var->type = NULL;
 
-            FormArgumentParse(units, var, (*b), allow_anon_structs,
-                              allow_bitfields, true);
+            FormParameterParse(units, var, (*b), allow_anon_structs,
+                               allow_bitfields, true);
             if (var->type == NULL) {
                 delete var;
                 return NULL;

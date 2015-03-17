@@ -1,4 +1,4 @@
-#include "Argument.h"
+#include "Parameter.h"
 #include "../../Units/Units.h"
 #include "../../Node/Node.h"
 #include "../../ParseResult/ParseResult.h"
@@ -15,9 +15,9 @@ using namespace dale::ErrorInst;
 namespace dale
 {
 bool
-FormArgumentParse(Units *units, Variable *var, Node *node,
-                  bool allow_anon_structs, bool allow_bitfields,
-                  bool allow_refs)
+FormParameterParse(Units *units, Variable *var, Node *node,
+                   bool allow_anon_structs, bool allow_bitfields,
+                   bool allow_refs)
 {
     Context *ctx = units->top()->ctx;
 

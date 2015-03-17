@@ -8,7 +8,7 @@
 #include "../Type/Type.h"
 #include "../Function/Function.h"
 #include "../ProcBody/ProcBody.h"
-#include "../Argument/Argument.h"
+#include "../Parameter/Parameter.h"
 #include "../Utils/Utils.h"
 #include "../../llvm_Function.h"
 #include "Config.h"
@@ -44,7 +44,7 @@ parseFunctionAttributes(Context *ctx, std::vector<Node *> *attr_list,
 }
 
 bool
-parseArguments(Units *units, Node *args_node,
+parseParameters(Units *units, Node *args_node,
                std::vector<Variable *> *fn_args_internal)
 {
     Context *ctx = units->top()->ctx;
@@ -57,7 +57,7 @@ parseArguments(Units *units, Node *args_node,
         Variable *var = new Variable();
         var->type = NULL;
 
-        FormArgumentParse(units, var, (*b), false, false, true);
+        FormParameterParse(units, var, (*b), false, false, true);
         if (var->type == NULL) {
             delete var;
             return false;
@@ -186,7 +186,7 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     }
 
     std::vector<Variable *> fn_args_internal;
-    bool res = parseArguments(units, args_node, &fn_args_internal);
+    bool res = parseParameters(units, args_node, &fn_args_internal);
     if (!res) {
         return false;
     }

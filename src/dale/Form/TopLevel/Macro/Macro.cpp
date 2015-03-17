@@ -6,7 +6,7 @@
 #include "../../Function/Function.h"
 #include "../../Linkage/Linkage.h"
 #include "../../ProcBody/ProcBody.h"
-#include "../../Argument/Argument.h"
+#include "../../Parameter/Parameter.h"
 #include "../../Utils/Utils.h"
 
 using namespace dale::ErrorInst;
@@ -90,7 +90,7 @@ FormTopLevelMacroParse(Units *units, Node *node)
         Variable *var = NULL;
         if (!(*b)->is_token) {
             var = new Variable();
-            FormArgumentParse(units, var, (*b), false, false, false);
+            FormParameterParse(units, var, (*b), false, false, false);
             if (!var->type) {
                 return false;
             }
