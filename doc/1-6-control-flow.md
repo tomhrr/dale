@@ -1,5 +1,7 @@
 # Dale
 
+[Previous](./1-5-functions.md) | [Next](./1-7-macros.md)
+
 ## 1.6 Control flow
 
 There are two control flow constructs in the core language: `if` and
@@ -48,3 +50,5 @@ form.)
 
 Labels are scoped to the containing procedure, surprisingly enough:
 `new-scope` does not allow for label names to be shadowed.
+
+[Previous](./1-5-functions.md) | [Next](./1-7-macros.md)

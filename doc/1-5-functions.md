@@ -1,5 +1,7 @@
 # Dale
 
+[Previous](./1-4-variables.md) | [Next](./1-6-control-flow.md)
+
 ## 1.5 Functions
 
 Functions are declared like so:
@@ -181,3 +183,5 @@ Function structs may be 'called' in the same fashion as a function:
 
 (The terminology 'function struct' is used to avoid any confusion with
 C++'s function objects, which are quite different.)
+
+[Previous](./1-4-variables.md) | [Next](./1-6-control-flow.md)

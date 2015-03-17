@@ -1,5 +1,7 @@
 # Dale
 
+[Previous](./1-3-types.md) | [Next](./1-5-functions.md)
+
 ## 1.4 Variables
 
 ### Basic core forms and syntax
@@ -104,3 +106,5 @@ to `\` (backslash), in which case the type of the `{value}` will be
 used as the type of the variable. Literals are handled specially:
 integers always take the type `int`, and floating-point literals
 always take the type `float`.
+
+[Previous](./1-3-types.md) | [Next](./1-5-functions.md)

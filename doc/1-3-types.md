@@ -1,5 +1,7 @@
 # Dale
 
+[Previous](./1-2-setup.md) | [Next](./1-4-variables.md)
+
 ## 1.3 Types
 
 ### Primitive types
@@ -149,3 +151,5 @@ enums can be cast to and from their underlying types, too.
 
 Function pointers, anonymous functions and function structs are
 described in the [Functions](./1-5-functions.md) section.
+
+[Previous](./1-2-setup.md) | [Next](./1-4-variables.md)

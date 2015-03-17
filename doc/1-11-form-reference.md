@@ -1,5 +1,7 @@
 # Dale
 
+[Previous](./1-10-modules.md) | [Next](./2-1-introspection.md)
+
 ## 1.11 Form reference
 
 In addition to the core forms, there are a number of core macros,
@@ -254,3 +256,5 @@ their analogues in C.
   * RAND_MAX
   * EXIT_FAILURE
   * EXIT_SUCCESS
+
+[Previous](./1-10-modules.md) | [Next](./2-1-introspection.md)

@@ -1,5 +1,7 @@
 # Dale
 
+[Previous](./1-9-namespaces.md) | [Next](./1-11-form-reference.md)
+
 ## 1.10 Modules
 
 ### Declaration
@@ -70,3 +72,5 @@ To prevent a file from being included more than once, the core form
 identifier as its single argument. If a file is subsequently loaded by
 way of `include`, and that file's first form is a call to `once` with
 the same identifier, the file's remaining forms will be ignored.
+
+[Previous](./1-9-namespaces.md) | [Next](./1-11-form-reference.md)

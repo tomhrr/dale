@@ -1,5 +1,7 @@
 # Dale
 
+[Previous](./1-8-copy-destroy.md) | [Next](./1-10-modules.md)
+
 ## 1.9 Namespaces
 
 Namespaces are defined like so:
@@ -62,3 +64,4 @@ The lookup rules for bindings generally are as follows:
     introduction/definition; and
   * check the implicit top-level namespace.
 
+[Previous](./1-8-copy-destroy.md) | [Next](./1-10-modules.md)
