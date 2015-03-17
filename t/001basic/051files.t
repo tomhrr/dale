@@ -12,7 +12,7 @@ use Test::More tests => 3;
 my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/files.dt -o files `;
 is(@res, 0, 'No compilation errors');
 
-@res = `./files`;
+@res = `./files 2>/dev/null`;
 is($?, 0, 'Program executed successfully');
 
 chomp for @res;
