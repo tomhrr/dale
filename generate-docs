@@ -84,3 +84,44 @@ for (my $i = 0; $i < @files; $i++) {
     print $fh "$nav_str";
     close $fh;
 }
+
+unlink 'doc/all.md';
+open my $fh, '>', 'doc/all.md' or die $!;
+print $fh "# Dale";
+my @standard =
+    map  { $_->[0] }
+    sort { $a->[1] <=> $b->[1] }
+    map  { my ($num) = /^doc\/\d+\-(\d+)\-/;
+           [ $_ => $num ] }
+    map  { chomp; $_ }
+        `ls doc/1-*.md`;
+for my $file (@standard) {
+    open my $u_fh, '<', $file or die $!;
+    while (defined (my $line = <$u_fh>)) {
+        if ($line =~ /^# Dale/) {
+            next;
+        }
+        if ($line =~ /^\[Previous\]/) {
+            next;
+        }
+        if ($line =~ /^\[Next\]/) {
+            next;
+        }
+        $line =~ s/^## (\d+\.\d+ (.*))/## <a name="$2"><\/a> $1/;
+        $line =~ s/\[(.*?)\]\(.*?\)/[$1]/g;
+        print $fh $line;
+    }
+    close $u_fh;
+}
+for (my $i = 0; $i < @files; $i++) {
+    my $file = $files[$i];
+    my $title = file_to_title($file);
+    my $name  = file_to_name($file);
+    open my $fh, '>>', "doc/all.md" or die $!;
+    print $fh "## $title\n\n";
+    close $fh;
+    my $res = system("./module-to-markdown < modules/$name.dt >> doc/all.md");
+    if ($res != 0) {
+        die "module-to-markdown failed";
+    }
+}
