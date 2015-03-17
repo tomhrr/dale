@@ -108,7 +108,7 @@ for my $file (@standard) {
             next;
         }
         $line =~ s/^## (\d+\.\d+ (.*))/## <a name="$2"><\/a> $1/;
-        $line =~ s/\[(.*?)\]\(.*?\)/[$1]/g;
+        $line =~ s/\[(.*?)\]\(.*?\)/[$1]($1)/g;
         print $fh $line;
     }
     close $u_fh;

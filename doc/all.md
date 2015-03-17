@@ -173,7 +173,7 @@ the same as in C.
 The type of an array of values is `(array-of {n} {type})`, where `{n}`
 is a literal unsigned integer. A zero-sized array may be declared when
 the array is populated during declaration; see
-[Variables].
+[Variables](Variables).
 
 ### Structures
 
@@ -257,7 +257,7 @@ enums can be cast to and from their underlying types, too.
 ### Other types
 
 Function pointers, anonymous functions and function structs are
-described in the [Functions] section.
+described in the [Functions](Functions) section.
 
 
 
@@ -439,7 +439,7 @@ Varargs functions are written in nearly the same way as in C. The
 Certain core forms may be overridden by user-level functions, namely
 `@`, `#` and `$`. `setf` may also be 'overridden', in effect, by
 defining functions named `setf-copy` and `setf-assign`; these are
-discussed in more detail in [Copy/destroy].
+discussed in more detail in [Copy/destroy](Copy/destroy).
 
 The `core` core form may, in turn, be used to ignore overridden core
 forms. For example:
@@ -668,7 +668,7 @@ supported without requiring macro users to also provide the number of
 arguments/forms being passed to the macro. Varargs macros otherwise
 operate in the same way as varargs functions.
 
-Aside from these, each of the [introspection]
+Aside from these, each of the [introspection](introspection)
 functions takes a macro context as its first argument.
 
 ### Examples
@@ -686,7 +686,7 @@ macro is returned implicitly, in the absence of an explicit `return`
 instruction.
 
 There are two principal standard libraries that deal with macros:
-[`macros-core`] and [`macros`].
+[`macros-core`](`macros-core`) and [`macros`](`macros`).
 The former provides many functions that ease macro authorship. The
 latter provides the quasiquotation (`qq`) macro, which is one of the
 more useful macro-writing macros. For example, an `unless` (opposite
@@ -728,7 +728,7 @@ Macros may be evaluated more than once per call site by the compiler,
 so it is important that they are idempotent. One exception to this is
 that any errors reported by the macro to the compiler, by way of the
 `report-error` function (see
-[`introspection`]), will be cleared by the
+[`introspection`](`introspection`)), will be cleared by the
 compiler in the event that it is unable to evaluate or otherwise use
 the macro.
 
@@ -840,7 +840,7 @@ declaration), or when it is explicitly introduced for lookup by way of
             value))) ; returns 123
 
 Note that the `new-scope` core form, discussed previously in
-[Variables], introduces a new anonymous namespace
+[Variables](Variables), introduces a new anonymous namespace
 when used. This operates in the same way as an explicitly-named
 namespace for the purposes of lookup. Furthermore, each procedure body
 has an implicit `new-scope` as its first instruction, and each of the
@@ -1128,15 +1128,15 @@ If the argument evaluates to false, returns true, and vice-versa.
                           (list-node (p DNode))
                           (next-node (p DNode)))))
 
-See [Macros].
+See [Macros](Macros).
 
 #### `PoolNode` (opaque)
 
-See [Macros].
+See [Macros](Macros).
 
 #### `va-list` (opaque)
 
-See [Functions] for more information about this
+See [Functions](Functions) for more information about this
 struct.
 
 ### Variables
