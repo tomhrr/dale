@@ -136,6 +136,7 @@ enum
     CannotDeactivateInactiveNamespace,
     CannotDeactivateNonLastNamespace,
     InvalidModuleName,
+    OnlyOneModuleFormPermitted,
 
     ExternalError,
 

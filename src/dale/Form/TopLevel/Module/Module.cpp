@@ -24,7 +24,11 @@ FormTopLevelModuleParse(Units *units, Node *node)
 {
     Context *ctx = units->top()->ctx;
 
-    assert(units->module_name.size() == 0);
+    if (units->module_name.size() != 0) {
+        Error *e = new Error(OnlyOneModuleFormPermitted, node);
+        ctx->er->addError(e);
+        return false;
+    }
 
     if (!ctx->er->assertArgNums("module", node, 1, 2)) {
         return false;

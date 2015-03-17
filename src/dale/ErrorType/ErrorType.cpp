@@ -354,6 +354,9 @@ errorInstanceToString(int error_instance)
     case ErrorInst::RetvalsNotPermittedHere:
         ret = "retval types not permitted in this context";
         break;
+    case ErrorInst::OnlyOneModuleFormPermitted:
+        ret = "a 'module' form may only appear once";
+        break;
     default:
         ret = "(Unknown)";
     }
