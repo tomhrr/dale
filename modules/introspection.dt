@@ -348,17 +348,6 @@ to `fn-by-args-count` that uses the same set of parameter types.
                                    (frm (p DNode)) (n int))))
 
 #|
-@fn must-init
-
-Returns a boolean indicating whether the specified struct type must be
-initialised when it is declared.
-
-@param mc       An MContext.
-@param st       The token node containing the struct name.
-|#
-(def must-init (fn extern-c bool ((mc (p MContext)) (st (p DNode)))))
-
-#|
 @fn has-errors
 
 Evaluates the provided form and returns a boolean indicating whether

@@ -61,11 +61,6 @@ extern "C" {
      */
     DNode *pointee_2D_type(MContext *mc, DNode *t);
 
-    /*! Check whether a particular struct must be initialised on declaration.
-     *  @param mc The current macro context.
-     *  @param t The struct type node.
-     */
-    bool must_2D_init(MContext *mc, DNode *t);
     /*! Check whether a particular type is a const type.
      *  @param mc The current macro context.
      *  @param t The type node.

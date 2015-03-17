@@ -19,8 +19,7 @@ static int anon_struct_index = 0;
 static int retain_struct_index = 0;
 
 bool
-addOpaqueStruct(Units *units, const char *name, Node *top, int linkage,
-                int must_init)
+addOpaqueStruct(Units *units, const char *name, Node *top, int linkage)
 {
     Context *ctx = units->top()->ctx;
 
@@ -38,7 +37,6 @@ addOpaqueStruct(Units *units, const char *name, Node *top, int linkage,
     llvm_st->setName(llvm_st_name.c_str());
 
     Struct *st = new Struct();
-    st->must_init = must_init;
     st->type = llvm_st;
     st->is_opaque = true;
     st->linkage = linkage;
@@ -72,30 +70,6 @@ addOpaqueStruct(Units *units, const char *name, Node *top, int linkage,
 }
 
 bool
-parseStructAttributes(Context *ctx, Node *attr_list_node, bool *must_init)
-{
-    std::vector<Node *> *attr_list = attr_list_node->list;
-    for (std::vector<Node *>::iterator b = (attr_list->begin() + 1),
-                                       e = attr_list->end();
-            b != e;
-            ++b) {
-        if ((*b)->is_list) {
-            Error *e = new Error(InvalidAttribute, (*b));
-            ctx->er->addError(e);
-            return false;
-        }
-        if (!((*b)->token->str_value.compare("must-init"))) {
-            *must_init = true;
-        } else {
-            Error *e = new Error(InvalidAttribute, (*b));
-            ctx->er->addError(e);
-            return false;
-        }
-    }
-    return true;
-}
-
-bool
 FormStructParse(Units *units, Node *top, const char *name)
 {
     Context *ctx = units->top()->ctx;
@@ -107,29 +81,15 @@ FormStructParse(Units *units, Node *top, const char *name)
     ++anon_struct_index;
 
     std::vector<Node *> *lst = top->list;
-    bool must_init = false;
-
-    /* Struct attributes. */
 
     int next_index = 1;
-    Node *test = ((*lst)[next_index]);
-    if (test->is_list
-            && test->list->at(0)->is_token
-            && !(test->list->at(0)->token->str_value.compare("attr"))) {
-        bool res = parseStructAttributes(ctx, test, &must_init);
-        if (!res) {
-            return false;
-        }
-        ++next_index;
-    }
-
     int linkage = FormLinkageStructParse(ctx, (*lst)[next_index]);
     if (!linkage) {
         return false;
     }
     ++next_index;
 
-    bool res = addOpaqueStruct(units, name, top, linkage, must_init);
+    bool res = addOpaqueStruct(units, name, top, linkage);
     if (!res) {
         return false;
     }

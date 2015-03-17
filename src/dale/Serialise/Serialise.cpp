@@ -359,7 +359,6 @@ void serialise(FILE *out, Struct *st)
     serialise(out, &(st->internal_name));
     serialise(out, st->once_tag);
     serialise(out, st->linkage);
-    serialise(out, st->must_init);
 
     return;
 }
@@ -378,7 +377,6 @@ char *deserialise(TypeRegister *tr, char *in, Struct *st)
     in = deserialise(tr, in, &(st->internal_name));
     in = deserialise(tr, in, &(st->once_tag));
     in = deserialise(tr, in, &(st->linkage));
-    in = deserialise(tr, in, &(st->must_init));
 
     return in;
 }

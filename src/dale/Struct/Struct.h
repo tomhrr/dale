@@ -34,9 +34,6 @@ public:
     /* Whether the struct is opaque.  An opaque struct is one whose
      * members are defined elsewhere. */
     bool is_opaque;
-    /* Whether instances of the struct must be initialised when they
-     * are declared. */
-    bool must_init;
     /* Whether the struct should be serialised. */
     bool serialise;
 

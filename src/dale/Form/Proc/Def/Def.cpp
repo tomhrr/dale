@@ -253,16 +253,6 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     Function *init_fn = get_init_fn(ctx, type);
-
-    if (type->struct_name.size()) {
-        Struct *st = ctx->getStruct(type);
-        if (st->must_init && (value_node_list->size() == 3) && !init_fn) {
-            Error *e = new Error(MustHaveInitialiserForType, value_node);
-            ctx->er->addError(e);
-            return false;
-        }
-    }
-
     bool is_zero_sized = (type->array_type && (type->array_size == 0));
 
     llvm::IRBuilder<> builder(block);

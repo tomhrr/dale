@@ -411,20 +411,6 @@ The call to this function must be preceded, at some point, by a call
 to `fn-by-args-count` that uses the same set of parameter types.
 
 
-#### `must-init`
-
-Linkage: `extern-c`
-Returns: `bool`
-Parameters:
-
-  * `(mc (p MContext))`: An MContext.
-  * `(st (p DNode))`: The token node containing the struct name.
-
-
-Returns a boolean indicating whether the specified struct type must be
-initialised when it is declared.
-
-
 #### `has-errors`
 
 Linkage: `extern-c`

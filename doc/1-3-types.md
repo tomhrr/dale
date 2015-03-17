@@ -71,27 +71,22 @@ the array is populated during declaration; see
 A structure is declared like so:
 
         (def {name}
-          (struct [(attr {attr1} {attr2} ... {attrN})]
-                  {linkage} [({member1} {member2} ... {memberN})]))
+          (struct {linkage} [({member1} {member2} ... {memberN})]))
 
-where `{linkage}` is one of `intern`, `extern` and `opaque`, `{attr}`
-is a struct attribute and each `{member}` contains a field name and
-type. A simple `pair` structure would look like so:
+where `{linkage}` is one of `intern`, `extern` and `opaque`, and each
+`{member}` contains a field name and type. A simple `pair` structure
+would look like so:
 
         (def int-pair
           (struct intern ((first int) (second int))))
 
 `{linkage}` controls the visibility of a struct defined within a
-module.  `extern` structs are exportable and usable outside the
+module. `extern` structs are exportable and usable outside the
 module, while `intern` structs are not. `opaque` structs are those
 whose members are defined elsewhere:
 
         (def some-other-struct
           (struct opaque))
-
-The only valid struct attribute is `must-init`. If the struct has this
-attribute, variables of that struct type must be populated at
-definition time.
 
 Struct literals may be used wherever a reference to a struct may be
 used. They take the following form:

@@ -8,7 +8,6 @@ Struct::Struct()
 {
     linkage   = 0;
     is_opaque = false;
-    must_init = false;
     serialise = true;
 }
 

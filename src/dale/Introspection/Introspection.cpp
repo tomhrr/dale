@@ -179,35 +179,6 @@ pointee_2D_type(MContext *mc, DNode *t)
 }
 
 bool
-must_2D_init(MContext *mc, DNode *t)
-{
-    dale::Units *units = (dale::Units*) mc->units;
-    Node *n = units->top()->dnc->toNode(t);
-
-    int error_count_begin =
-        units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
-
-    Type *ptype = FormTypeParse(units, n, false, false);
-    if (!ptype) {
-        units->top()->ctx->er->popErrors(error_count_begin);
-        return false;
-    }
-
-    if (ptype->is_const) {
-        return true;
-    }
-    if (ptype->struct_name.size()) {
-        Struct *st =
-            units->top()->ctx->getStruct(
-                ptype->struct_name.c_str(),
-                &(ptype->namespaces)
-            );
-        return !!(st->must_init);
-    }
-    return false;
-}
-
-bool
 is_2D_const(MContext *mc, DNode *t)
 {
     dale::Units *units = (dale::Units*) mc->units;
@@ -866,7 +837,6 @@ init_introspection_functions()
     fns["fn-by-args-name"]          = (void *) fn_2D_by_2D_args_2D_name;
     fns["has-errors"]               = (void *) has_2D_errors;
     fns["is-const"]                 = (void *) is_2D_const;
-    fns["must-init"]                = (void *) must_2D_init;
 }
 
 #define eq(str) !strcmp(name, str)
