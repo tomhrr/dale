@@ -1,6 +1,6 @@
 # Dale
 
-[Previous](./3-10-cstring.md) | [Next](./3-12-ctype.md)
+[Previous](./3-10-cstring.md) | [Next](./3-12-csetjmp.md)
 
 ## 3.11 cctype
 
@@ -174,5 +174,5 @@ Parameters:
 Convert a character into an uppercase character, if possible.
 
 
-[Previous](./3-10-cstring.md) | [Next](./3-12-ctype.md)
+[Previous](./3-10-cstring.md) | [Next](./3-12-csetjmp.md)
 
