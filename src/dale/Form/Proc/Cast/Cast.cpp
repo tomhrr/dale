@@ -25,9 +25,9 @@ FormProcCastParse(Units *units, Function *fn, llvm::BasicBlock *block,
     Node *value_node = (*lst)[1];
     Node *type_node  = (*lst)[2];
 
-    ParseResult pr_value;
+    ParseResult value_pr;
     bool res = FormProcInstParse(units, fn, block, value_node, false,
-                                 false, NULL, &pr_value);
+                                 false, NULL, &value_pr);
     if (!res) {
         return false;
     }
@@ -40,26 +40,26 @@ FormProcCastParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    if (pr_value.type->isEqualTo(type)) {
-        pr_value.copyTo(pr);
+    if (value_pr.type->isEqualTo(type)) {
+        value_pr.copyTo(pr);
         return true;
     }
 
-    ParseResult pr_cast;
-    res = Operation::Cast(ctx, pr_value.block, pr_value.value,
-                          pr_value.type, type, node, 0, &pr_cast);
+    ParseResult cast_pr;
+    res = Operation::Cast(ctx, value_pr.block, value_pr.value,
+                          value_pr.type, type, node, 0, &cast_pr);
     if (!res) {
         return false;
     }
 
-    pr_value.block = pr_cast.block;
-    ParseResult pr_destruct;
-    res = Operation::Destruct(ctx, &pr_value, &pr_destruct);
+    value_pr.block = cast_pr.block;
+    ParseResult destruct_pr;
+    res = Operation::Destruct(ctx, &value_pr, &destruct_pr);
     if (!res) {
         return false;
     }
 
-    pr->set(pr_destruct.block, pr_cast.type, pr_cast.value);
+    pr->set(destruct_pr.block, cast_pr.type, cast_pr.value);
     return true;
 }
 }

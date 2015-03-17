@@ -75,31 +75,31 @@ FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
             builder.CreateGEP(storage,
                               llvm::ArrayRef<llvm::Value*>(indices));
 
-        ParseResult pr_value;
+        ParseResult value_pr;
         bool res = FormProcInstParse(units, fn, block, value_node, false,
-                                      false, NULL, &pr_value);
+                                      false, NULL, &value_pr);
         if (!res) {
             return false;
         }
 
-        if (!pr_value.type->isEqualTo(type, 1)) {
+        if (!value_pr.type->isEqualTo(type, 1)) {
             if ((type->isIntegerType()
-                    && pr_value.type->isIntegerType())
+                    && value_pr.type->isIntegerType())
                     || (type->isFloatingPointType()
-                        && pr_value.type->isFloatingPointType())) {
-                ParseResult pr_cast;
-                res = Operation::Cast(ctx, pr_value.block,
-                                      pr_value.value, pr_value.type,
-                                      type, member_node, 0, &pr_cast);
+                        && value_pr.type->isFloatingPointType())) {
+                ParseResult cast_pr;
+                res = Operation::Cast(ctx, value_pr.block,
+                                      value_pr.value, value_pr.type,
+                                      type, member_node, 0, &cast_pr);
                 if (!res) {
                     return false;
                 }
-                pr_cast.copyTo(&pr_value);
+                cast_pr.copyTo(&value_pr);
             } else {
                 std::string wanted;
                 std::string got;
                 type->toString(&wanted);
-                pr_value.type->toString(&got);
+                value_pr.type->toString(&got);
                 Error *e = new Error(IncorrectType, name_node,
                                      wanted.c_str(), got.c_str());
                 ctx->er->addError(e);
@@ -107,9 +107,9 @@ FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
             }
         }
 
-        block = pr_value.block;
+        block = value_pr.block;
         builder.SetInsertPoint(block);
-        builder.CreateStore(pr_value.value, storage_ptr);
+        builder.CreateStore(value_pr.value, storage_ptr);
     }
 
     if (get_address) {

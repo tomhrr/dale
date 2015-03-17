@@ -27,14 +27,14 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     Node *then_node      = (*lst)[2];
     Node *else_node      = (*lst)[3];
 
-    ParseResult pr_cond;
+    ParseResult cond_pr;
     bool res = FormProcInstParse(units, fn, block, condition_node,
-                                 get_address, false, NULL, &pr_cond);
+                                 get_address, false, NULL, &cond_pr);
     if (!res) {
         return false;
     }
 
-    if (pr_cond.type->base_type != BaseType::Bool) {
+    if (cond_pr.type->base_type != BaseType::Bool) {
         std::string type_str;
         pr->type->toString(&type_str);
         Error *e = new Error(IncorrectArgType, condition_node,
@@ -50,19 +50,19 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         llvm::BasicBlock::Create(llvm::getGlobalContext(),
                                  "else", fn->llvm_function);
 
-    llvm::IRBuilder<> builder_cond(pr_cond.block);
-    builder_cond.CreateCondBr(pr_cond.value, then_block, else_block);
+    llvm::IRBuilder<> builder_cond(cond_pr.block);
+    builder_cond.CreateCondBr(cond_pr.value, then_block, else_block);
 
-    ParseResult pr_destruct;
-    res = Operation::Destruct(ctx, &pr_cond, &pr_destruct, &builder_cond);
+    ParseResult destruct_pr;
+    res = Operation::Destruct(ctx, &cond_pr, &destruct_pr, &builder_cond);
     if (!res) {
         return false;
     }
 
     ctx->activateAnonymousNamespace();
-    ParseResult pr_then;
+    ParseResult then_pr;
     res = FormProcInstParse(units, fn, then_block, then_node, get_address,
-                            false, NULL, &pr_then);
+                            false, NULL, &then_pr);
     Operation::CloseScope(ctx, fn, then_block, NULL, false);
     ctx->deactivateAnonymousNamespace();
     if (!res) {
@@ -70,9 +70,9 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     ctx->activateAnonymousNamespace();
-    ParseResult pr_else;
+    ParseResult else_pr;
     res = FormProcInstParse(units, fn, else_block, else_node, get_address,
-                           false, NULL, &pr_else);
+                           false, NULL, &else_pr);
     Operation::CloseScope(ctx, fn, else_block, NULL, false);
     ctx->deactivateAnonymousNamespace();
     if (!res) {
@@ -85,25 +85,25 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
      * phi node. */
 
     llvm::Instruction *then_instr =
-        (pr_then.block->size() > 0)
-            ? &(pr_then.block->back())
+        (then_pr.block->size() > 0)
+            ? &(then_pr.block->back())
             : NULL;
 
     llvm::Instruction *else_instr =
-        (pr_else.block->size() > 0)
-            ? &(pr_else.block->back())
+        (else_pr.block->size() > 0)
+            ? &(else_pr.block->back())
             : NULL;
 
     bool then_terminates =
         (then_instr && then_instr->isTerminator())
-            || pr_then.treat_as_terminator;
+            || then_pr.treat_as_terminator;
 
     bool else_terminates =
         (else_instr && else_instr->isTerminator())
-            || pr_else.treat_as_terminator;
+            || else_pr.treat_as_terminator;
 
     if (then_terminates && else_terminates) {
-        pr_cond.copyTo(pr);
+        cond_pr.copyTo(pr);
         return true;
     }
 
@@ -117,11 +117,11 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
             llvm::BasicBlock::Create(llvm::getGlobalContext(),
                                      "done_then_no_else", fn->llvm_function);
 
-        llvm::IRBuilder<> builder_final(pr_else.block);
+        llvm::IRBuilder<> builder_final(else_pr.block);
         builder_final.CreateBr(done_block);
 
-        pr->set(done_block, pr_else.type,
-              llvm::cast<llvm::Value>(pr_else.value));
+        pr->set(done_block, else_pr.type,
+              llvm::cast<llvm::Value>(else_pr.value));
         return true;
     }
 
@@ -130,22 +130,22 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
             llvm::BasicBlock::Create(llvm::getGlobalContext(),
                                      "done_else_no_then", fn->llvm_function);
 
-        llvm::IRBuilder<> builder_final(pr_then.block);
+        llvm::IRBuilder<> builder_final(then_pr.block);
         builder_final.CreateBr(done_block);
 
-        pr->set(done_block, pr_then.type,
-              llvm::cast<llvm::Value>(pr_then.value));
+        pr->set(done_block, then_pr.type,
+              llvm::cast<llvm::Value>(then_pr.value));
         return true;
     }
 
     /* If neither branch terminates, then the values of both branches
      * must be of the same type. */
 
-    if (!pr_then.type->isEqualTo(pr_else.type)) {
+    if (!then_pr.type->isEqualTo(else_pr.type)) {
         std::string then_type;
         std::string else_type;
-        pr_then.type->toString(&then_type);
-        pr_else.type->toString(&else_type);
+        then_pr.type->toString(&then_type);
+        else_pr.type->toString(&else_type);
         Error *e = new Error(IfBranchesHaveDifferentTypes,
                              node, then_type.c_str(), else_type.c_str());
         ctx->er->addError(e);
@@ -156,13 +156,13 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         llvm::BasicBlock::Create(llvm::getGlobalContext(),
                                  "done_phi", fn->llvm_function);
 
-    llvm::IRBuilder<> builder_then(pr_then.block);
+    llvm::IRBuilder<> builder_then(then_pr.block);
     builder_then.CreateBr(done_block);
-    llvm::IRBuilder<> builder_else(pr_else.block);
+    llvm::IRBuilder<> builder_else(else_pr.block);
     builder_else.CreateBr(done_block);
 
     llvm::Type *llvm_then_type =
-        ctx->toLLVMType(pr_then.type, NULL, false, false);
+        ctx->toLLVMType(then_pr.type, NULL, false, false);
     if (!llvm_then_type) {
         return false;
     }
@@ -170,10 +170,10 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     llvm::IRBuilder<> builder_done(done_block);
     llvm::PHINode *pn = builder_done.CreatePHI(llvm_then_type, 0);
 
-    pn->addIncoming(pr_then.value, pr_then.block);
-    pn->addIncoming(pr_else.value, pr_else.block);
+    pn->addIncoming(then_pr.value, then_pr.block);
+    pn->addIncoming(else_pr.value, else_pr.block);
 
-    pr->set(done_block, pr_then.type,
+    pr->set(done_block, then_pr.type,
             llvm::cast<llvm::Value>(pn));
 
     /* There's no need to re-copy the value here, since it's coming

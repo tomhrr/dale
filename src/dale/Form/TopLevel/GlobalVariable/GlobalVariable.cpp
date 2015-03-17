@@ -444,15 +444,15 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
         builder.CreateStore(ret, ret_storage1);
     }
 
-    ParseResult pr_cast;
+    ParseResult cast_pr;
     bool res = Operation::Cast(ctx, block, ret_storage1,
                                ctx->tr->getPointerType(type),
-                               ctx->tr->type_pvoid, top, 0, &pr_cast);
+                               ctx->tr->type_pvoid, top, 0, &cast_pr);
     if (!res) {
         return NULL;
     }
-    block = pr_cast.block;
-    llvm::Value *ret_cast = pr_cast.value;
+    block = cast_pr.block;
+    llvm::Value *ret_cast = cast_pr.value;
 
     char data[256];
     memset(data, 0, 256);
@@ -466,15 +466,15 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
                                    sizeof(char*) * 8),
             ptr_int
         );
-    ParseResult pr_cast_ptr;
+    ParseResult cast_pr_ptr;
     res = Operation::Cast(ctx, block, ptr_value, ctx->tr->type_intptr,
-                          ctx->tr->type_pvoid, top, 0, &pr_cast_ptr);
+                          ctx->tr->type_pvoid, top, 0, &cast_pr_ptr);
     if (!res) {
         return NULL;
     }
 
-    llvm::Value *store = pr_cast_ptr.value;
-    builder.SetInsertPoint(pr_cast_ptr.block);
+    llvm::Value *store = cast_pr_ptr.value;
+    builder.SetInsertPoint(cast_pr_ptr.block);
     Function *memcpy = ctx->getFunction("memcpy", NULL, NULL, 0);
     assert(memcpy && "no memcpy function available");
 

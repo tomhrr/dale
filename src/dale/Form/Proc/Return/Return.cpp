@@ -33,32 +33,32 @@ FormProcReturnParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return true;
     }
 
-    ParseResult pr_value;
+    ParseResult value_pr;
     bool res = FormProcInstParse(units, fn, block, (*lst)[1], get_address,
-                                 false, NULL, &pr_value);
+                                 false, NULL, &value_pr);
     if (!res) {
         return false;
     }
 
     Type *real_return_type =
         (fn->hasRetval() ? ctx->tr->type_void : fn->return_type);
-    if (!ctx->er->assertTypeEquality("return", node, pr_value.type,
+    if (!ctx->er->assertTypeEquality("return", node, value_pr.type,
                                      real_return_type, false)) {
         return false;
     }
 
-    block = pr_value.block;
+    block = value_pr.block;
     Operation::CloseScope(ctx, fn, block, NULL, true);
 
     llvm::IRBuilder<> builder(block);
     builder.SetInsertPoint(block);
 
-    if (pr_value.type->base_type == BaseType::Void) {
+    if (value_pr.type->base_type == BaseType::Void) {
         builder.CreateRetVoid();
         pr->set(block, ctx->tr->type_void, NULL);
     } else {
-        builder.CreateRet(pr_value.value);
-        pr->set(block, fn->return_type, pr_value.value);
+        builder.CreateRet(value_pr.value);
+        pr->set(block, fn->return_type, value_pr.value);
     }
 
     return true;

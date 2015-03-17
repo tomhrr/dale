@@ -40,31 +40,31 @@ FormProcSizeofParse(Units *units, Function *fn, llvm::BasicBlock *block,
         ctx->er->popErrors(error_count_begin);
         error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
 
-        ParseResult pr_expr;
+        ParseResult expr_pr;
         bool res = FormProcInstParse(units, fn, block, type_node,
-                                     true, false, NULL, &pr_expr);
+                                     true, false, NULL, &expr_pr);
 
         if (!res) {
             ctx->er->popErrors(error_count_begin);
 
             res = FormProcInstParse(units, fn, block, type_node,
-                                    false, false, NULL, &pr_expr);
+                                    false, false, NULL, &expr_pr);
             if (!res) {
                 return false;
             }
-            type  = pr_expr.type;
-            block = pr_expr.block;
+            type  = expr_pr.type;
+            block = expr_pr.block;
         } else {
-            type  = pr_expr.type->points_to;
-            block = pr_expr.block;
+            type  = expr_pr.type->points_to;
+            block = expr_pr.block;
         }
 
-        ParseResult pr_destruct;
-        res = Operation::Destruct(ctx, &pr_expr, &pr_destruct);
+        ParseResult destruct_pr;
+        res = Operation::Destruct(ctx, &expr_pr, &destruct_pr);
         if (!res) {
             return false;
         }
-        block = pr_destruct.block;
+        block = destruct_pr.block;
     }
 
     return Operation::Sizeof(ctx, block, type, pr);

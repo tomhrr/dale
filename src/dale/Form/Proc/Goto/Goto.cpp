@@ -72,23 +72,23 @@ FormProcGotoParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
         std::vector<Variable *> myvars;
         ctx->ns()->getVarsAfterIndex(label->index, &myvars);
-        ParseResult pr_destruct;
-        pr_destruct.block = block;
-        llvm::IRBuilder<> builder(pr_destruct.block);
+        ParseResult destruct_pr;
+        destruct_pr.block = block;
+        llvm::IRBuilder<> builder(destruct_pr.block);
         for (std::vector<Variable *>::iterator b = myvars.begin(),
                                                e = myvars.end();
                 b != e;
                 ++b) {
-            builder.SetInsertPoint(pr_destruct.block);
+            builder.SetInsertPoint(destruct_pr.block);
             Variable *var = (*b);
-            pr_destruct.type = var->type;
+            destruct_pr.type = var->type;
             llvm::Value *var_value = builder.CreateLoad(var->value);
-            pr_destruct.value = var_value;
+            destruct_pr.value = var_value;
 
-            Operation::Destruct(ctx, &pr_destruct, &pr_destruct);
+            Operation::Destruct(ctx, &destruct_pr, &destruct_pr);
         }
 
-        block = pr_destruct.block;
+        block = destruct_pr.block;
         builder.SetInsertPoint(block);
         builder.CreateBr(label->block);
     }

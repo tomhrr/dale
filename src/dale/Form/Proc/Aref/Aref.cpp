@@ -26,16 +26,16 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     Node *array_node = (*lst)[1];
     Node *index_node = (*lst)[2];
 
-    ParseResult pr_array;
+    ParseResult array_pr;
     bool res = FormProcInstParse(units, fn, block, array_node, true,
-                                 false, NULL, &pr_array);
+                                 false, NULL, &array_pr);
     if (!res) {
         return false;
     }
 
-    if (!pr_array.type->points_to) {
+    if (!array_pr.type->points_to) {
         std::string type_str;
-        pr_array.type->toString(&type_str);
+        array_pr.type->toString(&type_str);
         Error *e = new Error(IncorrectArgType, array_node,
                              "$", "a pointer or array", "1",
                              type_str.c_str());
@@ -43,39 +43,39 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    ParseResult pr_index;
-    res = FormProcInstParse(units, fn, pr_array.block, index_node, false,
-                            false, NULL, &pr_index);
+    ParseResult index_pr;
+    res = FormProcInstParse(units, fn, array_pr.block, index_node, false,
+                            false, NULL, &index_pr);
     if (!res) {
         return false;
     }
 
-    /* Attempt to cast pr_index to a size type, if it is not such a
+    /* Attempt to cast index_pr to a size type, if it is not such a
      * type already. */
 
-    if (pr_index.type->base_type != BaseType::Size) {
-        ParseResult pr_index_size;
-        bool res = Operation::Cast(ctx, pr_index.block, pr_index.value,
-                                   pr_index.type, ctx->tr->type_size,
-                                   index_node, true, &pr_index_size);
+    if (index_pr.type->base_type != BaseType::Size) {
+        ParseResult index_pr_size;
+        bool res = Operation::Cast(ctx, index_pr.block, index_pr.value,
+                                   index_pr.type, ctx->tr->type_size,
+                                   index_node, true, &index_pr_size);
         if (!res) {
             std::string type_str;
-            pr_index.type->toString(&type_str);
+            index_pr.type->toString(&type_str);
             Error *e = new Error(IncorrectArgType, index_node,
                                  "$", "int", "2", type_str.c_str());
             ctx->er->addError(e);
             return false;
         }
-        pr_index_size.copyTo(&pr_index);
+        index_pr_size.copyTo(&index_pr);
     }
 
     llvm::Value *index_ptr = NULL;
 
-    llvm::IRBuilder<> builder(pr_index.block);
-    if (pr_array.type->points_to->points_to) {
-        llvm::Value *array_ptr = builder.CreateLoad(pr_array.value);
+    llvm::IRBuilder<> builder(index_pr.block);
+    if (array_pr.type->points_to->points_to) {
+        llvm::Value *array_ptr = builder.CreateLoad(array_pr.value);
         std::vector<llvm::Value *> indices;
-        indices.push_back(llvm::cast<llvm::Value>(pr_index.value));
+        indices.push_back(llvm::cast<llvm::Value>(index_pr.value));
         index_ptr =
             builder.Insert(
                 llvm::GetElementPtrInst::Create(
@@ -86,29 +86,29 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     } else {
         std::vector<llvm::Value *> indices;
         STL::push_back2(&indices, ctx->nt->getLLVMZero(),
-                        llvm::cast<llvm::Value>(pr_index.value));
+                        llvm::cast<llvm::Value>(index_pr.value));
         index_ptr =
             builder.Insert(
                 llvm::GetElementPtrInst::Create(
-                    pr_array.value, llvm::ArrayRef<llvm::Value*>(indices)
+                    array_pr.value, llvm::ArrayRef<llvm::Value*>(indices)
                 ),
                 "aref"
             );
     }
 
-    pr->block = pr_index.block;
+    pr->block = index_pr.block;
 
-    if (pr_array.type->is_array) {
-        pr->type = ctx->tr->getPointerType(pr_array.type->array_type);
-    } else if (pr_array.type->points_to->points_to) {
-        pr->type = pr_array.type->points_to;
-    } else if (pr_array.type->points_to->array_type) {
+    if (array_pr.type->is_array) {
+        pr->type = ctx->tr->getPointerType(array_pr.type->array_type);
+    } else if (array_pr.type->points_to->points_to) {
+        pr->type = array_pr.type->points_to;
+    } else if (array_pr.type->points_to->array_type) {
         pr->type = ctx->tr->getPointerType(
-            pr_array.type->points_to->array_type
+            array_pr.type->points_to->array_type
         );
     } else {
         std::string type_str;
-        pr_array.type->toString(&type_str);
+        array_pr.type->toString(&type_str);
         Error *e = new Error(CanOnlyIndexIntoPointersAndArrays,
                              node, type_str.c_str());
         ctx->er->addError(e);
@@ -116,18 +116,18 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     pr->value = index_ptr;
-    pr_array.block = pr_index.block;
-    ParseResult pr_destruct;
-    res = Operation::Destruct(ctx, &pr_array, &pr_destruct);
+    array_pr.block = index_pr.block;
+    ParseResult destruct_pr;
+    res = Operation::Destruct(ctx, &array_pr, &destruct_pr);
     if (!res) {
         return false;
     }
-    pr_index.block = pr_destruct.block;
-    res = Operation::Destruct(ctx, &pr_index, &pr_destruct);
+    index_pr.block = destruct_pr.block;
+    res = Operation::Destruct(ctx, &index_pr, &destruct_pr);
     if (!res) {
         return false;
     }
-    pr->block = pr_destruct.block;
+    pr->block = destruct_pr.block;
 
     return true;
 }

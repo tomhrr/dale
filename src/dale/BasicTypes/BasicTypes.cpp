@@ -490,15 +490,15 @@ makeShlFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
                                  fn->llvm_function);
 
-    ParseResult pr_cast;
+    ParseResult cast_pr;
     Operation::Cast(ctx, block, (*(iter + 1))->value,
-                    type_int, type, NULL, false, &pr_cast);
+                    type_int, type, NULL, false, &cast_pr);
 
-    llvm::IRBuilder<> builder(pr_cast.block);
+    llvm::IRBuilder<> builder(cast_pr.block);
     llvm::Twine unused_twine;
     llvm::Value *res =
         llvm::cast<llvm::Value>(
-            builder.CreateShl((*iter)->value, pr_cast.value, unused_twine)
+            builder.CreateShl((*iter)->value, cast_pr.value, unused_twine)
         );
     builder.CreateRet(res);
 }
@@ -519,15 +519,15 @@ makeShrFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
                                  fn->llvm_function);
 
-    ParseResult pr_cast;
+    ParseResult cast_pr;
     Operation::Cast(ctx, block, (*(iter + 1))->value,
-                    type_int, type, NULL, false, &pr_cast);
+                    type_int, type, NULL, false, &cast_pr);
 
-    llvm::IRBuilder<> builder(pr_cast.block);
+    llvm::IRBuilder<> builder(cast_pr.block);
     llvm::Twine unused_twine;
     llvm::Value *res =
         llvm::cast<llvm::Value>(
-            builder.CreateLShr((*iter)->value, pr_cast.value, unused_twine)
+            builder.CreateLShr((*iter)->value, cast_pr.value, unused_twine)
         );
     builder.CreateRet(res);
 }
@@ -686,15 +686,15 @@ addEnum(Context *ctx, llvm::Module *mod, std::string *once_tag,
                                   ctx->nt->getTwoLLVMZeros())
             );
 
-        ParseResult pr_cast;
+        ParseResult cast_pr;
         Operation::Cast(ctx, block, (*(iter + 1))->value,
-                        type_int, enum_int_type, NULL, false, &pr_cast);
-        builder.SetInsertPoint(pr_cast.block);
+                        type_int, enum_int_type, NULL, false, &cast_pr);
+        builder.SetInsertPoint(cast_pr.block);
 
         llvm::Twine unused_twine;
         llvm::Value *res =
             llvm::cast<llvm::Value>(
-                builder.CreateShl(one, pr_cast.value, unused_twine)
+                builder.CreateShl(one, cast_pr.value, unused_twine)
             );
         llvm::Value *store_ptr1 =
             llvm::cast<llvm::Value>(
@@ -738,15 +738,15 @@ addEnum(Context *ctx, llvm::Module *mod, std::string *once_tag,
                                   ctx->nt->getTwoLLVMZeros())
             );
 
-        ParseResult pr_cast;
+        ParseResult cast_pr;
         Operation::Cast(ctx, block, (*(iter + 1))->value,
-                        type_int, enum_int_type, NULL, false, &pr_cast);
-        builder.SetInsertPoint(pr_cast.block);
+                        type_int, enum_int_type, NULL, false, &cast_pr);
+        builder.SetInsertPoint(cast_pr.block);
 
         llvm::Twine unused_twine;
         llvm::Value *res =
             llvm::cast<llvm::Value>(
-                builder.CreateLShr(one, pr_cast.value, unused_twine)
+                builder.CreateLShr(one, cast_pr.value, unused_twine)
             );
         llvm::Value *store_ptr1 =
             llvm::cast<llvm::Value>(

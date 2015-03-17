@@ -16,12 +16,12 @@ namespace Operation
 {
 /*! Destruct a parsed value, if required.
  *  @param ctx The current context.
- *  @param pr_value The parse result containing the value to be destroyed.
+ *  @param value_pr The parse result containing the value to be destroyed.
  *  @param pr The parse result into which the result should be put.
  *  @param builder The current builder (optional).
  *  @param value_is_ptr Whether the value is a pointer (optional).
  */
-bool Destruct(Context *ctx, ParseResult *pr_value, ParseResult *pr,
+bool Destruct(Context *ctx, ParseResult *value_pr, ParseResult *pr,
               llvm::IRBuilder<> *builder = NULL,
               bool value_is_ptr = false);
 }

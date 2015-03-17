@@ -17,10 +17,10 @@ namespace Operation
 /*! Copy a parsed value, if required.
  *  @param ctx The current context.
  *  @param fn The current function.
- *  @param pr_value The parse result containing the value to be copied.
+ *  @param value_pr The parse result containing the value to be copied.
  *  @param pr The parse result into which the result should be put.
  */
-bool Copy(Context *ctx, Function *fn, ParseResult *pr_value,
+bool Copy(Context *ctx, Function *fn, ParseResult *value_pr,
           ParseResult *pr);
 }
 }

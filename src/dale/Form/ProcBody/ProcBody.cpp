@@ -197,15 +197,15 @@ resolveDeferredGotos(Context *ctx, Node *node, Function *fn,
         }
 
         /* Add the destructors for the collected variables. */
-        ParseResult pr_var;
+        ParseResult var_pr;
         for (std::vector<Variable *>::iterator vb = variables.begin(),
                                                ve = variables.end();
                 vb != ve;
                 ++vb) {
             Variable *var = (*vb);
-            ParseResult pr_destruct;
-            pr_var.set(NULL, var->type, var->value);
-            bool res = Operation::Destruct(ctx, &pr_var, &pr_destruct,
+            ParseResult destruct_pr;
+            var_pr.set(NULL, var->type, var->value);
+            bool res = Operation::Destruct(ctx, &var_pr, &destruct_pr,
                                            &builder);
             if (!res) {
                 return false;
@@ -355,22 +355,22 @@ FormProcBodyParse(Units *units, Node *node, Function *fn,
         if (is_last) {
             wanted_type = fn->return_type;
         }
-        ParseResult pr_res;
+        ParseResult res_pr;
         bool res = FormProcInstParse(units, fn, next, (*b), false, false,
-                                     wanted_type, &pr_res);
+                                     wanted_type, &res_pr);
         if (res) {
-            next = pr_res.block;
+            next = res_pr.block;
             if (is_last) {
-                last_value = pr_res.value;
-                last_type = pr_res.type;
+                last_value = res_pr.value;
+                last_type = res_pr.type;
                 last_position = (*b);
             } else {
-                ParseResult pr_destruct;
-                bool res = Operation::Destruct(ctx, &pr_res, &pr_destruct);
+                ParseResult destruct_pr;
+                bool res = Operation::Destruct(ctx, &res_pr, &destruct_pr);
                 if (!res) {
                     return false;
                 }
-                next = pr_destruct.block;
+                next = destruct_pr.block;
             }
         }
     }

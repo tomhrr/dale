@@ -5,9 +5,9 @@ namespace dale
 namespace Operation
 {
 bool
-Copy(Context *ctx, Function *fn, ParseResult *pr, ParseResult *pr_ret)
+Copy(Context *ctx, Function *fn, ParseResult *pr, ParseResult *ret_pr)
 {
-    pr->copyTo(pr_ret);
+    pr->copyTo(ret_pr);
 
     /* If this is a setf function, then don't copy, even if it can be
      * done.  This is because, if the setf function is (e.g.) the same
@@ -39,11 +39,11 @@ Copy(Context *ctx, Function *fn, ParseResult *pr, ParseResult *pr_ret)
     }
 
     llvm::IRBuilder<> builder(pr->block);
-    llvm::Type *llvm_pr_type = ctx->toLLVMType(pr->type, NULL, false);
+    llvm::Type *llvm_type_pr = ctx->toLLVMType(pr->type, NULL, false);
     llvm::Value *result_ptr =
-        llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_pr_type));
+        llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type_pr));
     llvm::Value *value_ptr =
-        llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_pr_type));
+        llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type_pr));
     builder.CreateStore(pr->value, value_ptr);
 
     std::vector<llvm::Value *> call_args;
@@ -55,8 +55,8 @@ Copy(Context *ctx, Function *fn, ParseResult *pr, ParseResult *pr_ret)
     );
     llvm::Value *result = builder.CreateLoad(result_ptr);
 
-    pr_ret->set(pr->block, pr->type, result);
-    pr_ret->freshly_copied = 1;
+    ret_pr->set(pr->block, pr->type, result);
+    ret_pr->freshly_copied = 1;
 
     return true;
 }

@@ -23,23 +23,23 @@ FormProcFuncallParse(Units *units, Function *fn, llvm::BasicBlock *block,
     std::vector<Node *> *lst = node->list;
     Node *fp_node = (*lst)[1];
 
-    ParseResult pr_fp;
+    ParseResult fp_pr;
     bool res = FormProcInstParse(units, fn, block, fp_node, get_address,
-                                 false, NULL, &pr_fp);
+                                 false, NULL, &fp_pr);
     if (!res) {
         return false;
     }
 
-    if (!pr_fp.type->points_to || !pr_fp.type->points_to->is_function) {
+    if (!fp_pr.type->points_to || !fp_pr.type->points_to->is_function) {
         std::string type_str;
-        pr_fp.type->toString(&type_str);
+        fp_pr.type->toString(&type_str);
         Error *e = new Error(IncorrectArgType, fp_node, "funcall",
                              "function pointer", "1", type_str.c_str());
         ctx->er->addError(e);
         return false;
     }
 
-    return units->top()->fp->parseFunctionPointerCall(fn, node, &pr_fp,
+    return units->top()->fp->parseFunctionPointerCall(fn, node, &fp_pr,
                                                       2, NULL, pr);
 }
 }

@@ -46,33 +46,33 @@ FormProcNullParse(Units *units, Function *fn, llvm::BasicBlock *block,
         }
     }
 
-    ParseResult pr_value;
+    ParseResult value_pr;
     bool res = FormProcInstParse(units, fn, block, node_value, false,
-                                 false, NULL, &pr_value);
+                                 false, NULL, &value_pr);
 
     if (!res) {
         return false;
     }
-    if (!ctx->er->assertIsPointerType("null", node_value, pr_value.type, "1")) {
+    if (!ctx->er->assertIsPointerType("null", node_value, value_pr.type, "1")) {
         return false;
     }
 
-    llvm::IRBuilder<> builder(pr_value.block);
+    llvm::IRBuilder<> builder(value_pr.block);
     llvm::Value *int_res =
-        builder.CreatePtrToInt(pr_value.value, ctx->nt->getNativeIntType());
+        builder.CreatePtrToInt(value_pr.value, ctx->nt->getNativeIntType());
 
     llvm::Value *null_res =
         llvm::cast<llvm::Value>(
             builder.CreateICmpEQ(int_res, ctx->nt->getLLVMZero())
         );
 
-    ParseResult pr_destruct;
-    res = Operation::Destruct(ctx, &pr_value, &pr_destruct);
+    ParseResult destruct_pr;
+    res = Operation::Destruct(ctx, &value_pr, &destruct_pr);
     if (!res) {
         return false;
     }
 
-    pr->set(pr_destruct.block, ctx->tr->type_bool, null_res);
+    pr->set(destruct_pr.block, ctx->tr->type_bool, null_res);
 
     return true;
 }

@@ -24,14 +24,14 @@ FormProcDereferenceParse(Units *units, Function *fn, llvm::BasicBlock *block,
     std::vector<Node *> *lst = node->list;
     Node *ptr = (*lst)[1];
 
-    ParseResult pr_ptr;
+    ParseResult ptr_pr;
     bool res = FormProcInstParse(units, fn, block, ptr, false, false, NULL,
-                                 &pr_ptr);
+                                 &ptr_pr);
     if (!res) {
         return false;
     }
 
-    Type *ptr_type = pr_ptr.type;
+    Type *ptr_type = ptr_pr.type;
 
     if (!ptr_type->points_to) {
         std::string type_str;
@@ -48,14 +48,14 @@ FormProcDereferenceParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    pr->set(pr_ptr.block, NULL, NULL);
+    pr->set(ptr_pr.block, NULL, NULL);
 
     if (!get_address) {
-        llvm::IRBuilder<> builder(pr_ptr.block);
+        llvm::IRBuilder<> builder(ptr_pr.block);
         llvm::Value *val =
-            llvm::cast<llvm::Value>(builder.CreateLoad(pr_ptr.value));
+            llvm::cast<llvm::Value>(builder.CreateLoad(ptr_pr.value));
 
-        pr->address_of_value = pr_ptr.value;
+        pr->address_of_value = ptr_pr.value;
         pr->value_is_lvalue = true;
         pr->type_of_address_of_value = ptr_type;
 
@@ -63,7 +63,7 @@ FormProcDereferenceParse(Units *units, Function *fn, llvm::BasicBlock *block,
         pr->value = val;
     } else {
         pr->type  = ptr_type;
-        pr->value = pr_ptr.value;
+        pr->value = ptr_pr.value;
     }
 
     /* Core dereference call results should not be copied.  Otherwise,
@@ -75,12 +75,12 @@ FormProcDereferenceParse(Units *units, Function *fn, llvm::BasicBlock *block,
         pr->do_not_copy_with_setf = true;
     }
 
-    ParseResult pr_destruct;
-    res = Operation::Destruct(ctx, &pr_ptr, &pr_destruct);
+    ParseResult destruct_pr;
+    res = Operation::Destruct(ctx, &ptr_pr, &destruct_pr);
     if (!res) {
         return false;
     }
-    pr->block = pr_destruct.block;
+    pr->block = destruct_pr.block;
 
     return true;
 }

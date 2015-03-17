@@ -23,19 +23,19 @@ FormProcDoParse(Units *units, Function *fn, llvm::BasicBlock *block,
                                       e = (node->list->end()   - 1);
             b != e;
             ++b) {
-        ParseResult pr_local;
+        ParseResult local_pr;
         bool res = FormProcInstParse(units, fn, block, *b, get_address,
-                                     false, NULL, &pr_local);
+                                     false, NULL, &local_pr);
         if (!res) {
             return false;
         }
 
-        ParseResult pr_destruct;
-        res = Operation::Destruct(ctx, &pr_local, &pr_destruct);
+        ParseResult destruct_pr;
+        res = Operation::Destruct(ctx, &local_pr, &destruct_pr);
         if (!res) {
             return false;
         }
-        block = pr_destruct.block;
+        block = destruct_pr.block;
     }
 
     return FormProcInstParse(units, fn, block,

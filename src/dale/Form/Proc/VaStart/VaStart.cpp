@@ -21,9 +21,9 @@ FormProcVaStartParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     std::vector<Node *> *lst = node->list;
 
-    ParseResult pr_valist;
+    ParseResult valist_pr;
     bool res = FormProcInstParse(units, fn, block, (*lst)[1], false,
-                                 false, NULL, &pr_valist);
+                                 false, NULL, &valist_pr);
     if (!res) {
         return false;
     }
@@ -31,20 +31,20 @@ FormProcVaStartParse(Units *units, Function *fn, llvm::BasicBlock *block,
     llvm::Function *va_start =
         units->top()->module->getFunction(llvm::StringRef("llvm.va_start"));
 
-    ParseResult pr_pchar;
-    res = Operation::Cast(ctx, pr_valist.block, pr_valist.value,
-                          pr_valist.type, ctx->tr->type_pchar,
-                          node, 0, &pr_pchar);
+    ParseResult pchar_pr;
+    res = Operation::Cast(ctx, valist_pr.block, valist_pr.value,
+                          valist_pr.type, ctx->tr->type_pchar,
+                          node, 0, &pchar_pr);
     if (!res) {
         return false;
     }
 
     std::vector<llvm::Value*> call_args;
-    call_args.push_back(pr_pchar.value);
-    llvm::IRBuilder<> builder(pr_valist.block);
+    call_args.push_back(pchar_pr.value);
+    llvm::IRBuilder<> builder(valist_pr.block);
     builder.CreateCall(va_start, llvm::ArrayRef<llvm::Value*>(call_args));
 
-    pr->set(pr_pchar.block, ctx->tr->type_void, NULL);
+    pr->set(pchar_pr.block, ctx->tr->type_void, NULL);
 
     return true;
 }

@@ -24,44 +24,44 @@ FormProcPtrGreaterThanParse(Units *units, Function *fn,
     Node *ptr1_node = (*lst)[1];
     Node *ptr2_node = (*lst)[2];
 
-    ParseResult pr_ptr1;
+    ParseResult ptr_pr1;
     bool res = FormProcInstParse(units, fn, block, ptr1_node, get_address,
-                                 false, NULL, &pr_ptr1);
+                                 false, NULL, &ptr_pr1);
     if (!res) {
         return false;
     }
-    if (!ctx->er->assertIsPointerType("p>", ptr1_node, pr_ptr1.type, "1")) {
+    if (!ctx->er->assertIsPointerType("p>", ptr1_node, ptr_pr1.type, "1")) {
         return false;
     }
 
-    ParseResult pr_ptr2;
-    res = FormProcInstParse(units, fn, pr_ptr1.block, ptr2_node, get_address,
-                            false, NULL, &pr_ptr2);
+    ParseResult ptr_pr2;
+    res = FormProcInstParse(units, fn, ptr_pr1.block, ptr2_node, get_address,
+                            false, NULL, &ptr_pr2);
     if (!res) {
         return false;
     }
-    if (!ctx->er->assertIsPointerType("p>", ptr2_node, pr_ptr2.type, "2")) {
+    if (!ctx->er->assertIsPointerType("p>", ptr2_node, ptr_pr2.type, "2")) {
         return false;
     }
 
-    llvm::IRBuilder<> builder(pr_ptr2.block);
+    llvm::IRBuilder<> builder(ptr_pr2.block);
     llvm::Value *cmp_res =
-        llvm::cast<llvm::Value>(builder.CreateICmpUGT(pr_ptr1.value,
-                                                      pr_ptr2.value));
+        llvm::cast<llvm::Value>(builder.CreateICmpUGT(ptr_pr1.value,
+                                                      ptr_pr2.value));
 
-    pr_ptr1.block = pr_ptr2.block;
-    ParseResult pr_destruct;
-    res = Operation::Destruct(ctx, &pr_ptr1, &pr_destruct);
+    ptr_pr1.block = ptr_pr2.block;
+    ParseResult destruct_pr;
+    res = Operation::Destruct(ctx, &ptr_pr1, &destruct_pr);
     if (!res) {
         return false;
     }
-    pr_ptr2.block = pr_destruct.block;
-    res = Operation::Destruct(ctx, &pr_ptr2, &pr_destruct);
+    ptr_pr2.block = destruct_pr.block;
+    res = Operation::Destruct(ctx, &ptr_pr2, &destruct_pr);
     if (!res) {
         return false;
     }
 
-    pr->set(pr_destruct.block, ctx->tr->type_bool, cmp_res);
+    pr->set(destruct_pr.block, ctx->tr->type_bool, cmp_res);
 
     return true;
 }

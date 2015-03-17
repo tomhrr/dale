@@ -40,54 +40,54 @@ getSetfAssign(Context *ctx, Type *dst_type, Type *src_type)
 bool
 processSetfPtrCall(Context *ctx, Function *over_setf,
                    llvm::IRBuilder<> *builder,
-                   ParseResult *pr_variable, ParseResult *pr_value,
+                   ParseResult *variable_pr, ParseResult *value_pr,
                    ParseResult *pr)
 {
     llvm::Value *src_ptr =
         llvm::cast<llvm::Value>(
             builder->CreateAlloca(
-                ctx->toLLVMType(pr_value->type, NULL, false, false)
+                ctx->toLLVMType(value_pr->type, NULL, false, false)
             )
         );
-    builder->CreateStore(pr_value->value, src_ptr);
+    builder->CreateStore(value_pr->value, src_ptr);
 
     std::vector<llvm::Value *> call_args;
-    call_args.push_back(pr_variable->value);
+    call_args.push_back(variable_pr->value);
     call_args.push_back(src_ptr);
     llvm::Value *ret =
         builder->CreateCall(over_setf->llvm_function,
                             llvm::ArrayRef<llvm::Value*>(call_args));
 
-    ParseResult pr_destruct;
-    bool res = destructTwo(ctx, pr_variable, pr_value, &pr_destruct, builder);
+    ParseResult destruct_pr;
+    bool res = destructTwo(ctx, variable_pr, value_pr, &destruct_pr, builder);
     if (!res) {
         return false;
     }
 
-    pr->set(pr_destruct.block, ctx->tr->type_bool, ret);
+    pr->set(destruct_pr.block, ctx->tr->type_bool, ret);
     return true;
 }
 
 bool
 processSetfExactCall(Context *ctx, Function *over_setf,
                      llvm::IRBuilder<> *builder,
-                     ParseResult *pr_variable, ParseResult *pr_value,
+                     ParseResult *variable_pr, ParseResult *value_pr,
                      ParseResult *pr)
 {
     std::vector<llvm::Value *> call_args;
-    call_args.push_back(pr_variable->value);
-    call_args.push_back(pr_value->value);
+    call_args.push_back(variable_pr->value);
+    call_args.push_back(value_pr->value);
     llvm::Value *ret =
         builder->CreateCall(over_setf->llvm_function,
                             llvm::ArrayRef<llvm::Value*>(call_args));
 
-    ParseResult pr_destruct;
-    bool res = destructTwo(ctx, pr_variable, pr_value, &pr_destruct, builder);
+    ParseResult destruct_pr;
+    bool res = destructTwo(ctx, variable_pr, value_pr, &destruct_pr, builder);
     if (!res) {
         return false;
     }
 
-    pr->set(pr_destruct.block, ctx->tr->type_bool, ret);
+    pr->set(destruct_pr.block, ctx->tr->type_bool, ret);
     return true;
 }
 
@@ -104,22 +104,22 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    ParseResult pr_variable;
+    ParseResult variable_pr;
     bool res =
         FormProcInstParse(units, fn, block, (*lst)[1], false,
-                          false, NULL, &pr_variable);
+                          false, NULL, &variable_pr);
     if (!res) {
         return false;
     }
 
-    if (!pr_variable.type->points_to) {
+    if (!variable_pr.type->points_to) {
         Error *e = new Error(IncorrectArgType, (*lst)[1],
                              "setf", "a pointer", "1", "a value");
         ctx->er->addError(e);
         return false;
     }
 
-    if (pr_variable.type->points_to->is_const) {
+    if (variable_pr.type->points_to->is_const) {
         Error *e = new Error(CannotModifyConstVariable, node);
         ctx->er->addError(e);
         return false;
@@ -131,36 +131,36 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    llvm::IRBuilder<> builder(pr_variable.block);
-    ParseResult pr_value;
-    pr_value.retval = pr_variable.value;
-    pr_value.retval_type = pr_variable.type;
+    llvm::IRBuilder<> builder(variable_pr.block);
+    ParseResult value_pr;
+    value_pr.retval = variable_pr.value;
+    value_pr.retval_type = variable_pr.type;
 
     res = FormProcessValue(units, fn, block, value_node, get_address,
-                           pr_variable.type->points_to, &pr_value);
+                           variable_pr.type->points_to, &value_pr);
     if (!res) {
         return false;
     }
-    if (pr_value.retval_used) {
-        pr->block = pr_value.block;
+    if (value_pr.retval_used) {
+        pr->block = value_pr.block;
         pr->type = ctx->tr->getBasicType(BaseType::Void);
         return true;
     }
 
-    builder.SetInsertPoint(pr_value.block);
+    builder.SetInsertPoint(value_pr.block);
 
-    /* If an overridden setf exists, and pr_value is a value of the
-     * pointee type of pr_variable, then call the overridden setf
-     * after allocating memory for pr_value and copying it into place.
+    /* If an overridden setf exists, and value_pr is a value of the
+     * pointee type of variable_pr, then call the overridden setf
+     * after allocating memory for value_pr and copying it into place.
      * */
 
     if (!prefixed_with_core
-            && pr_variable.type->points_to->canBeSetFrom(pr_value.type)) {
-        Function *over_setf = getSetfAssign(ctx, pr_variable.type,
-                                            pr_variable.type);
+            && variable_pr.type->points_to->canBeSetFrom(value_pr.type)) {
+        Function *over_setf = getSetfAssign(ctx, variable_pr.type,
+                                            variable_pr.type);
         if (over_setf) {
             return processSetfPtrCall(ctx, over_setf, &builder,
-                                      &pr_variable, &pr_value, pr);
+                                      &variable_pr, &value_pr, pr);
         }
     }
 
@@ -168,25 +168,25 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
      * the arguments exactly, then use it. */
 
     if (!prefixed_with_core) {
-        Function *over_setf = getSetfAssign(ctx, pr_variable.type,
-                                            pr_value.type);
+        Function *over_setf = getSetfAssign(ctx, variable_pr.type,
+                                            value_pr.type);
         if (over_setf) {
             return processSetfExactCall(ctx, over_setf, &builder,
-                                        &pr_variable, &pr_value, pr);
+                                        &variable_pr, &value_pr, pr);
         }
     }
 
-    if (pr_variable.type->points_to->canBeSetFrom(pr_value.type)) {
-        builder.CreateStore(pr_value.value, pr_variable.value);
+    if (variable_pr.type->points_to->canBeSetFrom(value_pr.type)) {
+        builder.CreateStore(value_pr.value, variable_pr.value);
 
-        ParseResult pr_destruct;
-        bool res = destructTwo(ctx, &pr_variable, &pr_value,
-                               &pr_destruct, &builder);
+        ParseResult destruct_pr;
+        bool res = destructTwo(ctx, &variable_pr, &value_pr,
+                               &destruct_pr, &builder);
         if (!res) {
             return false;
         }
 
-        pr->set(pr_destruct.block, ctx->tr->type_bool,
+        pr->set(destruct_pr.block, ctx->tr->type_bool,
                 llvm::ConstantInt::get(
                     llvm::IntegerType::get(llvm::getGlobalContext(), 1), 1
                 ));
@@ -196,8 +196,8 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     /* This is used to set an error message. */
     ctx->er->assertTypeEquality("setf", (*lst)[2],
-                                pr_value.type,
-                                pr_variable.type->points_to,
+                                value_pr.type,
+                                variable_pr.type->points_to,
                                 false);
     return false;
 }

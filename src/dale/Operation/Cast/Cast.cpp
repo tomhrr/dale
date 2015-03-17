@@ -53,12 +53,12 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
                    && to_type->isIntegerType())
                || (from_type->isIntegerType()
                    && to_type->base_type == BaseType::Bool)) {
-        int pr_size =
+        int size_pr =
             ctx->nt->internalSizeToRealSize(from_type->getIntegerSize());
         int ta_size =
             ctx->nt->internalSizeToRealSize(to_type->getIntegerSize());
 
-        if (pr_size <= ta_size) {
+        if (size_pr <= ta_size) {
             if (to_type->isSignedIntegerType()) {
                 res = builder.CreateSExt(value, llvm_to_type);
             } else {

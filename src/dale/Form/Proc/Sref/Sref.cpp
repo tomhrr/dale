@@ -28,9 +28,9 @@ FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     int error_count_begin =
         ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    ParseResult pr_struct;
+    ParseResult struct_pr;
     bool res = FormProcInstParse(units, fn, block, struct_node, true,
-                                 false, NULL, &pr_struct);
+                                 false, NULL, &struct_pr);
 
     if (!res) {
         /* If the error message is 'cannot take address of
@@ -49,26 +49,26 @@ FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
         }
         res = FormProcInstParse(units, fn, block, struct_node,
                                 false, false, NULL,
-                                &pr_struct);
+                                &struct_pr);
         if (!res) {
             ctx->er->addError(e);
             return false;
         }
 
         llvm::Type *llvm_type =
-            ctx->toLLVMType(pr_struct.type, NULL, false, false);
+            ctx->toLLVMType(struct_pr.type, NULL, false, false);
         if (!llvm_type) {
             return false;
         }
 
-        llvm::IRBuilder<> builder(pr_struct.block);
+        llvm::IRBuilder<> builder(struct_pr.block);
         llvm::Value *store = builder.CreateAlloca(llvm_type);
-        builder.CreateStore(pr_struct.value, store);
-        pr_struct.type = ctx->tr->getPointerType(pr_struct.type);
-        pr_struct.value = store;
+        builder.CreateStore(struct_pr.value, store);
+        struct_pr.type = ctx->tr->getPointerType(struct_pr.type);
+        struct_pr.value = store;
     }
 
-    Type *st_type = pr_struct.type->points_to;
+    Type *st_type = struct_pr.type->points_to;
 
     if (st_type->struct_name.size() == 0) {
         std::string type_str;
@@ -125,19 +125,19 @@ FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     STL::push_back2(&indices, ctx->nt->getNativeInt(0),
                               ctx->nt->getNativeInt(index));
 
-    llvm::IRBuilder<> builder(pr_struct.block);
+    llvm::IRBuilder<> builder(struct_pr.block);
     llvm::Value *vres =
-        builder.CreateGEP(pr_struct.value,
+        builder.CreateGEP(struct_pr.value,
                           llvm::ArrayRef<llvm::Value*>(indices));
 
-    pr->set(pr_struct.block, ctx->tr->getPointerType(member_type), vres);
+    pr->set(struct_pr.block, ctx->tr->getPointerType(member_type), vres);
 
-    ParseResult pr_destruct;
-    res = Operation::Destruct(ctx, &pr_struct, &pr_destruct);
+    ParseResult destruct_pr;
+    res = Operation::Destruct(ctx, &struct_pr, &destruct_pr);
     if (!res) {
         return false;
     }
-    pr->block = pr_destruct.block;
+    pr->block = destruct_pr.block;
 
     return true;
 }

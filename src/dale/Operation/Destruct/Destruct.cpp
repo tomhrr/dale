@@ -14,7 +14,7 @@ getDestructor(Context *ctx, Type *type)
 }
 
 bool
-destructArray(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
+destructArray(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
               llvm::IRBuilder<> *builder, bool value_is_ptr)
 {
     Type *array_type = pr->type->array_type;
@@ -78,12 +78,12 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
         block = element.block;
     }
 
-    pr_ret->block = block;
+    ret_pr->block = block;
     return true;
 }
 
 bool
-destructStruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
+destructStruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
                llvm::IRBuilder<> *builder, bool value_is_ptr)
 {
     Struct *st = ctx->getStruct(pr->type);
@@ -106,7 +106,7 @@ destructStruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
             b != e;
             ++b) {
         ParseResult element;
-        element.set(pr_ret->block, *b, struct_value);
+        element.set(ret_pr->block, *b, struct_value);
         std::vector<llvm::Value *> indices;
         STL::push_back2(
             &indices,
@@ -124,30 +124,30 @@ destructStruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
                 "sp"
             );
         Destruct(ctx, &element, &element, builder, true);
-        pr_ret->block = element.block;
+        ret_pr->block = element.block;
     }
 
     return true;
 }
 
 bool
-destruct_(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
+destruct_(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
           llvm::IRBuilder<> *builder, bool value_is_ptr)
 {
-    pr->copyTo(pr_ret);
+    pr->copyTo(ret_pr);
 
     if (pr->do_not_destruct) {
         return true;
     }
 
     if (pr->type->is_array && pr->type->array_size) {
-        return destructArray(ctx, pr, pr_ret, builder, value_is_ptr);
+        return destructArray(ctx, pr, ret_pr, builder, value_is_ptr);
     }
 
     Function *fn = getDestructor(ctx, pr->type);
     if (!fn) {
         if (pr->type->struct_name.size()) {
-            destructStruct(ctx, pr, pr_ret, builder, value_is_ptr);
+            destructStruct(ctx, pr, ret_pr, builder, value_is_ptr);
         }
         return true;
     }
@@ -173,16 +173,16 @@ destruct_(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
 }
 
 bool
-Destruct(Context *ctx, ParseResult *pr, ParseResult *pr_ret,
+Destruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
          llvm::IRBuilder<> *builder, bool value_is_ptr)
 {
     bool res;
 
     if (!builder) {
         llvm::IRBuilder<> internal_builder(pr->block);
-        res = destruct_(ctx, pr, pr_ret, &internal_builder, value_is_ptr);
+        res = destruct_(ctx, pr, ret_pr, &internal_builder, value_is_ptr);
     } else {
-        res = destruct_(ctx, pr, pr_ret, builder, value_is_ptr);
+        res = destruct_(ctx, pr, ret_pr, builder, value_is_ptr);
     }
 
     return res;
