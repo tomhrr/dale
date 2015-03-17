@@ -28,7 +28,7 @@ Coerce(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
                     ctx->nt->getTwoLLVMZeros()
                 );
 
-            pr->set(block, to_type, charpointer); 
+            pr->set(block, to_type, charpointer);
             return true;
         }
     }

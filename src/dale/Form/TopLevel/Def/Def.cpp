@@ -14,7 +14,7 @@
 #include "../Function/Function.h"
 #include "../Struct/Struct.h"
 #include "../Macro/Macro.h"
-#include "../Enum/Enum.h" 
+#include "../Enum/Enum.h"
 
 using namespace dale::ErrorInst;
 

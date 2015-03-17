@@ -51,7 +51,7 @@ bool NamespaceSavePoint::restore()
         }
     }
 
-    int variable_diff = 
+    int variable_diff =
         src_ns->variables_ordered.size() - variable_count;
 
     while (variable_diff--) {
@@ -59,7 +59,7 @@ bool NamespaceSavePoint::restore()
         src_ns->variables_ordered.pop_back();
     }
 
-    int struct_diff = 
+    int struct_diff =
         src_ns->structs_ordered.size() - struct_count;
 
     while (struct_diff--) {
@@ -67,7 +67,7 @@ bool NamespaceSavePoint::restore()
         src_ns->structs_ordered.pop_back();
     }
 
-    int enum_diff = 
+    int enum_diff =
         src_ns->enums_ordered.size() - enum_count;
 
     while (enum_diff--) {

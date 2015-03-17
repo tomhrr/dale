@@ -131,8 +131,8 @@ splitString(std::string *str, std::vector<std::string> *lst, char c)
         if (found == -1) {
             found = str->length();
         }
-        std::string temp(str->substr(index, found - index));
-        lst->push_back(temp);
+        std::string part(str->substr(index, found - index));
+        lst->push_back(part);
         index = found + 1;
     }
 }
@@ -169,8 +169,8 @@ isValidModuleName(const std::string *name)
 
 llvm::FunctionType *
 getFunctionType(llvm::Type *t, std::vector<llvm::Type*> &v, bool b) {
-    llvm::ArrayRef<llvm::Type*> temp(v);
-    return llvm::FunctionType::get(t, temp, b);
+    llvm::ArrayRef<llvm::Type*> array_ref(v);
+    return llvm::FunctionType::get(t, array_ref, b);
 }
 
 bool

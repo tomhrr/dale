@@ -18,18 +18,18 @@ nameToIndex(Context *ctx,
     return index;
 }
 
-bool 
+bool
 Offsetof(Context *ctx,
          llvm::BasicBlock *block,
          Type *type,
          const char *member_name,
          ParseResult *pr)
 {
-    return OffsetofByIndex(ctx, block, type, 
+    return OffsetofByIndex(ctx, block, type,
                            nameToIndex(ctx, type, member_name), pr);
 }
 
-bool 
+bool
 OffsetofByIndex(Context *ctx,
                 llvm::BasicBlock *block,
                 Type *type,
@@ -49,7 +49,7 @@ OffsetofByIndex(Context *ctx,
     std::vector<llvm::Value *> indices;
     STL::push_back2(&indices,  ctx->nt->getLLVMZero(),
                                ctx->nt->getNativeInt(index));
-                    
+
     llvm::Value *pointer_to_offset =
         builder.CreateGEP(
             llvm::ConstantPointerNull::get(llvm_pointer_type),

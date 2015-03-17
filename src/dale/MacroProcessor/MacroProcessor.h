@@ -39,7 +39,7 @@ private:
     Context *ctx;
 
 public:
-    llvm::ExecutionEngine *ee; 
+    llvm::ExecutionEngine *ee;
 
     /*! Construct a new macro processor.
      *  @param units The units context.

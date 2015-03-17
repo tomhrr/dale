@@ -117,17 +117,17 @@ public:
     /*! Add a variable to the namespace.
      *  @param name The bare name of the variable.
      *  @param variable The variable object. */
-    bool addVariable(const char *name, 
+    bool addVariable(const char *name,
                      Variable *variable);
     /*! Add a struct to the namespace.
      *  @param name The bare name of the struct.
      *  @param element_struct The struct object. */
-    bool addStruct(const char *name, 
+    bool addStruct(const char *name,
                    Struct *element_struct);
     /*! Add an enum to the namespace.
      *  @param name The bare name of the enum.
      *  @param element_enum The enum object. */
-    bool addEnum(const char *name, 
+    bool addEnum(const char *name,
                  Enum *element_enum);
 
     /*! Get a function from this namespace.
@@ -160,7 +160,7 @@ public:
     Struct *getStruct(const char *name);
     /*! Get an enum from this namespace.
      *  @param name The enum name. */
-    Enum *getEnum(const char *name); 
+    Enum *getEnum(const char *name);
 
     /*! Get all of the variables from this namespace.
      *  @param vars A vector to which the variables will be added.
@@ -241,7 +241,7 @@ public:
      */
     bool setNamespaces(std::vector<std::string> *namespaces);
 
-    /*! Merge another namespace into this namespace.  
+    /*! Merge another namespace into this namespace.
      *  @param other The other namespace.
      *
      *  All extern bindings from the other namespace will be added to
@@ -309,10 +309,10 @@ public:
      *
      *  Each of the 'removeUnneeded' functions operates in the same
      *  way: for the particular type of binding, once it has been run,
-     *  the only bindings that will remain in the namespace will be 
-     *  those with a name that is present in the 'forms' set. The 
-     *  names of those bindings that were retained, i.e. the 
-     *  intersection of 'forms' and the binding names, will be added 
+     *  the only bindings that will remain in the namespace will be
+     *  those with a name that is present in the 'forms' set. The
+     *  names of those bindings that were retained, i.e. the
+     *  intersection of 'forms' and the binding names, will be added
      *  to the 'found_forms' set.
      */
     bool removeUnneededStructs(std::set<std::string> *forms,

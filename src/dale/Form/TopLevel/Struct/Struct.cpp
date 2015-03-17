@@ -6,7 +6,7 @@ using namespace dale::ErrorInst;
 
 namespace dale
 {
-bool 
+bool
 FormTopLevelStructParse(Units *units, Node *top)
 {
     std::vector<Node *> *lst = top->list;

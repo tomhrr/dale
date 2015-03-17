@@ -33,7 +33,7 @@ Context::Context(ErrorReporter *er,
     used_ns_nodes.push_back(namespaces);
 }
 
-void 
+void
 Context::deleteNamespaces(NSNode *node)
 {
     for (std::map<std::string, NSNode *>::iterator
@@ -96,7 +96,7 @@ Context::activateNamespace(const char *name)
         return true;
     }
 
-    Namespace *new_ns = new Namespace(er, tr, name, 
+    Namespace *new_ns = new Namespace(er, tr, name,
                                       current_nsnode->ns,
                                       (current_nsnode->ns->lv_index + 1));
     NSNode *new_namespaces = new NSNode();
@@ -153,7 +153,7 @@ Context::deactivateAnonymousNamespace()
 {
     active_ns_nodes.pop_back();
     used_ns_nodes.pop_back();
-    
+
     return true;
 }
 
@@ -161,7 +161,7 @@ NSNode *
 getNSNodeFromNode(std::vector<std::string> *ns_parts,
                   NSNode *current)
 {
-    for (std::vector<std::string>::iterator 
+    for (std::vector<std::string>::iterator
             b = ns_parts->begin(),
             e = ns_parts->end();
             b != e;
@@ -178,7 +178,7 @@ getNSNodeFromNode(std::vector<std::string> *ns_parts,
 }
 
 NSNode *
-Context::getNSNode(const char *name, 
+Context::getNSNode(const char *name,
                    bool ignore_last,
                    std::vector<std::string> *ns_parts)
 {
@@ -244,7 +244,7 @@ Context::unuseNamespace()
     return true;
 }
 
-void 
+void
 eraseLLVMMacros_(NSNode *node)
 {
     for (std::map<std::string, NSNode *>::iterator
@@ -263,7 +263,7 @@ Context::eraseLLVMMacros()
     eraseLLVMMacros_(namespaces);
 }
 
-void 
+void
 eraseLLVMMacrosAndCTOFunctions_(NSNode *node)
 {
     for (std::map<std::string, NSNode *>::iterator
@@ -300,7 +300,7 @@ existsNonExternCFunctionInList(std::vector<Function *> *fn_list)
 bool
 Context::existsNonExternCFunction(const char *name)
 {
-    std::map<std::string, std::vector<Function *> *>::iterator 
+    std::map<std::string, std::vector<Function *> *>::iterator
         iter;
 
     const char *fn_name;
@@ -353,7 +353,7 @@ existsExternCFunctionInList(std::vector<Function *> *fn_list)
 bool
 Context::existsExternCFunction(const char *name)
 {
-    std::map<std::string, std::vector<Function *> *>::iterator 
+    std::map<std::string, std::vector<Function *> *>::iterator
         iter;
 
     const char *fn_name;
@@ -407,7 +407,7 @@ isOverloadedFunctionInList(Function *fn,
 bool
 Context::isOverloadedFunction(const char *name)
 {
-    std::map<std::string, std::vector<Function *> *>::iterator 
+    std::map<std::string, std::vector<Function *> *>::iterator
         iter;
 
     if (strchr(name, '.')) {
@@ -445,7 +445,7 @@ Context::isOverloadedFunction(const char *name)
             }
         }
     }
-            
+
     return false;
 }
 
@@ -524,7 +524,7 @@ Context::getVariable(const char *name)
             return var;
         }
     }
-            
+
     return NULL;
 }
 
@@ -550,7 +550,7 @@ Context::getStruct(const char *name)
             return st;
         }
     }
- 
+
     return NULL;
 }
 
@@ -608,11 +608,11 @@ Context::getEnum(const char *name)
             return en;
         }
     }
-            
+
     return NULL;
 }
 
-bool 
+bool
 Context::setNamespacesForStruct(const char *name,
                                 std::vector<std::string> *namespaces)
 {
@@ -738,7 +738,7 @@ getFunctionNames_(std::set<std::string> *names,
     nsnode->ns->getFunctionNames(names, prefix);
 }
 
-void 
+void
 Context::getFunctionNames(std::set<std::string> *names,
                           std::string *prefix)
 {
@@ -767,7 +767,7 @@ merge_(NSNode *nsnode_dst, NSNode *nsnode_src)
                     src_b->first, src_b->second
                 )
             );
-        } 
+        }
     }
 
     ns_dst->merge(ns_src);
@@ -845,7 +845,7 @@ Context::rebuildFunction(Function *fn, const char *name,
             llvm::ArrayRef<llvm::Type*>(types),
             varargs
         );
-    
+
     fn->llvm_function =
         llvm::dyn_cast<llvm::Function>(
             mod->getOrInsertFunction(fn->internal_name.c_str(), ft)
@@ -866,7 +866,7 @@ Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
         rebuildFunctions(mod, b->second);
     }
 
-    Namespace *ns = nsnode->ns; 
+    Namespace *ns = nsnode->ns;
 
     std::map<std::string, std::vector<Function *>* >::iterator
         b, e;
@@ -885,7 +885,7 @@ Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
             rebuildFunction(fn, b->first.c_str(), mod);
         }
     }
-    
+
     return true;
 }
 
@@ -943,7 +943,7 @@ Context::rebuildVariables(llvm::Module *mod, NSNode *nsnode)
     return true;
 }
 
-llvm::GlobalValue::LinkageTypes 
+llvm::GlobalValue::LinkageTypes
 Context::toLLVMLinkage(int linkage)
 {
     llvm::GlobalValue::LinkageTypes lt;
@@ -1022,7 +1022,7 @@ Context::toLLVMTypeFunction(Type *type,
         llvm_r_type = toLLVMType(r_type, NULL);
     }
 
-    llvm::FunctionType *fntype = 
+    llvm::FunctionType *fntype =
         llvm::FunctionType::get(
             llvm_r_type,
             llvm_fn_params,
@@ -1048,22 +1048,22 @@ Context::toLLVMTypePointer(Type *type,
                            Node *n,
                            bool refs_to_pointers)
 {
-    llvm::Type *temp_type = toLLVMType(type, n, true, false, 
+    llvm::Type *llvm_type = toLLVMType(type, n, true, false,
                                        refs_to_pointers);
 
-    if (!temp_type) {
+    if (!llvm_type) {
         return NULL;
     }
 
     /* If this is a pointer to void, then return a _vp struct
         * instead. */
-    if (temp_type->isVoidTy()) {
+    if (llvm_type->isVoidTy()) {
         Struct *st = getStruct("_vp", NULL);
         assert(st && "no _vp struct");
         assert(st->type && "no _vp struct type");
         return llvm::PointerType::getUnqual(st->type);
     }
-    return llvm::PointerType::getUnqual(temp_type);
+    return llvm::PointerType::getUnqual(llvm_type);
 }
 
 llvm::Type *
@@ -1210,10 +1210,10 @@ Context::toLLVMType(Type *type,
         if (error_count != er->getErrorTypeCount(ErrorType::Error)) {
             return llvm_type;
         }
-        std::string temp;
-        type->toString(&temp);
+        std::string type_str;
+        type->toString(&type_str);
         Error *e = new Error(TypeIsNotFirstClass, (n ? n : nullNode()),
-                             temp.c_str());
+                             type_str.c_str());
         er->addError(e);
         return NULL;
     }

@@ -5,7 +5,7 @@
 using namespace dale::ErrorInst;
 
 namespace dale {
-bool 
+bool
 FormLiteralEnumParse(Units *units, llvm::BasicBlock *block, Node *node,
                      Enum *enum_obj, Type *enum_type,
                      Struct *enum_st, bool get_address,

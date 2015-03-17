@@ -224,7 +224,7 @@ TypeRegister::getStructType(const char *name)
     std::vector<std::string> name_parts;
     std::string ss(name);
     splitString(&ss, &name_parts, '.');
-    Type *struct_type = new Type(); 
+    Type *struct_type = new Type();
     struct_type->struct_name = name_parts.back();
     name_parts.pop_back();
 

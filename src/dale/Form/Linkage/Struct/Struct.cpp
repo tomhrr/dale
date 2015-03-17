@@ -5,7 +5,7 @@
 using namespace dale::ErrorInst;
 
 namespace dale {
-int 
+int
 FormLinkageStructParse(Context *ctx, Node *node)
 {
     if (!node->is_token) {

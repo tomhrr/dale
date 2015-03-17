@@ -6,7 +6,7 @@ namespace Operation
 {
 static int alignment_structs = 0;
 
-bool 
+bool
 Alignmentof(Context *ctx, llvm::BasicBlock *block, Type *type,
             ParseResult *pr)
 {

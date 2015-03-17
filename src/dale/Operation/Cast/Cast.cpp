@@ -79,7 +79,7 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
                && struct_name->size()
                && (to_type->isIntegerType())
                && (ctx->getEnum(struct_name->c_str()))) {
-        llvm::Value *pointer = 
+        llvm::Value *pointer =
             llvm::cast<llvm::Value>(
                 builder.CreateAlloca(llvm_from_type)
             );
@@ -103,7 +103,7 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
             builder.CreateLoad(int_pointer);
 
         ParseResult cast_pr;
-        bool cast_res = Cast(ctx, block, new_int, intermediate_type, 
+        bool cast_res = Cast(ctx, block, new_int, intermediate_type,
                              to_type, n, implicit, &cast_pr);
         if (!cast_res) {
             return false;
@@ -128,7 +128,7 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
         block = cast_pr.block;
         value = cast_pr.value;
 
-        llvm::Value *pointer = 
+        llvm::Value *pointer =
             llvm::cast<llvm::Value>(
                 builder.CreateAlloca(
                     ctx->toLLVMType(intermediate_type, NULL, false)
@@ -137,7 +137,7 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
         builder.CreateStore(value, pointer);
         llvm::Value *int_pointer =
             builder.CreateBitCast(
-                pointer, 
+                pointer,
                 ctx->toLLVMType(ctx->tr->getPointerType(to_type),
                                 NULL, false)
             );
@@ -154,7 +154,7 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
         builder.CreateStore(value, pointer);
         llvm::Value *int_pointer =
             builder.CreateBitCast(
-                pointer, 
+                pointer,
                 ctx->toLLVMType(ctx->tr->getPointerType(to_type),
                                 NULL, false)
             );

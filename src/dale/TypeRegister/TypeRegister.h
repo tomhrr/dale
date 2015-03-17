@@ -39,7 +39,7 @@ public:
     /*! The standard constructor. Initialises the basic types. */
     TypeRegister();
     ~TypeRegister();
-    
+
     /*! Return an instance of a basic type.
      *  @param type The basic type enum (see BaseType). */
     Type *getBasicType(int type);

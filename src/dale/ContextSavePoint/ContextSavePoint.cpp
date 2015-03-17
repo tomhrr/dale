@@ -41,7 +41,7 @@ ContextSavePoint::~ContextSavePoint()
 {
 }
 
-bool 
+bool
 restore_(SPNode *spnode)
 {
     for (std::map<std::string, SPNode*>::iterator
@@ -84,11 +84,11 @@ ContextSavePoint::restore()
     int current_used_count   = src_ctx->used_ns_nodes.size();
     while (current_active_count > active_count) {
         src_ctx->active_ns_nodes.pop_back();
-        current_active_count--; 
+        current_active_count--;
     }
     while (current_used_count > used_count) {
         src_ctx->used_ns_nodes.pop_back();
-        current_used_count--; 
+        current_used_count--;
     }
 
     restore_(nsps);

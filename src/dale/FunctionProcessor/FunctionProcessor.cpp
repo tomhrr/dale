@@ -24,7 +24,7 @@ FunctionProcessor::~FunctionProcessor()
 }
 
 void
-processRetval(Context *ctx, 
+processRetval(Context *ctx,
               Type *return_type, llvm::BasicBlock *block,
               ParseResult *pr,
               std::vector<llvm::Value*> *call_args)
@@ -238,12 +238,12 @@ FunctionProcessor::parseFunctionPointerCall(Function *dfn, Node *n,
     pr->set(block, fn_ptr->return_type, call_res);
 
     fn_ptr_pr->block = pr->block;
-    ParseResult temp;
-    res = Operation::Destruct(units->top()->ctx, fn_ptr_pr, &temp);
+    ParseResult destruct_pr;
+    res = Operation::Destruct(units->top()->ctx, fn_ptr_pr, &destruct_pr);
     if (!res) {
         return false;
     }
-    pr->block = temp.block;
+    pr->block = destruct_pr.block;
 
     return true;
 }

@@ -160,7 +160,7 @@ ErrorReporter::assertIsPointerType(const char *form_name,
 }
 
 bool
-ErrorReporter::assertTypeEquality(const char *form_name, Node *n, 
+ErrorReporter::assertTypeEquality(const char *form_name, Node *n,
                                   Type *got, Type *expected,
                                   bool ignore_arg_constness)
 {

@@ -53,8 +53,8 @@ addVariable(Unit *unit,
     return true;
 }
 
-void 
-addVarargsFunctions(Unit *unit) 
+void
+addVarargsFunctions(Unit *unit)
 {
     llvm::Module *mod = unit->module;
     Context *ctx = unit->ctx;
@@ -90,10 +90,10 @@ addVarargsFunctions(Unit *unit)
 
     va_end_fn->setCallingConv(llvm::CallingConv::C);
 
-    return; 
+    return;
 }
 
-void 
+void
 addBasicTypes(Unit *unit, bool is_x86_64)
 {
     Context *ctx = unit->ctx;
@@ -133,7 +133,7 @@ addBasicTypes(Unit *unit, bool is_x86_64)
     BT_FP(tr->type_longdouble);
 }
 
-void 
+void
 addVarargsTypes(Unit *unit, bool is_x86_64)
 {
     Parser *prsr = unit->parser;
@@ -151,12 +151,12 @@ addVarargsTypes(Unit *unit, bool is_x86_64)
     prsr->getLexer()->pushText(definition);
 }
 
-void 
+void
 addStandardVariables(Unit *unit)
 {
     Context *ctx = unit->ctx;
     NativeTypes *nt = ctx->nt;
-    
+
     Type *type_int    = ctx->tr->type_int;
     Type *type_float  = ctx->tr->type_float;
     Type *type_double = ctx->tr->type_double;

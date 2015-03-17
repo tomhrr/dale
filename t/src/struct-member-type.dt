@@ -12,7 +12,7 @@
     (mnfv mc "0")))
 )
 
-(namespace bling
+(namespace myns
   (def mys (struct extern((n int) (m char)))))
 
 (def mys (struct extern((n int) (m char) (r int))))
@@ -21,7 +21,7 @@
 
 (def main
   (fn extern-c int (void)
-    (print-struct-types bling.mys)
+    (print-struct-types myns.mys)
     (print-struct-types mys)
     (print-struct-types empty)
     0))

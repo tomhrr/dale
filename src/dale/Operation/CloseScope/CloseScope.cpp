@@ -33,7 +33,7 @@ CloseScope(Context *ctx, Function *fn, llvm::BasicBlock *block,
         Operation::Destruct(ctx, &element, &element, NULL, true);
     }
 
-    return true; 
+    return true;
 }
 }
 }

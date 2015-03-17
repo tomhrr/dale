@@ -13,7 +13,7 @@ Units::~Units()
 {
 }
 
-Unit* 
+Unit*
 Units::top()
 {
     return units.top();

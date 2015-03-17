@@ -4,7 +4,7 @@ namespace dale
 {
 namespace Operation
 {
-bool 
+bool
 Sizeof(Context *ctx, llvm::BasicBlock *block, Type *type,
        ParseResult *pr)
 {
@@ -27,7 +27,7 @@ Sizeof(Context *ctx, llvm::BasicBlock *block, Type *type,
     return true;
 }
 
-size_t 
+size_t
 SizeofGet(Unit *unit,
           Type *type)
 {

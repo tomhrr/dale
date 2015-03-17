@@ -10,10 +10,10 @@ class Node;
 class Namespace;
 
 /*! DeferredGoto
-    
+
     A class for containing the details of a 'deferred goto', being a
     goto for a label that is not yet in scope. The generator will
-    resolve deferred gotos once the function has been processed. 
+    resolve deferred gotos once the function has been processed.
 */
 class DeferredGoto
 {

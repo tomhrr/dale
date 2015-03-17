@@ -1,4 +1,4 @@
-(import cstdio) 
+(import cstdio)
 (import macros) 
 
 (def get-struct-count
@@ -8,7 +8,7 @@
       (sprintf str "%d" n)
       (std.macros.mnfv mc str))))
 
-(namespace bling
+(namespace myns
   (def mys (struct extern((n int) (m int)))))
 
 (def mys (struct extern((n int) (m int) (r int))))
@@ -17,7 +17,7 @@
 
 (def main
   (fn extern-c int (void)
-    (printf "%d\n" (get-struct-count bling.mys))
+    (printf "%d\n" (get-struct-count myns.mys))
     (printf "%d\n" (get-struct-count mys))
     (printf "%d\n" (get-struct-count empty))
     0))

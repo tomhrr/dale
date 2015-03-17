@@ -72,13 +72,13 @@ const char *core_forms_no_override_strs[core_forms_no_override_max + 1] = {
 
 static bool initialised = false;
 
-void 
+void
 init()
 {
     if (initialised) {
         return;
     }
- 
+
     initialised = true;
 
     ADD_SC("goto",            &FormProcGotoParse);
@@ -129,17 +129,17 @@ init()
 
     for (int i = 0; i < core_forms_no_override_max; i++) {
         core_forms_no_override.insert(core_forms_no_override_strs[i]);
-    }   
+    }
 }
 
-bool 
+bool
 exists(const char *name)
 {
     return ((standard_core_forms.find(name) != standard_core_forms.end()) ||
             (macro_core_forms.find(name)    != macro_core_forms.end()));
 }
 
-bool 
+bool
 existsNoOverride(const char *name)
 {
     return (core_forms_no_override.find(name) != core_forms_no_override.end());

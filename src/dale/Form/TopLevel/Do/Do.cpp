@@ -11,7 +11,7 @@ namespace dale
 bool
 FormTopLevelDoParse(Units *units, Node *node)
 {
-    Context *ctx = units->top()->ctx; 
+    Context *ctx = units->top()->ctx;
 
     std::vector<Node *> *lst = node->list;
 

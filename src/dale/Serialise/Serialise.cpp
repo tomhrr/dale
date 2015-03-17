@@ -118,11 +118,11 @@ char *deserialise(TypeRegister *tr, char *in, std::string *x)
     size_t s;
     in = deserialise(tr, in, &s);
     x->reserve(s);
-    char temp[256];
-    strncpy(temp, in, s);
-    temp[s] = '\0';
+    char buf[256];
+    strncpy(buf, in, s);
+    buf[s] = '\0';
     x->clear();
-    x->append(temp);
+    x->append(buf);
     return in + s;
 }
 
@@ -449,7 +449,7 @@ char *deserialise(TypeRegister *tr, char *in, Namespace *ns)
     std::string name;
     in = deserialise(tr, in, &name);
     ns->name = name;
-    
+
     in = deserialise(tr, in, &(ns->symbol_prefix));
 
     if (ns->symbol_prefix.size()) {

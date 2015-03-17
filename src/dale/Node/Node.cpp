@@ -184,22 +184,18 @@ Node::toDNode()
         DNode *current_dnode = NULL;
 
         std::vector<Node*> *lst = list;
-
-        std::vector<Node *>::iterator node_iter;
-        node_iter = lst->begin();
-
-        while (node_iter != lst->end()) {
-            DNode *temp_node = (*node_iter)->toDNode();
-
+        for (std::vector<Node *>::iterator b = lst->begin(),
+                                           e = lst->end();
+                b != e;
+                ++b) {
+            DNode *lst_dnode = (*b)->toDNode();
             if (!current_dnode) {
-                top_node->list_node      = temp_node;
-                current_dnode            = temp_node;
+                top_node->list_node      = lst_dnode;
+                current_dnode            = lst_dnode;
             } else {
-                current_dnode->next_node = temp_node;
-                current_dnode            = temp_node;
+                current_dnode->next_node = lst_dnode;
+                current_dnode            = lst_dnode;
             }
-
-            ++node_iter;
         }
 
         top_node->begin_line   = getBeginPos()->getLineNumber();

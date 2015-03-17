@@ -106,7 +106,7 @@ parseArguments(Units *units, Node *args_node,
     return true;
 }
 
-bool 
+bool
 FormFunctionParse(Units *units, Node *node, const char *name,
                   Function **new_fn, int override_linkage,
                   bool is_anonymous)

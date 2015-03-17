@@ -192,7 +192,7 @@ constructed by way of `def-concept-macro`.
     (def linked-rnodes (var auto (p DNode)
         (link-nodes-array rn-count new-rnodes)))
     (if (null linked-rnodes)
-        (do (setv linked-rnodes (qq namespace bling1)))
+        (do (setv linked-rnodes (qq namespace unused1)))
         true)
 
     (def concept-name 
@@ -215,8 +215,8 @@ constructed by way of `def-concept-macro`.
         (link-nodes-array rn-count new-linknodes)))
     (if (null linked-refine-nodes)
         (do (setv linked-refine-nodes (link-nodes 2 
-                    (bqq namespace bling1)
-                    (bqq namespace bling2))))
+                    (bqq namespace unused1)
+                    (bqq namespace unused2))))
         true)
 
     (def arg-count (var auto \ (arg-count mc)))
@@ -270,7 +270,7 @@ constructed by way of `def-concept-macro`.
                     ; todo: a better 'do-nothing-successfully' form
                     ; would be nice (cf. 'do-nothing-unsuccessfully',
                     ; as per (nullptr DNode)).
-                    (return (std.macros.qq namespace bling))
+                    (return (std.macros.qq namespace unused))
                     0)
                 (do
                     (uql linked-rfnodes)

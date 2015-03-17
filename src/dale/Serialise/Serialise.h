@@ -26,7 +26,7 @@ namespace dale
 template<typename T>
 void serialise(FILE *out, std::vector<T> *x);
 
-char *deserialise_type_vector(TypeRegister *tr, char *in, 
+char *deserialise_type_vector(TypeRegister *tr, char *in,
                               std::vector<Type *> *x);
 
 template<typename T>
@@ -156,7 +156,7 @@ void serialise(FILE *out, std::vector<T> **x)
     serialise(out, *x);
 }
 
-char *deserialise_type_vector(TypeRegister *tr, char *in, 
+char *deserialise_type_vector(TypeRegister *tr, char *in,
                               std::vector<Type *> *x);
 
 template<typename T>

@@ -35,6 +35,6 @@ FormLinkageEnumParse(Context *ctx, Node *node)
                          "extern/intern/opaque", "linkage",
                          linkage);
     ctx->er->addError(e);
-    return 0; 
+    return 0;
 }
 }

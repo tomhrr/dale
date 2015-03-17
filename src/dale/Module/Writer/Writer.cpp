@@ -8,7 +8,7 @@ namespace dale
 {
 namespace Module
 {
-Writer::Writer(std::string module_name, dale::Context *ctx, 
+Writer::Writer(std::string module_name, dale::Context *ctx,
                llvm::Module *mod, llvm::PassManager *pm,
                std::set<std::string> *included_once_tags,
                std::set<std::string> *included_modules,
@@ -60,7 +60,7 @@ Writer::writeSharedObject(const char *suffix)
     std::string bc_path(asm_path);
     asm_path.append(".s");
     bc_path.append(".bc");
-    
+
     std::string cmd;
     cmd.append(LLVM_BIN_DIR "/llc -relocation-model=pic ")
        .append(bc_path)
@@ -74,7 +74,7 @@ Writer::writeSharedObject(const char *suffix)
     std::string lib_path(module_prefix);
     lib_path.append(suffix);
     lib_path.append(".so");
-    
+
     cmd.clear();
     cmd.append("cc -shared ")
        .append(asm_path)
@@ -97,7 +97,7 @@ Writer::writeContext()
 
     std::string ctx_module_path(module_prefix);
     module_prefix.append(".dtm");
-    
+
     FILE *mod_data = fopen(module_prefix.c_str(), "w");
     assert(mod_data && "cannot create module file");
     serialise(mod_data, ctx);

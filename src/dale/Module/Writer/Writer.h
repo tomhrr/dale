@@ -55,7 +55,7 @@ public:
      *
      *  This does not take ownership of any of its arguments.
      */
-    Writer(std::string module_name, dale::Context *ctx, 
+    Writer(std::string module_name, dale::Context *ctx,
            llvm::Module *mod, llvm::PassManager *pm,
            std::set<std::string> *included_once_tags,
            std::set<std::string> *included_modules,
