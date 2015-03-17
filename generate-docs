@@ -120,7 +120,6 @@ for (my $i = 0; $i < @files; $i++) {
     open my $fh, '>>', "doc/all.md" or die $!;
     print $fh "## <a name=\"$name\"></a> $title\n\n";
     close $fh;
-    last;
     my $res = system("./module-to-markdown < modules/$name.dt >> doc/all.md");
     if ($res != 0) {
         die "module-to-markdown failed";
