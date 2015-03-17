@@ -51,4 +51,22 @@ FormProcessValue(Units *units, Function *fn, llvm::BasicBlock *block,
 
     return true;
 }
+
+void
+linkVariablesToFunction(std::vector<Variable *> *vars, llvm::Function *llvm_fn)
+{
+    llvm::Function::arg_iterator llvm_arg_iter = llvm_fn->arg_begin();
+    for (std::vector<Variable *>::iterator b = vars->begin(),
+                                           e = vars->end();
+            b != e;
+            ++b) {
+        if ((*b)->type->base_type == BaseType::VarArgs) {
+            break;
+        }
+        llvm::Value *llvm_param = llvm_arg_iter;
+        ++llvm_arg_iter;
+        llvm_param->setName((*b)->name.c_str());
+        (*b)->value = llvm_param;
+    }
+}
 }

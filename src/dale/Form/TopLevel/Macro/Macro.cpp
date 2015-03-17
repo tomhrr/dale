@@ -7,6 +7,7 @@
 #include "../../Linkage/Linkage.h"
 #include "../../ProcBody/ProcBody.h"
 #include "../../Argument/Argument.h"
+#include "../../Utils/Utils.h"
 
 using namespace dale::ErrorInst;
 
@@ -177,20 +178,7 @@ FormTopLevelMacroParse(Units *units, Node *node)
     /* Note that the values of the Variables of the macro's parameter
      * list will not necessarily match the Types of those variables,
      * because of the support for overloading. */
-
-    llvm::Function::arg_iterator llvm_param_iter = llvm_fn->arg_begin();
-    for (std::vector<Variable *>::iterator b = mc_params_internal.begin(),
-                                           e = mc_params_internal.end();
-            b != e;
-            ++b) {
-        if ((*b)->type->base_type == BaseType::VarArgs) {
-            break;
-        }
-        llvm::Value *llvm_param = llvm_param_iter;
-        ++llvm_param_iter;
-        llvm_param->setName((*b)->name.c_str());
-        (*b)->value = llvm_param;
-    }
+    linkVariablesToFunction(&mc_params_internal, llvm_fn);
 
     Function *fn = new Function(ret_type, &mc_params_internal, llvm_fn,
                                 true, &new_name);

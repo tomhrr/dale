@@ -1,5 +1,6 @@
 #include "BasicTypes.h"
 #include "Config.h"
+#include "../Form/Utils/Utils.h"
 
 #define ADD_INTF(name, fn) makeFunction(ctx, mod, once_tag, name, fn, type, type);
 #define ADD_FLTF(name, fn) makeFloatFunction(ctx, mod, once_tag, name, fn, type, type);
@@ -70,17 +71,7 @@ addSimpleFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
     fn->once_tag = *once_tag;
 
     ctx->ns()->addFunction(name, fn, NULL);
-
-    llvm::Function::arg_iterator llvm_arg_iter = llvm_fn->arg_begin();
-    for (std::vector<Variable *>::iterator b = params->begin(),
-                                           e = params->end();
-            b != e;
-            ++b) {
-        llvm::Value *llvm_value = llvm_arg_iter;
-        ++llvm_arg_iter;
-        llvm_value->setName((*b)->name.c_str());
-        (*b)->value = llvm_value;
-    }
+    linkVariablesToFunction(params, llvm_fn);
 
     return fn;
 }

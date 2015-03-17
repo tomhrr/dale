@@ -27,6 +27,15 @@ namespace dale
 bool FormProcessValue(Units *units, Function *fn, llvm::BasicBlock *block,
                       Node *var_value_node, bool get_address,
                       Type *wanted_type, ParseResult *pr);
+/*! Link a list of variables to the corresponding LLVM function arguments.
+ *  @param vars The variables.
+ *  @param llvm_fn The LLVM function.
+ *
+ *  The variable names are used as the LLVM argument names, and
+ *  the LLVM argument values are used as the variable values.
+ */
+void linkVariablesToFunction(std::vector<Variable *> *vars,
+                             llvm::Function *llvm_fn);
 }
 
 #endif

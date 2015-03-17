@@ -9,6 +9,7 @@
 #include "../Function/Function.h"
 #include "../ProcBody/ProcBody.h"
 #include "../Argument/Argument.h"
+#include "../Utils/Utils.h"
 #include "../../llvm_Function.h"
 #include "Config.h"
 
@@ -339,22 +340,12 @@ FormFunctionParse(Units *units, Node *node, const char *name,
             : ctx->toLLVMLinkage(linkage)
     );
 
-    llvm::Function::arg_iterator llvm_arg_iter = llvm_fn->arg_begin();
-    for (std::vector<Variable *>::iterator b = fn_args_internal.begin(),
-                                           e = fn_args_internal.end();
-            b != e;
-            ++b) {
-        if ((*b)->type->base_type == BaseType::VarArgs) {
-            break;
-        }
-        llvm::Value *llvm_arg = llvm_arg_iter;
-        ++llvm_arg_iter;
-        llvm_arg->setName((*b)->name.c_str());
-        (*b)->value = llvm_arg;
-    }
+    linkVariablesToFunction(&fn_args_internal, llvm_fn);
 
     llvm::Value *llvm_return_value = NULL;
     if (ret_type->is_retval) {
+        llvm::Function::arg_iterator llvm_arg_iter = llvm_fn->arg_begin();
+        std::advance(llvm_arg_iter, fn->parameter_types.size());
         llvm_return_value = llvm_arg_iter;
         llvm_return_value->setName("retval");
     }
