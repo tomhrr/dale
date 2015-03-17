@@ -686,7 +686,7 @@ macro is returned implicitly, in the absence of an explicit `return`
 instruction.
 
 There are two principal standard libraries that deal with macros:
-[`macros-core`](#`macros-core`) and [`macros`](#`macros`).
+[`macros-core`](#macros-core) and [`macros`](#macros).
 The former provides many functions that ease macro authorship. The
 latter provides the quasiquotation (`qq`) macro, which is one of the
 more useful macro-writing macros. For example, an `unless` (opposite
@@ -728,7 +728,7 @@ Macros may be evaluated more than once per call site by the compiler,
 so it is important that they are idempotent. One exception to this is
 that any errors reported by the macro to the compiler, by way of the
 `report-error` function (see
-[`introspection`](#`introspection`)), will be cleared by the
+[`introspection`](#introspection)), will be cleared by the
 compiler in the event that it is unable to evaluate or otherwise use
 the macro.
 
