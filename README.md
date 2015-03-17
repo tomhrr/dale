@@ -11,8 +11,7 @@ Tested on Linux (Debian) x86 and x86-64.
 
 ### Documentation
 
-[Index](./doc/index.md)
-
+[Index](./doc/index.md)  
 [As single page](./doc/all.md)
 
 ### Install
