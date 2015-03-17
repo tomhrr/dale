@@ -2,6 +2,8 @@
 
 ## 2.3 math
 
+[Previous](./2-2-ctype.md) | [Next](./2-4-macros-core.md)
+
 ### Details
 
 Module: math
@@ -31,4 +33,6 @@ Defines overloaded functions corresponding generally with those from
     * `modf`, `fmod`.
 
 A macro constant for `e` is also provided.
+
+[Previous](./2-2-ctype.md) | [Next](./2-4-macros-core.md)
 

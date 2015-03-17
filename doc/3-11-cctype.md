@@ -2,6 +2,8 @@
 
 ## 3.11 cctype
 
+[Previous](./3-10-cstring.md) | [Next](./3-12-ctype.md)
+
 ### Details
 
 Module: cctype
@@ -171,4 +173,6 @@ Parameters:
 
 Convert a character into an uppercase character, if possible.
 
+
+[Previous](./3-10-cstring.md) | [Next](./3-12-ctype.md)
 

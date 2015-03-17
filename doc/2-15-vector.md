@@ -2,6 +2,8 @@
 
 ## 2.15 vector
 
+[Previous](./2-14-list.md) | [Next](./2-16-set.md)
+
 ### Details
 
 Module: vector
@@ -522,4 +524,6 @@ Parameters:
 
 Expands to the underlying distance type of the iterator.
 
+
+[Previous](./2-14-list.md) | [Next](./2-16-set.md)
 

@@ -1,8 +1,8 @@
 # Dale
 
-## 2.2 ctype
+## 3.12 ctype
 
-[Previous](./2-1-introspection.md) | [Next](./2-3-math.md)
+[Previous](./3-11-cctype.md) | [Next](./3-13-csetjmp.md)
 
 ### Details
 
@@ -175,5 +175,5 @@ Parameters:
 Convert a character into an uppercase character, if possible.
 
 
-[Previous](./2-1-introspection.md) | [Next](./2-3-math.md)
+[Previous](./3-11-cctype.md) | [Next](./3-13-csetjmp.md)
 

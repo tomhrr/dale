@@ -2,6 +2,8 @@
 
 ## 2.7 assert
 
+[Previous](./2-6-macros.md) | [Next](./2-8-concepts-core.md)
+
 ### Details
 
 Module: assert
@@ -51,4 +53,6 @@ compiler error message.
 If assertions have been disabled, by way of `disable-assertions`, then
 subsequent calls to this macro will expand to no-ops.
 
+
+[Previous](./2-6-macros.md) | [Next](./2-8-concepts-core.md)
 

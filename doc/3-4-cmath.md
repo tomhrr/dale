@@ -2,6 +2,8 @@
 
 ## 3.4 cmath
 
+[Previous](./3-3-clocale.md) | [Next](./3-5-csignal.md)
+
 ### Details
 
 Module: cmath
@@ -294,4 +296,6 @@ Parameters:
   * `(m long-double)`
 
 
+
+[Previous](./3-3-clocale.md) | [Next](./3-5-csignal.md)
 

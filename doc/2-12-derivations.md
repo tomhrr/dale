@@ -2,6 +2,8 @@
 
 ## 2.12 derivations
 
+[Previous](./2-11-utility.md) | [Next](./2-13-algorithms.md)
+
 ### Details
 
 Module: derivations
@@ -113,4 +115,6 @@ Parameters:
 Expands to `=`, `!=`, `<`, `<=`, `>` and `>=` functions over the
 provided struct type. Any that have already been defined are skipped.
 
+
+[Previous](./2-11-utility.md) | [Next](./2-13-algorithms.md)
 

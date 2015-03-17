@@ -2,6 +2,8 @@
 
 ## 2.4 macros-core
 
+[Previous](./2-3-math.md) | [Next](./2-5-stdlib.md)
+
 ### Details
 
 Module: macros-core
@@ -457,4 +459,6 @@ As per `get-varargs-array`, except that the nodes are also linked
 together, as per `link-nodes`. A binding for the first node,
 `varargs-list`, is also introduced.
 
+
+[Previous](./2-3-math.md) | [Next](./2-5-stdlib.md)
 

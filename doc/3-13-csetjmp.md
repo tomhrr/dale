@@ -1,6 +1,8 @@
 # Dale
 
-## 3.12 csetjmp
+## 3.13 csetjmp
+
+[Previous](./3-12-ctype.md)
 
 ### Details
 
@@ -50,4 +52,6 @@ Parameters:
   * `(b int)`
 
 
+
+[Previous](./3-12-ctype.md)
 

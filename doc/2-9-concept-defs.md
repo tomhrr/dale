@@ -2,6 +2,8 @@
 
 ## 2.9 concept-defs
 
+[Previous](./2-8-concepts-core.md) | [Next](./2-10-concepts.md)
+
 ### Details
 
 Module: concept-defs
@@ -224,4 +226,6 @@ Additionally, `distance-type` must be defined over pointers to the
 type, and `+` and `-` must also be defined, each taking an iterator
 and a value of type `distance-type`, and returning a new iterator.
 
+
+[Previous](./2-8-concepts-core.md) | [Next](./2-10-concepts.md)
 

@@ -2,6 +2,8 @@
 
 ## 3.5 csignal
 
+[Previous](./3-4-cmath.md) | [Next](./3-6-cstdio-core.md)
+
 ### Details
 
 Module: csignal
@@ -68,4 +70,6 @@ Parameters:
   * `(sig int)`
 
 
+
+[Previous](./3-4-cmath.md) | [Next](./3-6-cstdio-core.md)
 

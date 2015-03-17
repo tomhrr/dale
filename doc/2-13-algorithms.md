@@ -2,6 +2,8 @@
 
 ## 2.13 algorithms
 
+[Previous](./2-12-derivations.md) | [Next](./2-14-list.md)
+
 ### Details
 
 Module: algorithms
@@ -298,4 +300,6 @@ Parameters:
 
 Like `Action`, except the function pointer takes a reference.
 
+
+[Previous](./2-12-derivations.md) | [Next](./2-14-list.md)
 

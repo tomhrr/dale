@@ -1,63 +1,85 @@
-#!/bin/sh
-echo "# Dale\n\n## 2.1 introspection\n" > doc/2-1-introspection.md
-./module-to-markdown < modules/introspection.dt >> doc/2-1-introspection.md
-echo "# Dale\n\n## 2.2 ctype\n" > doc/2-2-ctype.md
-./module-to-markdown < modules/ctype.dt >> doc/2-2-ctype.md
-echo "# Dale\n\n## 2.3 math\n" > doc/2-3-math.md
-./module-to-markdown < modules/math.dt >> doc/2-3-math.md
-echo "# Dale\n\n## 2.4 macros-core\n" > doc/2-4-macros-core.md
-./module-to-markdown < modules/macros-core.dt >> doc/2-4-macros-core.md
-echo "# Dale\n\n## 2.5 stdlib\n" > doc/2-5-stdlib.md
-./module-to-markdown < modules/stdlib.dt >> doc/2-5-stdlib.md
-echo "# Dale\n\n## 2.6 macros\n" > doc/2-6-macros.md
-./module-to-markdown < modules/macros.dt >> doc/2-6-macros.md
-echo "# Dale\n\n## 2.7 assert\n" > doc/2-7-assert.md
-./module-to-markdown < modules/assert.dt >> doc/2-7-assert.md
-echo "# Dale\n\n## 2.8 concepts-core\n" > doc/2-8-concepts-core.md
-./module-to-markdown < modules/concepts-core.dt >> doc/2-8-concepts-core.md
-echo "# Dale\n\n## 2.9 concept-defs\n" > doc/2-9-concept-defs.md
-./module-to-markdown < modules/concept-defs.dt >> doc/2-9-concept-defs.md
-echo "# Dale\n\n## 2.10 concepts\n" > doc/2-10-concepts.md
-./module-to-markdown < modules/concepts.dt >> doc/2-10-concepts.md
-echo "# Dale\n\n## 2.11 utility\n" > doc/2-11-utility.md
-./module-to-markdown < modules/utility.dt >> doc/2-11-utility.md
-echo "# Dale\n\n## 2.12 derivations\n" > doc/2-12-derivations.md
-./module-to-markdown < modules/derivations.dt >> doc/2-12-derivations.md
-echo "# Dale\n\n## 2.13 algorithms\n" > doc/2-13-algorithms.md
-./module-to-markdown < modules/algorithms.dt >> doc/2-13-algorithms.md
-echo "# Dale\n\n## 2.14 list\n" > doc/2-14-list.md
-./module-to-markdown < modules/list.dt >> doc/2-14-list.md
-echo "# Dale\n\n## 2.15 vector\n" > doc/2-15-vector.md
-./module-to-markdown < modules/vector.dt >> doc/2-15-vector.md
-echo "# Dale\n\n## 2.16 set\n" > doc/2-16-set.md
-./module-to-markdown < modules/set.dt >> doc/2-16-set.md
-echo "# Dale\n\n## 2.17 map\n" > doc/2-17-map.md
-./module-to-markdown < modules/map.dt >> doc/2-17-map.md
-echo "# Dale\n\n## 2.18 array\n" > doc/2-18-array.md
-./module-to-markdown < modules/array.dt >> doc/2-18-array.md
-echo "# Dale\n\n## 2.19 shared-ptr\n" > doc/2-19-shared-ptr.md
-./module-to-markdown < modules/shared-ptr.dt >> doc/2-19-shared-ptr.md
-echo "# Dale\n\n## 3.1 cerrno\n" > doc/3-1-cerrno.md
-./module-to-markdown < modules/cerrno.dt >> doc/3-1-cerrno.md
-echo "# Dale\n\n## 3.2 cfloat\n" > doc/3-2-cfloat.md
-./module-to-markdown < modules/cfloat.dt >> doc/3-2-cfloat.md
-echo "# Dale\n\n## 3.3 clocale\n" > doc/3-3-clocale.md
-./module-to-markdown < modules/clocale.dt >> doc/3-3-clocale.md
-echo "# Dale\n\n## 3.4 cmath\n" > doc/3-4-cmath.md
-./module-to-markdown < modules/cmath.dt >> doc/3-4-cmath.md
-echo "# Dale\n\n## 3.5 csignal\n" > doc/3-5-csignal.md
-./module-to-markdown < modules/csignal.dt >> doc/3-5-csignal.md
-echo "# Dale\n\n## 3.6 cstdio-core\n" > doc/3-6-cstdio-core.md
-./module-to-markdown < modules/cstdio-core.dt >> doc/3-6-cstdio-core.md
-echo "# Dale\n\n## 3.7 cstdio\n" > doc/3-7-cstdio.md
-./module-to-markdown < modules/cstdio.dt >> doc/3-7-cstdio.md
-echo "# Dale\n\n## 3.8 ctime\n" > doc/3-8-ctime.md
-./module-to-markdown < modules/ctime.dt >> doc/3-8-ctime.md
-echo "# Dale\n\n## 3.9 cstdlib\n" > doc/3-9-cstdlib.md
-./module-to-markdown < modules/cstdlib.dt >> doc/3-9-cstdlib.md
-echo "# Dale\n\n## 3.10 cstring\n" > doc/3-10-cstring.md
-./module-to-markdown < modules/cstring.dt >> doc/3-10-cstring.md
-echo "# Dale\n\n## 3.11 cctype\n" > doc/3-11-cctype.md
-./module-to-markdown < modules/cctype.dt >> doc/3-11-cctype.md
-echo "# Dale\n\n## 3.12 csetjmp\n" > doc/3-12-csetjmp.md
-./module-to-markdown < modules/csetjmp.dt >> doc/3-12-csetjmp.md
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my @files = qw(
+    2-1-introspection.md
+    2-2-ctype.md
+    2-3-math.md
+    2-4-macros-core.md
+    2-5-stdlib.md
+    2-6-macros.md
+    2-7-assert.md
+    2-8-concepts-core.md
+    2-9-concept-defs.md
+    2-10-concepts.md
+    2-11-utility.md
+    2-12-derivations.md
+    2-13-algorithms.md
+    2-14-list.md
+    2-15-vector.md
+    2-16-set.md
+    2-17-map.md
+    2-18-array.md
+    2-19-shared-ptr.md
+    3-1-cerrno.md
+    3-2-cfloat.md
+    3-3-clocale.md
+    3-4-cmath.md
+    3-5-csignal.md
+    3-6-cstdio-core.md
+    3-7-cstdio.md
+    3-8-ctime.md
+    3-9-cstdlib.md
+    3-10-cstring.md
+    3-11-cctype.md
+    3-12-ctype.md
+    3-13-csetjmp.md
+);
+
+sub file_to_title
+{
+    my ($file) = @_;
+    $file =~ s/\.md//;
+    $file =~ s/-/./;
+    $file =~ s/-/ /;
+    return $file;
+}
+
+sub file_to_name
+{
+    my ($file) = @_;
+    $file =~ s/\.md//;
+    $file =~ s/^\d+-\d+-//;
+    return $file;
+}
+
+for (my $i = 0; $i < @files; $i++) {
+    my $file = $files[$i];
+    my $title = file_to_title($file);
+    my $name  = file_to_name($file);
+    my $prev_file = ($i > 0)       ? $files[$i - 1] : undef;
+    my $next_file = ($i < $#files) ? $files[$i + 1] : undef;
+    open my $fh, '>', "doc/$file" or die $!;
+    print $fh "# Dale\n\n## $title\n\n";
+    my $nav_str = '';
+    if (!$prev_file) {
+        $prev_file = "1-11-form-reference.md";
+    }
+    $nav_str .= "[Previous](./$prev_file)";
+    if ($next_file) {
+        $nav_str .= " | ";
+        $nav_str .= "[Next](./$next_file)";
+    }
+    $nav_str .= "\n\n";
+    print $fh "$nav_str";
+    close $fh;
+    my $res = system("./module-to-markdown < modules/$name.dt >> doc/$file");
+    if ($res != 0) {
+        die "module-to-markdown failed";
+    }
+    open $fh, '>>', "doc/$file" or die $!;
+    print $fh "$nav_str";
+    close $fh;
+}

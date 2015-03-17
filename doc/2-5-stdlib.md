@@ -2,6 +2,8 @@
 
 ## 2.5 stdlib
 
+[Previous](./2-4-macros-core.md) | [Next](./2-6-macros.md)
+
 ### Details
 
 Module: stdlib
@@ -308,4 +310,6 @@ Parameters:
 
 Expands to the argument form.
 
+
+[Previous](./2-4-macros-core.md) | [Next](./2-6-macros.md)
 

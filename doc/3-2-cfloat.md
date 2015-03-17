@@ -2,6 +2,8 @@
 
 ## 3.2 cfloat
 
+[Previous](./3-1-cerrno.md) | [Next](./3-3-clocale.md)
+
 ### Details
 
 Module: cfloat
@@ -33,4 +35,6 @@ Provides the following floating-point macro constants:
   * LDBL-MAX-EXP
   * LDBL-MIN
   * LDBL-MIN-EXP
+
+[Previous](./3-1-cerrno.md) | [Next](./3-3-clocale.md)
 

@@ -2,6 +2,8 @@
 
 ## 2.6 macros
 
+[Previous](./2-5-stdlib.md) | [Next](./2-7-assert.md)
+
 ### Details
 
 Module: macros
@@ -41,4 +43,6 @@ nesting.
 The `-nc` versions should only be used when the argument node will not
 be used again.
 
+
+[Previous](./2-5-stdlib.md) | [Next](./2-7-assert.md)
 

@@ -2,6 +2,8 @@
 
 ## 3.10 cstring
 
+[Previous](./3-9-cstdlib.md) | [Next](./3-11-cctype.md)
+
 ### Details
 
 Module: cstring
@@ -239,4 +241,6 @@ Parameters:
   * `(c size)`
 
 
+
+[Previous](./3-9-cstdlib.md) | [Next](./3-11-cctype.md)
 

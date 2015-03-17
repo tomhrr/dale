@@ -2,6 +2,8 @@
 
 ## 3.8 ctime
 
+[Previous](./3-7-cstdio.md) | [Next](./3-9-cstdlib.md)
+
 ### Details
 
 Module: ctime
@@ -163,4 +165,6 @@ Parameters: N/A
 
 Macro constant for CLOCK_T.
 
+
+[Previous](./3-7-cstdio.md) | [Next](./3-9-cstdlib.md)
 

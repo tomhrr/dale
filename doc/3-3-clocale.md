@@ -2,6 +2,8 @@
 
 ## 3.3 clocale
 
+[Previous](./3-2-cfloat.md) | [Next](./3-4-cmath.md)
+
 ### Details
 
 Module: clocale
@@ -61,4 +63,6 @@ Parameters:
   * `(locale (p char))`
 
 
+
+[Previous](./3-2-cfloat.md) | [Next](./3-4-cmath.md)
 

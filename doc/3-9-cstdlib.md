@@ -2,6 +2,8 @@
 
 ## 3.9 cstdlib
 
+[Previous](./3-8-ctime.md) | [Next](./3-10-cstring.md)
+
 ### Details
 
 Module: cstdlib
@@ -277,4 +279,6 @@ Parameters:
   * `(seed uint)`
 
 
+
+[Previous](./3-8-ctime.md) | [Next](./3-10-cstring.md)
 

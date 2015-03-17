@@ -2,6 +2,8 @@
 
 ## 3.6 cstdio-core
 
+[Previous](./3-5-csignal.md) | [Next](./3-7-cstdio.md)
+
 ### Details
 
 Module: cstdio-core
@@ -128,4 +130,6 @@ Parameters:
   * `(n size)`
 
 
+
+[Previous](./3-5-csignal.md) | [Next](./3-7-cstdio.md)
 

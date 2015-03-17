@@ -2,6 +2,8 @@
 
 ## 3.7 cstdio
 
+[Previous](./3-6-cstdio-core.md) | [Next](./3-8-ctime.md)
+
 ### Details
 
 Module: cstdio
@@ -104,22 +106,6 @@ Parameters:
   * `(fd int)`
   * `(mode (p (const char)))`
 
-
-
-#### `init-channels`
-
-Linkage: `extern`
-Returns: `int`
-Parameters: N/A
-
-This function is used implicitly by the compiler to initialise
-`stdin`, `stdout` and `stderr`.  Previously, it would set those
-handles by using `fdopen`.  However, this isn't safe: for example,
-interleaved calls to `printf` and `puts` would yield
-incorrectly-ordered output when fully buffered.  Consequently, this
-depends on those handles being present as variables and already set.
-This is likely not true for all platforms, given that the C standard
-does not require the same.
 
 
 #### `fopen`
@@ -542,4 +528,6 @@ Parameters:
 Linkage: `extern`
 Parameters: N/A
 
+
+[Previous](./3-6-cstdio-core.md) | [Next](./3-8-ctime.md)
 

@@ -2,6 +2,8 @@
 
 ## 2.1 introspection
 
+[Previous](./1-11-form-reference.md) | [Next](./2-2-ctype.md)
+
 ### Details
 
 Module: introspection
@@ -454,4 +456,6 @@ specifier in a printf formatter string, based on the size of the
 provided type. For example, if the argument form is a token node
 containing the string "size", then then returned string will be "z".
 
+
+[Previous](./1-11-form-reference.md) | [Next](./2-2-ctype.md)
 

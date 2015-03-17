@@ -2,6 +2,8 @@
 
 ## 2.10 concepts
 
+[Previous](./2-9-concept-defs.md) | [Next](./2-11-utility.md)
+
 ### Details
 
 Module: concepts
@@ -49,4 +51,6 @@ preferring references and `identity` otherwise, and the third is `tvw'
 (type value wrapper), which expands to `@` for types preferring
 references and `identity` otherwise.
 
+
+[Previous](./2-9-concept-defs.md) | [Next](./2-11-utility.md)
 

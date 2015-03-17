@@ -2,6 +2,8 @@
 
 ## 2.14 list
 
+[Previous](./2-13-algorithms.md) | [Next](./2-15-vector.md)
+
 ### Details
 
 Module: list
@@ -441,4 +443,6 @@ Parameters:
 
 Expands to the underlying distance type of the iterator.
 
+
+[Previous](./2-13-algorithms.md) | [Next](./2-15-vector.md)
 

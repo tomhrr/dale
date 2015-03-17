@@ -2,6 +2,8 @@
 
 ## 2.18 array
 
+[Previous](./2-17-map.md) | [Next](./2-19-shared-ptr.md)
+
 ### Details
 
 Module: array
@@ -402,4 +404,6 @@ Parameters:
 
 Expands to the underlying distance type of the iterator.
 
+
+[Previous](./2-17-map.md) | [Next](./2-19-shared-ptr.md)
 
