@@ -97,12 +97,12 @@ processReferenceTypes(std::vector<llvm::Value *> *call_args,
     int limit = (caps > pts ? pts : caps);
     ParseResult refpr;
     for (int i = extra_call_args_size; i < limit; i++) {
-        Type *pt = parameter_types->at(i);
-        ParseResult *arg_refpr = &(call_arg_prs->at(i));
+        Type *pt = (*parameter_types)[i];
+        ParseResult *arg_refpr = &((*call_arg_prs)[i]);
         if (pt->is_reference) {
             if (!pt->is_const && !arg_refpr->value_is_lvalue) {
                 Error *e = new Error(CannotTakeAddressOfNonLvalue,
-                                     call_arg_nodes->at(i));
+                                     (*call_arg_nodes)[i]);
                 ctx->er->addError(e);
                 return false;
             }
@@ -110,13 +110,13 @@ processReferenceTypes(std::vector<llvm::Value *> *call_args,
             if (!res) {
                 return false;
             }
-            call_args_final->at(i) = refpr.getValue(ctx);
+            (*call_args_final)[i] = refpr.getValue(ctx);
         } else if (!args_cast) {
             bool res = Operation::Copy(ctx, dfn, arg_refpr, arg_refpr);
             if (!res) {
                 return false;
             }
-            call_args_final->at(i) = arg_refpr->getValue(ctx);
+            (*call_args_final)[i] = arg_refpr->getValue(ctx);
         }
     }
 
@@ -263,7 +263,7 @@ isUnoverloadedMacro(Units *units, const char *name,
             ++rb) {
         iter = (*rb)->ns->functions.find(name);
         if (iter != (*rb)->ns->functions.end()) {
-            fn = iter->second->at(0);
+            fn = (*iter->second)[0];
             break;
         }
     }
@@ -345,9 +345,9 @@ processExternCFunction(Context *ctx,
     }
 
     for (int i = 0; i < required; i++) {
-        Variable *parameter = parameters.at(i);
-        llvm::Value *value = call_args->at(i);
-        Type *type = call_arg_types->at(i);
+        Variable *parameter = parameters[i];
+        llvm::Value *value = (*call_args)[i];
+        Type *type = (*call_arg_types)[i];
 
         if (type->isEqualTo(parameter->type, 1)) {
             call_args_final.push_back(value);
@@ -415,8 +415,8 @@ processVarArgsFunction(Context *ctx, Function *fn,
     llvm::Type *llvm_type_uint = ctx->toLLVMType(type_uint, NULL, false);
 
     for (int i = required; i < call_args_count; i++) {
-        llvm::Value *value = call_args->at(i);
-        Type *type = call_arg_types->at(i);
+        llvm::Value *value = (*call_args)[i];
+        Type *type = (*call_arg_types)[i];
 
         if (type->base_type == BaseType::Float) {
             value =
@@ -440,8 +440,8 @@ processVarArgsFunction(Context *ctx, Function *fn,
             }
         }
 
-        call_args->at(i) = value;
-        call_arg_types->at(i) = type;
+        (*call_args)[i] = value;
+        (*call_arg_types)[i] = type;
     }
 
     return true;
@@ -498,7 +498,7 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
     }
 
     std::vector<Node*> *lst = n->list;
-    Node *proc_name_node = lst->at(0);
+    Node *proc_name_node = (*lst)[0];
     if (!proc_name_node->is_token) {
         Error *e = new Error(FirstListElementMustBeAtom, proc_name_node);
         er->addError(e);

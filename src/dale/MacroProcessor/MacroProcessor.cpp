@@ -256,10 +256,10 @@ MacroProcessor::parsePotentialMacroCall(Node *n)
 
     if ((!mac_node->is_token)
             && (mac_node->list->size() == 2)
-            && (mac_node->list->at(0)->is_token)
-            && (mac_node->list->at(0)
+            && ((*mac_node->list)[0]->is_token)
+            && ((*mac_node->list)[0]
                 ->token->str_value.compare("do") == 0)) {
-        return parsePotentialMacroCall(mac_node->list->at(1));
+        return parsePotentialMacroCall((*mac_node->list)[1]);
     } else {
         return parsePotentialMacroCall(mac_node);
     }

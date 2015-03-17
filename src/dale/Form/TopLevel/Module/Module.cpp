@@ -65,8 +65,8 @@ FormTopLevelModuleParse(Units *units, Node *node)
     std::vector<Node *> *attr_list = attr_nodes->list;
 
     if ((attr_list->size() == 0)
-            || !(attr_list->at(0)->is_token)
-            || (attr_list->at(0)->token->str_value.compare("attr"))) {
+            || !((*attr_list)[0]->is_token)
+            || ((*attr_list)[0]->token->str_value.compare("attr"))) {
         Error *e = new Error(UnexpectedElement, attr_nodes, "attr", 0, 0);
         ctx->er->addError(e);
         return false;

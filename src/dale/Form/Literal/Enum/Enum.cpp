@@ -36,7 +36,7 @@ FormLiteralEnumParse(Units *units, llvm::BasicBlock *block, Node *node,
         builder.CreateGEP(storage, ctx->nt->getTwoLLVMZeros());
 
     llvm::Type *llvm_type =
-        ctx->toLLVMType(enum_st->member_types.at(0), NULL, false);
+        ctx->toLLVMType(enum_st->member_types[0], NULL, false);
     if (!llvm_type) {
         return false;
     }

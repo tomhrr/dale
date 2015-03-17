@@ -171,13 +171,13 @@ Lexer::getNextToken(Token *token, Error *error)
                     && c != EOF
                     && ((c != '"')
                         || (token->str_value.length() &&
-                            (token->str_value.at(
+                            (token->str_value[
                                  token->str_value.length() - 1
-                             ) == '\\')))) {
+                             ] == '\\')))) {
                 if (c == '"') {
-                    token->str_value.at(
+                    token->str_value[
                         token->str_value.length() - 1
-                    ) = c;
+                    ] = c;
                 } else {
                     token->str_value.push_back(c);
                 }
@@ -268,7 +268,7 @@ Lexer::getNextToken(Token *token, Error *error)
 
     if (type == TokenType::Int) {
         if ((token->str_value.length() == 1)
-                && (token->str_value.at(0) == '-')) {
+                && (token->str_value[0] == '-')) {
             token->type = TokenType::String;
         } else if (strchr(token->str_value.c_str(), '.')) {
             token->type = TokenType::FloatingPoint;

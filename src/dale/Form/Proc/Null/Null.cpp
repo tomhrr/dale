@@ -34,7 +34,7 @@ FormProcNullParse(Units *units, Function *fn, llvm::BasicBlock *block,
             return false;
         }
         if (node_value->is_list) {
-            Node *first = node_value->list->at(0);
+            Node *first = (*node_value->list)[0];
             if (first->is_token) {
                 const char *v = first->token->str_value.c_str();
                 if ((!strcmp(v, ":")) || (!strcmp(v, "$"))) {

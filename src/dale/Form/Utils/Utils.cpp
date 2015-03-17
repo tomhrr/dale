@@ -30,11 +30,11 @@ FormProcessValue(Units *units, Function *fn, llvm::BasicBlock *block,
         pr->do_not_destruct = true;
     } else if (var_value_node->is_list
             && (var_value_node_list->size() == 2)
-            && (var_value_node_list->at(0)->is_token)
-            && (!var_value_node_list->at(0)->token->str_value.compare("@"))
-            && (var_value_node_list->at(1)->is_token)
+            && ((*var_value_node_list)[0]->is_token)
+            && (!(*var_value_node_list)[0]->token->str_value.compare("@"))
+            && ((*var_value_node_list)[1]->is_token)
             && (var_value = ctx->getVariable(
-                    var_value_node_list->at(1)->token->str_value.c_str()))) {
+                    (*var_value_node_list)[1]->token->str_value.c_str()))) {
         pr->set(block, var_value->type->points_to,
                 builder.CreateLoad(builder.CreateLoad(var_value->value)));
         pr->do_not_destruct = true;

@@ -194,7 +194,7 @@ FormProcGetDNodesParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     llvm::Value *static_dnode =
-        IntNodeToStaticDNode(units, node->list->at(1), NULL);
+        IntNodeToStaticDNode(units, (*node->list)[1], NULL);
     pr->set(block, ctx->tr->type_pdnode, static_dnode);
     return true;
 }

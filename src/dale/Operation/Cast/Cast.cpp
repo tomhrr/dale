@@ -89,7 +89,7 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
             builder.CreateGEP(pointer, ctx->nt->getTwoLLVMZeros());
 
         Struct *st = ctx->getStruct(from_type->struct_name.c_str());
-        Type *intermediate_type = st->member_types.at(0);
+        Type *intermediate_type = st->member_types[0];
         llvm::Value *int_pointer =
             builder.CreateBitCast(
                 pointer_value,
@@ -117,7 +117,7 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
                && (ctx->getEnum(struct_name->c_str()))) {
 
         Struct *st = ctx->getStruct(to_type->struct_name.c_str());
-        Type *intermediate_type = st->member_types.at(0);
+        Type *intermediate_type = st->member_types[0];
 
         ParseResult cast_pr;
         bool cast_res = Cast(ctx, block, value, from_type, intermediate_type,

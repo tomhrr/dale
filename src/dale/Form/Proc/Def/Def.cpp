@@ -155,7 +155,7 @@ parseImplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
                            bool get_address, int linkage, ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-    Node *value_node = node->list->at(2);
+    Node *value_node = (*node->list)[2];
     std::vector<Node *> *value_node_list = value_node->list;
 
     if (value_node_list->size() != 4) {
@@ -167,7 +167,7 @@ parseImplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
 
     ParseResult value_pr;
     bool res = FormProcessValue(units, fn, block,
-                                node->list->at(2)->list->at(3),
+                                (*value_node->list)[3],
                                 get_address, NULL, &value_pr);
     if (!res) {
         return false;
@@ -244,7 +244,7 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
                            bool get_address, int linkage, ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-    Node *value_node = node->list->at(2);
+    Node *value_node = (*node->list)[2];
     std::vector<Node *> *value_node_list = value_node->list;
 
     Type *type = FormTypeParse(units, (*value_node_list)[2], false, false);
@@ -297,7 +297,7 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     value_pr.retval      = dst_ptr;
     value_pr.retval_type = ctx->tr->getPointerType(type);
     res = FormProcessValue(units, fn, block,
-                           node->list->at(2)->list->at(3),
+                           (*value_node->list)[3],
                            get_address, type, &value_pr);
     if (!res) {
         return false;
@@ -317,7 +317,7 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
 
     Node *var_value_node = (*value_node_list)[3];
     if (var_value_node->is_list) {
-        Node *first = var_value_node->list->at(0);
+        Node *first = (*var_value_node->list)[0];
         if (first && first->is_token
                 && !(first->token->str_value.compare("init"))) {
             return true;
@@ -366,7 +366,7 @@ parseVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
                    bool get_address, ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-    Node *value_node = node->list->at(2);
+    Node *value_node = (*node->list)[2];
     std::vector<Node *> *value_node_list = value_node->list;
 
     int linkage = FormLinkageParse(ctx, (*value_node_list)[1]);
@@ -438,7 +438,7 @@ FormProcDefParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    Node *def_type = value_node_list->at(0);
+    Node *def_type = (*value_node_list)[0];
     if (!(def_type->token->str_value.compare("struct"))) {
         FormStructParse(units, value_node, name);
         pr->set(block, ctx->tr->type_int,

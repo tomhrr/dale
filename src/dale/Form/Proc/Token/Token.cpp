@@ -206,8 +206,8 @@ parseCharLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
     Token *t = node->token;
 
     if ((t->str_value.size() >= 3)
-            && (t->str_value.at(0) == '#')
-            && (t->str_value.at(1) == '\\')) {
+            && (t->str_value[0] == '#')
+            && (t->str_value[1] == '\\')) {
         const char *value = t->str_value.c_str();
         value += 2;
         char c;

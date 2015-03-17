@@ -20,7 +20,7 @@ using namespace dale::ErrorInst;
 
 namespace dale
 {
-static int anoncount = 0;
+static int anon_count = 0;
 
 bool
 createAnonymousFunction(Units *units, llvm::BasicBlock *block,
@@ -36,7 +36,7 @@ createAnonymousFunction(Units *units, llvm::BasicBlock *block,
     int error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
 
     char buf[16];
-    sprintf(buf, "_anon_%d", anoncount++);
+    sprintf(buf, "_anon_%d", anon_count++);
     Function *anon_fn = NULL;
     FormFunctionParse(units, n, buf, &anon_fn, Linkage::Intern, 1);
 
@@ -101,7 +101,7 @@ createEnumLiteral(Units *units, Function *fn, llvm::BasicBlock *block,
 {
     Context *ctx = units->top()->ctx;
     std::vector<Node *> *lst = n->list;
-    const char *name = lst->at(0)->token->str_value.c_str();
+    const char *name = (*lst)[0]->token->str_value.c_str();
 
     Struct *st = ctx->getStruct(name);
     assert(st && "no struct associated with enum");
@@ -129,7 +129,7 @@ createStructLiteral(Units *units, Function *fn, llvm::BasicBlock *block,
 {
     Context *ctx = units->top()->ctx;
     std::vector<Node *> *lst = n->list;
-    const char *name = lst->at(0)->token->str_value.c_str();
+    const char *name = (*lst)[0]->token->str_value.c_str();
 
     Struct *st = ctx->getStruct(name);
     assert(st && "cannot load struct");
@@ -156,7 +156,7 @@ parsePotentialProcCall(Units *units, Function *fn, llvm::BasicBlock *block,
 {
     Context *ctx = units->top()->ctx;
     std::vector<Node *> *lst = n->list;
-    Token *t = lst->at(0)->token;
+    Token *t = (*lst)[0]->token;
 
     Function *fn_exists =
         ctx->getFunction(t->str_value.c_str(), NULL, NULL, 0);
@@ -266,7 +266,7 @@ parseFunctionObjectCall(Units *units, Function *fn, llvm::BasicBlock *block,
         ctx->er->addError(e);
         return false;
     }
-    if (!(apply_fn->parameter_types.at(0)->isEqualTo(try_fp->type))) {
+    if (!(apply_fn->parameter_types[0]->isEqualTo(try_fp->type))) {
         Error *e = new Error(ApplyMustTakePointerToStructAsFirstArgument,
                              (*lst)[0]);
         ctx->er->addError(e);

@@ -497,7 +497,7 @@ fn_2D_by_2D_args_2D_name(MContext *mc, DNode *form, int index)
         return NULL;
     }
 
-    return fn_by_args_list->at(index).c_str();
+    return (*fn_by_args_list)[index].c_str();
 }
 
 bool
@@ -739,7 +739,7 @@ input_2D_type(MContext *mc, DNode *fn_name_nd, int index)
         return NULL;
     }
 
-    return fn->parameter_types.at(index)->type->toNode()->toDNode();
+    return fn->parameter_types[index]->type->toNode()->toDNode();
 }
 
 DNode *
@@ -761,7 +761,7 @@ struct_2D_member_2D_type(MContext *mc, DNode *name, int index)
     if ((int) st->member_types.size() < index) {
         return NULL;
     }
-    return st->member_types.at(index)->toNode()->toDNode();
+    return st->member_types[index]->toNode()->toDNode();
 }
 
 const char *

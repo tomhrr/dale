@@ -146,7 +146,7 @@ void serialise(FILE *out, std::vector<T> *x)
     size_t s = x->size();
     serialise(out, s);
     for (size_t i = 0; i < s; i++) {
-        serialise(out, x->at(i));
+        serialise(out, (*x)[i]);
     }
 }
 

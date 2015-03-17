@@ -150,8 +150,8 @@ FormFunctionParse(Units *units, Node *node, const char *name,
 
     Node *test = ((*lst)[next_index]);
     if (test->is_list
-            && test->list->at(0)->is_token
-            && !(test->list->at(0)->token->str_value.compare("attr"))) {
+            && (*test->list)[0]->is_token
+            && !((*test->list)[0]->token->str_value.compare("attr"))) {
         bool res = parseFunctionAttributes(ctx, test->list,
                                            &always_inline, &cto);
         if (!res) {

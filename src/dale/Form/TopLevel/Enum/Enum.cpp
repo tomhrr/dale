@@ -77,8 +77,8 @@ FormTopLevelEnumParse(Units *units, Node *node)
 {
     Context *ctx = units->top()->ctx;
 
-    Node *top = node->list->at(2);
-    const char *name = node->list->at(1)->token->str_value.c_str();
+    Node *top = (*node->list)[2];
+    const char *name = (*node->list)[1]->token->str_value.c_str();
 
     std::vector<Node *> *lst = top->list;
     Node *linkage_node   = (*lst)[1];

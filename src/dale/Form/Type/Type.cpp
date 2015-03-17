@@ -88,7 +88,7 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         lst_tail.assign(lst->begin() + 1, lst->end());
         lst = &lst_tail;
         if (lst->size() == 1) {
-            return FormTypeParse(units, lst->at(0), allow_anon_structs,
+            return FormTypeParse(units, (*lst)[0], allow_anon_structs,
                                  allow_bitfields, allow_refs,
                                  allow_retvals);
         }

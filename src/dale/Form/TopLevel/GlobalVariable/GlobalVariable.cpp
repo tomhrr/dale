@@ -331,10 +331,10 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
 
     if (top->is_list
             && (top->list->size() == 2)
-            && (top->list->at(0)->is_token)
-            && (!top->list->at(0)->token->str_value.compare("#"))
+            && ((*top->list)[0]->is_token)
+            && (!(*top->list)[0]->token->str_value.compare("#"))
             && (type->points_to)) {
-        Node *var_node = top->list->at(1);
+        Node *var_node = (*top->list)[1];
         var_node = units->top()->mp->parsePotentialMacroCall(var_node);
         if (var_node && var_node->is_token) {
             Variable *gv =
