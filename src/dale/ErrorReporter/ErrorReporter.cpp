@@ -45,7 +45,7 @@ ErrorReporter::addError(Error& err)
 void
 ErrorReporter::flush()
 {
-    assert(error_index > (int) errors.size());
+    assert(error_index <= (int) errors.size());
 
     std::vector<Error *>::iterator b = errors.begin(),
                                    e = errors.end();
