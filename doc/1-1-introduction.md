@@ -1,5 +1,7 @@
 # Dale
 
+[Next](./1-2-setup.md)
+
 ## 1.1 Introduction
 
 Dale is an unsafe (no GC), homoiconic programming language. It uses
@@ -45,3 +47,5 @@ are likely to be significant bugs and other problems, as well as
 documentation inconsistencies. The compiler itself is very slow and
 leaky, the generated code is not very good and the code (both for the
 compiler and the libraries) is best avoided.
+
+[Next](./1-2-setup.md)

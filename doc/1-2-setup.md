@@ -1,5 +1,7 @@
 # Dale
 
+[Previous](./1-1-introduction.md) | [Next](./1-3-types.md)
+
 ## 1.2 Setup
 
 The Dale compiler is written in C++. It does not depend on any C++11
@@ -58,3 +60,5 @@ Compile it and run it:
 
 The compiler manpage has more detail on supported flags, but most
 things are as per other languages' compilers (`-c`, `-o`, etc.).
+
+[Previous](./1-1-introduction.md) | [Next](./1-3-types.md)
