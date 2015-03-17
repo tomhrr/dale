@@ -187,9 +187,7 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         }
 
         pr->set(destruct_pr.block, ctx->tr->type_bool,
-                llvm::ConstantInt::get(
-                    llvm::IntegerType::get(llvm::getGlobalContext(), 1), 1
-                ));
+                ctx->nt->getLLVMTrue());
         pr->do_not_copy_with_setf = true;
         return true;
     }

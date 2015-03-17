@@ -9,4 +9,4 @@ if [ "$DALE_TEST_ARGS" = "" ]
 then
     export DALE_TEST_ARGS=-O0
 fi
-PERL_DL_NONLAZY=1 /usr/bin/perl "-MExtUtils::Command::MM" "-e" "test_harness(0)" ${DALE_TEST_DIR}/t/*/*.t
+PERL_DL_NONLAZY=1 HARNESS_OPTIONS=j4 /usr/bin/perl "-MExtUtils::Command::MM" "-e" "test_harness(0)" ${DALE_TEST_DIR}/t/*/*.t

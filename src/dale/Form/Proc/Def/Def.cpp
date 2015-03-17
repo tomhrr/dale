@@ -286,9 +286,7 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         }
 
         initialise(ctx, &builder, type, dst_ptr, init_fn);
-
-        pr->set(block, ctx->tr->type_int,
-                llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
+        pr->set(block, ctx->tr->type_int, ctx->nt->getLLVMZero());
 
         return true;
     }
@@ -382,8 +380,7 @@ parseVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    pr->set(block, ctx->tr->type_int,
-        llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
+    pr->set(block, ctx->tr->type_int, ctx->nt->getLLVMZero());
     pr->do_not_destruct       = true;
     pr->do_not_copy_with_setf = true;
 
@@ -441,8 +438,7 @@ FormProcDefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     Node *def_type = (*value_node_list)[0];
     if (!(def_type->token->str_value.compare("struct"))) {
         FormStructParse(units, value_node, name);
-        pr->set(block, ctx->tr->type_int,
-              llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
+        pr->set(block, ctx->tr->type_int, ctx->nt->getLLVMZero());
         return true;
     } else if (!(def_type->token->str_value.compare("var"))) {
         return parseVarDefinition(units, fn, block, name, node,

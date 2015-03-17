@@ -57,9 +57,7 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
         STL::push_back2(
             &indices,
             ctx->nt->getLLVMZero(),
-            llvm::cast<llvm::Value>(
-                llvm::ConstantInt::get(ctx->nt->getNativeIntType(), i)
-            )
+            llvm::cast<llvm::Value>(ctx->nt->getNativeInt(i))
         );
 
         llvm::Value *res =
@@ -111,9 +109,7 @@ destructStruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
         STL::push_back2(
             &indices,
             ctx->nt->getLLVMZero(),
-            llvm::cast<llvm::Value>(
-                llvm::ConstantInt::get(ctx->nt->getNativeIntType(), i++)
-            )
+            llvm::cast<llvm::Value>(ctx->nt->getNativeInt(i++))
         );
         element.value =
             builder->Insert(

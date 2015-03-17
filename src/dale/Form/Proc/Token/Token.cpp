@@ -170,7 +170,7 @@ parseIntegerLiteral(Context *ctx, Type *wanted_type,
                 ctx->tr->getBasicType(wanted_type->base_type),
                 ctx->nt->getConstantInt(
                     llvm::IntegerType::get(llvm::getGlobalContext(),
-                                            int_size),
+                                           int_size),
                     t->str_value.c_str()
                 ));
     } else {

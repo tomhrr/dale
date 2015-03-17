@@ -62,7 +62,7 @@ FormProcGotoParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
         llvm::IRBuilder<> builder(block);
         builder.CreateBitCast(
-            llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0),
+            ctx->nt->getLLVMZero(),
             ctx->nt->getNativeIntType()
         );
     } else {
@@ -93,8 +93,7 @@ FormProcGotoParse(Units *units, Function *fn, llvm::BasicBlock *block,
         builder.CreateBr(label->block);
     }
 
-    pr->set(block, ctx->tr->type_int,
-            llvm::ConstantInt::get(ctx->nt->getNativeIntType(), 0));
+    pr->set(block, ctx->tr->type_int, ctx->nt->getLLVMZero());
     if (!label) {
         pr->treat_as_terminator = true;
     }
