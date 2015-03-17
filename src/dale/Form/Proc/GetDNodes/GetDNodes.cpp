@@ -107,12 +107,10 @@ IntNodeToStaticDNode(Units *units, Node *node, llvm::Value *next_node)
             token_gv = createTokenGV(units, &(t->str_value));
         }
 
-        llvm::Value *two_zero_indices[2] = { ctx->nt->getNativeInt(0),
-                                             ctx->nt->getNativeInt(0) };
         llvm::Constant *ptr_to_token =
             llvm::ConstantExpr::getGetElementPtr(
                 llvm::cast<llvm::Constant>(token_gv),
-                two_zero_indices, 2
+                ctx->nt->getTwoLLVMZeros()
             );
 
         constants.push_back(ptr_to_token);

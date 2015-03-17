@@ -265,11 +265,6 @@ Generator::run(std::vector<const char *> *file_paths,
         cto_modules.insert(std::string(*b));
     }
 
-    std::vector<llvm::Value *> two_zero_indices;
-    two_zero_indices.clear();
-    STL::push_back2(&two_zero_indices,
-                    nt.getLLVMZero(), nt.getLLVMZero());
-
     /* On OS X, SYSTEM_PROCESSOR is i386 even when the underlying
      * processor is x86-64, hence the extra check here. */
     bool is_x86_64 =

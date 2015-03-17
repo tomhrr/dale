@@ -71,10 +71,6 @@ parseStringLiteral(Units *units, Context *ctx, llvm::BasicBlock *block,
     Type *type_cchar  = ctx->tr->getConstType(type_char);
     Type *type_pcchar = ctx->tr->getPointerType(type_cchar);
 
-    std::vector<llvm::Value *> two_zero_indices;
-    STL::push_back2(&two_zero_indices,
-                    ctx->nt->getLLVMZero(), ctx->nt->getLLVMZero());
-
     int size = 0;
     llvm::Constant *init = stringLiteralToConstant(units, type_pcchar,
                                                    node, &size);
@@ -120,7 +116,7 @@ parseStringLiteral(Units *units, Context *ctx, llvm::BasicBlock *block,
     llvm::IRBuilder<> builder(block);
     llvm::Value *char_ptr =
         builder.CreateGEP(llvm::cast<llvm::Value>(var->value),
-                          llvm::ArrayRef<llvm::Value*>(two_zero_indices));
+                          ctx->nt->getTwoLLVMZeros());
     pr->set(block, type_pcchar, char_ptr);
     return true;
 }
@@ -265,15 +261,8 @@ parseVariableLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
 
     /* Array-type variables. */
     if (var->type->is_array) {
-        std::vector<llvm::Value *> two_zero_indices;
-        STL::push_back2(&two_zero_indices,
-                        ctx->nt->getLLVMZero(), ctx->nt->getLLVMZero());
-
         llvm::Value *ptr_to_array =
-            builder.CreateGEP(
-                var->value,
-                llvm::ArrayRef<llvm::Value*>(two_zero_indices)
-            );
+            builder.CreateGEP(var->value, ctx->nt->getTwoLLVMZeros());
 
         pr->set(block, ctx->tr->getPointerType(var->type->array_type),
                 ptr_to_array);
@@ -298,11 +287,6 @@ FormProcTokenParse(Units *units, Function *fn, llvm::BasicBlock *block,
                    Type *wanted_type, ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
-    NativeTypes *nt = ctx->nt;
-
-    std::vector<llvm::Value *> two_zero_indices;
-    STL::push_back2(&two_zero_indices,
-                    nt->getLLVMZero(), nt->getLLVMZero());
 
     Token *t = node->token;
 

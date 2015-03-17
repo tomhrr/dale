@@ -34,6 +34,9 @@ NativeTypes::NativeTypes()
     llvm_true  = llvm::ConstantInt::get(native_bool_type, 1);
     llvm_zero  = llvm::ConstantInt::get(native_int_type,  0);
     llvm_one   = llvm::ConstantInt::get(native_int_type,  1);
+
+    zeros.push_back(llvm_zero);
+    zeros.push_back(llvm_zero);
 }
 
 llvm::IntegerType *
@@ -130,6 +133,12 @@ llvm::Value *
 NativeTypes::getLLVMZero()
 {
     return llvm_zero;
+}
+
+llvm::ArrayRef<llvm::Value *>
+NativeTypes::getTwoLLVMZeros()
+{
+    return llvm::ArrayRef<llvm::Value *>(zeros);
 }
 
 llvm::Value *

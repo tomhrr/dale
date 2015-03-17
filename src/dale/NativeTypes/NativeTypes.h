@@ -32,6 +32,7 @@ private:
     llvm::Value *llvm_false;
     llvm::Value *llvm_zero;
     llvm::Value *llvm_one;
+    std::vector<llvm::Value *> zeros;
 
 public:
     NativeTypes();
@@ -64,6 +65,9 @@ public:
     /*! Get an LLVM native integer value of zero.
      */
     llvm::Value *getLLVMZero();
+    /*! Get an array of two LLVM zeros.
+     */
+    llvm::ArrayRef<llvm::Value *> getTwoLLVMZeros();
     /*! Get an LLVM native integer value of one.
      */
     llvm::Value *getLLVMOne();

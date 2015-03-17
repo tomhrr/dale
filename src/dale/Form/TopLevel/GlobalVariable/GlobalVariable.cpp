@@ -173,7 +173,6 @@ parseLiteralString(Units *units, Node *top, char *data, Type *type,
                    int *size)
 {
     Context *ctx = units->top()->ctx;
-    NativeTypes *nt = ctx->nt;
     TypeRegister *tr = ctx->tr;
 
     /* data contains a char pointer, hence the cast. */
@@ -199,13 +198,9 @@ parseLiteralString(Units *units, Node *top, char *data, Type *type,
     var->setConstant(true);
     var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
-    llvm::Value *two_zero_indices[2];
-    two_zero_indices[0] = nt->getLLVMZero();
-    two_zero_indices[1] = nt->getLLVMZero();
-
     llvm::Constant *const_pchar =
         llvm::ConstantExpr::getGetElementPtr(llvm::cast<llvm::Constant>(var),
-                                             two_zero_indices, 2);
+                                             ctx->nt->getTwoLLVMZeros());
 
     return const_pchar;
 }

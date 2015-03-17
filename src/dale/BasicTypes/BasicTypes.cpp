@@ -287,11 +287,6 @@ makeEnumFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                  Type *ret_type, Type *type, int linkage,
                  llvm::Type *llvm_enum_int_type)
 {
-    std::vector<llvm::Value *> two_zero_indices;
-    llvm::Value *llvm_native_zero = ctx->nt->getNativeInt(0);
-    two_zero_indices.push_back(llvm_native_zero);
-    two_zero_indices.push_back(llvm_native_zero);
-
     Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, name,
                                            type, type, type);
     fn->linkage = linkage;
@@ -320,16 +315,12 @@ makeEnumFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
     llvm::Value *one =
         builder.CreateLoad(
             builder.CreateGEP(new_ptr1,
-                              llvm::ArrayRef<llvm::Value*>(
-                                  two_zero_indices
-                              ))
+                              ctx->nt->getTwoLLVMZeros())
         );
     llvm::Value *two =
         builder.CreateLoad(
             builder.CreateGEP(new_ptr2,
-                              llvm::ArrayRef<llvm::Value*>(
-                                  two_zero_indices
-                              ))
+                              ctx->nt->getTwoLLVMZeros())
         );
 
     llvm::Twine unused_twine;
@@ -361,11 +352,6 @@ makeEnumFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                  Type *ret_type, Type *type, int linkage,
                  llvm::Type *llvm_enum_int_type)
 {
-    std::vector<llvm::Value *> two_zero_indices;
-    llvm::Value *llvm_native_zero = ctx->nt->getNativeInt(0);
-    two_zero_indices.push_back(llvm_native_zero);
-    two_zero_indices.push_back(llvm_native_zero);
-
     Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, name,
                                            type, type, type);
     fn->linkage = linkage;
@@ -394,16 +380,12 @@ makeEnumFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
     llvm::Value *one =
         builder.CreateLoad(
             builder.CreateGEP(new_ptr1,
-                              llvm::ArrayRef<llvm::Value*>(
-                                  two_zero_indices
-                              ))
+                              ctx->nt->getTwoLLVMZeros())
         );
     llvm::Value *two =
         builder.CreateLoad(
             builder.CreateGEP(new_ptr2,
-                              llvm::ArrayRef<llvm::Value*>(
-                                  two_zero_indices
-                              ))
+                              ctx->nt->getTwoLLVMZeros())
         );
 
     llvm::Twine unused_twine;
@@ -432,11 +414,6 @@ makeEnumFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                      (llvm::Value*, llvm::Value*, const llvm::Twine &),
                  Type *ret_type, Type *type, int linkage)
 {
-    std::vector<llvm::Value *> two_zero_indices;
-    llvm::Value *llvm_native_zero = ctx->nt->getNativeInt(0);
-    two_zero_indices.push_back(llvm_native_zero);
-    two_zero_indices.push_back(llvm_native_zero);
-
     Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, name,
                                            ret_type, type, type);
     fn->linkage = linkage;
@@ -465,16 +442,12 @@ makeEnumFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
     llvm::Value *one =
         builder.CreateLoad(
             builder.CreateGEP(new_ptr1,
-                              llvm::ArrayRef<llvm::Value*>(
-                                  two_zero_indices
-                              ))
+                              ctx->nt->getTwoLLVMZeros())
         );
     llvm::Value *two =
         builder.CreateLoad(
             builder.CreateGEP(new_ptr2,
-                              llvm::ArrayRef<llvm::Value*>(
-                                  two_zero_indices
-                              ))
+                              ctx->nt->getTwoLLVMZeros())
         );
 
     llvm::Twine unused_twine;
@@ -662,19 +635,10 @@ addFloatingPoint(Context *ctx, llvm::Module *mod, std::string *once_tag,
 }
 
 void
-addEnum(Context *ctx,
-        llvm::Module *mod,
-        std::string *once_tag,
-        Type *enum_type,
-        Type *enum_int_type,
-        llvm::Type *llvm_enum_int_type,
-        int linkage)
+addEnum(Context *ctx, llvm::Module *mod, std::string *once_tag,
+        Type *enum_type, Type *enum_int_type,
+        llvm::Type *llvm_enum_int_type, int linkage)
 {
-    std::vector<llvm::Value *> two_zero_indices;
-    llvm::Value *llvm_native_zero = ctx->nt->getNativeInt(0);
-    two_zero_indices.push_back(llvm_native_zero);
-    two_zero_indices.push_back(llvm_native_zero);
-
     Type *type_bool = ctx->tr->type_bool;
 
     ADD_ENMF("+", &llvm::IRBuilder<>::CreateAdd);
@@ -719,9 +683,7 @@ addEnum(Context *ctx,
         llvm::Value *one =
             builder.CreateLoad(
                 builder.CreateGEP(new_ptr1,
-                                  llvm::ArrayRef<llvm::Value*>(
-                                      two_zero_indices
-                                  ))
+                                  ctx->nt->getTwoLLVMZeros())
             );
 
         ParseResult pr_cast;
@@ -773,9 +735,7 @@ addEnum(Context *ctx,
         llvm::Value *one =
             builder.CreateLoad(
                 builder.CreateGEP(new_ptr1,
-                                  llvm::ArrayRef<llvm::Value*>(
-                                      two_zero_indices
-                                  ))
+                                  ctx->nt->getTwoLLVMZeros())
             );
 
         ParseResult pr_cast;

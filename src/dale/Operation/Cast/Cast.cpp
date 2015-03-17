@@ -16,10 +16,6 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
     llvm::Value *res = NULL;
     std::string *struct_name;
 
-    std::vector<llvm::Value *> two_zero_indices;
-    STL::push_back2(&two_zero_indices,
-                    ctx->nt->getLLVMZero(), ctx->nt->getLLVMZero());
-
     llvm::Type *llvm_from_type = ctx->toLLVMType(from_type, NULL, false);
     if (!llvm_from_type) {
         return false;
@@ -90,8 +86,7 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
         builder.CreateStore(value, pointer);
 
         llvm::Value *pointer_value =
-            builder.CreateGEP(pointer,
-                              llvm::ArrayRef<llvm::Value*>(two_zero_indices));
+            builder.CreateGEP(pointer, ctx->nt->getTwoLLVMZeros());
 
         Struct *st = ctx->getStruct(from_type->struct_name.c_str());
         Type *intermediate_type = st->member_types.at(0);

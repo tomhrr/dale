@@ -32,13 +32,8 @@ FormLiteralEnumParse(Units *units, llvm::BasicBlock *block, Node *node,
     llvm::Value *storage =
         llvm::cast<llvm::Value>(builder.CreateAlloca(enum_st->type));
 
-    std::vector<llvm::Value *> two_zero_indices;
-    STL::push_back2(&two_zero_indices,
-                    ctx->nt->getLLVMZero(), ctx->nt->getLLVMZero());
-
     llvm::Value *storage_ptr =
-        builder.CreateGEP(storage,
-                          llvm::ArrayRef<llvm::Value*>(two_zero_indices));
+        builder.CreateGEP(storage, ctx->nt->getTwoLLVMZeros());
 
     llvm::Type *llvm_type =
         ctx->toLLVMType(enum_st->member_types.at(0), NULL, false);
