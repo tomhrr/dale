@@ -345,7 +345,7 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     llvm::Value *llvm_return_value = NULL;
     if (ret_type->is_retval) {
         llvm::Function::arg_iterator llvm_arg_iter = llvm_fn->arg_begin();
-        std::advance(llvm_arg_iter, fn->parameter_types.size());
+        std::advance(llvm_arg_iter, fn->parameters.size());
         llvm_return_value = llvm_arg_iter;
         llvm_return_value->setName("retval");
     }

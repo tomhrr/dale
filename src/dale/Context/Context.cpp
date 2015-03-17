@@ -816,8 +816,8 @@ Context::rebuildFunction(Function *fn, const char *name,
     std::vector<llvm::Type*> types;
 
     for (std::vector<Variable *>::iterator
-            vb = fn->parameter_types.begin(),
-            ve = fn->parameter_types.end();
+            vb = fn->parameters.begin(),
+            ve = fn->parameters.end();
             vb != ve;
             ++vb) {
         Variable *var = (*vb);

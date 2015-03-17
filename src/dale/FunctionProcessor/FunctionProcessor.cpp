@@ -273,8 +273,8 @@ isUnoverloadedMacro(Units *units, const char *name,
          * first (p DNode) argument), then short-circuit, so long
          * as the argument count is ok. */
         std::vector<Variable*>::iterator
-            b = (fn->parameter_types.begin() + 1);
-        if ((b == fn->parameter_types.end())
+            b = (fn->parameters.begin() + 1);
+        if ((b == fn->parameters.end())
                 || (*b)->type->isEqualTo(units->top()->ctx->tr->type_pdnode)) {
             bool use = false;
             int size = lst->size();
@@ -309,7 +309,7 @@ processExternCFunction(Context *ctx,
 
     Function *fn = ctx->getFunction(name, NULL, NULL, 0);
 
-    std::vector<Variable *> parameters = fn->parameter_types;
+    std::vector<Variable *> parameters = fn->parameters;
     std::vector<Type *> parameter_types;
     for (std::vector<Variable *>::iterator b = parameters.begin(),
                                            e = parameters.end();
@@ -463,9 +463,9 @@ addNotFoundError(std::vector<Type *> *call_arg_types, const char *name,
 
     if (closest_fn) {
         std::string expected;
-        typesToString(closest_fn->parameter_types.begin() +
+        typesToString(closest_fn->parameters.begin() +
                           (closest_fn->is_macro ? 1 : 0),
-                      closest_fn->parameter_types.end(),
+                      closest_fn->parameters.end(),
                       &expected);
 
         Error *e = new Error(
@@ -676,8 +676,8 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
      * types, replace the call argument with its address. */
 
     std::vector<Type *> parameter_types;
-    for (std::vector<Variable *>::iterator b = fn->parameter_types.begin(),
-                                           e = fn->parameter_types.end();
+    for (std::vector<Variable *>::iterator b = fn->parameters.begin(),
+                                           e = fn->parameters.end();
             b != e;
             ++b) {
         parameter_types.push_back((*b)->type);

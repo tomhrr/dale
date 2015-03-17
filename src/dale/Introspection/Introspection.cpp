@@ -288,8 +288,10 @@ exists_2D_fn(MContext *mc, DNode *form)
     }
 
     Function *fn =
-        units->top()->ctx->getFunction(node_function_name->token->str_value.c_str(),
-                            &parameter_types, NULL, 0);
+        units->top()->ctx->getFunction(
+            node_function_name->token->str_value.c_str(),
+            &parameter_types, NULL, 0
+        );
 
     units->top()->ctx->er->popErrors(error_count_begin);
     return (fn && !fn->is_macro);
@@ -735,11 +737,11 @@ input_2D_type(MContext *mc, DNode *fn_name_nd, int index)
     if (fn->linkage != Linkage::Extern_C) {
         return NULL;
     }
-    if ((int) (fn->parameter_types.size() - 1) < index) {
+    if ((int) (fn->parameters.size() - 1) < index) {
         return NULL;
     }
 
-    return fn->parameter_types[index]->type->toNode()->toDNode();
+    return fn->parameters[index]->type->toNode()->toDNode();
 }
 
 DNode *

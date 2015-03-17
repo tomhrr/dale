@@ -16,14 +16,14 @@ Function::Function()
 
 Function::Function(
     Type *return_type,
-    std::vector<Variable *> *parameter_types,
+    std::vector<Variable *> *parameters,
     llvm::Function *llvm_function,
     bool is_macro,
     std::string *internal_name,
     bool always_inline)
 {
     this->return_type     = return_type;
-    this->parameter_types = *parameter_types;
+    this->parameters = *parameters;
     this->llvm_function   = llvm_function;
     this->is_macro        = is_macro;
     this->internal_name   = *internal_name;
@@ -37,8 +37,8 @@ Function::Function(
 
 Function::~Function()
 {
-    if (parameter_types.size()) {
-        STL::deleteElements(&parameter_types);
+    if (parameters.size()) {
+        STL::deleteElements(&parameters);
     }
 }
 
@@ -62,11 +62,11 @@ Function::addLabel(const char *name, Label *label)
 bool
 Function::isVarArgs()
 {
-    if (parameter_types.size() == 0) {
+    if (parameters.size() == 0) {
         return false;
     }
 
-    Variable *back = parameter_types.back();
+    Variable *back = parameters.back();
 
     return (back->type->base_type == BaseType::VarArgs);
 }
@@ -74,11 +74,11 @@ Function::isVarArgs()
 int
 Function::numberOfRequiredArgs()
 {
-    if (parameter_types.size() == 0) {
+    if (parameters.size() == 0) {
         return 0;
     }
 
-    int num_of_args = parameter_types.size();
+    int num_of_args = parameters.size();
 
     if (isVarArgs()) {
         num_of_args -= 1;
@@ -95,8 +95,8 @@ Function::isEqualTo(Function *other_fn)
     }
 
     return dale::STL::isEqualTo(
-        &parameter_types,
-        &(other_fn->parameter_types)
+        &parameters,
+        &(other_fn->parameters)
     );
 }
 

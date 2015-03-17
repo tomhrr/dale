@@ -130,7 +130,7 @@ makeFloatFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                                            ret_type, type, type);
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types.begin();
+    iter = fn->parameters.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -163,7 +163,7 @@ makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                                            ret_type, type, type);
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types.begin();
+    iter = fn->parameters.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -191,7 +191,7 @@ makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                                            ret_type, type, type);
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types.begin();
+    iter = fn->parameters.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -220,7 +220,7 @@ makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                                            ret_type, type, type);
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types.begin();
+    iter = fn->parameters.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -250,7 +250,7 @@ makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                                            ret_type, type1, type2);
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types.begin();
+    iter = fn->parameters.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -284,7 +284,7 @@ makeEnumFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
     fn->llvm_function->setLinkage(ctx->toLLVMLinkage(linkage));
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types.begin();
+    iter = fn->parameters.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -349,7 +349,7 @@ makeEnumFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
     fn->llvm_function->setLinkage(ctx->toLLVMLinkage(linkage));
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types.begin();
+    iter = fn->parameters.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -411,7 +411,7 @@ makeEnumFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
     fn->llvm_function->setLinkage(ctx->toLLVMLinkage(linkage));
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types.begin();
+    iter = fn->parameters.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -475,7 +475,7 @@ makeShlFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                                            type, type, type_int);
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types.begin();
+    iter = fn->parameters.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -504,7 +504,7 @@ makeShrFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                                            type, type, type_int);
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types.begin();
+    iter = fn->parameters.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -556,7 +556,7 @@ makeNegateFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
     Function *fn = addSimpleUnaryFunction(ctx, mod, once_tag, "~", type, type);
 
     std::vector<Variable *>::iterator iter;
-    iter = fn->parameter_types.begin();
+    iter = fn->parameters.begin();
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -657,7 +657,7 @@ addEnum(Context *ctx, llvm::Module *mod, std::string *once_tag,
         fn->llvm_function->setLinkage(ctx->toLLVMLinkage(linkage));
 
         std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types.begin();
+        iter = fn->parameters.begin();
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
@@ -709,7 +709,7 @@ addEnum(Context *ctx, llvm::Module *mod, std::string *once_tag,
         fn->llvm_function->setLinkage(ctx->toLLVMLinkage(linkage));
 
         std::vector<Variable *>::iterator iter;
-        iter = fn->parameter_types.begin();
+        iter = fn->parameters.begin();
 
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",

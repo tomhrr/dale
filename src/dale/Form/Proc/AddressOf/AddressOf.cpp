@@ -113,9 +113,9 @@ FormProcAddressOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
             Error *e;
             if (closest_fn) {
                 std::string expected;
-                typesToString(closest_fn->parameter_types.begin()
+                typesToString(closest_fn->parameters.begin()
                               + (closest_fn->is_macro ? 1 : 0),
-                              closest_fn->parameter_types.end(),
+                              closest_fn->parameters.end(),
                               &expected);
                 e = new Error(OverloadedFunctionOrMacroNotInScopeWithClosest,
                               node, target_str, args.c_str(),
@@ -134,8 +134,8 @@ FormProcAddressOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     type->return_type = target_fn->return_type;
 
     for (std::vector<Variable *>::iterator
-            b = target_fn->parameter_types.begin(),
-            e = target_fn->parameter_types.end();
+            b = target_fn->parameters.begin(),
+            e = target_fn->parameters.end();
             b != e;
             ++b) {
         type->parameter_types.push_back((*b)->type);

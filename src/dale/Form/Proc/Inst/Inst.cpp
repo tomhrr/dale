@@ -53,8 +53,8 @@ createAnonymousFunction(Units *units, llvm::BasicBlock *block,
     fn_type->return_type = anon_fn->return_type;
 
     for (std::vector<Variable *>::iterator
-            b = anon_fn->parameter_types.begin(),
-            e = anon_fn->parameter_types.end();
+            b = anon_fn->parameters.begin(),
+            e = anon_fn->parameters.end();
             b != e;
             ++b) {
         fn_type->parameter_types.push_back((*b)->type);

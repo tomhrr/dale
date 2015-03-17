@@ -309,7 +309,7 @@ char *deserialise(TypeRegister *tr, char *in, Variable **v)
 void serialise(FILE *out, Function *fn)
 {
     serialise(out, fn->return_type);
-    serialise(out, &(fn->parameter_types));
+    serialise(out, &(fn->parameters));
     serialise(out, fn->is_macro);
     serialise(out, fn->internal_name);
     serialise(out, fn->always_inline);
@@ -332,7 +332,7 @@ char *deserialise(TypeRegister *tr, char *in, Function *fn)
     fn->return_type = rt;
     fn->llvm_function = NULL;
 
-    in = deserialise(tr, in, &(fn->parameter_types));
+    in = deserialise(tr, in, &(fn->parameters));
     in = deserialise(tr, in, &(fn->is_macro));
     in = deserialise(tr, in, &(fn->internal_name));
     in = deserialise(tr, in, &(fn->always_inline));

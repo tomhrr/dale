@@ -18,9 +18,9 @@ class Function
 public:
     /*! The function's return type. */
     Type *return_type;
-    /*! The function's parameter types.  These are stored as variables
+    /*! The function's parameters.  These are stored as variables
      *  so that they may be named. */
-    std::vector<Variable *> parameter_types;
+    std::vector<Variable *> parameters;
     /*! The function's deferred gotos.  During parsing, if a goto
      *  instruction is found for a label that has not yet been defined,
      *  a DeferredGoto is added here. */
@@ -54,18 +54,18 @@ public:
     Function();
     /*! Construct a new function using the given parameters.
      *  @param return_type The return type.
-     *  @param parameter_types The parameter types.
+     *  @param parameters The parameters.
      *  @param llvm_function The LLVM function.
      *  @param is_macro Whether the function is actually a macro.
      *  @param internal_name The internal name.
      *  @param always_inline Whether the function should always be inlined.
      *
-     *  return_type and llvm_function are not copied.  parameter_types
+     *  return_type and llvm_function are not copied.  parameters
      *  is copied, but the individual variables are not.
      *  internal_name is copied.
      */
     Function(Type *return_type,
-             std::vector<Variable *> *parameter_types,
+             std::vector<Variable *> *parameters,
              llvm::Function *llvm_function,
              bool is_macro,
              std::string *internal_name,
@@ -77,7 +77,7 @@ public:
      */
     bool isVarArgs();
     /*! Return the number of arguments required by the function.
-     *  (This is not the same as the size of parameter_types, due to
+     *  (This is not the same as the size of parameters, due to
      *  the possibility of a varargs parameter being present in that
      *  vector.)
      */

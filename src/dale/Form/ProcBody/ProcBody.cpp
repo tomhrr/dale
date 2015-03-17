@@ -21,8 +21,8 @@ addVariables(Context *ctx, Node *node, Function *fn, llvm::BasicBlock *block)
     llvm::IRBuilder<> builder(block);
 
     bool past_first = false;
-    for (std::vector<Variable *>::iterator b = fn->parameter_types.begin(),
-                                           e = fn->parameter_types.end();
+    for (std::vector<Variable *>::iterator b = fn->parameters.begin(),
+                                           e = fn->parameters.end();
             b != e;
             ++b) {
         Variable *var = (*b);
