@@ -217,7 +217,7 @@ ErrorReporter::assertArgNums(const char *form_name, Node *n,
             Error *e = new Error(
                 ErrorInst::IncorrectNumberOfArgs,
                 n,
-                form_name, min_args, max_args
+                form_name, min_args, num_args
             );
             addError(e);
             return false;
@@ -228,7 +228,7 @@ ErrorReporter::assertArgNums(const char *form_name, Node *n,
         Error *e = new Error(
             ErrorInst::IncorrectMinimumNumberOfArgs,
             n,
-            form_name, min_args, max_args
+            form_name, min_args, num_args
         );
         addError(e);
         return false;
@@ -238,7 +238,7 @@ ErrorReporter::assertArgNums(const char *form_name, Node *n,
         Error *e = new Error(
             ErrorInst::IncorrectMaximumNumberOfArgs,
             n,
-            form_name, min_args, max_args
+            form_name, max_args, num_args
         );
         addError(e);
         return false;
