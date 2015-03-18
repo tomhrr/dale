@@ -10,6 +10,7 @@ similar to C, with the following additional features:
   * overloaded functions;
   * anonymous functions;
   * function structs;
+  * reference parameters;
   * object lifetime operations;
   * namespaces;
   * modules;
