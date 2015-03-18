@@ -1,0 +1,7 @@
+(import cstdio)
+(import introspection)
+
+(def main (fn extern-c int (void)
+  (def name (var auto (p (const char)) "name"))
+  (printf "hello, %s\n" name)
+  0))

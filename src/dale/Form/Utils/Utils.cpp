@@ -23,6 +23,7 @@ FormProcessValue(Units *units, Function *fn, llvm::BasicBlock *block,
     llvm::IRBuilder<> builder(block);
 
     if (var_value_node->is_token
+            && (var_value_node->token->type == TokenType::String)
             && (var_value = ctx->getVariable(
                     var_value_node->token->str_value.c_str()))) {
         pr->set(block, var_value->type,
