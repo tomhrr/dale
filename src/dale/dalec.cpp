@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <getopt.h>
 #include <cstdio>
+#include "Config.h"
 
 /*! dalec
 
@@ -149,6 +150,7 @@ main(int argc, char **argv)
     int found_sm        = 0;
     int found_ctom      = 0;
     int enable_cto      = 0;
+    int version         = 0;
 
     int option_index         = 0;
     int forced_remove_macros = 0;
@@ -161,6 +163,7 @@ main(int argc, char **argv)
         { "static-module",  required_argument, &found_sm,        1 },
         { "cto-module",     required_argument, &found_ctom,      1 },
         { "enable-cto",     no_argument,       &enable_cto,      1 },
+        { "version",        no_argument,       &version,         1 },
         { 0, 0, 0, 0 }
     };
 
@@ -221,6 +224,11 @@ main(int argc, char **argv)
             found_ctom = 0;
             cto_modules.push_back(optarg);
         }
+    }
+
+    if (version) {
+        printf("%d.%d\n", DALE_VERSION_MAJOR, DALE_VERSION_MINOR);
+        exit(0);
     }
 
     /* If the user wants an executable and has not specified either
