@@ -5,6 +5,8 @@
 #include "../STL/STL.h"
 #include "../Utils/Utils.h"
 
+#include <cstdio>
+
 namespace dale
 {
 Namespace::Namespace()

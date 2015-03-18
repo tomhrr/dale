@@ -4,6 +4,8 @@
 #include "../llvm_Linker.h"
 #include "../CommonDecl/CommonDecl.h"
 
+#include <cstdio>
+
 namespace dale
 {
 Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,

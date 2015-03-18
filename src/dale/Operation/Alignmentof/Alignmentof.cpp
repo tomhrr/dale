@@ -1,5 +1,7 @@
 #include "Alignmentof.h"
 
+#include <cstdio>
+
 namespace dale
 {
 namespace Operation

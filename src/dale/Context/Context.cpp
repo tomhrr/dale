@@ -3,6 +3,8 @@
 #include "../llvm_LinkAll.h"
 #include "../Utils/Utils.h"
 
+#include <cstdio>
+
 using namespace dale::ErrorInst;
 
 namespace dale

@@ -16,6 +16,8 @@
 #include "../../Literal/Array/Array.h"
 #include "../../Type/Type.h"
 
+#include <cstdio>
+
 using namespace dale::ErrorInst;
 
 namespace dale

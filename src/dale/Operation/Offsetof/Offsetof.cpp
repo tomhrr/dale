@@ -1,5 +1,7 @@
 #include "Offsetof.h"
 
+#include <cstdio>
+
 namespace dale
 {
 namespace Operation

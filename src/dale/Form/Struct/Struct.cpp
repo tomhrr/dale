@@ -11,6 +11,8 @@
 #include "../ProcBody/ProcBody.h"
 #include "../../llvm_Function.h"
 
+#include <cstdio>
+
 using namespace dale::ErrorInst;
 
 namespace dale

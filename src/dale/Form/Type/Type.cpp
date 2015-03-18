@@ -5,6 +5,8 @@
 #include "../Parameter/Parameter.h"
 #include "../Literal/Integer/Integer.h"
 
+#include <cstdio>
+
 using namespace dale::ErrorInst;
 
 static int anon_struct_count = 0;
