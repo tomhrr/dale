@@ -107,9 +107,9 @@ Expands to a `SharedPtr` definition over the relevant type.
         true))
 
     (def destroy
-      (fn extern void ((val (p (SharedPtr (uq T)))))
+      (fn extern void ((val (ref (SharedPtr (uq T)))))
         (and (or (null val) (or (null (@:@ val pointer))
-                               (null (@:@ val refcount))))
+                                (null (@:@ val refcount))))
              (return))
         (setf (@:@ val refcount)
               (- (@ (@:@ val refcount)) 1))
@@ -165,7 +165,7 @@ Expands to a `SharedPtr` definition over the relevant type.
                        (val (p (SharedPtr (uq T)))))
         (and (not (p= (core @ (: (core @ loc) pointer))
                       (core @ (: (core @ val) pointer))))
-             (do (destroy loc)
+             (do (destroy (@ loc))
                  (setf (core-@:@ val refcount)
                        (+ (core @ (core-@:@ val refcount)) 1))))
         (core setf (: (core @ loc) pointer)  

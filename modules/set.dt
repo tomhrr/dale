@@ -789,7 +789,7 @@ must also implement `LessThanComparable`.
     (def free-node
       (fn intern void ((node (p (uq nodetypenode))))
         (let ((value \ (:@ node value)))
-          (destroy value)
+          (destroy (@ value))
           (free' node)
           (return))))
 
@@ -832,7 +832,7 @@ must also implement `LessThanComparable`.
                    (and has-ptn (setf ptn nullp))
                    (and is-root (setf (:@ node up) node))
                    (let ((value \ (:@ node value)))
-                     (destroy value)
+                     (destroy (@ value))
                      (if (not is-root) (do (free' node) 0) 0)
                      (goto end))))
 
@@ -1007,7 +1007,7 @@ must also implement `LessThanComparable`.
             (do (clear (@ (@:@ setnp right))) 0)
             0)
         (let ((value \ (:@ setnp value)))
-          (destroy value))
+          (destroy (@ value)))
         (free' setnp)
         (return)))
 
@@ -1064,7 +1064,7 @@ must also implement `LessThanComparable`.
     (implement LessThanComparable (Set (uq T)))
 
     (def destroy
-      (fn extern void ((setp (p (Set (uq T)))))
+      (fn extern void ((setp (ref (Set (uq T)))))
         (clear (@ setp))
         (return)))
 

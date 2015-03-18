@@ -597,7 +597,7 @@ must also implement `LessThanComparable`.
       (instantiate F (Map (uq Tk) (uq Tv))))
 
     (def destroy
-      (fn extern void ((mapp (p (Map (uq Tk) (uq Tv)))))
+      (fn extern void ((mapp (ref (Map (uq Tk) (uq Tv)))))
         (clear (@ mapp))
         (return)))
 

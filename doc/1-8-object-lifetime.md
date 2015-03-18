@@ -8,7 +8,7 @@
 
 An `init` function is defined like so:
 
-        (def init (fn {linkage} bool ((dst (ref {source-type})))
+        (def init (fn {linkage} bool ((val (ref {source-type})))
           {body}))
 
 If a variable of the specified type is defined without being
@@ -32,14 +32,14 @@ whenever `dst` is uninitialised.
 functions, save for the name. They are used whenever `dst` has already
 been initialised.
 
-Multiple `setf` functions, supporting different source types, may be
+Multiple `setf-` functions, supporting different source types, may be
 defined over a single destination type.
 
 ### `destroy`
 
 Destructors are defined like so:
 
-        (def destroy (fn {linkage} void ((val {pointer-to-type}))
+        (def destroy (fn {linkage} void ((val (ref {source-type})))
           {body}))
 
 They are run when a value of the relevant type goes out of scope.

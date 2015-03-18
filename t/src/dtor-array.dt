@@ -4,7 +4,7 @@
 (using-namespace std
 
 (def destroy
-  (fn extern void ((n (p float)))
+  (fn extern void ((n (ref float)))
     (printf "destroying %f\n" (@ n))
     (return)))
 

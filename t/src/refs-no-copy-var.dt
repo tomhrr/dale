@@ -21,7 +21,7 @@
     true))
 
 (def destroy
-  (fn intern bool ((m (p mys)))
+  (fn intern bool ((m (ref mys)))
     (printf "destroy\n")
     true))
 

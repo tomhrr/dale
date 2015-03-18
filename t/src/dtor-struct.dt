@@ -3,12 +3,12 @@
 (def mys1 (struct intern ((a int))))
 
 (def destroy
-  (fn intern void ((a (p mys1)))
+  (fn intern void ((a (ref mys1)))
     (printf "destroying mys1 %d\n" (@:@ a a))
     (return)))
 
 (def destroy
-  (fn intern void ((a (p float)))
+  (fn intern void ((a (ref float)))
     (printf "destroying float\n")
     (return)))
 

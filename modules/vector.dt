@@ -222,7 +222,7 @@ must also implement `LessThanComparable`.
     (def pop-back
       (fn extern void ((vecp (ref (Vector (uq T)))))
         (let ((value \ (:@ vecp last-element)))
-          (destroy value)
+          (destroy (@ value))
           (setf (:@ vecp size) (- (@:@ vecp size) (cast 1 size)))
           (setf (:@ vecp last-element)
                 (p- (@:@ vecp last-element) 1))
@@ -679,7 +679,7 @@ must also implement `LessThanComparable`.
           (if (= iter (end (@ vecp)))
               (return iter)
               0)
-          (destroy value)
+          (destroy (@ value))
           (setf (:@ vecp size) (- (@ (:@ vecp size)) (cast 1 size)))
           (setv nn (successor iter))
           (setv nn2 iter)
@@ -741,7 +741,7 @@ must also implement `LessThanComparable`.
     (implement LessThanComparable (Vector (uq T)))
 
     (def destroy
-      (fn extern void ((vecp (p (Vector (uq T)))))
+      (fn extern void ((vecp (ref (Vector (uq T)))))
         (clear (@ vecp))
         (return)))
 

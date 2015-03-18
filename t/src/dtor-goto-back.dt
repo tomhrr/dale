@@ -1,7 +1,7 @@
 (import cstdio)
 
 (def destroy
-  (fn extern-c void ((n (p float)))
+  (fn extern-c void ((n (ref float)))
     (fprintf stdout "destroying %f\n" (@ n))
     (return)))
 

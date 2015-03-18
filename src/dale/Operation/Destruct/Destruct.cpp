@@ -8,7 +8,7 @@ Function *
 getDestructor(Context *ctx, Type *type)
 {
     std::vector<Type *> types;
-    types.push_back(ctx->tr->getPointerType(type));
+    types.push_back(type);
     Function *fn = ctx->getFunction("destroy", &types, NULL, 0);
     return fn;
 }

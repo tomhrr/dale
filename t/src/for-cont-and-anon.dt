@@ -9,7 +9,7 @@
     (= 0 (mod i 2))))
 
 (def destroy
-  (fn extern int ((val (p float)))
+  (fn extern int ((val (ref float)))
     (printf "destroyed float\n")))
 
 (def otherfn

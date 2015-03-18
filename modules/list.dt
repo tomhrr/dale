@@ -253,7 +253,7 @@ Expands to a `List` definition over the relevant type.
                         (nullptr (uq nodetypenode)))
                   (setf (:@ lst last) second-last-node)))
           (let ((value \ (:@ last-node element)))
-            (destroy value))
+            (destroy (@ value)))
             (free' last-node))
         (return)))
 
@@ -302,7 +302,7 @@ Expands to a `List` definition over the relevant type.
                         (nullptr (uq nodetypenode)))
                   (setf (:@ lst first) second-node)))
           (let ((value \ (:@ first-node element)))
-            (destroy value))
+            (destroy (@ value)))
             (free' first-node))
         (return)))
 
@@ -557,7 +557,7 @@ Expands to a `List` definition over the relevant type.
               (setf (:@ next-node prev) prev-node)
               (setf (:@ lst last) prev-node))
           (let ((value \ (:@ node element)))
-            (destroy value))
+            (destroy (@ value)))
             (free' node))
         iter))
 
@@ -619,7 +619,7 @@ Expands to a `List` definition over the relevant type.
     (implement LessThanComparable (List (uq T)))
 
     (def destroy
-      (fn extern void ((lstp (p (List (uq T)))))
+      (fn extern void ((lstp (ref (List (uq T)))))
         (clear (@ lstp))
         (return)))
 
