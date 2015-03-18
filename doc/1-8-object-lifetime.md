@@ -2,7 +2,7 @@
 
 [Previous](./1-7-macros.md) | [Next](./1-9-namespaces.md)
 
-## 1.8 Object lifetime operations
+## 1.8 Object lifetime
 
 ### `init`
 
@@ -45,6 +45,6 @@ Destructors are defined like so:
 They are run when a value of the relevant type goes out of scope.
 
 If `destroy` is not defined over a particular type, then any attempt
-to call `destroy` on a pointer to that type will become a no-op.
+to call `destroy` on a value of that type will become a no-op.
 
 [Previous](./1-7-macros.md) | [Next](./1-9-namespaces.md)

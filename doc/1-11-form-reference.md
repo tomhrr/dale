@@ -52,17 +52,17 @@ Returns a null pointer to `type`.
 
 Casts `from-value` to the specified type and returns it.
 
-#### (`funcall` {`function-pointer`} {`arg1`} *`arg2`* ... *`argN`*)
+#### (`funcall` {`function-pointer`} {`arg1`} {`arg2`} ... {`argN`})
 
 Executes `function-pointer` using the provided arguments, and returns
 its result.
 
-#### (`do` {`form1`} {`form2`} ... *`formN`*)
+#### (`do` {`form1`} {`form2`} ... {`formN`})
 
 Evaluates each form in order. Returns the result of evaluating the
 final form.
 
-#### (`new-scope` {`form1`} {`form2`} ... *`formN`*)
+#### (`new-scope` {`form1`} {`form2`} ... {`formN`})
 
 Introduces a new lexical scope, and evaluates each form within that
 scope. As per `do`, the result is that of the final form.
@@ -76,7 +76,7 @@ Marks a point in the code, for later use by `goto`.
 Branches unconditionally to the specified label and continues
 execution.
 
-#### (`if` {`condition`} {`true-case`} *`false-case`*)
+#### (`if` {`condition`} {`true-case`} {`false-case`})
 
 Executes `true-case` if `condition` is true; otherwise, executes
 `false-case`.
@@ -99,7 +99,7 @@ type.
 Performs any necessary cleanup required by way of the use of the
 `va-list`. 
 
-#### (`array-of` {`count`} {`type`} (`array` *`a1`* *`a2`* ... *`aN`*))
+#### (`array-of` {`count`} {`type`} (`array` {`a1`} {`a2`} ... {`aN`}))
 
 Constructs and returns a new array literal of the specified type.
 
@@ -126,7 +126,7 @@ Pointer comparison and modification forms. The first three return
 `bool` values, and the remaining two return pointers that have the
 type of the first argument.
 
-#### (`using-namespace` {`name`} {`form1`} *`form2`* ... *`formN`*)
+#### (`using-namespace` {`name`} {`form1`} {`form2`} ... {`formN`})
 
 Adds the specified namespace to the list of namespaces used for
 lookup, and evaluates each of the forms in that context. As per `do`,
@@ -200,10 +200,6 @@ If the argument evaluates to false, returns true, and vice-versa.
                           (token-str (p char))
                           (list-node (p DNode))
                           (next-node (p DNode)))))
-
-See [Macros](1-7-macros.md).
-
-#### `PoolNode` (opaque)
 
 See [Macros](1-7-macros.md).
 

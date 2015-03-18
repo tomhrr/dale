@@ -65,7 +65,7 @@ the same as in C.
 
 The type of an array of values is `(array-of {n} {type})`, where `{n}`
 is a literal unsigned integer. A zero-sized array may be declared when
-the array is populated during declaration; see
+the array is populated during declaration: see
 [Variables](./1-4-variables.md).
 
 ### Structures
@@ -98,7 +98,7 @@ used. They take the following form:
 where each `{value}` is a name-value pair, corresponding to a struct
 member. In situations where the value will be cast implicitly, e.g. in
 an explicitly-typed variable declaration, it is not necessary to
-include the encloding ({name} ...) form.
+include the enclosing ({name} ...) form.
 
 ### Enumerations
 
@@ -120,17 +120,8 @@ value of the previous member, plus one. For example:
 
 The member-value assignments for this enum are as follows:
 
-  * a: 0
-  * b: 1
-  * c: 2
-  * d: 1
-  * e: 2
-  * f: 0
-  * g: -1
-  * h: 0
-  * i: 1
-  * j: 2
-  * k: 3
+        a: 0; b:  1; c: 2; d: 1; e: 2; f: 0;
+        g: -1; h: 0; i: 1; j: 2; k: 3
 
 Enum literals may be used wherever a reference to an enum may be used.
 They take the form `({name} {member-name})`. Similarly to structs, the

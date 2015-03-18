@@ -40,7 +40,7 @@ to `/usr/local/lib/dale`.
 
 The tests are written using Perl. `IPC::Run` is the only non-core
 dependency required for testing: it can be installed by running `cpan
-IPC::Run`, or by way of your system package manager.
+IPC::Run`, or by way of the system package manager.
 
 ### Hello world
 

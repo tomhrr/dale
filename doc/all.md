@@ -83,7 +83,7 @@ to `/usr/local/lib/dale`.
 
 The tests are written using Perl. `IPC::Run` is the only non-core
 dependency required for testing: it can be installed by running `cpan
-IPC::Run`, or by way of your system package manager.
+IPC::Run`, or by way of the system package manager.
 
 ### Hello world
 
@@ -169,7 +169,7 @@ the same as in C.
 
 The type of an array of values is `(array-of {n} {type})`, where `{n}`
 is a literal unsigned integer. A zero-sized array may be declared when
-the array is populated during declaration; see
+the array is populated during declaration: see
 [Variables](#Variables).
 
 ### Structures
@@ -202,7 +202,7 @@ used. They take the following form:
 where each `{value}` is a name-value pair, corresponding to a struct
 member. In situations where the value will be cast implicitly, e.g. in
 an explicitly-typed variable declaration, it is not necessary to
-include the encloding ({name} ...) form.
+include the enclosing ({name} ...) form.
 
 ### Enumerations
 
@@ -224,17 +224,8 @@ value of the previous member, plus one. For example:
 
 The member-value assignments for this enum are as follows:
 
-  * a: 0
-  * b: 1
-  * c: 2
-  * d: 1
-  * e: 2
-  * f: 0
-  * g: -1
-  * h: 0
-  * i: 1
-  * j: 2
-  * k: 3
+        a: 0; b:  1; c: 2; d: 1; e: 2; f: 0;
+        g: -1; h: 0; i: 1; j: 2; k: 3
 
 Enum literals may be used wherever a reference to an enum may be used.
 They take the form `({name} {member-name})`. Similarly to structs, the
@@ -436,7 +427,7 @@ Varargs functions are written in nearly the same way as in C. The
 Certain core forms may be overridden by user-level functions, namely
 `@`, `#` and `$`. `setf` may also be 'overridden', in effect, by
 defining functions named `setf-copy` and `setf-assign`; these are
-discussed in more detail in [Copy/destroy](#Copy/destroy).
+discussed in more detail in [Object lifetime](#Object lifetime).
 
 The `core` core form may, in turn, be used to ignore overridden core
 forms. For example:
@@ -461,7 +452,7 @@ between overloaded functions. However, if the function only has one
 definition, and that definition has `extern-c` linkage, the argument
 types may be omitted.
 
-The above example is much saner when local type deduction is used:
+Local type deduction makes function pointer definitions much simpler:
 
         (def fp (var auto \ (# + int int)))
 
@@ -488,8 +479,8 @@ the surrounding environment.
 
 Function parameters may be passed by reference. Within the body of the
 function, the arguments for those parameters have a type of 'pointer
-to referenced type'; i.e., a reference is not a separate type as such.
-For example:
+to referenced type'; a reference is not a separate type as such.  For
+example:
 
         (def add-2-ints (fn intern int ((a (ref int)) (b (ref int)))
           (return (+ (@ a) (@ b)))))
@@ -500,11 +491,11 @@ is to a constant type.
 ### Retvals
 
 A function's return type may be marked as `retval`. Such a function,
-rather than returning a value using `return`, writes the result to the
-binding `retval`, which is provided implicitly by the compiler. That
-binding has the type 'pointer to actual return type', and its value is
-used as the return value of the function. `retval` allows for avoiding
-unnecessary allocations/copies. For example:
+rather than returning a value using `return`, should write the result
+to the binding `retval`, which is provided implicitly by the compiler.
+That binding has the type 'pointer to actual return type', and its
+value is used as the return value of the function. `retval` allows for
+avoiding unnecessary allocations/copies. For example:
 
         (def add-2-ints (fn intern (retval int) ((a int) (b int))
           (setf retval (+ a b))
@@ -595,9 +586,6 @@ so:
 evaluates each in turn, and returns the value yielded by the last
 form.)
 
-Labels are scoped to the containing procedure, surprisingly enough:
-`new-scope` does not allow for label names to be shadowed.
-
 
 
 ## <a name="Macros"></a> 1.7 Macros
@@ -646,14 +634,16 @@ no-op).
 
 ### Macro context
 
-The body of a macro has access to a macro context argument named
-'mc'. This argument is of type `(p MContext)`, where `MContext` is an
-opaque struct type. The context can be used to allocate memory for use
-within the macro by way of the `pool-malloc` function, which has the
-following prototype:
+The body of a macro has access to a macro context argument named 'mc'.
+This argument is of type `(p MContext)`, where `MContext` is an opaque
+struct type. Many internal macro functions and introspection functions
+take the macro context as their initial argument.
+
+Heap allocations within macros should be performed using the
+`pool-malloc` function:
 
         (def pool-malloc
-          (fn extern (p void) ((pool-node (p PoolNode)) (n size))))
+          (fn extern (p void) ((mc (p MContext)) (n size))))
 
 Memory allocated by way of this function will be freed by the compiler
 after it has finished evaluating the macro.
@@ -664,9 +654,6 @@ argument. This function is present so that varargs macros can be
 supported without requiring macro users to also provide the number of
 arguments/forms being passed to the macro. Varargs macros otherwise
 operate in the same way as varargs functions.
-
-Aside from these, each of the [introspection](#introspection)
-functions takes a macro context as its first argument.
 
 ### Examples
 
@@ -742,7 +729,7 @@ occur.
 
 
 
-## <a name="Object lifetime operations"></a> 1.8 Object lifetime operations
+## <a name="Object lifetime"></a> 1.8 Object lifetime
 
 ### `init`
 
@@ -785,7 +772,7 @@ Destructors are defined like so:
 They are run when a value of the relevant type goes out of scope.
 
 If `destroy` is not defined over a particular type, then any attempt
-to call `destroy` on a pointer to that type will become a no-op.
+to call `destroy` on a value of that type will become a no-op.
 
 
 
@@ -976,17 +963,17 @@ Returns a null pointer to `type`.
 
 Casts `from-value` to the specified type and returns it.
 
-#### (`funcall` {`function-pointer`} {`arg1`} *`arg2`* ... *`argN`*)
+#### (`funcall` {`function-pointer`} {`arg1`} {`arg2`} ... {`argN`})
 
 Executes `function-pointer` using the provided arguments, and returns
 its result.
 
-#### (`do` {`form1`} {`form2`} ... *`formN`*)
+#### (`do` {`form1`} {`form2`} ... {`formN`})
 
 Evaluates each form in order. Returns the result of evaluating the
 final form.
 
-#### (`new-scope` {`form1`} {`form2`} ... *`formN`*)
+#### (`new-scope` {`form1`} {`form2`} ... {`formN`})
 
 Introduces a new lexical scope, and evaluates each form within that
 scope. As per `do`, the result is that of the final form.
@@ -1000,7 +987,7 @@ Marks a point in the code, for later use by `goto`.
 Branches unconditionally to the specified label and continues
 execution.
 
-#### (`if` {`condition`} {`true-case`} *`false-case`*)
+#### (`if` {`condition`} {`true-case`} {`false-case`})
 
 Executes `true-case` if `condition` is true; otherwise, executes
 `false-case`.
@@ -1023,7 +1010,7 @@ type.
 Performs any necessary cleanup required by way of the use of the
 `va-list`. 
 
-#### (`array-of` {`count`} {`type`} (`array` *`a1`* *`a2`* ... *`aN`*))
+#### (`array-of` {`count`} {`type`} (`array` {`a1`} {`a2`} ... {`aN`}))
 
 Constructs and returns a new array literal of the specified type.
 
@@ -1050,7 +1037,7 @@ Pointer comparison and modification forms. The first three return
 `bool` values, and the remaining two return pointers that have the
 type of the first argument.
 
-#### (`using-namespace` {`name`} {`form1`} *`form2`* ... *`formN`*)
+#### (`using-namespace` {`name`} {`form1`} {`form2`} ... {`formN`})
 
 Adds the specified namespace to the list of namespaces used for
 lookup, and evaluates each of the forms in that context. As per `do`,
@@ -1124,10 +1111,6 @@ If the argument evaluates to false, returns true, and vice-versa.
                           (token-str (p char))
                           (list-node (p DNode))
                           (next-node (p DNode)))))
-
-See [Macros](#Macros).
-
-#### `PoolNode` (opaque)
 
 See [Macros](#Macros).
 

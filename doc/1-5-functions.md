@@ -73,7 +73,7 @@ Varargs functions are written in nearly the same way as in C. The
 Certain core forms may be overridden by user-level functions, namely
 `@`, `#` and `$`. `setf` may also be 'overridden', in effect, by
 defining functions named `setf-copy` and `setf-assign`; these are
-discussed in more detail in [Copy/destroy](./1-8-copy-destroy.md).
+discussed in more detail in [Object lifetime](./1-8-object-lifetime.md).
 
 The `core` core form may, in turn, be used to ignore overridden core
 forms. For example:
@@ -98,7 +98,7 @@ between overloaded functions. However, if the function only has one
 definition, and that definition has `extern-c` linkage, the argument
 types may be omitted.
 
-The above example is much saner when local type deduction is used:
+Local type deduction makes function pointer definitions much simpler:
 
         (def fp (var auto \ (# + int int)))
 
@@ -125,8 +125,8 @@ the surrounding environment.
 
 Function parameters may be passed by reference. Within the body of the
 function, the arguments for those parameters have a type of 'pointer
-to referenced type'; i.e., a reference is not a separate type as such.
-For example:
+to referenced type'; a reference is not a separate type as such.  For
+example:
 
         (def add-2-ints (fn intern int ((a (ref int)) (b (ref int)))
           (return (+ (@ a) (@ b)))))
@@ -137,11 +137,11 @@ is to a constant type.
 ### Retvals
 
 A function's return type may be marked as `retval`. Such a function,
-rather than returning a value using `return`, writes the result to the
-binding `retval`, which is provided implicitly by the compiler. That
-binding has the type 'pointer to actual return type', and its value is
-used as the return value of the function. `retval` allows for avoiding
-unnecessary allocations/copies. For example:
+rather than returning a value using `return`, should write the result
+to the binding `retval`, which is provided implicitly by the compiler.
+That binding has the type 'pointer to actual return type', and its
+value is used as the return value of the function. `retval` allows for
+avoiding unnecessary allocations/copies. For example:
 
         (def add-2-ints (fn intern (retval int) ((a int) (b int))
           (setf retval (+ a b))

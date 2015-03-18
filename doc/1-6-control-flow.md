@@ -48,7 +48,4 @@ so:
 evaluates each in turn, and returns the value yielded by the last
 form.)
 
-Labels are scoped to the containing procedure, surprisingly enough:
-`new-scope` does not allow for label names to be shadowed.
-
 [Previous](./1-5-functions.md) | [Next](./1-7-macros.md)
