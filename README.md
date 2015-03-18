@@ -3,7 +3,18 @@
 [![Build Status](https://travis-ci.org/tomhrr/dale.png)](https://travis-ci.org/tomhrr/dale)
 
 Dale is a system (no GC) programming language that uses S-expressions
-for syntax and supports syntactic macros.
+for syntax and supports syntactic macros. The basic language is
+similar to C, with the following additional features:
+
+  * local type deduction;
+  * overloaded functions;
+  * anonymous functions;
+  * function structs;
+  * object lifetime operations;
+  * namespaces;
+  * modules;
+  * concepts; and
+  * compiler introspection.
 
 ### Supported systems
 
