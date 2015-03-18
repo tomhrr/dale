@@ -121,11 +121,11 @@ if (NOT IS_DEBUG)
     endif ()
 endif ()
 
+message (STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
 if (IS_DEBUG)
     string (REGEX REPLACE "-DNDEBUG" "" LLVM_CXX_FLAGS ${LLVM_CXX_FLAGS})
 endif ()
-
-message (STATUS "${LLVM_CXX_FLAGS}")
 
 # Set compile/link flags.
 set (DALEC_LIBDIR_FLAGS_ "$ENV{LDFLAGS} ${FFI_LIBRARY_DIR}")

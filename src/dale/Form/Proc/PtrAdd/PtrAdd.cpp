@@ -47,7 +47,7 @@ FormProcPtrAddParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     block = addend_pr.block;
-    llvm::Value *addend_value;
+    llvm::Value *addend_value = NULL;
 
     if (addend_pr.type->isIntegerType()) {
         ParseResult size_pr;

@@ -47,7 +47,7 @@ FormProcPtrSubtractParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     block = minuend_pr.block;
-    llvm::Value *minuend_value;
+    llvm::Value *minuend_value = NULL;
 
     if (minuend_pr.type->isIntegerType()) {
         ParseResult size_pr;
