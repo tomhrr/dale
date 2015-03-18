@@ -2,10 +2,9 @@
 
 ## <a name="Introduction"></a> 1.1 Introduction
 
-Dale is an unsafe (no GC), homoiconic programming language. It uses
-S-expressions for its syntax, and is essentially an experiment in
-seeing how a language at this level can work when it has 'proper'
-macros. The basic language is similar to C; the notable additions are:
+Dale is a system (no GC) programming language that uses S-expressions
+for syntax and supports syntactic macros. The basic language is
+similar to C, with the following additional features:
 
   * local type deduction;
   * overloaded functions;
