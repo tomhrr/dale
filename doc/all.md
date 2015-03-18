@@ -11,8 +11,7 @@ macros. The basic language is similar to C; the notable additions are:
   * overloaded functions;
   * anonymous functions;
   * function structs;
-  * overridden copy/assign operations;
-  * destructors;
+  * object lifetime operations;
   * namespaces;
   * modules;
   * concepts; and
@@ -40,11 +39,9 @@ compared with C:
 Throughout the documentation, the term 'procedure' is used to refer to
 functions and macros as a single group.
 
-The language is still very much at the experimental/toy stage. There
-are likely to be significant bugs and other problems, as well as
-documentation inconsistencies. The compiler itself is very slow and
-leaky, the generated code is not very good and the code (both for the
-compiler and the libraries) is best avoided.
+Note that the language is still very much at the experimental/toy
+stage, so there are likely to be bugs, documentation inconsistencies
+and so on.
 
 
 
@@ -55,7 +52,7 @@ features, so most versions of clang/gcc should suffice.
 
 ### External dependencies
 
-  * LLVM (3.0-3.5)
+  * LLVM (3.2-3.5)
   * libffi
 
 ### Tested platforms
@@ -745,13 +742,18 @@ occur.
 
 
 
-## <a name="Copy/destroy"></a> 1.8 Copy/destroy
+## <a name="Object lifetime operations"></a> 1.8 Object lifetime operations
 
-The `setf` core form may be overridden for a particular type, in
-effect, by defining functions named `setf-copy` and `setf-assign`.  A
-corresponding destructor for the type may be defined by implementing a
-function named `destroy`, which function takes a pointer to the
-relevant type as its single argument.
+### `init`
+
+An `init` function is defined like so:
+
+        (def init (fn {linkage} bool ((dst (ref {source-type})))
+          {body}))
+
+If a variable of the specified type is defined without being
+initialised, this function will be run with that variable as its
+argument.
 
 ### `setf-copy`
 
@@ -769,11 +771,6 @@ whenever `dst` is uninitialised.
 `setf-assign` functions are defined in the same manner as `setf-copy`
 functions, save for the name. They are used whenever `dst` has already
 been initialised.
-
-Since the compiler cannot determine whether a particular variable or
-value has actually been initialised in all cases, it is important that
-all declared variables are initialised properly, and as early as
-possible.
 
 Multiple `setf` functions, supporting different source types, may be
 defined over a single destination type.

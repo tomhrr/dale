@@ -37,6 +37,20 @@ my @files = qw(
     3-12-csetjmp.md
 );
 
+my @examples = qw(
+    hello-world
+    hello-name
+    type-deduction
+    overloading
+    anonymous-functions
+    macros
+    typed-macros
+    introspection
+    error-reporting
+    derivations
+    containers
+);
+
 sub file_to_title
 {
     my ($file) = @_;
@@ -53,6 +67,53 @@ sub file_to_name
     $file =~ s/^\d+-\d+-//;
     return $file;
 }
+
+sub update_examples
+{
+    my @readme;
+    open my $fh, '<', 'README.md' or die $!;
+    while (defined (my $line = <$fh>)) {
+        if ($line =~ /^### Examples/) {
+            push @readme, $line;
+            for my $example (@examples) {
+                push @readme, "\n",
+                              "**$example**\n\n",
+                              "```\n";
+                open my $e_fh, '<', "eg/doc/$example.dt" or die $!;
+                while (defined (my $line = <$e_fh>)) {
+                    push @readme, $line;
+                }
+                push @readme, "```\n```\n";
+                my @output = `dalec -lm eg/doc/$example.dt 2>&1`;
+                if ($? == 0) {
+                    push @output, `./a.out`;
+                }
+                for (@output) {
+                    s/^eg\/doc\//.\//;
+                }
+                push @readme, ((map { "> $_" } @output),
+                               "```\n");
+            }
+            push @readme, "\n";
+            while (defined (my $line = <$fh>)) {
+                if ($line =~ /^### Bugs/) {
+                    push @readme, $line;
+                    last;
+                }
+            }
+        } else {
+            push @readme, $line;
+        }
+    }
+    close $fh;
+    open $fh, '>', 'README.md' or die $!;
+    for my $line (@readme) {
+        print $fh $line;
+    }
+    close $fh;
+}
+
+update_examples();
 
 for (my $i = 0; $i < @files; $i++) {
     my $file = $files[$i];

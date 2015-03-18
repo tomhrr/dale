@@ -1,0 +1,17 @@
+(import derivations)
+
+(def Point (struct intern ((x int) (y int))))
+
+(std.concepts.implement Struct Point)
+(std.concepts.instantiate relations Point)
+
+(def main (fn extern-c int (void)
+  (let ((p1 Point ((x 1) (y 2)))
+        (p2 Point ((x 3) (y 4))))
+    (and (!= p1 p2)
+         (do (printf "p1 and p2 are not equal\n") true))
+    (and (<= p1 p2)
+         (do (printf "p1 is less than or equal to p2\n") true))
+    (and (> p2 p1)
+         (do (printf "p2 is more than p1\n") true))
+    0)))

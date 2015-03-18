@@ -1,0 +1,19 @@
+(import introspection)
+(import macros)
+
+(def Point (struct intern ((x int) (y int))))
+
+(using-namespace std.macros
+  (def show-struct-details (macro intern (st)
+     (let ((name  \ (@:@ st token-str))
+           (count \ (struct-member-count mc st)))
+       (printf "Struct: %s\n"       name)
+       (printf "Member count: %d\n" count)
+       (let ((i \ 0))
+         (for true (< i count) (incv i)
+           (printf "Member %d: %s\n" (+ i 1) (struct-member-name mc st i))))
+       (nullptr DNode))))
+
+  (def main (fn extern-c int (void)
+    (show-struct-details Point)
+    0)))

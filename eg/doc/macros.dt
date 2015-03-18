@@ -1,0 +1,14 @@
+(import cstdio)
+(import stdlib)
+(import macros)
+
+(using-namespace std.macros
+  (def unless (macro intern (condition statement)
+    (qq do
+      (and (not (uq condition))
+           (do (uq statement) true)))))
+
+  (def main (fn extern-c int (void)
+    (unless (= 1 2)
+      (printf "1 does not equal 2\n"))
+    (return 0))))

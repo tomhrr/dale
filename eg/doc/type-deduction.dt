@@ -1,0 +1,7 @@
+(import cstdio)
+(import stdlib)
+
+(def main (fn extern-c int (void)
+  (let ((a \ 1)
+        (b \ 2))
+    (printf "%d\n" (+ a b)))))

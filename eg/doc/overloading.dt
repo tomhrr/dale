@@ -1,0 +1,15 @@
+(import cstdio)
+(import cstdlib)
+
+(def Point (struct intern ((x int) (y int))))
+
+(def + (fn intern Point ((a Point) (b Point))
+  (let ((r Point ((x (+ (@: a x) (@: b x)))
+                  (y (+ (@: a y) (@: b y))))))
+    (return r))))
+
+(def main (fn extern-c int (void)
+  (let ((a Point ((x 1) (y 2)))
+        (b Point ((x 3) (y 4)))
+        (c Point (+ a b)))
+    (printf "%d %d\n" (@: c x) (@: c y)))))

@@ -1,0 +1,9 @@
+(import cstdio)
+(import macros)
+
+(using-namespace std.macros
+  (def + (macro intern ((a int) (b int) (c int))
+    (qq do (+ (uq a) (+ (uq b) (uq c))))))
+
+  (def main (fn extern-c int (void)
+    (printf "%d\n" (+ 1 2 3)))))

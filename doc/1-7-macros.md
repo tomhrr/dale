@@ -1,6 +1,6 @@
 # Dale
 
-[Previous](./1-6-control-flow.md) | [Next](./1-8-copy-destroy.md)
+[Previous](./1-6-control-flow.md) | [Next](./1-8-object-lifetime.md)
 
 ## 1.7 Macros
 
@@ -142,4 +142,4 @@ steps. It is necessary to mark such functions with the `cto`
 attribute, so that the compiler removes them before any linking errors
 occur.
 
-[Previous](./1-6-control-flow.md) | [Next](./1-8-copy-destroy.md)
+[Previous](./1-6-control-flow.md) | [Next](./1-8-object-lifetime.md)

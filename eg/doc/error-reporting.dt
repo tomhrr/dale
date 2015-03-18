@@ -1,0 +1,14 @@
+(import introspection)
+(import macros)
+
+(using-namespace std.macros
+  (def assert-is-struct (macro intern (st)
+    (let ((count \ (struct-member-count mc st)))
+      (and (= -1 count)
+           (do (report-error mc st "struct type does not exist")
+               true))
+      (return (nullptr DNode)))))
+
+  (def main (fn extern-c int (void)
+    (assert-is-struct Point)
+    0)))

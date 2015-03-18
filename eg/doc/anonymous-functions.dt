@@ -1,0 +1,6 @@
+(import cstdio)
+(import stdlib)
+
+(def main (fn extern-c int (void)
+  (let ((anon-fn \ (fn int ((n int)) (* 2 n))))
+    (printf "%d\n" (anon-fn 5)))))

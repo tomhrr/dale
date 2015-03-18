@@ -13,8 +13,7 @@ macros. The basic language is similar to C; the notable additions are:
   * overloaded functions;
   * anonymous functions;
   * function structs;
-  * overridden copy/assign operations;
-  * destructors;
+  * object lifetime operations;
   * namespaces;
   * modules;
   * concepts; and
@@ -42,10 +41,8 @@ compared with C:
 Throughout the documentation, the term 'procedure' is used to refer to
 functions and macros as a single group.
 
-The language is still very much at the experimental/toy stage. There
-are likely to be significant bugs and other problems, as well as
-documentation inconsistencies. The compiler itself is very slow and
-leaky, the generated code is not very good and the code (both for the
-compiler and the libraries) is best avoided.
+Note that the language is still very much at the experimental/toy
+stage, so there are likely to be bugs, documentation inconsistencies
+and so on.
 
 [Next](./1-2-setup.md)
