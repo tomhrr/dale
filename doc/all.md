@@ -11,7 +11,7 @@ similar to C, with the following additional features:
   * anonymous functions;
   * function structs;
   * reference parameters;
-  * object lifetime operations;
+  * initialisers and destructors;
   * namespaces;
   * modules;
   * concepts; and
@@ -427,7 +427,8 @@ Varargs functions are written in nearly the same way as in C. The
 Certain core forms may be overridden by user-level functions, namely
 `@`, `#` and `$`. `setf` may also be 'overridden', in effect, by
 defining functions named `setf-copy` and `setf-assign`; these are
-discussed in more detail in [Object lifetime](#Object lifetime).
+discussed in more detail in
+[Initialisers and destructors](#Initialisers and destructors).
 
 The `core` core form may, in turn, be used to ignore overridden core
 forms. For example:
@@ -729,7 +730,7 @@ occur.
 
 
 
-## <a name="Object lifetime"></a> 1.8 Object lifetime
+## <a name="Initialisers and destructors"></a> 1.8 Initialisers and destructors
 
 ### `init`
 

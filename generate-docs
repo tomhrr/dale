@@ -84,7 +84,7 @@ sub update_examples
                     push @readme, $line;
                 }
                 push @readme, "```\n```\n";
-                my @output = `dalec -lm eg/doc/$example.dt 2>&1`;
+                my @output = `./dalec -lm eg/doc/$example.dt 2>&1`;
                 if ($? == 0) {
                     push @output, `./a.out`;
                 }
