@@ -57,7 +57,7 @@ Tested on Linux (Debian) x86 and x86-64.
 (import cstdio)
 
 (def main (fn extern-c int (void)
-  (def name (var auto \ "name"))
+  (def name (var auto (p (const char)) "name"))
   (printf "hello, %s\n" name)))
 ```
 ```
