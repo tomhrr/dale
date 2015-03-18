@@ -18,7 +18,7 @@
 using namespace dale;
 
 static const char *options = "M:m:O:a:I:L:l:o:s:b:cdrR";
-static const int COPY_SIZE = 8192;
+static const size_t COPY_SIZE = 8192;
 static const char *progname = NULL;
 
 static void
