@@ -1,6 +1,6 @@
 # Dale
 
-[Previous](./1-8-object-lifetime.md) | [Next](./1-10-modules.md)
+[Previous](./1-8-init-destroy.md) | [Next](./1-10-modules.md)
 
 ## 1.9 Namespaces
 
@@ -64,4 +64,4 @@ The lookup rules for bindings generally are as follows:
     introduction/definition; and
   * check the implicit top-level namespace.
 
-[Previous](./1-8-object-lifetime.md) | [Next](./1-10-modules.md)
+[Previous](./1-8-init-destroy.md) | [Next](./1-10-modules.md)

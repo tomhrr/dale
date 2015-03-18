@@ -9,7 +9,7 @@
 ### 1.5. [Functions](./1-5-functions.md)
 ### 1.6. [Control flow](./1-6-control-flow.md)
 ### 1.7. [Macros](./1-7-macros.md)
-### 1.8. [Object lifetime](./1-8-object-lifetime.md)
+### 1.8. [Initialisers and destructors](./1-8-init-destroy.md)
 ### 1.9. [Namespaces](./1-9-namespaces.md)
 ### 1.10. [Modules](./1-10-modules.md)
 ### 1.11. [Form reference](./1-11-form-reference.md)  

@@ -2,7 +2,7 @@
 
 [Previous](./1-7-macros.md) | [Next](./1-9-namespaces.md)
 
-## 1.8 Object lifetime
+## 1.8 Initialisers and destructors
 
 ### `init`
 
