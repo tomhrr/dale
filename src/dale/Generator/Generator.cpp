@@ -292,8 +292,7 @@ Generator::run(std::vector<const char *> *file_paths,
         } else if (fopen("./libdrt.so", "r")) {
             libdrt_path = "./libdrt.so";
         } else {
-            fprintf(stderr, "Unable to find libdrt.so.");
-            abort();
+            error("unable to find libdrt.so");
         }
         mr.addDynamicLibrary(libdrt_path, false, false);
     }

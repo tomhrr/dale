@@ -38,9 +38,11 @@ Writer::writeBitcode(const char *suffix)
 
     FILE *bc = fopen(bc_path.c_str(), "w");
     if (!bc) {
-        perror("Cannot create module bitcode file.");
-        return false;
+        char buf[1024];
+        sprintf(buf, "unable to open %s for writing", bc_path.c_str());
+        error(buf, true);
     }
+
     llvm::raw_fd_ostream bc_out(fileno(bc), false);
     pm->run(*mod);
     llvm::WriteBitcodeToFile(mod, bc_out);
@@ -99,6 +101,12 @@ Writer::writeContext()
     module_prefix.append(".dtm");
 
     FILE *mod_data = fopen(module_prefix.c_str(), "w");
+    if (!mod_data) {
+        char buf[1024];
+        sprintf(buf, "unable to open %s for writing", module_prefix.c_str());
+        error(buf, true);
+    }
+
     assert(mod_data && "cannot create module file");
     serialise(mod_data, ctx);
     serialise(mod_data, included_once_tags);

@@ -20,6 +20,8 @@
 
 namespace dale
 {
+/*! The current executable name (i.e. argv[0]). */
+extern const char *progname;
 /*! Check whether a string represents a decimal number.
  *  @param str The string.
  */
@@ -105,6 +107,12 @@ llvm::Constant *getStringConstantArray(const char *data);
  *  @param type The type.
  */
 llvm::ConstantPointerNull *getNullPointer(llvm::Type *type);
+/*! Report a fatal error and exit.
+ *  @param error_msg The error message.
+ *  @param show_perror Whether to use perror to show the current error
+ *  message prior to printing msg.
+ */
+void error(const char *error_msg, bool show_perror = false);
 }
 
 #endif

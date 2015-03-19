@@ -1,5 +1,7 @@
 #include "Serialise.h"
 
+#include "../Utils/Utils.h"
+
 #include <cassert>
 
 namespace dale
@@ -8,8 +10,7 @@ void xfwrite(const void *a, size_t b, size_t c, FILE *d)
 {
     size_t res = fwrite(a, b, c, d);
     if (res != c) {
-        perror("fwrite failed");
-        abort();
+        error("write failed", true);
     }
 }
 

@@ -8,6 +8,8 @@
 
 namespace dale
 {
+const char *progname = NULL;
+
 bool
 isSimpleFloat(const char *str)
 {
@@ -249,5 +251,18 @@ getNullPointer(llvm::Type *type)
         llvm::ConstantPointerNull::get(
             llvm::cast<llvm::PointerType>(type)
         );
+}
+
+void
+error(const char *error_msg, bool show_perror)
+{
+    char buf[1024];
+    sprintf(buf, "%s: %s", progname, error_msg);
+    if (show_perror) {
+        perror(buf);
+    } else {
+        fprintf(stderr, "%s\n", buf);
+    }
+    exit(1);
 }
 }

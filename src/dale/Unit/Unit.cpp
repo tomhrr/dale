@@ -2,6 +2,7 @@
 #include "../Lexer/Lexer.h"
 #include "../llvm_Module.h"
 #include "../llvm_Linker.h"
+#include "../Utils/Utils.h"
 #include "../CommonDecl/CommonDecl.h"
 
 #include <cstdio>
@@ -13,8 +14,9 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
 {
     FILE *mfp = fopen(path, "r");
     if (!mfp) {
-        perror("Unable to open file");
-        exit(1);
+        char buf[1024];
+        sprintf(buf, "unable to open %s for reading", path);
+        error(buf, true);
     }
 
     er->current_filename = path;

@@ -251,6 +251,9 @@ readFile(FILE *fh, char **buf_ptr)
 
     int size = buf.st_size;
     char *data = (char*) malloc(size);
+    if (!data) {
+        error("unable to allocate memory", true);
+    }
     size_t res = fread(data, 1, size, fh);
     assert((res == (size_t) size) && "unable to read module file");
     _unused(res);

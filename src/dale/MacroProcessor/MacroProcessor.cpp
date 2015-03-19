@@ -134,6 +134,9 @@ MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
     }
 
     PoolNode *pn = (PoolNode *) malloc(sizeof(PoolNode));
+    if (!pn) {
+        error("unable to allocate memory", true);
+    }
     memset(pn, 0, sizeof(PoolNode));
 
     MContext mcontext;

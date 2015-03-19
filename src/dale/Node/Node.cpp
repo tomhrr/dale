@@ -1,5 +1,7 @@
 #include "Node.h"
 
+#include "../Utils/Utils.h"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -150,11 +152,17 @@ Node::toDNode()
     if (is_token) {
         Token *t = token;
         DNode *dnode = (DNode*) malloc(sizeof(*dnode));
+        if (!dnode) {
+            error("unable to allocate memory", true);
+        }
 
         std::string token_str;
         t->toString(&token_str);
 
         char *sv = (char *) malloc(token_str.length() + 1);
+        if (!sv) {
+            error("unable to allocate memory", true);
+        }
         strncpy(sv, token_str.c_str(), token_str.length() + 1);
 
         dnode->is_list   = false;
@@ -176,7 +184,10 @@ Node::toDNode()
 
         return dnode;
     } else if (is_list) {
-        DNode *top_node = (DNode*)malloc(sizeof(*top_node));
+        DNode *top_node = (DNode*) malloc(sizeof(*top_node));
+        if (!top_node) {
+            error("unable to allocate memory", true);
+        }
         top_node->is_list   = true;
         top_node->token_str = NULL;
         top_node->next_node = NULL;

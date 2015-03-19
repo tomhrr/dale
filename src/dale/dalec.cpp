@@ -1,12 +1,13 @@
 #include "Generator/Generator.h"
 
+#include "Config.h"
+#include "Utils/Utils.h"
 #include <cstring>
 #include <cstdlib>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <getopt.h>
 #include <cstdio>
-#include "Config.h"
 
 /*! dalec
 
@@ -19,17 +20,6 @@ using namespace dale;
 
 static const char *options = "M:m:O:a:I:L:l:o:s:b:cdrR";
 static const size_t COPY_SIZE = 8192;
-static const char *progname = NULL;
-
-static void
-error(const char *error_msg, bool show_perror = false)
-{
-    if (show_perror) {
-        perror(progname);
-    }
-    fprintf(stderr, "%s: %s.\n", progname, error_msg);
-    exit(1);
-}
 
 static bool
 appearsToBeLib(const char *str)
@@ -63,6 +53,11 @@ static bool
 copyFile(const char *to_path, FILE *from)
 {
     FILE *to = fopen(to_path, "w");
+    if (!to) {
+        char buf[1024];
+        sprintf(buf, "unable to open %s for writing", to_path);
+        error(buf, true);
+    }
     char buf[COPY_SIZE];
     memset(buf, 0, COPY_SIZE);
     size_t bytes;
