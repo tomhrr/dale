@@ -48,7 +48,11 @@ message (STATUS "System processor: ${CMAKE_SYSTEM_PROCESSOR}")
 message (STATUS "System version: ${CMAKE_SYSTEM_VERSION}")
 
 if (${D_LLVM_VERSION_MAJOR} LESS 3)
-    message (FATAL_ERROR "LLVM >= 3.0 is required.")
+    message (FATAL_ERROR "LLVM >= 3.4 is required.")
+elseif (${D_LLVM_VERSION_MAJOR} EQUAL 3)
+    if (${D_LLVM_VERSION_MINOR} LESS 4)
+        message (FATAL_ERROR "LLVM >= 3.4 is required.")
+    endif ()
 endif ()
 
 # Get LLVM configuration details.

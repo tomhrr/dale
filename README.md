@@ -30,7 +30,7 @@ Tested on Linux (Debian) x86 and x86-64.
 
 #### Dependencies
 
-  * LLVM (3.2-3.5)
+  * LLVM (3.4-3.5)
   * libffi
 
 #### Out-of-tree (recommended)
