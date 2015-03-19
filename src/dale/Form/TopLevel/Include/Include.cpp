@@ -4,6 +4,8 @@
 #include "../../../CommonDecl/CommonDecl.h"
 #include "../../../Node/Node.h"
 
+#include <cstdio>
+
 using namespace dale::ErrorInst;
 
 namespace dale
