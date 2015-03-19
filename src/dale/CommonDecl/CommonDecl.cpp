@@ -3,6 +3,7 @@
 #include "../BasicTypes/BasicTypes.h"
 #include <setjmp.h>
 #include <float.h>
+#include <cstdio>
 
 #define BT_SI(t)  BasicTypes::addSignedInt(ctx, mod, &current_once_tag, t);
 #define BT_UI(t)  BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, t);
