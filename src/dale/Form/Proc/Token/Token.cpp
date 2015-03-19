@@ -2,6 +2,8 @@
 
 #include "../../Literal/Enum/Enum.h"
 
+#include <cstdio>
+
 using namespace dale::ErrorInst;
 
 namespace dale
