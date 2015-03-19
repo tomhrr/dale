@@ -30,32 +30,33 @@ public:
     Generator();
     ~Generator();
     /*! Compile a set of files into a specific output format.
-     *  @file_paths The Dale files to compile.
-     *  @bc_file_paths The LLVM bitcode files to compile.
-     *  @compile_lib_paths Paths to libraries for use at compile time.
-     *  @include_paths Paths to inspect for include files.
-     *  @module_paths Paths to modules to import.
-     *  @static_module_names The names of modules that should be
-     *                       linked statically.
-     *  @cto_module_names The names of modules that will only be used
-     *                    at compile time.
-     *  @module_name If a module is being compiled, the name of the module.
-     *  @debug Enable debug mode.
-     *  @produce The output format (see Produce).
-     *  @optlevel The optimisation level (1-4).
-     *  @remove_macros Whether macro definitions should be removed from the
-     *                 final product.
-     *  @no_common Whether common declarations should not be included.
-     *  @no_dale_stdlib Whether the drt library should not be imported.
-     *  @static_mods_all Whether all modules should be linked
-     *                   statically.
-     *  @enable_cto Whether the module being compiled is a
-     *              compile-time-only module (equivalent to (attr
-     *              cto)).
-     *  @shared_object_paths The paths to shared objects against which
-     *                       the output file has to be linked
-     *                       (populated by this function).
-     *  @output_file The compilation output file.
+     *  @param file_paths The Dale files to compile.
+     *  @param bc_file_paths The LLVM bitcode files to compile.
+     *  @param compile_lib_paths Paths to libraries for use at compile time.
+     *  @param include_paths Paths to inspect for include files.
+     *  @param module_paths Paths to modules to import.
+     *  @param static_module_names The names of modules that should be
+     *                             linked statically.
+     *  @param cto_module_names The names of modules that will only be used
+     *                          at compile time.
+     *  @param module_name If a module is being compiled, the name of the
+     *                     module.
+     *  @param debug Enable debug mode.
+     *  @param produce The output format (see Produce).
+     *  @param optlevel The optimisation level (1-4).
+     *  @param remove_macros Whether macro definitions should be removed from
+     *                       the final product.
+     *  @param no_common Whether common declarations should not be included.
+     *  @param no_dale_stdlib Whether the drt library should not be imported.
+     *  @param static_mods_all Whether all modules should be linked
+     *                         statically.
+     *  @param enable_cto Whether the module being compiled is a
+     *                    compile-time-only module (equivalent to (attr
+     *                    cto)).
+     *  @param shared_object_paths The paths to shared objects against which
+     *                             the output file has to be linked
+     *                             (populated by this function).
+     *  @param output_file The compilation output file.
      */
     int run(std::vector<const char *> *file_paths,
             std::vector<const char *> *bc_file_paths,
