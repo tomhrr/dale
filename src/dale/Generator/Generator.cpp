@@ -287,14 +287,19 @@ Generator::run(std::vector<const char *> *file_paths,
 
     const char *libdrt_path = NULL;
     if (!no_dale_stdlib) {
-        if (fopen(DALE_LIBRARY_PATH "/libdrt.so", "r")) {
+        FILE *drt_file = NULL;
+        if ((drt_file = fopen(DALE_LIBRARY_PATH "/libdrt.so", "r"))) {
             libdrt_path = DALE_LIBRARY_PATH "/libdrt.so";
-        } else if (fopen("./libdrt.so", "r")) {
+        } else if ((drt_file = fopen("./libdrt.so", "r"))) {
             libdrt_path = "./libdrt.so";
         } else {
             error("unable to find libdrt.so");
         }
         mr.addDynamicLibrary(libdrt_path, false, false);
+        int res = fclose(drt_file);
+        if (res != 0) {
+            error("unable to close %s", libdrt_path, true);
+        }
     }
     if (!module_name && libdrt_path) {
         shared_object_paths->push_back(libdrt_path);
