@@ -62,15 +62,18 @@ eraseUnneeded(Context *ctx, SPNode *spnode, NSNode *nsnode)
     for (std::map<std::string, NSNode*>::iterator
             b = nsnode->children.begin(),
             e = nsnode->children.end();
-            b != e;
-            ++b) {
+            b != e;) {
         std::map<std::string, SPNode*>::iterator spb =
             spnode->children.find(b->first);
         if (spb == spnode->children.end()) {
             ctx->deleteNamespaces(b->second);
+            std::map<std::string, NSNode*>::iterator b_copy = b;
+            ++b_copy;
             nsnode->children.erase(b);
+            b = b_copy;
         } else {
             eraseUnneeded(ctx, spb->second, b->second);
+            ++b;
         }
     }
 
