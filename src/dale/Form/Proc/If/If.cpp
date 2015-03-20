@@ -36,7 +36,7 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     if (cond_pr.type->base_type != BaseType::Bool) {
         std::string type_str;
-        pr->type->toString(&type_str);
+        cond_pr.type->toString(&type_str);
         Error *e = new Error(IncorrectArgType, condition_node,
                              "if", "bool", "1", type_str.c_str());
         ctx->er->addError(e);
