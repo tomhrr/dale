@@ -54,6 +54,11 @@ FormTopLevelIncludeParse(Units *units, Node *node)
                              strerror(errno));
         ctx->er->addError(e);
         return false;
+    } else {
+        int res = fclose(include_file);
+        if (res != 0) {
+            error("unable to close include file %s", path_buf.c_str(), true);
+        }
     }
 
     Unit *unit = new Unit(path_buf.c_str(), units, ctx->er, ctx->nt,
