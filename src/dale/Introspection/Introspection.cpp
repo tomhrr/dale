@@ -603,6 +603,7 @@ type_2D_to_2D_string(MContext *mc, DNode *t, char *buf)
 
     Type *type = FormTypeParse(units, (*(n->list))[0], false,
                                        false);
+    delete n;
     if (!type) {
         return false;
     }
@@ -626,6 +627,7 @@ type_2D_to_2D_display_2D_string(MContext *mc, DNode *t, char *buf)
 
     Type *type = FormTypeParse(units, (*(n->list))[0], false,
                                        false);
+    delete n;
     if (!type) {
         return false;
     }
