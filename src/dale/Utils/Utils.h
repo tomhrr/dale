@@ -110,9 +110,16 @@ llvm::ConstantPointerNull *getNullPointer(llvm::Type *type);
 /*! Report a fatal error and exit.
  *  @param error_msg The error message.
  *  @param show_perror Whether to use perror to show the current error
- *  message prior to printing msg.
+ *                     message prior to printing msg.
  */
 void error(const char *error_msg, bool show_perror = false);
+/*! Report a fatal error and exit.
+ *  @param error_msg The error message (format string).
+ *  @param str1 The first argument to the format string.
+ *  @param show_perror Whether to use perror to show the current error
+ *  message prior to printing msg.
+ */
+void error(const char *error_msg, const char *str1, bool show_perror = false);
 }
 
 #endif

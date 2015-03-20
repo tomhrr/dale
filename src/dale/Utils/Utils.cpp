@@ -265,4 +265,12 @@ error(const char *error_msg, bool show_perror)
     }
     exit(1);
 }
+
+void
+error(const char *error_msg, const char *str1, bool show_perror)
+{
+    char buf[1024];
+    sprintf(buf, error_msg, str1);
+    error(buf, show_perror);
+}
 }

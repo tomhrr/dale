@@ -49,42 +49,36 @@ joinWithPrefix(std::vector<const char*> *strings, const char *prefix,
     }
 }
 
-static bool
+static void
 copyFile(const char *to_path, FILE *from)
 {
     FILE *to = fopen(to_path, "w");
     if (!to) {
-        char buf[1024];
-        sprintf(buf, "unable to open %s for writing", to_path);
-        error(buf, true);
+        error("unable to open %s for writing", to_path, true);
     }
     char buf[COPY_SIZE];
     memset(buf, 0, COPY_SIZE);
     size_t bytes;
     size_t wbytes;
-    bool success = true;
 
-    fseek(from, SEEK_SET, 0);
+    int res = fseek(from, SEEK_SET, 0);
+    if (res != 0) {
+        error("unable to seek in temporary file", true);
+    }
 
     while ((bytes = fread(buf, (size_t) 1, (size_t) COPY_SIZE, from))) {
         if (ferror(from)) {
             fclose(from);
             fclose(to);
             error("unable to read temporary file", true);
-            success = false;
-            break;
         }
         wbytes = fwrite(buf, (size_t) 1, bytes, to);
         if (wbytes != bytes) {
             if (ferror(from)) {
                 error("unable to copy temporary file content", true);
-                success = false;
-                break;
             }
             if (ferror(to)) {
                 error("unable to copy temporary file content", true);
-                success = false;
-                break;
             }
         }
         if (bytes != COPY_SIZE) {
@@ -92,18 +86,25 @@ copyFile(const char *to_path, FILE *from)
                 break;
             } else {
                 error("unable to copy temporary file content", true);
-                success = false;
-                break;
             }
         }
         memset(buf, 0, COPY_SIZE);
     }
 
-    fflush(to);
-    fclose(from);
-    fclose(to);
+    res = fflush(to);
+    if (res != 0) {
+        error("unable to flush temporary file (copy)", true);
+    }
+    res = fclose(from);
+    if (res != 0) {
+        error("unable to close temporary file (copy from)", true);
+    }
+    res = fclose(to);
+    if (res != 0) {
+        error("unable to close temporary file (copy to)", true);
+    }
 
-    return success;
+    return;
 }
 
 int
@@ -292,7 +293,7 @@ main(int argc, char **argv)
 
     FILE *output_file = tmpfile();
     if (!output_file) {
-        error("unable to open temporary output file", true);
+        error("unable to open temporary file", true);
     }
     std::vector<std::string> so_paths;
     Generator generator;
@@ -319,7 +320,10 @@ main(int argc, char **argv)
     if (!generated) {
         exit(1);
     }
-    fflush(output_file);
+    int res = fflush(output_file);
+    if (res != 0) {
+        error("unable to flush temporary file", true);
+    }
 
     std::string run_lib_str;
     joinWithPrefix(&run_libs, " -l ", &run_lib_str);
@@ -336,10 +340,7 @@ main(int argc, char **argv)
     if (!produce_set) {
         intermediate_output_path.append(".s");
     }
-    bool result = copyFile(intermediate_output_path.c_str(), output_file);
-    if (!result) {
-        exit(1);
-    }
+    copyFile(intermediate_output_path.c_str(), output_file);
     if (produce_set) {
         exit(0);
     }

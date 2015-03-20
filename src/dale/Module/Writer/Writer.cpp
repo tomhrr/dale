@@ -38,17 +38,21 @@ Writer::writeBitcode(const char *suffix)
 
     FILE *bc = fopen(bc_path.c_str(), "w");
     if (!bc) {
-        char buf[1024];
-        sprintf(buf, "unable to open %s for writing", bc_path.c_str());
-        error(buf, true);
+        error("unable to open %s for writing", bc_path.c_str(), true);
     }
 
     llvm::raw_fd_ostream bc_out(fileno(bc), false);
     pm->run(*mod);
     llvm::WriteBitcodeToFile(mod, bc_out);
     bc_out.flush();
-    fflush(bc);
-    fclose(bc);
+    int res = fflush(bc);
+    if (res != 0) {
+        error("unable to flush %s", bc_path.c_str(), true);
+    }
+    res = fclose(bc);
+    if (res != 0) {
+        error("unable to close %s", bc_path.c_str(), true);
+    }
 
     return true;
 }
@@ -102,9 +106,7 @@ Writer::writeContext()
 
     FILE *mod_data = fopen(module_prefix.c_str(), "w");
     if (!mod_data) {
-        char buf[1024];
-        sprintf(buf, "unable to open %s for writing", module_prefix.c_str());
-        error(buf, true);
+        error("unable to open %s for writing", module_prefix.c_str(), true);
     }
 
     assert(mod_data && "cannot create module file");
@@ -114,8 +116,14 @@ Writer::writeContext()
     serialise(mod_data, cto);
     serialise(mod_data, &dale_typemap);
 
-    fflush(mod_data);
-    fclose(mod_data);
+    int res = fflush(mod_data);
+    if (res != 0) {
+        error("unable to flush %s", module_prefix.c_str(), true);
+    }
+    res = fclose(mod_data);
+    if (res != 0) {
+        error("unable to close %s", module_prefix.c_str(), true);
+    }
 
     return true;
 }
