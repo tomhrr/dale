@@ -7398,7 +7398,7 @@ Parameters:
 #### `fread`
 
 Linkage: `extern-c`
-Returns: `int`
+Returns: `size`
 Parameters:
 
   * `(ptr (p void))`
@@ -7411,7 +7411,7 @@ Parameters:
 #### `fwrite`
 
 Linkage: `extern-c`
-Returns: `int`
+Returns: `size`
 Parameters:
 
   * `(ptr (p void))`
