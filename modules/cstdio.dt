@@ -237,19 +237,19 @@ The standard error handle.
 @fn fread
 |#
 (def fread
-  (fn extern-c int ((ptr (p void))
-                        (size  size)
-                        (count size)
-                        (stream (p file)))))
+  (fn extern-c size ((ptr (p void))
+                     (size  size)
+                     (count size)
+                     (stream (p file)))))
 
 #|
 @fn fwrite
 |#
 (def fwrite
-  (fn extern-c int ((ptr (p void))
-                    (size  size)
-                    (count size)
-                    (stream (p file)))))
+  (fn extern-c size ((ptr (p void))
+                     (size  size)
+                     (count size)
+                     (stream (p file)))))
 
 #|
 @enum fseekorigin

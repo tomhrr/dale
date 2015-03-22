@@ -4,7 +4,7 @@
   (fn extern-c int (void)
     (def tempfile (var auto (p file) (tmpfile)))
     (def buf (var auto (array-of 255 char)))
-    (def bytes (var auto int 0))
+    (def bytes (var auto size 0))
 
     (fprintf tempfile "contents\n")
     (fseek tempfile 0 (fseekorigin SET))
