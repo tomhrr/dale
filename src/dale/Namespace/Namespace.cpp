@@ -553,7 +553,11 @@ Namespace::functionNameToSymbol(const char *name,
                 b != e;
                 ++b) {
             char c = *b;
-            sprintf(buf, ((c == '-') ? "_2D_" : "%c"), c);
+            if (c == '-') {
+                sprintf(buf, "_2D_");
+            } else {
+                sprintf(buf, "%c", c);
+            }
             new_name->append(buf);
         }
         return;
