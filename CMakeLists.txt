@@ -136,7 +136,11 @@ set (DALEC_LIBDIR_FLAGS_ "$ENV{LDFLAGS} ${FFI_LIBRARY_DIR}")
 set (DALEC_LIB_FLAGS_    "-lffi -lpthread")
 
 if (${D_LLVM_VERSION_MINOR} GREATER 3)
-    set (DALEC_LIB_FLAGS_ "${DALEC_LIB_FLAGS_} -lz -ltinfo")
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        set (DALEC_LIB_FLAGS_ "${DALEC_LIB_FLAGS_} -lz -lncurses")
+    else ()
+        set (DALEC_LIB_FLAGS_ "${DALEC_LIB_FLAGS_} -lz -ltinfo")
+    endif ()
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
