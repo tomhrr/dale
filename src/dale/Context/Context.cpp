@@ -954,7 +954,7 @@ Context::toLLVMLinkage(int linkage)
         case Linkage::Intern:
             lt = llvm::GlobalValue::InternalLinkage;    break;
         case Linkage::Extern_Weak:
-            lt = llvm::GlobalValue::LinkOnceODRLinkage; break;
+            lt = llvm::GlobalValue::WeakODRLinkage; break;
         case Linkage::Extern:
         case Linkage::Extern_C:
         default:

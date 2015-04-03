@@ -62,7 +62,7 @@ addSimpleFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
         );
 
     llvm_fn->setCallingConv(llvm::CallingConv::C);
-    llvm_fn->setLinkage(llvm::GlobalValue::LinkOnceODRLinkage);
+    llvm_fn->setLinkage(llvm::GlobalValue::WeakODRLinkage);
     setStandardAttributes(llvm_fn);
 
     Function *fn = new Function(return_type, params, llvm_fn,
