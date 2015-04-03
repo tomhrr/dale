@@ -176,7 +176,7 @@ void Error::toString(std::string *to)
     const char *main_err_str = errorInstanceToString(instance);
 
     if (arg_strings.size() == 0) {
-        sprintf(msg_buf, main_err_str);
+        sprintf(msg_buf, "%s", main_err_str);
     } else if (arg_strings.size() == 1) {
         sprintf(msg_buf, main_err_str, arg_strings[0].c_str());
     } else if (arg_strings.size() == 2) {
