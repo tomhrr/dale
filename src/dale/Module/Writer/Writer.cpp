@@ -64,11 +64,15 @@ Writer::writeSharedObject(const char *suffix)
     asm_path.append(suffix);
 
     std::string bc_path(asm_path);
-    asm_path.append(".s");
     bc_path.append(".bc");
 
+    std::string asm_filtered_path(asm_path);
+    asm_filtered_path.append("2.s");
+
+    asm_path.append(".s");
+
     std::string cmd;
-    cmd.append(LLVM_BIN_DIR "/llc -relocation-model=pic ")
+    cmd.append(LLVM_BIN_DIR "/llc -relocation-model=pic -filetype=asm ")
        .append(bc_path)
        .append(" -o ")
        .append(asm_path);
@@ -77,20 +81,46 @@ Writer::writeSharedObject(const char *suffix)
     assert(!res && "unable to assemble bitcode");
     _unused(res);
 
+    /* todo: Removing the macosx_version parts from the ASM files at
+     * least allows those files to be compiled on OS X (tested on
+     * 10.9.2), but is obviously not a long-term solution.
+     * Regardless, it currently fails on trying to compile
+     * concept-defs. */
+
+    if (!strcmp(SYSTEM_NAME, "Darwin")) {
+        std::string filter_cmd;
+        filter_cmd.append("cat ")
+                  .append(asm_path)
+                  .append(" | grep -v '\\.macosx_version' > ")
+                  .append(asm_filtered_path);
+
+        res = system(filter_cmd.c_str());
+        assert(!res && "unable to filter asm");
+        _unused(res);
+
+        res = remove(asm_path.c_str());
+        assert(!res && "unable to remove temporary assembly file");
+    } else {
+        asm_filtered_path = asm_path;
+    }
+
     std::string lib_path(module_prefix);
     lib_path.append(suffix);
     lib_path.append(".so");
 
     cmd.clear();
-    cmd.append("cc -shared ")
-       .append(asm_path)
+    cmd.append("cc -shared ");
+    if (!strcmp(SYSTEM_NAME, "Darwin")) {
+        cmd.append(" -undefined dynamic_lookup ");
+    }
+    cmd.append(asm_filtered_path)
        .append(" -o ")
        .append(lib_path);
 
     res = system(cmd.c_str());
     assert(!res && "unable to make library");
 
-    res = remove(asm_path.c_str());
+    res = remove(asm_filtered_path.c_str());
     assert(!res && "unable to remove temporary assembly file");
 
     return true;
