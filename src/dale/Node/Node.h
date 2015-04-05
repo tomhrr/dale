@@ -14,7 +14,7 @@
 */
 struct DNode
 {
-    bool is_list;
+    int is_list;
     char *token_str;
     DNode *list_node;
     DNode *next_node;

@@ -48,7 +48,7 @@ Returns a newly-allocated node.
             (cast form     (p void))
             (cast (sizeof DNode) int))
 
-    (if (@:@ form is-list)
+    (if (= 1 (@:@ form is-list))
         (setf (:@ new-node list-node) 
               (copy mc true (@:@ form list-node)))
         true)
@@ -85,14 +85,14 @@ node.
     (def charbuf  (var auto (p char)  
         (cast (pool-malloc mc (cast 256 size)) (p char))))
 
-    (if (not (@:@ form is-list))
+    (if (= 0 (@:@ form is-list))
         (do
             (setf ($ charbuf 0) dquote)
             (setv len (strlen (@ (: (@ form) token-str))))
             (strncpy ($ charbuf 1) (@ (: (@ form) token-str)) len) 
             (setf ($ charbuf (+ (cast 1 size) len)) dquote)
             (setf ($ charbuf (+ (cast 2 size) len)) #\NULL)
-            (setf (:@ new-node is-list)   false)
+            (setf (:@ new-node is-list)   0)
             (setf (:@ new-node token-str) charbuf)
             (setf (:@ new-node list-node) nullp)
 
@@ -103,7 +103,7 @@ node.
                         nullp)
                     nullp)))
         (do
-            (setf (:@ new-node is-list) true)
+            (setf (:@ new-node is-list) 1)
             (setf (:@ new-node list-node) 
                   (copy mc true (@:@ form list-node)))))
 
@@ -158,7 +158,7 @@ Prints the node to `stdout`.
 |#
 (def print
   (fn extern bool ((form (p DNode)))
-    (if (not (@:@ form is-list))
+    (if (= 0 (@:@ form is-list))
         (do (printf "%s" (@ (: (@ form) token-str)))
             true)
         (do (printf "(")
@@ -181,7 +181,7 @@ Prints the node to the provided buffer.
 (def sprint
   (fn extern bool ((buf (p char)) (form (p DNode)))
     (def cc (var auto (p char) buf))
-    (if (not (@:@ form is-list))
+    (if (= 0 (@:@ form is-list))
         (do (sprintf buf "%s" (@:@ form token-str))
             (setv buf (strchr buf (cast #\NULL int)))
             true)
@@ -239,7 +239,7 @@ copies it, and sets it in the new node.
     (def charp  (var auto (p char) 
                    (cast (pool-malloc mc (cast 256 size)) (p char))))
     (strncpy charp token-string (cast 256 size))
-    (setf (:@ d-node is-list)   false)
+    (setf (:@ d-node is-list)   0)
     (setf (:@ d-node token-str) charp)
     (setf (:@ d-node list-node) nullp)
     (setf (:@ d-node next-node) nullp)
@@ -411,7 +411,7 @@ and returned. This list node points to the first provided node as its
 
     (label end-loop)
       (va-end (cast (# arglist) (p void)))
-      (setf (:@ link-node is-list)   true)
+      (setf (:@ link-node is-list)   1)
       (setf (:@ link-node next-node) nullp)
       (setf (:@ link-node list-node) very-fst-node)
       (return link-node)))
@@ -471,7 +471,7 @@ list node.
 
     (label end-loop)
       (va-end (cast (# arglist) (p void)))
-      (setf (: (@ link-node) is-list)   true)
+      (setf (: (@ link-node) is-list)   1)
       (setf (: (@ link-node) next-node) nullp)
       (setf (: (@ link-node) list-node) very-fst-node)
 
@@ -717,7 +717,7 @@ from the provided node.
     (def dquote (var auto char #\"))
     
     (def myres (var auto (p DNode)
-    (if (not (@:@ form is-list))
+    (if (= 0 (@:@ form is-list))
         (do
           (setf ($ charbuf 0) dquote)
           (strncpy ($ charbuf 1) 
@@ -736,7 +736,7 @@ from the provided node.
         (do
           (def holder
             (var auto (p DNode) (make-node mc)))
-          (setf (:@ holder is-list) true)
+          (setf (:@ holder is-list) 1)
           (setf (:@ holder list-node) (nullptr DNode))
           (setf (:@ holder next-node) (nullptr DNode))
           (def topnode
@@ -801,7 +801,7 @@ A helper function for `bqq` (bootstrap-qq).
     (def nullp (var auto (p DNode) (cast 0 (p DNode))))
 
     (def holder (var auto (p DNode) (make-node mc)))
-    (setf (:@ holder is-list)   true)
+    (setf (:@ holder is-list)   1)
     (setf (:@ holder list-node) nullp)
     (setf (:@ holder next-node) nullp)
 
@@ -871,7 +871,7 @@ A helper function for `bqq` (bootstrap-qq).
             (setv begin 0)
             (setv arg-count (- arg-count 1))
 
-            (if (not (@ (:@ va-dnode is-list)))
+            (if (= 0 (@ (:@ va-dnode is-list)))
                 (do
                     (setf ($ charbuf 0) dquote)
                     (setv token-str (@ (:@ va-dnode token-str)))
@@ -895,7 +895,7 @@ A helper function for `bqq` (bootstrap-qq).
                     (setv anchor-node temp-node)
                     0)
             (do
-                (if (not (@:@ (@:@ va-dnode list-node) is-list))
+                (if (= 0 (@:@ (@:@ va-dnode list-node) is-list))
                     (if (if (= 0 (strcmp (@:@ (@:@ va-dnode list-node) token-str) "uq"))
                             (if (not (null (@:@ (@:@ va-dnode list-node) next-node)))
                                 true
@@ -997,7 +997,7 @@ used again.
 
     (def begin (var auto int 1))
 
-    (setf (:@ holder is-list)   true)
+    (setf (:@ holder is-list)   1)
     (setf (:@ holder list-node) frm)
     (setf (:@ holder next-node) nullp)
     (setv temp-node frm)

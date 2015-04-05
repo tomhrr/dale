@@ -12,7 +12,7 @@ implicitly where necessary.
 (def _vp (struct extern ((p char))))
 
 (def DNode
-  (struct extern ((is-list bool)
+  (struct extern ((is-list int)
                   (token-str (p char))
                   (list-node (p DNode))
                   (next-node (p DNode))

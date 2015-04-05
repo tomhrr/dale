@@ -289,8 +289,9 @@ removePostTerminators(llvm::Function *llvm_fn)
      * instructions that occur after the first terminating
      * instruction. */
 
-    for (llvm::Function::iterator b = llvm_fn->begin(),
-                                  e = llvm_fn->end();
+    for (llvm::iplist<llvm::BasicBlock>::reverse_iterator
+            b = llvm_fn->getBasicBlockList().rbegin(),
+            e = llvm_fn->getBasicBlockList().rend();
             b != e;
             ++b) {
         for (llvm::BasicBlock::iterator ib = b->begin(),
