@@ -356,9 +356,9 @@ main(int argc, char **argv)
                   .append(" | grep -v '\\.macosx_version' > ")
                   .append(iop_post);
 
-        res = system(filter_cmd.c_str());
-        assert(!res && "unable to filter asm");
-        _unused(res);
+        /* todo: Ignore the result here for now, because the ASM may
+         * be filtered elsewhere. */
+        system(filter_cmd.c_str());
 
         filter_cmd.clear();
         filter_cmd.append("cp ")
