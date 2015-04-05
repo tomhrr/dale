@@ -157,22 +157,9 @@ Reader::addDynamicLibrary(const char *path, bool add_to_so_paths,
             &error_msg
         );
 
-    int len = strlen(path);
-    bool is_so = (len >= 3) && !strcmp((path + len - 3), so_suffix);
-
     if (res) {
-        /* If this is Darwin, and .so is at the end of path, try
-         * replacing it with dylib.  Note that dylib is only for
-         * internal Mac libraries, not for Dale modules. */
-        if (!strcmp(SYSTEM_NAME, "Darwin") && is_so) {
-            std::string dylib_path;
-            dylib_path.append(path);
-            dylib_path.erase((dylib_path.size() - 3), 3);
-            dylib_path.append(so_suffix);
-            return addDynamicLibrary(dylib_path.c_str(), add_to_so_paths,
-                                     add_nm_to_so_paths);
-        }
-        assert(true && "unable to load library");
+        fprintf(stderr, "%s\n", error_msg.c_str());
+        error("unable to load dynamic library", false);
         return false;
     }
 
