@@ -68,6 +68,18 @@ sub file_to_name
     return $file;
 }
 
+sub file_to_path
+{
+    my ($file) = @_;
+    $file =~ s/\.md//;
+    $file =~ s/^\d+-\d+-//;
+    if (-e "modules/$file.dt") {
+        return "modules/$file.dt";
+    } else {
+        return "modules/linux/$file.dt";
+    }
+}
+
 sub update_examples
 {
     my @readme;
@@ -119,6 +131,7 @@ for (my $i = 0; $i < @files; $i++) {
     my $file = $files[$i];
     my $title = file_to_title($file);
     my $name  = file_to_name($file);
+    my $path  = file_to_path($file);
     my $prev_file = ($i > 0)       ? $files[$i - 1] : undef;
     my $next_file = ($i < $#files) ? $files[$i + 1] : undef;
     open my $fh, '>', "doc/$file" or die $!;
@@ -136,7 +149,7 @@ for (my $i = 0; $i < @files; $i++) {
     print $fh "$nav_str";
     print $fh "## $title\n\n";
     close $fh;
-    my $res = system("./module-to-markdown < modules/$name.dt >> doc/$file");
+    my $res = system("./module-to-markdown < $path >> doc/$file");
     if ($res != 0) {
         die "module-to-markdown failed";
     }
@@ -178,10 +191,11 @@ for (my $i = 0; $i < @files; $i++) {
     my $file = $files[$i];
     my $title = file_to_title($file);
     my $name  = file_to_name($file);
+    my $path  = file_to_path($file);
     open my $fh, '>>', "doc/all.md" or die $!;
     print $fh "## <a name=\"$name\"></a> $title\n\n";
     close $fh;
-    my $res = system("./module-to-markdown < modules/$name.dt >> doc/all.md");
+    my $res = system("./module-to-markdown < $path >> doc/all.md");
     if ($res != 0) {
         die "module-to-markdown failed";
     }
