@@ -345,35 +345,6 @@ main(int argc, char **argv)
         exit(0);
     }
 
-    /* todo: The comments from Writer apply here as well: this is a
-     * very short-term "fix". */
-    if (!strcmp(SYSTEM_NAME, "Darwin")) {
-        std::string filter_cmd;
-        std::string iop_post = intermediate_output_path;
-        iop_post.append("2");
-        filter_cmd.append("cat ")
-                  .append(intermediate_output_path)
-                  .append(" | grep -v '\\.macosx_version' > ")
-                  .append(iop_post);
-
-        /* todo: Ignore the result here for now, because the ASM may
-         * be filtered elsewhere. */
-        system(filter_cmd.c_str());
-
-        filter_cmd.clear();
-        filter_cmd.append("cp ")
-                  .append(iop_post)
-                  .append(" ")
-                  .append(intermediate_output_path);
-
-        res = system(filter_cmd.c_str());
-        assert(!res && "unable to copy file");
-        _unused(res);
-
-        res = remove(iop_post.c_str());
-        assert(!res && "unable to remove temporary assembly file");
-    }
-
     char compile_cmd[8192];
     int bytes = 0;
     if (no_linking) {
