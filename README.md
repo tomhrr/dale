@@ -19,7 +19,7 @@ similar to C, with the following additional features:
 
 ### Supported systems
 
-Tested on Linux (Debian) x86 and x86-64.
+Tested on Linux (Debian) x86 and x86-64, and OS X 10.9.2.
 
 ### Documentation
 
