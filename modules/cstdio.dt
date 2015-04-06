@@ -14,6 +14,7 @@ Bindings to `stdio.h`. Provides the following macro constants:
 |#
 (module cstdio)
 
+(import cstdio-arch)
 (import macros)
 
 #|
@@ -27,7 +28,7 @@ Bindings to `stdio.h`. Provides the following macro constants:
 The standard input handle.
 
 |#
-(def stdin    (var extern-c (p file)))
+(def stdin (var extern-c (p file)))
 
 #|
 @var stdout
@@ -35,7 +36,7 @@ The standard input handle.
 The standard output handle.
 
 |#
-(def stdout    (var extern-c (p file)))
+(def stdout (var extern-c (p file)))
 
 #|
 @var stderr
@@ -43,7 +44,7 @@ The standard output handle.
 The standard error handle.
 
 |#
-(def stderr    (var extern-c (p file)))
+(def stderr (var extern-c (p file)))
 
 #|
 @fn fdopen

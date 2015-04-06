@@ -1,0 +1,9 @@
+(module cerrno-arch)
+
+(import macros)
+
+(def __errno_location
+  (fn extern-c (p int) (void)))
+
+(def errno-arch
+  (macro extern (void) (std.macros.bqq @ (__errno_location))))
