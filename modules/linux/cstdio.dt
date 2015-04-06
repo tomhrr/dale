@@ -28,7 +28,6 @@ The standard input handle.
 
 |#
 (def stdin    (var extern-c (p file)))
-;(def __stdinp (var extern-c (p file)))
 
 #|
 @var stdout
@@ -37,7 +36,6 @@ The standard output handle.
 
 |#
 (def stdout    (var extern-c (p file)))
-;(def __stdoutp (var extern-c (p file)))
 
 #|
 @var stderr
@@ -46,27 +44,12 @@ The standard error handle.
 
 |#
 (def stderr    (var extern-c (p file)))
-;(def __stderrp (var extern-c (p file)))
 
 #|
 @fn fdopen
 |#
 (def fdopen
   (fn extern-c (p file) ((fd int) (mode (p (const char))))))
-
-#|
-@fn init-channels
-
-This function is used implicitly by the compiler to initialise
-`stdin`, `stdout` and `stderr` for Darwin.
-
-|#
-(def init-channels
-  (fn extern int (void)
-;    (setv stdin  __stdinp)
-;    (setv stdout __stdoutp)
-;    (setv stderr __stderrp)
-    0))
 
 #|
 @enum buffer-mode
