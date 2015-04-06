@@ -15,6 +15,7 @@ features, so most versions of clang/gcc should suffice.
 ### Tested platforms
 
   * Linux (Debian), x86 and x86-64
+  * OS X 10.9.2 (Mavericks)
 
 ### Building
 
@@ -41,6 +42,22 @@ to `/usr/local/lib/dale`.
 The tests are written using Perl. `IPC::Run` is the only non-core
 dependency required for testing: it can be installed by running `cpan
 IPC::Run`, or by way of the system package manager.
+
+### Building on OS X
+
+Internally, the compiler uses the system's C compiler (`cc`) for
+assembly and linking. If the version of LLVM being used produces
+assembly that can't be handled by the system's compiler, then errors
+about 'unknown directives' may be seen. The easiest way to fix this is
+to make sure that `cc` maps to a version of `clang` that refers to the
+same version of LLVM as that set via DLLVM\_CONFIG. With Homebrew,
+this is done like so:
+
+        brew install llvm --with-clang
+        ln -s /usr/local/Cellar/llvm/{version}/bin/clang /usr/local/bin/cc
+        export PATH=/usr/local/bin:$PATH
+
+prior to running a build as per the previous instructions.
 
 ### Hello world
 
