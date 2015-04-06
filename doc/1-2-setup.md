@@ -9,7 +9,7 @@ features, so most versions of clang/gcc should suffice.
 
 ### External dependencies
 
-  * LLVM (3.4-3.5)
+  * LLVM (3.2-3.5)
   * libffi
 
 ### Tested platforms
