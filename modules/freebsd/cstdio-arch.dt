@@ -1,0 +1,19 @@
+(module cstdio-arch)
+
+(import macros)
+
+(def stdin    (var extern-c (p file) (nullptr file)))
+(def __stdinp (var extern-c (p file)))
+
+(def stdout    (var extern-c (p file) (nullptr file)))
+(def __stdoutp (var extern-c (p file)))
+
+(def stderr    (var extern-c (p file) (nullptr file)))
+(def __stderrp (var extern-c (p file)))
+
+(def init-channels
+  (fn extern int (void)
+    (setv stdin  __stdinp)
+    (setv stdout __stdoutp)
+    (setv stderr __stderrp)
+    0))

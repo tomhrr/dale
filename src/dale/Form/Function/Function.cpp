@@ -375,7 +375,8 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     units->top()->popGlobalFunction();
 
     if (!strcmp(name, "main")
-            && !strcmp(SYSTEM_NAME, "Darwin")
+            && (!strcmp(SYSTEM_NAME, "Darwin")
+             || !strcmp(SYSTEM_NAME, "FreeBSD")) 
             && ctx->getVariable("stdin")
             && ctx->getVariable("stdout")
             && ctx->getVariable("stderr")) {
