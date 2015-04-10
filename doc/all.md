@@ -55,10 +55,14 @@ features, so most versions of clang/gcc should suffice.
   * LLVM (3.2-3.5)
   * libffi
 
-### Tested platforms
+### Supported systems
 
-  * Linux (Debian), x86 and x86-64
-  * OS X 10.9.2 (Mavericks)
+This should be usable on most Linux/OS X/BSD systems where LLVM is
+able to be built.  It has been tested on the following:
+
+  * Debian 7.8, 8.0 (x86 and x86-64)
+  * OS X 10.9.2
+  * FreeBSD 10.0 (x86-64)
 
 ### Building
 

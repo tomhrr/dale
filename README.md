@@ -19,7 +19,12 @@ similar to C, with the following additional features:
 
 ### Supported systems
 
-Tested on Linux (Debian) x86 and x86-64, and OS X 10.9.2.
+This should be usable on most Linux/OS X/BSD systems where LLVM is
+able to be built.  It has been tested on the following:
+
+  * Debian 7.8, 8.0 (x86 and x86-64)
+  * OS X 10.9.2
+  * FreeBSD 10.0 (x86-64)
 
 ### Documentation
 
