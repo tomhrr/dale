@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Dale : Lisp-flavoured C">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Dale</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/tomhrr/dale">View on GitHub</a>
+
+          <h1 id="project_title">Dale</h1>
+          <h2 id="project_tagline">Lisp-flavoured C</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/tomhrr/dale/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/tomhrr/dale/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h2>
+<a id="dale" class="anchor" href="#dale" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dale</h2>
+
+<p><a href="https://travis-ci.org/tomhrr/dale"><img src="https://travis-ci.org/tomhrr/dale.png" alt="Build Status"></a></p>
+
+<p>Dale is a system (no GC) programming language that uses S-expressions
+for syntax and supports syntactic macros. The basic language is
+similar to C, with the following additional features:</p>
+
+<ul>
+<li>local type deduction;</li>
+<li>overloaded functions;</li>
+<li>anonymous functions;</li>
+<li>function structs;</li>
+<li>reference parameters;</li>
+<li>initialisers and destructors;</li>
+<li>namespaces;</li>
+<li>modules;</li>
+<li>concepts; and</li>
+<li>compiler introspection.</li>
+</ul>
+
+<h3>
+<a id="supported-systems" class="anchor" href="#supported-systems" aria-hidden="true"><span class="octicon octicon-link"></span></a>Supported systems</h3>
+
+<p>This should be usable on most Linux/OS X/BSD systems where LLVM is
+able to be built.  It has been tested on the following:</p>
+
+<ul>
+<li>Debian 7.8, 8.0 (x86 and x86-64)</li>
+<li>OS X 10.9.2</li>
+<li>FreeBSD 10.0 (x86-64)</li>
+</ul>
+
+<h3>
+<a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Documentation</h3>
+
+<p><a href="./doc/index.md">Index</a><br>
+<a href="./doc/all.md">As single page</a></p>
+
+<h3>
+<a id="install" class="anchor" href="#install" aria-hidden="true"><span class="octicon octicon-link"></span></a>Install</h3>
+
+<h4>
+<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dependencies</h4>
+
+<ul>
+<li>LLVM (3.2-3.5)</li>
+<li>libffi</li>
+</ul>
+
+<h4>
+<a id="out-of-tree-recommended" class="anchor" href="#out-of-tree-recommended" aria-hidden="true"><span class="octicon octicon-link"></span></a>Out-of-tree (recommended)</h4>
+
+<pre><code>mkdir ../build
+cd ../build
+cmake ../dale
+make
+make tests
+make install
+</code></pre>
+
+<h4>
+<a id="in-tree" class="anchor" href="#in-tree" aria-hidden="true"><span class="octicon octicon-link"></span></a>In-tree</h4>
+
+<pre><code>cmake .
+make
+make tests
+make install
+</code></pre>
+
+<h3>
+<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span class="octicon octicon-link"></span></a>Examples</h3>
+
+<p><strong>hello-world</strong></p>
+
+<pre><code>(import cstdio)
+
+(def main (fn extern-c int (void)
+  (printf "hello, world\n")))
+</code></pre>
+
+<pre><code>&gt; hello, world
+</code></pre>
+
+<p><strong>hello-name</strong></p>
+
+<pre><code>(import cstdio)
+
+(def main (fn extern-c int (void)
+  (def name (var auto (p (const char)) "name"))
+  (printf "hello, %s\n" name)))
+</code></pre>
+
+<pre><code>&gt; hello, name
+</code></pre>
+
+<p><strong>type-deduction</strong></p>
+
+<pre><code>(import cstdio)
+(import stdlib)
+
+(def main (fn extern-c int (void)
+  (let ((a \ 1)
+        (b \ 2))
+    (printf "%d\n" (+ a b)))))
+</code></pre>
+
+<pre><code>&gt; 3
+</code></pre>
+
+<p><strong>overloading</strong></p>
+
+<pre><code>(import cstdio)
+(import cstdlib)
+
+(def Point (struct intern ((x int) (y int))))
+
+(def + (fn intern Point ((a Point) (b Point))
+  (let ((r Point ((x (+ (@: a x) (@: b x)))
+                  (y (+ (@: a y) (@: b y))))))
+    (return r))))
+
+(def main (fn extern-c int (void)
+  (let ((a Point ((x 1) (y 2)))
+        (b Point ((x 3) (y 4)))
+        (c Point (+ a b)))
+    (printf "%d %d\n" (@: c x) (@: c y)))))
+</code></pre>
+
+<pre><code>&gt; 4 6
+</code></pre>
+
+<p><strong>anonymous-functions</strong></p>
+
+<pre><code>(import cstdio)
+(import stdlib)
+
+(def main (fn extern-c int (void)
+  (let ((anon-fn \ (fn int ((n int)) (* 2 n))))
+    (printf "%d\n" (anon-fn 5)))))
+</code></pre>
+
+<pre><code>&gt; 10
+</code></pre>
+
+<p><strong>macros</strong></p>
+
+<pre><code>(import cstdio)
+(import stdlib)
+(import macros)
+
+(using-namespace std.macros
+  (def unless (macro intern (condition statement)
+    (qq do
+      (and (not (uq condition))
+           (do (uq statement) true)))))
+
+  (def main (fn extern-c int (void)
+    (unless (= 1 2)
+      (printf "1 does not equal 2\n"))
+    (return 0))))
+</code></pre>
+
+<pre><code>&gt; 1 does not equal 2
+</code></pre>
+
+<p><strong>typed-macros</strong></p>
+
+<pre><code>(import cstdio)
+(import macros)
+
+(using-namespace std.macros
+  (def + (macro intern ((a int) (b int) (c int))
+    (qq do (+ (uq a) (+ (uq b) (uq c))))))
+
+  (def main (fn extern-c int (void)
+    (printf "%d\n" (+ 1 2 3)))))
+</code></pre>
+
+<pre><code>&gt; 6
+</code></pre>
+
+<p><strong>introspection</strong></p>
+
+<pre><code>(import introspection)
+(import macros)
+
+(def Point (struct intern ((x int) (y int))))
+
+(using-namespace std.macros
+  (def show-struct-details (macro intern (st)
+     (let ((name  \ (@:@ st token-str))
+           (count \ (struct-member-count mc st)))
+       (printf "Struct: %s\n"       name)
+       (printf "Member count: %d\n" count)
+       (let ((i \ 0))
+         (for true (&lt; i count) (incv i)
+           (printf "Member %d: %s\n" (+ i 1) (struct-member-name mc st i))))
+       (nullptr DNode))))
+
+  (def main (fn extern-c int (void)
+    (show-struct-details Point)
+    0)))
+</code></pre>
+
+<pre><code>&gt; Struct: Point
+&gt; Member count: 2
+&gt; Member 1: x
+&gt; Member 2: y
+</code></pre>
+
+<p><strong>error-reporting</strong></p>
+
+<pre><code>(import introspection)
+(import macros)
+
+(using-namespace std.macros
+  (def assert-is-struct (macro intern (st)
+    (let ((count \ (struct-member-count mc st)))
+      (and (= -1 count)
+           (do (report-error mc st "struct type does not exist")
+               true))
+      (return (nullptr DNode)))))
+
+  (def main (fn extern-c int (void)
+    (assert-is-struct Point)
+    0)))
+</code></pre>
+
+<pre><code>&gt; ./error-reporting.dt:13:23: error: struct type does not exist (see macro at 13:5)
+</code></pre>
+
+<p><strong>derivations</strong></p>
+
+<pre><code>(import derivations)
+
+(def Point (struct intern ((x int) (y int))))
+
+(std.concepts.implement Struct Point)
+(std.concepts.instantiate relations Point)
+
+(def main (fn extern-c int (void)
+  (let ((p1 Point ((x 1) (y 2)))
+        (p2 Point ((x 3) (y 4))))
+    (and (!= p1 p2)
+         (do (printf "p1 and p2 are not equal\n") true))
+    (and (&lt;= p1 p2)
+         (do (printf "p1 is less than or equal to p2\n") true))
+    (and (&gt; p2 p1)
+         (do (printf "p2 is more than p1\n") true))
+    0)))
+</code></pre>
+
+<pre><code>&gt; p1 and p2 are not equal
+&gt; p1 is less than or equal to p2
+&gt; p2 is more than p1
+</code></pre>
+
+<p><strong>containers</strong></p>
+
+<pre><code>(import vector)
+(import array)
+(import algorithms)
+(import cstdio)
+
+(using-namespace std.concepts
+  (instantiate Vector int)
+  (instantiate Array int 10)
+  (instantiate copy (Iterator (Vector int))
+                    (Iterator (Array int 10))))
+
+(def main (fn extern-c int (void)
+  (let ((vec (Vector int))
+        (arr (Array int 10))
+        (i int))
+    (for (setv i 0) (&lt; i 10) (incv i)
+      (push-back vec i))
+    (copy (begin vec) (end vec) (begin arr))
+    (let ((b \ (begin arr))
+          (e \ (end arr)))
+      (for true (!= b e) (setv b (successor b))
+        (printf "%d " (@source b))))
+    (printf "\n")
+    0)))
+</code></pre>
+
+<pre><code>&gt; 0 1 2 3 4 5 6 7 8 9 
+</code></pre>
+
+<h3>
+<a id="bugsproblemssuggestions" class="anchor" href="#bugsproblemssuggestions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Bugs/problems/suggestions</h3>
+
+<p>Please report to the <a href="https://github.com/tomhrr/dale/issues">GitHub issue tracker</a>.</p>
+
+<h3>
+<a id="licence" class="anchor" href="#licence" aria-hidden="true"><span class="octicon octicon-link"></span></a>Licence</h3>
+
+<p>See LICENCE.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Dale maintained by <a href="https://github.com/tomhrr">tomhrr</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
