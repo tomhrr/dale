@@ -1,0 +1,1 @@
+./t/error-src/invalid-type.dt:1:44: error: type not in scope: 'DNODE'

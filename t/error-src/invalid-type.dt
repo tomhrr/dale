@@ -1,0 +1,1 @@
+(def foo (macro extern ((name (p char)) (t DNODE))))
