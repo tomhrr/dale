@@ -175,8 +175,12 @@ MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
 {
     Node *result = parseMacroCall_(n, macro_to_call);
     if (result && units->print_expansions) {
+        const char *filename = n->filename;
+        if (!filename) {
+            filename = ctx->er->current_filename;
+        }
         printf("%s:%d:%d: expansion: ",
-               n->filename,
+               filename,
                n->getBeginPos()->getLineNumber(),
                n->getBeginPos()->getColumnNumber());
         n->print();
