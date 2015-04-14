@@ -40,6 +40,11 @@ private:
      *  Deletes each individual node, as well as the node list.
      */
     void deleteNodeList(std::vector<Node *> *list);
+    /*! Fetch tokens until a right parenthesis or EOF is reached.
+     *  @param token The storage for the token.
+     *  @param error The storage for any error.
+     */
+    void getUntilRightParenOrEof(Token *token, Error *error);
 
 public:
     /*! Construct a new parser.

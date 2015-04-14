@@ -1,0 +1,1 @@
+./t/error-src/empty-list-in-fn.dt:1:35: error: lists cannot be empty

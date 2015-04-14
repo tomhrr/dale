@@ -37,6 +37,18 @@ Parser::deleteNodeList(std::vector<Node *> *list)
     delete list;
 }
 
+void
+Parser::getUntilRightParenOrEof(Token *t, Error *e)
+{
+    for (;;) {
+        lexer->getNextToken(t, e);
+        if ((t->type == TokenType::Eof) ||
+            (t->type == TokenType::RightParen)) {
+            break;
+        }
+    }
+}
+
 Node *
 Parser::getNextList()
 {
@@ -71,6 +83,7 @@ Parser::getNextList()
     }
 
     if (res == 0) {
+        getUntilRightParenOrEof(&te, &e);
         deleteNodeList(list);
         return NULL;
     }
@@ -92,6 +105,14 @@ Parser::getNextList()
         return NULL;
     }
 
+    if (list->size() == 0) {
+        e.begin = new Position(ts.begin);
+        e.end   = new Position(ts.end);
+        e.instance = ErrorInst::NoEmptyLists;
+        erep->addError(e);
+        return NULL;
+    }
+
     Node *node = new Node(list);
     node->filename = filename;
     ts.begin.copyTo(node->getBeginPos());
@@ -104,6 +125,7 @@ int
 Parser::getNextListInternal(std::vector<Node*> *list)
 {
     Token t(TokenType::Null);
+    Token te(TokenType::Null);
     Node n;
     n.filename = filename;
     Error e(ErrorInst::Null, &n);
@@ -135,6 +157,12 @@ Parser::getNextListInternal(std::vector<Node*> *list)
         }
 
         if (res == 0) {
+            getUntilRightParenOrEof(&te, &e);
+            return 0;
+        }
+
+        if (e.instance != ErrorInst::Null) {
+            erep->addError(e);
             return 0;
         }
 
@@ -152,6 +180,15 @@ Parser::getNextListInternal(std::vector<Node*> *list)
             erep->addError(e);
             return 0;
         }
+
+        if (sublist->size() == 0) {
+            node->getBeginPos()->copyTo(&e.begin);
+            node->getEndPos()->copyTo(&e.end);
+            e.instance = ErrorInst::NoEmptyLists;
+            erep->addError(e);
+            return 0;
+        }
+
         t.begin.copyTo(node->getEndPos());
 
         return 1;
