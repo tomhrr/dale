@@ -187,6 +187,7 @@ MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
         printf(" -> ");
         result->print();
         printf("\n");
+        fflush(stdout);
     }
     return result;
 }
