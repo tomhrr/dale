@@ -37,6 +37,16 @@ class MacroProcessor
 private:
     Units *units;
     Context *ctx;
+    /*! Parse a macro call.
+     *  @param n The node list.
+     *  @param macro_to_call The macro to call.
+     *
+     *  parseMacroCall is a wrapper around this function: the reason
+     *  for the split is that parseMacroCall will print the macro and
+     *  the macro expansion, if the corresponding compilation option
+     *  has been enabled and the macro was able to be expanded.
+     */
+    Node* parseMacroCall_(Node *n, Function *macro_to_call);
 
 public:
     llvm::ExecutionEngine *ee;

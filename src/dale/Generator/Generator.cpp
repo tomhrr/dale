@@ -245,6 +245,7 @@ Generator::run(std::vector<const char *> *file_paths,
                int no_dale_stdlib,
                int static_mods_all,
                int enable_cto,
+               int print_expansions,
                std::vector<std::string> *shared_object_paths,
                FILE *output_file)
 {
@@ -306,9 +307,10 @@ Generator::run(std::vector<const char *> *file_paths,
     }
 
     Units units(&mr);
-    units.cto            = enable_cto;
-    units.no_common      = no_common;
-    units.no_dale_stdlib = no_dale_stdlib;
+    units.cto              = enable_cto;
+    units.no_common        = no_common;
+    units.no_dale_stdlib   = no_dale_stdlib;
+    units.print_expansions = print_expansions;
 
     Context *ctx         = NULL;
     llvm::Module *mod    = NULL;

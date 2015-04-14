@@ -135,31 +135,33 @@ main(int argc, char **argv)
     int produce  = ASM;
     int optlevel = 0;
 
-    int produce_set     = 0;
-    int no_linking      = 0;
-    int debug           = 0;
-    int no_dale_stdlib  = 0;
-    int no_stdlib       = 0;
-    int remove_macros   = 0;
-    int no_common       = 0;
-    int static_mods_all = 0;
-    int found_sm        = 0;
-    int found_ctom      = 0;
-    int enable_cto      = 0;
-    int version         = 0;
+    int produce_set      = 0;
+    int no_linking       = 0;
+    int debug            = 0;
+    int no_dale_stdlib   = 0;
+    int no_stdlib        = 0;
+    int remove_macros    = 0;
+    int no_common        = 0;
+    int static_mods_all  = 0;
+    int found_sm         = 0;
+    int found_ctom       = 0;
+    int enable_cto       = 0;
+    int version          = 0;
+    int print_expansions = 0;
 
     int option_index         = 0;
     int forced_remove_macros = 0;
 
     static struct option long_options[] = {
-        { "no-dale-stdlib", no_argument,       &no_dale_stdlib,  1 },
-        { "no-common",      no_argument,       &no_common,       1 },
-        { "no-stdlib",      no_argument,       &no_stdlib,       1 },
-        { "static-modules", no_argument,       &static_mods_all, 1 },
-        { "static-module",  required_argument, &found_sm,        1 },
-        { "cto-module",     required_argument, &found_ctom,      1 },
-        { "enable-cto",     no_argument,       &enable_cto,      1 },
-        { "version",        no_argument,       &version,         1 },
+        { "no-dale-stdlib",   no_argument,       &no_dale_stdlib,   1 },
+        { "no-common",        no_argument,       &no_common,        1 },
+        { "no-stdlib",        no_argument,       &no_stdlib,        1 },
+        { "static-modules",   no_argument,       &static_mods_all,  1 },
+        { "static-module",    required_argument, &found_sm,         1 },
+        { "cto-module",       required_argument, &found_ctom,       1 },
+        { "enable-cto",       no_argument,       &enable_cto,       1 },
+        { "version",          no_argument,       &version,          1 },
+        { "print-expansions", no_argument,       &print_expansions, 1 },
         { 0, 0, 0, 0 }
     };
 
@@ -315,6 +317,7 @@ main(int argc, char **argv)
                       no_dale_stdlib,
                       static_mods_all,
                       enable_cto,
+                      print_expansions,
                       &so_paths,
                       output_file);
     if (!generated) {

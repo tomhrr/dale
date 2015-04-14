@@ -53,6 +53,7 @@ public:
      *  @param enable_cto Whether the module being compiled is a
      *                    compile-time-only module (equivalent to (attr
      *                    cto)).
+     *  @param print_expansions Whether to print macro expansions.
      *  @param shared_object_paths The paths to shared objects against which
      *                             the output file has to be linked
      *                             (populated by this function).
@@ -74,6 +75,7 @@ public:
             int no_dale_stdlib,
             int static_mods_all,
             int enable_cto,
+            int print_expansions,
             std::vector<std::string> *shared_object_paths,
             FILE *output_file);
 

@@ -68,7 +68,7 @@ MacroProcessor::setPoolfree()
 }
 
 Node *
-MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
+MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
 {
     std::vector<Node *> *lst = n->list;
 
@@ -168,6 +168,23 @@ MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
     }
 
     return result_node;
+}
+
+Node *
+MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
+{
+    Node *result = parseMacroCall_(n, macro_to_call);
+    if (result && units->print_expansions) {
+        printf("%s:%d:%d: expansion: ",
+               n->filename,
+               n->getBeginPos()->getLineNumber(),
+               n->getBeginPos()->getColumnNumber());
+        n->print();
+        printf(" -> ");
+        result->print();
+        printf("\n");
+    }
+    return result;
 }
 
 Node *

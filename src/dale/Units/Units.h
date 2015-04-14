@@ -37,6 +37,8 @@ public:
     /*! Whether the standard library (libdrt) should be imported into
      *  each new unit. */
     bool no_dale_stdlib;
+    /*! Whether macro expansions should be printed to standard output. */
+    bool print_expansions;
 
     /*! Construct a new Units object.
      *  @param mr A module reader.

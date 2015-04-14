@@ -74,13 +74,13 @@ Node::print()
 {
     if (is_token) {
         if (token->type == TokenType::StringLiteral) {
-            printf("\"%s\" ", token->str_value.c_str());
+            printf("\"%s\"", token->str_value.c_str());
         } else if (token->type == TokenType::Int
                 || token->type == TokenType::String
                 || token->type == TokenType::FloatingPoint) {
-            printf("%s ", token->str_value.c_str());
+            printf("%s", token->str_value.c_str());
         } else {
-            printf("(Unknown) ");
+            printf("(Unknown)");
         }
     } else if (is_list) {
         printf("(");
@@ -88,6 +88,9 @@ Node::print()
                                            e = list->end();
                 b != e; ++b) {
             (*b)->print();
+            if ((b + 1) != e) {
+                printf(" ");
+            }
         }
         printf(")");
     } else {
