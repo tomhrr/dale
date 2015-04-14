@@ -177,7 +177,7 @@ MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
     if (result && units->print_expansions) {
         const char *filename = n->filename;
         if (!filename) {
-            filename = ctx->er->current_filename;
+            filename = "<unknown>";
         }
         printf("%s:%d:%d: expansion: ",
                filename,
