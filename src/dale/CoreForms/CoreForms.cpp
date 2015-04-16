@@ -22,7 +22,7 @@
 #include "../Form/Proc/VaEnd/VaEnd.h"
 #include "../Form/Proc/VaArg/VaArg.h"
 #include "../Form/Proc/Null/Null.h"
-#include "../Form/Proc/GetDNodes/GetDNodes.h"
+#include "../Form/Proc/Quote/Quote.h"
 #include "../Form/Proc/Def/Def.h"
 #include "../Form/Proc/NullPtr/NullPtr.h"
 #include "../Form/Proc/Do/Do.h"
@@ -63,7 +63,7 @@ std::set<std::string> core_forms_no_override;
 
 const int core_forms_no_override_max = 31;
 const char *core_forms_no_override_strs[core_forms_no_override_max + 1] = {
-    "goto", "label", "return", ":", "get-dnodes", "p=", "p+", "p-", "p<",
+    "goto", "label", "return", ":", "q", "p=", "p+", "p-", "p<",
     "p>", "def", "if", "null", "nullptr", "do", "cast", "va-arg",
     "va-start", "va-end",
     "sizeof", "offsetof", "alignmentof", "funcall", "using-namespace",
@@ -99,7 +99,7 @@ init()
     ADD_SC("va-start",        &FormProcVaStartParse);
     ADD_SC("va-end",          &FormProcVaEndParse);
     ADD_SC("null",            &FormProcNullParse);
-    ADD_SC("get-dnodes",      &FormProcGetDNodesParse);
+    ADD_SC("q",               &FormProcQuoteParse);
     ADD_SC("def",             &FormProcDefParse);
     ADD_SC("nullptr",         &FormProcNullPtrParse);
     ADD_SC("do",              &FormProcDoParse);

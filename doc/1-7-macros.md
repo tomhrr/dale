@@ -83,6 +83,11 @@ As per functions, the last value evaluated within the body of the
 macro is returned implicitly, in the absence of an explicit `return`
 instruction.
 
+The quote (`q`) core form allows for converting an arbitrary form into
+a pointer to a `DNode` (static). For example:
+
+        (def const-string (macro extern (void) (q (p (const char)))))
+
 There are two principal standard libraries that deal with macros:
 [`macros-core`](./2-4-macros-core.md) and [`macros`](./2-6-macros.md).
 The former provides many functions that ease macro authorship. The
@@ -97,6 +102,11 @@ of `if`) macro would look like so, when using `qq`:
 a `qq` form. There is a corresponding `uql` form ('unquote-list'),
 that takes the list from the specified `DNode` and 'splices' it into
 place.
+
+Note that `qq` 'wraps' its arguments, whereas `q` does not:
+
+        (qq p (const char))  -> (p const char)
+        (q (p (const char))) -> (p const char)
 
 ### Typed macros
 

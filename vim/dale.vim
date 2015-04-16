@@ -84,7 +84,7 @@ syn keyword lispTodo            contained combak combak: todo todo:
 syn keyword lispFunc            goto if label return setf @ : # $
 syn keyword lispFunc            p+ p- p= p< p>
 syn keyword lispFunc            va-arg va-start va-end
-syn keyword lispFunc            null get-dnodes def nullptr do cast
+syn keyword lispFunc            null q def nullptr do cast
 syn keyword lispFunc            sizeof offsetof alignmentof
 syn keyword lispFunc            funcall using-namespace new-scope array-of
 syn keyword lispFunc            setv @$ :@ @: @:@

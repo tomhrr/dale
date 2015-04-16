@@ -132,6 +132,11 @@ Adds the specified namespace to the list of namespaces used for
 lookup, and evaluates each of the forms in that context. As per `do`,
 the result is that of the final form.
 
+#### (`q` {`form`})
+
+Converts the form into a pointer to `DNode` (static), and returns that
+pointer.
+
 #### Other
 
 Variables and structs may be defined within procedures in the same way

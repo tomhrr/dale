@@ -168,9 +168,9 @@ IntNodeToStaticDNode(Units *units, Node *node, llvm::Value *next_node)
 }
 
 bool
-FormProcGetDNodesParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                       Node *node, bool get_address, bool prefixed_with_core,
-                       ParseResult *pr)
+FormProcQuoteParse(Units *units, Function *fn, llvm::BasicBlock *block,
+                   Node *node, bool get_address, bool prefixed_with_core,
+                   ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
 
@@ -189,7 +189,7 @@ FormProcGetDNodesParse(Units *units, Function *fn, llvm::BasicBlock *block,
         llvm_type_dnode = (llvm::Type *) intptr_value;
     }
 
-    if (!ctx->er->assertArgNums("get-dnodes", node, 1, 1)) {
+    if (!ctx->er->assertArgNums("q", node, 1, 1)) {
         return false;
     }
 

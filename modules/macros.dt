@@ -229,7 +229,7 @@ be used again.
     (label end-loop2)
         (let ((res \ (bqq do (new-scope
             (def (uq vn) (var auto (p DNode) (std.macros.copy mc true
-            (get-dnodes (uq-nc holder)))))
+            (q (uq-nc holder)))))
             (def firstnode (var auto (p DNode)))
             (def trailing  (var auto (p DNode)))
             (def newnode   (var auto (p DNode)))

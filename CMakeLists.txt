@@ -233,7 +233,7 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/Proc/VaEnd/VaEnd.cpp
                       src/dale/Form/Proc/VaArg/VaArg.cpp
                       src/dale/Form/Proc/Null/Null.cpp
-                      src/dale/Form/Proc/GetDNodes/GetDNodes.cpp
+                      src/dale/Form/Proc/Quote/Quote.cpp
                       src/dale/Form/Proc/Def/Def.cpp
                       src/dale/Form/Proc/NullPtr/NullPtr.cpp
                       src/dale/Form/Proc/Do/Do.cpp
