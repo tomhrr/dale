@@ -1,0 +1,10 @@
+(import macros)
+
+; For confirming that a macro may return a form like ((second)), where
+; (second) expands in turn to some other form.
+
+(using-namespace std.macros
+  (def first (macro intern (void) (qq (second))))
+  (def second (macro intern (void) (mnfv mc "third")))
+  (def third (fn intern int (void) (printf "extra parens\n")))
+  (def main (fn extern-c int (void) (first) 0)))
