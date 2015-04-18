@@ -53,6 +53,45 @@ createTokenGV(Units *units, std::string *value)
     return token_gv;
 }
 
+llvm::GlobalVariable *
+getTokenGV(Units *units, std::string *value)
+{
+    /* If there is an entry in the cache for this string, and
+     * the global variable in the cache belongs to the current
+     * module, then use that global variable. */
+
+    llvm::GlobalVariable *token_gv = NULL;
+
+    std::map<std::string, llvm::GlobalVariable*>::iterator
+        f = token_cache.find(*value);
+    if (f != token_cache.end()) {
+        llvm::GlobalVariable *existing_token_gv = f->second;
+        if (existing_token_gv->getParent() == units->top()->module) {
+            token_gv = existing_token_gv;
+        }
+    }
+
+    if (!token_gv) {
+        token_gv = createTokenGV(units, value);
+    }
+
+    return token_gv;
+}
+
+llvm::Constant *
+getTokenPointer(Units *units, std::string *value)
+{
+    llvm::GlobalVariable *token_gv = getTokenGV(units, value);
+
+    llvm::Constant *ptr_to_token =
+        llvm::ConstantExpr::getGetElementPtr(
+            llvm::cast<llvm::Constant>(token_gv),
+            units->top()->ctx->nt->getTwoLLVMZeros()
+        );
+
+    return ptr_to_token;
+}
+
 llvm::Value *
 IntNodeToStaticDNode(Units *units, Node *node, llvm::Value *next_node)
 {
@@ -88,31 +127,7 @@ IntNodeToStaticDNode(Units *units, Node *node, llvm::Value *next_node)
             t->str_value.push_back('"');
         }
 
-        /* If there is an entry in the cache for this string, and
-         * the global variable in the cache belongs to the current
-         * module, then use that global variable. */
-
-        llvm::GlobalVariable *token_gv = NULL;
-
-        std::map<std::string, llvm::GlobalVariable*>::iterator
-            f = token_cache.find(t->str_value);
-        if (f != token_cache.end()) {
-            llvm::GlobalVariable *existing_token_gv = f->second;
-            if (existing_token_gv->getParent() == units->top()->module) {
-                token_gv = existing_token_gv;
-            }
-        }
-
-        if (!token_gv) {
-            token_gv = createTokenGV(units, &(t->str_value));
-        }
-
-        llvm::Constant *ptr_to_token =
-            llvm::ConstantExpr::getGetElementPtr(
-                llvm::cast<llvm::Constant>(token_gv),
-                ctx->nt->getTwoLLVMZeros()
-            );
-
+        llvm::Constant *ptr_to_token = getTokenPointer(units, &(t->str_value));
         constants.push_back(ptr_to_token);
         constants.push_back(getNullConstant(llvm_r_type));
     } else {
@@ -153,15 +168,18 @@ IntNodeToStaticDNode(Units *units, Node *node, llvm::Value *next_node)
         );
     }
 
-    llvm::Type *type = ctx->toLLVMType(ctx->tr->type_pchar, NULL, false);
-    constants.push_back(getNullConstant(type));
+    if (node->filename) {
+        std::string filename(node->filename);
+        llvm::Constant *ptr_to_filename = getTokenPointer(units, &filename);
+        constants.push_back(ptr_to_filename);
+    } else {
+        llvm::Type *type = ctx->toLLVMType(ctx->tr->type_pchar, NULL, false);
+        constants.push_back(getNullConstant(type));
+    }
 
-    llvm::StructType *st =
-        llvm::cast<llvm::StructType>(llvm_type);
-    llvm::Constant *init =
-        llvm::ConstantStruct::get(st, constants);
+    llvm::StructType *st = llvm::cast<llvm::StructType>(llvm_type);
+    llvm::Constant *init = llvm::ConstantStruct::get(st, constants);
     var->setInitializer(init);
-
     var->setConstant(true);
 
     return llvm::cast<llvm::Value>(var);
