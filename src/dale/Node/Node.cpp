@@ -234,16 +234,19 @@ Node::toDNode()
 void
 Node::addMacroPosition(Node *mp_node)
 {
-    if (!(macro_begin.getLineNumber())) {
-        macro_begin.setLineAndColumn(
-            mp_node->getBeginPos()->getLineNumber(),
-            mp_node->getBeginPos()->getColumnNumber()
-        );
-        macro_end.setLineAndColumn(
-            mp_node->getEndPos()->getLineNumber(),
-            mp_node->getEndPos()->getColumnNumber()
-        );
-    }
+    /* Previously, macro positions would not be set on a node that
+     * already had macro poisition information.  Now, that information
+     * is always overridden.  Using the most-recent node information
+     * tends to point the user closer to the actual error. */
+
+    macro_begin.setLineAndColumn(
+        mp_node->getBeginPos()->getLineNumber(),
+        mp_node->getBeginPos()->getColumnNumber()
+    );
+    macro_end.setLineAndColumn(
+        mp_node->getEndPos()->getLineNumber(),
+        mp_node->getEndPos()->getColumnNumber()
+    );
 
     if (is_list) {
         for (std::vector<Node *>::iterator
