@@ -14,7 +14,7 @@ if exists("g:lispsyntax_ignorecase") || exists("g:lispsyntax_cdale")
   set ignorecase
 endif
 
-set lisp
+"set lisp
 " Not so sure if this is a good idea.
 set iskeyword+=@-@,42,43,45,47,60-62
 
@@ -69,7 +69,7 @@ endif
 syn match lispNumber            "-\=\d\+"
 syn match lispNumber            !0x\d\+!
 
-syn match lispEscapeSpecial     !#\\\%(SPACE\|NEWLINE\|TAB\|CARRIAGE\|EOF\)!
+syn match lispEscapeSpecial     !#\\\%("\|SPACE\|NEWLINE\|TAB\|CARRIAGE\|EOF\)!
 syn match lispEscapeSpecial     "\<+[a-zA-Z_][a-zA-Z_0-9-]*+\>"
 
 syn match lispConcat            "\s\.\s"
