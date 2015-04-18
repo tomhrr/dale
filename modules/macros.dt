@@ -43,6 +43,9 @@ be used again.
 
     (def nullp (var auto (p DNode) (nullptr DNode)))
     (def holder (var auto (p DNode) (make-node mc)))
+    (copy-to holder frm)
+    (setf (:@ holder token-str) (nullptr char))
+    (setf (:@ holder list-node) (nullptr DNode))
 
     (def arglist (var auto va-list))
     (va-start (cast (# arglist) (p void)))
