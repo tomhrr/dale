@@ -66,7 +66,10 @@ namespace Module
 {
 Reader::Reader(std::vector<const char *> *module_directory_paths,
                std::vector<std::string> *so_paths,
-               std::vector<const char *> *include_directory_paths)
+               std::vector<const char *> *include_directory_paths,
+               std::vector<const char *> *static_module_names,
+               bool static_modules_all,
+               bool remove_macros)
 {
     cwd = getcwd(NULL, 0);
     this->module_directory_paths.push_back(cwd);
@@ -85,6 +88,9 @@ Reader::Reader(std::vector<const char *> *module_directory_paths,
     this->include_directory_paths.push_back(standard_include_path.c_str());
 
     this->so_paths = so_paths;
+    this->static_module_names = static_module_names;
+    this->static_modules_all = static_modules_all;
+    this->remove_macros = remove_macros;
 }
 
 Reader::~Reader()
@@ -278,7 +284,8 @@ Reader::findModule(Context *ctx, Node *n, std::string *lib_module_name,
 }
 
 bool
-Reader::run(Context *ctx, llvm::Module *mod, Node *n, const char *module_name,
+Reader::run(Context *ctx, llvm::Linker *linker,
+            llvm::Module *mod, Node *n, const char *module_name,
             std::vector<const char*> *import_forms)
 {
     std::vector<const char *> empty_forms;
@@ -348,7 +355,7 @@ Reader::run(Context *ctx, llvm::Module *mod, Node *n, const char *module_name,
                                          e = dependencies.end();
             b != e;
             ++b) {
-        bool res = run(ctx, mod, n, (*b).c_str(), NULL);
+        bool res = run(ctx, linker, mod, n, (*b).c_str(), NULL);
         if (!res) {
             return false;
         }
@@ -397,6 +404,31 @@ Reader::run(Context *ctx, llvm::Module *mod, Node *n, const char *module_name,
     if (!res) {
         return false;
     }
+
+    bool link_now = false;
+    if (static_modules_all) {
+        link_now = true;
+    } else {
+        for (std::vector<const char *>::iterator
+                b = static_module_names->begin(),
+                e = static_module_names->end();
+                b != e;
+                ++b) {
+            if (!strcmp((*b), module_name)) {
+                link_now = true;
+                break;
+            }
+        }
+    }
+
+    if (link_now) {
+        if (cto || remove_macros) {
+            linkFile(linker, module_path_nomacros.c_str());
+        } else {
+            linkFile(linker, module_path.c_str());
+        }
+    }
+
     ctx->merge(new_ctx);
     ctx->regetPointersForNewModule(mod);
     ctx->relink();

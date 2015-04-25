@@ -37,8 +37,6 @@ public:
      *  @param module_paths Paths to modules to import.
      *  @param static_module_names The names of modules that should be
      *                             linked statically.
-     *  @param cto_module_names The names of modules that will only be used
-     *                          at compile time.
      *  @param module_name If a module is being compiled, the name of the
      *                     module.
      *  @param debug Enable debug mode.
@@ -65,7 +63,6 @@ public:
             std::vector<const char *> *include_paths,
             std::vector<const char *> *module_paths,
             std::vector<const char *> *static_module_names,
-            std::vector<const char *> *cto_module_names,
             const char *module_name,
             int debug,
             int produce,

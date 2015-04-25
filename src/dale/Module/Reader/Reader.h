@@ -4,6 +4,7 @@
 #include "../../Context/Context.h"
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "../../llvm_Module.h"
+#include "../../llvm_Linker.h"
 
 #include <string>
 
@@ -21,6 +22,9 @@ class Reader
 private:
     char *cwd;
     std::vector<const char *> module_directory_paths;
+    std::vector<const char *> *static_module_names;
+    bool static_modules_all;
+    bool remove_macros;
     std::set<std::string> cto_module_names;
     /*! Find the specified module.
      *  @param lib_module_name The name of the module.
@@ -48,7 +52,10 @@ public:
      */
     Reader(std::vector<const char*> *module_directory_paths,
            std::vector<std::string> *so_paths,
-           std::vector<const char*> *include_directory_paths);
+           std::vector<const char*> *include_directory_paths,
+           std::vector<const char*> *static_module_names,
+           bool static_modules_all,
+           bool remove_macros);
     ~Reader();
 
     /*! Load the module from the specified path.
@@ -67,12 +74,13 @@ public:
                            bool add_nm_to_so_paths);
     /*! Load and read a module.
      *  @param ctx The current context.
+     *  @param linker The current LLVM linker.
      *  @param mod The current LLVM module.
      *  @param n The reference node for errors.
      *  @param module_name The module name.
      *  @param import_forms The forms to be imported from the module.
      */
-    bool run(Context *ctx, llvm::Module *mod, Node *n,
+    bool run(Context *ctx, llvm::Linker *linker, llvm::Module *mod, Node *n,
              const char *module_name,
              std::vector<const char*> *import_forms);
 };

@@ -8,8 +8,14 @@
 #include <string>
 
 #include "../llvm_Module.h"
+#include "../llvm_Linker.h"
 #include "../Type/Type.h"
 #include "../Variable/Variable.h"
+
+#if D_LLVM_VERSION_MINOR >= 3
+#include "llvm/Support/SourceMgr.h"
+#include "llvm/IRReader/IRReader.h"
+#endif
 
 #define _unused(x) ((void)x)
 
@@ -120,6 +126,11 @@ void error(const char *error_msg, bool show_perror = false);
  *  message prior to printing msg.
  */
 void error(const char *error_msg, const char *str1, bool show_perror = false);
+/*! Link a file into the given linker.
+ *  @param linker The linker.
+ *  @param path The path to the file to be linked.
+ */
+void linkFile(llvm::Linker *linker, const char *path);
 }
 
 #endif

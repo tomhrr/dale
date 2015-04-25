@@ -75,7 +75,8 @@ FormTopLevelIncludeParse(Units *units, Node *node)
             units->top()->addCommonDeclarations();
         } else {
             std::vector<const char*> import_forms;
-            units->mr->run(ctx, units->top()->module, nullNode(), "drt",
+            units->mr->run(ctx, units->top()->linker,
+                           units->top()->module, nullNode(), "drt",
                            &import_forms);
         }
     }

@@ -125,7 +125,6 @@ main(int argc, char **argv)
     std::vector<const char*> run_paths;
     std::vector<const char*> bitcode_paths;
     std::vector<const char*> static_modules;
-    std::vector<const char*> cto_modules;
     std::vector<const char*> module_paths;
 
     std::string output_path;
@@ -144,7 +143,6 @@ main(int argc, char **argv)
     int no_common        = 0;
     int static_mods_all  = 0;
     int found_sm         = 0;
-    int found_ctom       = 0;
     int enable_cto       = 0;
     int version          = 0;
     int print_expansions = 0;
@@ -158,7 +156,6 @@ main(int argc, char **argv)
         { "no-stdlib",        no_argument,       &no_stdlib,        1 },
         { "static-modules",   no_argument,       &static_mods_all,  1 },
         { "static-module",    required_argument, &found_sm,         1 },
-        { "cto-module",       required_argument, &found_ctom,       1 },
         { "enable-cto",       no_argument,       &enable_cto,       1 },
         { "version",          no_argument,       &version,          1 },
         { "print-expansions", no_argument,       &print_expansions, 1 },
@@ -218,9 +215,6 @@ main(int argc, char **argv)
         if (found_sm) {
             found_sm = 0;
             static_modules.push_back(optarg);
-        } else if (found_ctom) {
-            found_ctom = 0;
-            cto_modules.push_back(optarg);
         }
     }
 
@@ -307,7 +301,6 @@ main(int argc, char **argv)
                       &include_paths,
                       &module_paths,
                       &static_modules,
-                      &cto_modules,
                       module_name,
                       debug,
                       produce,

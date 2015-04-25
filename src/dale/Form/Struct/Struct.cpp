@@ -62,11 +62,11 @@ addOpaqueStruct(Units *units, const char *name, Node *top, int linkage)
 
     char buf[16];
     sprintf(buf, "__rs%d", ++retain_struct_index);
-    assert(!units->top()->module->getFunction(buf));
-
-    std::vector<llvm::Type*> args;
-    llvm::FunctionType *ft = getFunctionType(llvm_st, args, false);
-    units->top()->module->getOrInsertFunction(buf, ft);
+    if (!units->top()->module->getFunction(buf)) {
+        std::vector<llvm::Type*> args;
+        llvm::FunctionType *ft = getFunctionType(llvm_st, args, false);
+        units->top()->module->getOrInsertFunction(buf, ft);
+    }
 
     return true;
 }

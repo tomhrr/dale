@@ -273,4 +273,23 @@ error(const char *error_msg, const char *str1, bool show_perror)
     sprintf(buf, error_msg, str1);
     error(buf, show_perror);
 }
+
+void
+linkFile(llvm::Linker *linker, const char *path)
+{
+#if D_LLVM_VERSION_MINOR <= 2
+    const llvm::sys::Path bb(path);
+    bool is_native = false;
+    bool res = linker->LinkInFile(bb, is_native);
+    assert(!res && "unable to link bitcode file");
+#else
+    llvm::SMDiagnostic sm_error;
+    llvm::Module *path_mod = llvm::ParseIRFile(path, sm_error,
+                                               llvm::getGlobalContext());
+    std::string error;
+    bool res = linker->linkInModule(path_mod, &error);
+    assert(!res && "unable to link bitcode file module");
+#endif
+    _unused(res);
+}
 }

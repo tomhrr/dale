@@ -62,6 +62,7 @@
 #include "llvm/Transforms/Utils/Cloning.h"
 
 #include "../Units/Units.h"
+#include "../Utils/Utils.h"
 #include "../Context/Context.h"
 #include "../Node/Node.h"
 #include "../ErrorReporter/ErrorReporter.h"
@@ -147,25 +148,6 @@ linkModule(llvm::Linker *linker, llvm::Module *mod)
 }
 
 void
-linkFile(llvm::Linker *linker, const char *path)
-{
-#if D_LLVM_VERSION_MINOR <= 2
-    const llvm::sys::Path bb(path);
-    bool is_native = false;
-    bool res = linker->LinkInFile(bb, is_native);
-    assert(!res && "unable to link bitcode file");
-#else
-    llvm::SMDiagnostic sm_error;
-    llvm::Module *path_mod = llvm::ParseIRFile(path, sm_error,
-                                               llvm::getGlobalContext());
-    std::string error;
-    bool res = linker->linkInModule(path_mod, &error);
-    assert(!res && "unable to link bitcode file module");
-#endif
-    _unused(res);
-}
-
-void
 addDataLayout(llvm::PassManager *pass_manager, llvm::Module *mod)
 {
 #if D_LLVM_VERSION_MINOR >= 5
@@ -235,7 +217,6 @@ Generator::run(std::vector<const char *> *file_paths,
                std::vector<const char *> *include_paths,
                std::vector<const char *> *module_paths,
                std::vector<const char *> *static_module_names,
-               std::vector<const char *> *cto_module_names,
                const char *module_name,
                int debug,
                int produce,
@@ -257,15 +238,6 @@ Generator::run(std::vector<const char *> *file_paths,
     TypeRegister tr;
     llvm::ExecutionEngine *ee = NULL;
 
-    std::set<std::string> cto_modules;
-    for (std::vector<const char*>::iterator
-            b = cto_module_names->begin(),
-            e = cto_module_names->end();
-            b != e;
-            ++b) {
-        cto_modules.insert(std::string(*b));
-    }
-
     /* On OS X, SYSTEM_PROCESSOR is i386 even when the underlying
      * processor is x86-64, hence the extra check here. */
     bool is_x86_64 =
@@ -278,7 +250,9 @@ Generator::run(std::vector<const char *> *file_paths,
 
     llvm::Module *last_module = NULL;
 
-    Module::Reader mr(module_paths, shared_object_paths, include_paths);
+    Module::Reader mr(module_paths, shared_object_paths, include_paths,
+                      static_module_names, static_mods_all,
+                      remove_macros);
     for (std::vector<const char*>::iterator b = compile_lib_paths->begin(),
                                             e = compile_lib_paths->end();
             b != e;
@@ -376,7 +350,7 @@ Generator::run(std::vector<const char *> *file_paths,
                 unit->addCommonDeclarations();
             } else {
                 std::vector<const char*> import_forms;
-                mr.run(ctx, mod, nullNode(), "drt", &import_forms);
+                mr.run(ctx, linker, mod, nullNode(), "drt", &import_forms);
                 units.top()->mp->setPoolfree();
             }
         }
@@ -492,56 +466,7 @@ Generator::run(std::vector<const char *> *file_paths,
         return 1;
     }
 
-    std::map<std::string, llvm::Module*> *dtm_modules = &(mr.dtm_modules);
-    std::map<std::string, std::string> *dtm_nm_modules = &(mr.dtm_nm_modules);
-
-    bool reget_pointers = true;
-    std::map<std::string, llvm::Module *> static_dtm_modules;
-    if (static_mods_all || (static_module_names->size() > 0)) {
-        if (remove_macros) {
-            for (std::map<std::string, std::string>::iterator
-                    b = dtm_nm_modules->begin(),
-                    e = dtm_nm_modules->end();
-                    b != e; ++b) {
-                static_dtm_modules.insert(
-                    std::pair<std::string, llvm::Module*>(
-                        b->first,
-                        mr.loadModule(&(b->second))
-                    )
-                );
-            }
-        } else {
-            static_dtm_modules = *dtm_modules;
-        }
-        reget_pointers = false;
-    }
-
-    if (static_mods_all) {
-        for (std::map<std::string, llvm::Module *>::iterator
-                b = static_dtm_modules.begin(),
-                e = static_dtm_modules.end();
-                b != e; ++b) {
-            if (cto_modules.find(b->first) == cto_modules.end()) {
-                linkModule(linker, b->second);
-            }
-        }
-    } else if (static_module_names->size() > 0) {
-        for (std::vector<const char *>::iterator b =
-                    static_module_names->begin(), e =
-                    static_module_names->end();
-                b != e; ++b) {
-            std::map<std::string, llvm::Module *>::iterator
-            found = static_dtm_modules.find(std::string(*b));
-            if (found != static_dtm_modules.end()) {
-                linkModule(linker, found->second);
-            }
-        }
-        reget_pointers = false;
-    }
-
-    if (reget_pointers) {
-        ctx->regetPointers(mod);
-    }
+    ctx->regetPointers(mod);
     if (remove_macros) {
         ctx->eraseLLVMMacrosAndCTOFunctions();
     }

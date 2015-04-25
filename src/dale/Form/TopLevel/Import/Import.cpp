@@ -46,7 +46,8 @@ FormTopLevelImportParse(Units *units, Node *node)
     }
 
     bool res =
-        units->mr->run(ctx, units->top()->module, node, name, &import_forms);
+        units->mr->run(ctx, units->top()->linker,
+                       units->top()->module, node, name, &import_forms);
     if (!res) {
         Error *e = new Error(UnableToLoadModule, node, name);
         ctx->er->addError(e);
