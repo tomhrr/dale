@@ -287,6 +287,13 @@ able to be built.  It has been tested on the following:
 
 Please report to the [GitHub issue tracker](https://github.com/tomhrr/dale/issues).
 
+### Discussion
+
+The mailing list address is
+[dale-lang@googlegroups.com](mailto:dale-lang@googlegroups.com).  See
+also
+[https://groups.google.com/forum/#!forum/dale-lang](https://groups.google.com/forum/#!forum/dale-lang).
+
 ### Licence
 
 See LICENCE.
