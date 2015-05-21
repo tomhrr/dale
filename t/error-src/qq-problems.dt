@@ -1,0 +1,43 @@
+(import macros)
+(import cstdio)
+(import introspection)
+
+(using-namespace std.macros
+  (qq (uq "asdf"))
+  (qq (uq asdf))
+  (qq (uql "asdf"))
+  (qq (uql asdf))
+  (qq (uq-nc "asdf"))
+  (qq (uq-nc asdf))
+  (qq (uql-nc "asdf"))
+  (qq (uql-nc asdf))
+
+  (def test-id (macro intern ((frm (p DNode)))
+    (def inner (var auto \ (@:' frm list-node)))
+    (qq (uq inner))))
+
+  (def a (fn intern int (void) 0))
+
+  (def success (fn intern int (void)
+    (def a (var auto \ 0))
+    (test-id (a))))
+
+  (def failure (fn intern void (void)
+    (def a (var auto \ 0))
+    (test-id a)))
+
+  (def test-id2 (macro intern ((frm (p DNode)))
+    (def inner (var auto \ (nullptr DNode)))
+    (qq (uql inner))))
+
+  (def test-id3 (macro intern ((frm (p DNode)))
+    (def inner (var auto \ (nullptr DNode)))
+    (qq (uq-nc inner))))
+
+  (def test-id4 (macro intern ((frm (p DNode)))
+    (def inner (var auto \ (nullptr DNode)))
+    (qq (uql-nc inner))))
+
+  (test-id2 2)
+  (test-id3 3)
+  (test-id4 4))

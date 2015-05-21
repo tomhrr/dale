@@ -13,6 +13,20 @@ Provides the quasiquotation macro.
 
 (namespace std (namespace macros
 
+(def ct-node-checks (fn extern bool ((mc (p MContext)) (frm (p DNode)))
+  (if (not (null (@:@ frm list-node)))
+      (return true)
+      true)
+  (def frm-type (var auto \ (type-of mc frm)))
+  (if (null frm-type)
+      (do (return false))
+      true)
+  (if (not (types-equal mc frm-type (q (p DNode))))
+      (do (report-error mc frm "only nodes may be unquoted")
+          (return false))
+      true)
+  true))
+
 #|
 @macro qq
 
@@ -104,21 +118,27 @@ be used again.
                         (do ;(printf "CN is uq!\n")
                             (setv processed-list 1)
                         (do (setv tempform
-                                (if (not (null (@:' cn list-node 
-                                                       next-node 
+                                (if (not (null (@:' cn list-node
+                                                       next-node
                                                        token-str)))
                                     (@:' cn list-node next-node)
                                     (do (setv no-down 1)
-                                        (make-node-maker mc 
-                                                     (@:' cn 
-                                                          list-node 
+                                        (make-node-maker mc
+                                                     (@:' cn
+                                                          list-node
                                                           next-node)))))
- 
+                            (if (not (ct-node-checks mc tempform))
+                                (return (nullptr DNode))
+                                true)
                             (setf (:@ block next-node) (bqq do
                                 (setv firstnode (uq current-firstnode))
-                                (setv newnode 
-                                (std.macros.copy mc false (uq tempform)))
-                                (std.macros.copy-to firstnode newnode)))
+                                (if (null (uq tempform))
+                                    (do (report-error mc firstnode "unquoting null node")
+                                        false)
+                                    (do (setv newnode
+                                        (std.macros.copy mc false (uq tempform)))
+                                        (std.macros.copy-to firstnode newnode)
+                                        true))))
                             (setv block (@:@ block next-node))
                             ;(getchar)
                             0))
@@ -127,22 +147,28 @@ be used again.
                         (do ;(printf "CN is uq!\n")
                             (setv processed-list 1)
                         (do (setv tempform (@:' cn list-node next-node))
+                            (if (not (ct-node-checks mc tempform))
+                                (return (nullptr DNode))
+                                true)
                             (setv no-down 1)
                             (def vn (var auto \ (make-gensym-var-node
                                                  mc)))
                             (setf (:@ block next-node) (bqq do
                                 (setv firstnode (uq current-firstnode))
-                                (setv newnode (copy mc 
-                                                    true (uq tempform)))
-                                (std.macros.copy-to firstnode newnode)
-                                (def (uq vn)
-                                    (var auto \ (@:@ firstnode
-                                    next-node)))
-                                (setf (:@ firstnode next-node)
-                                      (@:@ newnode next-node))
-                                (setf 
-                                    (:@ (get-last-node newnode)
-                                            next-node) (uq vn))))
+                                (if (null (uq tempform))
+                                    (do (report-error mc firstnode "unquoting null node")
+                                        false)
+                                    (do (setv newnode (copy mc
+                                                        true (uq tempform)))
+                                        (std.macros.copy-to firstnode newnode)
+                                        (def (uq vn)
+                                            (var auto \ (@:@ firstnode
+                                            next-node)))
+                                        (setf (:@ firstnode next-node)
+                                              (@:@ newnode next-node))
+                                        (setf
+                                            (:@ (get-last-node newnode)
+                                                    next-node) (uq vn))))))
                             (setv block (@:@ block next-node))
                             ;(getchar)
                             0))
@@ -151,11 +177,18 @@ be used again.
                         (do ;(printf "CN is uq!\n")
                             (setv processed-list 1)
                         (do (setv tempform (@:' cn list-node next-node))
+                            (if (not (ct-node-checks mc tempform))
+                                (return (nullptr DNode))
+                                true)
                             (setv no-down 1)
                             (setf (:@ block next-node) (bqq do
                                 (setv firstnode (uq current-firstnode))
-                                (setv newnode (uq tempform))
-                                (std.macros.copy-to firstnode newnode)))
+                                (if (null (uq tempform))
+                                    (do (report-error mc firstnode "unquoting null node")
+                                        false)
+                                    (do (setv newnode (uq tempform))
+                                        (std.macros.copy-to firstnode newnode)
+                                        true))))
                             (setv block (@:@ block next-node))
                             ;(getchar)
                             0))
@@ -164,18 +197,25 @@ be used again.
                         (do ;(printf "CN is uq!\n")
                             (setv processed-list 1)
                         (do (setv tempform (@:' cn list-node next-node))
+                            (if (not (ct-node-checks mc tempform))
+                                (return (nullptr DNode))
+                                true)
                             (setv no-down 1)
                             (setf (:@ block next-node) (bqq do
                                 (setv firstnode (uq current-firstnode))
-                                (setv newnode (uq tempform))
-                                (std.macros.copy-to firstnode newnode)
-                                (def tv222 
-                                    (var auto \ (@:@ firstnode
-                                    next-node)))
-                                (setf (:@ firstnode next-node)
-                                      (@:@ newnode next-node))
-                                (setf (:@ (get-last-node newnode)
-                                next-node) tv222)))
+                                (if (null (uq tempform))
+                                    (do (report-error mc firstnode "unquoting null node")
+                                        false)
+                                    (do (setv newnode (uq tempform))
+                                        (std.macros.copy-to firstnode newnode)
+                                        (def tv222
+                                            (var auto \ (@:@ firstnode
+                                            next-node)))
+                                        (setf (:@ firstnode next-node)
+                                            (@:@ newnode next-node))
+                                        (setf (:@ (get-last-node newnode)
+                                        next-node) tv222)
+                                        true))))
                             (setv block (@:@ block next-node))
                             ;(getchar)
                             0))

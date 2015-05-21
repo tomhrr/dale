@@ -173,7 +173,12 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
 Node *
 MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
 {
+    int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
     Node *result = parseMacroCall_(n, macro_to_call);
+    int diff = ctx->er->getErrorTypeCount(ErrorType::Error) - error_count;
+    if (diff) {
+        return NULL;
+    }
     if (result && units->print_expansions) {
         const char *filename = n->filename;
         if (!filename) {
