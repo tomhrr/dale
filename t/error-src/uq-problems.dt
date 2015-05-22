@@ -1,0 +1,11 @@
+(import macros)
+(import introspection)
+
+(using-namespace std.macros
+  (def top (macro extern (node)
+    (def str (var auto \ (@:@ node token-str)))
+    (qq using-namespace std.macros
+      (def nested (macro extern (void)
+        (mnfv mc (uq (@:@ node token-str)))))))))
+
+(top foo-bar)

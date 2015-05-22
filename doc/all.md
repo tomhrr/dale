@@ -627,6 +627,9 @@ overloading only affects dispatch: all of the macro arguments within
 the body of the macro are pointers to `DNode`s, which are described
 below.
 
+To see the input form and output expansion of the macro calls on
+compilation, pass the `--print-expansions` flag to `dalec`.
+
 ### `DNode`
 
 The `DNode` struct definition, provided by the compiler, is as

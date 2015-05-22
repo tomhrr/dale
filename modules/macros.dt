@@ -13,16 +13,46 @@ Provides the quasiquotation macro.
 
 (namespace std (namespace macros
 
+(def is-unquote-node (fn extern bool ((frm (p DNode)))
+  (def ts (var auto \ (@:@ frm token-str)))
+  (if (null ts)
+      (do (return false) true)
+      true)
+  (if (= 0 (strcmp ts "uq"))
+      (do (return true) true)
+      true)
+  (if (= 0 (strcmp ts "uql"))
+      (do (return true) true)
+      true)
+  (if (= 0 (strcmp ts "uq-nc"))
+      (do (return true) true)
+      true)
+  (if (= 0 (strcmp ts "uql-nc"))
+      (do (return true) true)
+      true)
+  (return false)))
+
+(def is-unquote-form (fn extern bool ((frm (p DNode)))
+  (def list-node (var auto \ (@:@ frm list-node)))
+  (if (null list-node)
+      (do (return false) true)
+      true)
+  (def next-node (var auto \ (@:@ list-node next-node)))
+  (if (null next-node)
+      (do (return false) true)
+      true)
+  (return (is-unquote-node list-node))))
+
 (def ct-node-checks (fn extern bool ((mc (p MContext)) (frm (p DNode)))
-  (if (not (null (@:@ frm list-node)))
-      (return true)
+  (if (is-unquote-form frm)
+      (do (return true) true)
       true)
   (def frm-type (var auto \ (type-of mc frm)))
   (if (null frm-type)
       (do (return false))
       true)
   (if (not (types-equal mc frm-type (q (p DNode))))
-      (do (report-error mc frm "only nodes may be unquoted")
+      (do (report-error mc frm "only DNodes may be unquoted")
           (return false))
       true)
   true))
@@ -117,17 +147,18 @@ be used again.
                              (not (null (@:' cn list-node next-node))))
                         (do ;(printf "CN is uq!\n")
                             (setv processed-list 1)
-                        (do (setv tempform
+                        (do (def checkform (var auto \ (@:' cn list-node next-node)))
+                            (setv tempform
                                 (if (not (null (@:' cn list-node
                                                        next-node
                                                        token-str)))
-                                    (@:' cn list-node next-node)
+                                    checkform
                                     (do (setv no-down 1)
                                         (make-node-maker mc
-                                                     (@:' cn
+                                                    (@:' cn
                                                           list-node
                                                           next-node)))))
-                            (if (not (ct-node-checks mc tempform))
+                            (if (not (ct-node-checks mc checkform))
                                 (return (nullptr DNode))
                                 true)
                             (setf (:@ block next-node) (bqq do
