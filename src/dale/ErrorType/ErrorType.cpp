@@ -357,6 +357,9 @@ errorInstanceToString(int error_instance)
     case ErrorInst::OnlyOneModuleFormPermitted:
         ret = "a 'module' form may only appear once";
         break;
+    case ErrorInst::MacroExpansionError:
+        ret = "macro expansion error (see previous)";
+        break;
     default:
         ret = "(Unknown)";
     }

@@ -1,0 +1,18 @@
+(import macros)
+(import cstdio)
+(import introspection)
+
+(using-namespace std.macros
+  (def def-type-macro (macro extern (new linkage old)
+    (setv old (@:@ old list-node))
+    (qq using-namespace std.macros
+      (def (uq new) (macro (uq linkage) (void)
+        (qq (uql old))))))))
+
+(def-type-macro cstring extern (p (const char)))
+(def-type-macro thingy extern int) ; this line causes segfault
+
+(def main (fn extern-c void (void)
+  (def a-string (var auto (cstring) "Yo dude"))
+  (printf "string: %s\n" a-string)
+  (return)))

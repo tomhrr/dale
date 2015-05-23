@@ -1,1 +1,2 @@
 ./t/error-src/multiple-arg-inst.dt:31:19: error: multiple instantiations found: (Subtractable Addable), (Addable Subtractable) (see macro at 31:1)
+./t/error-src/multiple-arg-inst.dt:31:1: error: macro expansion error (see previous)

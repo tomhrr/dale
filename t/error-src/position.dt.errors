@@ -1,1 +1,1 @@
-<unknown>:7:21: error: not in scope: '++' (see macro at 11:5)
+<unknown>:7:21: error: not in scope: '\+\+' (see macro at 11:5)

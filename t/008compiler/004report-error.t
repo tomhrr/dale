@@ -17,6 +17,7 @@ chomp for @res;
 
 is_deeply(\@res, [
     "$test_dir/t/src/report-error.dt:15:41: error: this node is not a type (see macro at 15:33)",
+    "$test_dir/t/src/report-error.dt:15:33: error: macro expansion error (see previous)",
 ], 'Got expected error message');
 
 1;

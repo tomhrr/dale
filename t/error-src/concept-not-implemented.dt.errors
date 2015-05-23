@@ -1,1 +1,2 @@
 ./t/error-src/concept-not-implemented.dt:12:20: error: type does not implement Addable (see macro at 313:26)
+.*/concepts-core.dt:313:26: error: macro expansion error (see previous) (see macro at 12:1)

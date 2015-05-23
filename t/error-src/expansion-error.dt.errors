@@ -1,0 +1,2 @@
+./t/error-src/expansion-error.dt:10:13: error: unquoting null node (see macro at 8:5)
+./t/error-src/expansion-error.dt:13:1: error: macro expansion error (see previous)

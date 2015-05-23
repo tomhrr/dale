@@ -137,6 +137,7 @@ enum
     CannotDeactivateNonLastNamespace,
     InvalidModuleName,
     OnlyOneModuleFormPermitted,
+    MacroExpansionError,
 
     ExternalError,
 

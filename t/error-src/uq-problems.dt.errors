@@ -1,2 +1,3 @@
 ./t/error-src/uq-problems.dt:9:22: error: only DNodes may be unquoted (see macro at 7:5)
+./t/error-src/uq-problems.dt:7:5: error: macro expansion error (see previous)
 ./t/error-src/uq-problems.dt:11:2: error: not in scope: 'top'

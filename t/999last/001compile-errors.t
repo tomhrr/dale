@@ -7,14 +7,13 @@ my $test_dir = $ENV{"DALE_TEST_DIR"} || ".";
 $ENV{PATH} .= ":.";
 
 use Data::Dumper;
-use Test::More;
+use Test::More tests => 188;
 
 my @error_files =
     (@ARGV)
         ? (map { "$test_dir/t/error-src/$_.dt" } @ARGV)
         : (map { chomp; $_ } `ls $test_dir/t/error-src/*.dt`);
 
-plan tests => (@error_files * 2);
 @error_files = sort @error_files;
 
 my $opts = "-o test-error   ";
@@ -22,16 +21,23 @@ my $opts = "-o test-error   ";
 for my $file (@error_files) {
     my ($filename) = ($file =~ /.*\/(.*)$/);
     my @res = map { chomp; $_ } `dalec $ENV{"DALE_TEST_ARGS"} $file $opts 2>&1`; 
-    ok(@res, 'Got compilation errors');
+    ok(@res, "Got compilation errors ($filename)");
     open my $fh, '<', $file.'.errors' or die "$file.errors: $!";
     my $data = do { local $/; <$fh> };
     close $fh;
     my @errors = split /\n/, $data;
-    for my $error (@errors) {
-        $error =~ s/^\./$test_dir/;
+    if (@res != @errors) {
+        ok(0, "Got incorrect number of compilation errors ($filename)");
+    } else {
+        for (my $i = 0; $i < @errors; $i++) {
+            my $error = $errors[$i];
+            $error =~ s/^\.\//$test_dir\//;
+            $error =~ s/\(/\\\(/g;
+            $error =~ s/\)/\\\)/g;
+            my $actual_error = $res[$i];
+            like($actual_error, qr/$error/, 'Error pattern matches actual error');
+        }
     }
-    is_deeply(\@res, \@errors, 
-              "Got correct compilation errors ($filename)");
 }
 
 1;

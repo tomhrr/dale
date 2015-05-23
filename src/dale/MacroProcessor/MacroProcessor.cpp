@@ -177,6 +177,8 @@ MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
     Node *result = parseMacroCall_(n, macro_to_call);
     int diff = ctx->er->getErrorTypeCount(ErrorType::Error) - error_count;
     if (diff) {
+        Error *e = new Error(MacroExpansionError, n);
+        ctx->er->addError(e);
         return NULL;
     }
     if (result && units->print_expansions) {

@@ -606,8 +606,8 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
      * value).  Replace all the errors and return NULL. */
 
     if (errors.size() && fn && !fn->is_macro) {
-        for (std::vector<Error*>::reverse_iterator b = errors.rbegin(),
-                                                   e = errors.rend();
+        for (std::vector<Error*>::iterator b = errors.begin(),
+                                           e = errors.end();
                 b != e;
                 ++b) {
             er->addError(*b);
@@ -625,8 +625,8 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
          * the same name, this should show the overload failure,
          * rather than the parsing failure errors). */
         if (errors.size()) {
-            for (std::vector<Error*>::reverse_iterator b = errors.rbegin(),
-                                                       e = errors.rend();
+            for (std::vector<Error*>::iterator b = errors.begin(),
+                                               e = errors.end();
                     b != e;
                     ++b) {
                 er->addError(*b);
