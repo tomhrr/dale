@@ -417,6 +417,10 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
             return true;
         }
     } else {
+        if (!ctx->er->assertArgNums("core", n, 1, -1)) {
+            return false;
+        }
+
         std::vector<Node *> *but_one = new std::vector<Node *>;
         but_one->insert(but_one->begin(), lst->begin() + 1, lst->end());
         lst = but_one;
@@ -431,14 +435,16 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
             }
         }
         if (!first->is_token) {
-            Error *e = new Error(FirstListElementMustBeAtom, n);
+            Error *e = new Error(UnexpectedElement, first,
+                                 "atom", "core form name", "list");
             ctx->er->addError(e);
             return false;
         }
 
         t = first->token;
         if (t->type != TokenType::String) {
-            Error *e = new Error(FirstListElementMustBeSymbol, n);
+            Error *e = new Error(UnexpectedElementWithoutActual, first,
+                                 "symbol", "core form name");
             ctx->er->addError(e);
             return false;
         }

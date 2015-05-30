@@ -1,0 +1,4 @@
+(def main (fn extern-c int (void)
+  (core)
+  (core (setf (# a) 10))
+  0))

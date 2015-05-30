@@ -99,6 +99,9 @@ errorInstanceToString(int error_instance)
     case ErrorInst::UnexpectedElement:
         ret = "expected %s for %s (got %s instead)";
         break;
+    case ErrorInst::UnexpectedElementWithoutActual:
+        ret = "expected %s for %s";
+        break;
     case ErrorInst::VoidMustBeTheOnlyParameter:
         ret = "'void' must be the only parameter";
         break;

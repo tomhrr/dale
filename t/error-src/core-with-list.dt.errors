@@ -1,0 +1,2 @@
+./t/error-src/core-with-list.dt:2:3: error: 'core' requires at least 1 arguments (got 0 instead)
+./t/error-src/core-with-list.dt:3:9: error: expected atom for core form name (got list instead)
