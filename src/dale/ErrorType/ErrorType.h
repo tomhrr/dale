@@ -62,7 +62,6 @@ enum
     VariableNotInScope,
     NotInScope,
     UnexpectedElement,
-    UnexpectedElementWithoutActual,
     VoidMustBeTheOnlyParameter,
     VarArgsMustBeLastParameter,
     TypeNotAllowedInStruct,

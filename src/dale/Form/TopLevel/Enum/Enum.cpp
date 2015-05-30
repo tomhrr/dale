@@ -56,13 +56,13 @@ isValidEnumElement(Units *units, Node *node)
         Node *number_node = (*lst)[1];
         if (!number_node->is_token) {
             Error *e = new Error(UnexpectedElement, number_node,
-                                 "atom", "enumber_node element list", "list");
+                                 "atom", "enum node element list", "list");
             ctx->er->addError(e);
             return NULL;
         }
         if (number_node->token->type != TokenType::Int) {
             Error *e = new Error(UnexpectedElement, number_node,
-                                 "integer", "enumber_node element index",
+                                 "integer", "enum node element index",
                                  number_node->token->tokenType());
             ctx->er->addError(e);
             return NULL;

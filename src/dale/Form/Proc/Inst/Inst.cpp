@@ -443,8 +443,9 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
 
         t = first->token;
         if (t->type != TokenType::String) {
-            Error *e = new Error(UnexpectedElementWithoutActual, first,
-                                 "symbol", "core form name");
+            Error *e = new Error(UnexpectedElement, first,
+                                 "symbol", "core form name",
+                                 first->token->tokenType());
             ctx->er->addError(e);
             return false;
         }
