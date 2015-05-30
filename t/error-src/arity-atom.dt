@@ -1,0 +1,11 @@
+(import introspection)
+(import macros)
+
+(using-namespace std.macros
+  (def aritym (macro intern (F)
+    (mnfv mc (arity mc F))))
+
+  (def main (fn extern-c int (void)
+    (printf "%d\n" (aritym (q (bool + int int))))
+    (printf "%d\n" (aritym +))
+    0)))

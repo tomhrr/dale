@@ -139,6 +139,7 @@ enum
     InvalidModuleName,
     OnlyOneModuleFormPermitted,
     MacroExpansionError,
+    ArityForExternCOnly,
 
     ExternalError,
 

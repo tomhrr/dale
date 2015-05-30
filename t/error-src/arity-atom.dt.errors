@@ -1,0 +1,4 @@
+./t/error-src/arity-atom.dt:9:27: error: expected atom for function name (got list instead) (see macro at 9:19)
+./t/error-src/arity-atom.dt:9:19: error: macro expansion error (see previous)
+./t/error-src/arity-atom.dt:10:27: error: arity may only be called with extern-c function names (see macro at 10:19)
+./t/error-src/arity-atom.dt:10:19: error: macro expansion error (see previous)

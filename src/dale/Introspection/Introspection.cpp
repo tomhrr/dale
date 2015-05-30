@@ -5,6 +5,7 @@
 #include "../Utils/Utils.h"
 
 using namespace dale;
+using namespace dale::ErrorInst;
 
 std::map<std::string, std::vector<std::string>*> fn_by_args;
 
@@ -657,10 +658,18 @@ arity(MContext *mc, DNode *name)
     dale::Units *units = (dale::Units*) mc->units;
 
     Node *fn_node = units->top()->dnc->toNode(name);
-    fn_node = units->top()->mp->parsePotentialMacroCall(fn_node);
-    if (!fn_node) {
+    Node *new_fn_node = units->top()->mp->parsePotentialMacroCall(fn_node);
+    if (!new_fn_node) {
         return -1;
     }
+    fn_node = new_fn_node;
+    if (!fn_node->token) {
+        Error *e = new Error(UnexpectedElement, fn_node,
+                             "atom", "function name", "list");
+        units->top()->ctx->er->addError(e);
+        return -1;
+    }
+
     const char *fn_name = fn_node->token->str_value.c_str();
 
     Function *fn = units->top()->ctx->getFunction(fn_name, NULL, NULL, 0);
@@ -668,6 +677,8 @@ arity(MContext *mc, DNode *name)
         return -1;
     }
     if (fn->linkage != Linkage::Extern_C) {
+        Error *e = new Error(ArityForExternCOnly, fn_node);
+        units->top()->ctx->er->addError(e);
         return -1;
     }
     return fn->numberOfRequiredArgs();

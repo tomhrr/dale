@@ -363,6 +363,9 @@ errorInstanceToString(int error_instance)
     case ErrorInst::MacroExpansionError:
         ret = "macro expansion error (see previous)";
         break;
+    case ErrorInst::ArityForExternCOnly:
+        ret = "arity may only be called with extern-c function names";
+        break;
     default:
         ret = "(Unknown)";
     }
