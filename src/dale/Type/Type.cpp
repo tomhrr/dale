@@ -174,10 +174,19 @@ Type::toNode()
         return new Node(t);
     }
 
-    if (base_type) {
+    if (is_const) {
+        std::vector<Node *> *nodes = new std::vector<Node*>;
+
         Token *t = new Token(TokenType::String);
-        t->str_value.append(baseTypeToString(base_type));
-        return new Node(t);
+        t->str_value.append("const");
+        nodes->push_back(new Node(t));
+
+        is_const = false;
+        Node *type = toNode();
+        is_const = true;
+        nodes->push_back(type);
+
+        return new Node(nodes);
     }
 
     if (points_to) {
@@ -185,19 +194,6 @@ Type::toNode()
 
         Token *t = new Token(TokenType::String);
         t->str_value.append("p");
-        nodes->push_back(new Node(t));
-
-        Node *type = points_to->toNode();
-        nodes->push_back(type);
-
-        return new Node(nodes);
-    }
-
-    if (is_const) {
-        std::vector<Node *> *nodes = new std::vector<Node*>;
-
-        Token *t = new Token(TokenType::String);
-        t->str_value.append("const");
         nodes->push_back(new Node(t));
 
         Node *type = points_to->toNode();
@@ -252,6 +248,12 @@ Type::toNode()
         nodes->push_back(new Node(pnodes));
 
         return new Node(nodes);
+    }
+
+    if (base_type) {
+        Token *t = new Token(TokenType::String);
+        t->str_value.append(baseTypeToString(base_type));
+        return new Node(t);
     }
 
     return NULL;

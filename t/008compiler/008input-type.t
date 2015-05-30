@@ -19,7 +19,7 @@ chomp for @res;
 
 is_deeply(\@res, [
     'size',
-    '(p char)',
+    '(p (const char))',
     '(p void)',
     '(p void)',
     'size'
