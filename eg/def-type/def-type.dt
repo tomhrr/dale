@@ -1,0 +1,145 @@
+(import macros)
+(import introspection)
+(import cstring)
+(import derivations)
+(import vector)
+
+#|
+    Concept instantiations for (p DNode), so that vectors of (p DNode)
+    may be used.
+|#
+(def = (fn intern bool ((a (p DNode)) (b (p DNode))) (p= a b)))
+(def < (fn intern bool ((a (p DNode)) (b (p DNode))) (p< a b)))
+(std.concepts.implement Type (p DNode))
+(mfor F (swap != <= > >=)
+  (std.concepts.instantiate F (p DNode)))
+(mfor C (Assignable EqualityComparable LessThanComparable)
+  (std.concepts.implement C (p DNode)))
+(std.concepts.instantiate Vector (p DNode))
+
+#|
+    def-type-1 works similarly to a C typedef, by substituting the
+    specified node into place.  One difference is that using the new
+    type requires a macro invocation, so it isn't just an atom/token
+    as in C (i.e. it's '(string)', rather than 'string').
+|#
+(using-namespace std.macros
+  (def def-type-1 (macro intern (T1 T2)
+    (qq def (uq T1) (macro intern (void) (q (uq T2))))))
+
+  (def-type-1 string (p (const char)))
+
+  (def def-type-1-example (fn extern-c int (void)
+    (def str (var auto (string) "string1"))
+    (printf "%s\n" str)
+    0)))
+
+#|
+    def-type-2 creates a distinct type as a struct wrapper around an
+    existing type.  Only setf-copy and setf-assign are instantiated
+    for the new type; init and destroy occur implicitly.  Any other
+    functions defined over the original type that are needed for the
+    new type require wrappers, which can be instantiated via
+    make-wrapper.  make-wrapper only works for extern-c functions.
+
+    While it would be possible, if mapping a struct type, to iterate
+    over the members of that struct and create a new 'unwrapped'
+    struct, this wouldn't be more useful than the approach below.
+|#
+(using-namespace std.macros
+  (def def-type-2 (macro intern (T1 T2)
+    (qq do
+      (def (uq T1) (struct intern ((t (uq T2)))))
+      (def setf-copy (fn intern bool ((dst (p (uq T1)))
+                                      (src (const (uq T2))))
+        (core setf (:@ dst t) src)
+        true))
+      (def setf-assign (fn intern bool ((dst (p (uq T1)))
+                                        (src (const (uq T2))))
+        (setf-copy dst src))))))
+
+  ; Convert a vector of (p DNodes) into a single list (p DNode).
+  (def vector-to-dnode (fn (attr cto) intern (p DNode)
+            ((mc (p MContext))
+             (params (p (Vector (p DNode)))))
+    (let ((list-node \ (copy mc false (@$ (@ params) 0)))
+          (current \ list-node)
+          (b \ (successor (begin (@ params))))
+          (e \ (end (@ params))))
+      (for true (!= b e) (setv b (successor b))
+        (setf (:@ current next-node) (copy mc false (@source b)))
+        (setv current (@:@ current next-node)))
+      (return list-node))))
+
+  ; Make a wrapper function for F, converting type T2 to T1 in the
+  ; relevant places.
+  (def make-wrapper (macro intern (T1 T2 F)
+    (let ((args        (Vector (p DNode)))
+          (params      (Vector (p DNode)))
+          (input-types (Vector (p DNode)))
+          (arity       \ (arity mc F))
+          (i           \ 0))
+      ; Collect the input types of the original function, and prepare
+      ; the parameter nodes and the wrapped call argument nodes.
+      ; Store the bare input types as well, so that the codomain of
+      ; the function can be determined.
+      (for true (< i arity) (incv i)
+        (let ((original-input-type \ (input-type mc F i))
+              (types-equal         \ (types-equal mc original-input-type T2))
+              (input-type          \ (if types-equal T1 original-input-type))
+              (input-name          \ (cast (+ (cast #\a int) i) char))
+              (input-name-str      (array-of 2 char) (array input-name #\NULL))
+              (original-param      \ (mnfv mc input-name-str))
+              (param               \ (if types-equal
+                                         (qq cast 
+                                             (@: (uq original-param) t) 
+                                             (uq original-input-type))
+                                         original-param))
+              (arg                 \ (qq (uq original-param) (uq input-type))))
+            (push-back args arg)
+            (push-back params param)
+            (push-back input-types original-input-type)))
+      ; Convert the previously-collected vectors of nodes into single
+      ; list nodes, and adjust the final wrapped function return based
+      ; on whether the result needs to be cast as well.
+      (let ((input-type-list \ (vector-to-dnode mc (# input-types)))
+            (arg-list        \ (vector-to-dnode mc (# args)))
+            (param-list      \ (vector-to-dnode mc (# params)))
+            (codomain        \ (codomain mc (qq (uq F) (uql input-type-list))))
+            (types-equal     \ (types-equal mc codomain T2))
+            (fn-result       \ (nullptr DNode)))
+        (if (types-equal mc codomain T2)
+            (do (setv codomain T1)
+                (setv fn-result 
+                      (qq do
+                        (def res (var auto (uq T1)))
+                        (setf (: res t) ((uq F) (uql param-list)))
+                        (return res))))
+            (do (setv fn-result 
+                      (qq do
+                        ((uq F) (uql param-list))))))
+        (qq do
+          (def (uq F) (fn intern (uq codomain) ((uql arg-list))
+            (uq fn-result))))))))
+
+  (def-type-2 string (p (const char)))
+  (make-wrapper string (p (const char)) strrchr)
+
+  (def def-type-2-example (fn extern-c int (void)
+    (def str (var auto string "string2"))
+    (def str2 (var auto string (strrchr str (cast #\r int))))
+    (printf "%s\n" str)
+    (printf "%s\n" str2)
+    0)))
+
+#|
+    On execution, this should print:
+
+        string1
+        string2
+        ring2
+|#
+(def main (fn extern-c int (void)
+  (def-type-1-example)
+  (def-type-2-example)
+  0))
