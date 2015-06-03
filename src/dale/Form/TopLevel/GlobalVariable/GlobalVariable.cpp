@@ -552,6 +552,16 @@ FormTopLevelGlobalVariableParse(Units *units, Node *node)
     Node *name_node = (*top_lst)[1];
     Node *def_node  = (*top_lst)[2];
 
+    name_node = units->top()->mp->parsePotentialMacroCall(name_node);
+    if (!name_node) {
+        return false;
+    }
+    if (!name_node->is_token) {
+        Error *e = new Error(UnexpectedElement, name_node,
+                             "atom", "variable name", "list");
+        ctx->er->addError(e);
+        return 0;
+    }
     const char *name = name_node->token->str_value.c_str();
 
     std::vector<Node *> *lst = def_node->list;

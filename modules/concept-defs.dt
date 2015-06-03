@@ -14,7 +14,7 @@ Basic concept definitions. Copied from C++'s STL, for the most part.
 (using-namespace std.concepts
 
 (def concept-assert
-  (macro intern (condition node error-msg)
+  (macro extern (condition node error-msg)
     (qq if (not (uq condition))
            (do (report-error mc (uq node) (uq error-msg))
                (setv success false)

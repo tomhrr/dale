@@ -52,6 +52,29 @@ instead.
       true)))
 
 #|
+@macro def-type-macro
+
+Takes a node as its single argument.  Constructs a macro with that
+name that takes one arbitrary type and expands to the concatenation of
+that name and the stringification of the type.
+
+@param name   The type macro name.
+|#
+(def def-type-macro
+  (macro extern (name)
+    (let ((buf (array-of 250 char)))
+      (sprintf buf "\"%s\"" (@:@ name token-str))
+      (let ((string \ (std.macros.mnfv mc buf)))
+        (std.macros.qq do
+          (def (uq name)
+            (macro extern (T)
+              (let ((typename (array-of 250 char)))
+                (and (not (make-type-string mc (uq string) T typename))
+                     (return T))
+                (def n (var auto (p DNode) (mnfv mc typename)))
+                (return n)))))))))
+
+#|
 @fn make-type-string
 
 As per the earlier implementation, except that it takes two type

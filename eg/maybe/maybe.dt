@@ -1,0 +1,78 @@
+(import utility)
+(import macros)
+(import concepts)
+(import assert)
+
+(using-namespace std.macros
+(using-namespace std.concepts
+  (def-concept Monad (refines Type) (T)
+    (let ((success \ true))
+      (concept-assert (exists-fn mc
+                        (qq (uq T) unit (value-type (nullptr (uq T)))))
+                      T "unit is not defined over this type")
+      (concept-assert (exists-fn mc
+                        (qq (uq T) >>= (uq T)
+                            (p (fn (uq T)
+                                   ((value (value-type (nullptr (uq T)))))))))
+                      T ">>= is not defined over this type")
+      success))
+
+  (def-type-macro Maybe)
+  (def-type-macro Nothing)
+
+  (def-concept-macro Maybe extern ((T EqualityComparable))
+    (qq do
+      (def (Maybe (uq T))
+        (struct extern ((is-present bool)
+                        (value (uq T)))))
+
+      (def (Nothing (uq T))
+        (var extern (Maybe (uq T)) ((is-present false))))
+
+      (def value-type
+        (macro extern ((mvalue (p (Maybe (uq T)))))
+          (qq do (uq T))))
+
+      (def unit (fn extern (Maybe (uq T)) ((value (uq T)))
+        ((Maybe (uq T)) ((is-present true)
+                         (value value)))))
+
+      (def >>= (fn extern (Maybe (uq T))
+                           ((mvalue (Maybe (uq T)))
+                            (mfn (p (fn (Maybe (uq T)) ((value (uq T)))))))
+        (if (not (@: mvalue is-present))
+            (Nothing (uq T))
+            (mfn (@: mvalue value)))))
+
+      (implement Monad (Maybe (uq T)))))
+
+  (def-concept-macro lift extern ((N Value) (T Monad) (F Value))
+    (qq do
+      (def (uq N) (fn extern (uq T) ((value (value-type (nullptr (uq T)))))
+        (unit ((uq F) value))))))
+
+  (instantiate Maybe int)
+
+  (def int-double   (fn extern int ((n int)) (* n 2)))
+  (def int-plus-two (fn extern int ((n int)) (+ n 2)))
+
+  (instantiate lift maybe-double   (Maybe int) int-double)
+  (instantiate lift maybe-plus-two (Maybe int) int-plus-two)
+
+  (def f-bind-g
+    (fn extern (Maybe int) ((n int))
+      (>>= (maybe-double n) (# maybe-plus-two))))
+
+  (def main (fn extern-c int (void)
+    (let ((myval  \ 5)
+          (optint \ (unit myval)))
+      (let ((left1  \ (>>= optint (# maybe-double)))
+            (left2  \ (maybe-double myval)))
+        (std.assert (= (@: left1 value) (@: left2 value))))
+      (let ((right  \ (>>= optint (# unit int))))
+        (std.assert (= (@: right value) (@: optint value))))
+      (let ((assoc1 \ (>>= (>>= optint (# maybe-double))
+                           (# maybe-plus-two)))
+            (assoc2 \ (>>= optint (# f-bind-g))))
+        (std.assert (= (@: assoc1 value) (@: assoc2 value)))))))
+))
