@@ -59,10 +59,6 @@
   (instantiate lift maybe-double   (Maybe int) int-double)
   (instantiate lift maybe-plus-two (Maybe int) int-plus-two)
 
-  (def f-bind-g
-    (fn extern (Maybe int) ((n int))
-      (>>= (maybe-double n) (# maybe-plus-two))))
-
   (def main (fn extern-c int (void)
     (let ((myval  \ 5)
           (optint \ (unit myval)))
@@ -73,6 +69,8 @@
         (std.assert (= (@: right value) (@: optint value))))
       (let ((assoc1 \ (>>= (>>= optint (# maybe-double))
                            (# maybe-plus-two)))
-            (assoc2 \ (>>= optint (# f-bind-g))))
+            (assoc2 \ (>>= optint
+                           (fn (Maybe int) ((n int))
+                               (>>= (maybe-double n) (# maybe-plus-two))))))
         (std.assert (= (@: assoc1 value) (@: assoc2 value)))))))
 ))
