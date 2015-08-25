@@ -308,12 +308,14 @@ add_dependencies (tests dalec)
 add_custom_target (documentation ALL DEPENDS man/dalec.1.gz)
 install (FILES man/dalec.1.gz DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
 
-# Dale programs.
+# Dale programs.  (module-to-markdown was previously built with
+# --static-modules, but there's a problem with that option in some
+# environments: see #42.)
 
 add_custom_command (OUTPUT  module-to-markdown
                     COMMAND ${CMAKE_BINARY_DIR}/dalec
                             ${CMAKE_SOURCE_DIR}/eg/module-to-markdown/module-to-markdown.dt
-                            -lm -O4 --static-modules
+                            -lm -O4
                             -o module-to-markdown)
 add_custom_target (programs ALL DEPENDS module-to-markdown)
 add_dependencies (programs dalec vector)
