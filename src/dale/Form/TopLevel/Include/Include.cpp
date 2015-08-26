@@ -42,6 +42,9 @@ FormTopLevelIncludeParse(Units *units, Node *node)
             ++b) {
         path_buf.clear();
         path_buf.append((*b));
+        if (*(path_buf.rbegin()) != '/') {
+            path_buf.push_back('/');
+        }
         path_buf.append(path_node->token->str_value.c_str());
         include_file = fopen(path_buf.c_str(), "r");
         if (include_file) {

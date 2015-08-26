@@ -56,9 +56,10 @@
 
 using namespace dale::ErrorInst;
 
-static const char *bc_suffix    = ".bc";
-static const char *bc_nm_suffix = "-nomacros.bc";
-static const char *so_suffix    = ".so";
+static const char *bc_suffix         = ".bc";
+static const char *bc_nm_suffix      = "-nomacros.bc";
+static const char *so_suffix         = ".so";
+static const char *dale_include_path = DALE_INCLUDE_PATH "/";
 
 namespace dale
 {
@@ -83,9 +84,7 @@ Reader::Reader(std::vector<const char *> *module_directory_paths,
     std::copy(include_directory_paths->begin(),
               include_directory_paths->end(),
               back_inserter(this->include_directory_paths));
-    std::string standard_include_path(DALE_INCLUDE_PATH);
-    standard_include_path.append("/");
-    this->include_directory_paths.push_back(standard_include_path.c_str());
+    this->include_directory_paths.push_back(dale_include_path);
 
     this->so_paths = so_paths;
     this->static_module_names = static_module_names;
