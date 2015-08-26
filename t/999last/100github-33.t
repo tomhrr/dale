@@ -22,14 +22,14 @@ if (not $llvm_bin_dir) {
 }
 close $fh;
 
-my @res = `dalec $ENV{"DALE_TEST_ARGS"} -s ir --static-modules ./t/src/empty-main.dt -o sm.dt.ll`;
+my @res = `dalec $ENV{"DALE_TEST_ARGS"} -s ir --static-modules $test_dir/t/src/empty-main.dt -o sm.dt.ll`;
 is($?, 0, 'Compiled test to IR successfully (static-modules)');
 is_deeply(\@res, [], 'No output from compilation');
 @res = `$llvm_bin_dir/llc sm.dt.ll`;
 is($?, 0, 'Compiled IR to executable successfully (using llc)');
 is_deeply(\@res, [], 'No output from compilation');
 
-@res = `dalec $ENV{"DALE_TEST_ARGS"} -s ir --static-module drt ./t/src/empty-main.dt -o sm2.dt.ll`;
+@res = `dalec $ENV{"DALE_TEST_ARGS"} -s ir --static-module drt $test_dir/t/src/empty-main.dt -o sm2.dt.ll`;
 is($?, 0, 'Compiled test to IR successfully (static-module)');
 is_deeply(\@res, [], 'No output from compilation');
 @res = `diff sm.dt.ll sm2.dt.ll`;
