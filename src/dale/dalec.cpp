@@ -281,6 +281,13 @@ main(int argc, char **argv)
     std::string run_path_str;
     joinWithPrefix(&run_paths, "-L", &run_path_str);
 
+    std::string rpath_str;
+    if (!strcmp(SYSTEM_NAME, "Darwin")) {
+        joinWithPrefix(&run_paths, "-rpath", &rpath_str);
+    } else {
+        rpath_str = "";
+    }
+
     std::string input_file_str;
     joinWithPrefix(&input_files, " ", &input_file_str);
 
@@ -345,20 +352,22 @@ main(int argc, char **argv)
     int bytes = 0;
     if (no_linking) {
         bytes = snprintf(compile_cmd, (8192 - 1),
-                         "cc %s -c %s %s %s -o %s",
+                         "cc %s -c %s %s %s %s -o %s",
                          (no_stdlib) ? "--nostdlib" : "",
                          run_path_str.c_str(),
+                         rpath_str.c_str(),
                          run_lib_str.c_str(),
                          intermediate_output_path.c_str(),
                          output_path.c_str());
     } else {
         bytes = snprintf(compile_cmd, (8192 - 1),
-                         "cc %s %s %s %s %s %s -o %s",
+                         "cc %s %s %s %s %s %s %s -o %s",
                          (no_stdlib) ? "--nostdlib" : "",
                          (strcmp(SYSTEM_NAME, "Darwin")
                              ? "-Wl,--gc-sections"
                              : ""),
                          run_path_str.c_str(),
+                         rpath_str.c_str(),
                          intermediate_output_path.c_str(),
                          input_link_file_str.c_str(),
                          run_lib_str.c_str(),

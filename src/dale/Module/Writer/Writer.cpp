@@ -85,7 +85,10 @@ Writer::writeSharedObject(const char *suffix)
     cmd.clear();
     cmd.append("cc -shared ");
     if (!strcmp(SYSTEM_NAME, "Darwin")) {
-        cmd.append(" -undefined dynamic_lookup ");
+        cmd.append(" -undefined dynamic_lookup"
+                   " -install_name @rpath/");
+        cmd.append(lib_path);
+        cmd.append(" ");
     }
     cmd.append(asm_path)
        .append(" -o ")
