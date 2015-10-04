@@ -505,6 +505,11 @@ Generator::run(std::vector<const char *> *file_paths,
     ostream_formatted->flush();
     ostream.flush();
 
+    module_paths->clear();
+    std::copy(mr.module_directory_paths.begin(),
+              mr.module_directory_paths.end(),
+              back_inserter(*module_paths));
+
     return 1;
 }
 }

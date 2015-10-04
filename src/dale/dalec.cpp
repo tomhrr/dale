@@ -281,13 +281,6 @@ main(int argc, char **argv)
     std::string run_path_str;
     joinWithPrefix(&run_paths, "-L", &run_path_str);
 
-    std::string rpath_str;
-    if (!strcmp(SYSTEM_NAME, "Darwin")) {
-        joinWithPrefix(&run_paths, "-rpath", &rpath_str);
-    } else {
-        rpath_str = "";
-    }
-
     std::string input_file_str;
     joinWithPrefix(&input_files, " ", &input_file_str);
 
@@ -330,6 +323,13 @@ main(int argc, char **argv)
 
     std::string run_lib_str;
     joinWithPrefix(&run_libs, " -l ", &run_lib_str);
+
+    std::string rpath_str;
+    if (!strcmp(SYSTEM_NAME, "Darwin")) {
+        joinWithPrefix(&module_paths, "-rpath", &rpath_str);
+    } else {
+        rpath_str = "";
+    }
 
     for (std::vector<std::string>::reverse_iterator b = so_paths.rbegin(),
                                                     e = so_paths.rend();

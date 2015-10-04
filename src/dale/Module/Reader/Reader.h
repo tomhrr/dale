@@ -21,7 +21,6 @@ class Reader
 {
 private:
     char *cwd;
-    std::vector<const char *> module_directory_paths;
     std::vector<const char *> *static_module_names;
     bool static_modules_all;
     bool remove_macros;
@@ -38,6 +37,7 @@ private:
 
 public:
     std::vector<std::string> *so_paths;
+    std::vector<const char *> module_directory_paths;
     std::set<std::string> included_modules;
     std::set<std::string> included_once_tags;
     std::vector<const char *> include_directory_paths;
