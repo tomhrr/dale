@@ -1057,13 +1057,19 @@ Context::toLLVMTypePointer(Type *type,
         return NULL;
     }
 
-    /* If this is a pointer to void, then return a _vp struct
-        * instead. */
+    /* Previously, this returned a pointer to the '_vp' struct type,
+     * which was defined in the drt module as containing one (p char).
+     * However, when modules are merged, the '_vp' types in each take
+     * distinct names, which can cause type-checking problems for
+     * anything that uses '_vp' after that point.  Using an unnamed
+     * struct resolves this issue. */
     if (llvm_type->isVoidTy()) {
-        Struct *st = getStruct("_vp", NULL);
-        assert(st && "no _vp struct");
-        assert(st->type && "no _vp struct type");
-        return llvm::PointerType::getUnqual(st->type);
+        std::vector<llvm::Type *> types;
+        types.push_back(toLLVMType(tr->type_pchar, NULL));
+        llvm::ArrayRef<llvm::Type *> llvm_types(types);
+        llvm::LLVMContext &lc = llvm::getGlobalContext();
+        llvm::StructType *st = llvm::StructType::get(lc, llvm_types);
+        return llvm::PointerType::getUnqual(st);
     }
     return llvm::PointerType::getUnqual(llvm_type);
 }
