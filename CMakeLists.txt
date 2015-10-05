@@ -52,6 +52,8 @@ if (${D_LLVM_VERSION_MAJOR} LESS 3)
 elseif (${D_LLVM_VERSION_MAJOR} EQUAL 3)
     if (${D_LLVM_VERSION_MINOR} LESS 2)
         message (FATAL_ERROR "LLVM >= 3.2 is required.")
+    elseif (${D_LLVM_VERSION_MINOR} GREATER 5)
+        message (FATAL_ERROR "LLVM >= 3.6 is not supported.")
     endif ()
 endif ()
 
