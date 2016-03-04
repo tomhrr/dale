@@ -445,7 +445,8 @@ void Type::toSymbolString(std::string *to)
         return;
     }
 
-    if (DEBUG)  printf("ERROR: cannot yet handle encstr for this type\n");
+    assert(false && "unable to encode this type as a symbol string");
+    abort();
 }
 
 bool Type::isIntegerType()
