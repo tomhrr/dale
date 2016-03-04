@@ -1,3 +1,0 @@
-(def mfn (fn extern int ((a int)) 0))
-(def mfn (fn extern int ((a (ref int))) 0))
-(def main (fn extern-c int (void) 0))
