@@ -107,6 +107,107 @@ parseParameters(Units *units, Node *args_node,
     return true;
 }
 
+void
+addInitChannelsCall(Context *ctx, llvm::Function *llvm_fn)
+{
+    std::vector<llvm::Value *> call_args;
+    std::vector<Type *> params;
+    Function *ic =
+        ctx->getFunction("init-channels", &params, NULL, 0);
+    assert(ic && ic->llvm_function &&
+            "cannot find init-channels function");
+
+    llvm::Function::iterator i = llvm_fn->begin();
+    llvm::BasicBlock *b = i;
+
+    if (b->empty()) {
+        llvm::CallInst::Create(
+            ic->llvm_function,
+            llvm::ArrayRef<llvm::Value*>(call_args),
+            "",
+            b
+        );
+    } else {
+        llvm::Instruction *fnp = b->getFirstNonPHI();
+        if (fnp) {
+            llvm::CallInst::Create(
+                ic->llvm_function,
+                llvm::ArrayRef<llvm::Value*>(call_args),
+                "",
+                fnp
+            );
+        } else {
+            llvm::CallInst::Create(
+                ic->llvm_function,
+                llvm::ArrayRef<llvm::Value*>(call_args),
+                "",
+                b
+            );
+        }
+    }
+}
+
+bool
+parametersToLLVMTypes(Context *ctx, std::vector<Variable *> *parameters,
+                      std::vector<llvm::Type *> *types)
+{
+    for (std::vector<Variable *>::iterator b = parameters->begin(),
+                                           e = parameters->end();
+            b != e;
+            ++b) {
+        Type *type = (*b)->type;
+        if (type->is_reference) {
+            type = ctx->tr->getPointerType(type);
+        }
+        if (type->base_type == BaseType::VarArgs) {
+            break;
+        }
+        llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
+        if (!llvm_type) {
+            return false;
+        }
+        types->push_back(llvm_type);
+    }
+
+    return true;
+}
+
+Type *
+parseReturnType(Units *units, Context *ctx,
+                std::vector<Variable *> *parameters, Node *node)
+{
+    /* For return type parsing, activate an anonymous namespace and
+     * add all of the function parameters to it.  This is so that if
+     * the return type uses a macro that depends on one of those
+     * parameters, it will work properly. */
+
+    ctx->activateAnonymousNamespace();
+    std::string anon_name = ctx->ns()->name;
+
+    for (std::vector<Variable *>::iterator b = parameters->begin(),
+                                           e = parameters->end();
+            b != e;
+            ++b) {
+        ctx->ns()->addVariable((*b)->name.c_str(), (*b));
+    }
+
+    Type *ret_type = FormTypeParse(units, node, false, false, false, true);
+
+    ctx->deactivateNamespace(anon_name.c_str());
+
+    if (!ret_type) {
+        return NULL;
+    }
+
+    if (ret_type->is_array) {
+        Error *e = new Error(ReturnTypesCannotBeArrays, node);
+        ctx->er->addError(e);
+        return NULL;
+    }
+
+    return ret_type;
+}
+
 bool
 FormFunctionParse(Units *units, Node *node, const char *name,
                   Function **new_fn, int override_linkage,
@@ -197,50 +298,14 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     }
 
     std::vector<llvm::Type*> fn_args;
-    for (std::vector<Variable *>::iterator b = fn_args_internal.begin(),
-                                           e = fn_args_internal.end();
-            b != e;
-            ++b) {
-        Type *type = (*b)->type;
-        if (type->is_reference) {
-            type = ctx->tr->getPointerType(type);
-        }
-        if (type->base_type == BaseType::VarArgs) {
-            break;
-        }
-        llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
-        if (!llvm_type) {
-            return false;
-        }
-        fn_args.push_back(llvm_type);
-    }
-
-    /* For return type parsing, activate an anonymous namespace and
-     * add all of the function parameters to it.  This is so that if
-     * the return type uses a macro that depends on one of those
-     * parameters, it will work properly. */
-
-    ctx->activateAnonymousNamespace();
-    std::string anon_name = ctx->ns()->name;
-
-    for (std::vector<Variable *>::iterator b = fn_args_internal.begin(),
-                                           e = fn_args_internal.end();
-            b != e;
-            ++b) {
-        ctx->ns()->addVariable((*b)->name.c_str(), (*b));
-    }
-
-    Type *ret_type = FormTypeParse(units, (*lst)[return_type_index],
-                                   false, false, false, true);
-
-    ctx->deactivateNamespace(anon_name.c_str());
-
-    if (ret_type == NULL) {
+    res = parametersToLLVMTypes(ctx, &fn_args_internal, &fn_args);
+    if (!res) {
         return false;
     }
-    if (ret_type->is_array) {
-        Error *e = new Error(ReturnTypesCannotBeArrays, (*lst)[next_index]);
-        ctx->er->addError(e);
+
+    Type *ret_type = parseReturnType(units, ctx, &fn_args_internal,
+                                     (*lst)[return_type_index]);
+    if (ret_type == NULL) {
         return false;
     }
 
@@ -367,7 +432,7 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     }
 
     ctx->activateAnonymousNamespace();
-    anon_name = ctx->ns()->name;
+    std::string anon_name = ctx->ns()->name;
 
     units->top()->pushGlobalFunction(fn);
     FormProcBodyParse(units, node, fn, llvm_fn, (next_index + 2),
@@ -380,42 +445,7 @@ FormFunctionParse(Units *units, Node *node, const char *name,
             && ctx->getVariable("stdin")
             && ctx->getVariable("stdout")
             && ctx->getVariable("stderr")) {
-
-        std::vector<llvm::Value *> call_args;
-        std::vector<Type *> params;
-        Function *ic =
-            ctx->getFunction("init-channels", &params, NULL, 0);
-        assert(ic && ic->llvm_function &&
-               "cannot find init-channels function");
-
-        llvm::Function::iterator i = llvm_fn->begin();
-        llvm::BasicBlock *b = i;
-
-        if (b->empty()) {
-            llvm::CallInst::Create(
-                ic->llvm_function,
-                llvm::ArrayRef<llvm::Value*>(call_args),
-                "",
-                b
-            );
-        } else {
-            llvm::Instruction *fnp = b->getFirstNonPHI();
-            if (fnp) {
-                llvm::CallInst::Create(
-                    ic->llvm_function,
-                    llvm::ArrayRef<llvm::Value*>(call_args),
-                    "",
-                    fnp
-                );
-            } else {
-                llvm::CallInst::Create(
-                    ic->llvm_function,
-                    llvm::ArrayRef<llvm::Value*>(call_args),
-                    "",
-                    b
-                );
-            }
-        }
+        addInitChannelsCall(ctx, llvm_fn);
     }
 
     ctx->deactivateNamespace(anon_name.c_str());
