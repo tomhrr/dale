@@ -76,6 +76,7 @@ TypeRegister::~TypeRegister()
     STL::deleteMapElements(&const_types);
     STL::deleteMapElements(&struct_types);
     STL::deleteMapElements(&reference_types);
+    STL::deleteMapElements(&rvalue_reference_types);
     STL::deleteMapElements(&retval_types);
     STL::deleteNestedMapElements(&array_types);
     STL::deleteNestedMapElements(&bitfield_types);
@@ -196,6 +197,23 @@ TypeRegister::getReferenceType(Type *type)
 }
 
 Type*
+TypeRegister::getRvalueReferenceType(Type *type)
+{
+    std::map<Type*, Type*>::iterator
+        b = rvalue_reference_types.find(type), e = rvalue_reference_types.end();
+    if (b != e) {
+        return b->second;
+    }
+
+    Type *rvalue_reference_type = type->makeCopy();
+    rvalue_reference_type->is_rvalue_reference = 1;
+    rvalue_reference_types.insert(
+        std::pair<Type*, Type*>(type, rvalue_reference_type)
+    );
+    return rvalue_reference_type;
+}
+
+Type*
 TypeRegister::getRetvalType(Type *type)
 {
     std::map<Type*, Type*>::iterator
@@ -249,6 +267,10 @@ TypeRegister::getType(Type *type)
         type->is_reference = 0;
         final = getReferenceType(getType(type));
         type->is_reference = 1;
+    } else if (type->is_rvalue_reference) {
+        type->is_rvalue_reference = 0;
+        final = getRvalueReferenceType(getType(type));
+        type->is_rvalue_reference = 1;
     } else if (type->is_array) {
         final = getArrayType(getType(type->array_type), type->array_size);
     } else if (type->points_to) {

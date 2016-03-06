@@ -45,6 +45,8 @@ public:
     bool is_const;
     /*! Whether the type is a reference type. */
     bool is_reference;
+    /*! Whether the type is an rvalue reference type. */
+    bool is_rvalue_reference;
     /*! Whether the type is a retval type. */
     bool is_retval;
 

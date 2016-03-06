@@ -44,9 +44,10 @@ Type::reset()
     is_function     = false;
     return_type     = NULL;
 
-    is_const        = false;
-    is_reference    = false;
-    is_retval       = false;
+    is_const            = false;
+    is_reference        = false;
+    is_rvalue_reference = false;
+    is_retval           = false;
 }
 
 bool
@@ -279,6 +280,15 @@ void Type::toString(std::string *str)
         return;
     }
 
+    if (is_rvalue_reference) {
+        str->append("(rv-ref ");
+        is_rvalue_reference = false;
+        toString(str);
+        str->append(")");
+        is_rvalue_reference = true;
+        return;
+    }
+
     if (struct_name.size()) {
         std::string name;
         if (namespaces.size()) {
@@ -353,14 +363,15 @@ Type *Type::makeCopy()
 {
     Type *new_type = new Type();
 
-    new_type->base_type     = base_type;
-    new_type->is_array      = is_array;
-    new_type->array_size    = array_size;
-    new_type->is_function   = is_function;
-    new_type->bitfield_size = bitfield_size;
-    new_type->is_const      = is_const;
-    new_type->is_reference  = is_reference;
-    new_type->is_retval     = is_retval;
+    new_type->base_type           = base_type;
+    new_type->is_array            = is_array;
+    new_type->array_size          = array_size;
+    new_type->is_function         = is_function;
+    new_type->bitfield_size       = bitfield_size;
+    new_type->is_const            = is_const;
+    new_type->is_reference        = is_reference;
+    new_type->is_rvalue_reference = is_rvalue_reference;
+    new_type->is_retval           = is_retval;
 
     if (points_to) {
         new_type->points_to = points_to->makeCopy();
@@ -412,6 +423,14 @@ void Type::toSymbolString(std::string *to)
         is_reference = false;
         toSymbolString(to);
         is_reference = true;
+        return;
+    }
+
+    if (is_rvalue_reference) {
+        to->append("V");
+        is_rvalue_reference = false;
+        toSymbolString(to);
+        is_rvalue_reference = true;
         return;
     }
 

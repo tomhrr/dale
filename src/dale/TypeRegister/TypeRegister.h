@@ -26,6 +26,8 @@ private:
     std::map<Type*, Type*> const_types;
     /*! A map from type to reference type. */
     std::map<Type*, Type*> reference_types;
+    /*! A map from type to rvalue reference type. */
+    std::map<Type*, Type*> rvalue_reference_types;
     /*! A map from type to retval type. */
     std::map<Type*, Type*> retval_types;
     /*! A map from type, to size, to array type. */
@@ -52,6 +54,9 @@ public:
     /*! Return an instance of a reference type.
      *  @param type The type to make into a reference type. */
     Type *getReferenceType(Type *type);
+    /*! Return an instance of an rvalue reference type.
+     *  @param type The type to make into an rvalue reference type. */
+    Type *getRvalueReferenceType(Type *type);
     /*! Return an instance of a retval type.
      *  @param type The type to make into a retval type. */
     Type *getRetvalType(Type *type);
