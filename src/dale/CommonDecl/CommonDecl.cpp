@@ -31,7 +31,7 @@ addVariable(Unit *unit,
     Variable *var = new Variable();
     var->name.append(name);
     var->type = type;
-    var->internal_name.append(name);
+    var->symbol.append(name);
     var->linkage = Linkage::Extern;
     bool res = ctx->ns()->addVariable(name, var);
     assert(res); _unused(res);

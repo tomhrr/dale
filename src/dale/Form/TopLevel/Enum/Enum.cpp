@@ -186,7 +186,7 @@ FormTopLevelEnumParse(Units *units, Node *node)
     llvm_name.append("struct_");
     llvm_name.append(symbol);
 
-    enum_st->internal_name.append(llvm_name);
+    enum_st->symbol.append(llvm_name);
 
     llvm_new_struct->setName(llvm_name.c_str());
     if (llvm_new_struct->getName() != llvm::StringRef(llvm_name)) {

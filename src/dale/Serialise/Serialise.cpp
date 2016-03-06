@@ -263,11 +263,11 @@ void serialise(FILE *out, Variable *v)
     serialise(out, v->type);
     serialise(out, &(v->name));
     serialise(out, v->linkage);
-    if (!(v->internal_name.compare(""))) {
+    if (!(v->symbol.compare(""))) {
         serialise(out, 0);
     } else {
         serialise(out, 1);
-        serialise(out, &(v->internal_name));
+        serialise(out, &(v->symbol));
     }
     serialise(out, v->once_tag);
 }
@@ -290,7 +290,7 @@ char *deserialise(TypeRegister *tr, char *in, Variable *v)
     int is_present;
     in = deserialise(tr, in, &is_present);
     if (is_present) {
-        in = deserialise(tr, in, &(v->internal_name));
+        in = deserialise(tr, in, &(v->symbol));
     }
     in = deserialise(tr, in, &(v->once_tag));
 
@@ -312,7 +312,7 @@ void serialise(FILE *out, Function *fn)
     serialise(out, fn->return_type);
     serialise(out, &(fn->parameters));
     serialise(out, fn->is_macro);
-    serialise(out, fn->internal_name);
+    serialise(out, fn->symbol);
     serialise(out, fn->always_inline);
     serialise(out, fn->once_tag);
     serialise(out, fn->cto);
@@ -335,7 +335,7 @@ char *deserialise(TypeRegister *tr, char *in, Function *fn)
 
     in = deserialise(tr, in, &(fn->parameters));
     in = deserialise(tr, in, &(fn->is_macro));
-    in = deserialise(tr, in, &(fn->internal_name));
+    in = deserialise(tr, in, &(fn->symbol));
     in = deserialise(tr, in, &(fn->always_inline));
     in = deserialise(tr, in, &(fn->once_tag));
     in = deserialise(tr, in, &(fn->cto));
@@ -357,7 +357,7 @@ void serialise(FILE *out, Struct *st)
     serialise(out, &(st->is_opaque));
     serialise(out, &(st->member_types));
     serialise(out, &(st->name_to_index));
-    serialise(out, &(st->internal_name));
+    serialise(out, &(st->symbol));
     serialise(out, st->once_tag);
     serialise(out, st->linkage);
 
@@ -375,7 +375,7 @@ char *deserialise(TypeRegister *tr, char *in, Struct *st)
     in = deserialise(tr, in, &(st->is_opaque));
     in = deserialise(tr, in, &(st->member_types));
     in = deserialise(tr, in, &(st->name_to_index));
-    in = deserialise(tr, in, &(st->internal_name));
+    in = deserialise(tr, in, &(st->symbol));
     in = deserialise(tr, in, &(st->once_tag));
     in = deserialise(tr, in, &(st->linkage));
 

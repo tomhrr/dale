@@ -30,7 +30,7 @@ public:
     /*! The function's LLVM function. */
     llvm::Function *llvm_function;
     /*! The function's internal name (mangled, qualified). */
-    std::string internal_name;
+    std::string symbol;
     /*! The function's once tag. */
     std::string once_tag;
     /*! Whether the function should always be inlined. */
@@ -57,18 +57,18 @@ public:
      *  @param parameters The parameters.
      *  @param llvm_function The LLVM function.
      *  @param is_macro Whether the function is actually a macro.
-     *  @param internal_name The internal name.
+     *  @param symbol The internal name.
      *  @param always_inline Whether the function should always be inlined.
      *
      *  return_type and llvm_function are not copied.  parameters
      *  is copied, but the individual variables are not.
-     *  internal_name is copied.
+     *  symbol is copied.
      */
     Function(Type *return_type,
              std::vector<Variable *> *parameters,
              llvm::Function *llvm_function,
              bool is_macro,
-             std::string *internal_name,
+             std::string *symbol,
              bool always_inline = false);
     ~Function();
 

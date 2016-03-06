@@ -102,7 +102,7 @@ parseStringLiteral(Units *units, Context *ctx, llvm::BasicBlock *block,
 
     Variable *var = new Variable();
     var->name.append(varname.c_str());
-    var->internal_name.append(varname);
+    var->symbol.append(varname);
     var->type = str_type_sized;
     var->value = llvm::cast<llvm::Value>(llvm_var);
     var->linkage = Linkage::Intern;

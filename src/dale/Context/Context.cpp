@@ -850,7 +850,7 @@ Context::rebuildFunction(Function *fn, const char *name,
 
     fn->llvm_function =
         llvm::dyn_cast<llvm::Function>(
-            mod->getOrInsertFunction(fn->internal_name.c_str(), ft)
+            mod->getOrInsertFunction(fn->symbol.c_str(), ft)
         );
     assert(fn->llvm_function && "unable to re-get function");
 
@@ -880,7 +880,7 @@ Context::rebuildFunctions(llvm::Module *mod, NSNode *nsnode)
                 fb != fe;
                 ++fb) {
             Function *fn = (*fb);
-            fn->llvm_function = mod->getFunction(fn->internal_name.c_str());
+            fn->llvm_function = mod->getFunction(fn->symbol.c_str());
             if (fn->llvm_function) {
                 continue;
             }
@@ -895,12 +895,12 @@ bool
 Context::rebuildVariable(Variable *var, const char *name,
                          llvm::Module *mod)
 {
-    /* internal_name is only set when the variable's value
+    /* symbol is only set when the variable's value
      * pointer needs to be updated after module linkage. */
 
     const char *variable_name =
-        (var->internal_name.size() > 0)
-            ? var->internal_name.c_str()
+        (var->symbol.size() > 0)
+            ? var->symbol.c_str()
             : name;
 
     var->value =

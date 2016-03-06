@@ -633,7 +633,7 @@ FormTopLevelGlobalVariableParse(Units *units, Node *node)
     Variable *var = new Variable();
     var->name.append(name);
     var->type = ret_type;
-    var->internal_name.append(new_name);
+    var->symbol.append(new_name);
     var->once_tag = units->top()->once_tag;
     var->linkage = linkage;
 

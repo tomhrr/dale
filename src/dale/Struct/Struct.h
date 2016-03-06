@@ -22,7 +22,7 @@ public:
     /* The struct's LLVM struct type. */
     llvm::StructType *type;
     /* The struct's internal name (mangled, qualified). */
-    std::string internal_name;
+    std::string symbol;
     /* The types of the struct's members. */
     std::vector<Type *> member_types;
     /* A map from member name to index. */

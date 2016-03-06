@@ -622,7 +622,7 @@ Namespace::eraseLLVMMacrosAndCTOFunctions()
         if (erased.find(lfn) == erased.end()) {
             erased.insert(lfn);
             llvm::Module *m = lfn->getParent();
-            llvm::StringRef x(fn->internal_name.c_str());
+            llvm::StringRef x(fn->symbol.c_str());
             if (m->getFunction(x)) {
                 lfn->eraseFromParent();
             }
@@ -758,17 +758,17 @@ Namespace::regetStructPointers(llvm::Module *mod)
             b != e;
             ++b) {
         Struct *st = b->second;
-        if (!st->internal_name.compare("")) {
+        if (!st->symbol.compare("")) {
             continue;
         }
         std::string type_name;
         type_name.append("struct_")
-                 .append(st->internal_name);
+                 .append(st->symbol);
 
         llvm::StructType *llvm_st = mod->getTypeByName(type_name);
         if (!llvm_st) {
             type_name.clear();
-            type_name.append(st->internal_name);
+            type_name.append(st->symbol);
             llvm_st = mod->getTypeByName(type_name);
         }
         assert(llvm_st && "could not get type for struct");
@@ -787,9 +787,9 @@ Namespace::regetVariablePointers(llvm::Module *mod)
             b != e;
             ++b) {
         Variable *var = b->second;
-        /* internal_name is only set when the variable's value pointer
+        /* symbol is only set when the variable's value pointer
          * needs to be updated on merge.  */
-        std::string *in = &(var->internal_name);
+        std::string *in = &(var->symbol);
         if (!(in && in->size())) {
             continue;
         }
@@ -828,7 +828,7 @@ Namespace::regetFunctionPointers(llvm::Module *mod)
                 ++fb) {
             Function *fn = (*fb);
             fn->llvm_function =
-                mod->getFunction(fn->internal_name.c_str());
+                mod->getFunction(fn->symbol.c_str());
         }
     }
 
@@ -858,12 +858,12 @@ Namespace::eraseOnceFunctions(std::set<std::string> *once_tags,
                 fb != fe;
                 ++fb) {
             Function *fn = (*fb);
-            if (!strcmp(fn->internal_name.c_str(), "")) {
+            if (!strcmp(fn->symbol.c_str(), "")) {
                 continue;
             }
             if (once_tags->find(fn->once_tag) != once_tags->end()) {
                 llvm::Function *fn_to_remove =
-                    mod->getFunction(fn->internal_name.c_str());
+                    mod->getFunction(fn->symbol.c_str());
                 if (fn_to_remove) {
                     fn_to_remove->deleteBody();
                 }
@@ -884,12 +884,12 @@ Namespace::eraseOnceVariables(std::set<std::string> *once_tags,
             b != e;
             ++b) {
         Variable *var = b->second;
-        if (!(var->internal_name.compare(""))) {
+        if (!(var->symbol.compare(""))) {
             continue;
         }
         if (once_tags->find(var->once_tag) != once_tags->end()) {
             llvm::GlobalVariable *var_to_remove =
-                mod->getGlobalVariable(var->internal_name.c_str());
+                mod->getGlobalVariable(var->symbol.c_str());
             if (var_to_remove) {
                 var_to_remove->setInitializer(NULL);
                 var->value = llvm::cast<llvm::Value>(var_to_remove);

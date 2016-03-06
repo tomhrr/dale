@@ -42,7 +42,7 @@ addOpaqueStruct(Units *units, const char *name, Node *top, int linkage)
     st->type = llvm_st;
     st->is_opaque = true;
     st->linkage = linkage;
-    st->internal_name.append(llvm_st_name.c_str());
+    st->symbol.append(llvm_st_name.c_str());
     st->once_tag = units->top()->once_tag;
 
     if (!ctx->ns()->addStruct(name, st)) {
@@ -185,8 +185,8 @@ FormStructParse(Units *units, Node *top, const char *name)
     opaque_struct_type->setBody(llvm::ArrayRef<llvm::Type*>(members_llvm));
     st->is_opaque = false;
 
-    st->internal_name.clear();
-    st->internal_name.append(symbol.c_str());
+    st->symbol.clear();
+    st->symbol.append(symbol.c_str());
 
     st->linkage = linkage;
 

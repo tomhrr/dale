@@ -30,7 +30,7 @@ public:
     /*! The variable's name (unqualified, unmangled). */
     std::string name;
     /*! The variable's internal name (qualified, mangled). */
-    std::string internal_name;
+    std::string symbol;
     /*! The variable's value. */
     llvm::Value *value;
     /*! For a variable with one of the extern linkages, this indicates

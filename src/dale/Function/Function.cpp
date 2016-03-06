@@ -19,14 +19,14 @@ Function::Function(
     std::vector<Variable *> *parameters,
     llvm::Function *llvm_function,
     bool is_macro,
-    std::string *internal_name,
+    std::string *symbol,
     bool always_inline)
 {
     this->return_type     = return_type;
     this->parameters      = *parameters;
     this->llvm_function   = llvm_function;
     this->is_macro        = is_macro;
-    this->internal_name   = *internal_name;
+    this->symbol   = *symbol;
     this->always_inline   = always_inline;
 
     cto           = false;

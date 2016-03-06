@@ -74,7 +74,7 @@ addRetval(Context *ctx, Node *node, Function *fn,
 
     var->type            = ctx->tr->getPointerType(fn->return_type);
     var->name            = "retval";
-    var->internal_name   = "retval";
+    var->symbol          = "retval";
     var->has_initialiser = false;
     var->once_tag        = "";
     var->index           = 0;

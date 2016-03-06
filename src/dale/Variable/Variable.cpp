@@ -29,7 +29,7 @@ void
 Variable::copyTo(Variable *other)
 {
     other->name            = this->name;
-    other->internal_name   = this->internal_name;
+    other->symbol          = this->symbol;
     other->value           = this->value;
     other->has_initialiser = this->has_initialiser;
     other->once_tag        = this->once_tag;
