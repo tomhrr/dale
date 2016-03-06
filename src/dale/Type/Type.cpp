@@ -407,6 +407,14 @@ void Type::toSymbolString(std::string *to)
         return;
     }
 
+    if (is_reference) {
+        to->append("R");
+        is_reference = false;
+        toSymbolString(to);
+        is_reference = true;
+        return;
+    }
+
     if (base_type) {
         char c = baseTypeToSymbolChar(base_type);
         assert((c != '?') && "invalid base type");
