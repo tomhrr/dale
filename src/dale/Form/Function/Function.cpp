@@ -209,6 +209,36 @@ parseReturnType(Units *units, Context *ctx,
 }
 
 bool
+hasMatchingFunction(Units *units, Context *ctx, Node *node,
+                    const char *name, Function *fn)
+{
+    std::string *symbol = &(fn->internal_name);
+
+    llvm::Function *existing_llvm_fn =
+        units->top()->module->getFunction(symbol->c_str());
+    if (!existing_llvm_fn) {
+        return false;
+    }
+
+    Function *existing_fn = ctx->getFunction(symbol->c_str(), NULL,
+                                             NULL, 0);
+    if (existing_fn && !existing_fn->isEqualTo(fn)) {
+        Error *e = new Error(RedeclarationOfFunctionOrMacro,
+                             node, name);
+        ctx->er->addError(e);
+        return true;
+    }
+    if (existing_fn && !existing_fn->attrsAreEqual(fn)) {
+        Error *e = new Error(AttributesOfDeclAndDefAreDifferent,
+                                node, name);
+        ctx->er->addError(e);
+        return true;
+    }
+
+    return false;
+}
+
+bool
 FormFunctionParse(Units *units, Node *node, const char *name,
                   Function **new_fn, int override_linkage,
                   bool is_anonymous)
@@ -333,9 +363,12 @@ FormFunctionParse(Units *units, Node *node, const char *name,
                                     &fn_args_internal);
 
     Function *fn = new Function(ret_type, &fn_args_internal, NULL, 0,
-                                 &symbol, always_inline);
+                                &symbol, always_inline);
     fn->linkage = linkage;
     fn->cto = cto;
+    if (units->top()->once_tag.length() > 0) {
+        fn->once_tag = units->top()->once_tag;
+    }
     if (!strcmp(name, "setf-copy") || !strcmp(name, "setf-assign")) {
         fn->is_setf_fn = true;
     } else if (!strcmp(name, "destroy")) {
@@ -351,27 +384,9 @@ FormFunctionParse(Units *units, Node *node, const char *name,
         }
     }
 
-    llvm::Function *existing_llvm_fn =
-        units->top()->module->getFunction(symbol.c_str());
-    if (existing_llvm_fn) {
-        Function *existing_fn = ctx->getFunction(symbol.c_str(), NULL,
-                                                 NULL, 0);
-        if (existing_fn && !existing_fn->isEqualTo(fn)) {
-            Error *e = new Error(RedeclarationOfFunctionOrMacro,
-                                 node, name);
-            ctx->er->addError(e);
-            return false;
-        }
-        if (existing_fn && !existing_fn->attrsAreEqual(fn)) {
-            Error *e = new Error(AttributesOfDeclAndDefAreDifferent,
-                                 node, name);
-            ctx->er->addError(e);
-            return false;
-        }
-    }
-
-    if (units->top()->once_tag.length() > 0) {
-        fn->once_tag = units->top()->once_tag;
+    res = hasMatchingFunction(units, ctx, node, name, fn);
+    if (res) {
+        return false;
     }
 
     llvm::Constant *fnc =
@@ -441,7 +456,7 @@ FormFunctionParse(Units *units, Node *node, const char *name,
 
     if (!strcmp(name, "main")
             && (!strcmp(SYSTEM_NAME, "Darwin")
-             || !strcmp(SYSTEM_NAME, "FreeBSD")) 
+             || !strcmp(SYSTEM_NAME, "FreeBSD"))
             && ctx->getVariable("stdin")
             && ctx->getVariable("stdout")
             && ctx->getVariable("stderr")) {

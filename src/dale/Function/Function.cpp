@@ -23,7 +23,7 @@ Function::Function(
     bool always_inline)
 {
     this->return_type     = return_type;
-    this->parameters = *parameters;
+    this->parameters      = *parameters;
     this->llvm_function   = llvm_function;
     this->is_macro        = is_macro;
     this->internal_name   = *internal_name;
