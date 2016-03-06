@@ -1,0 +1,5 @@
+(def fn (fn extern-c int ((n int))))
+(def fn (fn extern-c int ((n (p char)))))
+
+(def fn2 (fn extern-c int ((n int)) 0))
+(def fn2 (fn extern-c int ((n int)) 0))

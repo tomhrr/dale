@@ -1,0 +1,2 @@
+./t/error-src/redeclaration-extern-c-fn.dt:2:9: error: function/macro 'fn' has already been defined in this scope
+./t/error-src/redeclaration-extern-c-fn.dt:5:10: error: function/macro 'fn2' has already been defined in this scope

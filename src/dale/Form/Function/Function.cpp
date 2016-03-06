@@ -147,6 +147,19 @@ addInitChannelsCall(Context *ctx, llvm::Function *llvm_fn)
     }
 }
 
+void
+parametersToTypes(std::vector<Variable *> *parameters,
+                  std::vector<Type *> *types)
+{
+    for (std::vector<Variable *>::iterator b = parameters->begin(),
+                                           e = parameters->end();
+            b != e;
+            ++b) {
+        Type *type = (*b)->type;
+        types->push_back(type);
+    }
+}
+
 bool
 parametersToLLVMTypes(Context *ctx, std::vector<Variable *> *parameters,
                       std::vector<llvm::Type *> *types)
@@ -209,33 +222,38 @@ parseReturnType(Units *units, Context *ctx,
 }
 
 bool
-hasMatchingFunction(Units *units, Context *ctx, Node *node,
-                    const char *name, Function *fn)
+isValidDeclaration(Context *ctx, Node *node, const char *name,
+                   int linkage, Function *fn)
 {
-    std::string *symbol = &(fn->internal_name);
-
-    llvm::Function *existing_llvm_fn =
-        units->top()->module->getFunction(symbol->c_str());
-    if (!existing_llvm_fn) {
-        return false;
+    Namespace *current_ns = (*(ctx->used_ns_nodes.rbegin()))->ns;
+    std::vector<Type*> types;
+    parametersToTypes(&fn->parameters, &types);
+    Function *closest_fn = NULL;
+    Function *matching_fn =
+        (linkage == Linkage::Extern_C)
+            ? current_ns->getFunction(name, NULL, NULL, false)
+            : current_ns->getFunction(name, &types, &closest_fn, false);
+    if (matching_fn) {
+        if (!matching_fn->isEqualTo(fn)) {
+            Error *e = new Error(RedeclarationOfFunctionOrMacro,
+                                 node, name);
+            ctx->er->addError(e);
+            return false;
+        }
+        if (matching_fn->llvm_function && matching_fn->llvm_function->size()) {
+            Error *e = new Error(RedeclarationOfFunctionOrMacro, node, name);
+            ctx->er->addError(e);
+            return false;
+        }
+        if (!matching_fn->attrsAreEqual(fn)) {
+            Error *e = new Error(AttributesOfDeclAndDefAreDifferent,
+                                 node, name);
+            ctx->er->addError(e);
+            return false;
+        }
     }
 
-    Function *existing_fn = ctx->getFunction(symbol->c_str(), NULL,
-                                             NULL, 0);
-    if (existing_fn && !existing_fn->isEqualTo(fn)) {
-        Error *e = new Error(RedeclarationOfFunctionOrMacro,
-                             node, name);
-        ctx->er->addError(e);
-        return true;
-    }
-    if (existing_fn && !existing_fn->attrsAreEqual(fn)) {
-        Error *e = new Error(AttributesOfDeclAndDefAreDifferent,
-                                node, name);
-        ctx->er->addError(e);
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 bool
@@ -384,8 +402,8 @@ FormFunctionParse(Units *units, Node *node, const char *name,
         }
     }
 
-    res = hasMatchingFunction(units, ctx, node, name, fn);
-    if (res) {
+    res = isValidDeclaration(ctx, node, name, linkage, fn);
+    if (!res) {
         return false;
     }
 
@@ -397,12 +415,13 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     /* If llvm_fn is null, then the function already exists and the extant
      * function has a different prototype, so it's an invalid
      * redeclaration.  If llvm_fn is not null, but has content, then it's an
-     * invalid redefinition. */
+     * invalid redefinition.  These error conditions should be caught
+     * by isValidDeclaration, but there's no harm in leaving this
+     * check here as a stopgap. */
 
     if (!llvm_fn || llvm_fn->size()) {
-        Error *e = new Error(RedeclarationOfFunctionOrMacro, node, name);
-        ctx->er->addError(e);
-        return false;
+        assert(false && "uncaught invalid redeclaration");
+        abort();
     }
 
     if (always_inline) {
