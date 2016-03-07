@@ -128,6 +128,28 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
     }
 
     /* If list is a two-element list, where the first element is
+     * 'rv-ref', then this is an rvalue reference type. */
+    if (lst->size() == 2
+            && fst_node->is_token
+            && !(fst_node->token->str_value.compare("rv-ref"))) {
+        if (!allow_refs) {
+            Error *e = new Error(RefsNotPermittedHere, node);
+            ctx->er->addError(e);
+            return NULL;
+        }
+        /* Reference types are only permitted at the 'node level' of
+         * the type. */
+        Type *rvalue_reference_type =
+            FormTypeParse(units, snd_node, allow_anon_structs,
+                          allow_bitfields);
+
+        if (rvalue_reference_type == NULL) {
+            return NULL;
+        }
+        return ctx->tr->getRvalueReferenceType(rvalue_reference_type);
+    }
+
+    /* If list is a two-element list, where the first element is
      * 'retval', then this is a retval type. */
     if (lst->size() == 2
             && fst_node->is_token
