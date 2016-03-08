@@ -60,7 +60,7 @@ void
 MacroProcessor::setPoolfree()
 {
     if (!pool_free_fptr) {
-        pool_free_fn = ctx->getFunction("pool-free", NULL, 0)->llvm_function;
+        pool_free_fn = ctx->getFunction("pool-free", NULL, NULL, 0)->llvm_function;
         pool_free_fptr =
             (void (*)(MContext *mcp))
                 ee->getPointerToFunction(pool_free_fn);
@@ -231,7 +231,7 @@ MacroProcessor::parsePotentialMacroCall(Node *n)
         return core_mac(ctx, n);
     }
 
-    Function *ffn = ctx->getFunction(macro_name, NULL, 1);
+    Function *ffn = ctx->getFunction(macro_name, NULL, NULL, 1);
     if (!ffn) {
         return n;
     }
@@ -272,7 +272,7 @@ MacroProcessor::parsePotentialMacroCall(Node *n)
         units->top()->removeTemporaryGlobalFunction();
     }
 
-    ffn = ctx->getFunction(macro_name, &types, 1);
+    ffn = ctx->getFunction(macro_name, &types, NULL, 1);
     if (!ffn) {
         return n;
     }

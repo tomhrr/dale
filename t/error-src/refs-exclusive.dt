@@ -1,0 +1,25 @@
+(import cstdio)
+
+(def ref-fn (fn extern int ((a (ref int)))
+  1))
+
+(def ref-fn (fn extern int ((a (rv-ref int)))
+  2))
+
+(def ref-fn (fn extern int ((a int))
+  0))
+
+(def ref-fn-1 (fn extern int ((a int))
+  0))
+
+(def ref-fn-1 (fn extern int ((a (ref int)))
+  1))
+
+(def ref-fn-1 (fn extern int ((a (rv-ref int)))
+  2))
+
+(def main (fn extern-c int (void)
+  (def n (var auto int 0))
+  (printf "%d\n" (ref-fn n))
+  (printf "%d\n" (ref-fn 0))
+  0))

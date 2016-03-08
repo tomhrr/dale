@@ -1,0 +1,3 @@
+./t/error-src/refs-exclusive.dt:9:13: error: function/macro 'ref-fn' has already been defined in this scope
+./t/error-src/refs-exclusive.dt:15:15: error: function/macro 'ref-fn-1' has already been defined in this scope
+./t/error-src/refs-exclusive.dt:18:15: error: function/macro 'ref-fn-1' has already been defined in this scope

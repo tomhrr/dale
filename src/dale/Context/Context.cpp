@@ -456,21 +456,23 @@ getFunction_(Namespace *ns,
              const char *name,
              std::vector<Type *> *types,
              Function **closest_fn,
-             bool is_macro)
+             bool is_macro,
+             std::vector<bool> *lvalues)
 {
     Function *fn =
-        ns->getFunction(name, types, closest_fn, is_macro, false);
+        ns->getFunction(name, types, closest_fn, is_macro, false, lvalues);
     if (fn) {
         return fn;
     }
-    return ns->getFunction(name, types, closest_fn, is_macro, true);
+    return ns->getFunction(name, types, closest_fn, is_macro, true, lvalues);
 }
 
 Function *
 Context::getFunction(const char *name,
                      std::vector<Type *> *types,
                      Function **closest_fn,
-                     bool is_macro)
+                     bool is_macro,
+                     std::vector<bool> *lvalues)
 {
     if (strchr(name, '.')) {
         Namespace *ns = getNamespace(name, true);
@@ -478,7 +480,7 @@ Context::getFunction(const char *name,
             return NULL;
         }
         const char *fn_name = strrchr(name, '.') + 1;
-        return getFunction_(ns, fn_name, types, closest_fn, is_macro);
+        return getFunction_(ns, fn_name, types, closest_fn, is_macro, lvalues);
     }
 
     for (std::vector<NSNode *>::reverse_iterator
@@ -487,21 +489,13 @@ Context::getFunction(const char *name,
             rb != re;
             ++rb) {
         Function *fn =
-            getFunction_((*rb)->ns, name, types, closest_fn, is_macro);
+            getFunction_((*rb)->ns, name, types, closest_fn, is_macro, lvalues);
         if (fn) {
             return fn;
         }
     }
 
     return NULL;
-}
-
-Function *
-Context::getFunction(const char *name,
-                     std::vector<Type *> *types,
-                     bool is_macro)
-{
-    return getFunction(name, types, NULL, is_macro);
 }
 
 Variable *

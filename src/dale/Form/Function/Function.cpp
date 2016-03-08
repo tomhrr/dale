@@ -229,10 +229,18 @@ isValidDeclaration(Context *ctx, Node *node, const char *name,
     std::vector<Type*> types;
     parametersToTypes(&fn->parameters, &types);
     Function *closest_fn = NULL;
+    std::vector<bool> lvalues;
+    for (std::vector<Type *>::iterator b = types.begin(),
+                                       e = types.end();
+            b != e;
+            ++b) {
+        lvalues.push_back((*b)->is_reference);
+    }
     Function *matching_fn =
         (linkage == Linkage::Extern_C)
             ? current_ns->getFunction(name, NULL, NULL, false)
-            : current_ns->getFunction(name, &types, &closest_fn, false);
+            : current_ns->getFunction(name, &types, &closest_fn,
+                                      false, true, &lvalues);
     if (matching_fn) {
         if (!matching_fn->isEqualTo(fn)) {
             Error *e = new Error(RedeclarationOfFunctionOrMacro,

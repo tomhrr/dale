@@ -585,9 +585,17 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
     /* Retrieve the function (if present) from the context, based on
      * the argument types. */
 
+    std::vector<bool> lvalues;
+    for (std::vector<ParseResult>::iterator b = call_arg_prs.begin(),
+                                            e = call_arg_prs.end();
+            b != e;
+            ++b) {
+        lvalues.push_back((*b).value_is_lvalue);
+    }
+
     Function *closest_fn = NULL;
     Function *fn = ctx->getFunction(proc_name, &call_arg_types,
-                                    &closest_fn, 0);
+                                    &closest_fn, false, &lvalues);
 
     /* If the function is a macro, set macro_to_call and return false.
      * (It's the caller's responsibility to handle processing of

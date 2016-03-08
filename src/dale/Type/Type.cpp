@@ -54,6 +54,14 @@ bool
 Type::isEqualTo(Type *other_type,
                 bool ignore_arg_constness)
 {
+    if (is_reference && other_type->is_rvalue_reference) {
+        return false;
+    }
+
+    if (is_rvalue_reference && other_type->is_reference) {
+        return false;
+    }
+
     if (base_type != other_type->base_type) {
         return false;
     }
@@ -262,15 +270,6 @@ Type::toNode()
 
 void Type::toString(std::string *str)
 {
-    if (is_const) {
-        str->append("(const ");
-        is_const = false;
-        toString(str);
-        str->append(")");
-        is_const = true;
-        return;
-    }
-
     if (is_reference) {
         str->append("(ref ");
         is_reference = false;
@@ -286,6 +285,15 @@ void Type::toString(std::string *str)
         toString(str);
         str->append(")");
         is_rvalue_reference = true;
+        return;
+    }
+
+    if (is_const) {
+        str->append("(const ");
+        is_const = false;
+        toString(str);
+        str->append(")");
+        is_const = true;
         return;
     }
 

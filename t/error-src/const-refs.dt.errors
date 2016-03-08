@@ -1,1 +1,1 @@
-./t/error-src/const-refs.dt:12:14: error: cannot take address of non-lvalue
+./t/error-src/const-refs.dt:12:3: error: overloaded function/macro not in scope: 'increment' (parameters are int, closest candidate expects (ref int))

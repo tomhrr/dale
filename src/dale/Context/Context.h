@@ -181,17 +181,10 @@ public:
      *  method.
      */
     Function *getFunction(const char *name,
-                                   std::vector<Type *> *types,
-                                   Function **closest_fn,
-                                   bool is_macro);
-    /*! Get the function with the given name and arguments.
-     *
-     *  This is an overloaded version of getFunction, omitting
-     *  closest_fn.
-     */
-    Function *getFunction(const char *name,
-                                   std::vector<Type *> *types,
-                                   bool is_macro);
+                          std::vector<Type *> *types,
+                          Function **closest_fn,
+                          bool is_macro,
+                          std::vector<bool> *lvalues = NULL);
     /*! Get the variable with the given name.
      *
      *  See Namespace::getVariable.  As per getFunction, this iterates

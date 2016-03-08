@@ -244,7 +244,8 @@ Namespace::getFunction(const char *name,
                        std::vector<Type *> *types,
                        Function **pclosest_fn,
                        bool is_macro,
-                       bool ignore_arg_constness)
+                       bool ignore_arg_constness,
+                       std::vector<bool> *lvalues)
 {
     std::string ss_name(name);
 
@@ -288,6 +289,7 @@ Namespace::getFunction(const char *name,
     std::vector<Function *>::iterator fn_iter;
     std::vector<Type *>::iterator arg_type_iter;
     std::vector<Variable *>::iterator fn_arg_type_iter;
+    std::vector<bool>::iterator lvalue_iter;
 
     fn_iter = function_list->begin();
 
@@ -307,6 +309,10 @@ Namespace::getFunction(const char *name,
 
         fn_arg_type_iter = current->parameters.begin();
         arg_type_iter    = types->begin();
+        if (lvalues) {
+            lvalue_iter = lvalues->begin();
+        }
+
         int matched_arg_count = 0;
         bool broke_on_va      = false;
         bool broke_on_failure = false;
@@ -341,6 +347,19 @@ Namespace::getFunction(const char *name,
                 break;
             }
 
+            if (lvalues && (lvalue_iter != lvalues->end())) {
+                Type *type = (*fn_arg_type_iter)->type;
+                bool is_lvalue = *lvalue_iter;
+
+                if ((!type->is_const && type->is_reference) && !is_lvalue) {
+                    broke_on_failure = true;
+                    break;
+                } else if (type->is_rvalue_reference && is_lvalue) {
+                    broke_on_failure = true;
+                    break;
+                }
+            }
+
             bool result =
                 (*fn_arg_type_iter)->type->canBePassedFrom(
                     (*arg_type_iter),
@@ -351,6 +370,9 @@ Namespace::getFunction(const char *name,
                 ++arg_type_iter;
                 ++fn_arg_type_iter;
                 ++matched_arg_count;
+                if (lvalues && (lvalue_iter != lvalues->end())) {
+                    ++lvalue_iter;
+                }
                 continue;
             } else {
                 broke_on_failure = true;

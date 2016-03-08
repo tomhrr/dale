@@ -116,7 +116,7 @@ TypeRegister::getArrayType(Type *type, size_t size)
             return ab->second;
         } else {
             Type *array_type = new Type();
-            array_type->is_array = 1;
+            array_type->is_array = true;
             array_type->array_type = type;
             array_type->array_size = size;
             b->second.insert(
@@ -172,7 +172,7 @@ TypeRegister::getConstType(Type *type)
     }
 
     Type *const_type = type->makeCopy();
-    const_type->is_const = 1;
+    const_type->is_const = true;
     const_types.insert(
         std::pair<Type*, Type*>(type, const_type)
     );
@@ -189,7 +189,7 @@ TypeRegister::getReferenceType(Type *type)
     }
 
     Type *reference_type = type->makeCopy();
-    reference_type->is_reference = 1;
+    reference_type->is_reference = true;
     reference_types.insert(
         std::pair<Type*, Type*>(type, reference_type)
     );
@@ -206,7 +206,7 @@ TypeRegister::getRvalueReferenceType(Type *type)
     }
 
     Type *rvalue_reference_type = type->makeCopy();
-    rvalue_reference_type->is_rvalue_reference = 1;
+    rvalue_reference_type->is_rvalue_reference = true;
     rvalue_reference_types.insert(
         std::pair<Type*, Type*>(type, rvalue_reference_type)
     );
@@ -223,7 +223,7 @@ TypeRegister::getRetvalType(Type *type)
     }
 
     Type *retval_type = type->makeCopy();
-    retval_type->is_retval = 1;
+    retval_type->is_retval = true;
     retval_types.insert(
         std::pair<Type*, Type*>(type, retval_type)
     );
@@ -260,17 +260,17 @@ TypeRegister::getType(Type *type)
     Type *final = NULL;
 
     if (type->is_const) {
-        type->is_const = 0;
+        type->is_const = false;
         final = getConstType(getType(type));
-        type->is_const = 1;
+        type->is_const = true;
     } else if (type->is_reference) {
-        type->is_reference = 0;
+        type->is_reference = false;
         final = getReferenceType(getType(type));
-        type->is_reference = 1;
+        type->is_reference = true;
     } else if (type->is_rvalue_reference) {
-        type->is_rvalue_reference = 0;
+        type->is_rvalue_reference = false;
         final = getRvalueReferenceType(getType(type));
-        type->is_rvalue_reference = 1;
+        type->is_rvalue_reference = true;
     } else if (type->is_array) {
         final = getArrayType(getType(type->array_type), type->array_size);
     } else if (type->points_to) {
