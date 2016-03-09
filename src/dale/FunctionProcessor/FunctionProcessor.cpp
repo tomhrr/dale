@@ -100,12 +100,22 @@ processReferenceTypes(std::vector<llvm::Value *> *call_args,
         Type *pt = (*parameter_types)[i];
         ParseResult *arg_refpr = &((*call_arg_prs)[i]);
         if (pt->is_reference) {
+            /* todo: this is handled as part of function resolution,
+             * so it should not be necessary to have this check
+             * anymore, which in turn will allow this branch and the
+             * one below to be merged. */
             if (!pt->is_const && !arg_refpr->value_is_lvalue) {
                 Error *e = new Error(CannotTakeAddressOfNonLvalue,
                                      (*call_arg_nodes)[i]);
                 ctx->er->addError(e);
                 return false;
             }
+            bool res = arg_refpr->getAddressOfValue(ctx, &refpr);
+            if (!res) {
+                return false;
+            }
+            (*call_args_final)[i] = refpr.getValue(ctx);
+        } else if (pt->is_rvalue_reference) {
             bool res = arg_refpr->getAddressOfValue(ctx, &refpr);
             if (!res) {
                 return false;

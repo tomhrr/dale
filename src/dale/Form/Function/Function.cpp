@@ -169,7 +169,7 @@ parametersToLLVMTypes(Context *ctx, std::vector<Variable *> *parameters,
             b != e;
             ++b) {
         Type *type = (*b)->type;
-        if (type->is_reference) {
+        if (type->is_reference || type->is_rvalue_reference) {
             type = ctx->tr->getPointerType(type);
         }
         if (type->base_type == BaseType::VarArgs) {
