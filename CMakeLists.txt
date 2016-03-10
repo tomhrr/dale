@@ -185,6 +185,7 @@ endif ()
 add_executable (dalec src/dale/dalec.cpp
                       src/dale/Introspection/Introspection.cpp
                       src/dale/Operation/Cast/Cast.cpp
+                      src/dale/Operation/Move/Move.cpp
                       src/dale/Operation/Sizeof/Sizeof.cpp
                       src/dale/Operation/Offsetof/Offsetof.cpp
                       src/dale/Operation/Alignmentof/Alignmentof.cpp
@@ -247,6 +248,7 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/Proc/UsingNamespace/UsingNamespace.cpp
                       src/dale/Form/Proc/NewScope/NewScope.cpp
                       src/dale/Form/Proc/ArrayOf/ArrayOf.cpp
+                      src/dale/Form/Proc/Move/Move.cpp
                       src/dale/Form/ProcBody/ProcBody.cpp
                       src/dale/Form/Macro/ArrayDeref/ArrayDeref.cpp
                       src/dale/Form/Macro/StructDeref/StructDeref.cpp

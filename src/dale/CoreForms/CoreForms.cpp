@@ -34,6 +34,7 @@
 #include "../Form/Proc/UsingNamespace/UsingNamespace.h"
 #include "../Form/Proc/NewScope/NewScope.h"
 #include "../Form/Proc/ArrayOf/ArrayOf.h"
+#include "../Form/Proc/Move/Move.h"
 #include "../Form/Macro/ArrayDeref/ArrayDeref.h"
 #include "../Form/Macro/StructDeref/StructDeref.h"
 #include "../Form/Macro/DerefStructDeref/DerefStructDeref.h"
@@ -61,13 +62,13 @@ std::map<std::string, macro_core_form_t> macro_core_forms;
 std::map<std::string, toplevel_core_form_t> toplevel_core_forms;
 std::set<std::string> core_forms_no_override;
 
-const int core_forms_no_override_max = 31;
+const int core_forms_no_override_max = 32;
 const char *core_forms_no_override_strs[core_forms_no_override_max + 1] = {
     "goto", "label", "return", ":", "q", "p=", "p+", "p-", "p<",
     "p>", "def", "if", "null", "nullptr", "do", "cast", "va-arg",
     "va-start", "va-end",
     "sizeof", "offsetof", "alignmentof", "funcall", "using-namespace",
-    "new-scope", "array-of",  "setv", "@$", ":@", "@:", "@:@", NULL
+    "new-scope", "array-of",  "setv", "@$", ":@", "@:", "@:@", "move", NULL
 };
 
 static bool initialised = false;
@@ -111,6 +112,7 @@ init()
     ADD_SC("using-namespace", &FormProcUsingNamespaceParse);
     ADD_SC("new-scope",       &FormProcNewScopeParse);
     ADD_SC("array-of",        &FormProcArrayOfParse);
+    ADD_SC("move",            &FormProcMoveParse);
 
     ADD_MC("setv",            &FormMacroSetvParse);
     ADD_MC("@$",              &FormMacroArrayDerefParse);
