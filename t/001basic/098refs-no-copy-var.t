@@ -20,7 +20,7 @@ is_deeply(\@res, [
 'init',
 'init',
 'preset',
-'setf-assign',
+'setf-copy-assign',
 'postset',
 '2',
 'destroy',

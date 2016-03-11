@@ -15,7 +15,7 @@ within procedures.
 
 Copies `source` to `destination`.
 
-May be overridden by way of `setf-copy` and `setf-assign`.
+May be overridden by way of `setf-copy-init` and `setf-copy-assign`.
 
 #### (`@` {`pointer`})
 

@@ -718,8 +718,8 @@ must also implement `LessThanComparable`.
           (core setf vec2     vec3)
           (return))))
 
-    (def setf-copy (fn extern bool ((dst (p (Vector (uq T))))
-                                    (src (p (Vector (uq T)))))
+    (def setf-copy-init (fn extern bool ((dst (p (Vector (uq T))))
+                                         (src (p (Vector (uq T)))))
       (init (@ dst))
       (let ((b1 \ (begin (@ src)))
             (e1 \ (end   (@ src))))
@@ -727,10 +727,10 @@ must also implement `LessThanComparable`.
           (push-back (@ dst) (@source b1))))
       true))
 
-    (def setf-assign (fn extern bool ((dst (p (Vector (uq T))))
-                                      (src (p (Vector (uq T)))))
+    (def setf-copy-assign (fn extern bool ((dst (p (Vector (uq T))))
+                                           (src (p (Vector (uq T)))))
       (clear (@ dst))
-      (setf-copy dst src)))
+      (setf-copy-init dst src)))
 
     (implement Container (Vector (uq T)))
     (implement Type (p (Vector (uq T))))

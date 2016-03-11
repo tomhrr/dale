@@ -103,7 +103,7 @@ storeValue(Context *ctx, Node *node, Type *type,
     param_types.push_back(ctx->tr->getPointerType(type));
     param_types.push_back(ctx->tr->getPointerType(type));
     Function *or_setf =
-        ctx->getFunction("setf-copy", &param_types, NULL, 0);
+        ctx->getFunction("setf-copy-init", &param_types, NULL, 0);
 
     if (or_setf && type->isEqualTo(pr->type)) {
         std::vector<llvm::Value *> call_args;
@@ -126,7 +126,7 @@ storeValue(Context *ctx, Node *node, Type *type,
     param_types.push_back(pr->type);
 
     or_setf =
-        ctx->getFunction("setf-copy", &param_types, NULL, 0);
+        ctx->getFunction("setf-copy-init", &param_types, NULL, 0);
     if (or_setf) {
         std::vector<llvm::Value *> call_args;
         call_args.push_back(dst_ptr);

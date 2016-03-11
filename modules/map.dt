@@ -555,8 +555,8 @@ must also implement `LessThanComparable`.
           ((Iterator (Map (uq Tk) (uq Tv))) ((mapp mapp)
                               (setiter lb)))))))
 
-    (def setf-copy (fn extern bool ((dst (p (Map (uq Tk) (uq Tv))))
-                                    (src (p (Map (uq Tk) (uq Tv)))))
+    (def setf-copy-init (fn extern bool ((dst (p (Map (uq Tk) (uq Tv))))
+                                         (src (p (Map (uq Tk) (uq Tv)))))
       (init (@ (:@ dst set)))
       (let ((b \ (begin (@ (:@ src set))))
             (e \ (end   (@ (:@ src set)))))
@@ -564,10 +564,10 @@ must also implement `LessThanComparable`.
           (insert (@ (:@ dst set)) (@source b))))
       true))
 
-    (def setf-assign (fn extern bool ((dst (p (Map (uq Tk) (uq Tv))))
-                                      (src (p (Map (uq Tk) (uq Tv)))))
+    (def setf-copy-assign (fn extern bool ((dst (p (Map (uq Tk) (uq Tv))))
+                                           (src (p (Map (uq Tk) (uq Tv)))))
       (clear (@ (:@ dst set)))
-      (setf-copy dst src)))
+      (setf-copy-init dst src)))
 
     (implement Type (Map (uq Tk) (uq Tv)))
     (instantiate swap (Map (uq Tk) (uq Tv)))

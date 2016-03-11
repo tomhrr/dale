@@ -8,11 +8,11 @@
     (core setf dst (core @ src))
     (return true)))
 
-(def setf-assign
+(def setf-copy-assign
   (fn intern bool ((dst (p float)) (src (p float)))
     (setf-both dst src)))
 
-(def setf-copy
+(def setf-copy-init
   (fn intern bool ((dst (p float)) (src (p float)))
     (setf-both dst src)))
 

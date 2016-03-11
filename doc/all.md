@@ -447,9 +447,9 @@ Varargs functions are written in nearly the same way as in C. The
 
 Certain core forms may be overridden by user-level functions, namely
 `@`, `#` and `$`. `setf` may also be 'overridden', in effect, by
-defining functions named `setf-copy` and `setf-assign`; these are
-discussed in more detail in
-[Initialisers and destructors](#Initialisers and destructors).
+defining functions named `setf-copy-init` and `setf-copy-assign`;
+these are discussed in more detail in [Initialisers and
+destructors](#Initialisers and destructors).
 
 The `core` core form may, in turn, be used to ignore overridden core
 forms. For example:
@@ -777,22 +777,22 @@ If a variable of the specified type is defined without being
 initialised, this function will be run with that variable as its
 argument.
 
-### `setf-copy`
+### `setf-copy-init`
 
-A `setf-copy` function is defined like so:
+A `setf-copy-init` function is defined like so:
 
-        (def setf-copy (fn {linkage} bool ((dst (p {source-type}))
-                                           (src (const {source-type})))
+        (def setf-copy-init (fn {linkage} bool ((dst (p {source-type}))
+                                                (src (const {source-type})))
           {body}))
 
 Such functions will be used in lieu of the default `setf` behaviour
 whenever `dst` is uninitialised.
 
-### `setf-assign`
+### `setf-copy-assign`
 
-`setf-assign` functions are defined in the same manner as `setf-copy`
-functions, save for the name. They are used whenever `dst` has already
-been initialised.
+`setf-copy-assign` functions are defined in the same manner as
+`setf-copy-init` functions, save for the name. They are used whenever
+`dst` has already been initialised.
 
 Multiple `setf-` functions, supporting different source types, may be
 defined over a single destination type.
@@ -961,7 +961,7 @@ within procedures.
 
 Copies `source` to `destination`.
 
-May be overridden by way of `setf-copy` and `setf-assign`.
+May be overridden by way of `setf-copy-init` and `setf-copy-assign`.
 
 #### (`@` {`pointer`})
 

@@ -149,18 +149,18 @@ Expands to a `SharedPtr` definition over the relevant type.
       (fn extern (uq T) ((mloc (SharedPtr (uq T))))
         (@ (@: mloc pointer))))
 
-    (def setf-assign
+    (def setf-copy-assign
       (fn extern bool ((loc (p (SharedPtr (uq T))))
                        (val (uq T)))
         (do (setf (core-@:@ loc pointer) val) 0)
         false))
 
-    (def setf-copy
+    (def setf-copy-init
       (fn extern bool ((loc (p (SharedPtr (uq T))))
                        (val (uq T)))
         false))
 
-    (def setf-assign
+    (def setf-copy-assign
       (fn extern bool ((loc (p (SharedPtr (uq T))))
                        (val (p (SharedPtr (uq T)))))
         (and (not (p= (core @ (: (core @ loc) pointer))
@@ -174,7 +174,7 @@ Expands to a `SharedPtr` definition over the relevant type.
                    (@ (: (core @ val) refcount)))
         true))
 
-    (def setf-copy
+    (def setf-copy-init
       (fn extern bool ((loc (p (SharedPtr (uq T))))
                        (val (p (SharedPtr (uq T)))))
         (setf (core-@:@ val refcount)

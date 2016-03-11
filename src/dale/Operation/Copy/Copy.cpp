@@ -33,7 +33,7 @@ Copy(Context *ctx, Function *fn, ParseResult *pr, ParseResult *ret_pr)
     std::vector<Type *> types;
     types.push_back(copy_type);
     types.push_back(copy_type);
-    Function *over_setf = ctx->getFunction("setf-copy", &types, NULL, 0);
+    Function *over_setf = ctx->getFunction("setf-copy-init", &types, NULL, 0);
     if (!over_setf) {
         return true;
     }

@@ -9,15 +9,15 @@
     (setf (:@ dst c) c)
     true))
 
-(def setf-copy (fn intern bool ((dst (p mys)) (src (p mys)))
+(def setf-copy-init (fn intern bool ((dst (p mys)) (src (p mys)))
   (printf ".")
   (setf (:@ dst a) (@:@ src a))
   (setf (:@ dst b) (@:@ src b))
   (setf (:@ dst c) (@:@ src c))
   true))
 
-(def setf-assign (fn intern bool ((dst (p mys)) (src (p mys)))
-  (setf-copy dst src)))
+(def setf-copy-assign (fn intern bool ((dst (p mys)) (src (p mys)))
+  (setf-copy-init dst src)))
 
 (def swap (fn extern void ((a (ref mys))
                            (b (ref mys)))

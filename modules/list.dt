@@ -593,8 +593,8 @@ Expands to a `List` definition over the relevant type.
           (setf (:@ lst2 last)  last-2)
           (return))))
 
-    (def setf-copy (fn extern bool ((dst (p (List (uq T))))
-                                    (src (p (List (uq T)))))
+    (def setf-copy-init (fn extern bool ((dst (p (List (uq T))))
+                                         (src (p (List (uq T)))))
       (init (@ dst))
       (let ((b1 \ (begin (@ src)))
             (e1 \ (end   (@ src)))
@@ -605,10 +605,10 @@ Expands to a `List` definition over the relevant type.
           (sink b2 (@ (source b1)))))
       true))
 
-    (def setf-assign (fn extern bool ((dst (p (List (uq T))))
-                                      (src (p (List (uq T)))))
+    (def setf-copy-assign (fn extern bool ((dst (p (List (uq T))))
+                                           (src (p (List (uq T)))))
       (clear (@ dst))
-      (setf-copy dst src)))
+      (setf-copy-init dst src)))
 
     (implement Container (List (uq T)))
     (implement Type (List (uq T)))

@@ -431,7 +431,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     STL::push_back2(&call_arg_types, ptr_type, ptr_type);
 
     if (Function *or_setf =
-            ctx->getFunction("setf-assign", &call_arg_types, NULL, 0)) {
+            ctx->getFunction("setf-copy-assign", &call_arg_types, NULL, 0)) {
         std::vector<llvm::Value *> or_call_args;
         STL::push_back2(&or_call_args, ret_storage1, ret_storage2);
         builder.CreateCall(

@@ -34,7 +34,7 @@ getSetfAssign(Context *ctx, Type *dst_type, Type *src_type)
     std::vector<Type *> types;
     types.push_back(dst_type);
     types.push_back(src_type);
-    return ctx->getFunction("setf-assign", &types, NULL, 0);
+    return ctx->getFunction("setf-copy-assign", &types, NULL, 0);
 }
 
 bool

@@ -15,15 +15,15 @@
     (setf (:@ dst c) c)
     true))
 
-(def setf-copy (fn intern bool ((dst (p mys)) (src (p (const mys))))
+(def setf-copy-init (fn intern bool ((dst (p mys)) (src (p (const mys))))
   (printf ".")
   (setf (:@ dst a) (@:@ src a))
   (setf (:@ dst b) (@:@ src b))
   (setf (:@ dst c) (@:@ src c))
   true))
 
-(def setf-assign (fn intern bool ((dst (p mys)) (src (p (const mys))))
-  (setf-copy dst src)))
+(def setf-copy-assign (fn intern bool ((dst (p mys)) (src (p (const mys))))
+  (setf-copy-init dst src)))
 
 (implement PreferRefs mys)
 (implement Type mys)

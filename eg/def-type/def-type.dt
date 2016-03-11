@@ -36,10 +36,10 @@
 
 #|
     def-type-2 creates a distinct type as a struct wrapper around an
-    existing type.  Only setf-copy and setf-assign are instantiated
-    for the new type; init and destroy occur implicitly.  Any other
-    functions defined over the original type that are needed for the
-    new type require wrappers, which can be instantiated via
+    existing type.  Only setf-copy-init and setf-copy-assign are
+    instantiated for the new type; init and destroy occur implicitly.
+    Any other functions defined over the original type that are needed
+    for the new type require wrappers, which can be instantiated via
     make-wrapper.  make-wrapper only works for extern-c functions.
 
     While it would be possible, if mapping a struct type, to iterate
@@ -50,13 +50,13 @@
   (def def-type-2 (macro intern (T1 T2)
     (qq do
       (def (uq T1) (struct intern ((t (uq T2)))))
-      (def setf-copy (fn intern bool ((dst (p (uq T1)))
-                                      (src (const (uq T2))))
+      (def setf-copy-init (fn intern bool ((dst (p (uq T1)))
+                                           (src (const (uq T2))))
         (core setf (:@ dst t) src)
         true))
-      (def setf-assign (fn intern bool ((dst (p (uq T1)))
-                                        (src (const (uq T2))))
-        (setf-copy dst src))))))
+      (def setf-copy-assign (fn intern bool ((dst (p (uq T1)))
+                                             (src (const (uq T2))))
+        (setf-copy-init dst src))))))
 
   ; Convert a vector of (p DNodes) into a single list (p DNode).
   (def vector-to-dnode (fn (attr cto) intern (p DNode)

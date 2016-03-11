@@ -72,9 +72,9 @@ Varargs functions are written in nearly the same way as in C. The
 
 Certain core forms may be overridden by user-level functions, namely
 `@`, `#` and `$`. `setf` may also be 'overridden', in effect, by
-defining functions named `setf-copy` and `setf-assign`; these are
-discussed in more detail in
-[Initialisers and destructors](./1-8-init-destroy.md).
+defining functions named `setf-copy-init` and `setf-copy-assign`;
+these are discussed in more detail in [Initialisers and
+destructors](./1-8-init-destroy.md).
 
 The `core` core form may, in turn, be used to ignore overridden core
 forms. For example:

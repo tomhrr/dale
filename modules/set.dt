@@ -1041,8 +1041,8 @@ must also implement `LessThanComparable`.
           (setf (:@ set2 begin-node) bn1)
           (return))))
 
-    (def setf-copy (fn extern bool ((dst (p (Set (uq T))))
-                                    (src (p (Set (uq T)))))
+    (def setf-copy-init (fn extern bool ((dst (p (Set (uq T))))
+                                         (src (p (Set (uq T)))))
       (init (@ dst))
       (let ((b \ (begin (@ src)))
             (e \ (end   (@ src))))
@@ -1050,10 +1050,10 @@ must also implement `LessThanComparable`.
           (insert (@ dst) (@source b))))
       true))
 
-    (def setf-assign (fn extern bool ((dst (p (Set (uq T))))
-                                      (src (p (Set (uq T)))))
+    (def setf-copy-assign (fn extern bool ((dst (p (Set (uq T))))
+                                           (src (p (Set (uq T)))))
       (clear (@ dst))
-      (setf-copy dst src)))
+      (setf-copy-init dst src)))
 
     (implement Container (Set (uq T)))
     (implement Type (Set (uq T)))

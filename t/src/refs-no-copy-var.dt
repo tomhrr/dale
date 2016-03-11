@@ -8,15 +8,15 @@
     (printf "init\n")
     true))
 
-(def setf-copy
+(def setf-copy-init
   (fn intern bool ((dst (p mys)) (src (p mys)))
-    (printf "setf-copy\n")
+    (printf "setf-copy-init\n")
     (memcpy (cast dst (p void)) (cast src (p void)) (sizeof mys))
     true))
 
-(def setf-assign
+(def setf-copy-assign
   (fn intern bool ((dst (p mys)) (src (p mys)))
-    (printf "setf-assign\n")
+    (printf "setf-copy-assign\n")
     (memcpy (cast dst (p void)) (cast src (p void)) (sizeof mys))
     true))
 

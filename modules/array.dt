@@ -467,8 +467,8 @@ must also implement `LessThanComparable`.
 
     ; Container relations and concepts.
 
-    (def setf-copy (fn extern bool ((dst (p (Array (uq T) (uq N))))
-                                    (src (p (Array (uq T) (uq N)))))
+    (def setf-copy-init (fn extern bool ((dst (p (Array (uq T) (uq N))))
+                                         (src (p (Array (uq T) (uq N)))))
       (init (@ dst))
       (let ((b1 \ (begin (@ src)))
             (e1 \ (end   (@ src)))
@@ -479,9 +479,9 @@ must also implement `LessThanComparable`.
           (sink b2 (@ (source b1)))))
       true))
 
-    (def setf-assign (fn extern bool ((dst (p (Array (uq T) (uq N))))
-                                      (src (p (Array (uq T) (uq N)))))
-      (setf-copy dst src)))
+    (def setf-copy-assign (fn extern bool ((dst (p (Array (uq T) (uq N))))
+                                           (src (p (Array (uq T) (uq N)))))
+      (setf-copy-init dst src)))
 
     (implement Type (Array (uq T) (uq N)))
     (instantiate swap (Array (uq T) (uq N)))

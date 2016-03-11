@@ -17,12 +17,12 @@
     (core setf dst (core @ src))
     (return)))
 
-(def setf-assign
+(def setf-copy-assign
   (fn intern bool ((dst (p int)) (src (p int)))
     (setf-both dst src)
     true))
 
-(def setf-copy
+(def setf-copy-init
   (fn intern bool ((dst (p int)) (src (p int)))
     (setf-both dst src)
     true))

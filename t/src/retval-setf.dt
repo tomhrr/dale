@@ -2,13 +2,13 @@
 
 (def mys (struct intern ((a int) (b int))))
 
-(def setf-copy (fn intern bool ((dst (p mys)) (src (p mys)))
-  (printf "Called setf-copy\n")
+(def setf-copy-init (fn intern bool ((dst (p mys)) (src (p mys)))
+  (printf "Called setf-copy-init\n")
   (memcpy (cast dst (p void)) (cast src (p void)) (sizeof mys))
   (return true)))
 
-(def setf-assign (fn intern bool ((dst (p mys)) (src (p mys)))
-  (printf "Called setf-assign\n")
+(def setf-copy-assign (fn intern bool ((dst (p mys)) (src (p mys)))
+  (printf "Called setf-copy-assign\n")
   (memcpy (cast dst (p void)) (cast src (p void)) (sizeof mys))
   (return true)))
 
