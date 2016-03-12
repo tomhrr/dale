@@ -395,7 +395,10 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     if (units->top()->once_tag.length() > 0) {
         fn->once_tag = units->top()->once_tag;
     }
-    if (!strcmp(name, "setf-copy-init") || !strcmp(name, "setf-copy-assign")) {
+    if (   !strcmp(name, "setf-copy-init")
+        || !strcmp(name, "setf-copy-assign")
+        || !strcmp(name, "setf-move-init")
+        || !strcmp(name, "setf-move-assign")) {
         fn->is_setf_fn = true;
     } else if (!strcmp(name, "destroy")) {
         fn->is_destructor = true;

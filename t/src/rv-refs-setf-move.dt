@@ -1,0 +1,55 @@
+(import cstdio)
+
+(def mys (struct intern ((a int) (b int))))
+
+(def init
+  (fn intern bool ((dst (ref mys)) (a int) (b int))
+    (setf (:@ dst a) a)
+    (setf (:@ dst b) b)
+    true))
+
+(def mys-copy (fn intern bool ((dst (p mys)) (src (p mys)))
+  (setf (:@ dst a) (@:@ src a))
+  (setf (:@ dst b) (@:@ src b))
+  true))
+
+(def setf-copy-init (fn intern bool ((dst (p mys)) (src (p mys)))
+  (printf "setf-copy-init\n")
+  (mys-copy dst src)))
+
+(def setf-copy-assign (fn intern bool ((dst (p mys)) (src (p mys)))
+  (printf "setf-copy-assign\n")
+  (mys-copy dst src)))
+
+(def mys-move (fn intern bool ((dst (p mys)) (src (rv-ref mys)))
+  (setf (:@ dst a) (@:@ src a))
+  (setf (:@ dst b) (@:@ src b))
+  true))
+
+(def setf-move-init (fn intern bool ((dst (p mys)) (src (rv-ref mys)))
+  (printf "setf-move-init\n")
+  (mys-move dst (move (@ src)))))
+
+(def setf-move-assign (fn intern bool ((dst (p mys)) (src (rv-ref mys)))
+  (printf "setf-move-assign\n")
+  (mys-move dst (move (@ src)))))
+
+(def swap (fn extern void ((a (ref mys))
+                           (b (ref mys)))
+  (let ((temp \ (move (@ a))))
+    (setf a (move (@ b)))
+    ;(setf b (move (@ temp)))
+    (setf b (move temp))
+    (return))))
+
+(def main (fn extern-c int (void)
+  (def a (var auto mys (init a 1 2)))
+  (def b (var auto mys (init b 1 3)))
+  (def c (var auto mys (move a)))
+;  (printf "Preswap\n")
+;  (swap a b)
+;  (printf "Postswap\n")
+;  (printf "%d %d\n" (@: a a) (@: a b))
+;  (printf "%d %d\n" (@: b a) (@: b b))
+  0))
+
