@@ -29,16 +29,16 @@ destructTwo(Context *ctx, ParseResult *one, ParseResult *two,
 }
 
 Function *
-getSetfAssign(Context *ctx, Type *dst_type, Type *src_type)
+getCopyAssign(Context *ctx, Type *dst_type, Type *src_type)
 {
     std::vector<Type *> types;
     types.push_back(dst_type);
     types.push_back(src_type);
-    return ctx->getFunction("setf-copy-assign", &types, NULL, 0);
+    return ctx->getFunction("setf-copy-assign", &types, NULL, false);
 }
 
 bool
-processSetfPtrCall(Context *ctx, Function *over_setf,
+processCopyPtrCall(Context *ctx, Function *over_setf,
                    llvm::IRBuilder<> *builder,
                    ParseResult *variable_pr, ParseResult *value_pr,
                    ParseResult *pr)
@@ -69,7 +69,7 @@ processSetfPtrCall(Context *ctx, Function *over_setf,
 }
 
 bool
-processSetfExactCall(Context *ctx, Function *over_setf,
+processCopyExactCall(Context *ctx, Function *over_setf,
                      llvm::IRBuilder<> *builder,
                      ParseResult *variable_pr, ParseResult *value_pr,
                      ParseResult *pr)
@@ -88,6 +88,47 @@ processSetfExactCall(Context *ctx, Function *over_setf,
     }
 
     pr->set(destruct_pr.block, ctx->tr->type_bool, ret);
+    return true;
+}
+
+Function *
+getMoveAssign(Context *ctx, Type *dst_type, Type *src_type)
+{
+    std::vector<Type *> types;
+    types.push_back(dst_type);
+    types.push_back(src_type);
+    std::vector<bool> lvalues;
+    lvalues.push_back(true);
+    lvalues.push_back(false);
+    return ctx->getFunction("setf-move-assign", &types, NULL, false,
+                            &lvalues);
+}
+
+bool
+processMovePtrCall(Context *ctx, Function *over_setf,
+                   llvm::IRBuilder<> *builder,
+                   ParseResult *variable_pr, ParseResult *value_pr,
+                   ParseResult *pr)
+{
+    ParseResult value_ptr_pr;
+    bool res = value_pr->getAddressOfValue(ctx, &value_ptr_pr);
+    if (!res) {
+        return false;
+    }
+
+    std::vector<llvm::Value *> call_args;
+    call_args.push_back(variable_pr->value);
+    call_args.push_back(value_ptr_pr.value);
+    llvm::Value *ret =
+        builder->CreateCall(over_setf->llvm_function,
+                            llvm::ArrayRef<llvm::Value*>(call_args));
+
+    res = Operation::Destruct(ctx, variable_pr, pr, builder);
+    if (!res) {
+        return false;
+    }
+
+    pr->set(pr->block, ctx->tr->type_bool, ret);
     return true;
 }
 
@@ -149,6 +190,15 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     builder.SetInsertPoint(value_pr.block);
 
+    if (!prefixed_with_core) {
+        Function *over_setf = getMoveAssign(ctx, variable_pr.type,
+                                            value_pr.type);
+        if (over_setf && !value_pr.value_is_lvalue) {
+            return processMovePtrCall(ctx, over_setf, &builder,
+                                      &variable_pr, &value_pr, pr);
+        }
+    }
+
     /* If an overridden setf exists, and value_pr is a value of the
      * pointee type of variable_pr, then call the overridden setf
      * after allocating memory for value_pr and copying it into place.
@@ -156,10 +206,10 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     if (!prefixed_with_core
             && variable_pr.type->points_to->canBeSetFrom(value_pr.type)) {
-        Function *over_setf = getSetfAssign(ctx, variable_pr.type,
+        Function *over_setf = getCopyAssign(ctx, variable_pr.type,
                                             variable_pr.type);
         if (over_setf) {
-            return processSetfPtrCall(ctx, over_setf, &builder,
+            return processCopyPtrCall(ctx, over_setf, &builder,
                                       &variable_pr, &value_pr, pr);
         }
     }
@@ -168,10 +218,10 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
      * the arguments exactly, then use it. */
 
     if (!prefixed_with_core) {
-        Function *over_setf = getSetfAssign(ctx, variable_pr.type,
+        Function *over_setf = getCopyAssign(ctx, variable_pr.type,
                                             value_pr.type);
         if (over_setf) {
-            return processSetfExactCall(ctx, over_setf, &builder,
+            return processCopyExactCall(ctx, over_setf, &builder,
                                         &variable_pr, &value_pr, pr);
         }
     }

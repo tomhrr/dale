@@ -46,6 +46,7 @@
   (def a (var auto mys (init a 1 2)))
   (def b (var auto mys (init b 1 3)))
   (def c (var auto mys (move a)))
+  (setv c (move b))
 ;  (printf "Preswap\n")
 ;  (swap a b)
 ;  (printf "Postswap\n")
