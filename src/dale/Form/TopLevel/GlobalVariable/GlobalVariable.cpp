@@ -331,6 +331,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
      * function created below will not be valid with respect to
      * global variables. */
 
+    bool is_rvalue = false;
     if (top->is_list
             && (top->list->size() == 2)
             && ((*top->list)[0]->is_token)
@@ -355,6 +356,11 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
                 llvm::cast<llvm::Constant>(gv->value);
             return const_ptr;
         }
+    } else if (top->is_list
+            && (top->list->size() == 2)
+            && ((*top->list)[0]->is_token)
+            && (!(*top->list)[0]->token->str_value.compare("move"))) {
+        is_rvalue = true;
     }
 
     std::string str;
@@ -430,8 +436,21 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     Type *ptr_type = ctx->tr->getPointerType(type);
     STL::push_back2(&call_arg_types, ptr_type, ptr_type);
 
-    if (Function *or_setf =
-            ctx->getFunction("setf-copy-assign", &call_arg_types, NULL, 0)) {
+    std::vector<Type *> types;
+    types.push_back(ptr_type);
+    types.push_back(type);
+    std::vector<bool> lvalues;
+    lvalues.push_back(true);
+    lvalues.push_back(false);
+    Function *or_move = ctx->getFunction("setf-move-assign", &types,
+					 NULL, false, &lvalues);
+    Function *or_setf = ctx->getFunction("setf-copy-assign", &call_arg_types,
+					 NULL, 0);
+    if (or_move && is_rvalue) {
+        or_setf = or_move;
+    }
+
+    if (or_setf) {
         std::vector<llvm::Value *> or_call_args;
         STL::push_back2(&or_call_args, ret_storage1, ret_storage2);
         builder.CreateCall(
