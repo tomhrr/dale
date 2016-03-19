@@ -1,0 +1,80 @@
+(import cstdio)
+
+(def mys (struct intern ((a int) (b int))))
+
+(def init
+  (fn intern bool ((dst (ref mys)) (a int) (b int))
+    (setf (:@ dst a) a)
+    (setf (:@ dst b) b)
+    true))
+
+(def mys-copy (fn intern bool ((dst (p mys)) (src (p mys)))
+  (setf (:@ dst a) (@:@ src a))
+  (setf (:@ dst b) (@:@ src b))
+  true))
+
+(def setf-copy-init (fn intern bool ((dst (p mys)) (src (p mys)))
+  (printf "setf-copy-init\n")
+  (mys-copy dst src)))
+
+(def setf-copy-assign (fn intern bool ((dst (p mys)) (src (p mys)))
+  (printf "setf-copy-assign\n")
+  (mys-copy dst src)))
+
+(def setf-copy-disabled (fn intern void ((n mys))))
+
+(def mys-move (fn intern bool ((dst (p mys)) (src (rv-ref mys)))
+  (setf (:@ dst a) (@:@ src a))
+  (setf (:@ dst b) (@:@ src b))
+  true))
+
+(def setf-move-init (fn intern bool ((dst (p mys)) (src (rv-ref mys)))
+  (printf "setf-move-init\n")
+  (mys-move dst (move (@ src)))))
+
+(def setf-move-assign (fn intern bool ((dst (p mys)) (src (rv-ref mys)))
+  (printf "setf-move-assign\n")
+  (mys-move dst (move (@ src)))))
+
+; Calling this function should cause no copies to occur.
+(def swap (fn extern void ((a (rv-ref mys))
+                           (b (rv-ref mys)))
+  (let ((temp \ (move (@ a))))
+    (setf a (move (@ b)))
+    (setf b (move temp))
+    (return))))
+
+; Calling this function should cause a single setf-move-init to occur.
+(def rv-ref-use (fn intern bool ((n (rv-ref mys)))
+  (def d (var auto mys (move (@ n))))
+  true))
+
+; Calling this function with an rvalue reference should cause two
+; setf-move-inits to occur.
+(def rv-ref-use2 (fn intern bool ((n mys))
+  (def d (var auto mys (move n)))
+  true))
+
+(def main (fn extern-c int (void)
+  (def a (var auto mys (init a 1 2)))
+  (def b (var auto mys (init b 1 3)))
+  (printf "One setf-move-init\n")
+  (def c (var auto mys (move a)))
+  (printf "One setf-move-assign\n")
+  (setv c (move b))
+  (printf "One setf-move-init\n")
+  (rv-ref-use (move c))
+
+  (def e (var auto mys (init e 1 4)))
+  (printf "Two setf-move-inits\n")
+  (rv-ref-use2 (move e))
+
+  (printf "Preswap\n")
+  (printf "%d %d\n" (@: a a) (@: a b))
+  (printf "%d %d\n" (@: b a) (@: b b))
+
+  (swap (move a) (move b))
+  (printf "Postswap\n")
+  (printf "%d %d\n" (@: a a) (@: a b))
+  (printf "%d %d\n" (@: b a) (@: b b))
+  0))
