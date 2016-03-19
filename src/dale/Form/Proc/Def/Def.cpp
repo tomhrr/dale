@@ -109,7 +109,7 @@ storeValue(Context *ctx, Node *node, Type *type,
         ctx->getFunction("setf-move-init", &param_types, NULL, false,
                          &lvalues);
 
-    if (or_setf_move) {
+    if (or_setf_move && !pr->value_is_lvalue) {
         std::vector<llvm::Value *> call_args;
         call_args.push_back(dst_ptr);
 
@@ -124,6 +124,15 @@ storeValue(Context *ctx, Node *node, Type *type,
         builder->CreateCall(or_setf_move->llvm_function,
                             llvm::ArrayRef<llvm::Value*>(call_args));
         return true;
+    }
+
+    /* If this not something that can be copied, return an error message. */
+    std::vector<Type *> disabled_types;
+    disabled_types.push_back(type);
+    if (ctx->getFunction("setf-copy-disabled", &disabled_types, NULL, 0)) {
+        Error *e = new Error(ErrorInst::CopyDisabled, node);
+        ctx->er->addError(e);
+        return false;
     }
 
     param_types.pop_back();

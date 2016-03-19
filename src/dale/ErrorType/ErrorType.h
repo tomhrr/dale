@@ -125,6 +125,7 @@ enum
     ZeroLengthGlobalArraysAreUnsupported,
     CannotModifyConstVariable,
     SetfOverridesMustReturnBool,
+    CopyDisabled,
     RefsNotPermittedHere,
     RetvalsNotPermittedHere,
 

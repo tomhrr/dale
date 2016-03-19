@@ -348,6 +348,9 @@ errorInstanceToString(int error_instance)
     case ErrorInst::SetfOverridesMustReturnBool:
         ret = "setf overrides must return bool";
         break;
+    case ErrorInst::CopyDisabled:
+        ret = "copying is disabled for this type";
+        break;
     case ErrorInst::RefsNotPermittedHere:
         ret = "reference types not permitted in this context";
         break;

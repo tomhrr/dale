@@ -199,6 +199,15 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         }
     }
 
+    /* If this not something that can be copied, return an error message. */
+    std::vector<Type *> disabled_types;
+    disabled_types.push_back(variable_pr.type->points_to);
+    if (ctx->getFunction("setf-copy-disabled", &disabled_types, NULL, 0)) {
+        Error *e = new Error(ErrorInst::CopyDisabled, node);
+        ctx->er->addError(e);
+        return false;
+    }
+
     /* If an overridden setf exists, and value_pr is a value of the
      * pointee type of variable_pr, then call the overridden setf
      * after allocating memory for value_pr and copying it into place.

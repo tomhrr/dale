@@ -446,8 +446,16 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
 					 NULL, false, &lvalues);
     Function *or_setf = ctx->getFunction("setf-copy-assign", &call_arg_types,
 					 NULL, 0);
+    std::vector<Type *> disabled_types;
+    disabled_types.push_back(type);
+
     if (or_move && is_rvalue) {
         or_setf = or_move;
+    } else if (ctx->getFunction("setf-copy-disabled", &disabled_types,
+                                NULL, 0)) {
+        Error *e = new Error(ErrorInst::CopyDisabled, top);
+        ctx->er->addError(e);
+        return NULL;
     }
 
     if (or_setf) {

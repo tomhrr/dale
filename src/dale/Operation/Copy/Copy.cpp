@@ -5,7 +5,8 @@ namespace dale
 namespace Operation
 {
 bool
-Copy(Context *ctx, Function *fn, ParseResult *pr, ParseResult *ret_pr)
+Copy(Context *ctx, Function *fn, Node *node, ParseResult *pr,
+     ParseResult *ret_pr)
 {
     pr->copyTo(ret_pr);
 
@@ -29,11 +30,21 @@ Copy(Context *ctx, Function *fn, ParseResult *pr, ParseResult *ret_pr)
         return true;
     }
 
+    /* If this not something that can be copied, return an error
+     * message. */
+    std::vector<Type *> disabled_types;
+    disabled_types.push_back(pr->type);
+    if (ctx->getFunction("setf-copy-disabled", &disabled_types, NULL, 0)) {
+	Error *e = new Error(ErrorInst::CopyDisabled, node);
+	ctx->er->addError(e);
+        return false;
+    }
+
     Type *copy_type = ctx->tr->getPointerType(pr->type);
     std::vector<Type *> types;
     types.push_back(copy_type);
     types.push_back(copy_type);
-    Function *over_setf = ctx->getFunction("setf-copy-init", &types, NULL, 0);
+    Function *over_setf = ctx->getFunction("setf-copy-init", &types, NULL, false);
     if (!over_setf) {
         return true;
     }

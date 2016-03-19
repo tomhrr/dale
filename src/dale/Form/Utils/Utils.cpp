@@ -28,6 +28,7 @@ FormProcessValue(Units *units, Function *fn, llvm::BasicBlock *block,
                     var_value_node->token->str_value.c_str()))) {
         pr->set(block, var_value->type,
                 builder.CreateLoad(var_value->value));
+        pr->value_is_lvalue = true;
         pr->do_not_destruct = true;
     } else if (var_value_node->is_list
             && (var_value_node_list->size() == 2)
