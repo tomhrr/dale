@@ -47,16 +47,28 @@
   (def d (var auto mys (move (@ n))))
   true))
 
-(def ga (var intern mys ((a 1) (b 2))))
-(def gb (var intern mys (move ga)))
-(def gc (var intern mys (move gb)))
+; Calling this function with an rvalue reference should cause two
+; setf-move-inits to occur.
+(def rv-ref-use2 (fn intern bool ((n mys))
+  (def d (var auto mys (move n)))
+  true))
+
+;(def ga (var intern mys ((a 1) (b 2))))
+;(def gb (var intern mys (move ga)))
+;(def gc (var intern mys (move gb)))
 
 (def main (fn extern-c int (void)
   (def a (var auto mys (init a 1 2)))
   (def b (var auto mys (init b 1 3)))
   (def c (var auto mys (move a)))
   (setv c (move b))
+  (printf "One setf-move-init\n")
   (rv-ref-use (move c))
+
+  (def e (var auto mys (init e 1 4)))
+  (printf "Two setf-move-inits\n")
+  (rv-ref-use2 (move e))
+
 ;  (printf "Preswap\n")
 ;  (swap a b)
 ;  (printf "Postswap\n")

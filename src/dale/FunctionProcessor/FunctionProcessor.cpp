@@ -121,12 +121,43 @@ processReferenceTypes(std::vector<llvm::Value *> *call_args,
                 return false;
             }
             (*call_args_final)[i] = refpr.getValue(ctx);
-        } else if (!args_cast) {
-            bool res = Operation::Copy(ctx, dfn, arg_refpr, arg_refpr);
-            if (!res) {
-                return false;
-            }
-            (*call_args_final)[i] = arg_refpr->getValue(ctx);
+        } else {
+	    std::vector<Type *> param_types;
+	    param_types.push_back(ctx->tr->getPointerType(pt));
+	    param_types.push_back(pt);
+	    std::vector<bool> lvalues;
+	    lvalues.push_back(true);
+	    lvalues.push_back(false);
+	    Function *or_setf_move =
+		ctx->getFunction("setf-move-init", &param_types, NULL, false,
+				&lvalues);
+
+	    if (!arg_refpr->value_is_lvalue && or_setf_move) {
+                llvm::IRBuilder<> builder(arg_refpr->block);
+		std::vector<llvm::Value *> or_call_args;
+		llvm::Value *dst_ptr =
+		    llvm::cast<llvm::Value>(
+			builder.CreateAlloca(ctx->toLLVMType(pt, NULL,
+							    false, false))
+		    );
+		or_call_args.push_back(dst_ptr);
+                bool res = arg_refpr->getAddressOfValue(ctx, &refpr);
+                if (!res) {
+                    return false;
+                }
+		or_call_args.push_back(refpr.getValue(ctx));
+
+		builder.CreateCall(or_setf_move->llvm_function,
+				    llvm::ArrayRef<llvm::Value*>(or_call_args));
+                // (*call_args_final)[i] = dst_ptr;
+                (*call_args_final)[i] = builder.CreateLoad(dst_ptr);
+	    } else if (!args_cast) {
+		bool res = Operation::Copy(ctx, dfn, arg_refpr, arg_refpr);
+		if (!res) {
+		    return false;
+		}
+		(*call_args_final)[i] = arg_refpr->getValue(ctx);
+	    }
         }
     }
 
