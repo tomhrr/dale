@@ -149,7 +149,6 @@ processReferenceTypes(std::vector<llvm::Value *> *call_args,
 
 		builder.CreateCall(or_setf_move->llvm_function,
 				    llvm::ArrayRef<llvm::Value*>(or_call_args));
-                // (*call_args_final)[i] = dst_ptr;
                 (*call_args_final)[i] = builder.CreateLoad(dst_ptr);
 	    } else if (!args_cast) {
 		bool res = Operation::Copy(ctx, dfn, arg_refpr, arg_refpr);
