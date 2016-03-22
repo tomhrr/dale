@@ -407,6 +407,7 @@ standard_library (modules/csetjmp.dt  csetjmp  macros)
 standard_library (modules/csignal.dt csignal  macros)
 standard_library (modules/unistd.dt unistd  macros)
 standard_library (modules/shared-ptr.dt shared-ptr  utility assert macros)
+standard_library (modules/unique-ptr.dt unique-ptr  utility assert macros)
 
 standard_library (modules/utility.dt  utility          concepts cstdio ctype)
 standard_library (modules/vector.dt      vector        utility math)
