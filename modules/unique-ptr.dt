@@ -120,8 +120,8 @@ Expands to a `UniquePtr` definition over the relevant type.
     @return-type    (p T)
     |#
     (def get
-      (fn extern (p (uq T)) ((mloc (UniquePtr (uq T))))
-        (@: mloc pointer)))
+      (fn extern (p (uq T)) ((mloc (ref (UniquePtr (uq T)))))
+        (@:@ mloc pointer)))
 
     #|
     @fn @
