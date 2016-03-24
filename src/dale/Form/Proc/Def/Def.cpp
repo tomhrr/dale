@@ -113,12 +113,12 @@ storeValue(Context *ctx, Node *node, Type *type,
         std::vector<llvm::Value *> call_args;
         call_args.push_back(dst_ptr);
 
-        llvm::Value *src_ptr =
-            llvm::cast<llvm::Value>(
-                builder->CreateAlloca(ctx->toLLVMType(type, NULL,
-                                                      false, false))
-            );
-        builder->CreateStore(pr->value, src_ptr);
+        ParseResult address_pr;
+        bool res = pr->getAddressOfValue(ctx, &address_pr);
+        if (!res) {
+            return false;
+        }
+        llvm::Value *src_ptr = address_pr.value;
         call_args.push_back(src_ptr);
 
         builder->CreateCall(or_setf_move->llvm_function,
