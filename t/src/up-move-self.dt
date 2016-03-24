@@ -1,0 +1,20 @@
+(import cstdio)
+(import macros)
+(import unique-ptr)
+
+(std.concepts.instantiate UniquePtr int)
+
+(def main
+  (fn extern-c int (void)
+    (let ((myptr  (UniquePtr int))
+          (myptr2 (UniquePtr int))
+          (myptr3 (UniquePtr int))
+          (myint  \ (malloc' 1 int)))
+      (setf myint  100)
+      (init myptr myint)
+      (setv myptr2 (move myptr))
+      (setv myptr2 (move myptr2))
+      (printf "%d %d %d\n" (cast (get myptr) intptr)
+                           (@ myptr2)
+                           (cast (get myptr3) intptr))
+      0)))

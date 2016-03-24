@@ -152,6 +152,8 @@ Expands to a `UniquePtr` definition over the relevant type.
     (def setf-move-assign
       (fn extern bool ((dst (p (UniquePtr (uq T))))
                        (src (rv-ref (UniquePtr (uq T)))))
+        (and (p= dst src)
+             (return))
         (if (not (null (@:@ dst pointer)))
             (do (free' (core-@:@ dst pointer))
                 0)
