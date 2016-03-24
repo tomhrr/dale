@@ -1,0 +1,26 @@
+(import cstdio)
+(import macros)
+(import unique-ptr)
+
+(std.concepts.instantiate UniquePtr int)
+
+(def otherfn
+  (fn extern void ((myptr (rv-ref (UniquePtr int))))
+    (def myptr2 (var auto (UniquePtr int) (move (@ myptr))))
+    (printf "1 %d\n" (@ myptr2))
+    (return)))
+
+(def main
+  (fn extern-c int (void)
+    (let ((myptr  (UniquePtr int))
+          (myptr2 (UniquePtr int))
+          (myint  \ (malloc' 1 int)))
+      (setf myint  100)
+      (init myptr myint)
+      (setv myptr2 (move myptr))
+      (printf "%d %d\n" (cast (get myptr) intptr)
+                        (@ myptr2))
+      (otherfn (move myptr2))
+      (printf "%d %d\n" (cast (get myptr)  intptr)
+                        (cast (get myptr2) intptr))
+      0)))
