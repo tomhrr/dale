@@ -366,6 +366,9 @@ errorInstanceToString(int error_instance)
     case ErrorInst::ArityForExternCOnly:
         ret = "arity may only be called with extern-c function names";
         break;
+    case ErrorInst::NoRefsInExternC:
+        ret = "extern-c functions may not have reference parameters";
+        break;
     default:
         ret = "(Unknown)";
     }

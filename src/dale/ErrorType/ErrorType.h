@@ -140,6 +140,7 @@ enum
     OnlyOneModuleFormPermitted,
     MacroExpansionError,
     ArityForExternCOnly,
+    NoRefsInExternC,
 
     ExternalError,
 

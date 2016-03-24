@@ -347,6 +347,21 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     if (!res) {
         return false;
     }
+
+    if (linkage == Linkage::Extern_C) {
+        for (std::vector<Variable *>::iterator b = fn_args_internal.begin(),
+                                               e = fn_args_internal.end();
+                b != e;
+                ++b) {
+            Type *type = (*b)->type;
+            if (type->is_reference || type->is_rvalue_reference) {
+                Error *e = new Error(NoRefsInExternC, args_node);
+                ctx->er->addError(e);
+                return false;
+            }
+        }
+    }
+
     bool varargs = false;
     if (fn_args_internal.size()
             && (fn_args_internal.back()->type->base_type == BaseType::VarArgs)) {
