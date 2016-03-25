@@ -13,7 +13,7 @@
 (std.concepts.implement Type (p DNode))
 (mfor F (swap != <= > >=)
   (std.concepts.instantiate F (p DNode)))
-(mfor C (Assignable EqualityComparable LessThanComparable)
+(mfor C (Swappable EqualityComparable LessThanComparable)
   (std.concepts.implement C (p DNode)))
 (std.concepts.instantiate Vector (p DNode))
 

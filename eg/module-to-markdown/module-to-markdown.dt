@@ -14,7 +14,7 @@
       (std.concepts.implement Struct (uq T))
       (std.concepts.implement PreferRefs (uq T))
       (std.concepts.instantiate swap (uq T))
-      (std.concepts.implement Assignable (uq T))
+      (std.concepts.implement Swappable (uq T))
 
       (def = (fn intern bool ((a (ref (const (uq T))))
                               (b (ref (const (uq T)))))
