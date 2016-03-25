@@ -31,10 +31,22 @@ addVariables(Context *ctx, Node *node, Function *fn, llvm::BasicBlock *block)
         }
         Variable *param_var = new Variable();
         var->copyTo(param_var);
-        param_var->type =
-            (var->type->is_reference || var->type->is_rvalue_reference)
-                ? ctx->tr->getPointerType(var->type)
-                : var->type;
+        /* todo: It would be better if TypeRegister supported a
+         * 'getReferencedType' function, to avoid the copying below.
+         * */
+        if (var->type->is_reference) {
+            var->type->is_reference = false;
+            param_var->type =
+                ctx->tr->getPointerType(var->type->makeCopy());
+            var->type->is_reference = true;
+        } else if (var->type->is_rvalue_reference) {
+            var->type->is_rvalue_reference = false;
+            param_var->type =
+                ctx->tr->getPointerType(var->type->makeCopy());
+            var->type->is_rvalue_reference = true;
+        } else {
+            param_var->type = var->type;
+        }
         param_var->linkage = Linkage::Auto;
 
         if (past_first && fn->is_macro) {

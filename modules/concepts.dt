@@ -4,7 +4,7 @@
 Imports the other concept-related modules, and implements the
 following concepts:
 
-  * `Assignable`;
+  * `Swappable`;
   * `EqualityComparable`; and
   * `LessThanComparable`
 
@@ -65,7 +65,7 @@ references and `identity` otherwise.
         (setf a (@ b))
         (setf b temp)
         (return))))
-  (implement Assignable T)
+  (implement Swappable T)
   (implement EqualityComparable T)
   (implement LessThanComparable T))
 

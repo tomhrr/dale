@@ -9,7 +9,7 @@
 (std.concepts.instantiate Pair int int)
 (std.concepts.implement Struct (Pair int int))
 (std.concepts.instantiate swap (Pair int int))
-(std.concepts.implement Assignable (Pair int int))
+(std.concepts.implement Swappable (Pair int int))
 (std.concepts.instantiate relations (Pair int int))
 (std.concepts.implement EqualityComparable (Pair int int))
 (std.concepts.implement LessThanComparable (Pair int int))

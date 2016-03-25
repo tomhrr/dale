@@ -90,9 +90,9 @@ Expands to a `swap` function over references to the provided type.
   (qq do
     (def swap (fn extern void ((a (ref (uq T)))
                                (b (ref (uq T))))
-      (let ((temp (uq T) (@ a)))
-        (setf a (@ b))
-        (setf b temp)
+      (let ((temp (uq T) (move (@ a))))
+        (setf a (move (@ b)))
+        (setf b (move temp))
         (return))))))
 
 #|

@@ -56,6 +56,9 @@ Expands to a `UniquePtr` definition over the relevant type.
 
     (qq do
 
+    (using-namespace std.macros
+    (using-namespace std.concepts
+
     #|
     @struct (UniquePtr T)
 
@@ -64,6 +67,10 @@ Expands to a `UniquePtr` definition over the relevant type.
     |#
     (def (uq snnode)
       (struct extern ((pointer (p (uq T))))))
+
+    (implement Type (UniquePtr (uq T)))
+    (implement Struct (UniquePtr (uq T)))
+    (implement PreferRefs (UniquePtr (uq T)))
 
     #|
     @fn init
@@ -162,4 +169,4 @@ Expands to a `UniquePtr` definition over the relevant type.
                    (@ (: (core @ src) pointer)))
         (core setf (: (core @ src) pointer)
 	           (nullptr (uq T)))
-        true)))))))
+        true)))))))))

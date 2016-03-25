@@ -32,7 +32,7 @@
 
 (mfor Op (= != < <= > >=)
   (instantiate Op mys))
-(mfor C (Assignable EqualityComparable LessThanComparable)
+(mfor C (Swappable EqualityComparable LessThanComparable)
   (implement C mys))
 
 (instantiate Vector mys)

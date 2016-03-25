@@ -116,7 +116,7 @@ must also implement `LessThanComparable`.
 
     (implement Type (uq pairtypenode))
     (instantiate swap (uq pairtypenode))
-    (implement Assignable (uq pairtypenode))
+    (implement Swappable (uq pairtypenode))
     (instantiate != (uq pairtypenode))
 
     (def < (fn extern bool ((p1 (uq pairtypenode))

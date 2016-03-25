@@ -327,7 +327,7 @@ must also implement `LessThanComparable`.
     (implement LessThanComparable (Iterator (Array (uq T) (uq N))))
     
     (instantiate swap (Iterator (Array (uq T) (uq N))))
-    (implement Assignable (Iterator (Array (uq T) (uq N))))
+    (implement Swappable (Iterator (Array (uq T) (uq N))))
 
     #|
     @fn +
@@ -447,7 +447,7 @@ must also implement `LessThanComparable`.
     (implement LessThanComparable (Iterator (Array (uq T) (uq N))))
 
     (instantiate swap (ReverseIterator (Array (uq T) (uq N))))
-    (implement Assignable (ReverseIterator (Array (uq T) (uq N))))
+    (implement Swappable (ReverseIterator (Array (uq T) (uq N))))
 
     (def +
       (fn extern (ReverseIterator (Array (uq T) (uq N)))
