@@ -177,8 +177,9 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     value_pr.retval = variable_pr.value;
     value_pr.retval_type = variable_pr.type;
 
-    res = FormProcessValue(units, fn, block, value_node, get_address,
-                           variable_pr.type->points_to, &value_pr);
+    res = FormProcInstParse(units, fn, block, value_node, get_address,
+                            false, variable_pr.type->points_to,
+                            &value_pr);
     if (!res) {
         return false;
     }

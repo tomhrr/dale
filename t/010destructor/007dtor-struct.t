@@ -17,10 +17,6 @@ is($?, 0, 'Program executed successfully');
 chomp for @res;
 
 is_deeply(\@res, [ 
-'destroying mys1 1',
-'destroying mys1 2',
-'destroying mys1 3',
-'destroying mys1 4',
 'destroying mys1 4',
 'destroying mys1 3',
 'destroying mys1 2',

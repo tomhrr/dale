@@ -558,9 +558,6 @@ FormProcInstParse(Units *units, Function *fn, llvm::BasicBlock *block,
     if (fn->is_setf_fn) {
         return true;
     }
-    if (!no_copy) {
-        Operation::Copy(units->top()->ctx, fn, node, pr, pr);
-    }
 
     return true;
 }

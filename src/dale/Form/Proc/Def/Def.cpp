@@ -201,9 +201,9 @@ parseImplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     ParseResult value_pr;
-    bool res = FormProcessValue(units, fn, block,
-                                (*value_node->list)[3],
-                                get_address, NULL, &value_pr);
+    bool res = FormProcInstParse(units, fn, block,
+                                 (*value_node->list)[3],
+                                 false, false, NULL, &value_pr);
     if (!res) {
         return false;
     }
@@ -236,22 +236,6 @@ parseImplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         var->value = value_pr.retval;
         pr->block = value_pr.block;
         return true;
-    }
-
-    /* If the constant int 0 is returned, and this isn't an integer
-     * type (or bool), then skip this part (assume that the variable
-     * has been initialised by the user).  This is to save pointless
-     * copies/destructs, while still allowing the variable to be fully
-     * initialised once the define is complete. */
-
-    if (!(type->isIntegerType()) && (type->base_type != BaseType::Bool)) {
-        if (llvm::ConstantInt *int_value =
-                llvm::dyn_cast<llvm::ConstantInt>(value_pr.value)) {
-            if (int_value->getValue().getLimitedValue() == 0) {
-                pr->block = value_pr.block;
-                return true;
-            }
-        }
     }
 
     if (!ctx->er->assertTypeEquality("def", node, value_pr.type, type, 1)) {
@@ -329,9 +313,9 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     ParseResult value_pr;
     value_pr.retval      = dst_ptr;
     value_pr.retval_type = ctx->tr->getPointerType(type);
-    res = FormProcessValue(units, fn, block,
-                           (*value_node->list)[3],
-                           get_address, type, &value_pr);
+    res = FormProcInstParse(units, fn, block,
+                            (*value_node->list)[3],
+                            get_address, false, type, &value_pr);
     if (!res) {
         return false;
     }
@@ -341,10 +325,9 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         return true;
     }
 
-    /* If the constant int 0 is returned and this isn't an integer
-     * type, or the initialisation form is a list where the first
-     * token is 'init', then skip this part (assume that the variable
-     * has been initialised by the user). This is to save pointless
+    /* If the initialisation form is a list where the first token is
+     * 'init', then skip this part (assume that the variable has been
+     * initialised by the user). This is to save pointless
      * copies/destructs, while still allowing the variable to be fully
      * initialised once the define is complete. */
 
@@ -354,16 +337,6 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         if (first && first->is_token
                 && !(first->token->str_value.compare("init"))) {
             return true;
-        }
-    }
-
-    if (!(type->isIntegerType()) && (type->base_type != BaseType::Bool)) {
-        if (llvm::ConstantInt *int_value =
-                llvm::dyn_cast<llvm::ConstantInt>(value_pr.value)) {
-            if (int_value->getValue().getLimitedValue() == 0) {
-                pr->block = value_pr.block;
-                return true;
-            }
         }
     }
 

@@ -30,6 +30,8 @@ Copy(Context *ctx, Function *fn, Node *node, ParseResult *pr,
         return true;
     }
 
+    ret_pr->do_not_destruct = false;
+
     /* If this not something that can be copied, return an error
      * message. */
     std::vector<Type *> disabled_types;

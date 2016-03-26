@@ -286,6 +286,7 @@ FunctionProcessor::parseFunctionPointerCall(Function *dfn, Node *n,
         return false;
     }
     pr->block = destruct_pr.block;
+    pr->do_not_destruct = false;
 
     return true;
 }
@@ -756,6 +757,7 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
      * corresponding destructor call will occur). */
 
     pr->do_not_copy_with_setf = 1;
+    pr->do_not_destruct = false;
 
     return true;
 }

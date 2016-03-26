@@ -17,15 +17,6 @@ is($?, 0, 'Program executed successfully');
 chomp for @res;
 
 is_deeply(\@res, [ 
-'destroying 0.000000',
-'destroying 0.000000',
-'destroying 0.000000',
-'destroying 0.000000',
-'destroying 1.000000',
-'destroying 2.000000',
-'destroying 0.000000',
-'destroying 2.000000',
-'destroying 4.000000',
 'destroying 4.000000',
 'destroying 2.000000',
 'destroying 0.000000',

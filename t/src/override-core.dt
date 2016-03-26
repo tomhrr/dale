@@ -18,7 +18,7 @@
 
 (def main
   (fn extern-c int (void)
-    (def n (var auto float 0))
+    (def n (var auto float 0.0))
     (setv n 1.0)
     (printf "%0.2f\n" n)
     0))

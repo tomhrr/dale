@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
 #include "../../../Operation/CloseScope/CloseScope.h"
+#include "../../../Operation/Copy/Copy.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 
@@ -44,6 +45,11 @@ FormProcReturnParse(Units *units, Function *fn, llvm::BasicBlock *block,
         (fn->hasRetval() ? ctx->tr->type_void : fn->return_type);
     if (!ctx->er->assertTypeEquality("return", node, value_pr.type,
                                      real_return_type, false)) {
+        return false;
+    }
+
+    res = Operation::Copy(units->top()->ctx, fn, node, &value_pr, &value_pr);
+    if (!res) {
         return false;
     }
 

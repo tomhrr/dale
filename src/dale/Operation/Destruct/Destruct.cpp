@@ -72,6 +72,7 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
         } else {
             element.value = res;
         }
+        element.do_not_destruct = false;
         Destruct(ctx, &element, &element, builder);
         block = element.block;
     }
@@ -119,6 +120,7 @@ destructStruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
                 ),
                 "sp"
             );
+        element.do_not_destruct = false;
         Destruct(ctx, &element, &element, builder, true);
         ret_pr->block = element.block;
     }

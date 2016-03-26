@@ -15,7 +15,7 @@ is(@res, 0, 'No compilation errors');
 is($?, 0, 'Program executed successfully');
 
 chomp for @res;
-like($res[0], qr/^Overrode setf for float: old (0.00|nan), new 1.00$/,
+like($res[0], qr/^Overrode setf for float: old (0.00|nan), new 0.00$/,
      'Got expected results (1)');
 shift @res;
 

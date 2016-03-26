@@ -74,6 +74,7 @@ FormProcGotoParse(Units *units, Function *fn, llvm::BasicBlock *block,
         ctx->ns()->getVarsAfterIndex(label->index, &myvars);
         ParseResult destruct_pr;
         destruct_pr.block = block;
+        destruct_pr.do_not_destruct = false;
         llvm::IRBuilder<> builder(destruct_pr.block);
         for (std::vector<Variable *>::iterator b = myvars.begin(),
                                                e = myvars.end();

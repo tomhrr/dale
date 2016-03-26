@@ -30,6 +30,7 @@ CloseScope(Context *ctx, Function *fn, llvm::BasicBlock *block,
         }
         element.type = (*b)->type;
         element.value = (*b)->value;
+        element.do_not_destruct = false;
         Operation::Destruct(ctx, &element, &element, NULL, true);
     }
 

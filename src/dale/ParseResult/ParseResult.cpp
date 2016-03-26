@@ -12,7 +12,7 @@ ParseResult::init()
     type_of_address_of_value = NULL;
 
     treat_as_terminator = false;
-    do_not_destruct = false;
+    do_not_destruct = true;
     do_not_copy_with_setf = false;
     freshly_copied = false;
     value_is_lvalue = false;

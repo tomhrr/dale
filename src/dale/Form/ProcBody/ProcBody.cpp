@@ -4,6 +4,7 @@
 #include "../../ParseResult/ParseResult.h"
 #include "../../Function/Function.h"
 #include "../../CoreForms/CoreForms.h"
+#include "../../Operation/Copy/Copy.h"
 #include "../../Operation/Destruct/Destruct.h"
 #include "../../Operation/CloseScope/CloseScope.h"
 #include "../Linkage/Linkage.h"
@@ -217,6 +218,7 @@ resolveDeferredGotos(Context *ctx, Node *node, Function *fn,
             Variable *var = (*vb);
             ParseResult destruct_pr;
             var_pr.set(NULL, var->type, var->value);
+            var_pr.do_not_destruct = false;
             bool res = Operation::Destruct(ctx, &var_pr, &destruct_pr,
                                            &builder);
             if (!res) {
@@ -374,6 +376,11 @@ FormProcBodyParse(Units *units, Node *node, Function *fn,
         if (res) {
             next = res_pr.block;
             if (is_last) {
+		bool res = Operation::Copy(units->top()->ctx, fn, (*b),
+					   &res_pr, &res_pr);
+                if (!res) {
+                    return false;
+                }
                 last_value = res_pr.value;
                 last_type = res_pr.type;
                 last_position = (*b);

@@ -17,7 +17,6 @@ is($?, 0, 'Program executed successfully');
 chomp for @res;
 
 is_deeply(\@res, [ 
-    'destroying 0.000000',
     'Moving to mylabel2',
     'Got to mylabel2',
     'destroying 0.000000',
