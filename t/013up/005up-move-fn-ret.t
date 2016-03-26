@@ -7,8 +7,7 @@ my $test_dir = $ENV{"DALE_TEST_DIR"} || ".";
 $ENV{PATH} .= ":.";
 
 use Data::Dumper;
-#use Test::More tests => 3;
-use Test::More skip_all => 'Disabled temporarily';
+use Test::More tests => 3;
 
 my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/up-move-fn-ret.dt -o up-move-fn-ret `;
 is_deeply(\@res, [], 'No compilation errors');
