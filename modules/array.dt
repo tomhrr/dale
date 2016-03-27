@@ -482,22 +482,22 @@ must also implement `LessThanComparable`.
     #|
     @fn front
 
-    Returns the value of the first element in the array.
+    Returns a pointer to the value of the first element in the array.
 
     @param arrp     An array reference.
     |#
-    (def front (fn extern (uq T) ((arrp (ref (Array (uq T) (uq N)))))
-      (@ (source (begin (@ arrp))))))
+    (def front (fn extern (p (uq T)) ((arrp (ref (Array (uq T) (uq N)))))
+      (source (begin (@ arrp)))))
 
     #|
     @fn back
 
-    Returns the value of the last element in the array.
+    Returns a pointer to the value of the last element in the array.
 
     @param arrp     An array reference.
     |#
-    (def back (fn extern (uq T) ((arrp (ref (Array (uq T) (uq N)))))
-      (@ (source (rbegin (@ arrp))))))
+    (def back (fn extern (p (uq T)) ((arrp (ref (Array (uq T) (uq N)))))
+      (source (rbegin (@ arrp)))))
 
     #|
     @fn $

@@ -193,24 +193,24 @@ must also implement `LessThanComparable`.
     #|
     @fn front
 
-    Returns the value of the first element in the vector.
+    Returns a pointer to the value of the first element in the vector.
 
     @param vecp     A vector reference.
     |#
     (def front
-      (fn extern (uq T) ((vecp (ref (const (Vector (uq T))))))
-        (@ (@ (:@ vecp first-element)))))
+      (fn extern (const (p (uq T))) ((vecp (ref (const (Vector (uq T))))))
+        (@ (:@ vecp first-element))))
 
     #|
     @fn back
 
-    Returns the value of the last element in the vector.
+    Returns a pointer to the value of the last element in the vector.
 
     @param vecp     A vector reference.
     |#
     (def back
-      (fn extern (uq T) ((vecp (ref (const (Vector (uq T))))))
-        (@ (@ (:@ vecp last-element)))))
+      (fn extern (const (p (uq T))) ((vecp (ref (const (Vector (uq T))))))
+        (@ (:@ vecp last-element))))
 
     #|
     @fn pop-back

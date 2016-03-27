@@ -189,24 +189,24 @@ Expands to a `List` definition over the relevant type.
     #|
     @fn front
 
-    Returns the value of the first element in the list.
+    Returns a pointer to the value of the first element in the list.
 
     @param lst      A list reference.
     |#
     (def front
-      (fn extern (uq T) ((lst (ref (const (List (uq T))))))
-        (@:@ (@:@ lst first) element)))
+      (fn extern (p (uq T)) ((lst (ref (const (List (uq T))))))
+        (:@ (@:@ lst first) element)))
 
     #|
     @fn back
 
-    Returns the value of the last element in the list.
+    Returns a pointer to the value of the last element in the list.
 
     @param lst      A list reference.
     |#
     (def back
-      (fn extern (uq T) ((lst (ref (const (List (uq T))))))
-        (@:@ (@:@ lst last) element)))
+      (fn extern (p (uq T)) ((lst (ref (const (List (uq T))))))
+        (:@ (@:@ lst last) element)))
 
     #|
     @fn push-back
