@@ -36,13 +36,6 @@
   (printf "setf-move-assign\n")
   (mys-move dst (move (@ src)))))
 
-;(def swap (fn extern void ((a (ref mys))
-;                           (b (ref mys)))
-;  (let ((temp \ (move (@ a))))
-;    (setf a (move (@ b)))
-;    (setf b (move temp))
-;    (return))))
-
 ; Calling this function should cause no copies to occur.
 (def swap (fn extern void ((a (rv-ref mys))
                            (b (rv-ref mys)))

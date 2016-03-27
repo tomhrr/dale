@@ -1,4 +1,4 @@
-./t/error-src/setf-copy-disabled.dt:66:25: error: copying is disabled for this type
-./t/error-src/setf-copy-disabled.dt:73:3: error: copying is disabled for this type
-./t/error-src/setf-copy-disabled.dt:75:3: error: copying is disabled for this type
-./t/error-src/setf-copy-disabled.dt:76:16: error: copying is disabled for this type
+./t/error-src/setf-copy-disabled.dt:59:25: error: copying is disabled for this type
+./t/error-src/setf-copy-disabled.dt:66:3: error: copying is disabled for this type
+./t/error-src/setf-copy-disabled.dt:68:3: error: copying is disabled for this type
+./t/error-src/setf-copy-disabled.dt:69:16: error: copying is disabled for this type

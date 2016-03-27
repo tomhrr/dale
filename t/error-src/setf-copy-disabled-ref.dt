@@ -1,0 +1,34 @@
+(import cstdio)
+
+(def mys (struct intern ((a int) (b int))))
+
+(def init
+  (fn intern bool ((dst (ref mys)) (a int) (b int))
+    (setf (:@ dst a) a)
+    (setf (:@ dst b) b)
+    true))
+
+(def setf-copy-disabled (fn intern void ((n mys))))
+
+(def mys-move (fn intern bool ((dst (p mys)) (src (rv-ref mys)))
+  (setf (:@ dst a) (@:@ src a))
+  (setf (:@ dst b) (@:@ src b))
+  true))
+
+(def setf-move-init (fn intern bool ((dst (p mys)) (src (rv-ref mys)))
+  (printf "setf-move-init\n")
+  (mys-move dst (move (@ src)))))
+
+(def setf-move-assign (fn intern bool ((dst (p mys)) (src (rv-ref mys)))
+  (printf "setf-move-assign\n")
+  (mys-move dst (move (@ src)))))
+
+(def other-fn (fn intern bool ((value (ref mys)))
+  (def other-value (var auto mys))
+  (setv other-value (@ value))
+  true))
+
+(def main (fn extern-c int (void)
+  (def value (var auto mys (init value 1 2)))
+  (other-fn value)
+  0))
