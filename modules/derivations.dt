@@ -295,7 +295,7 @@ macro.
                    0)
                (sprintf stc 
                         "< not defined on struct member (type %s, name %s)" 
-                        ts (:@ name token-str))
+                        ts (@:@ name token-str))
                (report-error mc T stc)
                (return (mnfv mc "0"))))
 

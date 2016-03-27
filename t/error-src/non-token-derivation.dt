@@ -1,0 +1,11 @@
+(import cstdio)
+(import concepts)
+(import derivations)
+
+(def mys (struct intern ((a (p int)))))
+(std.concepts.implement Type mys)
+(std.concepts.implement Struct mys)
+
+(std.concepts.instantiate < mys)
+
+(def main (fn extern-c int (void) 0))
