@@ -25,7 +25,7 @@
     (let ((b \ (begin arr))
           (e \ (end   arr)))
       (for true (!= b e) (setv b (successor b))
-        (printf "%d " (@source b))))
+        (printf "%d " (@ (source b)))))
 
     (printf "\n")
 
@@ -39,7 +39,7 @@
     (let ((b \ (begin arr))
           (e \ (end   arr)))
       (for true (!= b e) (setv b (successor b))
-        (printf "%d " (@source b))))
+        (printf "%d " (@ (source b)))))
 
     (printf "\n")
 

@@ -25,7 +25,7 @@
         (while (< b e)
           (setv f (find-if-not b e (# odd)))
           (if (not (= e f))
-              (do (printf "Found %d\n" (@source f))
+              (do (printf "Found %d\n" (@ (source f)))
                   (setv b (successor f))
                   0)
               (do (printf "No more found\n")

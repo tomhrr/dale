@@ -13,7 +13,7 @@
     (let ((b \ (begin (@ sp)))
           (e \ (end   (@ sp))))
       (for true (!= b e) (setv b (successor b))
-        (printf "%d " (@source b))))
+        (printf "%d " (@ (source b)))))
     (printf "\n")
     (return)))
 
@@ -23,7 +23,7 @@
     (let ((b \ (begin (@ sp)))
           (e \ (end   (@ sp))))
       (for true (!= b e) (setv b (successor b))
-      (printf "%d (%p, %p %p %p)\n" (@source b)
+      (printf "%d (%p, %p %p %p)\n" (@ (source b))
             (@: b element)
             (@:@ (@: b element) left)
             (@:@ (@: b element) up)

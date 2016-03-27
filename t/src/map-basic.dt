@@ -24,12 +24,12 @@
     (let ((b \ (begin m))
           (e \ (end m)))
       (for true (!= b e) (setv b (successor b))
-        (printf "%d: %d\n" (@: (@source b) first)
-                           (@: (@source b) second))))
+        (printf "%d: %d\n" (@: (@ (source b)) first)
+                           (@: (@ (source b)) second))))
 
-    (printf "%d: %d\n" (@source (find m 5)))
-    (printf "%d: %d\n" (@source (find m 7)))
-    (printf "%d: %d\n" (@source (find m 1)))
+    (printf "%d: %d\n" (@ (source (find m 5))))
+    (printf "%d: %d\n" (@ (source (find m 7))))
+    (printf "%d: %d\n" (@ (source (find m 1))))
 
     (if (= m m)
         (printf "Equal\n")

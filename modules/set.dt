@@ -262,20 +262,6 @@ must also implement `LessThanComparable`.
         (qq do (uq T))))
 
     #|
-    @fn @source
-
-    Returns the iterator's value.
-
-    @param iter     An iterator.
-    @param-type     (Iterator (Set T))
-    @linkage        extern
-    @return-type    T
-    |#
-    (def @source
-      (fn extern (uq T) ((iter (Iterator (Set (uq T)))))
-        (@:@ (@: iter element) value)))
-
-    #|
     @fn source
 
     Returns a pointer to the iterator's value.
@@ -427,10 +413,6 @@ must also implement `LessThanComparable`.
     (def value-type
       (macro extern ((setiter (p (ReverseIterator (Set (uq T))))))
         (qq do (uq T))))
-
-    (def @source
-      (fn extern (uq T) ((iter (ReverseIterator (Set (uq T)))))
-        (@:@ (@: iter element) value)))
 
     (def source
       (fn extern (p (uq T)) ((iter (ReverseIterator (Set (uq T)))))
@@ -960,8 +942,8 @@ must also implement `LessThanComparable`.
                          (value ((uq tpw) (uq T))))
         (let ((lb \ (lower-bound (@ setp) ((uq tvw) value))))
           (if (= lb (end (@ setp)))                   lb
-          (if (> (@source lb) ((uq tvw) value))       lb
-          (if (and (!= ((uq tvw) value) (@source lb))
+          (if (> (@ (source lb)) ((uq tvw) value))       lb
+          (if (and (!= ((uq tvw) value) (@ (source lb)))
                    (= (successor lb) (end (@ setp)))) (end (@ setp))
                                                       (successor lb)))))))
 
@@ -1047,7 +1029,7 @@ must also implement `LessThanComparable`.
       (let ((b \ (begin (@ src)))
             (e \ (end   (@ src))))
         (for true (!= b e) (setv b (successor b))
-          (insert (@ dst) (@source b))))
+          (insert (@ dst) (@ (source b)))))
       true))
 
     (def setf-copy-assign (fn extern bool ((dst (p (Set (uq T))))

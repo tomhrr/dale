@@ -67,7 +67,7 @@
           (b \ (successor (begin (@ params))))
           (e \ (end (@ params))))
       (for true (!= b e) (setv b (successor b))
-        (setf (:@ current next-node) (copy mc false (@source b)))
+        (setf (:@ current next-node) (copy mc false (@ (source b))))
         (setv current (@:@ current next-node)))
       (return list-node))))
 

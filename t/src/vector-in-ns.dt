@@ -13,7 +13,7 @@
             (myiter (Iterator (Vector int))))
         (push-back vec 200)
         (setv myiter (begin vec))
-        (printf "%d\n" (@source myiter))
+        (printf "%d\n" (@ (source myiter)))
         0)
       0))
 )

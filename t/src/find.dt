@@ -20,6 +20,6 @@
               (f (Iterator (Vector int))))
           (setv f (find b e i))
           (if (not (= e f))
-              (printf "Found %d\n" (@source f))
+              (printf "Found %d\n" (@ (source f)))
               (printf "Did not find %d\n" i)))))
     0))

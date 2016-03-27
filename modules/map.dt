@@ -294,17 +294,6 @@ must also implement `LessThanComparable`.
          (setiter (begin (@ (:@ mapp set))))))))
 
     #|
-    @fn @source
-
-    Returns the iterator's value.
-
-    @param iter     An iterator.
-    |#
-    (def @source (fn extern (value-type (nullptr (Map (uq Tk) (uq Tv))))
-                           ((iter (Iterator (Map (uq Tk) (uq Tv)))))
-      (@source (@: iter setiter))))
-
-    #|
     @fn source
 
     Returns a pointer to the iterator's value.
@@ -399,10 +388,6 @@ must also implement `LessThanComparable`.
     (def source (fn extern (p (value-type (nullptr (Map (uq Tk) (uq Tv)))))
                            ((iter (ReverseIterator (Map (uq Tk) (uq Tv)))))
       (source (@: iter setiter))))
-
-    (def @source (fn extern (value-type (nullptr (Map (uq Tk) (uq Tv))))
-                            ((iter (ReverseIterator (Map (uq Tk) (uq Tv)))))
-      (@source (@: iter setiter))))
 
     (def successor (fn extern (ReverseIterator (Map (uq Tk) (uq Tv)))
                               ((iter (ReverseIterator 
@@ -561,7 +546,7 @@ must also implement `LessThanComparable`.
       (let ((b \ (begin (@ (:@ src set))))
             (e \ (end   (@ (:@ src set)))))
         (for true (!= b e) (setv b (successor b))
-          (insert (@ (:@ dst set)) (@source b))))
+          (insert (@ (:@ dst set)) (@ (source b)))))
       true))
 
     (def setf-copy-assign (fn extern bool ((dst (p (Map (uq Tk) (uq Tv))))
@@ -582,8 +567,8 @@ must also implement `LessThanComparable`.
                        (!= b2 e2))
                   (do (setv b1 (successor b1))
                       (setv b2 (successor b2)))
-          (let ((v1 \ (@source b1))
-                (v2 \ (@source b2)))
+          (let ((v1 \ (@ (source b1)))
+                (v2 \ (@ (source b2))))
             (and (not (both-= v1 v2))
                  (return false))))
         (and (= b1 e1) (= b2 e2)))))

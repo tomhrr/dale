@@ -13,7 +13,7 @@
     (let ((b \ (begin (@ sp)))
           (e \ (end   (@ sp))))
       (for true (!= b e) (setv b (successor b))
-        (printf "%d " (@source b))))
+        (printf "%d " (@ (source b)))))
     (printf "\n")
     (return)))
 
@@ -23,7 +23,7 @@
     (let ((b \ (begin (@ sp)))
           (e \ (end   (@ sp))))
       (for true (!= b e) (setv b (successor b))
-      (printf "%d (%p, %p %p %p)\n" (@source b)
+      (printf "%d (%p, %p %p %p)\n" (@ (source b))
             (@: b element)
             (@:@ (@: b element) left)
             (@:@ (@: b element) up)
@@ -38,11 +38,11 @@
         (for true (< i 100) (incv i)
           (insert s i)))
 
-      (printf "%d\n" (@source (lower-bound s 0)))
-      (printf "%d\n" (@source (upper-bound s 0)))
+      (printf "%d\n" (@ (source (lower-bound s 0))))
+      (printf "%d\n" (@ (source (upper-bound s 0))))
 
-      (printf "%d\n" (@source (lower-bound s 50)))
-      (printf "%d\n" (@source (upper-bound s 50)))
+      (printf "%d\n" (@ (source (lower-bound s 50))))
+      (printf "%d\n" (@ (source (upper-bound s 50))))
 
       (let ((i \ 50))
         (for true (< i 60) (incv i)
@@ -50,8 +50,8 @@
 
     (print-set s)
 
-      (printf "%d\n" (@source (lower-bound s 55)))
-      (printf "%d\n" (@source (upper-bound s 55)))
+      (printf "%d\n" (@ (source (lower-bound s 55))))
+      (printf "%d\n" (@ (source (upper-bound s 55))))
 
       (if (not (= (upper-bound s 100)
                   (end s)))

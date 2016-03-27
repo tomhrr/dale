@@ -543,10 +543,9 @@ be a struct, and it must contain two members named `first` and
 @concept TrivialIterator
 
 Refines `Swappable`, `EqualityComparable` and `DefaultConstructible`.
-Additionally, `value-type`, `source` (returning a pointer to a value
-of type `value-type`) and `@source` (returning a value of type
-`value-type`) must be defined over the iterator (or a pointer to the
-iterator, in the case of `value-type`).
+Additionally, `value-type`, and `source` (returning a pointer to a
+value of type `value-type`) must be defined over the iterator (or a
+pointer to the iterator, in the case of `value-type`).
 
 |#
 (def-concept TrivialIterator (refines Swappable
@@ -561,10 +560,6 @@ iterator, in the case of `value-type`).
                         source
                         (uq T)))
                   T "source is not defined over this type")
-  (concept-assert (exists-fn mc
-                    (qq (value-type (nullptr (uq T))) @source
-                        (uq T)))
-                  T "@source is not defined over this type")
   success))
 
 #|

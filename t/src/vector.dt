@@ -71,7 +71,7 @@
     (let ((b (Iterator (Vector (Pair int int))) (begin vec))
           (e (Iterator (Vector (Pair int int))) (end   vec)))
       (for true (< b e) (setv b (successor b))
-        (printf "%d %d\n" (@source b))
+        (printf "%d %d\n" (@ (source b)))
         (sink b one)))
    
     (printf "riterator\n")
@@ -83,14 +83,14 @@
     (let ((b (ReverseIterator (Vector (Pair int int))) (rbegin vec))
           (e (ReverseIterator (Vector (Pair int int))) (rend   vec)))
       (for true (< b e) (setv b (successor b))
-        (printf "%d %d\n" (@source b))))
+        (printf "%d %d\n" (@ (source b)))))
 
     (printf "pre copy\n")
 
     (let ((b (Iterator (Vector (Pair int int))) (begin vec2))
           (e (Iterator (Vector (Pair int int))) (end   vec2)))
       (for true (< b e) (setv b (successor b))
-        (printf "%d %d\n" (@source b))))
+        (printf "%d %d\n" (@ (source b)))))
 
     (copy (begin vec) (end vec) (begin vec2))
 
@@ -99,7 +99,7 @@
     (let ((b (Iterator (Vector (Pair int int))) (begin vec2))
           (e (Iterator (Vector (Pair int int))) (end   vec2)))
       (for true (< b e) (setv b (successor b))
-        (printf "%d %d\n" (@source b))))
+        (printf "%d %d\n" (@ (source b)))))
 
     (clear vec)
     (clear vec2)
@@ -115,7 +115,7 @@
     (let ((b (Iterator (Vector (Pair int int))) (begin vec))
           (e (Iterator (Vector (Pair int int))) (end   vec)))
       (for true (< b e) (setv b (successor b))
-        (printf "%d %d\n" (@source b))))
+        (printf "%d %d\n" (@ (source b)))))
 
     (assign vec (begin vec2) (end vec2))
 
@@ -124,7 +124,7 @@
     (let ((b (Iterator (Vector (Pair int int))) (begin vec))
           (e (Iterator (Vector (Pair int int))) (end   vec)))
       (for true (< b e) (setv b (successor b))
-        (printf "%d %d\n" (@source b))))
+        (printf "%d %d\n" (@ (source b)))))
 
     (let ((n (value-type (# vec)) (@ ($ vec 0))))
       (printf "%d %d\n" n))

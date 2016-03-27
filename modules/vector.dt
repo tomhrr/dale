@@ -370,17 +370,6 @@ must also implement `LessThanComparable`.
         (qq do size)))
 
     #|
-    @fn @source
-
-    Returns the iterator's value.
-
-    @param iter     An iterator.
-    |#
-    (def @source
-      (fn extern (uq T) ((iter (Iterator (Vector (uq T)))))
-        (@ (@: iter element))))
-
-    #|
     @fn source
 
     Returns a pointer to the iterator's value.
@@ -553,10 +542,6 @@ must also implement `LessThanComparable`.
       (macro extern ((veciter (p (ReverseIterator (Vector (uq T))))))
         (qq do size)))
 
-    (def @source
-      (fn extern (uq T) ((iter (ReverseIterator (Vector (uq T)))))
-        (@ (@ (: iter element)))))
-
     (def source
       (fn extern (p (uq T)) ((iter (ReverseIterator (Vector (uq T)))))
         (@ (: iter element))))
@@ -636,8 +621,8 @@ must also implement `LessThanComparable`.
                          (value  ((uq tpw) (uq T))))
         (let ((vecp          \ (@: iter parent-vector))
               (original-iter \ iter)
-              (next1         \ (@source iter))
-              (next2         \ (@source iter)))
+              (next1         \ (@ (source iter)))
+              (next2         \ (@ (source iter))))
           (if (<= (@:@ vecp capacity) (size (@ vecp)))
               (do (let ((dist \ (distance iter (begin (@ vecp)))))
                     (reserve (@ vecp) (@:@ vecp capacity))
@@ -652,7 +637,7 @@ must also implement `LessThanComparable`.
           (setf (:@ vecp size) (+ (@ (:@ vecp size)) (cast 1 size)))
           (while (!= iter (end (@ vecp)))
             (setv iter (successor iter))
-            (setv next1 (@source iter))
+            (setv next1 (@ (source iter)))
             (sink iter next2)
             (setv next2 next1))
           (setv iter (successor iter))
@@ -685,7 +670,7 @@ must also implement `LessThanComparable`.
           (setv nn2 iter)
           (while (!= nn (end (@ vecp)))
             (setv nn2 nn)
-            (sink iter (@source nn))
+            (sink iter (@ (source nn)))
             (setv nn (successor nn)))
           (setf (:@ vecp last-element) (@: nn2 element))
           (return iter))))
@@ -724,7 +709,7 @@ must also implement `LessThanComparable`.
       (let ((b1 \ (begin (@ src)))
             (e1 \ (end   (@ src))))
         (for true (!= b1 e1) (setv b1 (successor b1))
-          (push-back (@ dst) (@source b1))))
+          (push-back (@ dst) (@ (source b1)))))
       true))
 
     (def setf-copy-assign (fn extern bool ((dst (p (Vector (uq T))))

@@ -359,17 +359,6 @@ Expands to a `List` definition over the relevant type.
         (qq do size)))
 
     #|
-    @fn @source
-
-    Returns the iterator's value.
-
-    @param iter     An iterator.
-    |#
-    (def @source
-      (fn extern (uq T) ((iter (Iterator (List (uq T)))))
-        (@:@ (@: iter node) element)))
-
-    #|
     @fn source
 
     Returns a pointer to the iterator's value.
@@ -471,10 +460,6 @@ Expands to a `List` definition over the relevant type.
     (def distance-type
       (macro extern ((veciter (p (ReverseIterator (List (uq T))))))
         (qq do size)))
-
-    (def @source
-      (fn extern (uq T) ((iter (ReverseIterator (List (uq T)))))
-        (@:@ (@: iter node) element)))
 
     (def source
       (fn extern (p (uq T)) ((iter (ReverseIterator (List (uq T)))))

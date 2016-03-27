@@ -236,17 +236,6 @@ must also implement `LessThanComparable`.
         (qq do size)))
 
     #|
-    @fn @source
-
-    Returns the iterator's value.
-
-    @param iter     An iterator.
-    |#
-    (def @source (fn extern (uq T) 
-                            ((iter (Iterator (Array (uq T) (uq N)))))
-      (@ (@: iter element))))
-
-    #|
     @fn source
 
     Returns a pointer to the iterator's value.
@@ -404,10 +393,6 @@ must also implement `LessThanComparable`.
     (def distance-type 
       (macro extern ((arrp (p (ReverseIterator (Array (uq T) (uq N))))))
         (qq do size)))
-
-    (def @source 
-      (fn extern (uq T) ((riter (ReverseIterator (Array (uq T) (uq N)))))
-        (@ (@: riter element))))
 
     (def source 
       (fn extern (p (uq T)) ((riter (ReverseIterator (Array (uq T) (uq N)))))
