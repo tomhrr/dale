@@ -25,50 +25,14 @@ FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    int error_count_begin =
-        ctx->er->getErrorTypeCount(ErrorType::Error);
-
     ParseResult struct_pr;
-    bool res = FormProcInstParse(units, fn, block, struct_node, true,
+    bool res = FormProcInstParse(units, fn, block, struct_node, false,
                                  false, NULL, &struct_pr);
-
     if (!res) {
-        /* If the error message is 'cannot take address of
-         * non-lvalue', retry the parse operation without get_address,
-         * and adjust things so that later code can operate as per
-         * normal. */
-        int error_count_end =
-            ctx->er->getErrorTypeCount(ErrorType::Error);
-        if (error_count_end != (error_count_begin + 1)) {
-            return false;
-        }
-        Error *e = ctx->er->popLastError();
-        if (e->instance != CannotTakeAddressOfNonLvalue) {
-            ctx->er->addError(e);
-            return false;
-        }
-        res = FormProcInstParse(units, fn, block, struct_node,
-                                false, false, NULL,
-                                &struct_pr);
-        if (!res) {
-            ctx->er->addError(e);
-            return false;
-        }
-
-        llvm::Type *llvm_type =
-            ctx->toLLVMType(struct_pr.type, NULL, false, false);
-        if (!llvm_type) {
-            return false;
-        }
-
-        llvm::IRBuilder<> builder(struct_pr.block);
-        llvm::Value *store = builder.CreateAlloca(llvm_type);
-        builder.CreateStore(struct_pr.value, store);
-        struct_pr.type = ctx->tr->getPointerType(struct_pr.type);
-        struct_pr.value = store;
+        return false;
     }
 
-    Type *st_type = struct_pr.type->points_to;
+    Type *st_type = struct_pr.type;
 
     if (st_type->struct_name.size() == 0) {
         std::string type_str;
@@ -126,8 +90,15 @@ FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
                               ctx->nt->getNativeInt(index));
 
     llvm::IRBuilder<> builder(struct_pr.block);
+    ParseResult value_pr;
+    res = struct_pr.getAddressOfValue(ctx, &value_pr);
+    if (!res) {
+        return false;
+    }
+    struct_pr.block = value_pr.block;
+
     llvm::Value *vres =
-        builder.CreateGEP(struct_pr.value,
+        builder.CreateGEP(value_pr.value,
                           llvm::ArrayRef<llvm::Value*>(indices));
 
     pr->set(struct_pr.block, ctx->tr->getPointerType(member_type), vres);
