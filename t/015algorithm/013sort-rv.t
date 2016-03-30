@@ -9,9 +9,9 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 3;
 
-my @res = `dalec $ENV{"DALE_TEST_ARGS"} -lm $test_dir/t/src/vector-rv.dt -o vector-rv `;
+my @res = `dalec $ENV{"DALE_TEST_ARGS"} -lm $test_dir/t/src/sort-rv.dt -o sort-rv `;
 is_deeply(\@res, [], 'No compilation errors');
-@res = `./vector-rv`;
+@res = `./sort-rv`;
 is($?, 0, 'Program executed successfully');
 
 chomp for @res;
@@ -32,6 +32,6 @@ is_deeply(\@res, [
 ],
     'Got correct results');
 
-`rm vector-rv`;
+`rm sort-rv`;
 
 1;
