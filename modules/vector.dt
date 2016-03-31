@@ -284,7 +284,7 @@ must also implement `LessThanComparable`.
         (if (= (@:@ vecp capacity) (@:@ vecp size))
             (reserve (@ vecp) (@:@ vecp capacity))
             true)
-        (setf (@:@ vecp last-element) (move ((uq tvw) value)))
+        (setf (@:@ vecp last-element) ((uq tvw) value))
         (setf (:@ vecp last-element)
               (p+ (@:@ vecp last-element) 1))
         (setf (:@ vecp size) (+ (@:@ vecp size) (cast 1 size)))
@@ -391,7 +391,7 @@ must also implement `LessThanComparable`.
     (def sink
       (fn extern bool ((iter (Iterator (Vector (uq T))))
                        (v    ((uq tpw) (uq T))))
-        (setf (@ (: iter element)) (move ((uq tvw) v)))))
+        (setf (@ (: iter element)) ((uq tvw) v))))
 
     #|
     @fn successor
@@ -631,7 +631,7 @@ must also implement `LessThanComparable`.
                     true))
               true)
           (if (= (cast 0 size) (size (@ vecp)))
-              (do (push-back (@ vecp) (move ((uq tvw) value)))
+              (do (push-back (@ vecp) ((uq tvw) value))
                   (return iter))
               0)
           (setf (:@ vecp size) (+ (@ (:@ vecp size)) (cast 1 size)))
@@ -642,7 +642,7 @@ must also implement `LessThanComparable`.
             (setv next2 (move next1)))
           (setv iter (successor iter))
           (setf (:@ vecp last-element) (@: iter element))
-          (sink original-iter (move ((uq tvw) value)))
+          (sink original-iter ((uq tvw) value))
           (return (successor original-iter)))))
 
     #|
@@ -709,7 +709,7 @@ must also implement `LessThanComparable`.
       (let ((b1 \ (begin (@ src)))
             (e1 \ (end   (@ src))))
         (for true (!= b1 e1) (setv b1 (successor b1))
-          (push-back (@ dst) (@ (source b1)))))
+          (push-back (@ dst) (move (@ (source b1))))))
       true))
 
     (def setf-copy-assign (fn extern bool ((dst (p (Vector (uq T))))

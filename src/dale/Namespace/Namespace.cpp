@@ -357,6 +357,10 @@ Namespace::getFunction(const char *name,
                 } else if (type->is_rvalue_reference && is_lvalue) {
                     broke_on_failure = true;
                     break;
+                } else if (type->is_rvalue_reference
+                        && (*arg_type_iter)->is_const) {
+                    broke_on_failure = true;
+                    break;
                 }
             }
 

@@ -40,14 +40,14 @@
       (printf "Empty?: %d\n" (if (empty vec) 1 0))
       (printf "Unique pointer has value: %d\n"
               (not (p= (nullptr int) (@: myptr1 pointer))))
-      (push-back vec myptr1)
+      (push-back vec (move myptr1))
       (printf "Empty?: %d\n" (if (empty vec) 1 0))
       (printf "Unique pointer has value: %d\n"
               (not (p= (nullptr int) (@: myptr1 pointer))))
 
       (setf myint2 100)
       (init myptr2 myint2)
-      (push-back vec myptr2)
+      (push-back vec (move myptr2))
 
       (sort (begin vec) (end vec))
 

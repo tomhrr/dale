@@ -1,0 +1,3 @@
+./t/error-src/const-rv.dt:32:3: error: copying is disabled for this type
+./t/error-src/const-rv.dt:33:3: error: overloaded function/macro not in scope: 'no-call' (parameters are (const mys), closest candidate expects (rv-ref mys))
+./t/error-src/const-rv.dt:34:3: error: overloaded function/macro not in scope: 'no-call' (parameters are (const mys), closest candidate expects (rv-ref mys))

@@ -30,6 +30,16 @@ Expands a form `frm` into `(ref (const frm))`.
     (qq ref (const (uq frm)))))
 
 #|
+@macro move@
+
+Expands a form `frm` into `(move (@ frm))`.
+
+|#
+(def move@
+  (macro extern (frm)
+    (qq move (@ (uq frm)))))
+
+#|
 @macro prefer-ref-bindings
 
 Takes a type as its single argument.  Expands into a series of `def`
@@ -44,15 +54,25 @@ references and `identity` otherwise.
 (def prefer-ref-bindings
   (macro extern (T2)
     (qq do
+      (def copy-disabled (var auto bool (exists-fn mc
+                                            (qq void
+                                                setf-copy-disabled
+                                                (uq T2)))))
       (def prefer-refs (var auto bool (not (has-errors mc
                                              (qq std.concepts.implements
                                                (uq T2) PreferRefs)))))
       (def tpw     (var auto (p DNode)
                              (mnfv mc (if prefer-refs
-                                          "refconst" "identity"))))
+                                          (if copy-disabled
+                                              "rv-ref"
+                                              "refconst")
+                                          "identity"))))
       (def tvw     (var auto (p DNode)
                              (mnfv mc (if prefer-refs
-                                          "@" "identity")))))))
+                                          (if copy-disabled
+                                              "move@"
+                                              "@")
+                                          "identity")))))))
 
 (mfor T (char
          int  int8  int16  int32  int64
