@@ -101,7 +101,7 @@ storeValue(Context *ctx, Node *node, Type *type,
 {
     std::vector<Type *> param_types;
     param_types.push_back(ctx->tr->getPointerType(type));
-    param_types.push_back(type);
+    param_types.push_back(pr->type);
     std::vector<bool> lvalues;
     lvalues.push_back(true);
     lvalues.push_back(false);
