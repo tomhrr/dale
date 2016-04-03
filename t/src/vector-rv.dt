@@ -1,0 +1,70 @@
+(import cstdio)
+(import unistd)
+(import macros)
+(import unique-ptr)
+(import vector)
+(import derivations)
+(import algorithms)
+
+(std.concepts.instantiate UniquePtr int)
+
+(def = (fn intern bool ((a (const (p int))) (b (const (p int))))
+  (= (@ a) (@ b))))
+(def < (fn intern bool ((a (const (p int))) (b (const (p int))))
+  (< (@ a) (@ b))))
+(def = (fn extern bool ((a (ref (const (UniquePtr int))))
+                        (b (ref (const (UniquePtr int)))))
+  (= (core-@:@ a pointer) (core-@:@ b pointer))))
+(def < (fn extern bool ((a (ref (const (UniquePtr int)))) 
+                        (b (ref (const (UniquePtr int)))))
+  (< (core-@:@ a pointer) (core-@:@ b pointer))))
+
+(std.concepts.instantiate relations (UniquePtr int))
+(std.concepts.instantiate swap (UniquePtr int))
+(std.concepts.implement Swappable (UniquePtr int))
+(std.concepts.implement EqualityComparable (UniquePtr int))
+(std.concepts.implement LessThanComparable (UniquePtr int))
+
+(std.concepts.instantiate Vector (UniquePtr int))
+
+(def main
+  (fn extern-c int (void)
+    (let ((vec    (Vector (UniquePtr int)) (init vec 1))
+          (myint1 \ (malloc' 1 int))
+          (myptr1 (UniquePtr int))
+          (myint2 \ (malloc' 1 int))
+          (myptr2 (UniquePtr int))
+          (myint3 \ (malloc' 1 int))
+          (myptr3 (UniquePtr int))
+          (myint4 \ (malloc' 1 int))
+          (myptr4 (UniquePtr int)))
+      (setf myint1 1)
+      (init myptr1 myint1)
+      (setf myint2 2)
+      (init myptr2 myint2)
+      (setf myint3 3)
+      (init myptr3 myint3)
+      (setf myint4 4)
+      (init myptr4 myint4)
+
+      ; 2.
+      (push-back vec (move myptr2))
+      ; 2, 3.
+      (insert vec (end vec) (move myptr3))
+      ; 2, 3, 1.
+      (push-back vec (move myptr1))
+      ; 3, 1.
+      (erase vec (begin vec))
+      ; 4, 1.
+      (sink (begin vec) (move myptr4))
+      ; 1, 4.
+      (def b1 (var auto \ (begin vec)))
+      (def b2 (var auto \ (successor (begin vec))))
+      (swap (@ (source b1)) (@ (source b2)))
+
+      (let ((b \ (begin vec))
+            (e \ (end vec)))
+        (for true (!= b e) (setv b (successor b))
+          (let ((local \ (move (@ (source b)))))
+            (printf "%d\n" (@ (get local))))))
+      0)))

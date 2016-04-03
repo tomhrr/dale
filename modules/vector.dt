@@ -391,7 +391,8 @@ must also implement `LessThanComparable`.
     (def sink
       (fn extern bool ((iter (Iterator (Vector (uq T))))
                        (v    ((uq tpw) (uq T))))
-        (setf (@ (: iter element)) ((uq tvw) v))))
+        (setf (@ (: iter element)) ((uq tvw) v))
+        true))
 
     #|
     @fn successor
@@ -548,8 +549,8 @@ must also implement `LessThanComparable`.
     
     (def sink
       (fn extern bool ((iter (ReverseIterator (Vector (uq T))))
-                       (sinker (uq T)))
-        (setf (@ (: iter element)) (move sinker))
+                       (v    ((uq tpw) (uq T))))
+        (setf (@ (: iter element)) ((uq tvw) v))
         true))
 
     (def successor         
@@ -664,15 +665,20 @@ must also implement `LessThanComparable`.
           (if (= iter (end (@ vecp)))
               (return iter)
               0)
-          (destroy (@ value))
           (setf (:@ vecp size) (- (@ (:@ vecp size)) (cast 1 size)))
           (setv nn (successor iter))
           (setv nn2 iter)
+          (if (= nn (end (@ vecp)))
+              (do (destroy (@ value))
+                  (setf (:@ vecp last-element) (@: nn2 element))
+                  (return iter))
+              0)
           (while (!= nn (end (@ vecp)))
-            (setv nn2 nn)
-            (sink iter (move (@ (source nn))))
-            (setv nn (successor nn)))
-          (setf (:@ vecp last-element) (@: nn2 element))
+            (sink nn2 (move (@ (source nn))))
+            (setv nn2 (successor nn2))
+            (setv nn  (successor nn)))
+          (setf (:@ vecp last-element)
+                (p- (@:@ vecp last-element) 1))
           (return iter))))
 
     #|
