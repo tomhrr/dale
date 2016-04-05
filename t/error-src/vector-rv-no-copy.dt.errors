@@ -1,0 +1,1 @@
+./t/error-src/vector-rv-no-copy.dt:45:7: error: copying is disabled for this type (see macro at 32:5)

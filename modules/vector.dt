@@ -70,6 +70,23 @@ must also implement `LessThanComparable`.
  
     (register-type mc typename etypename)
 
+    (def copy-functions (var auto (p DNode)
+      (if copy-disabled
+          (qq do (def setf-copy-disabled (fn extern bool ((dst (Vector (uq T)))))))
+          (qq do
+            (def setf-copy-init (fn extern bool ((dst (p (Vector (uq T))))
+                                                 (src (p (Vector (uq T)))))
+              (init (@ dst))
+              (let ((b1 \ (begin (@ src)))
+                    (e1 \ (end   (@ src))))
+                (for true (!= b1 e1) (setv b1 (successor b1))
+                  (push-back (@ dst) (@ (source b1)))))
+              true))
+            (def setf-copy-assign (fn extern bool ((dst (p (Vector (uq T))))
+                                                   (src (p (Vector (uq T)))))
+              (clear (@ dst))
+              (setf-copy-init dst src)))))))
+
     (qq do
 
     (using-namespace std.macros
@@ -709,19 +726,22 @@ must also implement `LessThanComparable`.
           (core setf vec2     vec3)
           (return))))
 
-    (def setf-copy-init (fn extern bool ((dst (p (Vector (uq T))))
-                                         (src (p (Vector (uq T)))))
+    (def setf-move-init (fn extern bool ((dst (p (Vector (uq T))))
+                                         (src (rv-ref (Vector (uq T)))))
       (init (@ dst))
       (let ((b1 \ (begin (@ src)))
             (e1 \ (end   (@ src))))
         (for true (!= b1 e1) (setv b1 (successor b1))
           (push-back (@ dst) (move (@ (source b1))))))
+      (resize (@ src) (cast 0 size))
       true))
 
-    (def setf-copy-assign (fn extern bool ((dst (p (Vector (uq T))))
-                                           (src (p (Vector (uq T)))))
+    (def setf-move-assign (fn extern bool ((dst (p (Vector (uq T))))
+                                           (src (rv-ref (Vector (uq T)))))
       (clear (@ dst))
-      (setf-copy-init dst src)))
+      (setf-move-init dst (move (@ src)))))
+
+    (uq copy-functions)
 
     (implement Container (Vector (uq T)))
     (implement Type (p (Vector (uq T))))
