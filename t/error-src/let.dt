@@ -1,0 +1,4 @@
+(import stdlib)
+
+(def main (fn extern-c int (void)
+  (let n (var auto int 1) 0)))
