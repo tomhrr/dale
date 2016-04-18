@@ -1,0 +1,72 @@
+(import cstdio)
+(import unistd)
+(import macros)
+(import unique-ptr)
+(import array)
+(import derivations)
+(import algorithms)
+
+(std.concepts.instantiate UniquePtr int)
+
+(def = (fn intern bool ((a (const (p int))) (b (const (p int))))
+  (= (@ a) (@ b))))
+(def < (fn intern bool ((a (const (p int))) (b (const (p int))))
+  (< (@ a) (@ b))))
+(def = (fn extern bool ((a (ref (const (UniquePtr int))))
+                        (b (ref (const (UniquePtr int)))))
+  (= (core-@:@ a pointer) (core-@:@ b pointer))))
+(def < (fn extern bool ((a (ref (const (UniquePtr int)))) 
+                        (b (ref (const (UniquePtr int)))))
+  (< (core-@:@ a pointer) (core-@:@ b pointer))))
+
+(std.concepts.instantiate relations (UniquePtr int))
+(std.concepts.instantiate swap (UniquePtr int))
+(std.concepts.implement Swappable (UniquePtr int))
+(std.concepts.implement EqualityComparable (UniquePtr int))
+(std.concepts.implement LessThanComparable (UniquePtr int))
+
+(std.concepts.instantiate Array (UniquePtr int) 10)
+
+(def main
+  (fn extern-c int (void)
+    (let ((arr    (Array (UniquePtr int) 10))
+          (myint1 \ (malloc' 1 int))
+          (myptr1 (UniquePtr int))
+          (myint2 \ (malloc' 1 int))
+          (myptr2 (UniquePtr int))
+          (myint3 \ (malloc' 1 int))
+          (myptr3 (UniquePtr int))
+          (myint4 \ (malloc' 1 int))
+          (myptr4 (UniquePtr int)))
+      (setf myint1 1)
+      (init myptr1 myint1)
+      (setf myint2 2)
+      (init myptr2 myint2)
+      (setf myint3 3)
+      (init myptr3 myint3)
+      (setf myint4 4)
+      (init myptr4 myint4)
+
+      (let ((b \ (begin arr))
+            (e \ (end arr)))
+        (for true (!= b e) (setv b (successor b))
+          (init (@ (source b)))))
+
+      ; 2.
+      (sink (begin arr) (move myptr2))
+      ; 2, 3.
+      (sink (successor (begin arr)) (move myptr3))
+      ; 2, 3, 1.
+      (sink (successor (successor (begin arr))) (move myptr1))
+
+      ; 3, 2, 1.
+      (def b1 (var auto \ (begin arr)))
+      (def b2 (var auto \ (successor (begin arr))))
+      (swap (@ (source b1)) (@ (source b2)))
+
+      (let ((b \ (begin arr))
+            (e \ (end arr)))
+        (for true (!= b e) (setv b (successor b))
+          (let ((local \ (move (@ (source b)))))
+            (printf "%d\n" (if (null (get local)) 0 (@ (get local)))))))
+      0)))
