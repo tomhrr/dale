@@ -74,6 +74,25 @@ Expands to a `List` definition over the relevant type.
 
     (register-type mc typename etypename)
 
+    (def copy-functions (var auto (p DNode)
+      (if copy-disabled
+          (qq do (def setf-copy-disabled (fn extern bool ((dst (List (uq T)))))))
+          (qq do (def setf-copy-init (fn extern bool ((dst (p (List (uq T))))
+                                               (src (p (List (uq T)))))
+                   (init (@ dst))
+                   (let ((b1 \ (begin (@ src)))
+                         (e1 \ (end   (@ src)))
+                         (b2 \ (begin (@ dst)))
+                         (e2 \ (end   (@ dst))))
+                     (for true (!= b1 e1) (do (setv b1 (successor b1))
+                                              (setv b2 (successor b2)))
+                       (sink b2 (@ (source b1)))))
+                   true))
+                 (def setf-copy-assign (fn extern bool ((dst (p (List (uq T))))
+                                                        (src (p (List (uq T)))))
+                   (clear (@ dst))
+                   (setf-copy-init dst src)))))))
+
     (qq do
 
     (using-namespace std.macros
@@ -506,16 +525,19 @@ Expands to a `List` definition over the relevant type.
       (fn extern (Iterator (List (uq T)))
                     ((lst   (ref (List (uq T))))
                      (iter  (Iterator (List (uq T))))
-                     (value (uq T)))
+                     (value ((uq tpw) (uq T))))
         (and (empty (@ lst))
-             (do (push-back (@ lst) value)
+             (do (push-back (@ lst) ((uq tvw) value))
                  (return (begin (@ lst)))))
-        (let ((new-node \ (malloc' 1 (uq nodetypenode))))
-          (setf (:@ new-node element) value)
+        (let ((new-node \ (malloc' 1 (uq nodetypenode)))
+              (prev-node \ (if (null (@: iter node))
+                               (:@ lst last)
+                               (:@ (@: iter node) prev))))
+          (setf (:@ new-node element) ((uq tvw) value))
           (setf (:@ new-node next) (@: iter node))
-          (setf (:@ new-node prev) (@:@ (@: iter node) prev))
-          (setf (:@ (@:@ (@: iter node) prev) next) new-node)
-          (setf (:@ (@: iter node) prev) new-node)
+          (setf (:@ new-node prev) (@ prev-node))
+          (setf (:@ (@ prev-node) next) new-node)
+          (setf prev-node new-node)
           (return iter))))
 
     #|
@@ -578,8 +600,8 @@ Expands to a `List` definition over the relevant type.
           (setf (:@ lst2 last)  last-2)
           (return))))
 
-    (def setf-copy-init (fn extern bool ((dst (p (List (uq T))))
-                                         (src (p (List (uq T)))))
+    (def setf-move-init (fn extern bool ((dst (p (List (uq T))))
+                                         (src (rv-ref (List (uq T)))))
       (init (@ dst))
       (let ((b1 \ (begin (@ src)))
             (e1 \ (end   (@ src)))
@@ -587,13 +609,15 @@ Expands to a `List` definition over the relevant type.
             (e2 \ (end   (@ dst))))
         (for true (!= b1 e1) (do (setv b1 (successor b1))
                                  (setv b2 (successor b2)))
-          (sink b2 (@ (source b1)))))
+          (sink b2 (move (@ (source b1))))))
       true))
 
-    (def setf-copy-assign (fn extern bool ((dst (p (List (uq T))))
-                                           (src (p (List (uq T)))))
+    (def setf-move-assign (fn extern bool ((dst (p (List (uq T))))
+                                           (src (rv-ref (List (uq T)))))
       (clear (@ dst))
-      (setf-copy-init dst src)))
+      (setf-move-init dst (move (@ src)))))
+
+    (uq copy-functions)
 
     (implement Container (List (uq T)))
     (implement Type (List (uq T)))
