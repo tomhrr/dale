@@ -26,12 +26,10 @@
 (std.concepts.implement LessThanComparable (UniquePtr int))
 
 (std.concepts.instantiate Set (UniquePtr int))
-(std.concepts.instantiate Set int)
 
 (def main
   (fn extern-c int (void)
-    (let (;(set (Set int))
-          (set    (Set (UniquePtr int)))
+    (let ((set    (Set (UniquePtr int)))
           (myint1 \ (malloc' 1 int))
           (myptr1 (UniquePtr int))
           (myint2 \ (malloc' 1 int))
