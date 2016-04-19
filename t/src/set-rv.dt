@@ -1,0 +1,68 @@
+(import cstdio)
+(import unistd)
+(import macros)
+(import unique-ptr)
+(import set)
+(import derivations)
+(import algorithms)
+
+(std.concepts.instantiate UniquePtr int)
+
+(def = (fn intern bool ((a (const (p int))) (b (const (p int))))
+  (= (@ a) (@ b))))
+(def < (fn intern bool ((a (const (p int))) (b (const (p int))))
+  (< (@ a) (@ b))))
+(def = (fn extern bool ((a (ref (const (UniquePtr int))))
+                        (b (ref (const (UniquePtr int)))))
+  (= (core-@:@ a pointer) (core-@:@ b pointer))))
+(def < (fn extern bool ((a (ref (const (UniquePtr int)))) 
+                        (b (ref (const (UniquePtr int)))))
+  (< (core-@:@ a pointer) (core-@:@ b pointer))))
+
+(std.concepts.instantiate relations (UniquePtr int))
+(std.concepts.instantiate swap (UniquePtr int))
+(std.concepts.implement Swappable (UniquePtr int))
+(std.concepts.implement EqualityComparable (UniquePtr int))
+(std.concepts.implement LessThanComparable (UniquePtr int))
+
+(std.concepts.instantiate Set (UniquePtr int))
+(std.concepts.instantiate Set int)
+
+(def main
+  (fn extern-c int (void)
+    (let (;(set (Set int))
+          (set    (Set (UniquePtr int)))
+          (myint1 \ (malloc' 1 int))
+          (myptr1 (UniquePtr int))
+          (myint2 \ (malloc' 1 int))
+          (myptr2 (UniquePtr int))
+          (myint3 \ (malloc' 1 int))
+          (myptr3 (UniquePtr int))
+          (myint4 \ (malloc' 1 int))
+          (myptr4 (UniquePtr int)))
+      (setf myint1 1)
+      (init myptr1 myint1)
+      (setf myint2 2)
+      (init myptr2 myint2)
+      (setf myint3 3)
+      (init myptr3 myint3)
+      (setf myint4 4)
+      (init myptr4 myint4)
+
+      ; 2.
+      (insert set (move myptr2))
+      ; 2, 3.
+      (insert set (move myptr3))
+      ; 1, 2, 3.
+      (insert set (move myptr1))
+      ; 2, 3.
+      (erase (begin set))
+      ; 2, 3, 4.
+      (insert set (move myptr4))
+
+      (let ((b \ (begin set))
+            (e \ (end set)))
+        (for true (!= b e) (setv b (successor b))
+          (let ((local \ (@ (get (@ (source b))))))
+            (printf "%d\n" local))))
+      0)))

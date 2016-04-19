@@ -79,6 +79,24 @@ must also implement `LessThanComparable`.
     (def nodetypenode (var auto (p DNode) (std.macros.mnfv mc nodetypename)))
     (register-type mc typename etypename)
 
+    (def copy-functions (var auto (p DNode)
+      (if copy-disabled
+          (qq do (def setf-copy-disabled (fn extern bool ((dst (Set (uq T)))))))
+	  (qq do
+            (def setf-copy-init (fn extern bool ((dst (p (Set (uq T))))
+                                                 (src (p (Set (uq T)))))
+              (init (@ dst))
+              (let ((b \ (begin (@ src)))
+                    (e \ (end   (@ src))))
+                (for true (!= b e) (setv b (successor b))
+                  (insert (@ dst) (@ (source b)))))
+              true))
+
+            (def setf-copy-assign (fn extern bool ((dst (p (Set (uq T))))
+                                                   (src (p (Set (uq T)))))
+              (clear (@ dst))
+              (setf-copy-init dst src)))))))
+
     (qq do
 
     (import derivations)
@@ -702,8 +720,8 @@ must also implement `LessThanComparable`.
               (setf (:@ newnodep right) (nullptr (uq nodetypenode)))
               (let ((cn    \ (get-root-node (@ setp)))
                     (newnp \ (nullptr (p (uq nodetypenode)))))
-                (while (!= ((uq tvw) newval) (@:@ cn value))
-                  (if (< ((uq tvw) newval) (@:@ cn value))
+                (while (!= (@:@ newnodep value) (@:@ cn value))
+                  (if (< (@:@ newnodep value) (@:@ cn value))
                       (do (if (null (@:@ cn left))
                               (do (setv newnp (:@ cn left))
                                   (break))
@@ -719,7 +737,7 @@ must also implement `LessThanComparable`.
                         (adjust-heights cn)
                         (rebalance setp cn false)
                         0)
-                    (do (setf (:@ cn value) ((uq tvw) newval)) 0))
+                    (do (setf (:@ cn value) (move (@:@ newnodep value))) 0))
                 (return true))))))
 
     #|
@@ -1023,19 +1041,21 @@ must also implement `LessThanComparable`.
           (setf (:@ set2 begin-node) bn1)
           (return))))
 
-    (def setf-copy-init (fn extern bool ((dst (p (Set (uq T))))
-                                         (src (p (Set (uq T)))))
+    (def setf-move-init (fn extern bool ((dst (p (Set (uq T))))
+                                         (src (rv-ref (Set (uq T)))))
       (init (@ dst))
       (let ((b \ (begin (@ src)))
             (e \ (end   (@ src))))
         (for true (!= b e) (setv b (successor b))
-          (insert (@ dst) (@ (source b)))))
+          (insert (@ dst) (move (@ (source b))))))
       true))
 
-    (def setf-copy-assign (fn extern bool ((dst (p (Set (uq T))))
-                                           (src (p (Set (uq T)))))
+    (def setf-move-assign (fn extern bool ((dst (p (Set (uq T))))
+                                           (src (rv-ref (Set (uq T)))))
       (clear (@ dst))
-      (setf-copy-init dst src)))
+      (setf-move-init dst (move (@ src)))))
+
+    (uq copy-functions)
 
     (implement Container (Set (uq T)))
     (implement Type (Set (uq T)))
