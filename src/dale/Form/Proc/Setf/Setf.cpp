@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
 #include "../../../Operation/Destruct/Destruct.h"
+#include "../../../Operation/Copy/Copy.h"
 #include "../Inst/Inst.h"
 #include "../../Utils/Utils.h"
 #include "../../../llvm_Function.h"
@@ -200,12 +201,7 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         }
     }
 
-    /* If this not something that can be copied, return an error message. */
-    std::vector<Type *> disabled_types;
-    disabled_types.push_back(variable_pr.type->points_to);
-    if (ctx->getFunction("setf-copy-disabled", &disabled_types, NULL, 0)) {
-        Error *e = new Error(ErrorInst::CopyDisabled, node);
-        ctx->er->addError(e);
+    if (!Operation::IsCopyPermitted(ctx, node, variable_pr.type->points_to)) {
         return false;
     }
 

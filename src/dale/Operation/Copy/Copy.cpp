@@ -5,6 +5,37 @@ namespace dale
 namespace Operation
 {
 bool
+IsCopyPermitted(Context *ctx, Node *node, Type *type)
+{
+    std::vector<Type *> disabled_types;
+    disabled_types.push_back(type);
+    if (ctx->getFunction("setf-copy-disabled", &disabled_types, NULL, 0)) {
+        Error *e = new Error(ErrorInst::CopyDisabled, node);
+        ctx->er->addError(e);
+        return false;
+    }
+    if (type->is_array) {
+        if (!IsCopyPermitted(ctx, node, type->array_type)) {
+            return false;
+        }
+    }
+    Struct *st = ctx->getStruct(type);
+    if (st) {
+        std::vector<Type*> *st_types = &(st->member_types);
+        for (std::vector<Type*>::iterator b = st_types->begin(),
+                                          e = st_types->end();
+                b != e;
+                ++b) {
+            if (!IsCopyPermitted(ctx, node, (*b))) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool
 Copy(Context *ctx, Function *fn, Node *node, ParseResult *pr,
      ParseResult *ret_pr)
 {
@@ -32,13 +63,9 @@ Copy(Context *ctx, Function *fn, Node *node, ParseResult *pr,
 
     ret_pr->do_not_destruct = false;
 
-    /* If this not something that can be copied, return an error
+    /* If this is not something that can be copied, return an error
      * message. */
-    std::vector<Type *> disabled_types;
-    disabled_types.push_back(pr->type);
-    if (ctx->getFunction("setf-copy-disabled", &disabled_types, NULL, 0)) {
-	Error *e = new Error(ErrorInst::CopyDisabled, node);
-	ctx->er->addError(e);
+    if (!IsCopyPermitted(ctx, node, pr->type)) {
         return false;
     }
 

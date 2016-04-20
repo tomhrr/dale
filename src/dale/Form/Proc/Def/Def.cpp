@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
 #include "../../../Operation/Destruct/Destruct.h"
+#include "../../../Operation/Copy/Copy.h"
 #include "../../Linkage/Linkage.h"
 #include "../../Type/Type.h"
 #include "../../Struct/Struct.h"
@@ -126,12 +127,7 @@ storeValue(Context *ctx, Node *node, Type *type,
         return true;
     }
 
-    /* If this not something that can be copied, return an error message. */
-    std::vector<Type *> disabled_types;
-    disabled_types.push_back(type);
-    if (ctx->getFunction("setf-copy-disabled", &disabled_types, NULL, 0)) {
-        Error *e = new Error(ErrorInst::CopyDisabled, node);
-        ctx->er->addError(e);
+    if (!Operation::IsCopyPermitted(ctx, node, type)) {
         return false;
     }
 

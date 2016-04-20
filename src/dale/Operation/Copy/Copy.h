@@ -23,6 +23,14 @@ namespace Operation
  */
 bool Copy(Context *ctx, Function *fn, Node *node, ParseResult *value_pr,
           ParseResult *pr);
+/*! Determine whether copy is permitted for a type.
+ *  @param ctx The current context.
+ *  @param node The node of the relevant value.
+ *  @param type The type of the relevant value.
+ *
+ *  Adds an appropriate error message if copying is not permitted.
+ */
+bool IsCopyPermitted(Context *ctx, Node *node, Type *type);
 }
 }
 

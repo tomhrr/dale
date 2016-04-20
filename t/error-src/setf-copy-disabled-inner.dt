@@ -1,0 +1,19 @@
+(import cstdio)
+(import macros)
+(import unique-ptr)
+
+(std.concepts.instantiate UniquePtr int)
+(std.concepts.instantiate Pair int (UniquePtr int))
+
+(def make-pair (macro intern (v1 v2)
+  (std.macros.qq (Pair int (UniquePtr int)) ((first (uq v1)) (second (uq v2))))))
+
+(def main
+  (fn extern-c int (void)
+    (let ((myint1 \ (malloc' 1 int))
+          (myptr1 (UniquePtr int)))
+      (setf myint1 1)
+      (init myptr1 myint1)
+
+      (let ((mp (Pair int (UniquePtr int)) (make-pair 1 myptr1)))
+        0))))
