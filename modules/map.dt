@@ -141,6 +141,24 @@ must also implement `LessThanComparable`.
               (< (@: p1 first)
                  (@: p2 first))))))))
 
+    (def copy-functions (var auto (p DNode)
+      (if copy-disabled-3
+          (qq do (def setf-copy-disabled (fn extern bool ((dst (Map (uq Tk) (uq Tv)))))))
+          (qq do
+            (def setf-copy-init (fn extern bool ((dst (p (Map (uq Tk) (uq Tv))))
+                                                 (src (p (Map (uq Tk) (uq Tv)))))
+              (init (@ (:@ dst set)))
+              (let ((b \ (begin (@ (:@ src set))))
+                    (e \ (end   (@ (:@ src set)))))
+                (for true (!= b e) (setv b (successor b))
+                  (insert (@ (:@ dst set)) (@ (source b)))))
+              true))
+        
+            (def setf-copy-assign (fn extern bool ((dst (p (Map (uq Tk) (uq Tv))))
+                                                   (src (p (Map (uq Tk) (uq Tv)))))
+              (clear (@ (:@ dst set)))
+              (setf-copy-init dst src)))))))
+
     (qq do
 
     (using-namespace std.macros
@@ -507,7 +525,7 @@ must also implement `LessThanComparable`.
       (let ((np (value-type (nullptr (Map (uq Tk) (uq Tv))))))
         (setf (: np first) ((uq tvw-1) key))
         (setf (: np second) ((uq tvw-2) value))
-        (insert (@ mapp) ((uq tvw-3) np)))))
+        (insert (@ mapp) (move np)))))
 
     #|
     @fn find
@@ -523,7 +541,7 @@ must also implement `LessThanComparable`.
                                (key  ((uq tpw-1) (uq Tk))))
       (let ((temp (value-type (nullptr (Map (uq Tk) (uq Tv))))))
         (setf (: temp first) ((uq tvw-1) key))
-        (let ((myiter \ (find (@ (:@ mapp set)) temp))
+        (let ((myiter \ (find (@ (:@ mapp set)) (move temp)))
               (itn    (Iterator (Map (uq Tk) (uq Tv)))))
           (setf (: itn mapp) mapp)
           (setf (: itn setiter) myiter)
@@ -580,7 +598,7 @@ must also implement `LessThanComparable`.
                                    (key ((uq tpw-1) (uq Tk))))
       (let ((temp (value-type (nullptr (Map (uq Tk) (uq Tv))))))
         (setf (: temp first) ((uq tvw-1) key))
-        (let ((lb \ (lower-bound (@ (:@ mapp set)) temp)))
+        (let ((lb \ (lower-bound (@ (:@ mapp set)) (move temp))))
           ((Iterator (Map (uq Tk) (uq Tv))) ((mapp mapp)
                               (setiter lb)))))))
 
@@ -597,23 +615,25 @@ must also implement `LessThanComparable`.
                                    (key  ((uq tpw-1) (uq Tk))))
       (let ((temp (value-type (nullptr (Map (uq Tk) (uq Tv))))))
         (setf (: temp first) ((uq tvw-1) key))
-        (let ((lb \ (upper-bound (@ (:@ mapp set)) temp)))
+        (let ((lb \ (upper-bound (@ (:@ mapp set)) (move temp))))
           ((Iterator (Map (uq Tk) (uq Tv))) ((mapp mapp)
                               (setiter lb)))))))
 
-    (def setf-copy-init (fn extern bool ((dst (p (Map (uq Tk) (uq Tv))))
-                                         (src (p (Map (uq Tk) (uq Tv)))))
+    (def setf-move-init (fn extern bool ((dst (p (Map (uq Tk) (uq Tv))))
+                                         (src (rv-ref (Map (uq Tk) (uq Tv)))))
       (init (@ (:@ dst set)))
       (let ((b \ (begin (@ (:@ src set))))
             (e \ (end   (@ (:@ src set)))))
         (for true (!= b e) (setv b (successor b))
-          (insert (@ (:@ dst set)) (@ (source b)))))
+          (insert (@ (:@ dst set)) (move (@ (source b))))))
       true))
 
-    (def setf-copy-assign (fn extern bool ((dst (p (Map (uq Tk) (uq Tv))))
-                                           (src (p (Map (uq Tk) (uq Tv)))))
+    (def setf-move-assign (fn extern bool ((dst (p (Map (uq Tk) (uq Tv))))
+                                           (src (rv-ref (Map (uq Tk) (uq Tv)))))
       (clear (@ (:@ dst set)))
-      (setf-copy-init dst src)))
+      (setf-move-init dst (move (@ src)))))
+
+    (uq copy-functions)
 
     (implement Type (Map (uq Tk) (uq Tv)))
     (instantiate swap (Map (uq Tk) (uq Tv)))
@@ -628,10 +648,8 @@ must also implement `LessThanComparable`.
                        (!= b2 e2))
                   (do (setv b1 (successor b1))
                       (setv b2 (successor b2)))
-          (let ((v1 \ (@ (source b1)))
-                (v2 \ (@ (source b2))))
-            (and (not (both-= v1 v2))
-                 (return false))))
+          (and (not (both-= (@ (source b1)) (@ (source b2))))
+               (return false)))
         (and (= b1 e1) (= b2 e2)))))
 
     (def < (fn extern bool ((map1 (ref (Map (uq Tk) (uq Tv))))
