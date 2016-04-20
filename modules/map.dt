@@ -64,6 +64,7 @@ must also implement `LessThanComparable`.
       (return (qq std.concepts.implements (uq Tk) LessThanComparable))
       0)
   (prefer-ref-bindings (uq Tk) 1)
+  (prefer-ref-bindings (uq Tv) 2)
 
   (let ((typename         (array-of 250 char))
         (etypename        (array-of 250 char))
@@ -87,6 +88,13 @@ must also implement `LessThanComparable`.
     (def pair-prefer-refs (var auto bool
       (or (not (has-errors mc (qq std.concepts.implements (uq Tk) PreferRefs)))
           (not (has-errors mc (qq std.concepts.implements (uq Tv) PreferRefs))))))
+
+    (def pair-copy-disabled (var auto bool
+      (or (not (is-copy-permitted mc (qq do (uq Tk)) false))
+          (not (is-copy-permitted mc (qq do (uq Tv)) false)))))
+
+    (prefer-ref-bindings (if pair-prefer-refs true false)
+                         (if pair-copy-disabled true false) 3)
 
     (def pair-prefer-refs-concept (var auto (p DNode)
       (if pair-prefer-refs
@@ -481,8 +489,8 @@ must also implement `LessThanComparable`.
     @param val      The value to insert into the map.
     |#
     (def insert (fn extern bool ((mapp (ref (Map (uq Tk) (uq Tv))))
-                                 (valt (value-type (nullptr (Map (uq Tk) (uq Tv))))))
-      (insert (@ (:@ mapp set)) valt)))
+                                 (valt ((uq tpw-3) (value-type (nullptr (Map (uq Tk) (uq Tv)))))))
+      (insert (@ (:@ mapp set)) ((uq tvw-3) valt))))
 
     #|
     @fn insert
@@ -490,11 +498,16 @@ must also implement `LessThanComparable`.
     Insert a new element into the map.
 
     @param setp     A map reference.
-    @param val      The value to insert into the set.
+    @param key      The key for the new map element.
+    @param value    The value for the new map element.
     |#
-    (def insert (fn extern bool ((mapp (ref (Map (uq Tk) (uq Tv))))
-                                 (valt (Pair (uq Tk) (uq Tv))))
-      (insert (@ mapp) (@ (cast (# valt) (p (value-type (nullptr (Map (uq Tk) (uq Tv))))))))))
+    (def insert (fn extern bool ((mapp  (ref (Map (uq Tk) (uq Tv))))
+                                 (key   ((uq tpw-1) (uq Tk)))
+                                 (value ((uq tpw-2) (uq Tv))))
+      (let ((np (value-type (nullptr (Map (uq Tk) (uq Tv))))))
+        (setf (: np first) ((uq tvw-1) key))
+        (setf (: np second) ((uq tvw-2) value))
+        (insert (@ mapp) ((uq tvw-3) np)))))
 
     #|
     @fn find

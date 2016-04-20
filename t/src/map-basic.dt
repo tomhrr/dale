@@ -3,9 +3,6 @@
 (import map)
 (std.concepts.instantiate Map int int)
 
-(def make-pair (macro intern (v1 v2) 
-  (std.macros.qq (Pair int int) ((first (uq v1)) (second (uq v2))))))
-
 (def main
   (fn extern-c int (void)
     (def m  (var auto (Map int int)))
@@ -14,10 +11,10 @@
         (printf "Equal\n")
         (printf "Not equal\n"))
 
-    (insert m (make-pair 1 2))
-    (insert m (make-pair 3 4))
-    (insert m (make-pair 5 6))
-    (insert m (make-pair 7 8))
+    (insert m 1 2)
+    (insert m 3 4)
+    (insert m 5 6)
+    (insert m 7 8)
 
     (erase m 3)
 

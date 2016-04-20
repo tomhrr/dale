@@ -87,6 +87,36 @@ calls are required.
                                               "@")
                                           "identity")))))))
 
+(def prefer-ref-bindings
+  (macro extern (CD PR S)
+    (def cd-name-str (var auto (array-of 250 char)))
+    (def pr-name-str (var auto (array-of 250 char)))
+    (def tpw-name-str (var auto (array-of 250 char)))
+    (def tvw-name-str (var auto (array-of 250 char)))
+    (sprintf cd-name-str "copy-disabled-%s" (@:@ S token-str))
+    (sprintf pr-name-str "prefer-refs-%s" (@:@ S token-str))
+    (sprintf tpw-name-str "tpw-%s" (@:@ S token-str))
+    (sprintf tvw-name-str "tvw-%s" (@:@ S token-str))
+    (def cd-name-node (var auto \ (mnfv mc cd-name-str)))
+    (def pr-name-node (var auto \ (mnfv mc pr-name-str)))
+    (def tpw-name-node (var auto \ (mnfv mc tpw-name-str)))
+    (def tvw-name-node (var auto \ (mnfv mc tvw-name-str)))
+    (qq do
+      (def (uq cd-name-node) (var auto bool (uq CD)))
+      (def (uq pr-name-node) (var auto bool (uq PR)))
+      (def (uq tpw-name-node) (var auto (p DNode)
+                             (mnfv mc (if (uq pr-name-node)
+                                          (if (uq cd-name-node)
+                                              "rv-ref"
+                                              "refconst")
+                                          "identity"))))
+      (def (uq tvw-name-node) (var auto (p DNode)
+                             (mnfv mc (if (uq pr-name-node)
+                                          (if (uq cd-name-node)
+                                              "move@"
+                                              "@")
+                                          "identity")))))))
+
 (mfor T (char
          int  int8  int16  int32  int64
          uint uint8 uint16 uint32 uint64
