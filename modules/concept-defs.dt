@@ -92,8 +92,7 @@ way of an rvalue.
   (let ((success       \ true)
         (has-move-init \
             (exists-fn mc (qq bool setf-move-init (p (uq T)) (uq T))))
-        (has-copy-disabled \
-            (exists-fn mc (qq void setf-copy-disabled (uq T)))))
+        (has-copy-disabled \ (not (is-copy-permitted mc T false))))
     (concept-assert (or has-move-init (not has-copy-disabled))
       T "type cannot be initialised by movement")
     success))
@@ -109,8 +108,7 @@ of an rvalue.
   (let ((success       \ true)
         (has-move-assign \
             (exists-fn mc (qq bool setf-move-assign (p (uq T)) (uq T))))
-        (has-copy-disabled \
-            (exists-fn mc (qq void setf-copy-disabled (uq T)))))
+        (has-copy-disabled \ (not (is-copy-permitted mc T false))))
     (concept-assert (or has-move-assign (not has-copy-disabled))
       T "type cannot be assigned by movement")
     success))
@@ -124,8 +122,7 @@ way of an lvalue.
 |#
 (std.concepts.def-concept CopyConstructible (refines Type) (T)
   (let ((success       \ true)
-        (has-copy-disabled \
-            (exists-fn mc (qq void setf-copy-disabled (uq T)))))
+        (has-copy-disabled \ (not (is-copy-permitted mc T false))))
     (concept-assert (not has-copy-disabled)
       T "type cannot be initialised by copy")
     success))
@@ -139,8 +136,7 @@ of an lvalue.
 |#
 (std.concepts.def-concept CopyAssignable (refines Type) (T)
   (let ((success       \ true)
-        (has-copy-disabled \
-            (exists-fn mc (qq void setf-copy-disabled (uq T)))))
+        (has-copy-disabled \ (not (is-copy-permitted mc T false))))
     (concept-assert (not has-copy-disabled)
       T "type cannot be assigned by copy")
     success))

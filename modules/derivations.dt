@@ -210,7 +210,7 @@ macro.
         (holder-node  (p DNode) (make-node mc))
         (null-node    (p DNode) (cast 0 (p DNode)))
         (current-node (p DNode) null-node))
-    (prefer-ref-bindings (uq T))
+    (prefer-ref-bindings (uq T) 1)
 
     (and (= n 0)
          (do (report-error mc T "struct has no members")
@@ -239,8 +239,8 @@ macro.
                (return (mnfv mc "0"))))
 
         (let ((part (p DNode) 
-                    (bqq and (= (@ (: ((uq tvw) a) (uq name)))
-                                (@ (: ((uq tvw) b) (uq name)))))))
+                    (bqq and (= (@ (: ((uq tvw-1) a) (uq name)))
+                                (@ (: ((uq tvw-1) b) (uq name)))))))
           (if (not (null current-node))
               (do (setf (:@ current-node next-node) part)
                   (setv current-node (get-last-node (@:@ part list-node))))
@@ -250,8 +250,8 @@ macro.
     (setf (:@ current-node next-node) (mnfv mc "true"))
 
     (setv holder-node
-      (bqq def = (fn extern bool ((a ((uq tpw) (uq T)))
-                                  (b ((uq tpw) (uq T))))
+      (bqq def = (fn extern bool ((a ((uq tpw-1) (uq T)))
+                                  (b ((uq tpw-1) (uq T))))
         (uq holder-node))))
 
     (return holder-node)))
@@ -271,7 +271,7 @@ macro.
         (holder-node  (p DNode) (make-node mc))
         (null-node    (p DNode) (cast 0 (p DNode)))
         (current-node (p DNode) null-node))
-    (prefer-ref-bindings (uq T))
+    (prefer-ref-bindings (uq T) 1)
 
     (and (= n 0)
          (do (report-error mc T "struct has no members")
@@ -300,8 +300,8 @@ macro.
                (return (mnfv mc "0"))))
 
         (let ((part (p DNode) 
-                    (bqq or (< (@ (: ((uq tvw) a) (uq name)))
-                               (@ (: ((uq tvw) b) (uq name)))))))
+                    (bqq or (< (@ (: ((uq tvw-1) a) (uq name)))
+                               (@ (: ((uq tvw-1) b) (uq name)))))))
           (if (not (null current-node))
               (do (setf (:@ current-node next-node) part)
                   (setv current-node (get-last-node (@:@ part list-node))))
@@ -311,8 +311,8 @@ macro.
     (setf (:@ current-node next-node) (mnfv mc "false"))
 
     (setv holder-node
-      (bqq def < (fn extern bool ((a ((uq tpw) (uq T)))
-                                  (b ((uq tpw) (uq T))))
+      (bqq def < (fn extern bool ((a ((uq tpw-1) (uq T)))
+                                  (b ((uq tpw-1) (uq T))))
         (uq holder-node))))
 
     (return holder-node)))

@@ -69,14 +69,14 @@ returned.
 @param Ti   The iterator type.
 |#
 (def-concept-macro find extern ((Ti InputIterator))
-  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))) 1)
   (qq do
     (def find (fn extern (uq Ti)
                          ((begin  (uq Ti))
                           (end    (uq Ti))
-                          (fvalue ((uq tpw) (value-type (nullptr (uq Ti))))))
+                          (fvalue ((uq tpw-1) (value-type (nullptr (uq Ti))))))
       (for true (!= begin end) (setv begin (successor begin))
-        (and (= ((uq tvw) fvalue) (@ (source begin)))
+        (and (= ((uq tvw-1) fvalue) (@ (source begin)))
              (return begin)))
       (return end)))))
 
@@ -91,9 +91,9 @@ returned. Otherwise, the second argument iterator is returned.
 @param Ti   The iterator type.
 |#
 (def-concept-macro find-if extern ((Ti InputIterator))
-  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
-  (def P (var auto (p DNode) (mnfv mc (if prefer-refs "RefPredicate"
-                                                      "Predicate"))))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))) 1)
+  (def P (var auto (p DNode) (mnfv mc (if prefer-refs-1 "RefPredicate"
+                                                        "Predicate"))))
   (qq do
     (def find-if (fn extern (uq Ti)
                             ((begin (uq Ti))
@@ -116,9 +116,9 @@ returned.
 @param Ti   The iterator type.
 |#
 (def-concept-macro find-if-not extern ((Ti InputIterator))
-  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
-  (def P (var auto (p DNode) (mnfv mc (if prefer-refs "RefPredicate"
-                                                      "Predicate"))))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))) 1)
+  (def P (var auto (p DNode) (mnfv mc (if prefer-refs-1 "RefPredicate"
+                                                        "Predicate"))))
   (qq do
     (def find-if-not (fn extern (uq Ti)
                                 ((begin (uq Ti))
@@ -189,9 +189,9 @@ each value in the range.
 @param Ti   The iterator type.
 |#
 (def-concept-macro for-each extern ((Ti InputIterator))
-  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
-  (def A (var auto (p DNode) (mnfv mc (if prefer-refs "RefAction"
-                                                      "Action"))))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))) 1)
+  (def A (var auto (p DNode) (mnfv mc (if prefer-refs-1 "RefAction"
+                                                        "Action"))))
   (qq do
     (def for-each (fn extern void ((begin (uq Ti))
                                    (end   (uq Ti))
@@ -211,12 +211,12 @@ The function assumes that the range is sorted.
 @param Ti   The iterator type.
 |#
 (def-concept-macro lower-bound extern ((Ti RandomAccessIterator))
-  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))) 1)
   (qq do    
     (def lower-bound 
       (fn extern (uq Ti) ((b (uq Ti))
                           (e (uq Ti))
-                          (v ((uq tpw) (value-type (nullptr (uq Ti))))))
+                          (v ((uq tpw-1) (value-type (nullptr (uq Ti))))))
         (let ((count \ (distance b e))
               (step  size)
               (it    (uq Ti)))
@@ -224,7 +224,7 @@ The function assumes that the range is sorted.
             (setv it b)
             (setv step (/ count (cast 2 size)))
             (setv it (+ it step))
-            (if (< (@ (source it)) ((uq tvw) v))
+            (if (< (@ (source it)) ((uq tvw-1) v))
                 (do (setv it (successor it))
                     (setv b it)
                     (setv count (- count (+ step (cast 1 size))))
@@ -244,12 +244,12 @@ The function assumes that the range is sorted.
 @param Ti   The iterator type.
 |#
 (def-concept-macro upper-bound extern ((Ti RandomAccessIterator))
-  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))) 1)
   (qq do
     (def upper-bound
       (fn extern (uq Ti) ((b (uq Ti))
                           (e (uq Ti))
-                          (v ((uq tpw) (value-type (nullptr (uq Ti))))))
+                          (v ((uq tpw-1) (value-type (nullptr (uq Ti))))))
         (let ((count \ (distance b e))
               (step  size)
               (it    (uq Ti)))
@@ -257,7 +257,7 @@ The function assumes that the range is sorted.
             (setv it b)
             (setv step (/ count (cast 2 size)))
             (setv it (+ it step))
-            (if (not (< ((uq tvw) v) (@ (source it))))
+            (if (not (< ((uq tvw-1) v) (@ (source it))))
                 (do (setv it (successor it))
                     (setv b it)
                     (setv count (- count (+ step (cast 1 size))))
@@ -277,15 +277,15 @@ assumes that the range is sorted.
 @param Ti   The iterator type.
 |#
 (def-concept-macro binary-search extern ((Ti RandomAccessIterator))
-  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))) 1)
   (qq do
     (def binary-search
       (fn extern bool ((b (uq Ti))
                        (e (uq Ti))
-                       (v ((uq tpw) (value-type (nullptr (uq Ti))))))
-        (setv b (lower-bound b e ((uq tvw) v)))
+                       (v ((uq tpw-1) (value-type (nullptr (uq Ti))))))
+        (setv b (lower-bound b e ((uq tvw-1) v)))
         (and (not (= b e))
-             (not (< ((uq tvw) v) (@ (source b)))))))))
+             (not (< ((uq tvw-1) v) (@ (source b)))))))))
 
 #|
 @concept-macro equal-range
@@ -299,17 +299,17 @@ the value.
 @param Ti   The iterator type.
 |#
 (def-concept-macro equal-range extern ((Ti RandomAccessIterator))
-  (prefer-ref-bindings (value-type (nullptr (uq Ti))))
+  (prefer-ref-bindings (value-type (nullptr (uq Ti))) 1)
   (qq do
     (std.concepts.instantiate Pair (uq Ti) (uq Ti))
     (def equal-range
       (fn extern (Pair (uq Ti) (uq Ti)) ((b (uq Ti))
                                          (e (uq Ti))
-                                         (v ((uq tpw) (value-type (nullptr (uq Ti))))))
-        (let ((it (uq Ti) (lower-bound b e ((uq tvw) v)))
+                                         (v ((uq tpw-1) (value-type (nullptr (uq Ti))))))
+        (let ((it (uq Ti) (lower-bound b e ((uq tvw-1) v)))
               (pr (Pair (uq Ti) (uq Ti))))
           (setf (: pr first)  it)
-          (setf (: pr second) (upper-bound it e ((uq tvw) v)))
+          (setf (: pr second) (upper-bound it e ((uq tvw-1) v)))
           pr)))))
 
 #|

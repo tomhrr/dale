@@ -384,3 +384,17 @@ containing the string "size", then then returned string will be "z".
 |#
 (def printf-length (fn extern-c (const (p char)) ((mc (p MContext))
                                                   (frm (p DNode)))))
+
+#|
+@fn is-copy-permitted
+
+Returns a boolean indicating whether values of this type can be
+copied.
+
+@param mc       An MContext.
+@param frm      The type form.
+@param report   Whether to report an error on copy not being permitted.
+|#
+(def is-copy-permitted (fn extern-c bool ((mc (p MContext))
+                                          (frm (p DNode))
+                                          (report bool))))

@@ -42,34 +42,47 @@ Expands a form `frm` into `(move (@ frm))`.
 #|
 @macro prefer-ref-bindings
 
-Takes a type as its single argument.  Expands into a series of `def`
-forms: the first is `prefer-refs`, being a boolean indicating whether
-this type implements the `PreferRefs` concept; the second is `tpw`
-(type parameter wrapper), which expands to `refconst` for types
-preferring references and `identity` otherwise, and the third is `tvw'
-(type value wrapper), which expands to `@` for types preferring
-references and `identity` otherwise.
+Takes a type and a suffix as its arguments.  Expands into a series of
+`def` forms: the first is `prefer-refs`, being a boolean indicating
+whether this type implements the `PreferRefs` concept; the second is
+`tpw` (type parameter wrapper), which expands to `rv-ref` for types
+for which copying is disabled, `refconst` for types preferring
+references, and `identity` otherwise, and the third is `tvw' (type
+value wrapper), which expands to `move@` for types for which copying
+is disabled, `@` for types preferring references, and `identity`
+otherwise.  The form names described above each take a hyphen and the
+string of the suffix node, so as to allow disambiguation when multiple
+calls are required.
 
 |#
 (def prefer-ref-bindings
-  (macro extern (T2)
+  (macro extern (T2 S)
+    (def cd-name-str (var auto (array-of 250 char)))
+    (def pr-name-str (var auto (array-of 250 char)))
+    (def tpw-name-str (var auto (array-of 250 char)))
+    (def tvw-name-str (var auto (array-of 250 char)))
+    (sprintf cd-name-str "copy-disabled-%s" (@:@ S token-str))
+    (sprintf pr-name-str "prefer-refs-%s" (@:@ S token-str))
+    (sprintf tpw-name-str "tpw-%s" (@:@ S token-str))
+    (sprintf tvw-name-str "tvw-%s" (@:@ S token-str))
+    (def cd-name-node (var auto \ (mnfv mc cd-name-str)))
+    (def pr-name-node (var auto \ (mnfv mc pr-name-str)))
+    (def tpw-name-node (var auto \ (mnfv mc tpw-name-str)))
+    (def tvw-name-node (var auto \ (mnfv mc tvw-name-str)))
     (qq do
-      (def copy-disabled (var auto bool (exists-fn mc
-                                            (qq void
-                                                setf-copy-disabled
-                                                (uq T2)))))
-      (def prefer-refs (var auto bool (not (has-errors mc
+      (def (uq cd-name-node) (var auto bool (not (is-copy-permitted mc (qq do (uq T2)) false))))
+      (def (uq pr-name-node) (var auto bool (not (has-errors mc
                                              (qq std.concepts.implements
                                                (uq T2) PreferRefs)))))
-      (def tpw     (var auto (p DNode)
-                             (mnfv mc (if prefer-refs
-                                          (if copy-disabled
+      (def (uq tpw-name-node) (var auto (p DNode)
+                             (mnfv mc (if (uq pr-name-node)
+                                          (if (uq cd-name-node)
                                               "rv-ref"
                                               "refconst")
                                           "identity"))))
-      (def tvw     (var auto (p DNode)
-                             (mnfv mc (if prefer-refs
-                                          (if copy-disabled
+      (def (uq tvw-name-node) (var auto (p DNode)
+                             (mnfv mc (if (uq pr-name-node)
+                                          (if (uq cd-name-node)
                                               "move@"
                                               "@")
                                           "identity")))))))

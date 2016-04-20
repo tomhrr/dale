@@ -57,7 +57,7 @@ must also implement `LessThanComparable`.
                   (qq std.concepts.implements (uq T) LessThanComparable))
       (return (qq std.concepts.implements (uq T) LessThanComparable))
       0)
-  (prefer-ref-bindings (uq T))
+  (prefer-ref-bindings (uq T) 1)
 
   (and (= 1 (@:@ N is-list))
        (do (report-error mc N "second argument must be an atom")
@@ -77,7 +77,7 @@ must also implement `LessThanComparable`.
     (register-type mc typename etypename)
 
     (def copy-functions (var auto (p DNode)
-      (if copy-disabled
+      (if copy-disabled-1
           (qq do (def setf-copy-disabled (fn extern bool ((dst (Array (uq T) (uq N)))))))
           (qq do 
             (def setf-copy-init (fn extern bool ((dst (p (Array (uq T) (uq N))))
@@ -275,8 +275,8 @@ must also implement `LessThanComparable`.
     @param v        The new value.
     |#
     (def sink (fn extern bool ((iter (Iterator (Array (uq T) (uq N))))
-                               (v ((uq tpw) (uq T))))
-      (setf (@: iter element) ((uq tvw) v))))
+                               (v ((uq tpw-1) (uq T))))
+      (setf (@: iter element) ((uq tvw-1) v))))
 
     #|
     @fn successor
@@ -419,8 +419,8 @@ must also implement `LessThanComparable`.
         (@: riter element)))
 
     (def sink (fn extern bool ((iter (ReverseIterator (Array (uq T) (uq N))))
-                               (v ((uq tpw) (uq T))))
-      (setf (@: iter element) ((uq tvw) v))))
+                               (v ((uq tpw-1) (uq T))))
+      (setf (@: iter element) ((uq tvw-1) v))))
     
     (def successor (fn extern (ReverseIterator (Array (uq T) (uq N)))
                          ((riter (ReverseIterator (Array (uq T) (uq N)))))

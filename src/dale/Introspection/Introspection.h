@@ -140,6 +140,14 @@ extern "C" {
      */
     const char *printf_2D_length(MContext *mc, DNode *t);
 
+    /*! Determine whether values of the given type can be copied.
+     *  @param mc The current macro context.
+     *  @param t The type node.
+     *  @param report Whether to report an error on copy not being
+     *                permitted.
+     */
+    bool is_2D_copy_2D_permitted(MContext *mc, DNode *t, bool report);
+
     /*! Stringify a type.
      *  @param mc The current macro context.
      *  @param t The type node.

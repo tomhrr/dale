@@ -55,7 +55,7 @@ must also implement `LessThanComparable`.
                   (qq std.concepts.implements (uq T) LessThanComparable))
       (return (qq std.concepts.implements (uq T) LessThanComparable))
       0)
-  (prefer-ref-bindings (uq T))
+  (prefer-ref-bindings (uq T) 1)
   
   (let ((typename (array-of 250 char))
         (etypename (array-of 250 char)))
@@ -71,7 +71,7 @@ must also implement `LessThanComparable`.
     (register-type mc typename etypename)
 
     (def copy-functions (var auto (p DNode)
-      (if copy-disabled
+      (if copy-disabled-1
           (qq do (def setf-copy-disabled (fn extern bool ((dst (Vector (uq T)))))))
           (qq do
             (def setf-copy-init (fn extern bool ((dst (p (Vector (uq T))))
@@ -297,16 +297,15 @@ must also implement `LessThanComparable`.
     |#
     (def push-back
       (fn extern bool ((vecp  (ref (Vector (uq T))))
-                       (value ((uq tpw) (uq T))))
+                       (value ((uq tpw-1) (uq T))))
         (if (= (@:@ vecp capacity) (@:@ vecp size))
             (reserve (@ vecp) (@:@ vecp capacity))
             true)
-        (setf (@:@ vecp last-element) ((uq tvw) value))
+        (setf (@:@ vecp last-element) ((uq tvw-1) value))
         (setf (:@ vecp last-element)
               (p+ (@:@ vecp last-element) 1))
         (setf (:@ vecp size) (+ (@:@ vecp size) (cast 1 size)))
         true))
-
 
     #|
     @fn $
@@ -407,8 +406,8 @@ must also implement `LessThanComparable`.
     |#
     (def sink
       (fn extern bool ((iter (Iterator (Vector (uq T))))
-                       (v    ((uq tpw) (uq T))))
-        (setf (@ (: iter element)) ((uq tvw) v))
+                       (v    ((uq tpw-1) (uq T))))
+        (setf (@ (: iter element)) ((uq tvw-1) v))
         true))
 
     #|
@@ -566,8 +565,8 @@ must also implement `LessThanComparable`.
     
     (def sink
       (fn extern bool ((iter (ReverseIterator (Vector (uq T))))
-                       (v    ((uq tpw) (uq T))))
-        (setf (@ (: iter element)) ((uq tvw) v))
+                       (v    ((uq tpw-1) (uq T))))
+        (setf (@ (: iter element)) ((uq tvw-1) v))
         true))
 
     (def successor         
@@ -636,7 +635,7 @@ must also implement `LessThanComparable`.
       (fn extern (Iterator (Vector (uq T))) 
                         ((unused (ref (const (Vector (uq T)))))
                          (iter   (Iterator (Vector (uq T))))
-                         (value  ((uq tpw) (uq T))))
+                         (value  ((uq tpw-1) (uq T))))
         (let ((vecp          \ (@: iter parent-vector))
               (original-iter \ iter)
               (next1         (uq T))
@@ -649,7 +648,7 @@ must also implement `LessThanComparable`.
                     true))
               true)
           (if (= (cast 0 size) (size (@ vecp)))
-              (do (push-back (@ vecp) ((uq tvw) value))
+              (do (push-back (@ vecp) ((uq tvw-1) value))
                   (return iter))
               0)
           (setf (:@ vecp size) (+ (@ (:@ vecp size)) (cast 1 size)))
@@ -660,7 +659,7 @@ must also implement `LessThanComparable`.
             (setv next2 (move next1)))
           (setv iter (successor iter))
           (setf (:@ vecp last-element) (@: iter element))
-          (sink original-iter ((uq tvw) value))
+          (sink original-iter ((uq tvw-1) value))
           (return (successor original-iter)))))
 
     #|

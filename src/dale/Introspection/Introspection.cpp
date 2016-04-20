@@ -3,6 +3,7 @@
 #include "../Form/Type/Type.h"
 #include "../Form/Proc/Inst/Inst.h"
 #include "../Utils/Utils.h"
+#include "../Operation/Copy/Copy.h"
 
 using namespace dale;
 using namespace dale::ErrorInst;
@@ -222,7 +223,7 @@ has_2D_errors(MContext *mc, DNode *form)
 
     ParseResult pr;
 
-    /* POMC may succeed, but the underlying macro may return a null
+    /* PPMC may succeed, but the underlying macro may return a null
      * DNode pointer.  This is not necessarily an error. */
     n = units->top()->mp->parsePotentialMacroCall(n);
     if (n) {
@@ -593,6 +594,31 @@ printf_2D_length(MContext *mc, DNode *t)
         return "ll";
     }
     return "";
+}
+
+bool
+is_2D_copy_2D_permitted(MContext *mc, DNode *t, bool report)
+{
+    dale::Units *units = (dale::Units*) mc->units;
+
+    Node *n = units->top()->dnc->toNode(t);
+    n = units->top()->mp->parsePotentialMacroCall(n);
+
+    Type *type = FormTypeParse(units, n, false, false);
+    if (!type) {
+        delete n;
+        return false;
+    }
+
+    int error_count_begin =
+        units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
+    bool res = Operation::IsCopyPermitted(units->top()->ctx, n, type);
+    if (!report) {
+        units->top()->ctx->er->popErrors(error_count_begin);
+    }
+
+    delete n;
+    return res;
 }
 
 bool

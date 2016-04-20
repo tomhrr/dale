@@ -7,18 +7,6 @@ namespace Operation
 bool
 IsCopyPermitted(Context *ctx, Node *node, Type *type)
 {
-    std::vector<Type *> disabled_types;
-    disabled_types.push_back(type);
-    if (ctx->getFunction("setf-copy-disabled", &disabled_types, NULL, 0)) {
-        Error *e = new Error(ErrorInst::CopyDisabled, node);
-        ctx->er->addError(e);
-        return false;
-    }
-    if (type->is_array) {
-        if (!IsCopyPermitted(ctx, node, type->array_type)) {
-            return false;
-        }
-    }
     Struct *st = ctx->getStruct(type);
     if (st) {
         std::vector<Type*> *st_types = &(st->member_types);
@@ -30,6 +18,18 @@ IsCopyPermitted(Context *ctx, Node *node, Type *type)
                 return false;
             }
         }
+    } else if (type->is_array) {
+        if (!IsCopyPermitted(ctx, node, type->array_type)) {
+            return false;
+        }
+    }
+
+    std::vector<Type *> disabled_types;
+    disabled_types.push_back(type);
+    if (ctx->getFunction("setf-copy-disabled", &disabled_types, NULL, 0)) {
+        Error *e = new Error(ErrorInst::CopyDisabled, node);
+        ctx->er->addError(e);
+        return false;
     }
 
     return true;
