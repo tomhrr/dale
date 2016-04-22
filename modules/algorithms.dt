@@ -74,9 +74,9 @@ returned.
     (def find (fn extern (uq Ti)
                          ((begin  (uq Ti))
                           (end    (uq Ti))
-                          (fvalue ((uq tpw-1) (value-type (nullptr (uq Ti))))))
+                          (fvalue ((uq tpw-ro-1) (value-type (nullptr (uq Ti))))))
       (for true (!= begin end) (setv begin (successor begin))
-        (and (= ((uq tvw-1) fvalue) (@ (source begin)))
+        (and (= ((uq tvw-ro-1) fvalue) (@ (source begin)))
              (return begin)))
       (return end)))))
 
@@ -216,7 +216,7 @@ The function assumes that the range is sorted.
     (def lower-bound 
       (fn extern (uq Ti) ((b (uq Ti))
                           (e (uq Ti))
-                          (v ((uq tpw-1) (value-type (nullptr (uq Ti))))))
+                          (v ((uq tpw-ro-1) (value-type (nullptr (uq Ti))))))
         (let ((count \ (distance b e))
               (step  size)
               (it    (uq Ti)))
@@ -224,7 +224,7 @@ The function assumes that the range is sorted.
             (setv it b)
             (setv step (/ count (cast 2 size)))
             (setv it (+ it step))
-            (if (< (@ (source it)) ((uq tvw-1) v))
+            (if (< (@ (source it)) ((uq tvw-ro-1) v))
                 (do (setv it (successor it))
                     (setv b it)
                     (setv count (- count (+ step (cast 1 size))))
@@ -249,7 +249,7 @@ The function assumes that the range is sorted.
     (def upper-bound
       (fn extern (uq Ti) ((b (uq Ti))
                           (e (uq Ti))
-                          (v ((uq tpw-1) (value-type (nullptr (uq Ti))))))
+                          (v ((uq tpw-ro-1) (value-type (nullptr (uq Ti))))))
         (let ((count \ (distance b e))
               (step  size)
               (it    (uq Ti)))
@@ -257,7 +257,7 @@ The function assumes that the range is sorted.
             (setv it b)
             (setv step (/ count (cast 2 size)))
             (setv it (+ it step))
-            (if (not (< ((uq tvw-1) v) (@ (source it))))
+            (if (not (< ((uq tvw-ro-1) v) (@ (source it))))
                 (do (setv it (successor it))
                     (setv b it)
                     (setv count (- count (+ step (cast 1 size))))
@@ -282,10 +282,10 @@ assumes that the range is sorted.
     (def binary-search
       (fn extern bool ((b (uq Ti))
                        (e (uq Ti))
-                       (v ((uq tpw-1) (value-type (nullptr (uq Ti))))))
-        (setv b (lower-bound b e ((uq tvw-1) v)))
+                       (v ((uq tpw-ro-1) (value-type (nullptr (uq Ti))))))
+        (setv b (lower-bound b e ((uq tvw-ro-1) v)))
         (and (not (= b e))
-             (not (< ((uq tvw-1) v) (@ (source b)))))))))
+             (not (< ((uq tvw-ro-1) v) (@ (source b)))))))))
 
 #|
 @concept-macro equal-range
@@ -305,11 +305,11 @@ the value.
     (def equal-range
       (fn extern (Pair (uq Ti) (uq Ti)) ((b (uq Ti))
                                          (e (uq Ti))
-                                         (v ((uq tpw-1) (value-type (nullptr (uq Ti))))))
-        (let ((it (uq Ti) (lower-bound b e ((uq tvw-1) v)))
+                                         (v ((uq tpw-ro-1) (value-type (nullptr (uq Ti))))))
+        (let ((it (uq Ti) (lower-bound b e ((uq tvw-ro-1) v)))
               (pr (Pair (uq Ti) (uq Ti))))
           (setf (: pr first)  it)
-          (setf (: pr second) (upper-bound it e ((uq tvw-1) v)))
+          (setf (: pr second) (upper-bound it e ((uq tvw-ro-1) v)))
           pr)))))
 
 #|
@@ -317,7 +317,8 @@ the value.
 
 Expands to a function that takes two values of the specified type. If
 the first value is greater than the second value, then the first is
-returned. Otherwise, the second is returned.
+returned. Otherwise, the second is returned. Does not support types
+that do not permit copying.
 
 @param T    The type node.
 |#
@@ -355,7 +356,8 @@ returned. Otherwise, the second is returned.
 
 Expands to a function that takes two values of the specified type. If
 the first value is less than than the second value, then the first is
-returned. Otherwise, the second is returned.
+returned. Otherwise, the second is returned. Does not support types
+that do not permit copying.
 
 @param T    The type node.
 |#
@@ -392,9 +394,9 @@ returned. Otherwise, the second is returned.
 @concept-macro copy
 
 Takes input and output iterator types as its arguments. Expands to a
-function that two of the input iterators and an output iterator. That
-function iterates over the provided range, sinking values into the
-output iterator at each step.
+function that takes two of the input iterators and an output iterator.
+That function iterates over the provided range, sinking values into
+the output iterator at each step.
 
 @param Ti   The input iterator type.
 @param To   The output iterator type.
@@ -475,7 +477,8 @@ into the cleared container.
 
 Takes an input iterator type as its arguments.  Expands to a fold-left
 function that takes a binary operation function pointer, an initial
-value, and a pair of input iterators as its arguments.
+value, and a pair of input iterators as its arguments.  Does not
+support types that do not permit copying.
 
 @param Ti   The input iterator type.
 |#
