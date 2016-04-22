@@ -122,25 +122,25 @@ vector.
 #### `front`
 
 Linkage: `extern`
-Returns: `T`
+Returns: `(const (p T))`
 Parameters:
 
   * `(vecp (ref (const (Vector T))))`: A vector reference.
 
 
-Returns the value of the first element in the vector.
+Returns a pointer to the value of the first element in the vector.
 
 
 #### `back`
 
 Linkage: `extern`
-Returns: `T`
+Returns: `(const (p T))`
 Parameters:
 
   * `(vecp (ref (const (Vector T))))`: A vector reference.
 
 
-Returns the value of the last element in the vector.
+Returns a pointer to the value of the last element in the vector.
 
 
 #### `pop-back`
@@ -238,18 +238,6 @@ Parameters:
 
 
 Returns the iterator representing the end of the vector (sentinel).
-
-
-#### `@source`
-
-Linkage: `extern`
-Returns: `T`
-Parameters:
-
-  * `(iter (Iterator (Vector T)))`: An iterator.
-
-
-Returns the iterator's value.
 
 
 #### `source`

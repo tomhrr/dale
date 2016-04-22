@@ -222,6 +222,7 @@ able to be built.  It has been tested on the following:
 ```
 ```
 > ./error-reporting.dt:13:23: error: struct type does not exist (see macro at 13:5)
+> ./error-reporting.dt:13:5: error: macro expansion error (see previous)
 ```
 
 **derivations**
@@ -275,7 +276,7 @@ able to be built.  It has been tested on the following:
     (let ((b \ (begin arr))
           (e \ (end arr)))
       (for true (!= b e) (setv b (successor b))
-        (printf "%d " (@source b))))
+        (printf "%d " (@ (source b)))))
     (printf "\n")
     0)))
 ```

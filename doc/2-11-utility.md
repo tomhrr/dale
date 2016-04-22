@@ -157,6 +157,19 @@ Expands to a struct definition with three members, named `first`,
 
 ### Macros
 
+#### `def-type-macro`
+
+Linkage: `extern`
+Parameters:
+
+  * `name`: The type macro name.
+
+
+Takes a node as its single argument.  Constructs a macro with that
+name that takes one arbitrary type and expands to the concatenation of
+that name and the stringification of the type.
+
+
 #### `Iterator`
 
 Linkage: `extern`

@@ -137,18 +137,6 @@ Parameters:
 Returns the iterator representing the end of the list (sentinel).
 
 
-#### `@source`
-
-Linkage: `extern`
-Returns: `T`
-Parameters:
-
-  * `(iter (Iterator (Array T N)))`: An iterator.
-
-
-Returns the iterator's value.
-
-
 #### `source`
 
 Linkage: `extern`
@@ -271,25 +259,25 @@ Returns the iterator representing the beginning of the array (sentinel).
 #### `front`
 
 Linkage: `extern`
-Returns: `T`
+Returns: `(p T)`
 Parameters:
 
   * `(arrp (ref (Array T N)))`: An array reference.
 
 
-Returns the value of the first element in the array.
+Returns a pointer to the value of the first element in the array.
 
 
 #### `back`
 
 Linkage: `extern`
-Returns: `T`
+Returns: `(p T)`
 Parameters:
 
   * `(arrp (ref (Array T N)))`: An array reference.
 
 
-Returns the value of the last element in the array.
+Returns a pointer to the value of the last element in the array.
 
 
 #### `$`

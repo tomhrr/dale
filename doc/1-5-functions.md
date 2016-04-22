@@ -72,9 +72,9 @@ Varargs functions are written in nearly the same way as in C. The
 
 Certain core forms may be overridden by user-level functions, namely
 `@`, `#` and `$`. `setf` may also be 'overridden', in effect, by
-defining functions named `setf-copy-init` and `setf-copy-assign`;
-these are discussed in more detail in [Initialisers and
-destructors](./1-8-init-destroy.md).
+defining functions named `setf-copy-init`, `setf-copy-assign`,
+`setf-move-init`, and `setf-move-assign`.  These are discussed in more
+detail in [Initialisers and destructors](./1-8-init-destroy.md).
 
 The `core` core form may, in turn, be used to ignore overridden core
 forms. For example:
@@ -134,6 +134,13 @@ example:
 
 Values passed by reference must be addressable, unless the reference
 is to a constant type.
+
+### Rvalue reference parameters
+
+These operate in the same way as reference parameters, except that the
+arguments must be rvalues, and the parameter is marked with `rv-ref`
+instead of `ref`. An lvalue may be converted into an rvalue by using
+the `move` core form.
 
 ### Retvals
 

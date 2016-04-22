@@ -457,5 +457,20 @@ provided type. For example, if the argument form is a token node
 containing the string "size", then then returned string will be "z".
 
 
+#### `is-copy-permitted`
+
+Linkage: `extern-c`
+Returns: `bool`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+  * `(frm (p DNode))`: The type form.
+  * `(report bool)`: Whether to report an error on copy not being permitted.
+
+
+Returns a boolean indicating whether values of this type can be
+copied.
+
+
 [Previous](./1-11-form-reference.md) | [Next](./2-2-ctype.md)
 

@@ -154,7 +154,8 @@ Parameters:
 
 Expands to a function that takes two values of the specified type. If
 the first value is greater than the second value, then the first is
-returned. Otherwise, the second is returned.
+returned. Otherwise, the second is returned. Does not support types
+that do not permit copying.
 
 
 #### `min`
@@ -167,7 +168,8 @@ Parameters:
 
 Expands to a function that takes two values of the specified type. If
 the first value is less than than the second value, then the first is
-returned. Otherwise, the second is returned.
+returned. Otherwise, the second is returned. Does not support types
+that do not permit copying.
 
 
 #### `copy`
@@ -180,9 +182,9 @@ Parameters:
 
 
 Takes input and output iterator types as its arguments. Expands to a
-function that two of the input iterators and an output iterator. That
-function iterates over the provided range, sinking values into the
-output iterator at each step.
+function that takes two of the input iterators and an output iterator.
+That function iterates over the provided range, sinking values into
+the output iterator at each step.
 
 
 #### `assign`
@@ -211,7 +213,8 @@ Parameters:
 
 Takes an input iterator type as its arguments.  Expands to a fold-left
 function that takes a binary operation function pointer, an initial
-value, and a pair of input iterators as its arguments.
+value, and a pair of input iterators as its arguments.  Does not
+support types that do not permit copying.
 
 
 #### `=`

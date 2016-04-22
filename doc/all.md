@@ -447,9 +447,9 @@ Varargs functions are written in nearly the same way as in C. The
 
 Certain core forms may be overridden by user-level functions, namely
 `@`, `#` and `$`. `setf` may also be 'overridden', in effect, by
-defining functions named `setf-copy-init` and `setf-copy-assign`;
-these are discussed in more detail in [Initialisers and
-destructors](#Initialisers and destructors).
+defining functions named `setf-copy-init`, `setf-copy-assign`,
+`setf-move-init`, and `setf-move-assign`.  These are discussed in more
+detail in [Initialisers and destructors](#Initialisers and destructors).
 
 The `core` core form may, in turn, be used to ignore overridden core
 forms. For example:
@@ -509,6 +509,13 @@ example:
 
 Values passed by reference must be addressable, unless the reference
 is to a constant type.
+
+### Rvalue reference parameters
+
+These operate in the same way as reference parameters, except that the
+arguments must be rvalues, and the parameter is marked with `rv-ref`
+instead of `ref`. An lvalue may be converted into an rvalue by using
+the `move` core form.
 
 ### Retvals
 
@@ -791,8 +798,20 @@ whenever `dst` is uninitialised.
 ### `setf-copy-assign`
 
 `setf-copy-assign` functions are defined in the same manner as
-`setf-copy-init` functions, save for the name. They are used whenever
-`dst` has already been initialised.
+`setf-copy-init` functions. They are used whenever `dst` has already
+been initialised.
+
+### `setf-move-init`
+
+`setf-move-init` functions are defined in the same manner as
+`setf-copy-init` functions, save that the `src` parameter must be an
+rvalue reference parameter.
+
+### `setf-move-assign`
+
+`setf-move-assign` functions are defined in the same manner as
+`setf-move-init` functions. They are used whenever `dst` has already
+been initialised.
 
 Multiple `setf-` functions, supporting different source types, may be
 defined over a single destination type.
@@ -961,7 +980,8 @@ within procedures.
 
 Copies `source` to `destination`.
 
-May be overridden by way of `setf-copy-init` and `setf-copy-assign`.
+May be overridden by way of `setf-copy-init`, `setf-copy-assign`,
+`setf-move-init`, and `setf-move-assign`.
 
 #### (`@` {`pointer`})
 
@@ -1030,6 +1050,10 @@ Executes `true-case` if `condition` is true; otherwise, executes
 #### (`return` {`value`})
 
 Returns `value` from the current procedure to the caller.
+
+#### (`move` {`value`})
+
+Converts an lvalue into an rvalue.
 
 #### (`va-start` {`pointer-to-va-list`})
 
@@ -1657,6 +1681,21 @@ Returns a 'length' string that can be put between the '%' and type
 specifier in a printf formatter string, based on the size of the
 provided type. For example, if the argument form is a token node
 containing the string "size", then then returned string will be "z".
+
+
+#### `is-copy-permitted`
+
+Linkage: `extern-c`
+Returns: `bool`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+  * `(frm (p DNode))`: The type form.
+  * `(report bool)`: Whether to report an error on copy not being permitted.
+
+
+Returns a boolean indicating whether values of this type can be
+copied.
 
 
 ## <a name="ctype"></a> 2.2 ctype
@@ -3194,17 +3233,41 @@ used where possible.
 Returns true if the argument is a struct type.
 
 
-#### `Assignable`
-
-Returns true if the type is non-const, and a `swap` function exists
-over pointers to the type.
-
-
 #### `DefaultConstructible`
 
 Returns true if variables of the specified type may be declared and
 left uninitialised. (This is a really unfortunate name, but not sure
 what would be better.)
+
+
+#### `MoveConstructible`
+
+Returns true if variables of the specified type may be initialised by
+way of an rvalue.
+
+
+#### `MoveAssignable`
+
+Returns true if variables of the specified type may be assigned by way
+of an rvalue.
+
+
+#### `CopyConstructible`
+
+Returns true if variables of the specified type may be initialised by
+way of an lvalue.
+
+
+#### `CopyAssignable`
+
+Returns true if variables of the specified type may be assigned by way
+of an lvalue.
+
+
+#### `Swappable`
+
+Returns true if the type is `MoveConstructible` and `MoveAssignable`,
+and a `swap` function exists over the type.
 
 
 #### `EqualityComparable`
@@ -3219,12 +3282,12 @@ Returns true if `<`, `<=`, `>` and `>=` are implemented over the type.
 
 #### `Container`
 
-Returns true if the type is `Assignable`, and the following other
+Returns true if the type is `Swappable`, and the following other
 conditions hold:
 
   * `value-type`, `difference-type` and `size-type` macros exist over
     pointers to the type;
-  * the `value-type` of the type is `Assignable`;
+  * the `value-type` of the type is `Swappable`;
   * `size`, `max-size`, `empty`, `swap` and `init` are defined over
     pointers to the type;
   * the container has an iterator type; and
@@ -3337,11 +3400,10 @@ be a struct, and it must contain two members named `first` and
 
 #### `TrivialIterator`
 
-Refines `Assignable`, `EqualityComparable` and `DefaultConstructible`.
-Additionally, `value-type`, `source` (returning a pointer to a value
-of type `value-type`) and `@source` (returning a value of type
-`value-type`) must be defined over the iterator (or a pointer to the
-iterator, in the case of `value-type`).
+Refines `Swappable`, `EqualityComparable` and `DefaultConstructible`.
+Additionally, `value-type`, and `source` (returning a pointer to a
+value of type `value-type`) must be defined over the iterator (or a
+pointer to the iterator, in the case of `value-type`).
 
 
 #### `InputIterator`
@@ -3352,7 +3414,7 @@ same type as the argument iterator, must be defined over the type.
 
 #### `OutputIterator`
 
-Refines `Assignable` and `DefaultConstructible`. Additionally,
+Refines `Swappable` and `DefaultConstructible`. Additionally,
 `value-type`, `sink` (for setting the iterator's value) and
 `successor` (for getting the next iterator) must be defined over the
 iterator (or a pointer to the iterator, in the case of `value-type`).
@@ -3392,7 +3454,7 @@ Module: concepts
 Imports the other concept-related modules, and implements the
 following concepts:
 
-  * `Assignable`;
+  * `Swappable`;
   * `EqualityComparable`; and
   * `LessThanComparable`
 
@@ -3414,21 +3476,43 @@ Parameters:
 Expands a form `frm` into `(ref (const frm))`.
 
 
+#### `move@`
+
+Linkage: `extern`
+Parameters:
+
+  * `frm`
+
+
+Expands a form `frm` into `(move (@ frm))`.
+
+
 #### `prefer-ref-bindings`
 
 Linkage: `extern`
 Parameters:
 
   * `T2`
+  * `S`
 
 
-Takes a type as its single argument.  Expands into a series of `def`
-forms: the first is `prefer-refs`, being a boolean indicating whether
-this type implements the `PreferRefs` concept; the second is `tpw`
-(type parameter wrapper), which expands to `refconst` for types
-preferring references and `identity` otherwise, and the third is `tvw'
-(type value wrapper), which expands to `@` for types preferring
-references and `identity` otherwise.
+Takes a type and a suffix as its arguments.  Expands into a series of
+`def` forms: the first is `prefer-refs`, being a boolean indicating
+whether this type implements the `PreferRefs` concept; the second is
+`tpw` (type parameter wrapper), which should be used for parameters of
+the specified type (e.g. `((uq tpw) parameter)`), and the third is
+`tvw` (type value wrapper), which should be used when accessing the
+value of the relevant parameter.  There are additionally `tpw-ro` and
+`tvw-ro`, for when types are used in a read-only fashion.  The form
+names described above each take a hyphen and the string of the suffix
+node, so as to allow disambiguation when multiple calls are required.
+
+There is an additional overload of this macro, which takes two forms
+that should evaluate to either `true` or `false`, representing whether
+copy is disabled for the type and whether the type prefers references,
+as well as a suffix node.  It uses those forms to determine the
+appropriate type parameter and value wrappers, but otherwise operates
+as per the other version.
 
 
 ## <a name="utility"></a> 2.11 utility
@@ -3585,6 +3669,19 @@ Expands to a struct definition with three members, named `first`,
 
 
 ### Macros
+
+#### `def-type-macro`
+
+Linkage: `extern`
+Parameters:
+
+  * `name`: The type macro name.
+
+
+Takes a node as its single argument.  Constructs a macro with that
+name that takes one arbitrary type and expands to the concatenation of
+that name and the stringification of the type.
+
 
 #### `Iterator`
 
@@ -3903,7 +4000,8 @@ Parameters:
 
 Expands to a function that takes two values of the specified type. If
 the first value is greater than the second value, then the first is
-returned. Otherwise, the second is returned.
+returned. Otherwise, the second is returned. Does not support types
+that do not permit copying.
 
 
 #### `min`
@@ -3916,7 +4014,8 @@ Parameters:
 
 Expands to a function that takes two values of the specified type. If
 the first value is less than than the second value, then the first is
-returned. Otherwise, the second is returned.
+returned. Otherwise, the second is returned. Does not support types
+that do not permit copying.
 
 
 #### `copy`
@@ -3929,9 +4028,9 @@ Parameters:
 
 
 Takes input and output iterator types as its arguments. Expands to a
-function that two of the input iterators and an output iterator. That
-function iterates over the provided range, sinking values into the
-output iterator at each step.
+function that takes two of the input iterators and an output iterator.
+That function iterates over the provided range, sinking values into
+the output iterator at each step.
 
 
 #### `assign`
@@ -3960,7 +4059,8 @@ Parameters:
 
 Takes an input iterator type as its arguments.  Expands to a fold-left
 function that takes a binary operation function pointer, an initial
-value, and a pair of input iterators as its arguments.
+value, and a pair of input iterators as its arguments.  Does not
+support types that do not permit copying.
 
 
 #### `=`
@@ -4160,25 +4260,25 @@ list.
 #### `front`
 
 Linkage: `extern`
-Returns: `T`
+Returns: `(p T)`
 Parameters:
 
   * `(lst (ref (const (List T))))`: A list reference.
 
 
-Returns the value of the first element in the list.
+Returns a pointer to the value of the first element in the list.
 
 
 #### `back`
 
 Linkage: `extern`
-Returns: `T`
+Returns: `(p T)`
 Parameters:
 
   * `(lst (ref (const (List T))))`: A list reference.
 
 
-Returns the value of the last element in the list.
+Returns a pointer to the value of the last element in the list.
 
 
 #### `push-back`
@@ -4253,18 +4353,6 @@ Parameters:
 
 
 Returns the iterator representing the end of the list (sentinel).
-
-
-#### `@source`
-
-Linkage: `extern`
-Returns: `T`
-Parameters:
-
-  * `(iter (Iterator (List T)))`: An iterator.
-
-
-Returns the iterator's value.
 
 
 #### `source`
@@ -4612,25 +4700,25 @@ vector.
 #### `front`
 
 Linkage: `extern`
-Returns: `T`
+Returns: `(const (p T))`
 Parameters:
 
   * `(vecp (ref (const (Vector T))))`: A vector reference.
 
 
-Returns the value of the first element in the vector.
+Returns a pointer to the value of the first element in the vector.
 
 
 #### `back`
 
 Linkage: `extern`
-Returns: `T`
+Returns: `(const (p T))`
 Parameters:
 
   * `(vecp (ref (const (Vector T))))`: A vector reference.
 
 
-Returns the value of the last element in the vector.
+Returns a pointer to the value of the last element in the vector.
 
 
 #### `pop-back`
@@ -4728,18 +4816,6 @@ Parameters:
 
 
 Returns the iterator representing the end of the vector (sentinel).
-
-
-#### `@source`
-
-Linkage: `extern`
-Returns: `T`
-Parameters:
-
-  * `(iter (Iterator (Vector T)))`: An iterator.
-
-
-Returns the iterator's value.
 
 
 #### `source`
@@ -5134,18 +5210,6 @@ Parameters:
 
 
 Returns the iterator for the first set element.
-
-
-#### `@source`
-
-Linkage: `extern`
-Returns: `T`
-Parameters:
-
-  * `(iter (Iterator (Set T)))`: An iterator.
-
-
-Returns the iterator's value.
 
 
 #### `source`
@@ -5568,18 +5632,6 @@ Parameters:
 Returns the iterator for the first map element.
 
 
-#### `@source`
-
-Linkage: `extern`
-Returns: `(value-type (nullptr (Map Tk Tv)))`
-Parameters:
-
-  * `(iter (Iterator (Map Tk Tv)))`: An iterator.
-
-
-Returns the iterator's value.
-
-
 #### `source`
 
 Linkage: `extern`
@@ -5683,7 +5735,8 @@ Returns: `bool`
 Parameters:
 
   * `(mapp (ref (Map Tk Tv)))`: A map reference.
-  * `(valt (Pair Tk Tv))`: The value to insert into the set.
+  * `(key Tk)`: The key for the new map element.
+  * `(value Tv)`: The value for the new map element.
 
 
 Insert a new element into the map.
@@ -6012,18 +6065,6 @@ Parameters:
 Returns the iterator representing the end of the list (sentinel).
 
 
-#### `@source`
-
-Linkage: `extern`
-Returns: `T`
-Parameters:
-
-  * `(iter (Iterator (Array T N)))`: An iterator.
-
-
-Returns the iterator's value.
-
-
 #### `source`
 
 Linkage: `extern`
@@ -6146,25 +6187,25 @@ Returns the iterator representing the beginning of the array (sentinel).
 #### `front`
 
 Linkage: `extern`
-Returns: `T`
+Returns: `(p T)`
 Parameters:
 
   * `(arrp (ref (Array T N)))`: An array reference.
 
 
-Returns the value of the first element in the array.
+Returns a pointer to the value of the first element in the array.
 
 
 #### `back`
 
 Linkage: `extern`
-Returns: `T`
+Returns: `(p T)`
 Parameters:
 
   * `(arrp (ref (Array T N)))`: An array reference.
 
 
-Returns the value of the last element in the array.
+Returns a pointer to the value of the last element in the array.
 
 
 #### `$`
@@ -6389,6 +6430,118 @@ Parameters:
 
 
 Expands to the concrete type name of the `SharedPtr` generated by way
+of the concept macro.
+
+
+## <a name="unique-ptr"></a> 2.20 unique-ptr
+
+### Details
+
+Module: unique-ptr
+
+### Description
+
+A unique pointer module. Apart from the `UniquePtr` macro and concept
+macro, the documentation in this module is for a generated unique
+pointer instance of type `T`.
+
+
+
+### Structs
+
+#### `(UniquePtr T)`
+
+Linkage: `N/A`
+Members: N/A
+
+The core unique pointer structure type.
+
+
+
+
+### Functions
+
+#### `init`
+
+Linkage: `extern`
+Returns: `bool`
+Parameters:
+
+  * `(loc (ref (UniquePtr T)))`: The unique pointer.
+  * `(value (p T))`: The value to assign to the unique pointer.
+
+
+Initialise the unique pointer structure with a pointer. Once the
+structure has been initialised with the pointer, it takes
+ownership of it. The structure assumes that the pointer was
+created by way of malloc.
+
+
+#### `init`
+
+Linkage: `extern`
+Returns: `bool`
+Parameters:
+
+  * `(loc (ref (UniquePtr T)))`: The unique pointer.
+
+
+Initialise an empty/null unique pointer structure.
+
+
+#### `get`
+
+Linkage: `extern`
+Returns: `(p T)`
+Parameters:
+
+  * `(mloc (ref (UniquePtr T)))`: The unique pointer.
+
+
+Returns the underlying pointer.
+
+
+#### `@`
+
+Linkage: `extern`
+Returns: `T`
+Parameters:
+
+  * `(mloc (ref (UniquePtr T)))`: The unique pointer.
+
+
+Dereferencing the unique pointer returns the value from the
+underlying pointer.
+
+
+
+
+### Concept macros
+
+#### `UniquePtr`
+
+Linkage: `extern`
+Parameters:
+
+  * `(T Type)`: The type node.
+
+
+Expands to a `UniquePtr` definition over the relevant type.
+
+
+
+
+### Macros
+
+#### `UniquePtr`
+
+Linkage: `extern`
+Parameters:
+
+  * `T`: The type node.
+
+
+Expands to the concrete type name of the `UniquePtr` generated by way
 of the concept macro.
 
 

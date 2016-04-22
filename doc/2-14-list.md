@@ -112,25 +112,25 @@ list.
 #### `front`
 
 Linkage: `extern`
-Returns: `T`
+Returns: `(p T)`
 Parameters:
 
   * `(lst (ref (const (List T))))`: A list reference.
 
 
-Returns the value of the first element in the list.
+Returns a pointer to the value of the first element in the list.
 
 
 #### `back`
 
 Linkage: `extern`
-Returns: `T`
+Returns: `(p T)`
 Parameters:
 
   * `(lst (ref (const (List T))))`: A list reference.
 
 
-Returns the value of the last element in the list.
+Returns a pointer to the value of the last element in the list.
 
 
 #### `push-back`
@@ -205,18 +205,6 @@ Parameters:
 
 
 Returns the iterator representing the end of the list (sentinel).
-
-
-#### `@source`
-
-Linkage: `extern`
-Returns: `T`
-Parameters:
-
-  * `(iter (Iterator (List T)))`: An iterator.
-
-
-Returns the iterator's value.
 
 
 #### `source`

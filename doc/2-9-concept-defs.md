@@ -40,17 +40,41 @@ used where possible.
 Returns true if the argument is a struct type.
 
 
-#### `Assignable`
-
-Returns true if the type is non-const, and a `swap` function exists
-over pointers to the type.
-
-
 #### `DefaultConstructible`
 
 Returns true if variables of the specified type may be declared and
 left uninitialised. (This is a really unfortunate name, but not sure
 what would be better.)
+
+
+#### `MoveConstructible`
+
+Returns true if variables of the specified type may be initialised by
+way of an rvalue.
+
+
+#### `MoveAssignable`
+
+Returns true if variables of the specified type may be assigned by way
+of an rvalue.
+
+
+#### `CopyConstructible`
+
+Returns true if variables of the specified type may be initialised by
+way of an lvalue.
+
+
+#### `CopyAssignable`
+
+Returns true if variables of the specified type may be assigned by way
+of an lvalue.
+
+
+#### `Swappable`
+
+Returns true if the type is `MoveConstructible` and `MoveAssignable`,
+and a `swap` function exists over the type.
 
 
 #### `EqualityComparable`
@@ -65,12 +89,12 @@ Returns true if `<`, `<=`, `>` and `>=` are implemented over the type.
 
 #### `Container`
 
-Returns true if the type is `Assignable`, and the following other
+Returns true if the type is `Swappable`, and the following other
 conditions hold:
 
   * `value-type`, `difference-type` and `size-type` macros exist over
     pointers to the type;
-  * the `value-type` of the type is `Assignable`;
+  * the `value-type` of the type is `Swappable`;
   * `size`, `max-size`, `empty`, `swap` and `init` are defined over
     pointers to the type;
   * the container has an iterator type; and
@@ -183,11 +207,10 @@ be a struct, and it must contain two members named `first` and
 
 #### `TrivialIterator`
 
-Refines `Assignable`, `EqualityComparable` and `DefaultConstructible`.
-Additionally, `value-type`, `source` (returning a pointer to a value
-of type `value-type`) and `@source` (returning a value of type
-`value-type`) must be defined over the iterator (or a pointer to the
-iterator, in the case of `value-type`).
+Refines `Swappable`, `EqualityComparable` and `DefaultConstructible`.
+Additionally, `value-type`, and `source` (returning a pointer to a
+value of type `value-type`) must be defined over the iterator (or a
+pointer to the iterator, in the case of `value-type`).
 
 
 #### `InputIterator`
@@ -198,7 +221,7 @@ same type as the argument iterator, must be defined over the type.
 
 #### `OutputIterator`
 
-Refines `Assignable` and `DefaultConstructible`. Additionally,
+Refines `Swappable` and `DefaultConstructible`. Additionally,
 `value-type`, `sink` (for setting the iterator's value) and
 `successor` (for getting the next iterator) must be defined over the
 iterator (or a pointer to the iterator, in the case of `value-type`).

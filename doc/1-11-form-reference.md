@@ -15,7 +15,8 @@ within procedures.
 
 Copies `source` to `destination`.
 
-May be overridden by way of `setf-copy-init` and `setf-copy-assign`.
+May be overridden by way of `setf-copy-init`, `setf-copy-assign`,
+`setf-move-init`, and `setf-move-assign`.
 
 #### (`@` {`pointer`})
 
@@ -84,6 +85,10 @@ Executes `true-case` if `condition` is true; otherwise, executes
 #### (`return` {`value`})
 
 Returns `value` from the current procedure to the caller.
+
+#### (`move` {`value`})
+
+Converts an lvalue into an rvalue.
 
 #### (`va-start` {`pointer-to-va-list`})
 

@@ -29,8 +29,20 @@ whenever `dst` is uninitialised.
 ### `setf-copy-assign`
 
 `setf-copy-assign` functions are defined in the same manner as
-`setf-copy-init` functions, save for the name. They are used whenever
-`dst` has already been initialised.
+`setf-copy-init` functions. They are used whenever `dst` has already
+been initialised.
+
+### `setf-move-init`
+
+`setf-move-init` functions are defined in the same manner as
+`setf-copy-init` functions, save that the `src` parameter must be an
+rvalue reference parameter.
+
+### `setf-move-assign`
+
+`setf-move-assign` functions are defined in the same manner as
+`setf-move-init` functions. They are used whenever `dst` has already
+been initialised.
 
 Multiple `setf-` functions, supporting different source types, may be
 defined over a single destination type.

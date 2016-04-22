@@ -23,6 +23,7 @@ my @files = qw(
     2-17-map.md
     2-18-array.md
     2-19-shared-ptr.md
+    2-20-unique-ptr.md
     3-1-cerrno.md
     3-2-cfloat.md
     3-3-clocale.md
