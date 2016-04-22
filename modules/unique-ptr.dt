@@ -111,7 +111,8 @@ Expands to a `UniquePtr` definition over the relevant type.
     (def destroy
       (fn extern void ((val (ref (UniquePtr (uq T)))))
         (if (not (null (@:@ val pointer)))
-            (do (free' (core-@:@ val pointer))
+            (do (destroy (@ (core-@:@ val pointer)))
+                (free' (core-@:@ val pointer))
                 0)
             0)
         (return)))

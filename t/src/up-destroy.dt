@@ -1,0 +1,23 @@
+(import cstdio)
+(import macros)
+(import unique-ptr)
+
+(def mys (struct intern ((a int) (b int))))
+
+(def destroy
+  (fn intern void ((src (ref mys)))
+    (printf "Destroying (%d %d)\n" (core @ (core : (core @ src) a))
+                                   (core @ (core : (core @ src) b)))
+    (return)))
+
+(std.concepts.implement Struct mys)
+(std.concepts.instantiate UniquePtr mys)
+
+(def main
+  (fn extern-c int (void)
+    (let ((myptr (UniquePtr mys))
+          (mymys \ (malloc' 1 mys)))
+      (setf (:@ mymys a) 100)
+      (setf (:@ mymys b) 200)
+      (init myptr mymys)
+      0)))
