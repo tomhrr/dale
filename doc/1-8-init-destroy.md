@@ -44,6 +44,11 @@ rvalue reference parameter.
 `setf-move-init` functions. They are used whenever `dst` has already
 been initialised.
 
+If a type should only be moved, and not copied, declare a function
+named `setf-copy-disabled` over the type. If that declaration exists,
+any attempt to implicitly or explicitly copy a value of that type will
+fail with the error message 'copying is disabled for this type'.
+
 Multiple `setf-` functions, supporting different source types, may be
 defined over a single destination type.
 
