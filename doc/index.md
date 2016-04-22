@@ -35,7 +35,7 @@
 ### 2.17. [map](./2-17-map.md)  
 ### 2.18. [array](./2-18-array.md)  
 ### 2.19. [shared-ptr](./2-19-shared-ptr.md)  
-### 2.19. [unique-ptr](./2-19-unique-ptr.md)  
+### 2.20. [unique-ptr](./2-20-unique-ptr.md)  
 
 ## C bindings
 
