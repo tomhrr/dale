@@ -1,0 +1,7 @@
+(import cstdio)
+
+(def n (var auto (const int) 100))
+
+(def main (fn extern-c int (void)
+  (printf "%d\n" n)
+  0))

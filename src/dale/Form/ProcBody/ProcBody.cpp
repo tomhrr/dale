@@ -270,8 +270,7 @@ terminateBlocks(Context *ctx, Function *fn, llvm::Function *llvm_fn,
          * if there is no last_value. */
         if (!fn->hasRetval() && last_value) {
             Type *got_type = last_type;
-
-            if (!fn->return_type->isEqualTo(got_type)) {
+            if (!fn->return_type->canBePassedFrom(got_type)) {
                 std::string wanted;
                 fn->return_type->toString(&wanted);
                 std::string got;
