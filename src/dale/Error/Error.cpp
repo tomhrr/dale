@@ -168,9 +168,9 @@ void Error::addArgString(const char *str)
 
 void Error::toString(std::string *to)
 {
-    char msg_buf[256];
-    char final_buf[256];
-    char macro_buf[256];
+    char msg_buf[4096];
+    char final_buf[4096];
+    char macro_buf[4096];
 
     const char *type_string  = errorTypeToString(getType());
     const char *main_err_str = errorInstanceToString(instance);
