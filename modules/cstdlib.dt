@@ -22,13 +22,13 @@ directly. Instead, use the functions with the explicit type names: e.g.
 @fn system
 |#
 (def system
-  (fn extern-c int ((s (p char)))))
+  (fn extern-c int ((s (p (const char))))))
 
 #|
 @fn getenv
 |#
 (def getenv
-  (fn extern-c (p char) ((s (p char)))))
+  (fn extern-c (p (const char)) ((s (p (const char))))))
 
 #|
 @fn bsearch
@@ -91,58 +91,58 @@ directly. Instead, use the functions with the explicit type names: e.g.
 @fn atoi
 |#
 (def atoi
-  (fn extern-c int ((str (p char)))))
+  (fn extern-c int ((str (p (const char))))))
 
 #|
 @fn atof
 |#
 (def atof
-  (fn extern-c double ((str (p char)))))
+  (fn extern-c double ((str (p (const char))))))
 
 #|
 @fn strtod
 |#
 (def strtod
-  (fn extern-c double ((str (p char)) (endp (p (p char))))))
+  (fn extern-c double ((str (p (const char))) (endp (p (const char))))))
 
 #|
 @fn strtol
 |#
 (def strtol
-  (fn extern-c (long-type) ((str  (p char))
-                            (endp (p (p char)))
+  (fn extern-c (long-type) ((str  (p (const char)))
+                            (endp (p (p (const char))))
                             (base int))))
 
 #|
 @fn strtoul
 |#
 (def strtoul
-  (fn extern-c (ulong-type) ((str  (p char))
-                             (endp (p (p char)))
+  (fn extern-c (ulong-type) ((str  (p (const char)))
+                             (endp (p (p (const char))))
                              (base int))))
 
 #|
 @fn strtoll
 |#
 (def strtoll
-  (fn extern-c (long-long-type) ((str  (p char))
-                                 (endp (p (p char)))
+  (fn extern-c (long-long-type) ((str  (p (const char)))
+                                 (endp (p (p (const char))))
                                  (base int))))
 
 #|
 @fn strtoull
 |#
 (def strtoull
-  (fn extern-c (ulong-long-type) ((str  (p char))
-                                  (endp (p (p char)))
+  (fn extern-c (ulong-long-type) ((str  (p (const char)))
+                                  (endp (p (p (const char))))
                                   (base int))))
 
 #|
 @fn strtoi32
 |#
 (def strtoi32
-  (fn extern int32 ((str  (p char))
-                    (endp (p (p char)))
+  (fn extern int32 ((str  (p (const char)))
+                    (endp (p (p (const char))))
                     (base int))
     (cast (strtol str endp base) int32)))
 
@@ -150,8 +150,8 @@ directly. Instead, use the functions with the explicit type names: e.g.
 @fn strtoi64
 |#
 (def strtoi64
-  (fn extern int64 ((str  (p char))
-                    (endp (p (p char)))
+  (fn extern int64 ((str  (p (const char)))
+                    (endp (p (p (const char))))
                     (base int))
     (cast (strtoll str endp base) int64)))
 
@@ -159,8 +159,8 @@ directly. Instead, use the functions with the explicit type names: e.g.
 @fn strtoui32
 |#
 (def strtoui32
-  (fn extern uint32 ((str  (p char))
-                     (endp (p (p char)))
+  (fn extern uint32 ((str  (p (const char)))
+                     (endp (p (p (const char))))
                      (base int))
     (cast (strtoul str endp base) uint32)))
 
@@ -168,8 +168,8 @@ directly. Instead, use the functions with the explicit type names: e.g.
 @fn strtoui64
 |#
 (def strtoui64
-  (fn extern uint64 ((str  (p char))
-                     (endp (p (p char)))
+  (fn extern uint64 ((str  (p (const char)))
+                     (endp (p (p (const char))))
                      (base int))
     (cast (strtoull str endp base) uint64)))
 
