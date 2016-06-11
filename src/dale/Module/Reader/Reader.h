@@ -21,7 +21,7 @@ class Reader
 {
 private:
     char *cwd;
-    std::vector<const char *> *static_module_names;
+    std::set<std::string> static_module_names;
     bool static_modules_all;
     bool remove_macros;
     std::set<std::string> cto_module_names;

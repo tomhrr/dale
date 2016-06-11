@@ -87,9 +87,16 @@ Reader::Reader(std::vector<const char *> *module_directory_paths,
     this->include_directory_paths.push_back(dale_include_path);
 
     this->so_paths = so_paths;
-    this->static_module_names = static_module_names;
     this->static_modules_all = static_modules_all;
     this->remove_macros = remove_macros;
+
+    for (std::vector<const char *>::iterator
+            b = static_module_names->begin(),
+            e = static_module_names->end();
+            b != e;
+            ++b) {
+        this->static_module_names.insert(*b);
+    }
 }
 
 Reader::~Reader()
@@ -364,10 +371,19 @@ Reader::run(Context *ctx, llvm::Linker *linker,
         cto_module_names.insert(lib_module_name);
     }
 
-    int add_to_so_paths =
-        (cto_module_names.find(std::string(lib_module_name)) ==
+    bool cto_module =
+        (cto_module_names.find(std::string(lib_module_name)) !=
          cto_module_names.end());
 
+    bool static_module =
+        (static_modules_all
+            || (static_module_names.find(module_name) !=
+                static_module_names.end()));
+
+    bool add_to_so_paths = !cto_module;
+    if (add_to_so_paths) {
+        add_to_so_paths = !static_module;
+    }
     res = addDynamicLibrary(so_path.c_str(), false, add_to_so_paths);
     assert(res && "unable to add library");
 
@@ -404,23 +420,7 @@ Reader::run(Context *ctx, llvm::Linker *linker,
         return false;
     }
 
-    bool link_now = false;
-    if (static_modules_all) {
-        link_now = true;
-    } else {
-        for (std::vector<const char *>::iterator
-                b = static_module_names->begin(),
-                e = static_module_names->end();
-                b != e;
-                ++b) {
-            if (!strcmp((*b), module_name)) {
-                link_now = true;
-                break;
-            }
-        }
-    }
-
-    if (link_now) {
+    if (static_module) {
         if (cto || remove_macros) {
             linkFile(linker, module_path_nomacros.c_str());
         } else {
