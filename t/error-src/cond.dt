@@ -1,0 +1,12 @@
+(import cstdio)
+(import stdlib)
+
+(def main (fn extern-c int (void)
+  (cond)
+  (cond 1)
+  (cond (true 1))
+  (cond (true 1) true)
+  (cond (false) true)
+  (cond (false false false) true)
+  (cond (true 1) (false 0))
+  0))

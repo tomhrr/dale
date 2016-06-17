@@ -80,8 +80,8 @@ terminate or return a boolean.
   (bqq if (uq condition) true (uq false-case))))
 
 (def break-to-goto
-  (fn (attr cto) intern int ((frm      (p DNode)) 
-                             (mc (p MContext)) 
+  (fn (attr cto) intern int ((frm      (p DNode))
+                             (mc (p MContext))
                              (data     (p void)))
     (def break-label (var auto (p DNode) (cast data (p DNode))))
     (def ln          (var auto (p DNode) (@:@ frm list-node)))
@@ -108,8 +108,8 @@ terminate or return a boolean.
     0))
 
 (def continue-to-goto
-  (fn (attr cto) intern int ((frm (p DNode)) 
-                             (mc (p MContext)) 
+  (fn (attr cto) intern int ((frm (p DNode))
+                             (mc (p MContext))
                              (data (p void)))
     (def break-label (var auto (p DNode) (cast data (p DNode))))
     (def ln          (var auto (p DNode) (@:@ frm list-node)))
@@ -156,9 +156,9 @@ for so long as the condition expression evaluates to `true`.
     (def end-label
         (var auto (p DNode) (make-gensym-label-node mc "breaklabel")))
 
-    (walk-nodes varargs-list mc (cast end-label   (p void)) 
+    (walk-nodes varargs-list mc (cast end-label   (p void))
                 (# break-to-goto))
-    (walk-nodes varargs-list mc (cast begin-label (p void)) 
+    (walk-nodes varargs-list mc (cast begin-label (p void))
                 (# continue-to-goto))
 
     (bqq do
@@ -244,9 +244,9 @@ expression evaluates to true.
     (def end-label
         (var auto (p DNode) (make-gensym-label-node mc "breaklabel")))
 
-    (walk-nodes varargs-list mc (cast end-label (p void)) 
+    (walk-nodes varargs-list mc (cast end-label (p void))
                 (# break-to-goto))
-    (walk-nodes varargs-list mc (cast mid-label (p void)) 
+    (walk-nodes varargs-list mc (cast mid-label (p void))
                 (# continue-to-goto))
 
     (def retform (var auto \
@@ -342,6 +342,13 @@ expands to:
 
     (bqq new-scope (uql-nc first-node) (do (uql-nc varargs-list)))))
 
+(def cond-error-check
+  (macro intern (condition element message)
+    (bqq if (uq-nc condition)
+            (do (report-error mc (uq-nc element) (uq-nc message))
+                (return (nullptr DNode)))
+            0)))
+
 #|
 @macro cond
 
@@ -365,6 +372,11 @@ The last condition test must be the literal `true`.
   (macro extern (...)
     (def arg-count (var auto \ (arg-count mc)))
 
+    (cond-error-check
+      (= arg-count 0)
+      (mnfv mc "unused")
+      "cond requires at least one argument")
+
     (def frm (var auto (p DNode)))
     (def va-dnode (var auto (p DNode)))
 
@@ -376,15 +388,35 @@ The last condition test must be the literal `true`.
     (label begin-loop)
         (if (= arg-count 0) (goto end-loop) 0)
         (setv va-dnode (va-arg (# arglist) (p DNode)))
+        (cond-error-check
+          (null (@:@ va-dnode list-node))
+          va-dnode
+          "cond argument must be list")
         (def first  (var auto (p DNode) (@:@ va-dnode list-node)))
-        (def second (var auto (p DNode) (@:@ (@:@ va-dnode list-node) next-node)))
+        (cond-error-check
+          (null (@:@ first next-node))
+          va-dnode
+          "cond argument list must have two elements")
+        (def second (var auto (p DNode) (@:@ first next-node)))
+        (cond-error-check
+          (not (null (@:@ second next-node)))
+          va-dnode
+          "cond argument list must have only two elements")
         (setf (:@ first next-node) (nullptr DNode))
         (if begin
-            (do (setv frm (bqq if (uq-nc first) (uq-nc second)))
-                (setv begin false)
-                true)
             (do (if (= arg-count 1)
-                    (do (setf (:@ last next-node) second)
+                    (do (setv frm (bqq do (uq-nc second)))
+                        true)
+                    (do (setv frm (bqq if (uq-nc first) (uq-nc second)))
+                        (setv begin false)
+                        true)))
+            (do (if (= arg-count 1)
+                    (do (cond-error-check
+                          (or (null (@:@ first token-str))
+                              (!= 0 (strcmp (@:@ first token-str) "true")))
+                          first
+                          "last cond argument list condition must be 'true'")
+                        (setf (:@ last next-node) second)
                         true)
                     (do (def nextn
                           (var auto (p DNode)
@@ -521,19 +553,19 @@ writing C bindings.
                   (new-token   (p DNode)))))
 
 (def mfor-helper
-    (fn (attr cto) intern int ((frm      (p DNode))
-                               (mc (p MContext))
-                               (data     (p void)))
-        (if (null (@:@ frm token-str))
-            (return 0)
-            0)
-        (let ((ms \ (cast data (p mfor-struct))))
-          (if (!= 0 (strcmp (@:@ frm token-str)
-                            (@:@ (@:@ ms placeholder) token-str)))
-            (return 0)
-            0)
-          (copy-to frm (@:@ ms new-token))
-          (return 0))))
+  (fn (attr cto) intern int ((frm      (p DNode))
+                             (mc (p MContext))
+                             (data     (p void)))
+      (if (null (@:@ frm token-str))
+          (return 0)
+          0)
+      (let ((ms \ (cast data (p mfor-struct))))
+        (if (!= 0 (strcmp (@:@ frm token-str)
+                          (@:@ (@:@ ms placeholder) token-str)))
+          (return 0)
+          0)
+        (copy-to frm (@:@ ms new-token))
+        (return 0))))
 
 #|
 @macro mfor

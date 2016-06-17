@@ -1,0 +1,12 @@
+<unknown>:0:0: error: cond requires at least one argument
+./t/error-src/cond.dt:5:3: error: macro expansion error (see previous)
+./t/error-src/cond.dt:6:9: error: cond argument must be list (see macro at 6:3)
+./t/error-src/cond.dt:6:3: error: macro expansion error (see previous)
+./t/error-src/cond.dt:8:18: error: cond argument must be list (see macro at 8:3)
+./t/error-src/cond.dt:8:3: error: macro expansion error (see previous)
+./t/error-src/cond.dt:9:9: error: cond argument list must have two elements (see macro at 9:3)
+./t/error-src/cond.dt:9:3: error: macro expansion error (see previous)
+./t/error-src/cond.dt:10:9: error: cond argument list must have only two elements (see macro at 10:3)
+./t/error-src/cond.dt:10:3: error: macro expansion error (see previous)
+./t/error-src/cond.dt:11:19: error: last cond argument list condition must be 'true' (see macro at 11:3)
+./t/error-src/cond.dt:11:3: error: macro expansion error (see previous)
