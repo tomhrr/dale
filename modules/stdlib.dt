@@ -343,6 +343,62 @@ expands to:
     (bqq new-scope (uql-nc first-node) (do (uql-nc varargs-list)))))
 
 #|
+@macro cond
+
+As per Common Lisp's `cond`, except that the first element of each
+argument must be a condition, and each argument must have at least two
+elements.
+
+    (cond ((= x 1) 2)
+          ((= x 2) 3)
+          (true    4))
+
+expands to:
+
+    (if (= x 1) 2
+    (if (= x 2) 3
+                4))
+
+The last condition test must be the literal `true`.
+|#
+(def cond
+  (macro extern (...)
+    (def arg-count (var auto \ (arg-count mc)))
+
+    (def frm (var auto (p DNode)))
+    (def va-dnode (var auto (p DNode)))
+
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (def begin (var auto bool true))
+    (def last (var auto (p DNode)))
+
+    (label begin-loop)
+        (if (= arg-count 0) (goto end-loop) 0)
+        (setv va-dnode (va-arg (# arglist) (p DNode)))
+        (def first  (var auto (p DNode) (@:@ va-dnode list-node)))
+        (def second (var auto (p DNode) (@:@ (@:@ va-dnode list-node) next-node)))
+        (setf (:@ first next-node) (nullptr DNode))
+        (if begin
+            (do (setv frm (bqq if (uq-nc first) (uq-nc second)))
+                (setv begin false)
+                true)
+            (do (if (= arg-count 1)
+                    (do (setf (:@ last next-node) second)
+                        true)
+                    (do (def nextn
+                          (var auto (p DNode)
+                                    (bqq if (uq-nc first) (uq-nc second))))
+                        (setf (:@ last next-node) nextn)
+                        true))))
+        (setv arg-count (- arg-count 1))
+        (setv last second)
+        (goto begin-loop)
+
+    (label end-loop)
+        (return frm)))
+
+#|
 @macro malloc'
 
 Expands to a `malloc` that allocates memory sufficient for `n` `T`s.

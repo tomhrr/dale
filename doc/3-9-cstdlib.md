@@ -36,17 +36,17 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(s (p char))`
+  * `(s (p (const char)))`
 
 
 
 #### `getenv`
 
 Linkage: `extern-c`
-Returns: `(p char)`
+Returns: `(p (const char))`
 Parameters:
 
-  * `(s (p char))`
+  * `(s (p (const char)))`
 
 
 
@@ -142,7 +142,7 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
 
 
 
@@ -152,7 +152,7 @@ Linkage: `extern-c`
 Returns: `double`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
 
 
 
@@ -162,8 +162,8 @@ Linkage: `extern-c`
 Returns: `double`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (const char)))`
 
 
 
@@ -173,8 +173,8 @@ Linkage: `extern-c`
 Returns: `(long-type)`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -185,8 +185,8 @@ Linkage: `extern-c`
 Returns: `(ulong-type)`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -197,8 +197,8 @@ Linkage: `extern-c`
 Returns: `(long-long-type)`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -209,8 +209,8 @@ Linkage: `extern-c`
 Returns: `(ulong-long-type)`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -221,8 +221,8 @@ Linkage: `extern`
 Returns: `int32`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -233,8 +233,8 @@ Linkage: `extern`
 Returns: `int64`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -245,8 +245,8 @@ Linkage: `extern`
 Returns: `uint32`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -257,8 +257,8 @@ Linkage: `extern`
 Returns: `uint64`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 

@@ -1,0 +1,14 @@
+(import cstdio)
+(import stdlib)
+
+(def test-fn (fn intern int ((n int))
+  (cond ((= n 1) 2)
+        ((= n 2) 3)
+        (true    4))))
+
+(def main (fn extern-c int (void)
+  (printf "%d\n" (test-fn 1))
+  (printf "%d\n" (test-fn 2))
+  (printf "%d\n" (test-fn 3))
+  (printf "%d\n" (test-fn 4))
+  0))

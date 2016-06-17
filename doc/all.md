@@ -813,6 +813,11 @@ rvalue reference parameter.
 `setf-move-init` functions. They are used whenever `dst` has already
 been initialised.
 
+If a type should only be moved, and not copied, declare a function
+named `setf-copy-disabled` over the type. If that declaration exists,
+any attempt to implicitly or explicitly copy a value of that type will
+fail with the error message 'copying is disabled for this type'.
+
 Multiple `setf-` functions, supporting different source types, may be
 defined over a single destination type.
 
@@ -2531,6 +2536,30 @@ expands to:
           ; ...
           )
 
+
+#### `cond`
+
+Linkage: `extern`
+Parameters:
+
+  * `...`
+
+
+As per Common Lisp's `cond`, except that the first element of each
+argument must be a condition, and each argument must have at least two
+elements.
+
+    (cond ((= x 1) 2)
+          ((= x 2) 3)
+          (true    4))
+
+expands to:
+
+    (if (= x 1) 2
+    (if (= x 2) 3
+                4))
+
+The last condition test must be the literal `true`.
 
 #### `malloc'`
 
@@ -7915,17 +7944,17 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(s (p char))`
+  * `(s (p (const char)))`
 
 
 
 #### `getenv`
 
 Linkage: `extern-c`
-Returns: `(p char)`
+Returns: `(p (const char))`
 Parameters:
 
-  * `(s (p char))`
+  * `(s (p (const char)))`
 
 
 
@@ -8021,7 +8050,7 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
 
 
 
@@ -8031,7 +8060,7 @@ Linkage: `extern-c`
 Returns: `double`
 Parameters:
 
-  * `(str (p char))`
+  * `(str (p (const char)))`
 
 
 
@@ -8041,8 +8070,8 @@ Linkage: `extern-c`
 Returns: `double`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (const char)))`
 
 
 
@@ -8052,8 +8081,8 @@ Linkage: `extern-c`
 Returns: `(long-type)`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -8064,8 +8093,8 @@ Linkage: `extern-c`
 Returns: `(ulong-type)`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -8076,8 +8105,8 @@ Linkage: `extern-c`
 Returns: `(long-long-type)`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -8088,8 +8117,8 @@ Linkage: `extern-c`
 Returns: `(ulong-long-type)`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -8100,8 +8129,8 @@ Linkage: `extern`
 Returns: `int32`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -8112,8 +8141,8 @@ Linkage: `extern`
 Returns: `int64`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -8124,8 +8153,8 @@ Linkage: `extern`
 Returns: `uint32`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 
@@ -8136,8 +8165,8 @@ Linkage: `extern`
 Returns: `uint64`
 Parameters:
 
-  * `(str (p char))`
-  * `(endp (p (p char)))`
+  * `(str (p (const char)))`
+  * `(endp (p (p (const char))))`
   * `(base int)`
 
 

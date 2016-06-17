@@ -173,6 +173,30 @@ expands to:
           )
 
 
+#### `cond`
+
+Linkage: `extern`
+Parameters:
+
+  * `...`
+
+
+As per Common Lisp's `cond`, except that the first element of each
+argument must be a condition, and each argument must have at least two
+elements.
+
+    (cond ((= x 1) 2)
+          ((= x 2) 3)
+          (true    4))
+
+expands to:
+
+    (if (= x 1) 2
+    (if (= x 2) 3
+                4))
+
+The last condition test must be the literal `true`.
+
 #### `malloc'`
 
 Linkage: `extern`
