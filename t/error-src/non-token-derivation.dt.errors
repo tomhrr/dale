@@ -1,2 +1,2 @@
-./t/error-src/non-token-derivation.dt:9:29: error: < not defined on struct member (type Pi, name a) (see macro at 1060:31)
+./t/error-src/non-token-derivation.dt:9:29: error: < not defined on struct member (type Pi, name a) (see macro at \d+:\d+)
 error: macro expansion error (see previous) (see macro at 9:1)
