@@ -138,13 +138,24 @@ Lexer::getNextToken(Token *token, Error *error)
         /* Multiple-line comments */
         if ((c == '|') && !(token->str_value.compare("#"))) {
             type = TokenType::Null;
-            while ((c = getchar_()) && (c != EOF) && (c != '|')) {
+            int count = 1;
+            int last = c;
+            while ((c = getchar_()) && (c != EOF)) {
                 if (c == '\n') {
                     end_line_count++;
                     end_col_count = 1;
                 } else {
                     end_col_count++;
                 }
+                if ((last == '|') && (c == '#')) {
+                    count--;
+                } else if ((last == '#') && (c == '|')) {
+                    count++;
+                }
+                if (!count) {
+                    break;
+                }
+                last = c;
             }
             if (c != EOF) {
                 getchar_();
