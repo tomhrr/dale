@@ -162,7 +162,7 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     builder_else.CreateBr(done_block);
 
     llvm::Type *llvm_then_type =
-        ctx->toLLVMType(then_pr.type, NULL, false, false);
+        ctx->toLLVMType(then_pr.type, NULL, true, false);
     if (!llvm_then_type) {
         return false;
     }

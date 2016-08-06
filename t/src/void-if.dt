@@ -1,0 +1,9 @@
+(import cstdio)
+
+(def myfn (fn intern void (void)
+  (printf "called myfn\n")
+  (return)))
+
+(def main (fn extern-c int (void)
+  (if true (myfn) (myfn))
+  0))
