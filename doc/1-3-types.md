@@ -130,9 +130,9 @@ implicitly.
 
 Enums are strongly-typed. The type name for an enum is `{name}`. When
 an enum is defined, a series of related functions are defined at the
-same time: `+`, `-`, `*`, `/`, `=`, `!=`, `<`, `<=`, `>`, `>=`, `<<`,
-`>>`, `&`, `|` and `^`. These functions are in turn defined only over
-that enum's type, so a function like `+`, for example, takes two
+same time: `+`, `-`, `*`, `/`, `%`, `=`, `!=`, `<`, `<=`, `>`, `>=`,
+`<<`, `>>`, `&`, `|` and `^`. These functions are in turn defined only
+over that enum's type, so a function like `+`, for example, takes two
 instances of the enum as its arguments and returns a new enum value as
 its result. The exceptions to this are `<<` and `>>` (left and
 right-shift), which take `int`s as their second arguments. Note that

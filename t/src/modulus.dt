@@ -1,0 +1,18 @@
+(import cstdio)
+
+(def thing (enum extern int (a b c d e f g)))
+
+(def main (fn extern-c int (void)
+  (let ((a int 12)
+        (b int 5))
+    (printf "%d\n" (% a b)))
+  (let ((a uint 12)
+        (b uint 5))
+    (printf "%u\n" (% a b)))
+  (let ((a float 12.0)
+        (b float 5.0))
+    (printf "%f\n" (% a b)))
+  (let ((a thing g)
+        (b thing e))
+    (printf "%d\n" (% a b)))
+  0))

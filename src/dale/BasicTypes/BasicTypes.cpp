@@ -533,6 +533,7 @@ addSignedInt(Context *ctx, llvm::Module *mod, std::string *once_tag,
     ADD_INTF("-", &llvm::IRBuilder<>::CreateSub);
     ADD_INTF("/", &llvm::IRBuilder<>::CreateSDiv);
     ADD_INTF("*", &llvm::IRBuilder<>::CreateMul);
+    ADD_INTF("%", &llvm::IRBuilder<>::CreateSRem);
 
     ADD_INTF("&", &llvm::IRBuilder<>::CreateAnd);
     ADD_INTF("|", &llvm::IRBuilder<>::CreateOr);
@@ -589,6 +590,7 @@ addUnsignedInt(Context *ctx, llvm::Module *mod, std::string *once_tag,
     ADD_INTF("-", &llvm::IRBuilder<>::CreateSub);
     ADD_INTF("/", &llvm::IRBuilder<>::CreateUDiv);
     ADD_INTF("*", &llvm::IRBuilder<>::CreateMul);
+    ADD_INTF("%", &llvm::IRBuilder<>::CreateURem);
 
     ADD_INTF("&", &llvm::IRBuilder<>::CreateAnd);
     ADD_INTF("|", &llvm::IRBuilder<>::CreateOr);
@@ -616,6 +618,7 @@ addFloatingPoint(Context *ctx, llvm::Module *mod, std::string *once_tag,
     ADD_FLTF("-", &llvm::IRBuilder<>::CreateFSub);
     ADD_FLTF("/", &llvm::IRBuilder<>::CreateFDiv);
     ADD_FLTF("*", &llvm::IRBuilder<>::CreateFMul);
+    ADD_FLTF("%", &llvm::IRBuilder<>::CreateFRem);
 
     ADD_CMPF("=",  &llvm::IRBuilder<>::CreateFCmpOEQ);
     ADD_CMPF("!=", &llvm::IRBuilder<>::CreateFCmpONE);
@@ -636,6 +639,7 @@ addEnum(Context *ctx, llvm::Module *mod, std::string *once_tag,
     ADD_ENMF("-", &llvm::IRBuilder<>::CreateSub);
     ADD_ENMF("*", &llvm::IRBuilder<>::CreateMul);
     ADD_ENMF("/", &llvm::IRBuilder<>::CreateSDiv);
+    ADD_ENMF2("%", &llvm::IRBuilder<>::CreateSRem);
 
     ADD_ENMCMPF("=",  &llvm::IRBuilder<>::CreateICmpEQ);
     ADD_ENMCMPF("!=", &llvm::IRBuilder<>::CreateICmpNE);

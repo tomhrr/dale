@@ -361,7 +361,7 @@ main(int argc, char **argv)
                          output_path.c_str());
     } else {
         bytes = snprintf(compile_cmd, (8192 - 1),
-                         "cc %s %s %s %s %s %s %s -o %s",
+                         "cc -lm %s %s %s %s %s %s %s -o %s",
                          (no_stdlib) ? "--nostdlib" : "",
                          (strcmp(SYSTEM_NAME, "Darwin")
                              ? "-Wl,--gc-sections"

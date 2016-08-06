@@ -176,7 +176,7 @@ Expands to (`@` (`:` (`@` {`struct-value-pointer`}) {`struct-member-name`})).
 
 The following functions are provided for the numeric types:
 
-  * `+`, `-`, `*`, `/`, `=`, `!=`, `<`, `<=`, `>`, `>=` (all)
+  * `+`, `-`, `*`, `/`, `%`, `=`, `!=`, `<`, `<=`, `>`, `>=` (all)
   * `<<`, `>>`, `&`, `|`, `^` (integral types only)
 
 They operate in the same way as normal functions, i.e. they can be
