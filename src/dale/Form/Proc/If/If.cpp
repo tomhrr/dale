@@ -156,10 +156,13 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return true;
     }
 
-    /* If the types don't match, then the if expression will evaluate
-     * to void, and the phi node is unnecessary. */
+    /* If the types don't match, or both types are void, then the if
+     * expression will evaluate to void, and the phi node is
+     * unnecessary. */
 
-    if (!then_pr.type->isEqualTo(else_pr.type)) {
+    if (!then_pr.type->isEqualTo(else_pr.type)
+            || (then_pr.type->isEqualTo(ctx->tr->type_void)
+                    && else_pr.type->isEqualTo(ctx->tr->type_void))) {
         llvm::BasicBlock *done_block =
             llvm::BasicBlock::Create(llvm::getGlobalContext(),
                                      "done_different_types", fn->llvm_function);
