@@ -45,9 +45,7 @@ Parameters:
 
 Takes a condition expression and a form to execute when the condition
 is true. If the condition is true, returns the result of evaluating
-the form. If the condition is false, returns `false`. Since this is
-implemented with `if`, it is necessary that the `true-case` either
-terminate or return a boolean.
+the form. If the condition is false, returns `false`.
 
 
 #### `or`
@@ -61,9 +59,7 @@ Parameters:
 
 Takes a condition expression and a form to execute when the condition
 is false. If the condition is false, returns the result of evaluating
-the form. If the condition is true, returns `true`. Since this is
-implemented with `if`, it is necessary that the `false-case` either
-terminate or return a boolean.
+the form. If the condition is true, returns `true`.
 
 
 #### `while`

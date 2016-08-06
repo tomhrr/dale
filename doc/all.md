@@ -255,9 +255,9 @@ implicitly.
 
 Enums are strongly-typed. The type name for an enum is `{name}`. When
 an enum is defined, a series of related functions are defined at the
-same time: `+`, `-`, `*`, `/`, `=`, `!=`, `<`, `<=`, `>`, `>=`, `<<`,
-`>>`, `&`, `|` and `^`. These functions are in turn defined only over
-that enum's type, so a function like `+`, for example, takes two
+same time: `+`, `-`, `*`, `/`, `%`, `=`, `!=`, `<`, `<=`, `>`, `>=`,
+`<<`, `>>`, `&`, `|` and `^`. These functions are in turn defined only
+over that enum's type, so a function like `+`, for example, takes two
 instances of the enum as its arguments and returns a new enum value as
 its result. The exceptions to this are `<<` and `>>` (left and
 right-shift), which take `int`s as their second arguments. Note that
@@ -578,18 +578,21 @@ There are two control flow constructs in the core language: `if` and
 
 `if` usage is as follows:
 
-        (if {bool-expression} {true-case} {false-case})
+        (if {bool-expression} {true-case} [ {false-case} ])
 
-`if` is an expression, rather than a statement: it returns the value
-of evaluating whichever case is selected:
+`if` is an expression, rather than a statement.  If the true and false
+branches evaluate to values of the same type, then the expression as a
+whole evaluates to the value of whichever branch is selected:
 
         (def n (var auto \ (if (< 5 10) 1 0)))
         (printf "%d\n" n) ; prints "1\n"
 
-Because it is an expression, both branches must return the same type
-of value. However, if either branch terminates (i.e. concludes with a
-`goto` or a `return`), it doesn't have a 'type' as such, and the other
-branch may then evaluate to any type.
+If either branch terminates (i.e. concludes with a `goto` or a
+`return`), while the other returns a usable value, then the expression
+as a whole will evaluate to the result of the latter branch.  If both
+branches terminate, or if the types of both branches are not the same,
+or if the false branch is omitted, then the expression as a whole will
+evaluate to `void`.
 
 The lack of implicit casting means that many expressions which would
 evaluate to true/false in C do not work in the same way in Dale:
@@ -1146,7 +1149,7 @@ Expands to (`@` (`:` (`@` {`struct-value-pointer`}) {`struct-member-name`})).
 
 The following functions are provided for the numeric types:
 
-  * `+`, `-`, `*`, `/`, `=`, `!=`, `<`, `<=`, `>`, `>=` (all)
+  * `+`, `-`, `*`, `/`, `%`, `=`, `!=`, `<`, `<=`, `>`, `>=` (all)
   * `<<`, `>>`, `&`, `|`, `^` (integral types only)
 
 They operate in the same way as normal functions, i.e. they can be
@@ -2409,9 +2412,7 @@ Parameters:
 
 Takes a condition expression and a form to execute when the condition
 is true. If the condition is true, returns the result of evaluating
-the form. If the condition is false, returns `false`. Since this is
-implemented with `if`, it is necessary that the `true-case` either
-terminate or return a boolean.
+the form. If the condition is false, returns `false`.
 
 
 #### `or`
@@ -2425,9 +2426,7 @@ Parameters:
 
 Takes a condition expression and a form to execute when the condition
 is false. If the condition is false, returns the result of evaluating
-the form. If the condition is true, returns `true`. Since this is
-implemented with `if`, it is necessary that the `false-case` either
-terminate or return a boolean.
+the form. If the condition is true, returns `true`.
 
 
 #### `while`

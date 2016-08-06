@@ -18,7 +18,7 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
 {
     Context *ctx = units->top()->ctx;
 
-    if (!ctx->er->assertArgNums("if", node, 2, 3)) {
+    if (!ctx->er->assertArgNums("if", node, 3, 3)) {
         return false;
     }
 
@@ -67,24 +67,6 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     ctx->deactivateAnonymousNamespace();
     if (!res) {
         return false;
-    }
-
-    /* If this if has no else branch, add a done block, branch both
-     * cases to it, and evaluate to void. */
-
-    if (!else_node) {
-        llvm::BasicBlock *done_block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                     "done_no_else", fn->llvm_function);
-
-        llvm::IRBuilder<> builder_then_final(then_pr.block);
-        builder_then_final.CreateBr(done_block);
-
-        llvm::IRBuilder<> builder_else_final(else_block);
-        builder_else_final.CreateBr(done_block);
-
-        pr->set(done_block, ctx->tr->type_void, NULL);
-        return true;
     }
 
     ctx->activateAnonymousNamespace();

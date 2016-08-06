@@ -1,5 +1,6 @@
 (import cstdio)
 
 (def main (fn extern-c int (void)
-  (if true (if true (printf "done\n")) (if true (printf "not done\n")))
+  (if true (if true (printf "done\n") false)
+           (if true (printf "not done\n") false))
   0))
