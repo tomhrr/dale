@@ -11,7 +11,7 @@ There are two control flow constructs in the core language: `if` and
 
 `if` usage is as follows:
 
-        (if {bool-expression} {true-case} {false-case})
+        (if {bool-expression} {true-case} [ {false-case} ])
 
 `if` is an expression, rather than a statement.  If the true and false
 branches evaluate to values of the same type, then the expression as a
@@ -24,7 +24,8 @@ If either branch terminates (i.e. concludes with a `goto` or a
 `return`), while the other returns a usable value, then the expression
 as a whole will evaluate to the result of the latter branch.  If both
 branches terminate, or if the types of both branches are not the same,
-then the expression as a whole will evaluate to `void`.
+or if the false branch is omitted, then the expression as a whole will
+evaluate to `void`.
 
 The lack of implicit casting means that many expressions which would
 evaluate to true/false in C do not work in the same way in Dale:

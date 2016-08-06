@@ -180,10 +180,6 @@ errorInstanceToString(int error_instance)
     case ErrorInst::EnumValueDoesNotExist:
         ret = "value '%s' does not exist for enum";
         break;
-    case ErrorInst::IfBranchesHaveDifferentTypes:
-        ret = "'if' branches must have the same type "
-              "(got %s and %s)";
-        break;
     case ErrorInst::OnlyVarAndStructPermitted:
         ret = "'def' within a function may only be used "
               "for var and struct forms";

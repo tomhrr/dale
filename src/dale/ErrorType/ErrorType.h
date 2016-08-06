@@ -86,7 +86,6 @@ enum
     InvalidCast,
     FieldDoesNotExistInStruct,
     EnumValueDoesNotExist,
-    IfBranchesHaveDifferentTypes,
     OnlyVarAndStructPermitted,
     UnableToParseForm,
     InvalidChar,
