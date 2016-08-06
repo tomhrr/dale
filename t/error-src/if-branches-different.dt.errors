@@ -1,0 +1,1 @@
+./t/error-src/if-branches-different.dt:2:22: error: type void cannot be used, because it is not a first-class type

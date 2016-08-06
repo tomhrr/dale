@@ -103,13 +103,13 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
             || else_pr.treat_as_terminator;
 
     if (then_terminates && else_terminates) {
-        cond_pr.copyTo(pr);
+        pr->set(cond_pr.block, ctx->tr->type_void, NULL);
         return true;
     }
 
     /* If the last instruction in one of these blocks is a terminator
      * or should be treated as such, a phi node is unnecessary.  The
-     * result of the if statement will be the last value from the
+     * if expression will evaluate to the last value from the
      * non-terminating block. */
 
     if (then_terminates && !else_terminates) {
@@ -138,18 +138,22 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return true;
     }
 
-    /* If neither branch terminates, then the values of both branches
-     * must be of the same type. */
+    /* If the types don't match, then the if expression will evaluate
+     * to void, and the phi node is unnecessary. */
 
     if (!then_pr.type->isEqualTo(else_pr.type)) {
-        std::string then_type;
-        std::string else_type;
-        then_pr.type->toString(&then_type);
-        else_pr.type->toString(&else_type);
-        Error *e = new Error(IfBranchesHaveDifferentTypes,
-                             node, then_type.c_str(), else_type.c_str());
-        ctx->er->addError(e);
-        return false;
+        llvm::BasicBlock *done_block =
+            llvm::BasicBlock::Create(llvm::getGlobalContext(),
+                                     "done_different_types", fn->llvm_function);
+
+        llvm::IRBuilder<> builder_then_final(then_pr.block);
+        builder_then_final.CreateBr(done_block);
+
+        llvm::IRBuilder<> builder_else_final(else_pr.block);
+        builder_else_final.CreateBr(done_block);
+
+        pr->set(done_block, ctx->tr->type_void, NULL);
+        return true;
     }
 
     llvm::BasicBlock *done_block =
