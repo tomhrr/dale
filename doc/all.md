@@ -7881,9 +7881,9 @@ Linkage: `extern-c`
 Returns: `int`
 Parameters:
 
-  * `(b (p char))`
+  * `(b (p (const char)))`
   * `(s size)`
-  * `(f (p char))`
+  * `(f (p (const char)))`
   * `(t (p tm))`
 
 
