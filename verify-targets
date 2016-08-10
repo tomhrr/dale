@@ -1,0 +1,65 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+my @targets = qw(
+    dalec
+    drt
+    cstdio-arch
+    cstdio
+    cstring
+    pthread
+    cfloat
+    cctype
+    ctype
+    cerrno-arch
+    cerrno
+    ctime
+    clocale
+    cstdio-core
+    introspection
+    macros-core
+    stdlib
+    macros
+    assert
+    concepts-core
+    concept-defs
+    concepts
+    cmath
+    math
+    cstdlib
+    csetjmp
+    csignal
+    unistd
+    shared-ptr
+    unique-ptr
+    utility
+    vector
+    list
+    set
+    map
+    array
+    algorithms
+    derivations
+    tests
+    documentation
+    programs
+    doc
+);
+
+my @failed_targets;
+for my $target (@targets) {
+    my $res = system("make $target");
+    if ($res != 0) {
+        push @failed_targets, $target;
+    }
+    system("make clean");
+}
+
+if (@failed_targets) {
+    warn "Failed targets: ".(join ', ', @failed_targets);
+    exit(1);
+}
+
+1;
