@@ -103,7 +103,7 @@ Macro constant for CLOCK_T.
 @fn strftime
 |#
 (def strftime
-  (fn extern-c int ((b (p char))
-                        (s size)
-                        (f (p char))
-                        (t (p tm)))))
+  (fn extern-c int ((b (p (const char)))
+                    (s size)
+                    (f (p (const char)))
+                    (t (p tm)))))
