@@ -322,7 +322,7 @@ add_custom_command (OUTPUT  module-to-markdown
                             -lm -O4
                             -o module-to-markdown)
 add_custom_target (programs ALL DEPENDS module-to-markdown)
-add_dependencies (programs dalec vector)
+add_dependencies (programs dalec vector derivations algorithms macros)
 
 # Module documentation.
 
