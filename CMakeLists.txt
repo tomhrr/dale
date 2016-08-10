@@ -305,7 +305,7 @@ install (TARGETS dalec DESTINATION bin)
 # Run tests.
 
 add_custom_target (tests COMMAND ${CMAKE_SOURCE_DIR}/run-tests ${CMAKE_SOURCE_DIR})
-add_dependencies (tests dalec)
+add_dependencies (tests dalec cstdio cstring pthread cfloat ctype cerrno ctime clocale cstdio-core stdlib assert concepts math cstdlib csetjmp csignal unistd shared-ptr unique-ptr vector list set map array algorithms derivations)
 
 # Manfile for the compiler.
 
@@ -327,7 +327,7 @@ add_dependencies (programs dalec vector derivations algorithms macros)
 # Module documentation.
 
 add_custom_target (doc COMMAND ${CMAKE_SOURCE_DIR}/generate-docs ${CMAKE_SOURCE_DIR})
-add_dependencies (doc dalec programs)
+add_dependencies (doc dalec programs array)
 
 # Compile and install standard library files.
 
