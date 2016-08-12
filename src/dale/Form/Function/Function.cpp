@@ -261,6 +261,14 @@ isValidDeclaration(Context *ctx, Node *node, const char *name,
         }
     }
 
+    Variable *matching_var = current_ns->getVariable(name);
+    if (matching_var) {
+        Error *e = new Error(RedeclarationOfDifferentKind,
+                             node, name);
+        ctx->er->addError(e);
+        return false;
+    }
+
     return true;
 }
 

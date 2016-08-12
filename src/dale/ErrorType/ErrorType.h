@@ -74,6 +74,7 @@ enum
     RedefinitionOfVariable,
     RedeclarationOfLabel,
     RedeclarationOfFunctionOrMacro,
+    RedeclarationOfDifferentKind,
     NonPointerFunctionParameter,
     ExternCInNamespace,
     IncorrectType,

@@ -169,6 +169,15 @@ FormTopLevelMacroParse(Units *units, Node *node)
         return false;
     }
 
+    Namespace *current_ns = (*(ctx->used_ns_nodes.rbegin()))->ns;
+    Variable *matching_var = current_ns->getVariable(name);
+    if (matching_var) {
+        Error *e = new Error(RedeclarationOfDifferentKind,
+                             node, name);
+        ctx->er->addError(e);
+        return false;
+    }
+
     llvm::Constant *fnc =
         units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
     llvm::Function *llvm_fn = llvm::dyn_cast<llvm::Function>(fnc);

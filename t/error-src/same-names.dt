@@ -1,0 +1,11 @@
+(def a (var intern int 1))
+(def a (fn intern int (void) 1))
+
+(def b (fn intern int (void) 1))
+(def b (var intern int 1))
+
+(def c (var intern int 1))
+(def c (macro intern (void) (nullptr DNode)))
+
+(def d (macro intern (void) (nullptr DNode)))
+(def d (var intern int 1))

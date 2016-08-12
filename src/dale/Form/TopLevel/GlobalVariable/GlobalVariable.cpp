@@ -667,6 +667,16 @@ FormTopLevelGlobalVariableParse(Units *units, Node *node)
         return false;
     }
 
+    Namespace *current_ns = (*(ctx->used_ns_nodes.rbegin()))->ns;
+    std::vector<Type*> types;
+    Function *matching_fn =
+        current_ns->getFunction(name, &types, NULL, false, true);
+    if (matching_fn) {
+        Error *e = new Error(RedeclarationOfDifferentKind, def_node, name);
+        ctx->er->addError(e);
+        return false;
+    }
+
     llvm::Type *llvm_ret_type =
         ctx->toLLVMType(ret_type, def_node, false,
                         (Linkage::isExternAll(linkage) && !has_initialiser));

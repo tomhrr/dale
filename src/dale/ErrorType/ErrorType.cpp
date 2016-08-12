@@ -365,6 +365,9 @@ errorInstanceToString(int error_instance)
     case ErrorInst::NoRefsInExternC:
         ret = "extern-c functions may not have reference parameters";
         break;
+    case ErrorInst::RedeclarationOfDifferentKind:
+        ret = "'%s' redeclared as different kind of symbol";
+        break;
     default:
         ret = "(Unknown)";
     }
