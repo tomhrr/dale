@@ -5,7 +5,10 @@
 (def def-main-fn
   (macro intern (...)
     (def arg-count (var auto \ (arg-count mc)))
-    (get-varargs-list)
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
+    (va-end (cast (# arglist) (p void)))
     (bqq def main (fn extern-c int (void) (uql varargs-list) 0))))
 )
 (def-main-fn (printf "Hello world part 2\n"))

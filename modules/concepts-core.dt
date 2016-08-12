@@ -221,7 +221,10 @@ constructed by way of `def-concept-macro`.
 
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 3))
-    (get-varargs-list)
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
+    (va-end (cast (# arglist) (p void)))
 
     (def function-name
       (var auto (p char) (pool-malloc' 255 char)))
@@ -303,7 +306,10 @@ body may (generally, will) add errors if its requirements are not met.
       (var auto (p char) (@:@ concept-name-node token-str)))
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 1))
-    (get-varargs-list)
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
+    (va-end (cast (# arglist) (p void)))
     (def macro-name
       (var auto (p char) (pool-malloc' 255 char)))
     (sprintf macro-name "_impl-concept-%s" concept-name)
@@ -646,7 +652,10 @@ arguments.
   (macro extern (macro-name linkage macro-types ...)
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 3))
-    (get-varargs-list)
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
+    (va-end (cast (# arglist) (p void)))
     (let ((newname (array-of 255 char)))
       (if (not (get-concept-macro-name mc macro-name 
                                        (@:@ macro-types list-node)
@@ -1016,7 +1025,10 @@ way of the `force` form:
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 1))
     (def pre-arg-count (var auto \ arg-count))
-    (get-varargs-list)
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
+    (va-end (cast (# arglist) (p void)))
     (setv arg-count pre-arg-count)
 
     (assert-return (= 0 arg-count) 

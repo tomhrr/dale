@@ -145,7 +145,10 @@ for so long as the condition expression evaluates to `true`.
     (def arg-count (var auto \ (arg-count mc)))
 
     (setv arg-count (- arg-count 1))
-    (get-varargs-list)
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
+    (va-end (cast (# arglist) (p void)))
 
     (def begin-label
         (var auto (p DNode) (make-gensym-label-node mc "continuelabel")))
@@ -231,7 +234,10 @@ expression evaluates to true.
   (macro extern (init-form condition loop-entry ...)
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 3))
-    (get-varargs-list)
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
+    (va-end (cast (# arglist) (p void)))
 
     (def begin-label
         (var auto (p DNode) (make-gensym-label-node mc)))
@@ -283,7 +289,10 @@ expands to:
   (macro extern (new-vars ...)
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 1))
-    (get-varargs-list)
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
+    (va-end (cast (# arglist) (p void)))
 
     (def nullp (var auto (p DNode) (cast 0 (p DNode))))
 
@@ -587,7 +596,10 @@ expands to:
   (macro extern (value-name value-list ...)
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 2))
-    (get-varargs-list)
+    (def arglist (var auto va-list))
+    (va-start (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
+    (va-end (cast (# arglist) (p void)))
     (let ((first-node \ (mnfv mc "do"))
           (anchor   \ first-node)
           (body     \ (bqq do (uql varargs-list)))

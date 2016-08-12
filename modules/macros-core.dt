@@ -20,10 +20,10 @@ Returns a newly-allocated node.
 
 @param mc An MContext.
 |#
-(def make-node 
+(def make-node
   (fn extern (p DNode) ((mc (p MContext)))
     (def dnsize (var auto size (sizeof DNode)))
-    (def n (var auto (p DNode) 
+    (def n (var auto (p DNode)
                      (cast (pool-malloc mc dnsize) (p DNode))))
     (memset (cast n (p void)) 0 (sizeof DNode))
     (setf (: (@ n) filename) (nullptr char))
@@ -38,7 +38,7 @@ Returns a newly-allocated node.
 @return         A copy of `form`.
 |#
 (def copy
-  (fn extern (p DNode) ((mc   (p MContext)) 
+  (fn extern (p DNode) ((mc   (p MContext))
                         (follow     bool)
                         (form       (p DNode)))
     (def nullp    (var auto (p DNode) (cast 0 (p DNode))))
@@ -49,12 +49,12 @@ Returns a newly-allocated node.
             (cast (sizeof DNode) int))
 
     (if (= 1 (@:@ form is-list))
-        (setf (:@ new-node list-node) 
+        (setf (:@ new-node list-node)
               (copy mc true (@:@ form list-node)))
         true)
-        
+
     (setf (:@ new-node next-node)
-          (if follow 
+          (if follow
               (if (not (null (@:@ form next-node)))
                   (do (copy mc true (@:@ form next-node)))
                   nullp)
@@ -75,21 +75,21 @@ node.
 @return         A copy of `form`.
 |#
 (def copy-qstr
-  (fn extern (p DNode) ((mc   (p MContext)) 
+  (fn extern (p DNode) ((mc   (p MContext))
                         (form       (p DNode))
                         (follow bool))
     (def nullp    (var auto (p DNode) (cast 0 (p DNode))))
     (def new-node (var auto (p DNode) (make-node mc)))
     (def dquote   (var auto char #\"))
     (def len      (var auto size 0))
-    (def charbuf  (var auto (p char)  
+    (def charbuf  (var auto (p char)
         (cast (pool-malloc mc (cast 256 size)) (p char))))
 
     (if (= 0 (@:@ form is-list))
         (do
             (setf ($ charbuf 0) dquote)
             (setv len (strlen (@ (: (@ form) token-str))))
-            (strncpy ($ charbuf 1) (@ (: (@ form) token-str)) len) 
+            (strncpy ($ charbuf 1) (@ (: (@ form) token-str)) len)
             (setf ($ charbuf (+ (cast 1 size) len)) dquote)
             (setf ($ charbuf (+ (cast 2 size) len)) #\NULL)
             (setf (:@ new-node is-list)   0)
@@ -104,7 +104,7 @@ node.
                     nullp)))
         (do
             (setf (:@ new-node is-list) 1)
-            (setf (:@ new-node list-node) 
+            (setf (:@ new-node list-node)
                   (copy mc true (@:@ form list-node)))))
 
     (setf (:@ new-node begin-line) (@:@ form begin-line))
@@ -236,7 +236,7 @@ copies it, and sets it in the new node.
                         (token-string (p (const char))))
     (def d-node (var auto (p DNode) (make-node mc)))
     (def nullp  (var auto (p DNode) (nullptr DNode)))
-    (def charp  (var auto (p char) 
+    (def charp  (var auto (p char)
                    (cast (pool-malloc mc (cast 256 size)) (p char))))
     (strncpy charp token-string (cast 256 size))
     (setf (:@ d-node is-list)   0)
@@ -595,7 +595,7 @@ returns that node.
 (def make-gensym-label-node
   (fn extern (p DNode) ((mc (p MContext)) (prefix (p (const char))))
     (def label-name
-        (var auto (p char) 
+        (var auto (p char)
                   (cast (pool-malloc mc (cast 150 size)) (p char))))
     (gensym-label label-name prefix)
     (mnfv mc label-name)))
@@ -715,23 +715,23 @@ from the provided node.
   (fn extern (p DNode) ((mc (p MContext)) (form (p DNode)))
     (def charbuf (var auto (array-of 256 char)))
     (def dquote (var auto char #\"))
-    
+
     (def myres (var auto (p DNode)
     (if (= 0 (@:@ form is-list))
         (do
           (setf ($ charbuf 0) dquote)
-          (strncpy ($ charbuf 1) 
+          (strncpy ($ charbuf 1)
                    (@:@ form token-str)
                    (strlen (@:@ form token-str)))
-          (setf ($ charbuf 
-                   (+ (cast 1 size) (strlen (@:@ form token-str)))) 
+          (setf ($ charbuf
+                   (+ (cast 1 size) (strlen (@:@ form token-str))))
                 dquote)
-          (setf ($ charbuf 
+          (setf ($ charbuf
                    (+ (cast 2 size) (strlen (@:@ form token-str))))
                 #\NULL)
-          (link-nodes-list mc 3 
-                           (mnfv mc "std.macros.mnfv") 
-                           (mnfv mc "mc") 
+          (link-nodes-list mc 3
+                           (mnfv mc "std.macros.mnfv")
+                           (mnfv mc "mc")
                            (mnfv mc charbuf)))
         (do
           (def holder
@@ -776,7 +776,7 @@ from the provided node.
                         (goto begin2))))
           (label end2)
             holder))))
-    
+
     (return myres)))
 
 (def itoa-str (var intern (array-of 50 char)))
@@ -1004,7 +1004,7 @@ used again.
 
     (label begin-loop)
         (if (= arg-count 0) (goto end-loop) 0)
-        
+
         (setv va-dnode (va-arg (# arglist) (p DNode)))
         (setf (:@ temp-node next-node) va-dnode)
         (setv temp-node va-dnode)
@@ -1016,88 +1016,38 @@ used again.
         (return x)))
 
 #|
-@macro std.macros.get-varargs-array
-
-Expands into a form that collects all of the available varargs into an
-array with the name `arg-array-original`. Must be called within the
-body of a macro, and the number of non-varargs arguments must be
-deducted from `arg-count` prior to it being called.
-
-@linkage extern
-|#
-(def get-varargs-array
-  (macro extern (void)
-    (def arg-count (var auto \ (arg-count mc)))
-    (def begin-label
-        (var auto (p DNode) (make-gensym-label-node mc "beginlabel")))
-    (def end-label
-        (var auto (p DNode) (make-gensym-label-node mc "endlabel")))
-    (bqq do
-        (def arg-count-original (var auto int arg-count))
-        (def arglist (var auto va-list))
-        (va-start (cast (# arglist) (p void)))
-        (def arg-array-original
-            (var auto (p (p DNode))
-                    (cast (pool-malloc mc
-                                       (* (sizeof (p DNode)) 
-                                          (cast arg-count size))) 
-                          (p (p DNode)))))
-        (def arg-array (var auto (p (p DNode)) arg-array-original))
-
-        (label (uq begin-label))
-          (if (= arg-count 0)
-            (goto (uq end-label))
-            (do
-                (setf arg-array (va-arg (cast (# arglist) (p void)) (p DNode)))
-                (setv arg-array (p+ arg-array 1))
-                (setv arg-count (- arg-count 1))
-                (goto (uq begin-label))))
-
-        (label (uq end-label))
-        0)))
-
-#|
 @macro std.macros.get-varargs-list
 
-As per `get-varargs-array`, except that the nodes are also linked
-together, as per `link-nodes`. A binding for the first node,
-`varargs-list`, is also introduced.
+Takes a macro context, an argument count, and a pointer to `va-list`
+as its arguments.  Returns the first node of a linked node list
+containing each of the nodes from the `va-list`, suitable for using as
+the argument to the `uql` and `uql-nc` forms.
 
 @linkage extern
 |#
 (def get-varargs-list
-  (macro extern (void)
-    (def arg-count (var auto \ (arg-count mc)))
-    (def begin-label
-        (var auto (p DNode) (make-gensym-label-node mc "beginlabel")))
-    (def end-label
-        (var auto (p DNode) (make-gensym-label-node mc "endlabel")))
-    (bqq do
-        (def arg-count-original (var auto int arg-count))
-        (def arglist (var auto va-list))
-        (va-start (cast (# arglist) (p void)))
-        (def arg-array-original
-            (var auto (p (p DNode))
-                    (cast (pool-malloc mc 
-                                       (* (sizeof (p DNode)) 
-                                          (cast arg-count size)))
-                          (p (p DNode)))))
-        (def arg-array (var auto (p (p DNode)) arg-array-original))
+  (fn extern (p DNode) ((mc (p MContext)) (arg-count int) (arglist (p va-list)))
+    (def arg-count-original (var auto int arg-count))
+    (def arg-array-original
+        (var auto (p (p DNode))
+                (cast (pool-malloc mc
+                                   (* (sizeof (p DNode))
+                                      (cast arg-count size)))
+                      (p (p DNode)))))
+    (def arg-array (var auto (p (p DNode)) arg-array-original))
 
-        (label (uq begin-label))
-          (if (= arg-count 0)
-            (goto (uq end-label))
-            (do
-                (setf arg-array (va-arg (cast (# arglist) (p void)) (p DNode)))
-                (setv arg-array (p+ arg-array 1))
-                (setv arg-count (- arg-count 1))
-                (goto (uq begin-label))))
+    (label begin)
+      (if (= arg-count 0)
+        (goto end)
+        (do
+            (setf arg-array (va-arg (cast arglist (p void)) (p DNode)))
+            (setv arg-array (p+ arg-array 1))
+            (setv arg-count (- arg-count 1))
+            (goto begin)))
 
-        (label (uq end-label))
-          (def varargs-list
-              (var auto (p DNode)
-                  (link-nodes-array arg-count-original
-                                    arg-array-original))))))
+    (label end)
+      (return (link-nodes-array arg-count-original
+                                arg-array-original))))
 
 (def pool-malloc' (macro extern (n T)
   (bqq cast (pool-malloc mc (* (cast (uq n) size) (sizeof (uq T))))
