@@ -1,0 +1,54 @@
+(def GLbitfield (macro intern (void) (q uint)))
+(def GLenum     (macro intern (void) (q uint)))
+(def GLfloat    (macro intern (void) (q float)))
+
+(def GL_COLOR_BUFFER_BIT (var intern (GLbitfield) 0x4000))
+(def GL_LINE_LOOP        (var intern (GLenum)     0x0002))
+
+(def GLUT_DEPTH          (var intern uint         0x0010))
+(def GLUT_SINGLE         (var intern uint         0x0000))
+(def GLUT_RGBA           (var intern uint         0x0000))
+
+(def glClear    (fn extern-c void ((mask (GLbitfield)))))
+(def glBegin    (fn extern-c void ((mode (GLenum)))))
+(def glVertex3f (fn extern-c void ((x (GLfloat))
+                                   (y (GLfloat))
+                                   (z (GLfloat)))))
+(def glEnd      (fn extern-c void (void)))
+(def glFlush    (fn extern-c void (void)))
+
+(def glutInit
+  (fn extern-c void ((argc (p int)) (argv (p (p char))))))
+(def glutInitDisplayMode
+  (fn extern-c void ((displayMode uint))))
+(def glutInitWindowPosition
+  (fn extern-c void ((x int) (y int))))
+(def glutInitWindowSize
+  (fn extern-c void ((width int) (height int))))
+(def glutCreateWindow
+  (fn extern-c int ((title (p (const char))))))
+(def glutDisplayFunc
+  (fn extern-c void ((callback (p (fn void (void)))))))
+(def glutMainLoop
+  (fn extern-c void (void)))
+
+(def render (fn intern void (void)
+  (glClear GL_COLOR_BUFFER_BIT)
+  (glBegin GL_LINE_LOOP);
+    (glVertex3f -0.8 -0.8 0.0)
+    (glVertex3f  0.8 -0.8 0.0)
+    (glVertex3f  0.8  0.8 0.0)
+    (glVertex3f -0.8  0.8 0.0)
+  (glEnd)
+  (glFlush)
+  (return)))
+
+(def main (fn extern-c int ((argc int) (argv (p (p char))))
+  (glutInit (# argc) argv)
+  (glutInitDisplayMode (| GLUT_DEPTH (| GLUT_SINGLE GLUT_RGBA)))
+  (glutInitWindowPosition 100 100)
+  (glutInitWindowSize 500 500)
+  (glutCreateWindow "My First openGL Program")
+  (glutDisplayFunc (# render))
+  (glutMainLoop)
+  (return 0)))
