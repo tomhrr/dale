@@ -439,25 +439,19 @@ forms should only be used when the nodes being unquoted will not be
 used again.
 
 
-#### `std.macros.get-varargs-array`
-
-Linkage: `extern`
-Parameters: N/A
-
-Expands into a form that collects all of the available varargs into an
-array with the name `arg-array-original`. Must be called within the
-body of a macro, and the number of non-varargs arguments must be
-deducted from `arg-count` prior to it being called.
-
-
 #### `std.macros.get-varargs-list`
 
 Linkage: `extern`
-Parameters: N/A
+Parameters:
 
-As per `get-varargs-array`, except that the nodes are also linked
-together, as per `link-nodes`. A binding for the first node,
-`varargs-list`, is also introduced.
+  * `p`
+  * `DNode`
+
+
+Takes a macro context, an argument count, and a pointer to `va-list`
+as its arguments.  Returns the first node of a linked node list
+containing each of the nodes from the `va-list`, suitable for using as
+the argument to the `uql` and `uql-nc` forms.
 
 
 [Previous](./2-3-math.md) | [Next](./2-5-stdlib.md)

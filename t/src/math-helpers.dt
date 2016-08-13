@@ -1,0 +1,16 @@
+(import cstdio)
+(import stdlib)
+
+(def main
+  (fn extern-c int (void)
+    (let ((a int 8)
+          (b int16 3)
+          (c int 0)
+          (d bool false))
+      (mfor Op (+' -' *' /' %')
+        (setv c (Op a b))
+        (printf "%d\n" c))
+      (mfor Op (=' !=' <' <=' >' >=')
+        (setv d (Op a b))
+        (printf "%d\n" d)))
+    0))

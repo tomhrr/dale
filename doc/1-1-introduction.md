@@ -30,8 +30,11 @@ compared with C:
 
   * Arithmetical operators (`+`, `-`, etc.) are exposed as functions,
     rather than core forms. Functions like `+` are only defined for
-    single types; i.e. `(+ int int)` is defined by default, but `(+ int
-    float)` is not.
+    single types; i.e. `(+ int int)` is defined by default, but `(+
+    int float)` is not. However, there are macros in the `stdlib`
+    module corresponding to the core operators/functions (e.g. `+'`,
+    `-'`) that cast the second argument to that of the first, to make
+    this a bit easier.
 
   * Linkage is not implicit in the core language. This extends to
     local variables in functions and macros. (In practice, the `let`

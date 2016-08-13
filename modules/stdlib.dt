@@ -638,4 +638,29 @@ Expands to the argument form.
   (macro extern (frm)
     frm))
 
+#|
+@macro +'
+
+For each of the primitive numeric types, macros that correspond to the
+core arithmetical and relational operators are defined which cast the
+second argument so that it has the same type as the first.  Each of
+these macros has the same name as the original function, except with a
+' symbol appended.
+
+|#
+(def prime-function
+  (macro intern (T F)
+    (let ((buf (array-of 4 char)))
+      (sprintf buf "%s'" (@:@ F token-str))
+      (let ((F' \ (mnfv mc buf)))
+        (bqq def (uq F')
+          (macro extern ((a (uq T)) b)
+            (bqq (uq F) (uq (uq a)) (cast (uq (uq b)) (uq T)))))))))
+(mfor T (char
+         int  int16  int32  int64
+         uint uint16 uint32 uint64
+         size ptrdiff
+         float double)
+  (mfor F (+ - * / % = != < <= > >=)
+    (prime-function T F)))
 )

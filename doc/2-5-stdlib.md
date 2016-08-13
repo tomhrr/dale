@@ -331,5 +331,17 @@ Parameters:
 Expands to the argument form.
 
 
+#### `+'`
+
+Linkage: `N/A`
+Parameters: N/A
+
+For each of the primitive numeric types, macros that correspond to the
+core arithmetical and relational operators are defined which cast the
+second argument so that it has the same type as the first.  Each of
+these macros has the same name as the original function, except with a
+' symbol appended.
+
+
 [Previous](./2-4-macros-core.md) | [Next](./2-6-macros.md)
 

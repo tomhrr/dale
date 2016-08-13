@@ -264,6 +264,13 @@ Lexer::getNextToken(Token *token, Error *error)
             begin_line_count = end_line_count;
         }
 
+        /* Previous potential integer. */
+        if ((type == TokenType::Int)
+                && (token->str_value.back() == '-')
+                && !isdigit(c)) {
+            type = TokenType::String;
+        }
+
         /* Plain token. */
         if (!type) {
             type = TokenType::String;

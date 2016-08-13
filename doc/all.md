@@ -28,8 +28,11 @@ compared with C:
 
   * Arithmetical operators (`+`, `-`, etc.) are exposed as functions,
     rather than core forms. Functions like `+` are only defined for
-    single types; i.e. `(+ int int)` is defined by default, but `(+ int
-    float)` is not.
+    single types; i.e. `(+ int int)` is defined by default, but `(+
+    int float)` is not. However, there are macros in the `stdlib`
+    module corresponding to the core operators/functions (e.g. `+'`,
+    `-'`) that cast the second argument to that of the first, to make
+    this a bit easier.
 
   * Linkage is not implicit in the core language. This extends to
     local variables in functions and macros. (In practice, the `let`
@@ -2347,25 +2350,19 @@ forms should only be used when the nodes being unquoted will not be
 used again.
 
 
-#### `std.macros.get-varargs-array`
-
-Linkage: `extern`
-Parameters: N/A
-
-Expands into a form that collects all of the available varargs into an
-array with the name `arg-array-original`. Must be called within the
-body of a macro, and the number of non-varargs arguments must be
-deducted from `arg-count` prior to it being called.
-
-
 #### `std.macros.get-varargs-list`
 
 Linkage: `extern`
-Parameters: N/A
+Parameters:
 
-As per `get-varargs-array`, except that the nodes are also linked
-together, as per `link-nodes`. A binding for the first node,
-`varargs-list`, is also introduced.
+  * `p`
+  * `DNode`
+
+
+Takes a macro context, an argument count, and a pointer to `va-list`
+as its arguments.  Returns the first node of a linked node list
+containing each of the nodes from the `va-list`, suitable for using as
+the argument to the `uql` and `uql-nc` forms.
 
 
 ## <a name="stdlib"></a> 2.5 stdlib
@@ -2695,6 +2692,18 @@ Parameters:
 
 
 Expands to the argument form.
+
+
+#### `+'`
+
+Linkage: `N/A`
+Parameters: N/A
+
+For each of the primitive numeric types, macros that correspond to the
+core arithmetical and relational operators are defined which cast the
+second argument so that it has the same type as the first.  Each of
+these macros has the same name as the original function, except with a
+' symbol appended.
 
 
 ## <a name="macros"></a> 2.6 macros

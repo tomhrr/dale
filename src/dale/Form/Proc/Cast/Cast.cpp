@@ -31,6 +31,10 @@ FormProcCastParse(Units *units, Function *fn, llvm::BasicBlock *block,
     if (!res) {
         return false;
     }
+    llvm::Type *llvm_type = ctx->toLLVMType(value_pr.type, value_node, false);
+    if (!llvm_type) {
+        return false;
+    }
 
     /* It is allowable to cast to a bitfield type, because there's no
      * other way to set a bitfield value. */
