@@ -1,0 +1,15 @@
+(import variant)
+(import cstdio)
+
+(using-namespace std.macros
+
+(def-variant Single (Instance))
+
+(def main (fn extern-c int (void)
+  (let ((myinstance Single (Instance)))
+    (case myinstance
+      (Instance (printf "Instance is single instance\n"))
+      (true     (printf "Something has gone wrong\n"))))
+  0))
+
+)

@@ -1,0 +1,19 @@
+(import variant)
+(import cstdio)
+
+(using-namespace std.macros
+
+(def-variant Direction ((Left ((s float))) (Right ((s int)))))
+
+(def main (fn extern-c int (void)
+  (let ((left  Direction (Left 1.0))
+        (right Direction (Right 2)))
+    (case left
+      (Left (printf "Left (expected) %d\n" (cast (@:@ left s) int)))
+      (Right (printf "Right (unexpected) %d\n" (@:@ left s))))
+    (case right
+      (Left (printf "Left (unexpected) %d\n" (cast (@:@ right s) int)))
+      (Right (printf "Right (expected) %d\n" (@:@ right s)))))
+  0))
+
+)

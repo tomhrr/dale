@@ -1,0 +1,17 @@
+(import variant)
+(import cstdio)
+
+(using-namespace std.macros
+
+(def-variant Direction ((Left ((s float)) ((rest (p (const char)))))
+                        (Right ((s int)))))
+
+(def main (fn extern-c int (void)
+  (let ((lsize \ (sizeof Left))
+        (rsize \ (sizeof Right))
+        (dsize \ (sizeof Direction)))
+    (printf "%s\n" (if (>= dsize lsize) "ok" "not ok"))
+    (printf "%s\n" (if (>= dsize rsize) "ok" "not ok")))
+  0))
+
+)

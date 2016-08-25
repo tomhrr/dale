@@ -20,7 +20,7 @@ argument.
 A `setf-copy-init` function is defined like so:
 
         (def setf-copy-init (fn {linkage} bool ((dst (p {source-type}))
-                                                (src (const {source-type})))
+                                                (src (p (const {source-type}))))
           {body}))
 
 Such functions will be used in lieu of the default `setf` behaviour

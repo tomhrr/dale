@@ -1,0 +1,2 @@
+./t/error-src/variant-invalid-type.dt:12:8: error: invalid variant type (see macro at 11:5)
+./t/error-src/variant-invalid-type.dt:11:5: error: macro expansion error (see previous) (see macro at 9:3)

@@ -1,0 +1,3 @@
+./t/error-src/variant-non-exhaustive.dt:14:11: error: case is non-exhaustive (see macro at 14:5)
+./t/error-src/variant-non-exhaustive.dt:14:5: error: macro expansion error (see previous) (see macro at 9:3)
+
