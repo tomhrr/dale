@@ -38,16 +38,12 @@ addSimpleFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
             b != e;
             ++b) {
         llvm::Type *arg_type = ctx->toLLVMType((*b)->type, NULL, false);
-        if (!arg_type) {
-            return NULL;
-        }
+        assert(arg_type && "unable to resolve argument type");
         llvm_param_types.push_back(arg_type);
     }
 
     llvm::Type *llvm_ret_type = ctx->toLLVMType(return_type, NULL, false);
-    if (!llvm_ret_type) {
-        return NULL;
-    }
+    assert(llvm_ret_type && "unable to resolve return type");
 
     llvm::ArrayRef<llvm::Type*> llvm_array_param_types(llvm_param_types);
     llvm::FunctionType *ft =
