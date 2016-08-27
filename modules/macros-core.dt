@@ -10,7 +10,6 @@ function (not intended for use outside the standard libraries).
 (module macros-core (attr cto))
 
 (import cstdio-core)
-
 (namespace std (namespace macros
 
 #|
@@ -1051,8 +1050,8 @@ the argument to the `uql` and `uql-nc` forms.
 
 
 ;;helperfunction only, use the simple version instead
-(def get-varargs-list (macro intern (name (count int))
-  (qq do
+(def get-varargs-list (macro extern (name (count int))
+  (bqq do
     (def (uq name) (var auto (p DNode)))
     (new-scope
       (def argslist (var auto va-list))
@@ -1069,10 +1068,10 @@ Simple version of `get-varargs-list`, only takes the count as parameter.
 |#
 
 (def get-varargs-list (macro extern ((count int))
-  (let ((name \ (make-gensym-var-node mc)))
-    (qq do 
-      (get-varargs-list (uq name) (uq count))
-      (move (uq name))))))
+  (def name (var auto \ (make-gensym-var-node mc)))
+  (bqq do 
+    (get-varargs-list (uq name) (uq count))
+    (move (uq name)))))
 
 
 

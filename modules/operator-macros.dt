@@ -3,17 +3,18 @@
 
 Provides utilities to generate operators with arbitrary number of arguments and some binary-operators are overloaded:
 arithmetic operators: `+ - * / +' -' *' /'`
-bitwise and logic or: `& | && ||`
+bitwise and logic or: `& | and or`
 struct-accessors: `:@ @: :`
 accessors for multidimensional arrays: @$
-
 |#
 (module operator-macros (attr cto))
-(mfor lib (macros stdlib)
-  (import lib))
+(import macros)
+(import macros-core)
+(import stdlib)
+#|
 
-(namespace std.macros
-  
+(namespace std (namespace macros
+   
   #|
   @fn std.macros.def-identity-macro
   
@@ -67,12 +68,15 @@ accessors for multidimensional arrays: @$
           (qq  (uq opname) ((uq name) (uq (uql varargs-list))) (uq (uq a)))))))))
 
   (def def-left-associative-macro (macro extern (name linkage)
-    (qq def-left-associative-macro (uq name) (uq linkage) (uq name))))
+    (qq def-left-associative-macro (uq name) (uq linkage) (uq name)))))
 
-  (mfor op (+  -  *  /  
-            +' -' *' /' 
-            &  |  && ||
+  (mfor op (+     *  /
+            +' -' *' /'
+            &  | and or
             :@ @: :
             @$)
+   ;;error for operator -, why?
    (def-left-associative-macro op extern))
 )
+|#
+
