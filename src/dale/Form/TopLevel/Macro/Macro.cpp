@@ -193,29 +193,11 @@ FormTopLevelMacroParse(Units *units, Node *node)
                                 true, &new_name);
     fn->linkage = linkage;
 
-
     if (!ctx->ns()->addFunction(name, fn, top)) {
         return false;
     }
     if (units->top()->once_tag.length() > 0) {
         fn->once_tag = units->top()->once_tag;
-    }
-
-    /* After adding the macro, iterate over the functions the have the
-     * same name within this namespace, confirming that they could
-     * still be validly declared. */
-    std::map<std::string, std::vector<Function *> *>::iterator functions =
-        current_ns->functions.find(name);
-    if (functions != current_ns->functions.end()) {
-        for (std::vector<Function *>::iterator
-                b = functions->second->begin(),
-                e = functions->second->end();
-                b != e;
-                ++b) {
-            if (not isValidDeclaration(ctx, top, name, linkage, (*b))) {
-                return false;
-            }
-        }
     }
 
     /* If the list has only three arguments, the macro is a declaration. */
