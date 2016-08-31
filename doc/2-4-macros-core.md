@@ -454,5 +454,16 @@ containing each of the nodes from the `va-list`, suitable for using as
 the argument to the `uql` and `uql-nc` forms.
 
 
+#### `std.macros.get-varargs-list`
+
+Linkage: `extern`
+Parameters:
+
+  * `(count int)`
+
+
+Simple version of `get-varargs-list`, only takes the count as parameter.
+
+
 [Previous](./2-3-math.md) | [Next](./2-5-stdlib.md)
 

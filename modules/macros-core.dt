@@ -10,7 +10,6 @@ function (not intended for use outside the standard libraries).
 (module macros-core (attr cto))
 
 (import cstdio-core)
-
 (namespace std (namespace macros
 
 #|
@@ -1048,6 +1047,30 @@ the argument to the `uql` and `uql-nc` forms.
     (label end)
       (return (link-nodes-array arg-count-original
                                 arg-array-original))))
+
+
+; Helper function only, use the simple version instead.
+(def get-varargs-list (macro extern (name (count int))
+  (bqq do
+    (def (uq name) (var auto (p DNode)))
+    (new-scope
+      (def argslist (var auto va-list))
+      (va-start (cast (# argslist) (p void)))
+      (setv (uq name) (std.macros.get-varargs-list mc (uq count) (# argslist)))
+      (va-end (cast (# argslist) (p void)))))))
+
+#|
+@macro std.macros.get-varargs-list
+
+Simple version of `get-varargs-list`, only takes the count as parameter.
+
+@linkage extern
+|#
+(def get-varargs-list (macro extern ((count int))
+  (def name (var auto \ (make-gensym-var-node mc)))
+  (bqq do 
+    (std.macros.get-varargs-list (uq name) (uq count))
+    (move (uq name)))))
 
 (def pool-malloc' (macro extern (n T)
   (bqq cast (pool-malloc mc (* (cast (uq n) size) (sizeof (uq T))))
