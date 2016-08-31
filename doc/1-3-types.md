@@ -124,9 +124,18 @@ The member-value assignments for this enum are as follows:
         g: -1; h: 0; i: 1; j: 2; k: 3
 
 Enum literals may be used wherever a reference to an enum may be used.
-They take the form `({name} {member-name})`. Similarly to structs, the
-`{member-name}` alone can be used where the value will be cast
-implicitly.
+They take the form `({name} {member-name})`:
+
+        (def enum-fn
+          (fn extern void ((n my-enum))
+            (printf "%d\n" n)
+            (return)))
+
+        (enum-fn (my-enum a))
+        (enum-fn (my-enum b))
+
+Similarly to structs, the `{member-name}` alone can be used where the
+value will be cast implicitly.
 
 Enums are strongly-typed. The type name for an enum is `{name}`. When
 an enum is defined, a series of related functions are defined at the

@@ -1,0 +1,2 @@
+./t/error-src/declarations.dt:4:8: error: function/macro 'x' has already been defined in this scope
+./t/error-src/declarations.dt:7:8: error: function/macro 'y' has already been defined in this scope
