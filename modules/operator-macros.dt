@@ -1,0 +1,82 @@
+#|
+@module operator-macros
+
+Provides utilities to generate operators with arbitrary number of arguments and some binary-operators are overloaded:
+arithmetic operators: `+ - * / +' -' *' /'`
+bitwise and logic or: `& | and or`
+struct-accessors: `:@ @: :`
+accessors for multidimensional arrays: @$
+|#
+(module operator-macros (attr cto))
+(import macros)
+(import macros-core)
+(import stdlib)
+#|
+
+(namespace std (namespace macros
+   
+  #|
+  @fn std.macros.def-identity-macro
+  
+  Defines a macro that takes a single argument and returns it.
+  
+  @param name Name of the macro.
+  @param linkage Linkage.
+  |#
+  (def def-identity-macro (macro extern (name linkage)
+    (qq def (uq name) (macro (uq linkage) (value) value))))
+  
+  #|
+  @fn std.macros.def-right-associative-macro
+  
+  Defines a macro:
+  `(name a b …)` will be expanded to `(opname a (name b …))`
+  
+  @param name Name of the macro.
+  @param linkage Linkage.
+  @param opname (Optional, defaults to `name`) 
+  
+  @param name Name of the macro.
+  @param linkage Linkage.
+  |#
+  (def def-right-associative-macro (macro extern (name linkage opname)
+    (qq do
+      (def (uq name) (macro (uq linkage) (a ...)
+        (let ((varargs-list \ (get-varargs-list (- (arg-count mc) 1))))
+          (qq (uq opname) (uq (uq a)) ((uq name) (uq (uql varargs-list))))))))))
+
+  (def def-right-associative-macro (macro extern (name linkage)
+    (qq def-right-associative-macro (uq name) (uq linkage) (uq name))))
+
+  #|
+  @fn std.macros.def-left-associative-macro
+  
+  Defines a macro:
+  `(name a b …)` will be expanded to `(name (opname a b) …)`
+  
+  @param name Name of the macro.
+  @param linkage Linkage.
+  @param opname (Optional, defaults to `name`) 
+  
+  @param name Name of the macro.
+  @param linkage Linkage.
+  |#
+  (def def-left-associative-macro (macro extern (name linkage opname)
+    (qq do
+      (def (uq name) (macro (uq linkage) (a ...)
+        (let ((varargs-list \ (get-varargs-list (- (arg-count mc) 1))))
+          (qq  (uq opname) ((uq name) (uq (uql varargs-list))) (uq (uq a)))))))))
+
+  (def def-left-associative-macro (macro extern (name linkage)
+    (qq def-left-associative-macro (uq name) (uq linkage) (uq name)))))
+
+  (mfor op (+     *  /
+            +' -' *' /'
+            &  | and or
+            :@ @: :
+            @$)
+   ;;error for operator -, why?
+   (def-left-associative-macro op extern))
+)
+|#
+
