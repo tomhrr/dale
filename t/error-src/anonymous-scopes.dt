@@ -1,0 +1,9 @@
+(import stdlib)
+
+(def main (fn extern-c void (void)
+  (def var2 (var intern int 0)) ;if this is a global variable, it works
+  (let ((fun \ (fn void (void)
+          (incv var2)
+          (return))))
+    (fun)
+    (fun))))

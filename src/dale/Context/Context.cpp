@@ -65,22 +65,24 @@ Context::popUntilNamespace(Namespace *ns)
 {
     for (;;) {
         if (active_ns_nodes.size() == 0) {
-            return false;
+            break;
         }
         if (active_ns_nodes.back()->ns == ns) {
-            return true;
+            break;
         }
         active_ns_nodes.pop_back();
     }
     for (;;) {
         if (used_ns_nodes.size() == 0) {
-            return false;
+            break;
         }
         if (used_ns_nodes.back()->ns == ns) {
-            return true;
+            break;
         }
         used_ns_nodes.pop_back();
     }
+
+    return true;
 }
 
 bool

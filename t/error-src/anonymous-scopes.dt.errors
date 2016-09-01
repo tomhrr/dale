@@ -1,0 +1,1 @@
+./t/error-src/anonymous-scopes.dt:6:17: error: variable not in scope: 'var2' (see macro at 6:11)
