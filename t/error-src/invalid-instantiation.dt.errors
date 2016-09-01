@@ -1,0 +1,4 @@
+./t/error-src/invalid-instantiation.dt:3:34: error: no applicable concept macro found (see macro at 3:1)
+./t/error-src/invalid-instantiation.dt:3:1: error: macro expansion error (see previous)
+./t/error-src/invalid-instantiation.dt:4:35: error: single parameter type must be symbol (got integer instead)
+./t/error-src/invalid-instantiation.dt:4:32: error: invalid type

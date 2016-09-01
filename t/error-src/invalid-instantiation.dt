@@ -1,0 +1,6 @@
+(import concepts)
+
+(std.concepts.instantiate Vector my-struct)
+(def my-struct (struct intern ((x 1))))
+
+(def main (fn extern-c int (void) 0))

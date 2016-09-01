@@ -766,11 +766,10 @@ macro buffer and returns true.  Otherwise, returns false.
       (setv myn (mnfv mc mybuf))
       (if (exists-macro mc (qq (uq myn)
                                (uql cnodelst)))
-          (do
-              (strcpy macbuf mybuf)
+          (do (strcpy macbuf mybuf)
               (return true))
-          (do
-              (setf ($ cname 0) #\NULL)
+          (do (and hascnamebuf
+                (setf ($ cname 0) #\NULL))
               0)))
     false))
 
