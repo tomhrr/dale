@@ -20,7 +20,7 @@ public:
     /*! The enumerated type's integral type. */
     llvm::Type *type;
     /*! The index of the last member. */
-    int last_index;
+    int64_t last_index;
     /*! A map from member name to index. */
     std::map<std::string, int64_t> name_to_index;
     /*! The once tag of this type. */
