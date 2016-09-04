@@ -1,0 +1,20 @@
+(import cstdio)
+
+#| asdf |#
+
+#| asdf
+|#
+
+#|
+asdf
+|#
+
+#|
+
+asdf
+
+|#
+
+(def main (fn extern-c int (void)
+  asdf
+  0))

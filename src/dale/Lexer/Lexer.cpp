@@ -158,7 +158,10 @@ Lexer::getNextToken(Token *token, Error *error)
                 last = c;
             }
             if (c != EOF) {
-                getchar_();
+                c = getchar_();
+                if (c == '\n') {
+                    end_line_count++;
+                }
             }
             end_col_count = 1;
             begin_col_count = 1;
