@@ -1,0 +1,17 @@
+(import macros)
+(import cstdio)
+
+(def obj (struct intern ((val (array-of 2 int)))))
+
+(using-namespace std.macros
+(def val (macro intern (obj)
+  (qq : (uq obj) val)))
+)
+
+(def obj (var intern obj))
+
+(def main (fn extern-c int (void)
+  (setf (val obj) (array 1 2)) ;;works
+  (printf "%d\n" (@ ($ (@ (: obj val)) 1)))
+  (printf "%d\n" (@ ($ (@ (val obj)) 1))) ;;does not work, even if it works when calling it directly with the macroexpansion
+  0))

@@ -26,21 +26,34 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     Node *array_node = (*lst)[1];
     Node *index_node = (*lst)[2];
 
-    ParseResult array_pr;
-    bool res = FormProcInstParse(units, fn, block, array_node, true,
-                                 false, NULL, &array_pr);
+    ParseResult initial_array_pr;
+    bool res = FormProcInstParse(units, fn, block, array_node, false,
+                                 false, NULL, &initial_array_pr);
     if (!res) {
         return false;
     }
 
-    if (!array_pr.type->points_to) {
+    if (!(initial_array_pr.type->array_type
+       || initial_array_pr.type->points_to)) {
         std::string type_str;
-        array_pr.type->toString(&type_str);
+        initial_array_pr.type->toString(&type_str);
         Error *e = new Error(IncorrectArgType, array_node,
                              "$", "a pointer or array", "1",
                              type_str.c_str());
         ctx->er->addError(e);
         return false;
+    }
+
+    ParseResult array_pr;
+    bool is_array;
+    if (initial_array_pr.type->array_type) {
+        initial_array_pr.getAddressOfValue(ctx, &array_pr);
+        array_pr.type =
+            ctx->tr->getPointerType(initial_array_pr.type->array_type);
+        is_array = true;
+    } else {
+        initial_array_pr.copyTo(&array_pr);
+        is_array = false;
     }
 
     ParseResult index_pr;
@@ -69,50 +82,28 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
         index_pr_size.copyTo(&index_pr);
     }
 
-    llvm::Value *index_ptr = NULL;
-
     llvm::IRBuilder<> builder(index_pr.block);
-    if (array_pr.type->points_to->points_to) {
-        llvm::Value *array_ptr = builder.CreateLoad(array_pr.value);
-        std::vector<llvm::Value *> indices;
+    std::vector<llvm::Value *> indices;
+    if (!is_array) {
         indices.push_back(llvm::cast<llvm::Value>(index_pr.value));
-        index_ptr =
-            builder.Insert(
-                llvm::GetElementPtrInst::Create(
-                    array_ptr, llvm::ArrayRef<llvm::Value*>(indices)
-                ),
-                "aref"
-            );
     } else {
-        std::vector<llvm::Value *> indices;
         STL::push_back2(&indices, ctx->nt->getLLVMZero(),
                         llvm::cast<llvm::Value>(index_pr.value));
-        index_ptr =
-            builder.Insert(
-                llvm::GetElementPtrInst::Create(
-                    array_pr.value, llvm::ArrayRef<llvm::Value*>(indices)
-                ),
-                "aref"
-            );
     }
+    llvm::Value *index_ptr =
+        builder.Insert(
+            llvm::GetElementPtrInst::Create(
+                array_pr.value, llvm::ArrayRef<llvm::Value*>(indices)
+            ),
+            "aref"
+        );
 
     pr->block = index_pr.block;
 
     if (array_pr.type->is_array) {
         pr->type = ctx->tr->getPointerType(array_pr.type->array_type);
-    } else if (array_pr.type->points_to->points_to) {
-        pr->type = array_pr.type->points_to;
-    } else if (array_pr.type->points_to->array_type) {
-        pr->type = ctx->tr->getPointerType(
-            array_pr.type->points_to->array_type
-        );
     } else {
-        std::string type_str;
-        array_pr.type->toString(&type_str);
-        Error *e = new Error(CanOnlyIndexIntoPointersAndArrays,
-                             node, type_str.c_str());
-        ctx->er->addError(e);
-        return false;
+        pr->type = array_pr.type;
     }
 
     pr->value = index_ptr;

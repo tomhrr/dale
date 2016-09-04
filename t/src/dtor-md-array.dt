@@ -15,7 +15,7 @@
       (for true (< i 3) (incv i)
         (let ((j \ 0))
           (for true (< j 3) (incv j)
-            (setf ($ ($ x i) j) (cast (* i j) float))))))
+            (setf ($ (@ ($ x i)) j) (cast (* i j) float))))))
     0))
 
 )
