@@ -195,7 +195,11 @@ Lexer::getNextToken(Token *token, Error *error)
                 } else {
                     token->str_value.push_back(c);
                 }
-                end_col_count++;
+                if (c == '\n') {
+                    end_line_count++;
+                } else {
+                    end_col_count++;
+                }
             }
             if (c == EOF) {
                 error->instance =

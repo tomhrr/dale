@@ -1,0 +1,16 @@
+(import cstdio)
+
+(def myvar (var intern (p (const char)) "asdf"))
+
+(def myvar2 (var intern (p (const char)) "asdf
+"))
+
+(def myvar3 (var intern (p (const char)) "
+
+asdf
+
+"))
+
+(def main (fn extern-c int (void)
+  asdf
+  0))
