@@ -129,7 +129,6 @@ Context::deactivateNamespace(const char *name)
     }
 
     if (strcmp(name, used_ns_nodes.back()->ns->name.c_str())) {
-        used_ns_nodes.back()->ns->print();
         Error *e = new Error(CannotDeactivateNonLastNamespace,
                              nullNode(), name);
         er->addError(e);
