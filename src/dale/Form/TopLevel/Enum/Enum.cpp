@@ -35,7 +35,7 @@ isValidEnumElement(Units *units, Node *node)
         std::vector<Node *> *lst = node->list;
         if (lst->size() != 2) {
             Error *e = new Error(IncorrectNumberOfArgs,
-                                 node, 2, lst->size());
+                                 node, "enum element", 2, lst->size());
             ctx->er->addError(e);
             return NULL;
         }
