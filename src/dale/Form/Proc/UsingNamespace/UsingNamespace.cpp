@@ -52,6 +52,7 @@ FormProcUsingNamespaceParse(Units *units, Function *fn,
         bool res = FormProcInstParse(units, fn, pr->block, (*b),
                                      get_address, false, NULL, pr);
         if (!res) {
+            ctx->unuseNamespace();
             return false;
         }
     }

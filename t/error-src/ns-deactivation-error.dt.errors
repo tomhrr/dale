@@ -1,0 +1,1 @@
+./t/error-src/ns-deactivation-error.dt:5:6: error: not in scope: 'printf'

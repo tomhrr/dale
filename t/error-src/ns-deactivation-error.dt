@@ -1,0 +1,6 @@
+(namespace a)
+
+(def main (fn extern-c int (void)
+  (using-namespace a
+    (printf "%d\n" 0))
+  0))
