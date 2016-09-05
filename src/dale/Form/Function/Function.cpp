@@ -241,7 +241,7 @@ isValidDeclaration(Context *ctx, Node *node, const char *name,
             ? current_ns->getFunction(name, NULL, NULL, false)
             : current_ns->getFunction(name, &types, &closest_fn,
                                       false, true, &lvalues);
-    if (matching_fn) {
+    if (matching_fn && !matching_fn->is_macro) {
         if (!matching_fn->isEqualTo(fn)) {
             Error *e = new Error(RedeclarationOfFunctionOrMacro,
                                  node, name);

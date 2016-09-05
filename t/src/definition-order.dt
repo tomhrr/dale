@@ -1,0 +1,14 @@
+(import cstdio)
+
+(def x (fn intern int ((a int)) (printf "int\n") a))
+(def x (macro intern (a) (printf "other\n") a))
+
+(def y (macro intern (a) (printf "other\n") a))
+(def y (fn intern int ((a int)) (printf "int\n") a))
+
+(def main (fn extern-c int (void)
+  (x 1)
+  (x "a")
+  (y 1)
+  (y "a")
+  0))
