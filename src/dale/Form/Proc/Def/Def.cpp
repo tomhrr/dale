@@ -225,12 +225,12 @@ parseImplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
             llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
         var->value = dst_ptr;
     } else {
-	llvm::GlobalVariable *llvm_var =
-	    llvm::cast<llvm::GlobalVariable>(
-		units->top()->module->getOrInsertGlobal(var_name.c_str(),
-							llvm_type)
-	    );
-	llvm_var->setLinkage(ctx->toLLVMLinkage(linkage));
+        llvm::GlobalVariable *llvm_var =
+            llvm::cast<llvm::GlobalVariable>(
+                units->top()->module->getOrInsertGlobal(var_name.c_str(),
+                                                        llvm_type)
+            );
+        llvm_var->setLinkage(ctx->toLLVMLinkage(linkage));
         llvm::Constant *init = llvm::dyn_cast<llvm::Constant>(value_pr.value);
         if (!init) {
             Error *e = new Error(MustHaveConstantInitialiser,
@@ -300,89 +300,148 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    llvm::Value *dst_ptr =
-        llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
-    Variable *var = new Variable();
-    var->name.append(name);
-    var->type = type;
-    var->value = dst_ptr;
-    var->linkage = linkage;
+    if (linkage == Linkage::Auto) {
+        llvm::Value *dst_ptr =
+            llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
+        Variable *var = new Variable();
+        var->name.append(name);
+        var->type = type;
+        var->value = dst_ptr;
+        var->linkage = linkage;
 
-    bool res = ctx->ns()->addVariable(name, var);
-    if (!res) {
-        Error *e = new Error(RedefinitionOfVariable, node, name);
-        ctx->er->addError(e);
-        return false;
-    }
-
-    if (value_node_list->size() == 3) {
-        if (type->is_const && !init_fn) {
-            Error *e = new Error(MustHaveInitialiserForConstType,
-                                 value_node);
+        bool res = ctx->ns()->addVariable(name, var);
+        if (!res) {
+            Error *e = new Error(RedefinitionOfVariable, node, name);
             ctx->er->addError(e);
             return false;
         }
 
-        initialise(ctx, &builder, type, dst_ptr, init_fn);
-        pr->set(block, ctx->tr->type_int, ctx->nt->getLLVMZero());
+        if (value_node_list->size() == 3) {
+            if (type->is_const && !init_fn) {
+                Error *e = new Error(MustHaveInitialiserForConstType,
+                                     value_node);
+                ctx->er->addError(e);
+                return false;
+            }
 
-        return true;
-    }
+            initialise(ctx, &builder, type, dst_ptr, init_fn);
+            pr->set(block, ctx->tr->type_int, ctx->nt->getLLVMZero());
 
-    ParseResult value_pr;
-    value_pr.retval      = dst_ptr;
-    value_pr.retval_type = ctx->tr->getPointerType(type);
-    res = FormProcInstParse(units, fn, block,
-                            (*value_node->list)[3],
-                            get_address, false, type, &value_pr);
-    if (!res) {
-        return false;
-    }
-
-    if (value_pr.retval_used) {
-        pr->block = value_pr.block;
-        return true;
-    }
-
-    /* If the initialisation form is a list where the first token is
-     * 'init', then skip this part (assume that the variable has been
-     * initialised by the user). This is to save pointless
-     * copies/destructs, while still allowing the variable to be fully
-     * initialised once the define is complete. */
-
-    Node *var_value_node = (*value_node_list)[3];
-    if (var_value_node->is_list) {
-        Node *first = (*var_value_node->list)[0];
-        if (first && first->is_token
-                && !(first->token->str_value.compare("init"))) {
             return true;
         }
-    }
 
-    if (is_zero_sized) {
-        type = value_pr.type;
+        ParseResult value_pr;
+        value_pr.retval      = dst_ptr;
+        value_pr.retval_type = ctx->tr->getPointerType(type);
+        res = FormProcInstParse(units, fn, block,
+                                (*value_node->list)[3],
+                                get_address, false, type, &value_pr);
+        if (!res) {
+            return false;
+        }
+
+        if (value_pr.retval_used) {
+            pr->block = value_pr.block;
+            return true;
+        }
+
+        /* If the initialisation form is a list where the first token is
+         * 'init', then skip this part (assume that the variable has been
+         * initialised by the user). This is to save pointless
+         * copies/destructs, while still allowing the variable to be fully
+         * initialised once the define is complete. */
+
+        Node *var_value_node = (*value_node_list)[3];
+        if (var_value_node->is_list) {
+            Node *first = (*var_value_node->list)[0];
+            if (first && first->is_token
+                    && !(first->token->str_value.compare("init"))) {
+                return true;
+            }
+        }
+
+        if (is_zero_sized) {
+            type = value_pr.type;
+            var->type = type;
+            llvm_type =
+                ctx->toLLVMType(type, (*value_node_list)[2], false, false);
+            dst_ptr =
+                llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
+            var->value = dst_ptr;
+        }
+
+        builder.SetInsertPoint(value_pr.block);
+
+        res = storeValue(ctx, node, type, &builder, dst_ptr, &value_pr);
+        if (!res) {
+            return false;
+        }
+        ParseResult destruct_pr;
+        res = Operation::Destruct(ctx, &value_pr, &destruct_pr);
+        if (!res) {
+            return false;
+        }
+
+        pr->block = destruct_pr.block;
+        return true;
+    } else {
+        Variable *var = new Variable();
+        var->name.append(name);
         var->type = type;
-        llvm_type =
-            ctx->toLLVMType(type, (*value_node_list)[2], false, false);
-        dst_ptr =
-            llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
-        var->value = dst_ptr;
-    }
+        var->linkage = linkage;
+        std::string var_name;
+        ctx->ns()->nameToSymbol(name, &var_name);
 
-    builder.SetInsertPoint(value_pr.block);
+        bool res = ctx->ns()->addVariable(name, var);
+        if (!res) {
+            Error *e = new Error(RedefinitionOfVariable, node, name);
+            ctx->er->addError(e);
+            return false;
+        }
 
-    res = storeValue(ctx, node, type, &builder, dst_ptr, &value_pr);
-    if (!res) {
-        return false;
-    }
-    ParseResult destruct_pr;
-    res = Operation::Destruct(ctx, &value_pr, &destruct_pr);
-    if (!res) {
-        return false;
-    }
+        llvm::IRBuilder<> builder(block);
+        llvm::GlobalVariable *llvm_var =
+            llvm::cast<llvm::GlobalVariable>(
+                units->top()->module->getOrInsertGlobal(var_name.c_str(),
+                                                        llvm_type)
+            );
+        llvm_var->setLinkage(ctx->toLLVMLinkage(linkage));
+        var->value = llvm::cast<llvm::Value>(llvm_var);
 
-    pr->block = destruct_pr.block;
-    return true;
+        if (value_node_list->size() == 3) {
+            if (type->is_const && !init_fn) {
+                Error *e = new Error(MustHaveInitialiserForConstType,
+                                     value_node);
+                ctx->er->addError(e);
+                return false;
+            }
+
+            pr->set(block, ctx->tr->type_int, ctx->nt->getLLVMZero());
+
+            return true;
+        }
+
+        ParseResult value_pr;
+        res = FormProcInstParse(units, fn, block,
+                                (*value_node->list)[3],
+                                get_address, false, type, &value_pr);
+        if (!res) {
+            return false;
+        }
+
+        llvm::Constant *init = llvm::dyn_cast<llvm::Constant>(value_pr.value);
+        if (!init) {
+            Error *e = new Error(MustHaveConstantInitialiser,
+                                 (*value_node->list)[3]);
+            ctx->er->addError(e);
+            return false;
+        }
+        llvm_var->setInitializer(
+            llvm::cast<llvm::Constant>(value_pr.value)
+        );
+
+        return true;
+    }
 }
 
 bool

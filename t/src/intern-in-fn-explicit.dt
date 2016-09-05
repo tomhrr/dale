@@ -1,0 +1,13 @@
+(import cstdio)
+
+(def myfn (fn intern void (void)
+  (def myintern (var intern int 0))
+  (printf "%d\n" myintern)
+  (setv myintern (+ myintern 1))
+  (return)))
+
+(def main (fn extern-c int (void)
+  (myfn)
+  (myfn)
+  (myfn)
+  0))
