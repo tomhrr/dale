@@ -1,0 +1,18 @@
+(import cstdio)
+
+(using-namespace std.macros
+  (namespace test1
+    (def + (fn extern int ((a int) (b int) (c int))
+      (printf "Called function\n")
+      (+ (+ a b) c)))
+    (namespace test2
+      (def + (macro extern (a b c)
+        (printf "Called macro\n")
+        (qq + (+ (uq a) (uq b)) (uq c)))))))
+
+(def main (fn extern-c int (void)
+  (using-namespace test1
+    (using-namespace test1.test2
+      (printf "%d\n" (+ 1 2 3))
+      (printf "%f\n" (+ 1.0 2.0 3.0))))
+  0))

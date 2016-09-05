@@ -484,6 +484,9 @@ Context::getFunction(const char *name,
         return getFunction_(ns, fn_name, types, closest_fn, is_macro, lvalues);
     }
 
+    std::vector<Function *> candidates;
+    Function *first_closest_fn = NULL;
+
     for (std::vector<NSNode *>::reverse_iterator
             rb = used_ns_nodes.rbegin(),
             re = used_ns_nodes.rend();
@@ -491,9 +494,47 @@ Context::getFunction(const char *name,
             ++rb) {
         Function *fn =
             getFunction_((*rb)->ns, name, types, closest_fn, is_macro, lvalues);
-        if (fn) {
-            return fn;
+        if (closest_fn && !first_closest_fn) {
+            first_closest_fn = *closest_fn;
         }
+        if (fn) {
+            if (!fn->is_macro) {
+                return fn;
+            } else {
+                candidates.push_back(fn);
+            }
+        }
+    }
+
+    Type *dnode = tr->getStructType("DNode");
+    Type *pdnode = tr->getPointerType(dnode);
+
+    if (closest_fn) {
+        *closest_fn = first_closest_fn;
+    }
+
+    if (candidates.size()) {
+        int dnode_count = -1;
+        Function *best_candidate = NULL;
+        for (std::vector<Function *>::iterator b = candidates.begin(),
+                                               e = candidates.end();
+                b != e;
+                ++b) {
+            int current_dnode_count = 0;
+            for (std::vector<Variable *>::iterator pb = (*b)->parameters.begin(),
+                                                   pe = (*b)->parameters.end();
+                    pb != pe;
+                    ++pb) {
+                if ((*pb)->type->isEqualTo(pdnode)) {
+                    current_dnode_count++;
+                }
+            }
+            if (current_dnode_count > dnode_count) {
+                dnode_count = current_dnode_count;
+                best_candidate = (*b);
+            }
+        }
+        return best_candidate;
     }
 
     return NULL;

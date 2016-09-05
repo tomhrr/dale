@@ -1,0 +1,9 @@
+(import cstdio)
+(import macros)
+
+(import operator-macros)
+
+(def main (fn extern-c int (void)
+  (printf "%d\n" (+ 10 2 3))
+  (printf "%d\n" (- 10 2 3))
+  0))
