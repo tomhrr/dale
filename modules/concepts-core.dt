@@ -511,6 +511,36 @@ both A and B.
     (return)))
 
 #|
+@fn std.concepts.concept-map-to-string
+
+|#
+(def concept-map-to-string
+  (fn extern void ((mc (p MContext))
+                   (mapp (p concept-node))
+                   (buf (p char)))
+    (and (= 0 (strcmp (@:@ mapp name) "not-applicable"))
+      (let ((i \ 0))
+        (for true (< i (@:@ mapp refinement-count)) (incv i)
+          (and (!= i 0)
+            (strcat buf ", "))
+          (concept-map-to-string mc (@ (p+ (@:@ mapp refinements) i)) buf))
+        (return)))
+
+    (strcat buf (@:@ mapp name))
+    (let ((i \ 0))
+      (for true (< i (@:@ mapp refinement-count)) (incv i)
+        (if (= i 0)
+            (do (strcat buf " (refines ")
+                (concept-map-to-string mc (@ (p+ (@:@ mapp refinements) i))
+                                       buf))
+            (do (strcat buf ", ")
+                (concept-map-to-string mc (@ (p+ (@:@ mapp refinements) i))
+                                       buf))))
+      (and (!= i 0)
+        (strcat buf ")")))
+    (return)))
+
+#|
 @fn std.concepts.get-type-concept-map
 
 |#
@@ -1017,6 +1047,12 @@ way of the `force` form:
 
         (instantiate MacroName (force ConceptName Type) ...)
 
+Each argument to `instantiate` must implement one or more concepts.
+If any argument does not, the expansion will fail with the error
+message "type does not implement any concepts".  See `implement` in
+this module for details on how types can be made to implement
+concepts.
+
 @param macro-name       The name of the macro to be instantiated.
 |#
 (def instantiate
@@ -1060,9 +1096,22 @@ way of the `force` form:
       (and (= 1 err)
            (return (nullptr DNode)))
       (and (= 0 res)
-           (do (report-error mc varargs-list
-                             "no applicable concept macro found")
-               (return (nullptr DNode))))
+           (let ((i \ 0)
+                 (buf (array-of 8192 char))
+                 (node \ (@$ type-list i))
+                 (node2 \ (@$ type-concept-list i)))
+             (setf ($ buf 0) #\NULL)
+             (strcat buf "no applicable concept macro found (arguments implement the following concepts: ")
+             (while (not (null node))
+               (concept-map-to-string mc node2 buf)
+               (incv i)
+               (setv node (@$ type-list i))
+               (setv node2 (@$ type-concept-list i))
+               (and (not (null node))
+                 (strcat buf "; ")))
+             (strcat buf ")")
+             (report-error mc varargs-list buf)
+             (return (nullptr DNode))))
       (if (= (@$ macbuf 0) #\NULL)
           (do (printf "macbuf not set!\n")
               (return (nullptr DNode)))
