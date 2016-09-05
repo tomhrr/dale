@@ -1,0 +1,12 @@
+(import macros)
+
+(def main (fn extern-c int (void)
+  (for 1 2 3)
+  (while 1)
+  (mfor 1 2)
+  (mfor 1 2 3)
+  (let (1))
+  (let (1) 1)
+  (let ((1)) 1)
+  (let ((1)) 1)
+  0))

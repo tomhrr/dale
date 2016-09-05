@@ -155,6 +155,10 @@ for so long as the condition expression evaluates to `true`.
     (def end-label
         (var auto (p DNode) (make-gensym-label-node mc "breaklabel")))
 
+    (and (null varargs-list)
+      (do (report-error mc condition "no body forms provided")
+          (return (nullptr DNode))))
+
     (walk-nodes varargs-list mc (cast end-label   (p void))
                 (# break-to-goto))
     (walk-nodes varargs-list mc (cast begin-label (p void))
@@ -245,6 +249,10 @@ expression evaluates to true.
         (var auto (p DNode) (make-gensym-label-node mc "continuelabel")))
     (def end-label
         (var auto (p DNode) (make-gensym-label-node mc "breaklabel")))
+    
+    (and (null varargs-list)
+      (do (report-error mc init-form "no body forms provided")
+          (return (nullptr DNode))))
 
     (walk-nodes varargs-list mc (cast end-label (p void))
                 (# break-to-goto))
@@ -294,6 +302,10 @@ expands to:
     (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
     (va-end (cast (# arglist) (p void)))
 
+    (and (null varargs-list)
+      (do (report-error mc new-vars "no body forms provided")
+          (return (nullptr DNode))))
+
     (def nullp (var auto (p DNode) (cast 0 (p DNode))))
 
     (def first-node (var auto (p DNode) (cast 0 (p DNode))))
@@ -317,7 +329,13 @@ expands to:
     (while (not (null vars-node))
 
       (setv name-node    (@:@ vars-node list-node))
+      (and (null name-node)
+        (do (report-error mc vars-node "argument must be a list")
+            (return (nullptr DNode))))
       (setv type-node    (@:@ name-node next-node))
+      (and (null type-node)
+        (do (report-error mc vars-node "list needs variable name and type")
+            (return (nullptr DNode))))
       (setv default-node (@:@ type-node next-node))
 
       (setf (:@ name-node next-node) nullp)
@@ -600,12 +618,21 @@ expands to:
     (va-start (cast (# arglist) (p void)))
     (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
     (va-end (cast (# arglist) (p void)))
+
+    (and (null varargs-list)
+      (do (report-error mc value-name "no body forms provided")
+          (return (nullptr DNode))))
+    (def original-value-list (var auto \ value-list))
+
     (let ((first-node \ (mnfv mc "do"))
           (anchor   \ first-node)
           (body     \ (bqq do (uql varargs-list)))
           (bodycopy (p DNode))
           (ms       mfor-struct))
       (setv value-list (@:@ value-list list-node))
+      (and (null value-list)
+        (do (report-error mc original-value-list "argument must be a list")
+            (return (nullptr DNode))))
       (setf (: ms placeholder) value-name)
       (while (not (null value-list))
         (setv bodycopy (copy mc true body))
