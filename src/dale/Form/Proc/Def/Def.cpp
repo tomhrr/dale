@@ -6,6 +6,7 @@
 #include "../../../Operation/Copy/Copy.h"
 #include "../../Linkage/Linkage.h"
 #include "../../Type/Type.h"
+#include "../../TopLevel/GlobalVariable/GlobalVariable.h"
 #include "../../Struct/Struct.h"
 #include "../../Utils/Utils.h"
 #include "../Inst/Inst.h"
@@ -220,27 +221,9 @@ parseImplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     ctx->ns()->nameToSymbol(name, &var_name);
 
     llvm::IRBuilder<> builder(block);
-    if (linkage == Linkage::Auto) {
-        llvm::Value *dst_ptr =
-            llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
-        var->value = dst_ptr;
-    } else {
-        llvm::GlobalVariable *llvm_var =
-            llvm::cast<llvm::GlobalVariable>(
-                units->top()->module->getOrInsertGlobal(var_name.c_str(),
-                                                        llvm_type)
-            );
-        llvm_var->setLinkage(ctx->toLLVMLinkage(linkage));
-        llvm::Constant *init = llvm::dyn_cast<llvm::Constant>(value_pr.value);
-        if (!init) {
-            Error *e = new Error(MustHaveConstantInitialiser,
-                                 (*value_node->list)[3]);
-            ctx->er->addError(e);
-            return false;
-        }
-        llvm_var->setInitializer(llvm::cast<llvm::Constant>(value_pr.value));
-        var->value = llvm::cast<llvm::Value>(llvm_var);
-    }
+    llvm::Value *dst_ptr =
+        llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
+    var->value = dst_ptr;
 
     res = ctx->ns()->addVariable(name, var);
     if (!res) {
@@ -421,24 +404,13 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
             return true;
         }
 
-        ParseResult value_pr;
-        res = FormProcInstParse(units, fn, block,
-                                (*value_node->list)[3],
-                                get_address, false, type, &value_pr);
-        if (!res) {
-            return false;
-        }
-
-        llvm::Constant *init = llvm::dyn_cast<llvm::Constant>(value_pr.value);
+        llvm::Constant *init = NULL;
+        int size;
+        init = parseLiteral(units, type, (*value_node->list)[3], &size);
         if (!init) {
-            Error *e = new Error(MustHaveConstantInitialiser,
-                                 (*value_node->list)[3]);
-            ctx->er->addError(e);
             return false;
         }
-        llvm_var->setInitializer(
-            llvm::cast<llvm::Constant>(value_pr.value)
-        );
+        llvm_var->setInitializer(init);
 
         return true;
     }
@@ -474,7 +446,8 @@ parseVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
      * is, then the type is implied based on the result of parsing the
      * later expression. */
 
-    if ((*value_node_list)[2]->is_token &&
+    if ((linkage == Linkage::Auto) &&
+            (*value_node_list)[2]->is_token &&
             !(*value_node_list)[2]->token->str_value.compare("\\")) {
         return parseImplicitVarDefinition(units, fn, block, name,
                                           node, get_address, linkage,

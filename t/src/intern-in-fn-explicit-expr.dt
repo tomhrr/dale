@@ -1,7 +1,7 @@
 (import cstdio)
 
 (def myfn (fn intern void (void)
-  (def myintern (var intern \ 0))
+  (def myintern (var intern int (+ 0 1)))
   (printf "%d\n" myintern)
   (setv myintern (+ myintern 1))
   (return)))

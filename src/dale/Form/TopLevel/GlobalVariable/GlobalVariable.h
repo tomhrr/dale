@@ -10,6 +10,7 @@ namespace dale
  *  @param node The node being parsed.
  */
 bool FormTopLevelGlobalVariableParse(Units *units, Node *node);
+llvm::Constant *parseLiteral(Units *units, Type *type, Node *top, int *size);
 }
 
 #endif
