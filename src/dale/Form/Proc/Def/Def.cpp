@@ -212,14 +212,35 @@ parseImplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    llvm::IRBuilder<> builder(block);
-    llvm::Value *dst_ptr =
-        llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
     Variable *var = new Variable();
     var->name.append(name);
     var->type = type;
-    var->value = dst_ptr;
-    var->linkage = Linkage::Auto;
+    var->linkage = linkage;
+    std::string var_name;
+    ctx->ns()->nameToSymbol(name, &var_name);
+
+    llvm::IRBuilder<> builder(block);
+    if (linkage == Linkage::Auto) {
+        llvm::Value *dst_ptr =
+            llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
+        var->value = dst_ptr;
+    } else {
+	llvm::GlobalVariable *llvm_var =
+	    llvm::cast<llvm::GlobalVariable>(
+		units->top()->module->getOrInsertGlobal(var_name.c_str(),
+							llvm_type)
+	    );
+	llvm_var->setLinkage(ctx->toLLVMLinkage(linkage));
+        llvm::Constant *init = llvm::dyn_cast<llvm::Constant>(value_pr.value);
+        if (!init) {
+            Error *e = new Error(MustHaveConstantInitialiser,
+                                 (*value_node->list)[3]);
+            ctx->er->addError(e);
+            return false;
+        }
+        llvm_var->setInitializer(llvm::cast<llvm::Constant>(value_pr.value));
+        var->value = llvm::cast<llvm::Value>(llvm_var);
+    }
 
     res = ctx->ns()->addVariable(name, var);
     if (!res) {
@@ -238,9 +259,11 @@ parseImplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    res = storeValue(ctx, node, type, &builder, dst_ptr, &value_pr);
-    if (!res) {
-        return false;
+    if (linkage == Linkage::Auto) {
+        res = storeValue(ctx, node, type, &builder, var->value, &value_pr);
+        if (!res) {
+            return false;
+        }
     }
 
     ParseResult destruct_pr;

@@ -368,6 +368,10 @@ errorInstanceToString(int error_instance)
     case ErrorInst::RedeclarationOfDifferentKind:
         ret = "'%s' redeclared as different kind of symbol";
         break;
+    case ErrorInst::MustHaveConstantInitialiser:
+        ret = "must have constant initialiser for function-scoped "
+              "intern variable";
+        break;
     default:
         ret = "(Unknown)";
     }

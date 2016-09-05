@@ -144,7 +144,8 @@ enum
 
     ExternalError,
 
-    StructContainsPadding
+    StructContainsPadding,
+    MustHaveConstantInitialiser
 };
 }
 /*! Get the error string for the given error instance.
