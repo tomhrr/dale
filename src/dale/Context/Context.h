@@ -103,6 +103,19 @@ public:
      */
     bool deactivateNamespace(const char *name);
 
+    /*! Activate the namespaces with the given names.
+     *  @param names The names of the namespaces.
+     *
+     *  Activates in order from first to last.
+     */
+    bool activateNamespaces(std::vector<std::string> *names);
+    /*! Deactivate the namespaces with the given names.
+     *  @param names The names of the namespaces.
+     *
+     *  Deactivates in order from last to first.
+     */
+    bool deactivateNamespaces(std::vector<std::string> *names);
+
     /*! Activate a new anonymous namespace. */
     bool activateAnonymousNamespace();
     /*! Deactivate an anonymous namespace.

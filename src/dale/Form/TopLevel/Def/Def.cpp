@@ -87,23 +87,34 @@ FormTopLevelDefParse(Units *units, Node *node)
 
     std::string form = form_token->str_value;
 
+    std::vector<std::string> ns_parts;
+    std::string ss_name(name->str_value);
+    splitString(&ss_name, &ns_parts, '.');
+    std::string unqualified_name = ns_parts.back();
+    ns_parts.pop_back();
+    ctx->activateNamespaces(&ns_parts);
+
     if (!form.compare("fn")) {
-        FormTopLevelFunctionParse(units, node);
+        FormTopLevelFunctionParse(units, value_node, unqualified_name.c_str());
     } else if (!form.compare("var")) {
-        FormTopLevelGlobalVariableParse(units, node);
+        FormTopLevelGlobalVariableParse(units, value_node,
+                                        unqualified_name.c_str());
     } else if (!form.compare("struct")) {
-        FormTopLevelStructParse(units, node);
+        FormTopLevelStructParse(units, value_node, unqualified_name.c_str());
     } else if (!form.compare("macro")) {
-        FormTopLevelMacroParse(units, node);
+        FormTopLevelMacroParse(units, value_node, unqualified_name.c_str());
     } else if (!form.compare("enum")) {
-        FormTopLevelEnumParse(units, node);
+        FormTopLevelEnumParse(units, value_node, unqualified_name.c_str());
     } else {
         Error *e = new Error(IncorrectArgType, form_node,
                              "def", "fn/var/struct/macro/enum",
                              "2:1", form.c_str());
         ctx->er->addError(e);
+        ctx->deactivateNamespaces(&ns_parts);
         return false;
     }
+
+    ctx->deactivateNamespaces(&ns_parts);
 
     return true;
 }

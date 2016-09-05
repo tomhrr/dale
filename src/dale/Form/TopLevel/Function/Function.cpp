@@ -7,8 +7,8 @@
 namespace dale
 {
 bool
-FormTopLevelFunctionParse(Units *units, Node *node)
+FormTopLevelFunctionParse(Units *units, Node *node, const char *name)
 {
-    return FormFunctionParse(units, node, NULL, NULL, Linkage::Null, 0);
+    return FormFunctionParse(units, node, name, NULL, Linkage::Null, 0);
 }
 }

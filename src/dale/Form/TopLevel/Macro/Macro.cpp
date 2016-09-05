@@ -33,12 +33,17 @@ removeMacro(Context *ctx, const char *name)
 }
 
 bool
-FormTopLevelMacroParse(Units *units, Node *node)
+FormTopLevelMacroParse(Units *units, Node *node, const char *name)
 {
     Context *ctx = units->top()->ctx;
 
-    const char *name = (*node->list)[1]->token->str_value.c_str();
-    Node *top = (*node->list)[2];
+    Node *top;
+    if (!name) {
+	name = (*node->list)[1]->token->str_value.c_str();
+        top = (*node->list)[2];
+    } else {
+        top = node;
+    }
 
     if (CoreForms::exists(name)) {
         Error *e = new Error(NoCoreFormNameInMacro, top);

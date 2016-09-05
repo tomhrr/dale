@@ -1,0 +1,24 @@
+(import cstdio)
+
+(def a.f (fn intern int (void)
+  (printf "%d\n" 100)
+  0))
+
+(def a.v (var intern int 101))
+
+(def a.s (struct intern ((a int) (b int))))
+
+(def a.m (macro intern (a) a))
+
+(def a.e (enum intern int (a b c)))
+
+(def main (fn extern-c int (void)
+  (using-namespace a
+    (f)
+    (printf "%d\n" v)
+    (def mys (var auto s ((a 1) (b 2))))
+    (printf "%d %d\n" (@: mys a) (@: mys b))
+    (m (printf "macro test\n"))
+    (def mye (var auto e c))
+    (printf "%d\n" mye))
+  0))

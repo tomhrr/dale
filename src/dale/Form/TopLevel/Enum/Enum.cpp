@@ -73,12 +73,18 @@ isValidEnumElement(Units *units, Node *node)
 }
 
 bool
-FormTopLevelEnumParse(Units *units, Node *node)
+FormTopLevelEnumParse(Units *units, Node *node, const char *name)
 {
     Context *ctx = units->top()->ctx;
 
-    Node *top = (*node->list)[2];
-    const char *name = (*node->list)[1]->token->str_value.c_str();
+    Node *top;
+    if (!name) {
+        Node *name_node = (*(node->list))[1];
+        name = name_node->token->str_value.c_str();
+        top = (*(node->list))[2];
+    } else {
+	top = node;
+    }
 
     std::vector<Node *> *lst = top->list;
     Node *linkage_node   = (*lst)[1];

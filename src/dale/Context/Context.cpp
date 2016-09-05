@@ -119,6 +119,22 @@ Context::activateNamespace(const char *name)
 }
 
 bool
+Context::activateNamespaces(std::vector<std::string> *names)
+{
+    for (std::vector<std::string>::iterator b = names->begin(),
+                                            e = names->end();
+            b != e;
+            ++b) {
+	bool res = activateNamespace(b->c_str());
+        if (!res) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool
 Context::deactivateNamespace(const char *name)
 {
     if (strcmp(name, active_ns_nodes.back()->ns->name.c_str())) {
@@ -137,6 +153,22 @@ Context::deactivateNamespace(const char *name)
 
     used_ns_nodes.pop_back();
     active_ns_nodes.pop_back();
+
+    return true;
+}
+
+bool
+Context::deactivateNamespaces(std::vector<std::string> *names)
+{
+    for (std::vector<std::string>::reverse_iterator b = names->rbegin(),
+                                                    e = names->rend();
+            b != e;
+            ++b) {
+	bool res = deactivateNamespace(b->c_str());
+        if (!res) {
+            return false;
+        }
+    }
 
     return true;
 }

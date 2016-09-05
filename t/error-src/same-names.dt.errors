@@ -1,4 +1,4 @@
 ./t/error-src/same-names.dt:2:8: error: 'a' redeclared as different kind of symbol
 ./t/error-src/same-names.dt:5:8: error: 'b' redeclared as different kind of symbol
-./t/error-src/same-names.dt:8:1: error: 'c' redeclared as different kind of symbol
+./t/error-src/same-names.dt:8:8: error: 'c' redeclared as different kind of symbol
 ./t/error-src/same-names.dt:11:8: error: 'd' redeclared as different kind of symbol
