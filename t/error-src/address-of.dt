@@ -5,5 +5,5 @@
 
 (def main
   (fn extern-c int (void)
-    (def n2 (var intern (p (fn int ((# int)))) (# myfn)))
+    (def n2 (var auto (p (fn int ((# int)))) (# myfn)))
     0))
