@@ -10,6 +10,7 @@ previous one.
 (module bitset-enum)
 
 (import stdlib)
+(import cstdlib)
 (import macros)
 (import introspection)
 
@@ -34,8 +35,32 @@ previous one.
            (not (null forms-list))
            (do (setv forms-list (@:@ forms-list next-node))
                (setv i (<< i 1)))
+        (def name-node (var auto \ forms-list))
+        (def name-list-node (var auto \ (@:@ name-node list-node)))
+        (and (not (null name-list-node))
+          (let ((new-num-node \ (@:@ name-list-node next-node)))
+            (setv name-node name-list-node)
+            (and (null new-num-node)
+              (do (report-error mc forms
+                                "two arguments required for enum element form")
+                  (return (nullptr DNode))))
+            (let ((value \ (@:@ new-num-node token-str)))
+              (and (null value)
+                (do (report-error mc forms
+                                  "atom required for enum element index")
+                    (return (nullptr DNode))))
+              (setv i (strtoul value
+                               (nullptr (p char))
+                               (if (and (= #\0 (@$ value 0))
+                                        (= #\x (@$ value 1)))
+                                   16
+                                   10)))
+              (and (=' i 0)
+                (do (report-error mc new-num-node
+                                  "invalid enum element index")
+                    (return (nullptr DNode)))))))
         (let ((num-node \ (mnfv mc i))
-              (new-form \ (qq (uq forms-list) (uq num-node))))
+              (new-form \ (qq (uq name-node) (uq num-node))))
           (if (null holder)
               (do (setv holder new-form)
                   (setv current new-form))
