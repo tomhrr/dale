@@ -40,10 +40,13 @@ Alignmentof(Context *ctx, llvm::BasicBlock *block, Type *type,
     llvm::IRBuilder<> builder(block);
     llvm::PointerType *lpt = llvm::PointerType::getUnqual(llvm_as_struct);
 
+    std::vector<llvm::Value *> values;
+    values.push_back(ctx->nt->getLLVMZero());
+    values.push_back(ctx->nt->getLLVMOne());
     llvm::Value *pointer =
         builder.CreateGEP(
             llvm::ConstantPointerNull::get(lpt),
-            ctx->nt->getTwoLLVMZeros()
+            llvm::ArrayRef<llvm::Value *>(values)
         );
 
     llvm::Value *res =

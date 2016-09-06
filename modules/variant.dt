@@ -172,8 +172,6 @@
             (setv maxsize (@$ sizes i)))
           (and (> (@$ alignments i) maxalignment)
             (setv maxalignment (@$ alignments i))))
-        ; todo: fix alignmentof.
-        (setv maxalignment (sizeof double))
         (def remsize (var auto size (- maxsize (sizeof (uq enumnode)))))
         (setv remsize (+ remsize (% maxsize maxalignment)))
         (def remsizen (var auto (p DNode) (mnfv mc (cast remsize int))))

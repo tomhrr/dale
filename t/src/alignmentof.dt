@@ -1,0 +1,7 @@
+(import cstdio)
+
+(def main (fn extern-c int (void)
+  (printf "%d\n" (alignmentof char))
+  (printf "%d\n" (alignmentof uint16))
+  (printf "%d\n" (alignmentof int))
+  0))
