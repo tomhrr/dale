@@ -737,7 +737,8 @@ must also implement `LessThanComparable`.
                         (adjust-heights cn)
                         (rebalance setp cn false)
                         0)
-                    (do (setf (:@ cn value) (move (@:@ newnodep value))) 0))
+                    (do (setf (:@ cn value) (move (@:@ newnodep value)))
+                        (free' newnodep)))
                 (return true))))))
 
     #|
