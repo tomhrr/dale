@@ -228,7 +228,9 @@ form and an arbitrary number of other forms as its arguments. Expands
 into a 'for' loop: the initialisation form is run at the beginning,
 the loop entry form is run on loop entry (except on the first
 iteration), and the loop is only run for so long as the condition
-expression evaluates to true.
+expression evaluates to true.  The initialisation form must be either
+a `let` variable binding (e.g. `(i \ 0)`), or a `setv` call (e.g.
+`(setv i 0)`, or the atom `true`.
 
 @param init-form    The initialisation form.
 @param condition    The condition expression.
@@ -259,9 +261,31 @@ expression evaluates to true.
     (walk-nodes varargs-list mc (cast mid-label (p void))
                 (# continue-to-goto))
 
+    (def init-form-final (var auto (p DNode)))
+    (def init-form-list (var auto \ (@:@ init-form list-node)))
+    (if (and (null init-form-list)
+             (= 0 (strcmp (@:@ init-form token-str) "true")))
+        (setv init-form-final init-form)
+    (if (and (not (null init-form-list))
+             (= 0 (strcmp (@:@ init-form-list token-str) "setv")))
+        (setv init-form-final init-form)
+        (do (and (null init-form-list)
+            (do (report-error mc init-form "initialisation form must be a list")
+                (return (nullptr DNode))))
+            (def init-form-token (var auto \ (@:@ init-form-list token-str)))
+            (and (null init-form-token)
+              (do (report-error mc init-form "initialisation form must begin with an atom")
+                  (return (nullptr DNode))))
+            
+            (def type-form (var auto \ (@:@ init-form-list next-node)))
+            (and (null type-form)
+              (do (report-error mc init-form-list "list needs variable name and type")
+                  (return (nullptr DNode))))
+            (setv init-form-final (bqq def (uq init-form-list) (var auto (uql type-form)))))))
+
     (def retform (var auto \
-    (bqq do
-        (uq-nc init-form)
+    (bqq new-scope
+        (uq-nc init-form-final)
         (label (uq begin-label))
           (if (uq-nc condition)
               (do (uql-nc varargs-list)

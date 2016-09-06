@@ -413,6 +413,56 @@ The call to this function must be preceded, at some point, by a call
 to `fn-by-args-count` that uses the same set of parameter types.
 
 
+#### `fn-by-name-count`
+
+Linkage: `extern-c`
+Returns: `int`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+  * `(name (p (const char)))`: A function name.
+
+
+Takes a function name as its single argument.  Returns the number of
+functions with that name that are currently in scope.  Calling this
+function initialises an internal list containing the instances of the
+specified function, which list is used by `fn-by-name-types-count` and
+`fn-by-name-types-type`.
+
+
+#### `fn-by-name-types-count`
+
+Linkage: `extern-c`
+Returns: `int`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+  * `(name (p (const char)))`: A function name.
+  * `(n int)`: The function list index.
+
+
+Takes a function name and an index as its arguments.  Returns the
+parameter count of the function at this index of the generated
+list.
+
+
+#### `fn-by-name-types-type`
+
+Linkage: `extern-c`
+Returns: `(p DNode)`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+  * `(name (p (const char)))`: A function name.
+  * `(n int)`: The function list index.
+  * `(m int)`: The parameter list index.
+
+
+Takes a function name, a function index, and a parameter index as its
+arguments.  Returns the type of the parameter at this index of the
+relevant function.
+
+
 #### `has-errors`
 
 Linkage: `extern-c`

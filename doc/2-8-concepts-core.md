@@ -149,6 +149,30 @@ Parameters:
 
 
 
+#### `std.concepts.concept-map-to-string`
+
+Linkage: `extern`
+Returns: `void`
+Parameters:
+
+  * `(mc (p MContext))`
+  * `(mapp (p concept-node))`
+  * `(buf (p char))`
+
+
+
+#### `std.concepts.concepts-to-string`
+
+Linkage: `extern`
+Returns: `void`
+Parameters:
+
+  * `(mc (p MContext))`
+  * `(name (p DNode))`
+  * `(buf (p char))`
+
+
+
 #### `std.concepts.get-type-concept-map`
 
 Linkage: `extern`
@@ -431,6 +455,16 @@ report an error and expand to nothing. Disambiguation is achieved by
 way of the `force` form:
 
         (instantiate MacroName (force ConceptName Type) ...)
+
+Each argument to `instantiate` must implement one or more concepts.
+If any argument does not, the expansion will fail with the error
+message "type does not implement any concepts".  See `implement` in
+this module for details on how types can be made to implement
+concepts.
+
+If no concept macros that have this name exist, the expansion will
+fail with the error "concept not found".  This is usually caused by a
+missing import statement.
 
 
 [Previous](./2-7-assert.md) | [Next](./2-9-concept-defs.md)

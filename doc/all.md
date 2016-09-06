@@ -252,9 +252,18 @@ The member-value assignments for this enum are as follows:
         g: -1; h: 0; i: 1; j: 2; k: 3
 
 Enum literals may be used wherever a reference to an enum may be used.
-They take the form `({name} {member-name})`. Similarly to structs, the
-`{member-name}` alone can be used where the value will be cast
-implicitly.
+They take the form `({name} {member-name})`:
+
+        (def enum-fn
+          (fn extern void ((n my-enum))
+            (printf "%d\n" n)
+            (return)))
+
+        (enum-fn (my-enum a))
+        (enum-fn (my-enum b))
+
+Similarly to structs, the `{member-name}` alone can be used where the
+value will be cast implicitly.
 
 Enums are strongly-typed. The type name for an enum is `{name}`. When
 an enum is defined, a series of related functions are defined at the
@@ -1649,6 +1658,56 @@ The call to this function must be preceded, at some point, by a call
 to `fn-by-args-count` that uses the same set of parameter types.
 
 
+#### `fn-by-name-count`
+
+Linkage: `extern-c`
+Returns: `int`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+  * `(name (p (const char)))`: A function name.
+
+
+Takes a function name as its single argument.  Returns the number of
+functions with that name that are currently in scope.  Calling this
+function initialises an internal list containing the instances of the
+specified function, which list is used by `fn-by-name-types-count` and
+`fn-by-name-types-type`.
+
+
+#### `fn-by-name-types-count`
+
+Linkage: `extern-c`
+Returns: `int`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+  * `(name (p (const char)))`: A function name.
+  * `(n int)`: The function list index.
+
+
+Takes a function name and an index as its arguments.  Returns the
+parameter count of the function at this index of the generated
+list.
+
+
+#### `fn-by-name-types-type`
+
+Linkage: `extern-c`
+Returns: `(p DNode)`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+  * `(name (p (const char)))`: A function name.
+  * `(n int)`: The function list index.
+  * `(m int)`: The parameter list index.
+
+
+Takes a function name, a function index, and a parameter index as its
+arguments.  Returns the type of the parameter at this index of the
+relevant function.
+
+
 #### `has-errors`
 
 Linkage: `extern-c`
@@ -2514,7 +2573,9 @@ form and an arbitrary number of other forms as its arguments. Expands
 into a 'for' loop: the initialisation form is run at the beginning,
 the loop entry form is run on loop entry (except on the first
 iteration), and the loop is only run for so long as the condition
-expression evaluates to true.
+expression evaluates to true.  The initialisation form must be either
+a `let` variable binding (e.g. `(i \ 0)`), or a `setv` call (e.g.
+`(setv i 0)`, or the atom `true`.
 
 
 #### `let`
@@ -2958,6 +3019,30 @@ Parameters:
 
 
 
+#### `std.concepts.concept-map-to-string`
+
+Linkage: `extern`
+Returns: `void`
+Parameters:
+
+  * `(mc (p MContext))`
+  * `(mapp (p concept-node))`
+  * `(buf (p char))`
+
+
+
+#### `std.concepts.concepts-to-string`
+
+Linkage: `extern`
+Returns: `void`
+Parameters:
+
+  * `(mc (p MContext))`
+  * `(name (p DNode))`
+  * `(buf (p char))`
+
+
+
 #### `std.concepts.get-type-concept-map`
 
 Linkage: `extern`
@@ -3240,6 +3325,16 @@ report an error and expand to nothing. Disambiguation is achieved by
 way of the `force` form:
 
         (instantiate MacroName (force ConceptName Type) ...)
+
+Each argument to `instantiate` must implement one or more concepts.
+If any argument does not, the expansion will fail with the error
+message "type does not implement any concepts".  See `implement` in
+this module for details on how types can be made to implement
+concepts.
+
+If no concept macros that have this name exist, the expansion will
+fail with the error "concept not found".  This is usually caused by a
+missing import statement.
 
 
 ## <a name="concept-defs"></a> 2.9 concept-defs

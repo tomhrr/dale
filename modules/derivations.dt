@@ -206,7 +206,6 @@ macro.
 
 (def-concept-macro = extern ((T Struct))
   (let ((n int (struct-member-count mc T))
-        (i int 0)
         (holder-node  (p DNode) (make-node mc))
         (null-node    (p DNode) (cast 0 (p DNode)))
         (current-node (p DNode) null-node))
@@ -221,7 +220,7 @@ macro.
                   (list-node null-node)
                   (next-node null-node))
 
-    (for true (< i n) (incv i)
+    (for (i \ 0) (< i n) (incv i)
       (let ((name (p DNode) (mnfv mc (struct-member-name mc T i)))
             (type (p DNode) (struct-member-type mc T i)))
 
@@ -267,7 +266,6 @@ macro.
 |#
 (def-concept-macro < extern ((T Struct))
   (let ((n int (struct-member-count mc T))
-        (i int 0)
         (holder-node  (p DNode) (make-node mc))
         (null-node    (p DNode) (cast 0 (p DNode)))
         (current-node (p DNode) null-node))
@@ -282,7 +280,7 @@ macro.
                   (list-node null-node)
                   (next-node null-node))
       
-    (for true (< i n) (incv i)
+    (for (i \ 0) (< i n) (incv i)
       (let ((name (p DNode) (mnfv mc (struct-member-name mc T i)))
             (type (p DNode) (struct-member-type mc T i)))
         

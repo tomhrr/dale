@@ -140,7 +140,9 @@ form and an arbitrary number of other forms as its arguments. Expands
 into a 'for' loop: the initialisation form is run at the beginning,
 the loop entry form is run on loop entry (except on the first
 iteration), and the loop is only run for so long as the condition
-expression evaluates to true.
+expression evaluates to true.  The initialisation form must be either
+a `let` variable binding (e.g. `(i \ 0)`), or a `setv` call (e.g.
+`(setv i 0)`, or the atom `true`.
 
 
 #### `let`

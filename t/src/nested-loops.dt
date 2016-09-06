@@ -8,7 +8,7 @@
     (let ((i \ 0)
           (j \ 0)
           (k \ 0))
-      (for (setv i 0) (< i 3) (incv i)
+      (for true (< i 3) (incv i)
         (printf "i: %d\n" i)
         (and (= i 1)
              (do (printf "break on i = 2\n") (break)))
