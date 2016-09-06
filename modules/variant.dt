@@ -28,13 +28,36 @@ yields:
 
         Direction is north
 
+With parameters for the potential types:
+
+        (def-variant Number ((Int    ((a int)))
+                             (Float  ((a float)))
+                             (Double ((a double)))))
+
+        (def main (fn extern-c int (void)
+          (let ((ni Number (Int 1))
+                (nf Number (Float 2.0))
+                (nd Number (Double (cast 3.0 double)))
+                (na (array-of 3 Number) (array ni nf nd)))
+            (for (i \ 0) (< i 3) (incv i)
+              (let ((nc Number (@$ na i)))
+                (case nc
+                  (Int    (printf "Number is int (%d)\n"    (@:@ nc a)))
+                  (Float  (printf "Number is float (%f)\n"  (@:@ nc a)))
+                  (Double (printf "Number is double (%f)\n" (@:@ nc a)))))))
+          0))
+
+yields:
+
+	Number is int (1)
+	Number is float (2.000000)
+	Number is double (3.000000)
+
 |#
 (module variant (attr cto))
 
 (import cstdio)
 (import stdlib)
-
-; Functional, but needs tidying and documentation.
 
 (using-namespace std.macros
 
@@ -52,7 +75,6 @@ yields:
   (def lookupbuf (var auto (array-of 255 char)))
   (sprintf lookupbuf "_Lookup%s" (@:@ name token-str))
   (def lookupnode (var auto \ (mnfv mc lookupbuf)))
-
   (def cholder6 (var auto (p DNode) (nullptr DNode)))
   (def chlast6  (var auto (p DNode) (nullptr DNode)))
   (def current6 (var auto (p DNode) (@:@ instances list-node)))
@@ -77,7 +99,6 @@ yields:
         (do (setf (:@ chlast6 next-node) mn)
             (setv chlast6 mn))))
   (def struct-defs (var auto (p DNode) (qq do (uql cholder6))))
-
   (def cholder (var auto (p DNode) (nullptr DNode)))
   (def chlast  (var auto (p DNode) (nullptr DNode)))
   (def current (var auto (p DNode) (@:@ instances list-node)))
@@ -91,7 +112,6 @@ yields:
         (if has-args
             (@:@ (@:@ current list-node) next-node)
             (qq void))))
-
     (def inbetween (var auto (p DNode) (qq do 0)))
     (and has-args
       (do (def cholder5 (var auto (p DNode) (nullptr DNode)))
@@ -99,7 +119,13 @@ yields:
           (def current5 (var auto (p DNode) (@:@ args list-node)))
           (while (not (null current5))
             (def aname (var auto (p DNode) (@:@ current5 list-node)))
+            (and (null aname)
+              (do (report-error mc current5 "expected list for variant member")
+                  (return (nullptr DNode))))
             (def atype (var auto (p DNode) (@:@ aname next-node)))
+            (and (null atype)
+              (do (report-error mc current5 "expected type for variant member")
+                  (return (nullptr DNode))))
             (def argset (var auto (p DNode)
               (qq setf (: myval (uq aname)) (uq aname))))
             (setv current5 (@:@ current5 next-node))
@@ -127,7 +153,6 @@ yields:
         (do (setf (:@ chlast next-node) mn)
             (setv chlast mn))))
   (def mcholder (var auto (p DNode) (qq do (uql cholder))))
-
   (def cholder2 (var auto (p DNode) (nullptr DNode)))
   (def chlast2  (var auto (p DNode) (nullptr DNode)))
   (def current2 (var auto (p DNode) (@:@ instances list-node)))

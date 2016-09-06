@@ -1,6 +1,6 @@
 # Dale
 
-[Previous](./2-22-bitset-enum.md) | [Next](./3-2-cfloat.md)
+[Previous](./2-23-variant.md) | [Next](./3-2-cfloat.md)
 
 ## 3.1 cerrno
 
@@ -58,5 +58,5 @@ Parameters: N/A
 Expands to the current error number.
 
 
-[Previous](./2-22-bitset-enum.md) | [Next](./3-2-cfloat.md)
+[Previous](./2-23-variant.md) | [Next](./3-2-cfloat.md)
 

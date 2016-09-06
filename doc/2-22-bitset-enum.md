@@ -1,6 +1,6 @@
 # Dale
 
-[Previous](./2-21-operator-macros.md) | [Next](./3-1-cerrno.md)
+[Previous](./2-21-operator-macros.md) | [Next](./2-23-variant.md)
 
 ## 2.22 bitset-enum
 
@@ -45,5 +45,5 @@ Parameters:
 
 
 
-[Previous](./2-21-operator-macros.md) | [Next](./3-1-cerrno.md)
+[Previous](./2-21-operator-macros.md) | [Next](./2-23-variant.md)
 
