@@ -3,6 +3,6 @@ t/error-src/concept-errors-2.dt:11:1: error: macro expansion error (see previous
 t/error-src/concept-errors-2.dt:14:33: error: no applicable concept macro found (arguments implement the following concepts: Struct (refines Type); Value; current candidates accept: EqualityComparable, Value) (see macro at 14:1)
 t/error-src/concept-errors-2.dt:14:1: error: macro expansion error (see previous)
 t/error-src/concept-errors-2.dt:17:33: error: type does not implement concept LessThanComparable (see macro at 59:21)
-/home/tomh/work/dale/modules/array.dt:59:21: error: macro expansion error (see previous) (see macro at 1173:31)
+array.dt:59:21: error: macro expansion error (see previous) (see macro at 1173:31)
 t/error-src/concept-errors-2.dt:20:33: error: type does not implement concept Swappable (see macro at 59:21)
-/home/tomh/work/dale/modules/array.dt:59:21: error: macro expansion error (see previous) (see macro at 1173:31)
+array.dt:59:21: error: macro expansion error (see previous) (see macro at 1173:31)
