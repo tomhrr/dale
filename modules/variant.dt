@@ -1,4 +1,35 @@
-(module variant)
+#|
+@module variant
+
+Provides `def-variant`, which allows for defining variants, also known
+as sum types or tagged unions.  Variant definition introduces the
+following bindings:
+
+   * a struct type for the variant;
+   * a struct type for each of the variant's potential types;
+   * constructors for each of the potential types, which take as their
+     arguments the members for that potential type in definition
+     order (if any);
+   * a `case` form, which allows for executing a statement based on
+     the underlying type of a particular variant.
+
+For example:
+
+        (def-variant Direction (North South East West))
+
+        (def main (fn extern-c int (void)
+          (let ((direction Direction (North)))
+            (case direction
+              (North (printf "Direction is north\n"))
+              (true  (printf "Direction is not north\n"))))
+          0))
+
+yields:
+
+        Direction is north
+
+|#
+(module variant (attr cto))
 
 (import cstdio)
 (import stdlib)
@@ -6,6 +37,12 @@
 ; Functional, but needs tidying and documentation.
 
 (using-namespace std.macros
+
+(def prefix-token-node (fn extern (p DNode) ((mc (p MContext))
+                                             (node (p DNode)))
+  (def buf (var auto (array-of 255 char)))
+  (sprintf buf "_%s" (@:@ node token-str))
+  (return (mnfv mc buf))))
 
 (def def-variant (macro extern (name instances)
   (def enumbuf (var auto (array-of 255 char)))
@@ -73,10 +110,11 @@
                     (setv chlast5 argset))))
           (setv inbetween (qq do (uql cholder5)))))
 
+    (def name3 (var auto (p DNode) (prefix-token-node mc name2)))
     (def mn (var auto (p DNode)
         (qq def (uq name2) (fn extern (retval (uq name)) (uq args)
           (def myval (var auto (uq name2)))
-          (setf (: myval type) ((uq enumnode) (uq name2)))
+          (setf (: myval type) (uq name3))
           (uq inbetween)
           (memcpy (cast retval (p void))
                   (cast (# myval) (p void))
@@ -98,10 +136,11 @@
         (if (not (null (@:@ current2 list-node)))
             (@:@ current2 list-node)
             current2)))
-    (def nn (var auto (p DNode) (copy-qstr mc name false)))
+    (def nn (var auto (p DNode) (std.macros.copy-qstr mc name false)))
+    (setv name (prefix-token-node mc name))
     (def mn2 (var auto (p DNode)
         (qq (= 0 (strcmp str (uq nn)))
-            ((uq enumnode) (uq name)))))
+            (uq name))))
     (setv current2 (@:@ current2 next-node))
     (if (null cholder2)
         (do (setv cholder2 mn2)
@@ -109,7 +148,7 @@
         (do (setf (:@ chlast2 next-node) mn2)
             (setv chlast2 mn2))))
   (setf (:@ chlast2 next-node)
-    (qq true (cast -1 (uq enumnode))))
+    (qq true (cast -1 (const (uq enumnode)))))
 
   (def mcholder2 (var auto (p DNode) (qq do
     (def _Convert (fn intern (uq enumnode) ((str (p (const char))))
@@ -125,6 +164,7 @@
         (if (not (null (@:@ current3 list-node)))
             (@:@ current3 list-node)
             current3)))
+    (setv name (prefix-token-node mc name))
     (setv current3 (@:@ current3 next-node))
     (setf (:@ name next-node) (nullptr DNode))
     (if (null cholder3)
@@ -174,8 +214,8 @@
             (setv maxalignment (@$ alignments i))))
         (def remsize (var auto size (- maxsize (sizeof (uq enumnode)))))
         (setv remsize (+ remsize (% maxsize maxalignment)))
-        (def remsizen (var auto (p DNode) (mnfv mc (cast remsize int))))
-        (qq def (uq name)
+        (def remsizen (var auto (p DNode) (std.macros.mnfv mc (cast remsize int))))
+        (std.macros.qq def (uq name)
           (struct extern ((type (uq enumnode))
                           (_unused (array-of (uq (uq remsizen)) uint8)))))))
     (mm)
@@ -183,6 +223,10 @@
     (uq mcholder)
     (uq mcholder2)
     (def case (macro extern ((object (uq name)) ...)
+      (and (null (@:@ object token-str))
+        (do (report-error mc object "case expression must be variable name")
+            (return (nullptr DNode))))
+
       (def found (var auto (array-of (uq lc) int)))
       (memset (cast found (p void)) 0 (uq lc))
 
@@ -202,6 +246,7 @@
       (def current (var auto (p DNode) (nullptr DNode)))
       (while (not (null forms))
         (def first (var auto \ (@:@ forms list-node)))
+        (def ffirst (var auto \ (prefix-token-node mc first)))
         (def second (var auto \ (@:@ first next-node)))
 
         (and (not (= 0 (strcmp (@:@ first token-str) "true")))
@@ -224,7 +269,7 @@
                                   (uq (uq second)))))
                 (true
                  (std.macros.qq (= (@: (uq (uq object)) type)
-                                   ((uq enumnode) (uq (uq first))))
+                                   (uq (uq ffirst)))
                                 (let ((ptr \ (cast (# (uq (uq object))) (p void)))
                                       ((uq (uq object))
                                        (p (uq (uq first)))

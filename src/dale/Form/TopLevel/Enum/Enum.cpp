@@ -249,7 +249,7 @@ FormTopLevelEnumParse(Units *units, Node *node, const char *name)
         llvm::GlobalVariable *llvm_var =
             llvm::cast<llvm::GlobalVariable>(
                 units->top()->module->getOrInsertGlobal(new_name.c_str(),
-                                                        llvm_type)
+                                                        llvm_new_struct)
             );
 
         llvm_var->setLinkage(ctx->toLLVMLinkage(linkage));

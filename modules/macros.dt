@@ -189,7 +189,7 @@ be used again.
                                 (if (null (uq tempform))
                                     (do (report-error mc firstnode "unquoting null node")
                                         false)
-                                    (do (setv newnode (copy mc
+                                    (do (setv newnode (std.macros.copy mc
                                                         true (uq tempform)))
                                         (std.macros.copy-to firstnode newnode)
                                         (def (uq vn)
@@ -198,7 +198,7 @@ be used again.
                                         (setf (:@ firstnode next-node)
                                               (@:@ newnode next-node))
                                         (setf
-                                            (:@ (get-last-node newnode)
+                                            (:@ (std.macros.get-last-node newnode)
                                                     next-node) (uq vn))))))
                             (setv block (@:@ block next-node))
                             ;(getchar)
