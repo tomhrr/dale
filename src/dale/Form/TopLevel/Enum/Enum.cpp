@@ -266,7 +266,8 @@ FormTopLevelEnumParse(Units *units, Node *node, const char *name)
         enum_var->linkage = linkage;
         enum_var->value = llvm_var;
 
-        ctx->ns()->addVariable(b->first.c_str(), enum_var);
+        bool res = ctx->ns()->addVariable(b->first.c_str(), enum_var);
+        assert(res && "unable to add enum element variable");
     }
 
     return true;

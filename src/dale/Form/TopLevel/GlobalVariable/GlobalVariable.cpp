@@ -399,7 +399,11 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     nodes.push_back(top);
     Node *wrapper_top = new Node(&nodes);
 
+    ctx->activateAnonymousNamespace();
+    std::string anon_name = ctx->ns()->name;
     FormProcBodyParse(units, wrapper_top, fn, llvm_fn, 0, 0);
+    ctx->deactivateNamespace(anon_name.c_str());
+
     int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
     if (error_count_begin != error_count_end) {
         return NULL;

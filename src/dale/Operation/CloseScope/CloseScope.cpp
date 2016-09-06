@@ -11,7 +11,7 @@ CloseScope(Context *ctx, Function *fn, llvm::BasicBlock *block,
            llvm::Value *skip_value, bool entire)
 {
     std::vector<Variable *> stack_vars;
-    if (entire) {
+    if (entire && fn->index) {
         ctx->ns()->getVarsAfterIndex(fn->index, &stack_vars);
     } else {
         ctx->ns()->getVariables(&stack_vars);
