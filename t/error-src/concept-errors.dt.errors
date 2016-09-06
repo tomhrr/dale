@@ -1,4 +1,4 @@
 ./t/error-src/concept-errors.dt:10:46: error: refinement concept does not exist (see macro at 10:1)
 ./t/error-src/concept-errors.dt:10:1: error: macro expansion error (see previous)
-./t/error-src/concept-errors.dt:40:19: error: no applicable concept macro found (arguments implement the following concepts: Addable) (see macro at 40:1)
+./t/error-src/concept-errors.dt:40:19: error: no applicable concept macro found (arguments implement the following concepts: Addable; current candidates accept: AddableAndSubtractable) (see macro at 40:1)
 ./t/error-src/concept-errors.dt:40:1: error: macro expansion error (see previous)

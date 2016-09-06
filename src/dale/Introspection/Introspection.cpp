@@ -9,6 +9,7 @@ using namespace dale;
 using namespace dale::ErrorInst;
 
 std::map<std::string, std::vector<std::string>*> fn_by_args;
+std::map<std::string, std::vector<Function *> > fn_by_name;
 
 extern "C" {
 Node *
@@ -502,6 +503,67 @@ fn_2D_by_2D_args_2D_name(MContext *mc, DNode *form, int index)
     }
 
     return (*fn_by_args_list)[index].c_str();
+}
+
+int
+fn_2D_by_2D_name_2D_count(MContext *mc, const char *name)
+{
+    dale::Units *units = (dale::Units*) mc->units;
+
+    fn_by_name.clear();
+
+    std::vector<Function *> functions;
+    Context *ctx = units->top()->ctx;
+
+    for (std::vector<NSNode *>::reverse_iterator
+            rb = ctx->used_ns_nodes.rbegin(),
+            re = ctx->used_ns_nodes.rend();
+            rb != re;
+            ++rb) {
+        std::map<std::string, std::vector<Function*>*>::iterator b =
+            (*rb)->ns->functions.find(name);
+        if (b != (*rb)->ns->functions.end()) {
+            std::copy(b->second->begin(), b->second->end(),
+                      std::back_inserter(functions));
+        }
+    }
+
+    fn_by_name.insert(
+        std::pair<std::string, std::vector<Function*> >(
+            name,
+            functions
+        )
+    );
+
+    return (int) functions.size();
+}
+
+int
+fn_2D_by_2D_name_2D_types_2D_count(MContext *mc, const char *name,
+                                   int n)
+{
+    std::map<std::string, std::vector<Function*> >::iterator b =
+        fn_by_name.find(name);
+    if (b == fn_by_name.end()) {
+        return 0;
+    }
+
+    Function *fn = b->second.at(n);
+    return fn->parameters.size();
+}
+
+DNode *
+fn_2D_by_2D_name_2D_types_2D_type(MContext *mc, const char *name,
+                                  int n, int m)
+{
+    std::map<std::string, std::vector<Function*> >::iterator b =
+        fn_by_name.find(name);
+    if (b == fn_by_name.end()) {
+        return 0;
+    }
+
+    Function *fn = b->second.at(n);
+    return fn->parameters.at(m)->type->toNode()->toDNode();
 }
 
 bool

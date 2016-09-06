@@ -53,10 +53,11 @@ must also implement `LessThanComparable`.
 @param-type Value
 |#
 (def-concept-macro Array extern ((T EqualityComparable) (N Value))
-  (if (has-errors mc 
-                  (qq std.concepts.implements (uq T) LessThanComparable))
-      (return (qq std.concepts.implements (uq T) LessThanComparable))
-      0)
+  (mfor C (LessThanComparable Swappable)
+    (if (has-errors mc
+                    (qq std.concepts.implements (uq T) C))
+        (return (qq std.concepts.implements (uq T) C))
+        0) )
   (prefer-ref-bindings (uq T) 1)
 
   (and (= 1 (@:@ N is-list))

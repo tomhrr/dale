@@ -348,6 +348,53 @@ to `fn-by-args-count` that uses the same set of parameter types.
                                    (frm (p DNode)) (n int))))
 
 #|
+@fn fn-by-name-count
+
+Takes a function name as its single argument.  Returns the number of
+functions with that name that are currently in scope.  Calling this
+function initialises an internal list containing the instances of the
+specified function, which list is used by `fn-by-name-types-count` and
+`fn-by-name-types-type`.
+
+@param mc       An MContext.
+@param name     A function name.
+|#
+(def fn-by-name-count (fn extern-c int ((mc   (p MContext))
+                                        (name (p (const char))))))
+
+#|
+@fn fn-by-name-types-count
+
+Takes a function name and an index as its arguments.  Returns the
+parameter count of the function at this index of the generated
+list.
+
+@param mc       An MContext.
+@param name     A function name.
+@param n        The function list index.
+|#
+(def fn-by-name-types-count (fn extern-c int ((mc   (p MContext))
+                                              (name (p (const char)))
+                                              (n    int))))
+
+#|
+@fn fn-by-name-types-type
+
+Takes a function name, a function index, and a parameter index as its
+arguments.  Returns the type of the parameter at this index of the
+relevant function.
+
+@param mc       An MContext.
+@param name     A function name.
+@param n        The function list index.
+@param m        The parameter list index.
+|#
+(def fn-by-name-types-type (fn extern-c (p DNode) ((mc   (p MContext))
+                                                   (name (p (const char)))
+                                                   (n    int)
+                                                   (m    int))))
+
+#|
 @fn has-errors
 
 Evaluates the provided form and returns a boolean indicating whether

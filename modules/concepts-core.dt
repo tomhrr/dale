@@ -345,14 +345,15 @@ reports an error about the concept not being implemented.
 |#
 (def implements
   (macro extern (T C)
-    (let ((fnname (array-of 255 char)))
-      (sprintf fnname "_impl-of-concept-%s"
-                      (@:@ C token-str))
+    (let ((concept-name \ (@:@ C token-str))
+          (fnname (array-of 255 char)))
+      (sprintf fnname "_impl-of-concept-%s" concept-name)
       (let ((fnnode \ (mnfv mc fnname)))
-        (if (not (exists-fn mc (qq int (uq fnnode) (uq T))))
-            (do (report-error mc T "concept not implemented")
-                0)
-            0)
+        (and (not (exists-fn mc (qq int (uq fnnode) (uq T))))
+          (let ((buf (array-of 1024 char)))
+            (sprintf buf "type does not implement concept %s"
+                     concept-name)
+            (report-error mc T buf)))
         (nullptr DNode)))))
 
 #|
@@ -541,6 +542,35 @@ both A and B.
     (return)))
 
 #|
+@fn std.concepts.concepts-to-string
+
+|#
+(def concepts-to-string
+  (fn extern void ((mc (p MContext))
+                   (name (p DNode))
+                   (buf (p char)))
+    (let ((i \ 0)
+          (prename \ (@:@ name token-str))
+          (name (array-of 256 char)))
+      (sprintf name "_finder-%s" prename)
+      (let ((instance-count \ (fn-by-name-count mc name))
+            (type-buf (array-of 1024 char)))
+        (for true (< i instance-count) (incv i)
+          (let ((j \ 0)
+                (types-count \ (fn-by-name-types-count mc name i)))
+            (for true (< j types-count) (incv j)
+              (type-to-display-string
+                mc
+                (fn-by-name-types-type mc name i j)
+                type-buf)
+              (strcat buf type-buf)
+              (and (!= (+ j 1) types-count)
+                (strcat buf ", "))))
+          (and (!= (+ i 1) instance-count)
+            (strcat buf "; ")))
+        (return)))))
+
+#|
 @fn std.concepts.get-type-concept-map
 
 |#
@@ -694,6 +724,7 @@ arguments.
           (return (nullptr DNode))
           0)
       (def newnamenode (var auto \ (mnfv mc newname)))
+      (def original-mts (var auto \ (copy mc true macro-types)))
       (setv macro-types (@:@ macro-types list-node))
       (let ((name-only \ (@:@ macro-types list-node))
             (name-onlyh \ name-only))
@@ -703,10 +734,16 @@ arguments.
                     (@:@ macro-types list-node))
               (setv name-onlyh (@:@ name-onlyh next-node))))
         (setf (:@ name-onlyh next-node) (nullptr DNode))
+        (def finder-name-str (var auto (array-of 256 char)))
+        (sprintf finder-name-str "_finder-%s" (@:@ macro-name token-str))
+        (def finder-node (var auto \ (mnfv mc finder-name-str)))
         (let ((nn \ (qq (uql name-only)))
+              (finder-name-str (array-of 256 char))
               (mine2 \ (qq do
-          (def (uq newnamenode) (macro (uq linkage) (uq nn)
-            (uql varargs-list))))))
+                (def (uq newnamenode) (macro (uq linkage) (uq nn)
+                  (uql varargs-list)))
+                (def (uq finder-node)
+                  (fn (uq linkage) int (uql original-mts) 0)))))
           mine2)))))
 
 #|
@@ -1053,10 +1090,24 @@ message "type does not implement any concepts".  See `implement` in
 this module for details on how types can be made to implement
 concepts.
 
+If no concept macros that have this name exist, the expansion will
+fail with the error "concept not found".  This is usually caused by a
+missing import statement.
+
 @param macro-name       The name of the macro to be instantiated.
 |#
 (def instantiate
   (macro extern (macro-name ...)
+    (let ((i \ 0)
+          (name \ (@:@ macro-name token-str))
+          (finder-name-str (array-of 256 char)))
+      (sprintf finder-name-str "_finder-%s" name)
+      (let ((instance-count \ (fn-by-name-count mc finder-name-str)))
+        (and (= 0 instance-count)
+          (do (report-error mc macro-name
+                            "concept not found")
+              (return (nullptr DNode))))))
+
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 1))
     (def pre-arg-count (var auto \ arg-count))
@@ -1109,6 +1160,8 @@ concepts.
                (setv node2 (@$ type-concept-list i))
                (and (not (null node))
                  (strcat buf "; ")))
+             (strcat buf "; current candidates accept: ")
+             (concepts-to-string mc macro-name buf)
              (strcat buf ")")
              (report-error mc varargs-list buf)
              (return (nullptr DNode))))
