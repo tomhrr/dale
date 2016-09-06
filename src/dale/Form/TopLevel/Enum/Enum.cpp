@@ -83,7 +83,7 @@ FormTopLevelEnumParse(Units *units, Node *node, const char *name)
         name = name_node->token->str_value.c_str();
         top = (*(node->list))[2];
     } else {
-	top = node;
+        top = node;
     }
 
     std::vector<Node *> *lst = top->list;
@@ -222,6 +222,52 @@ FormTopLevelEnumParse(Units *units, Node *node, const char *name)
     BasicTypes::addEnum(ctx, units->top()->module, &(units->top()->once_tag),
                         final_enum_type, enum_type, llvm_enum_type,
                         final_linkage);
+
+    for (std::map<std::string, int64_t>::iterator
+            b = enum_obj->name_to_index.begin(),
+            e = enum_obj->name_to_index.end();
+            b != e;
+            ++b) {
+        if (ctx->ns()->getVariable(b->first.c_str())) {
+            Error *e = new Error(RedefinitionOfVariable, top,
+                                 b->first.c_str());
+            ctx->er->addError(e);
+            return false;
+        }
+        std::string new_name;
+        /* todo: It would be ideal if this were not necessary, because
+         * it will make external bindings a bit of a pain. */
+        new_name.append("_enum_");
+        if (linkage == Linkage::Extern_C) {
+            new_name.append(b->first.c_str());
+        } else {
+            ctx->ns()->nameToSymbol(b->first.c_str(), &new_name);
+        }
+
+        llvm::Type *llvm_type = ctx->toLLVMType(enum_type, NULL,
+                                                false, false);
+        llvm::GlobalVariable *llvm_var =
+            llvm::cast<llvm::GlobalVariable>(
+                units->top()->module->getOrInsertGlobal(new_name.c_str(),
+                                                        llvm_type)
+            );
+
+        llvm_var->setLinkage(ctx->toLLVMLinkage(linkage));
+        llvm_var->setInitializer(
+            llvm::ConstantInt::get(llvm_type, b->second)
+        );
+        llvm_var->setConstant(true);
+
+        Variable *enum_var = new Variable();
+        enum_var->name.append(b->first.c_str());
+        enum_var->type = ctx->tr->getConstType(final_enum_type);
+        enum_var->symbol.append(new_name);
+        enum_var->once_tag = units->top()->once_tag;
+        enum_var->linkage = linkage;
+        enum_var->value = llvm_var;
+
+        ctx->ns()->addVariable(b->first.c_str(), enum_var);
+    }
 
     return true;
 }
