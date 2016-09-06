@@ -2116,6 +2116,17 @@ Returns: `(p DNode)`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
+  * `(n uint64)`: A uint64 integer.
+
+
+
+#### `std.macros.mnfv`
+
+Linkage: `extern`
+Returns: `(p DNode)`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
   * `(f float)`: A float.
 
 
@@ -6744,6 +6755,35 @@ Parameters:
 
 Defines a macro:
 `(name a b ...)` will be expanded to `(name (opname a b) ...)`
+
+
+## <a name="bitset-enum"></a> 2.22 bitset-enum
+
+### Details
+
+Module: bitset-enum
+
+### Description
+
+Provides `def-bitset-enum`, which allows for defining bitset enums.
+These operate in the same way as normal enums, except that the initial
+enum value is 1, and each successor enum value is twice that of the
+previous one.
+
+
+
+### Macros
+
+#### `def-bitset-enum`
+
+Linkage: `extern`
+Parameters:
+
+  * `name`: The name of the new enum.
+  * `linkage`: The linkage for the new enum.
+  * `type`: The type for the new enum.
+  * `forms`: The elements for the new enum.
+
 
 
 ## <a name="cerrno"></a> 3.1 cerrno

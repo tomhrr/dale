@@ -146,6 +146,17 @@ Returns: `(p DNode)`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
+  * `(n uint64)`: A uint64 integer.
+
+
+
+#### `std.macros.mnfv`
+
+Linkage: `extern`
+Returns: `(p DNode)`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
   * `(f float)`: A float.
 
 

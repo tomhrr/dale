@@ -1,0 +1,45 @@
+#|
+@module bitset-enum
+
+Provides `def-bitset-enum`, which allows for defining bitset enums.
+These operate in the same way as normal enums, except that the initial
+enum value is 1, and each successor enum value is twice that of the
+previous one.
+
+|#
+(module bitset-enum)
+
+(import stdlib)
+(import macros)
+(import introspection)
+
+#|
+@macro def-bitset-enum
+
+@param name     The name of the new enum.
+@param linkage  The linkage for the new enum.
+@param type     The type for the new enum.
+@param forms    The elements for the new enum.
+|#
+(def def-bitset-enum
+  (macro extern (name linkage type forms)
+    (using-namespace std.macros
+      (def forms-list (var auto \ (@:@ forms list-node)))
+      (and (null forms-list)
+        (do (report-error mc forms "list required for enum forms")
+            (return (nullptr DNode))))
+      (def holder  (var auto (p DNode) (nullptr DNode)))
+      (def current (var auto (p DNode) (nullptr DNode)))
+      (for (i uint64 1)
+           (not (null forms-list))
+           (do (setv forms-list (@:@ forms-list next-node))
+               (setv i (<< i 1)))
+        (let ((num-node \ (mnfv mc i))
+              (new-form \ (qq (uq forms-list) (uq num-node))))
+          (if (null holder)
+              (do (setv holder new-form)
+                  (setv current new-form))
+              (do (setf (:@ current next-node) new-form)
+                  (setv current new-form)))))
+      (def wrapper (var auto (p DNode) (qq (uql holder))))
+      (qq def (uq name) (enum (uq linkage) (uq type) (uq wrapper))))))

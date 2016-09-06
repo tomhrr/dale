@@ -1,6 +1,6 @@
 # Dale
 
-[Previous](./2-20-unique-ptr.md) | [Next](./3-1-cerrno.md)
+[Previous](./2-20-unique-ptr.md) | [Next](./2-22-bitset-enum.md)
 
 ## 2.21 operator-macros
 
@@ -61,5 +61,5 @@ Defines a macro:
 `(name a b ...)` will be expanded to `(name (opname a b) ...)`
 
 
-[Previous](./2-20-unique-ptr.md) | [Next](./3-1-cerrno.md)
+[Previous](./2-20-unique-ptr.md) | [Next](./2-22-bitset-enum.md)
 
