@@ -63,25 +63,6 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    /* Attempt to cast index_pr to a size type, if it is not such a
-     * type already. */
-
-    if (index_pr.type->base_type != BaseType::Size) {
-        ParseResult index_pr_size;
-        bool res = Operation::Cast(ctx, index_pr.block, index_pr.value,
-                                   index_pr.type, ctx->tr->type_size,
-                                   index_node, true, &index_pr_size);
-        if (!res) {
-            std::string type_str;
-            index_pr.type->toString(&type_str);
-            Error *e = new Error(IncorrectArgType, index_node,
-                                 "$", "int", "2", type_str.c_str());
-            ctx->er->addError(e);
-            return false;
-        }
-        index_pr_size.copyTo(&index_pr);
-    }
-
     llvm::IRBuilder<> builder(index_pr.block);
     std::vector<llvm::Value *> indices;
     if (!is_array) {
