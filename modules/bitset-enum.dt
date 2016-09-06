@@ -4,7 +4,21 @@
 Provides `def-bitset-enum`, which allows for defining bitset enums.
 These operate in the same way as normal enums, except that the initial
 enum value is 1, and each successor enum value is twice that of the
-previous one.
+previous one.  For example,
+
+        (def-bitset-enum my-enum intern int (a b c d))
+
+expands to:
+
+        (def my-enum (enum intern int ((a 1) (b 2) (c 4) (d 8))))
+
+and
+
+        (def-bitset-enum my-enum intern int ((a 0x2) b c d))
+
+expands to:
+
+        (def my-enum (enum intern int ((a 0x2) (b 0x4) (c 0x8) (d 0x10))))
 
 |#
 (module bitset-enum)

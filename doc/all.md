@@ -251,19 +251,8 @@ The member-value assignments for this enum are as follows:
         a: 0; b:  1; c: 2; d: 1; e: 2; f: 0;
         g: -1; h: 0; i: 1; j: 2; k: 3
 
-Enum literals may be used wherever a reference to an enum may be used.
-They take the form `({name} {member-name})`:
-
-        (def enum-fn
-          (fn extern void ((n my-enum))
-            (printf "%d\n" n)
-            (return)))
-
-        (enum-fn (my-enum a))
-        (enum-fn (my-enum b))
-
-Similarly to structs, the `{member-name}` alone can be used where the
-value will be cast implicitly.
+When an enum is defined, const variable bindings are introduced for
+each enum element, mapping to the value for that element.
 
 Enums are strongly-typed. The type name for an enum is `{name}`. When
 an enum is defined, a series of related functions are defined at the
@@ -6768,7 +6757,21 @@ Module: bitset-enum
 Provides `def-bitset-enum`, which allows for defining bitset enums.
 These operate in the same way as normal enums, except that the initial
 enum value is 1, and each successor enum value is twice that of the
-previous one.
+previous one.  For example,
+
+        (def-bitset-enum my-enum intern int (a b c d))
+
+expands to:
+
+        (def my-enum (enum intern int ((a 1) (b 2) (c 4) (d 8))))
+
+and
+
+        (def-bitset-enum my-enum intern int ((a 0x2) b c d))
+
+expands to:
+
+        (def my-enum (enum intern int ((a 0x2) (b 0x4) (c 0x8) (d 0x10))))
 
 
 
