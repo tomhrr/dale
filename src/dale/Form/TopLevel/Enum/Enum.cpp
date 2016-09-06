@@ -253,9 +253,10 @@ FormTopLevelEnumParse(Units *units, Node *node, const char *name)
             );
 
         llvm_var->setLinkage(ctx->toLLVMLinkage(linkage));
-        llvm_var->setInitializer(
-            llvm::ConstantInt::get(llvm_type, b->second)
-        );
+        std::vector<llvm::Constant *> constants;
+        constants.push_back(llvm::ConstantInt::get(llvm_type, b->second));
+        llvm_var->setInitializer(llvm::ConstantStruct::get(llvm_new_struct,
+                                                           constants));
         llvm_var->setConstant(true);
 
         Variable *enum_var = new Variable();
