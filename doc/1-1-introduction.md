@@ -14,6 +14,7 @@ similar to C, with the following additional features:
   * function structs;
   * reference parameters;
   * initialisers and destructors;
+  * variant types;
   * namespaces;
   * modules;
   * concepts; and
