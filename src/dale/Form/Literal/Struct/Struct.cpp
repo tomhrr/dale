@@ -109,7 +109,7 @@ FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
         block = value_pr.block;
         builder.SetInsertPoint(block);
-        builder.CreateStore(value_pr.value, storage_ptr);
+        builder.CreateStore(value_pr.getValue(ctx), storage_ptr);
     }
 
     if (get_address) {

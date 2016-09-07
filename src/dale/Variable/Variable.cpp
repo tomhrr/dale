@@ -18,6 +18,7 @@ Variable::Variable(const char *name, Type *type)
 
     has_initialiser = 0;
     index           = 0;
+    serialise       = true;
     linkage         = Linkage::Auto;
 }
 

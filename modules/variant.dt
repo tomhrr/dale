@@ -166,7 +166,7 @@ yields:
     (setf (:@ last next-node)
       (qq true (cast -1 (const (uq enumnode)))))
     (qq do
-      (def _Convert (fn intern (uq enumnode) ((_unused (uq enumnode))
+      (def _Convert (fn extern (uq enumnode) ((_unused (uq enumnode))
                                               (str (p (const char))))
         (def res (var auto \ (cond (uql holder))))
         res))))))
@@ -225,7 +225,7 @@ yields:
           (maker-node \ (qq (uq maker-name))))
       (qq do
         (def (uq maker-name)
-          (macro intern (void)
+          (macro extern (void)
             (def sizes (var auto (array-of (uq lc) size)))
             (def alignments (var auto (array-of (uq lc) size)))
             (uq sizes-and-alignments)

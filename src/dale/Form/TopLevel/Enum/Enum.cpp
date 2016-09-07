@@ -238,7 +238,7 @@ FormTopLevelEnumParse(Units *units, Node *node, const char *name)
         /* todo: It would be ideal if this were not necessary, because
          * it will make external bindings a bit of a pain. */
         new_name.append("_enum_");
-        if (linkage == Linkage::Extern_C) {
+        if (final_linkage == Linkage::Extern_C) {
             new_name.append(b->first.c_str());
         } else {
             ctx->ns()->nameToSymbol(b->first.c_str(), &new_name);
@@ -252,7 +252,7 @@ FormTopLevelEnumParse(Units *units, Node *node, const char *name)
                                                         llvm_new_struct)
             );
 
-        llvm_var->setLinkage(ctx->toLLVMLinkage(linkage));
+        llvm_var->setLinkage(ctx->toLLVMLinkage(final_linkage));
         std::vector<llvm::Constant *> constants;
         constants.push_back(llvm::ConstantInt::get(llvm_type, b->second));
         llvm_var->setInitializer(llvm::ConstantStruct::get(llvm_new_struct,
@@ -264,7 +264,7 @@ FormTopLevelEnumParse(Units *units, Node *node, const char *name)
         enum_var->type = ctx->tr->getConstType(final_enum_type);
         enum_var->symbol.append(new_name);
         enum_var->once_tag = units->top()->once_tag;
-        enum_var->linkage = linkage;
+        enum_var->linkage = final_linkage;
         enum_var->value = llvm_var;
 
         bool res = ctx->ns()->addVariable(b->first.c_str(), enum_var);
