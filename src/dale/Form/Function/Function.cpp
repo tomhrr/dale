@@ -454,8 +454,8 @@ FormFunctionParse(Units *units, Node *node, const char *name,
      * invalid redefinition.  These error conditions should be caught
      * by isValidDeclaration, but there's no harm in leaving this
      * check here as a stopgap. */
-
     if (!llvm_fn || llvm_fn->size()) {
+        fprintf(stderr, "%s\n", symbol.c_str());
         assert(false && "uncaught invalid redeclaration");
         abort();
     }

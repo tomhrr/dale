@@ -170,7 +170,8 @@ yields:
     (setf (:@ last next-node)
       (qq true (cast -1 (const (uq enumnode)))))
     (qq do
-      (def _Convert (fn intern (uq enumnode) ((str (p (const char))))
+      (def _Convert (fn intern (uq enumnode) ((_unused (uq enumnode))
+                                              (str (p (const char))))
         (def res (var auto \ (cond (uql holder))))
         res))))))
 
@@ -251,6 +252,7 @@ yields:
 
 (def create-case (fn intern (p DNode) ((mc (p MContext))
                                        (name (p DNode))
+                                       (enumnode (p DNode))
                                        (instances (p DNode)))
   (let ((lc \ (mnfv mc (list-count instances))))
     (qq do
@@ -281,7 +283,8 @@ yields:
                   (is-true     \ (and (not (null first-token))
                                       (= 0 (strcmp first-token "true")))))
               (and (not is-true)
-                (do (def ev (var auto \ (_Convert first-token)))
+                (do (def ev (var auto \ (_Convert (cast -1 (uq enumnode))
+                                                  first-token)))
                     (if (= (cast ev int) -1)
                         (do (report-error mc first "invalid variant type")
                             (return (nullptr DNode)))
@@ -339,7 +342,7 @@ yields:
         (lc             \ (mnfv mc (list-count instances)))
         (enum-elements  \ (create-enum-elements mc instances))
         (variant-struct \ (create-variant-struct mc name enumnode instances))
-        (case-def       \ (create-case mc name instances)))
+        (case-def       \ (create-case mc name enumnode instances)))
     (qq do
       (def (uq enumnode) (enum extern int (uq enum-elements)))
       (uq struct-defs)

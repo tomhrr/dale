@@ -1,0 +1,28 @@
+(import variant)
+(import cstdio)
+
+(using-namespace std.macros
+
+(def-variant Direction (Left Right))
+(def-variant Movement  (Forwards Backwards))
+
+(def main (fn extern-c int (void)
+  (let ((left  Direction (Left))
+        (right Direction (Right))
+        (fwd   Movement  (Forwards))
+        (bwd   Movement  (Backwards)))
+    (case left
+      (Left (printf "Left (expected)\n"))
+      (Right (printf "Right (unexpected)\n")))
+    (case right
+      (Left (printf "Left (unexpected)\n"))
+      (Right (printf "Right (expected)\n")))
+    (case fwd
+      (Forwards (printf "Forwards (expected)\n"))
+      (Backwards (printf "Backwards (unexpected)\n")))
+    (case bwd
+      (Forwards (printf "Forwards (unexpected)\n"))
+      (Backwards (printf "Backwards (expected)\n"))))
+  0))
+
+)
