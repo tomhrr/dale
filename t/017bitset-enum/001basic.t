@@ -18,7 +18,7 @@ is($?, 0, 'Program executed successfully');
 chomp for @res;
 
 is_deeply(\@res, [
-    '1', '2', '4'
+    '0', '1', '2', '4', '8'
 ], 'Got expected results');
 
 `rm bitset-enum-basic`;

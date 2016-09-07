@@ -2,15 +2,15 @@
 @module bitset-enum
 
 Provides `def-bitset-enum`, which allows for defining bitset enums.
-These operate in the same way as normal enums, except that the initial
-enum value is 1, and each successor enum value is twice that of the
-previous one.  For example,
+These operate in the same way as normal enums, except that the
+sequence goes 0, 1, 2, 4, ..., with each successive value being twice
+that of the previous one.  For example,
 
         (def-bitset-enum my-enum intern int (a b c d))
 
 expands to:
 
-        (def my-enum (enum intern int ((a 1) (b 2) (c 4) (d 8))))
+        (def my-enum (enum intern int ((a 0) (b 1) (c 2) (d 4))))
 
 and
 
@@ -45,10 +45,10 @@ expands to:
             (return (nullptr DNode))))
       (def holder  (var auto (p DNode) (nullptr DNode)))
       (def current (var auto (p DNode) (nullptr DNode)))
-      (for (i uint64 1)
+      (for (i uint64 0)
            (not (null forms-list))
            (do (setv forms-list (@:@ forms-list next-node))
-               (setv i (<< i 1)))
+               (setv i (if (=' i 0) (cast 1 uint64) (<< i 1))))
         (def name-node (var auto \ forms-list))
         (def name-list-node (var auto \ (@:@ name-node list-node)))
         (and (not (null name-list-node))
