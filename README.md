@@ -12,7 +12,7 @@ similar to C, with the following additional features:
   * function structs;
   * reference parameters;
   * initialisers and destructors;
-  * variant types;
+  * variants;
   * namespaces;
   * modules;
   * concepts; and
@@ -283,6 +283,32 @@ able to be built.  It has been tested on the following:
 ```
 ```
 > 0 1 2 3 4 5 6 7 8 9 
+```
+
+**variants**
+
+```
+(import variant)
+(import cstdio)
+
+(def-variant Number ((Int    ((a int)))
+                     (Float  ((a float)))))
+
+(def main (fn extern-c int (void)
+  (let ((ni Number (Int 1))
+        (nf Number (Float 2.0))
+        (na (array-of 2 Number) (array ni nf)))
+    (for (i \ 0) (< i 2) (incv i)
+      (let ((nc Number (@$ na i)))
+        (case nc
+          (Int    (printf "Number is int (%d)\n"    (@:@ nc a)))
+          (Float  (printf "Number is float (%f)\n"  (@:@ nc a)))))))
+  0))
+
+```
+```
+> Number is int (1)
+> Number is float (2.000000)
 ```
 
 ### Bugs/problems/suggestions

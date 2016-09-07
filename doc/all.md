@@ -12,7 +12,7 @@ similar to C, with the following additional features:
   * function structs;
   * reference parameters;
   * initialisers and destructors;
-  * variant types;
+  * variants;
   * namespaces;
   * modules;
   * concepts; and
@@ -6828,27 +6828,37 @@ yields:
 With parameters for the potential types:
 
         (def-variant Number ((Int    ((a int)))
-                             (Float  ((a float)))
-                             (Double ((a double)))))
+                             (Float  ((a float)))))
 
         (def main (fn extern-c int (void)
           (let ((ni Number (Int 1))
                 (nf Number (Float 2.0))
-                (nd Number (Double (cast 3.0 double)))
-                (na (array-of 3 Number) (array ni nf nd)))
-            (for (i \ 0) (< i 3) (incv i)
+                (na (array-of 2 Number) (array ni nf)))
+            (for (i \ 0) (< i 2) (incv i)
               (let ((nc Number (@$ na i)))
                 (case nc
                   (Int    (printf "Number is int (%d)\n"    (@:@ nc a)))
-                  (Float  (printf "Number is float (%f)\n"  (@:@ nc a)))
-                  (Double (printf "Number is double (%f)\n" (@:@ nc a)))))))
+                  (Float  (printf "Number is float (%f)\n"  (@:@ nc a)))))))
           0))
 
 yields:
 
 	Number is int (1)
 	Number is float (2.000000)
-	Number is double (3.000000)
+
+
+
+### Macros
+
+#### `def-variant`
+
+Linkage: `extern`
+Parameters:
+
+  * `name`: The name of the new variant.
+  * `instances`: The type definitions for the variant.
+
+
 
 ## <a name="cerrno"></a> 3.1 cerrno
 

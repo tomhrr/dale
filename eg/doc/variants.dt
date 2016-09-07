@@ -1,0 +1,17 @@
+(import variant)
+(import cstdio)
+
+(def-variant Number ((Int    ((a int)))
+                     (Float  ((a float)))))
+
+(def main (fn extern-c int (void)
+  (let ((ni Number (Int 1))
+        (nf Number (Float 2.0))
+        (na (array-of 2 Number) (array ni nf)))
+    (for (i \ 0) (< i 2) (incv i)
+      (let ((nc Number (@$ na i)))
+        (case nc
+          (Int    (printf "Number is int (%d)\n"    (@:@ nc a)))
+          (Float  (printf "Number is float (%f)\n"  (@:@ nc a)))))))
+  0))
+

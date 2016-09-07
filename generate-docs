@@ -53,6 +53,7 @@ my @examples = qw(
     error-reporting
     derivations
     containers
+    variants
 );
 
 sub file_to_title
