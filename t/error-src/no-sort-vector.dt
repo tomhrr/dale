@@ -1,0 +1,10 @@
+(import macros)
+(import vector)
+(import algorithms)
+(import concepts)
+
+(def mys (struct intern ((a int))))
+(std.concepts.implement MoveConstructible mys)
+
+(std.concepts.instantiate Vector mys)
+(std.concepts.instantiate sort (Iterator (Vector mys)))

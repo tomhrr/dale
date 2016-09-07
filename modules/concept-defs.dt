@@ -203,7 +203,6 @@ conditions hold:
 
   * `value-type`, `difference-type` and `size-type` macros exist over
     pointers to the type;
-  * the `value-type` of the type is `Swappable`;
   * `size`, `max-size`, `empty`, `swap` and `init` are defined over
     pointers to the type;
   * the container has an iterator type; and
@@ -221,10 +220,7 @@ conditions hold:
                   T "size-type is not defined over this type")
   (if (not success)
       false
-  (do (concept-assert (not (has-errors mc (qq implements
-                                           (value-type (nullptr (uq T)))
-                                           Swappable)))
-                  T "value-type is not Swappable")
+  (do
   (concept-assert (exists-type mc (qq Iterator (uq T)))
                   T "no Iterator type found for container")
   (concept-assert (exists-fn mc (qq (Iterator (uq T)) begin (uq T)))
@@ -248,28 +244,18 @@ conditions hold:
 #|
 @concept ForwardContainer
 
-Refines `Container`, `EqualityComparable` and `LessThanComparable`.
+Refines `Container`.
 
 Additional requirements:
 
-  * the iterator type must be an `InputIterator`; and
-  * the value type for the container must be both `EqualityComparable`
-    and `LessThanComparable`.
+  * the iterator type must be an `InputIterator`.
 
 |#
-(def-concept ForwardContainer (refines Container
-                                       EqualityComparable
-                                       LessThanComparable) (T)
+(def-concept ForwardContainer (refines Container) (T)
   (let ((success \ true))
   (concept-assert (not (has-errors mc (qq implements
                       (Iterator (uq T)) InputIterator)))
                   T "Iterator type is not an InputIterator")
-  (concept-assert (not (has-errors mc (qq implements
-                      (value-type (nullptr (uq T))) EqualityComparable)))
-                  T "value-type is not EqualityComparable")
-  (concept-assert (not (has-errors mc (qq implements
-                      (value-type (nullptr (uq T))) LessThanComparable)))
-                  T "value-type is not LessThanComparable")
   success))
 
 #|

@@ -1,0 +1,2 @@
+algorithms.dt:149:19: error: type does not implement concept LessThanComparable (see macro at 19:19)
+algorithms.dt:19:19: error: macro expansion error (see previous) (see macro at 1155:31)

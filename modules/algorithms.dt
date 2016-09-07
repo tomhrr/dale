@@ -13,6 +13,11 @@ Provides concept macros for generating algorithm functions.
 (using-namespace std.macros
 (using-namespace std.concepts
 
+(def assert-concept (macro extern (T C)
+  (qq
+    and (has-errors mc (qq std.concepts.implements (uq T) (uq C)))
+      (return (qq std.concepts.implements (uq T) (uq C))))))
+
 #|
 @macro Predicate
 
@@ -140,10 +145,9 @@ pretty slow.)
 @param Ti   The iterator type.
 |#
 (def-concept-macro sort extern ((Ti RandomAccessIterator))
-  (if (has-errors mc 
-                  (qq std.concepts.implements (uq Ti) OutputIterator))
-      (return (qq std.concepts.implements (uq Ti) OutputIterator))
-      0)
+  (assert-concept (uq Ti) OutputIterator)
+  (assert-concept (value-type (nullptr (uq Ti))) LessThanComparable)
+  (assert-concept (value-type (nullptr (uq Ti))) Swappable)
   (qq do
     (def sort-partition
       (fn extern (uq Ti) ((begin (uq Ti))
@@ -212,6 +216,7 @@ The function assumes that the range is sorted.
 |#
 (def-concept-macro lower-bound extern ((Ti RandomAccessIterator))
   (prefer-ref-bindings (value-type (nullptr (uq Ti))) 1)
+  (assert-concept (value-type (nullptr (uq Ti))) LessThanComparable)
   (qq do    
     (def lower-bound 
       (fn extern (uq Ti) ((b (uq Ti))
@@ -245,6 +250,7 @@ The function assumes that the range is sorted.
 |#
 (def-concept-macro upper-bound extern ((Ti RandomAccessIterator))
   (prefer-ref-bindings (value-type (nullptr (uq Ti))) 1)
+  (assert-concept (value-type (nullptr (uq Ti))) LessThanComparable)
   (qq do
     (def upper-bound
       (fn extern (uq Ti) ((b (uq Ti))
@@ -278,6 +284,7 @@ assumes that the range is sorted.
 |#
 (def-concept-macro binary-search extern ((Ti RandomAccessIterator))
   (prefer-ref-bindings (value-type (nullptr (uq Ti))) 1)
+  (assert-concept (value-type (nullptr (uq Ti))) LessThanComparable)
   (qq do
     (def binary-search
       (fn extern bool ((b (uq Ti))
@@ -326,10 +333,7 @@ that do not permit copying.
   (if (exists-fn mc (qq (uq T) max (uq T) (uq T)))
       (return (nullptr DNode))
       0)
-  (if (has-errors mc
-                  (qq std.concepts.implements (uq T) LessThanComparable))
-      (return (qq std.concepts.implements (uq T) LessThanComparable))
-      0)
+  (assert-concept (uq T) LessThanComparable)
   (qq do
     (def max (fn extern (uq T) ((a (uq T)) 
                                 (b (uq T)))
@@ -339,10 +343,7 @@ that do not permit copying.
   (if (exists-fn mc (qq (uq T) max (uq T) (uq T)))
       (return (nullptr DNode))
       0)
-  (if (has-errors mc
-                  (qq std.concepts.implements (uq T) LessThanComparable))
-      (return (qq std.concepts.implements (uq T) LessThanComparable))
-      0)
+  (assert-concept (uq T) LessThanComparable)
   (qq do
     (def max (fn extern (retval (uq T)) ((a (ref (const (uq T))))
                                          (b (ref (const (uq T)))))
@@ -365,10 +366,7 @@ that do not permit copying.
   (if (exists-fn mc (qq (uq T) min (uq T) (uq T)))
       (return (nullptr DNode))
       0)
-  (if (has-errors mc
-                  (qq std.concepts.implements (uq T) LessThanComparable))
-      (return (qq std.concepts.implements (uq T) LessThanComparable))
-      0)
+  (assert-concept (uq T) LessThanComparable)
   (qq do
     (def min (fn extern (uq T) ((a (uq T)) 
                                 (b (uq T)))
@@ -378,10 +376,7 @@ that do not permit copying.
   (if (exists-fn mc (qq (uq T) min (uq T) (uq T)))
       (return (nullptr DNode))
       0)
-  (if (has-errors mc
-                  (qq std.concepts.implements (uq T) LessThanComparable))
-      (return (qq std.concepts.implements (uq T) LessThanComparable))
-      0)
+  (assert-concept (uq T) LessThanComparable)
   (qq do
     (def min (fn extern (retval (uq T)) ((a (ref (const (uq T))))
                                          (b (ref (const (uq T)))))
@@ -496,6 +491,7 @@ the elements of those containers match.
 @param Tc   The container type.
 |#
 (def-concept-macro = extern ((Tc Container))
+  (assert-concept (value-type (nullptr (uq Tc))) EqualityComparable)
   (qq do
     (def = (fn extern bool ((c1 (ref (uq Tc)))
                             (c2 (ref (uq Tc))))
@@ -530,6 +526,7 @@ values, for the same reasons as `=`).
 @param Tc   The container type.
 |#
 (def-concept-macro < extern ((Tc Container))
+  (assert-concept (value-type (nullptr (uq Tc))) LessThanComparable)
   (qq do
     (def < (fn extern bool ((c1 (ref (uq Tc)))
                             (c2 (ref (uq Tc))))

@@ -53,6 +53,7 @@ the concept macro.
 Expands to a `List` definition over the relevant type.
 
 @param T    The type node.
+@param-type Type
 |#
 (def-concept-macro List extern ((T Type))
   (prefer-ref-bindings (uq T) 1)
@@ -92,6 +93,26 @@ Expands to a `List` definition over the relevant type.
                                                         (src (p (List (uq T)))))
                    (clear (@ dst))
                    (setf-copy-init dst src)))))))
+
+    (def is-equality-comparable
+      (var auto bool (not (has-errors mc
+                                      (qq std.concepts.implements
+                                          (uq T) EqualityComparable)))))
+    (def is-less-than-comparable
+      (var auto bool (not (has-errors mc
+                                      (qq std.concepts.implements
+                                          (uq T) LessThanComparable)))))
+
+    (def equality-comparable-forms (var auto (p DNode)
+        (if is-equality-comparable
+            (qq do (mfor F (= !=) (instantiate F (List (uq T))))
+                   (implement EqualityComparable (List (uq T))))
+            (qq no-op))))
+    (def less-than-comparable-forms (var auto (p DNode)
+        (if is-less-than-comparable
+            (qq do (mfor F (< <= > >=) (instantiate F (List (uq T))))
+                   (implement LessThanComparable (List (uq T))))
+            (qq no-op))))
 
     (qq do
 
@@ -619,13 +640,11 @@ Expands to a `List` definition over the relevant type.
 
     (uq copy-functions)
 
+    (implement Swappable (List (uq T)))
     (implement Container (List (uq T)))
     (implement Type (List (uq T)))
-    (mfor F (= != < <= > >=)
-      (instantiate F (List (uq T))))
-
-    (implement EqualityComparable (List (uq T)))
-    (implement LessThanComparable (List (uq T)))
+    (uq equality-comparable-forms)
+    (uq less-than-comparable-forms)
 
     (def destroy
       (fn extern void ((lstp (ref (List (uq T)))))
