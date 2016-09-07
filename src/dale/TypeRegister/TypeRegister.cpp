@@ -271,6 +271,10 @@ TypeRegister::getType(Type *type)
         type->is_rvalue_reference = false;
         final = getRvalueReferenceType(getType(type));
         type->is_rvalue_reference = true;
+    } else if (type->is_retval) {
+        type->is_retval = false;
+        final = getRetvalType(getType(type));
+        type->is_retval = true;
     } else if (type->is_array) {
         final = getArrayType(getType(type->array_type), type->array_size);
     } else if (type->points_to) {
