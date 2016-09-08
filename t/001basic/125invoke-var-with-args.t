@@ -9,17 +9,16 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 3;
 
-my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/fn-object-simple.dt -o fn-object-simple `;
+my @res = `dalec $ENV{"DALE_TEST_ARGS"} -lm $test_dir/t/src/invoke-var-with-args.dt -o invoke-var-with-args`;
 is(@res, 0, 'No compilation errors');
 
-@res = `./fn-object-simple`;
+@res = `./invoke-var-with-args`;
 is($?, 0, 'Program executed successfully');
 
 chomp for @res;
-is_deeply(\@res, [
-    '7'
-], 'Got expected results');
+is_deeply(\@res, ['called 1'],
+    'Got expected results');
 
-`rm fn-object-simple`;
+`rm invoke-var-with-args`;
 
 1;

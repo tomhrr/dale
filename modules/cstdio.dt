@@ -53,7 +53,7 @@ The standard error handle.
   (fn extern-c (p file) ((fd int) (mode (p (const char))))))
 
 #|
-@enum buffer-mode
+@struct buffer-mode
 |#
 (def buffer-mode
   (struct extern ((value int))))
@@ -256,7 +256,7 @@ The standard error handle.
                      (stream (p file)))))
 
 #|
-@enum fseekorigin
+@struct fseekorigin
 |#
 (def fseekorigin
   (struct extern ((value int))))

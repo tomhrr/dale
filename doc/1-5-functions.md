@@ -163,33 +163,19 @@ avoiding unnecessary allocations/copies. For example:
 (As with reference parameters, `int` is not a type for which this
 would be used in practice.)
 
-### Function structs
+### invoke
 
-A function struct is a struct that has a member named `apply`, which
-member's type is a pointer to a function that takes a pointer to the
-struct as its first argument, and arbitrary other arguments. For
+A form that is not a procedure call can be treated as though it were
+one by defining a function or macro named `invoke`, which is able to
+accept the element (or elements) of that form as its arguments.  For
 example:
 
-        (def adder
-          (struct intern 
-            ((apply (p (fn int ((self (p adder)) (m int)))))
-             (n int))))
+        (def invoke (fn intern int ((a int) (b int))
+          (+ a b)))
 
-Function structs may be 'called' in the same fashion as a function:
+        ...
 
-        (def add
-          (fn intern int ((self (p adder)) (m int))
-            (setf (:@ self n) (+ m (@:@ self n)))
-            (return (@:@ self n))))
-
-        (def main
-          (fn extern-c int (void)
-            (def m (var auto adder ((apply (# add (p adder))) (m 0))))
-            (m 1) (m 2) (m 3)
-            (printf "%d\n" (m 0)) ; prints "6\n"
-            0))
-
-(The terminology 'function struct' is used to avoid any confusion with
-C++'s function objects, which are quite different.)
+        (def n (var auto int 1))
+        (printf "%d\n" (n 2)) ; prints "3\n"
 
 [Previous](./1-4-variables.md) | [Next](./1-6-control-flow.md)

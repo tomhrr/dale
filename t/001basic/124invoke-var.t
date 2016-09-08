@@ -9,17 +9,16 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 3;
 
-my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/fn-object-multi.dt -o fn-object-multi `;
+my @res = `dalec $ENV{"DALE_TEST_ARGS"} -lm $test_dir/t/src/invoke-var.dt -o invoke-var`;
 is(@res, 0, 'No compilation errors');
 
-@res = `./fn-object-multi`;
+@res = `./invoke-var`;
 is($?, 0, 'Program executed successfully');
 
 chomp for @res;
-is_deeply(\@res, [
-    '28'
-], 'Got expected results');
+is_deeply(\@res, [qw(called)],
+    'Got expected results');
 
-`rm fn-object-multi`;
+`rm invoke-var`;
 
 1;

@@ -58,6 +58,14 @@ yields:
 	Number is int (1)
 	Number is float (2.000000)
 
+The first element of each defined struct type is an `int` named
+'type'.  This value will be 1 for the first potential type, 2 for the
+second potential type, and so on.  This is a documented part of this
+interface so as to support interoperating with C libraries that use
+unions to achieve the same outcome.  (At the moment, there's no need
+for customising the type of this first field, but that may be added
+later.)
+
 
 
 ### Macros

@@ -11,7 +11,6 @@ similar to C, with the following additional features:
   * local type deduction;
   * overloaded functions;
   * anonymous functions;
-  * function structs;
   * reference parameters;
   * initialisers and destructors;
   * variants;

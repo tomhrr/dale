@@ -102,7 +102,7 @@ include the enclosing ({name} ...) form.
 
 ### Other types
 
-Function pointers, anonymous functions and function structs are
-described in the [Functions](./1-5-functions.md) section.
+Function pointers and anonymous functions are described in the
+[Functions](./1-5-functions.md) section.
 
 [Previous](./1-2-setup.md) | [Next](./1-4-variables.md)

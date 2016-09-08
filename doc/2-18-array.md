@@ -311,12 +311,11 @@ Parameters:
 Linkage: `extern`
 Parameters:
 
-  * `(T EqualityComparable)`: The type for the elements of the array.
+  * `(T Type)`: The type for the elements of the array.
   * `(N Value)`: The length of the array.
 
 
-Expands to an `Array` definition over the relevant type. Note that `T`
-must also implement `LessThanComparable`.
+Expands to an `Array` definition over the relevant type.
 
 
 

@@ -94,7 +94,6 @@ conditions hold:
 
   * `value-type`, `difference-type` and `size-type` macros exist over
     pointers to the type;
-  * the `value-type` of the type is `Swappable`;
   * `size`, `max-size`, `empty`, `swap` and `init` are defined over
     pointers to the type;
   * the container has an iterator type; and
@@ -104,13 +103,11 @@ conditions hold:
 
 #### `ForwardContainer`
 
-Refines `Container`, `EqualityComparable` and `LessThanComparable`.
+Refines `Container`.
 
 Additional requirements:
 
-  * the iterator type must be an `InputIterator`; and
-  * the value type for the container must be both `EqualityComparable`
-    and `LessThanComparable`.
+  * the iterator type must be an `InputIterator`.
 
 
 #### `ReversibleContainer`

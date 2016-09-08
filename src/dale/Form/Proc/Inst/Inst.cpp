@@ -196,83 +196,6 @@ parsePotentialProcCall(Units *units, Function *fn, llvm::BasicBlock *block,
 }
 
 bool
-isFunctionObject(Context *ctx, ParseResult *pr)
-{
-    Type *inner_type = pr->type->points_to;
-
-    if (inner_type && inner_type->struct_name.size()) {
-        /* Struct must implement 'apply' to be considered a
-         * function object. */
-        Struct *st = ctx->getStruct(inner_type);
-        if (st) {
-            Type *apply = st->nameToType("apply");
-            if (apply
-                    && apply->points_to
-                    && apply->points_to->is_function) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-bool
-parseFunctionObjectCall(Units *units, Function *fn, llvm::BasicBlock *block,
-                        Node *n, bool get_address, bool prefixed_with_core,
-                        Type *wanted_type, ParseResult *pr,
-                        ParseResult *try_fp)
-{
-    Context *ctx = units->top()->ctx;
-    std::vector<Node *> *lst = n->list;
-
-    Type *try_fp_inner_type = try_fp->type->points_to;
-    Struct *st = ctx->getStruct(try_fp_inner_type);
-    Type *apply = st->nameToType("apply");
-
-    /* The first argument of this function must be a pointer to this
-     * particular struct type. */
-    Type *apply_fn = apply->points_to;
-    if (!(apply_fn->parameter_types.size())) {
-        Error *e = new Error(ApplyMustTakePointerToStructAsFirstArgument,
-                             (*lst)[0]);
-        ctx->er->addError(e);
-        return false;
-    }
-    if (!(apply_fn->parameter_types[0]->isEqualTo(try_fp->type))) {
-        Error *e = new Error(ApplyMustTakePointerToStructAsFirstArgument,
-                             (*lst)[0]);
-        ctx->er->addError(e);
-        return false;
-    }
-
-    /* Get the function pointer value. */
-    std::vector<llvm::Value *> indices;
-    STL::push_back2(&indices,
-                    ctx->nt->getLLVMZero(),
-                    ctx->nt->getNativeInt(
-                        st->nameToIndex("apply")));
-
-    llvm::IRBuilder<> builder(block);
-    llvm::Value *res =
-        builder.CreateGEP(try_fp->value,
-                          llvm::ArrayRef<llvm::Value*>(indices));
-
-    ParseResult apply_fn_pr;
-    apply_fn_pr.set(block, apply,
-                    llvm::cast<llvm::Value>(builder.CreateLoad(res)));
-
-    /* So a pointer to the struct is your first argument.  Skip 1
-     * element of the list when passing off (e.g. (adder 1)). */
-
-    std::vector<llvm::Value*> extra_args;
-    extra_args.push_back(try_fp->value);
-    return
-        units->top()->fp->parseFunctionPointerCall(fn, n, &apply_fn_pr,
-                                                   1, &extra_args, pr);
-}
-
-bool
 parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
               Node *n, bool get_address, bool prefixed_with_core,
               Type *wanted_type, ParseResult *pr)
@@ -487,15 +410,25 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
         return res;
     }
 
-    res = FormProcInstParse(units, fn, try_fp.block, (*lst)[0],
-                            true, false, wanted_type, &try_fp);
-    if (!res) {
-        return false;
+    /* Try (invoke lst), and return the result if it is successful. */
+
+    std::vector<Node *> *invoke_lst = new std::vector<Node *>();
+    Token *invoke = new Token(TokenType::String);
+    invoke->str_value.append("invoke");
+    Node *token_node = new Node(invoke);
+    invoke_lst->push_back(token_node);
+    std::copy(lst->begin(), lst->end(), std::back_inserter(*invoke_lst));
+    Node invoke_node(invoke_lst);
+
+    last_error_count =
+        ctx->er->getErrorTypeCount(ErrorType::Error);
+    res = FormProcInstParse(units, fn, block, &invoke_node, false,
+                            false, NULL, pr);
+    invoke_lst->erase(invoke_lst->begin() + 1, invoke_lst->end());
+    if (res) {
+        return true;
     }
-    if (isFunctionObject(ctx, &try_fp)) {
-        return parseFunctionObjectCall(units, fn, block, n, get_address,
-                                       false, wanted_type, pr, &try_fp);
-    }
+    ctx->er->popErrors(last_error_count);
 
     Error *e = new Error(NotInScope, n, t->str_value.c_str());
     ctx->er->addError(e);

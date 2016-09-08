@@ -433,11 +433,12 @@ Parameters:
 Linkage: `extern`
 Parameters:
 
-  * `(T EqualityComparable)`: The type node.
+  * `(T MoveConstructible)`: The type node.
 
 
-Expands to a `Vector` definition over the relevant type. Note that `T`
-must also implement `LessThanComparable`.
+Expands to a `Vector` definition over the relevant type.  If `T`
+implements `EqualityComparable` and/or `LessThanComparable`, the
+new vector type will implement them as well.
 
 
 

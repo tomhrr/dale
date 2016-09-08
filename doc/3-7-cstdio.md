@@ -58,6 +58,24 @@ Linkage: `extern`
 Members: N/A
 
 
+#### `buffer-mode`
+
+Linkage: `extern`
+Members:
+
+  * `(value int)`
+
+
+
+#### `fseekorigin`
+
+Linkage: `extern`
+Members:
+
+  * `(value int)`
+
+
+
 #### `fpos`
 
 Linkage: `extern`
@@ -65,32 +83,6 @@ Members:
 
   * `(n (array-of (MFPOS_T) char))`
 
-
-
-
-
-### Enums
-
-#### `buffer-mode`
-
-Linkage: `extern`
-Type: `int`
-Members:
-
-  * `_IOFBF`
-  * `_IOLBF`
-  * `_IONBF`
-
-
-#### `fseekorigin`
-
-Linkage: `extern`
-Type: `int`
-Members:
-
-  * `SET`
-  * `CUR`
-  * `END`
 
 
 

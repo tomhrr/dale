@@ -156,7 +156,7 @@ for (my $i = 0; $i < @files; $i++) {
     close $fh;
     my $res = system("./module-to-markdown < $path >> doc/$file");
     if ($res != 0) {
-        die "module-to-markdown failed";
+        die "module-to-markdown failed ($path)";
     }
     open $fh, '>>', "doc/$file" or die $!;
     print $fh "$nav_str";

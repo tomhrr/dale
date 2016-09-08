@@ -1,0 +1,11 @@
+(import cstdio)
+
+(def invoke
+  (fn intern void ((a int))
+    (printf "called\n")
+    (return)))
+
+(def main (fn extern-c int (void)
+  (def x (var auto int 0)) 
+  (x)
+  0))

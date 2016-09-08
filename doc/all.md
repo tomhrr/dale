@@ -9,7 +9,6 @@ similar to C, with the following additional features:
   * local type deduction;
   * overloaded functions;
   * anonymous functions;
-  * function structs;
   * reference parameters;
   * initialisers and destructors;
   * variants;
@@ -229,46 +228,10 @@ member. In situations where the value will be cast implicitly, e.g. in
 an explicitly-typed variable declaration, it is not necessary to
 include the enclosing ({name} ...) form.
 
-### Enumerations
-
-Enumerations ('enums') are declared like so:
-
-        (def {name}
-          (enum {linkage} {type} ({member1} {member2} ... {memberN})))
-
-where `{linkage}` is one of `intern` and `extern`, and `{type}` is the
-underlying integral type for the enum.
-
-Each `{member}` is either a name atom, or a name-value pair. By
-default, enum member values begin from zero. If a member does not have
-an explicitly-defined value (i.e. it is a name atom), it takes the
-value of the previous member, plus one. For example:
-
-        (def my-enum
-          (enum extern int (a b c (d 1) e (f 0) (g -1) h i j k)))
-
-The member-value assignments for this enum are as follows:
-
-        a: 0; b:  1; c: 2; d: 1; e: 2; f: 0;
-        g: -1; h: 0; i: 1; j: 2; k: 3
-
-When an enum is defined, const variable bindings are introduced for
-each enum element, mapping to the value for that element.
-
-Enums are strongly-typed. The type name for an enum is `{name}`. When
-an enum is defined, a series of related functions are defined at the
-same time: `+`, `-`, `*`, `/`, `%`, `=`, `!=`, `<`, `<=`, `>`, `>=`,
-`<<`, `>>`, `&`, `|` and `^`. These functions are in turn defined only
-over that enum's type, so a function like `+`, for example, takes two
-instances of the enum as its arguments and returns a new enum value as
-its result. The exceptions to this are `<<` and `>>` (left and
-right-shift), which take `int`s as their second arguments. Note that
-enums can be cast to and from their underlying types, too.
-
 ### Other types
 
-Function pointers, anonymous functions and function structs are
-described in the [Functions](#Functions) section.
+Function pointers and anonymous functions are described in the
+[Functions](#Functions) section.
 
 
 
@@ -339,19 +302,6 @@ the specified struct member value:
 
         (setf (: mypoint x) 2)
         (printf "%d\n" (@ (: mypoint x))) ; prints "2\n"
-
-### Enums
-
-Enum variables can be set at definition time:
-
-        (def Lang (enum intern int (en fr de)))
-
-        ; within a procedure:
-
-        (def mypoint (var auto Lang en))
-
-There are no special enum accessor forms. Setting an enum variable
-is done in the same way as for other scalar variables.
 
 ### Variable scope
 
@@ -540,34 +490,20 @@ avoiding unnecessary allocations/copies. For example:
 (As with reference parameters, `int` is not a type for which this
 would be used in practice.)
 
-### Function structs
+### invoke
 
-A function struct is a struct that has a member named `apply`, which
-member's type is a pointer to a function that takes a pointer to the
-struct as its first argument, and arbitrary other arguments. For
+A form that is not a procedure call can be treated as though it were
+one by defining a function or macro named `invoke`, which is able to
+accept the element (or elements) of that form as its arguments.  For
 example:
 
-        (def adder
-          (struct intern 
-            ((apply (p (fn int ((self (p adder)) (m int)))))
-             (n int))))
+        (def invoke (fn intern int ((a int) (b int))
+          (+ a b)))
 
-Function structs may be 'called' in the same fashion as a function:
+        ...
 
-        (def add
-          (fn intern int ((self (p adder)) (m int))
-            (setf (:@ self n) (+ m (@:@ self n)))
-            (return (@:@ self n))))
-
-        (def main
-          (fn extern-c int (void)
-            (def m (var auto adder ((apply (# add (p adder))) (m 0))))
-            (m 1) (m 2) (m 3)
-            (printf "%d\n" (m 0)) ; prints "6\n"
-            0))
-
-(The terminology 'function struct' is used to avoid any confusion with
-C++'s function objects, which are quite different.)
+        (def n (var auto int 1))
+        (printf "%d\n" (n 2)) ; prints "3\n"
 
 
 
@@ -3430,7 +3366,6 @@ conditions hold:
 
   * `value-type`, `difference-type` and `size-type` macros exist over
     pointers to the type;
-  * the `value-type` of the type is `Swappable`;
   * `size`, `max-size`, `empty`, `swap` and `init` are defined over
     pointers to the type;
   * the container has an iterator type; and
@@ -3440,13 +3375,11 @@ conditions hold:
 
 #### `ForwardContainer`
 
-Refines `Container`, `EqualityComparable` and `LessThanComparable`.
+Refines `Container`.
 
 Additional requirements:
 
-  * the iterator type must be an `InputIterator`; and
-  * the value type for the container must be both `EqualityComparable`
-    and `LessThanComparable`.
+  * the iterator type must be an `InputIterator`.
 
 
 #### `ReversibleContainer`
@@ -5154,11 +5087,12 @@ Parameters:
 Linkage: `extern`
 Parameters:
 
-  * `(T EqualityComparable)`: The type node.
+  * `(T MoveConstructible)`: The type node.
 
 
-Expands to a `Vector` definition over the relevant type. Note that `T`
-must also implement `LessThanComparable`.
+Expands to a `Vector` definition over the relevant type.  If `T`
+implements `EqualityComparable` and/or `LessThanComparable`, the
+new vector type will implement them as well.
 
 
 
@@ -6382,12 +6316,11 @@ Parameters:
 Linkage: `extern`
 Parameters:
 
-  * `(T EqualityComparable)`: The type for the elements of the array.
+  * `(T Type)`: The type for the elements of the array.
   * `(N Value)`: The length of the array.
 
 
-Expands to an `Array` definition over the relevant type. Note that `T`
-must also implement `LessThanComparable`.
+Expands to an `Array` definition over the relevant type.
 
 
 
@@ -6756,15 +6689,15 @@ Module: bitset-enum
 ### Description
 
 Provides `def-bitset-enum`, which allows for defining bitset enums.
-These operate in the same way as normal enums, except that the initial
-enum value is 1, and each successor enum value is twice that of the
-previous one.  For example,
+These operate in the same way as normal enums, except that the
+sequence goes 0, 1, 2, 4, ..., with each successive value being twice
+that of the previous one.  For example,
 
         (def-bitset-enum my-enum intern int (a b c d))
 
 expands to:
 
-        (def my-enum (enum intern int ((a 1) (b 2) (c 4) (d 8))))
+        (def-enum my-enum intern int ((a 0) (b 1) (c 2) (d 4)))
 
 and
 
@@ -6772,7 +6705,7 @@ and
 
 expands to:
 
-        (def my-enum (enum intern int ((a 0x2) (b 0x4) (c 0x8) (d 0x10))))
+        (def-enum my-enum intern int ((a 0x2) (b 0x4) (c 0x8) (d 0x10)))
 
 
 
@@ -6845,6 +6778,14 @@ yields:
 
 	Number is int (1)
 	Number is float (2.000000)
+
+The first element of each defined struct type is an `int` named
+'type'.  This value will be 1 for the first potential type, 2 for the
+second potential type, and so on.  This is a documented part of this
+interface so as to support interoperating with C libraries that use
+unions to achieve the same outcome.  (At the moment, there's no need
+for customising the type of this first field, but that may be added
+later.)
 
 
 
@@ -7561,6 +7502,24 @@ Linkage: `extern`
 Members: N/A
 
 
+#### `buffer-mode`
+
+Linkage: `extern`
+Members:
+
+  * `(value int)`
+
+
+
+#### `fseekorigin`
+
+Linkage: `extern`
+Members:
+
+  * `(value int)`
+
+
+
 #### `fpos`
 
 Linkage: `extern`
@@ -7568,32 +7527,6 @@ Members:
 
   * `(n (array-of (MFPOS_T) char))`
 
-
-
-
-
-### Enums
-
-#### `buffer-mode`
-
-Linkage: `extern`
-Type: `int`
-Members:
-
-  * `_IOFBF`
-  * `_IOLBF`
-  * `_IONBF`
-
-
-#### `fseekorigin`
-
-Linkage: `extern`
-Type: `int`
-Members:
-
-  * `SET`
-  * `CUR`
-  * `END`
 
 
 
