@@ -218,7 +218,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         return ctx->tr->getBitfieldType(type, size);
     }
 
-    if (!strcmp(fst_node->token->str_value.c_str(), "const")) {
+    if (fst_node->is_token
+            && !strcmp(fst_node->token->str_value.c_str(), "const")) {
         if (lst->size() != 2) {
             Error *e = new Error(IncorrectNumberOfArgs, node,
                                  "const", "1", ((int) lst->size() - 1));
@@ -236,7 +237,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         return ctx->tr->getConstType(const_type);
     }
 
-    if (!strcmp(fst_node->token->str_value.c_str(), "array-of")) {
+    if (fst_node->is_token
+            && !strcmp(fst_node->token->str_value.c_str(), "array-of")) {
         if (lst->size() != 3) {
             Error *e = new Error(IncorrectNumberOfArgs, node,
                                  "array-of", "2", ((int) lst->size() - 1));
@@ -260,7 +262,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         return ctx->tr->getArrayType(array_type, size);
     }
 
-    if (!strcmp(fst_node->token->str_value.c_str(), "p")) {
+    if (fst_node->is_token
+            && !strcmp(fst_node->token->str_value.c_str(), "p")) {
         if (!ctx->er->assertArgNums("p", node, 1, 1)) {
             return NULL;
         }
@@ -275,7 +278,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         return ctx->tr->getPointerType(points_to_type);
     }
 
-    if (!strcmp(fst_node->token->str_value.c_str(), "fn")) {
+    if (fst_node->is_token
+            && !strcmp(fst_node->token->str_value.c_str(), "fn")) {
         if (!ctx->er->assertArgNums("fn", node, 2, 2)) {
             return NULL;
         }
