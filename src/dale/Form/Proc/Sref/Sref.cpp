@@ -43,13 +43,6 @@ FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    if (ctx->getEnum(st_type->struct_name.c_str())) {
-        Error *e = new Error(IncorrectArgType, struct_node,
-                             ":", "a struct", "1", "an enum");
-        ctx->er->addError(e);
-        return false;
-    }
-
     member_node = units->top()->mp->parsePotentialMacroCall(member_node);
     if (!member_node) {
         return false;

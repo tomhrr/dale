@@ -20,7 +20,6 @@ NamespaceSavePoint::NamespaceSavePoint(Namespace *ns)
 
     variable_count = ns->variables_ordered.size();
     struct_count   = ns->structs_ordered.size();
-    enum_count     = ns->enums_ordered.size();
 
     src_ns = ns;
 }
@@ -65,14 +64,6 @@ bool NamespaceSavePoint::restore()
     while (struct_diff--) {
         src_ns->structs.erase(src_ns->structs_ordered.back());
         src_ns->structs_ordered.pop_back();
-    }
-
-    int enum_diff =
-        src_ns->enums_ordered.size() - enum_count;
-
-    while (enum_diff--) {
-        src_ns->enums.erase(src_ns->enums_ordered.back());
-        src_ns->enums_ordered.pop_back();
     }
 
     return true;

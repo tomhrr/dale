@@ -656,32 +656,6 @@ Context::getStruct(Type* type)
     return getStruct(type->struct_name.c_str(), &(type->namespaces));
 }
 
-Enum *
-Context::getEnum(const char *name)
-{
-    if (strchr(name, '.')) {
-        Namespace *ns = getNamespace(name, true);
-        if (!ns) {
-            return NULL;
-        }
-        const char *en_name = strrchr(name, '.') + 1;
-        return ns->getEnum(en_name);
-    }
-
-    for (std::vector<NSNode *>::reverse_iterator
-            rb = used_ns_nodes.rbegin(),
-            re = used_ns_nodes.rend();
-            rb != re;
-            ++rb) {
-        Enum *en = (*rb)->ns->getEnum(name);
-        if (en) {
-            return en;
-        }
-    }
-
-    return NULL;
-}
-
 bool
 Context::setNamespacesForStruct(const char *name,
                                 std::vector<std::string> *namespaces)
@@ -751,41 +725,6 @@ Context::setFullyQualifiedStructName(const char *name,
                 fqsn->append(".");
             }
             fqsn->append(name);
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool
-Context::setNamespacesForEnum(const char *name,
-                              std::vector<std::string> *namespaces)
-{
-    std::string ss_name(name);
-
-    if (strchr(name, '.')) {
-        Namespace *ns = getNamespace(name, true);
-        if (!ns) {
-            return false;
-        }
-        const char *en_name = strrchr(name, '.') + 1;
-        if (!ns->getEnum(en_name)) {
-            return false;
-        }
-        splitString(&ss_name, namespaces, '.');
-        namespaces->pop_back();
-        return true;
-    }
-
-    for (std::vector<NSNode *>::reverse_iterator
-            rb = used_ns_nodes.rbegin(),
-            re = used_ns_nodes.rend();
-            rb != re;
-            ++rb) {
-        Enum *en = (*rb)->ns->getEnum(name);
-        if (en) {
-            (*rb)->ns->setNamespaces(namespaces);
             return true;
         }
     }

@@ -217,28 +217,6 @@ Namespace::addStruct(const char *name,
     }
 }
 
-bool
-Namespace::addEnum(const char *name,
-                   Enum *element_enum)
-{
-    std::map<std::string, Enum *>::iterator iter;
-    std::string ss_name(name);
-
-    iter = enums.find(ss_name);
-
-    if (iter == enums.end()) {
-        enums.insert(
-            std::pair<std::string, Enum *>(
-                ss_name, element_enum
-            )
-        );
-        enums_ordered.push_back(ss_name);
-        return true;
-    } else {
-        return false;
-    }
-}
-
 Function *
 Namespace::getFunction(const char *name,
                        std::vector<Type *> *types,
@@ -478,18 +456,6 @@ Namespace::getStruct(const char *name)
     return NULL;
 }
 
-Enum *
-Namespace::getEnum(const char *name)
-{
-    std::string ss_name(name);
-    std::map<std::string, Enum *>::iterator
-        iter = enums.find(ss_name);
-    if (iter != enums.end()) {
-        return iter->second;
-    }
-    return NULL;
-}
-
 void
 Namespace::getVarsAfterIndex(int index,
                              std::vector<Variable *> *vars)
@@ -724,22 +690,6 @@ Namespace::merge(Namespace *other)
         }
     }
 
-    for (std::map<std::string, Enum*>::iterator
-            b = other->enums.begin(),
-            e = other->enums.end();
-            b != e;
-            ++b) {
-        if (!EnumLinkage::isExtern(b->second->linkage)) {
-            continue;
-        }
-        if (getEnum(b->first.c_str())) {
-            continue;
-        }
-        bool added = addEnum(b->first.c_str(), b->second);
-        assert(added && "unable to merge enum");
-        _unused(added);
-    }
-
     for (std::map<std::string, Variable*>::iterator
             b = other->variables.begin(),
             e = other->variables.end();
@@ -949,29 +899,6 @@ Namespace::removeUnneededStructs(std::set<std::string> *forms,
 }
 
 bool
-Namespace::removeUnneededEnums(std::set<std::string> *forms,
-                               std::set<std::string> *found_forms)
-{
-    std::map<std::string, Enum *>::iterator
-        b = enums.begin(),
-        e = enums.end();
-
-    while (b != e) {
-        std::set<std::string>::iterator fb = forms->find(b->first);
-        if (fb == forms->end()) {
-            enums.erase(b++);
-        } else {
-            if (EnumLinkage::isExtern(b->second->linkage)) {
-                found_forms->insert((*fb));
-            }
-            ++b;
-        }
-    }
-
-    return true;
-}
-
-bool
 Namespace::removeUnneededVariables(std::set<std::string> *forms,
                                    std::set<std::string> *found_forms)
 {
@@ -1061,20 +988,6 @@ Namespace::removeDeserialised()
         }
     }
 
-    {
-        std::map<std::string, Enum *>::iterator
-            b = enums.begin(),
-            e = enums.end();
-
-        while (b != e) {
-            if (!b->second->serialise) {
-                enums.erase(b++);
-            } else {
-                ++b;
-            }
-        }
-    }
-
     std::map<std::string, std::vector<Function*> *>::iterator
         fb = functions.begin(),
         fe = functions.end();
@@ -1104,7 +1017,6 @@ Namespace::removeUnneeded(std::set<std::string> *forms,
     removeUnneededFunctions(forms, found_forms);
     removeUnneededVariables(forms, found_forms);
     removeUnneededStructs(forms, found_forms);
-    removeUnneededEnums(forms, found_forms);
     return true;
 }
 
@@ -1133,13 +1045,6 @@ Namespace::print()
             b != e;
             ++b) {
         fprintf(stderr, "Struct: %s\n", b->first.c_str());
-    }
-    for (std::map<std::string, Enum *>::iterator
-            b = enums.begin(),
-            e = enums.end();
-            b != e;
-            ++b) {
-        fprintf(stderr, "Enum: %s\n", b->first.c_str());
     }
     for (std::map<std::string, Variable *>::iterator
             b = variables.begin(),

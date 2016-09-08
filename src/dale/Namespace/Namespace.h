@@ -4,7 +4,6 @@
 #include "../Function/Function.h"
 #include "../Variable/Variable.h"
 #include "../Struct/Struct.h"
-#include "../Enum/Enum.h"
 #include "../ErrorType/ErrorType.h"
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../Linkage/Linkage.h"
@@ -23,8 +22,8 @@ namespace dale
 /*! Namespace
 
     A class for containing the details of a single namespace. Stores
-    functions, variables, structs and enums for the namespace, as well
-    as its own name and its parent namespace.
+    functions, variables, and structs for the namespace, as well as
+    its own name and its parent namespace.
 
     Each of the bindings maps stores the 'bare' name for the binding.
     Mangled names are stored within the relevant Element, where
@@ -50,16 +49,12 @@ public:
     std::map<std::string, Variable *> variables;
     /*! A map from struct name to struct. */
     std::map<std::string, Struct *> structs;
-    /*! A map from enum name to enum. */
-    std::map<std::string, Enum *> enums;
     /*! The functions in order of addition. */
     std::vector<Function *> functions_ordered;
     /*! The variable names in order of addition. */
     std::vector<std::string> variables_ordered;
     /*! The struct names in order of addition. */
     std::vector<std::string> structs_ordered;
-    /*! The enum names in order of addition. */
-    std::vector<std::string> enums_ordered;
 
     /*! The error reporter for this namespace. */
     ErrorReporter *er;
@@ -124,11 +119,6 @@ public:
      *  @param element_struct The struct object. */
     bool addStruct(const char *name,
                    Struct *element_struct);
-    /*! Add an enum to the namespace.
-     *  @param name The bare name of the enum.
-     *  @param element_enum The enum object. */
-    bool addEnum(const char *name,
-                 Enum *element_enum);
 
     /*! Get a function from this namespace.
      *  @param name The bare name of the function.
@@ -161,9 +151,6 @@ public:
     /*! Get a struct from this namespace.
      *  @param name The struct name. */
     Struct *getStruct(const char *name);
-    /*! Get an enum from this namespace.
-     *  @param name The enum name. */
-    Enum *getEnum(const char *name);
 
     /*! Get all of the variables from this namespace.
      *  @param vars A vector to which the variables will be added.
@@ -330,11 +317,6 @@ public:
      *  @param found_forms A set to which found names will be added. */
     bool removeUnneededFunctions(std::set<std::string> *forms,
                                  std::set<std::string> *found_forms);
-    /*! Remove enums that aren't included in the set of forms.
-     *  @param forms The names of enums that should be retained.
-     *  @param found_forms A set to which found names will be added. */
-    bool removeUnneededEnums(std::set<std::string> *forms,
-                             std::set<std::string> *found_forms);
     /*! Remove bindings that aren't included in the set of forms.
      *  @param forms The names of bindings that should be retained.
      *  @param found_forms A set to which found bindings will be added. */

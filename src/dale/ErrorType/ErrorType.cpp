@@ -121,12 +121,6 @@ errorInstanceToString(int error_instance)
         ret = "variable '%s' has already been defined in "
               "this scope";
         break;
-    case ErrorInst::RedeclarationOfEnum:
-        ret = "enum '%s' has already been defined";
-        break;
-    case ErrorInst::RedeclarationOfEnumElement:
-        ret = "enum element '%s' has already been defined";
-        break;
     case ErrorInst::RedeclarationOfStruct:
         ret = "struct '%s' has already been defined in "
               "this scope";
@@ -176,9 +170,6 @@ errorInstanceToString(int error_instance)
         break;
     case ErrorInst::FieldDoesNotExistInStruct:
         ret = "field '%s' does not exist in struct %s";
-        break;
-    case ErrorInst::EnumValueDoesNotExist:
-        ret = "value '%s' does not exist for enum";
         break;
     case ErrorInst::OnlyVarAndStructPermitted:
         ret = "'def' within a function may only be used "
@@ -242,9 +233,6 @@ errorInstanceToString(int error_instance)
     case ErrorInst::CanOnlyIndexIntoPointersAndArrays:
         ret = "can only index into pointers and arrays (type "
               "of value is %s)";
-        break;
-    case ErrorInst::EnumTypeMustBeInteger:
-        ret = "enum types must be integers";
         break;
     case ErrorInst::ExternCXorOtherLinkageForName:
         ret = "cannot have extern-c function for name "

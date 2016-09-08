@@ -12,7 +12,6 @@
 #include "../Funcall/Funcall.h"
 #include "../../Function/Function.h"
 #include "../../Literal/Struct/Struct.h"
-#include "../../Literal/Enum/Enum.h"
 #include "../../Literal/Array/Array.h"
 #include "../../Type/Type.h"
 
@@ -93,34 +92,6 @@ createWantedStructLiteral(Units *units, Function *fn, llvm::BasicBlock *block,
         FormLiteralStructParse(units, fn, block, n,
                                wanted_type->struct_name.c_str(),
                                st, wanted_type, get_address, pr);
-    return res;
-}
-
-bool
-createEnumLiteral(Units *units, Function *fn, llvm::BasicBlock *block,
-                  Node *n, bool get_address, Type *wanted_type,
-                  ParseResult *pr)
-{
-    Context *ctx = units->top()->ctx;
-    std::vector<Node *> *lst = n->list;
-    const char *name = (*lst)[0]->token->str_value.c_str();
-
-    Struct *st = ctx->getStruct(name);
-    assert(st && "no struct associated with enum");
-
-    Type *enum_type = FormTypeParse(units, (*lst)[0], false, false);
-    assert(enum_type && "no type associated with enum");
-
-    int error_count_begin =
-        ctx->er->getErrorTypeCount(ErrorType::Error);
-
-    Enum *enum_obj = ctx->getEnum(name);
-    bool res = FormLiteralEnumParse(units, block, (*lst)[1],
-                                    enum_obj, enum_type,
-                                    st, get_address, pr);
-    if (!res) {
-        ctx->er->popErrors(error_count_begin);
-    }
     return res;
 }
 
@@ -357,18 +328,6 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
         Error *e = new Error(FirstListElementMustBeSymbol, n);
         ctx->er->addError(e);
         return false;
-    }
-
-    /* If the first element matches an enum name, then make an enum
-     * literal (a struct literal) from the remainder of the form. */
-
-    Enum *myenum = ctx->getEnum(t->str_value.c_str());
-    if (myenum && (lst->size() == 2)) {
-        bool res = createEnumLiteral(units, fn, block, n, get_address,
-                                     wanted_type, pr);
-        if (res) {
-            return true;
-        }
     }
 
     /* If the first element matches a struct name, then make a

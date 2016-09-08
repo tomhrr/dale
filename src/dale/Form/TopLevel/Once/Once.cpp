@@ -4,7 +4,6 @@
 #include "../../../Node/Node.h"
 #include "../../Function/Function.h"
 #include "../../Linkage/Linkage.h"
-#include "../../Linkage/Enum/Enum.h"
 #include "../../Type/Type.h"
 #include "../../ProcBody/ProcBody.h"
 

@@ -110,14 +110,6 @@ char *deserialise(TypeRegister *tr, char *in, Struct *st);
 
 char *deserialise(TypeRegister *tr, char *in, Struct **st);
 
-void serialise(FILE *out, Enum *en);
-
-void serialise(FILE *out, Enum **en);
-
-char *deserialise(TypeRegister *tr, char *in, Enum *en);
-
-char *deserialise(TypeRegister *tr, char *in, Enum **en);
-
 void serialise(FILE *out, Namespace *ns);
 
 void serialise(FILE *out, Namespace **ns);

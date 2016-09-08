@@ -390,46 +390,11 @@ char *deserialise(TypeRegister *tr, char *in, Struct **st)
     return deserialise(tr, in, st_);
 }
 
-void serialise(FILE *out, Enum *en)
-{
-    serialise(out, &(en->last_index));
-    serialise(out, &(en->name_to_index));
-    serialise(out, en->once_tag);
-    serialise(out, en->linkage);
-
-    return;
-}
-
-void serialise(FILE *out, Enum **en)
-{
-    serialise(out, *en);
-}
-
-char *deserialise(TypeRegister *tr, char *in, Enum *en)
-{
-    en->type = NULL;
-    in = deserialise(tr, in, &(en->last_index));
-    in = deserialise(tr, in, &(en->name_to_index));
-    in = deserialise(tr, in, &(en->once_tag));
-    in = deserialise(tr, in, &(en->linkage));
-
-    return in;
-}
-
-char *deserialise(TypeRegister *tr, char *in, Enum **en)
-{
-    Enum *enn = new Enum();
-    enn->serialise = false;
-    *en = enn;
-    return deserialise(tr, in, enn);
-}
-
 void serialise(FILE *out, Namespace *ns)
 {
     serialise(out, &(ns->functions));
     serialise(out, &(ns->variables));
     serialise(out, &(ns->structs));
-    serialise(out, &(ns->enums));
     serialise(out, &(ns->name));
     serialise(out, &(ns->symbol_prefix));
     return;
@@ -445,7 +410,6 @@ char *deserialise(TypeRegister *tr, char *in, Namespace *ns)
     in = deserialise(tr, in, &(ns->functions));
     in = deserialise(tr, in, &(ns->variables));
     in = deserialise(tr, in, &(ns->structs));
-    in = deserialise(tr, in, &(ns->enums));
 
     std::string name;
     in = deserialise(tr, in, &name);

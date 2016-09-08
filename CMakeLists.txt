@@ -208,7 +208,6 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Error/Error.cpp
                       src/dale/ErrorReporter/ErrorReporter.cpp
                       src/dale/ParseResult/ParseResult.cpp
-                      src/dale/Enum/Enum.cpp
                       src/dale/Function/Function.cpp
                       src/dale/BaseType/BaseType.cpp
                       src/dale/TokenType/TokenType.cpp
@@ -255,7 +254,6 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/Macro/DerefStructDeref/DerefStructDeref.cpp
                       src/dale/Form/Macro/DerefStruct/DerefStruct.cpp
                       src/dale/Form/Macro/Setv/Setv.cpp
-                      src/dale/Form/Linkage/Enum/Enum.cpp
                       src/dale/Form/Linkage/Struct/Struct.cpp
                       src/dale/Form/Linkage/Linkage.cpp
                       src/dale/Form/Type/Type.cpp
@@ -270,7 +268,6 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/TopLevel/Function/Function.cpp
                       src/dale/Form/TopLevel/Struct/Struct.cpp
                       src/dale/Form/TopLevel/Macro/Macro.cpp
-                      src/dale/Form/TopLevel/Enum/Enum.cpp
                       src/dale/Form/Struct/Struct.cpp
                       src/dale/Form/TopLevel/Def/Def.cpp
                       src/dale/Form/TopLevel/Once/Once.cpp
@@ -278,7 +275,6 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/TopLevel/Import/Import.cpp
                       src/dale/Form/TopLevel/Inst/Inst.cpp
                       src/dale/Form/Literal/Struct/Struct.cpp
-                      src/dale/Form/Literal/Enum/Enum.cpp
                       src/dale/Form/Literal/Array/Array.cpp
                       src/dale/CoreForms/CoreForms.cpp
                       src/dale/Label/Label.cpp

@@ -88,19 +88,6 @@ addFloatingPoint(Context *ctx, llvm::Module *mod, std::string *once_tag,
 void
 addUnsignedInt(Context *ctx, llvm::Module *mod, std::string *once_tag,
                Type *type);
-
-/*! Instantiate the functions required for the given enum type.
- *  @param ctx The context.
- *  @param mod The LLVM module.
- *  @param once_tag The current once tag, if applicable.
- *  @param type The enum type.
- *
- *  The functions defined are the same as those for signed integers.
- */
-void
-addEnum(Context *ctx, llvm::Module *mod, std::string *once_tag,
-        Type *enum_type, Type *enum_int_type,
-        llvm::Type *llvm_enum_int_type, int linkage);
 }
 }
 

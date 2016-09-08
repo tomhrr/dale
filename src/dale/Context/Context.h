@@ -6,7 +6,6 @@
 #include "../Function/Function.h"
 #include "../Variable/Variable.h"
 #include "../Struct/Struct.h"
-#include "../Enum/Enum.h"
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../Node/Node.h"
 #include "../NativeTypes/NativeTypes.h"
@@ -214,9 +213,6 @@ public:
     /*! Get the struct for the given type.
      */
     Struct *getStruct(Type *type);
-    /*! Get the enum with the given name.
-     */
-    Enum *getEnum(const char *name);
 
     /*! Get the function names from all namespaces.
      *
@@ -236,12 +232,6 @@ public:
      */
     bool setNamespacesForStruct(const char *name,
                                 std::vector<std::string> *namespaces);
-    /*! Stores the enum's namespace names into the vector.
-     *
-     *  As per setNamespacesForStruct.
-     */
-    bool setNamespacesForEnum(const char *name,
-                              std::vector<std::string> *namespaces);
     /*! Store the fully-qualified struct name into the argument
      *  string.
      *  @param name The name of the struct.

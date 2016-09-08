@@ -6,7 +6,6 @@
 #include "../../../Node/Node.h"
 #include "../../Function/Function.h"
 #include "../../Linkage/Linkage.h"
-#include "../../Linkage/Enum/Enum.h"
 #include "../../Type/Type.h"
 #include "../../ProcBody/ProcBody.h"
 
@@ -14,7 +13,6 @@
 #include "../Function/Function.h"
 #include "../Struct/Struct.h"
 #include "../Macro/Macro.h"
-#include "../Enum/Enum.h"
 
 using namespace dale::ErrorInst;
 
@@ -103,11 +101,9 @@ FormTopLevelDefParse(Units *units, Node *node)
         FormTopLevelStructParse(units, value_node, unqualified_name.c_str());
     } else if (!form.compare("macro")) {
         FormTopLevelMacroParse(units, value_node, unqualified_name.c_str());
-    } else if (!form.compare("enum")) {
-        FormTopLevelEnumParse(units, value_node, unqualified_name.c_str());
     } else {
         Error *e = new Error(IncorrectArgType, form_node,
-                             "def", "fn/var/struct/macro/enum",
+                             "def", "fn/var/struct/macro",
                              "2:1", form.c_str());
         ctx->er->addError(e);
         ctx->deactivateNamespaces(&ns_parts);

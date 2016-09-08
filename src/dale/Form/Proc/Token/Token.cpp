@@ -1,7 +1,5 @@
 #include "Token.h"
 
-#include "../../Literal/Enum/Enum.h"
-
 #include <cstdio>
 
 using namespace dale::ErrorInst;
@@ -298,30 +296,6 @@ FormProcTokenParse(Units *units, Function *fn, llvm::BasicBlock *block,
     } else if (t->type == TokenType::FloatingPoint) {
         parseFloatingPointLiteral(ctx, wanted_type, block, t, pr);
         return true;
-    }
-
-    Enum *enum_obj;
-    if (wanted_type
-            && (wanted_type->struct_name.size())
-            && (enum_obj = ctx->getEnum(wanted_type->struct_name.c_str()))) {
-
-        Struct *st = ctx->getStruct(wanted_type->struct_name.c_str());
-        assert(st && "no struct associated with enum");
-
-        int error_count_begin =
-            ctx->er->getErrorTypeCount(ErrorType::Error);
-
-        /* This will fail when the token is not a valid literal, so
-         * in that case just continue onwards, because the token may
-         * be validly parsed in other ways. */
-        bool res = FormLiteralEnumParse(units, block, node, enum_obj,
-                                        wanted_type, st, get_address,
-                                        pr);
-        if (res) {
-            return res;
-        } else {
-            ctx->er->popErrors(error_count_begin);
-        }
     }
 
     if (t->type == TokenType::String) {

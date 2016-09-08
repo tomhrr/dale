@@ -32,7 +32,6 @@ private:
     std::map<std::string, int> function_count;
     int variable_count;
     int struct_count;
-    int enum_count;
     Namespace *src_ns;
 };
 }
