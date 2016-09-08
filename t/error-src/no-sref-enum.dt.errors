@@ -1,1 +1,0 @@
-./t/error-src/no-sref-enum.dt:6:8: error: ':' requires a struct for argument 1 (got an enum instead)

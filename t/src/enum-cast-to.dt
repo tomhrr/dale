@@ -1,18 +1,19 @@
 (import cstdio)
+(import enum)
 
-(def thing (enum extern int (a b c d e f g h i)))
+(def-enum thing extern int (a b c d e f g h i))
 
 (def main
   (fn extern-c int (void)
     (printf "%d %d %d %d %d %d %lld %lld %d\n"
-        (cast (thing a) int8)
-        (cast (thing b) uint8)
-        (cast (thing c) int16)
-        (cast (thing d) uint16)
-        (cast (thing e) int32)
-        (cast (thing f) uint32)
-        (cast (thing g) int64)
-        (cast (thing h) uint64)
-        (cast (thing i) uint))
+        (cast (value a) int8)
+        (cast (value b) uint8)
+        (cast (value c) int16)
+        (cast (value d) uint16)
+        (cast (value e) int32)
+        (cast (value f) uint32)
+        (cast (value g) int64)
+        (cast (value h) uint64)
+        (cast (value i) uint))
     0))
 

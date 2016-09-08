@@ -1,4 +1,4 @@
-(import mod-importforms (fun var str enu))
+(import mod-importforms (fun var str enu d))
 (import cstdio)
 
 (def main
@@ -6,7 +6,7 @@
     (printf "%d\n" (fun))
     (printf "%d\n" var)
     (def x (var auto str ((a 10) (b 20))))
-    (def y (var auto enu (enu d)))
+    (def y (var auto enu d))
     (printf "%d %d %d\n"
             (@: x a)
             (@: x b)

@@ -7,6 +7,7 @@
 (import derivations)
 (import algorithms)
 (import macros)
+(import enum)
 
 (def standard-type
   (macro intern (T)
@@ -65,8 +66,7 @@
 
 (standard-type concept-def)
 
-(def proc-type
-  (enum intern int (FN MACRO CONCEPT-MACRO)))
+(def-enum proc-type intern int (FN MACRO CONCEPT-MACRO))
 
 (def param-def
   (struct intern ((name (p (const char)))
@@ -473,9 +473,9 @@
        (returns (remove-whitespace returns))
        (info    info)
        (params  params))))
-  (if (= type (proc-type FN))
+  (if (= type FN)
       (push-back fn-defs procdef)
-  (if (= type (proc-type MACRO))
+  (if (= type MACRO)
       (push-back macro-defs procdef)
       (push-back concept-macro-defs procdef)))
   (return)))
@@ -532,9 +532,9 @@
   (def returns (var auto (p char) (malloc' 255 char)))
   (setf ($ info 0) #\NULL)
   (def n (var auto \
-    (get-element buf (if (= type (proc-type FN))
+    (get-element buf (if (= type FN)
                         "@fn "
-                    (if (= type (proc-type MACRO))
+                    (if (= type MACRO)
                         "@macro "
                         "@concept-macro "))
                 "\n" name)))
@@ -601,7 +601,7 @@
   (def fn-node (var auto (p node) (malloc' 1 node)))
   (parse-s-expressions fn-node 0)
   (and (and (not (is-empty-node fn-node))
-            (= (proc-type CONCEPT-MACRO) type))
+            (= CONCEPT-MACRO type))
        (let ((pfirst \ (node-to-string (get-node fn-node 1 0)))
              (pname  \ (node-to-string (get-node fn-node 1 1)))
              (lastp  \ (strrchr pname #\.))
@@ -637,8 +637,8 @@
 
   (def realparami (var auto int 0))
   (and (and (not (is-empty-node fn-node))
-            (or (= (proc-type FN)    type)
-                (= (proc-type MACRO) type)))
+            (or (= FN    type)
+                (= MACRO type)))
        (let ((pfirst \ (node-to-string (get-node fn-node 1 0)))
              (pname  \ (node-to-string (get-node fn-node 1 1)))
              (lastp  \ (strrchr pname #\.))
@@ -652,10 +652,10 @@
          (and (and (= dpname dname)
                    (= pfirst "def"))
            (do (strcpy linkage (node-to-string (get-node fn-node 2 2 1)))
-               (if (= (proc-type FN) type)
+               (if (= FN type)
                    (strcpy returns (node-to-string (get-node fn-node 2 2 2)))
                    (strcpy returns ""))
-               (def nexti (var auto \ (if (= (proc-type FN) type)
+               (def nexti (var auto \ (if (= FN type)
                                           3 2)))
                (let ((sparams \ (@:@ (get-node fn-node 2 2 nexti) list-node)))
                  (let ((b  \ (begin (@ sparams)))
@@ -931,11 +931,11 @@
             (if (= type "enum")
                 (parse-enum buf)
             (if (= type "fn")
-                (parse-fn buf (proc-type FN))
+                (parse-fn buf FN)
             (if (= type "macro")
-                (parse-fn buf (proc-type MACRO))
+                (parse-fn buf MACRO)
             (if (= type "concept-macro")
-                (parse-fn buf (proc-type CONCEPT-MACRO))
+                (parse-fn buf CONCEPT-MACRO)
                 true))))))))))
 
   (and (not (empty variable-defs))

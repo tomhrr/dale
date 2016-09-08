@@ -1,7 +1,8 @@
 (import cstdio)
 (import macros)
+(import enum)
 
-(def thing (enum intern int (a b c d e f g h)))
+(def-enum thing intern int (a b c d e f g h))
 
 (def main
   (fn extern-c int (void)

@@ -1,6 +1,7 @@
 (import cstdio)
+(import enum)
 
-(def a (enum intern int (x y z)))
+(def-enum a intern int (x y z))
 (def myenum (var intern a z))
 (def main (fn extern-c int (void)
   (printf "%d\n" myenum)

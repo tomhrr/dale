@@ -1,4 +1,5 @@
 (import cstdio)
+(import enum)
 
 (def a.f (fn intern int (void)
   (printf "%d\n" 100)
@@ -10,7 +11,7 @@
 
 (def a.m (macro intern (a) a))
 
-(def a.e (enum intern int (a b c)))
+(def-enum a.e intern int (a b c))
 
 (def main (fn extern-c int (void)
   (using-namespace a

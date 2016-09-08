@@ -70,19 +70,6 @@ the specified struct member value:
         (setf (: mypoint x) 2)
         (printf "%d\n" (@ (: mypoint x))) ; prints "2\n"
 
-### Enums
-
-Enum variables can be set at definition time:
-
-        (def Lang (enum intern int (en fr de)))
-
-        ; within a procedure:
-
-        (def mypoint (var auto Lang en))
-
-There are no special enum accessor forms. Setting an enum variable
-is done in the same way as for other scalar variables.
-
 ### Variable scope
 
 Variables within procedures are lexically-scoped. A new lexical scope

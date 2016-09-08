@@ -1,6 +1,7 @@
 (import cstdio)
+(import enum)
 
-(def thing (enum extern int (a b c (d 1) e (f 0) (g -1) h i j k)))
+(def-enum thing extern int (a b c (d 1) e (f 0) (g -1) h i j k))
 
 (def main (fn extern-c int (void)
   (printf "%d %d %d %d %d %d %d %d %d %d %d\n" a b c d e f g h i j k)

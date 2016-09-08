@@ -4,15 +4,4 @@
 (def main
   (fn extern-c int (void)
     (printf "%d %d %d %d %d %d %d %d %d %d %d\n"
-        (cast (thing a) int)
-        (cast (thing b) int)
-        (cast (thing c) int)
-        (cast (thing d) int)
-        (cast (thing e) int)
-        (cast (thing f) int)
-        (cast (thing g) int)
-        (cast (thing h) int)
-        (cast (thing i) int)
-        (cast (thing j) int)
-        (cast (thing k) int))
-    0))
+            a b c d e f g h i j k ) 0))

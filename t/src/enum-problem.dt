@@ -1,7 +1,8 @@
 (import cstdio)
 (import macros)
+(import enum)
 
-(def e (enum extern int (ONE TWO THREE)))
+(def-enum e extern int (ONE TWO THREE))
 
 (def main
   (fn extern-c int (void)

@@ -56,7 +56,10 @@ The standard error handle.
 @enum buffer-mode
 |#
 (def buffer-mode
-  (enum extern int (_IOFBF _IOLBF _IONBF)))
+  (struct extern ((value int))))
+(def _IOFBF (var extern buffer-mode ((value 0))))
+(def _IOLBF (var extern buffer-mode ((value 1))))
+(def _IONBF (var extern buffer-mode ((value 2))))
 
 #|
 @fn fopen
@@ -255,7 +258,11 @@ The standard error handle.
 #|
 @enum fseekorigin
 |#
-(def fseekorigin (enum extern int (SET CUR END)))
+(def fseekorigin
+  (struct extern ((value int))))
+(def SET (var extern fseekorigin ((value 0))))
+(def CUR (var extern fseekorigin ((value 1))))
+(def END (var extern fseekorigin ((value 2))))
 
 #|
 @fn fseek

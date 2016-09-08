@@ -1,6 +1,7 @@
 (import cstdio)
+(import enum)
 
-(def thing (enum extern int (a b c d e f g)))
+(def-enum thing extern int (a b c d e f g))
 
 (def main (fn extern-c int (void)
   (let ((a int 12)

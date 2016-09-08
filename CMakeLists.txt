@@ -418,8 +418,9 @@ standard_library (modules/map.dt         map           utility math set derivati
 standard_library (modules/array.dt       array         algorithms utility math derivations)
 standard_library (modules/algorithms.dt  algorithms    utility)
 standard_library (modules/derivations.dt derivations   utility)
-standard_library (modules/variant.dt     variant       utility)
-standard_library (modules/bitset-enum.dt bitset-enum   utility)
+standard_library (modules/enum.dt        enum          utility)
+standard_library (modules/bitset-enum.dt bitset-enum   enum)
+standard_library (modules/variant.dt     variant       enum)
 
 set_directory_properties (PROPERTIES 
                           ADDITIONAL_MAKE_CLEAN_FILES

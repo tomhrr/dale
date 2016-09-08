@@ -1,0 +1,135 @@
+#|
+@module enum
+
+Enumerations ('enums') are declared like so:
+
+        (def-enum {name} {linkage} {type}
+          ({member1} {member2} ... {memberN}))
+
+where `{linkage}` is one of `intern` and `extern`, and `{type}` is the
+underlying integral type for the enum.
+
+Each `{member}` is either a name atom, or a name-value pair. By
+default, enum member values begin from zero. If a member does not have
+an explicitly-defined value (i.e. it is a name atom), it takes the
+value of the previous member, plus one. For example:
+
+        (def-enum my-enum extern int
+          (a b c (d 1) e (f 0) (g -1) h i j k))
+
+The member-value assignments for this enum are as follows:
+
+        a: 0; b:  1; c: 2; d: 1; e: 2; f: 0;
+        g: -1; h: 0; i: 1; j: 2; k: 3
+
+When an enum is defined, const variable bindings are introduced for
+each enum element, mapping to the value for that element.
+
+Enums are strongly-typed. The type name for an enum is `{name}`. When
+an enum is defined, a series of related functions are defined at the
+same time: `+`, `-`, `*`, `/`, `%`, `=`, `!=`, `<`, `<=`, `>`, `>=`,
+`<<`, `>>`, `&`, `|` and `^`. These functions are in turn defined only
+over that enum's type, so a function like `+`, for example, takes two
+instances of the enum as its arguments and returns a new enum value as
+its result. The exceptions to this are `<<` and `>>` (left and
+right-shift), which take `int`s as their second arguments. Note that
+enums can be cast to and from their underlying types, too.
+
+|#
+(module enum)
+
+(import stdlib)
+(import cstdlib)
+(import macros)
+(import introspection)
+
+#|
+@macro def-enum
+
+@param name     The name of the new enum.
+@param linkage  The linkage for the new enum.
+@param type     The type for the new enum.
+@param forms    The elements for the new enum.
+|#
+(def def-enum
+  (macro extern (name linkage type forms)
+    (using-namespace std.macros
+      (def forms-list (var auto \ (@:@ forms list-node)))
+      (and (null forms-list)
+        (do (report-error mc forms "list required for enum forms")
+            (return (nullptr DNode))))
+      (def holder  (var auto (p DNode) (nullptr DNode)))
+      (def current (var auto (p DNode) (nullptr DNode)))
+      (for (i uint64 0)
+           (not (null forms-list))
+           (do (setv forms-list (@:@ forms-list next-node))
+               (setv i (if (=' i 0) (cast 1 uint64) (+' i 1))))
+        (def name-node (var auto \ forms-list))
+        (def name-list-node (var auto \ (@:@ name-node list-node)))
+        (and (not (null name-list-node))
+          (let ((new-num-node \ (@:@ name-list-node next-node)))
+            (setv name-node name-list-node)
+            (and (null new-num-node)
+              (do (report-error mc forms
+                                "two arguments required for enum element form")
+                  (return (nullptr DNode))))
+            (let ((value \ (@:@ new-num-node token-str)))
+              (and (null value)
+                (do (report-error mc forms
+                                  "atom required for enum element index")
+                    (return (nullptr DNode))))
+              (setv i (strtoul value
+                               (nullptr (p char))
+                               (if (and (= #\0 (@$ value 0))
+                                        (= #\x (@$ value 1)))
+                                   16
+                                   10))))))
+        (let ((num-node \ (mnfv mc i))
+              (new-form \
+                (qq def (uq name-node)
+                  (var (uq linkage) (const (uq name))
+                    ((value (uq num-node)))))))
+          (if (null holder)
+              (setv holder new-form)
+              (setf (:@ current next-node) new-form))
+          (setv current new-form)))
+      (qq do
+        (def (uq name) (struct (uq linkage) ((value (uq type)))))
+        (def value (fn (uq linkage) (uq type) ((arg (uq name)))
+          (@: arg value)))
+        (import derivations)
+        (std.concepts.implement Struct (uq name))
+        (std.concepts.instantiate relations (uq name))
+        (def + (fn (uq linkage) (uq name) ((a (uq name))
+                                           (b (uq name)))
+          (def n (var auto \ (+ (value a) (value b))))
+          (return ((uq name) ((value n))))))
+        (def - (fn (uq linkage) (uq name) ((a (uq name))
+                                           (b (uq name)))
+          (def n (var auto \ (- (value a) (value b))))
+          (return ((uq name) ((value n))))))
+        (def * (fn (uq linkage) (uq name) ((a (uq name))
+                                           (b (uq name)))
+          (def n (var auto \ (* (value a) (value b))))
+          (return ((uq name) ((value n))))))
+        (def / (fn (uq linkage) (uq name) ((a (uq name))
+                                           (b (uq name)))
+          (def n (var auto \ (/ (value a) (value b))))
+          (return ((uq name) ((value n))))))
+        (def % (fn (uq linkage) (uq name) ((a (uq name))
+                                           (b (uq name)))
+          (def n (var auto \ (% (value a) (value b))))
+          (return ((uq name) ((value n))))))
+        (def & (fn (uq linkage) (uq name) ((a (uq name))
+                                           (b (uq name)))
+          (def n (var auto \ (& (value a) (value b))))
+          (return ((uq name) ((value n))))))
+        (def | (fn (uq linkage) (uq name) ((a (uq name))
+                                           (b (uq name)))
+          (def n (var auto \ (| (value a) (value b))))
+          (return ((uq name) ((value n))))))
+        (def ^ (fn (uq linkage) (uq name) ((a (uq name))
+                                           (b (uq name)))
+          (def n (var auto \ (^ (value a) (value b))))
+          (return ((uq name) ((value n))))))
+        (uql holder)))))

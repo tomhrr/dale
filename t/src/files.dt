@@ -7,7 +7,7 @@
     (def bytes (var auto size 0))
 
     (fprintf tempfile "contents\n")
-    (fseek tempfile 0 (fseekorigin SET))
+    (fseek tempfile 0 SET)
     (setv bytes (fread (cast buf (p void)) 
                        (cast 1 size) 
                        (cast 20 size) 

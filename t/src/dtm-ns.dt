@@ -1,10 +1,10 @@
 (import cstdio)
 (import macros)
+(import enum)
 
 (namespace x
   (def f
     (fn extern int (void) 100))
   (def s
     (struct extern((a int) (b char))))
-  (def e
-    (enum extern int (a b c))))
+  (def-enum e extern int (a b c)))

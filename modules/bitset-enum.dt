@@ -10,7 +10,7 @@ that of the previous one.  For example,
 
 expands to:
 
-        (def my-enum (enum intern int ((a 0) (b 1) (c 2) (d 4))))
+        (def-enum my-enum intern int ((a 0) (b 1) (c 2) (d 4)))
 
 and
 
@@ -18,7 +18,7 @@ and
 
 expands to:
 
-        (def my-enum (enum intern int ((a 0x2) (b 0x4) (c 0x8) (d 0x10))))
+        (def-enum my-enum intern int ((a 0x2) (b 0x4) (c 0x8) (d 0x10)))
 
 |#
 (module bitset-enum)
@@ -27,6 +27,7 @@ expands to:
 (import cstdlib)
 (import macros)
 (import introspection)
+(import enum)
 
 #|
 @macro def-bitset-enum
@@ -81,4 +82,4 @@ expands to:
               (do (setf (:@ current next-node) new-form)
                   (setv current new-form)))))
       (def wrapper (var auto (p DNode) (qq (uql holder))))
-      (qq def (uq name) (enum (uq linkage) (uq type) (uq wrapper))))))
+      (qq def-enum (uq name) (uq linkage) (uq type) (uq wrapper)))))

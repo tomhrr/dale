@@ -15,6 +15,7 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
     llvm::IRBuilder<> builder(block);
     llvm::Value *res = NULL;
     std::string *struct_name;
+    std::string *to_struct_name;
 
     llvm::Type *llvm_from_type = ctx->toLLVMType(from_type, NULL, false);
     if (!llvm_from_type) {
@@ -74,6 +75,13 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
                && to_type->isIntegerType()) {
         res = builder.CreatePtrToInt(value, llvm_to_type);
     } else if (from_type->points_to && to_type->points_to) {
+        res = builder.CreateBitCast(value, llvm_to_type);
+    } else if ((struct_name = &(from_type->struct_name))
+               && struct_name->size()
+               && (to_struct_name = &(to_type->struct_name))
+               && to_struct_name->size()
+               && !from_type->is_const
+               && to_type->is_const) {
         res = builder.CreateBitCast(value, llvm_to_type);
     } else if ((struct_name = &(from_type->struct_name))
                && struct_name->size()

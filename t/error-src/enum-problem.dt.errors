@@ -1,1 +1,2 @@
-./t/error-src/enum-problem.dt:1:42: error: 'enum element' requires 2 arguments (got 1 instead)
+./t/error-src/enum-problem.dt:2:29: error: two arguments required for enum element form (see macro at 2:1)
+./t/error-src/enum-problem.dt:2:1: error: macro expansion error (see previous)

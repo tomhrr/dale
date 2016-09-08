@@ -1,9 +1,9 @@
 (import cstdio)
+(import enum)
 
-(def en
-  (enum extern uint32 ((a 0x1) (b 0x2))))
+(def-enum en extern uint32 ((a 0x1) (b 0x2)))
 
 (def main 
   (fn extern-c int (void)
-    (printf "%u\n%u\n" (en a) (en b))
+    (printf "%u\n%u\n" a b)
     0))
