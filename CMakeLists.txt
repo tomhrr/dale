@@ -318,12 +318,12 @@ add_custom_command (OUTPUT  module-to-markdown
                             -lm -O4
                             -o module-to-markdown)
 add_custom_target (programs ALL DEPENDS module-to-markdown)
-add_dependencies (programs dalec vector derivations algorithms macros)
+add_dependencies (programs dalec vector derivations algorithms macros enum)
 
 # Module documentation.
 
 add_custom_target (doc COMMAND ${CMAKE_SOURCE_DIR}/generate-docs ${CMAKE_SOURCE_DIR})
-add_dependencies (doc dalec programs array)
+add_dependencies (doc dalec programs array variant)
 
 # Compile and install standard library files.
 
