@@ -74,14 +74,9 @@ DNodeConverter::stringLiteralAtomToNode(DNode *dnode)
 {
     Token *token = dnodeToNullToken(dnode);
 
-    char str[256];
-    str[0] = '\0';
-
-    strncpy(str, (dnode->token_str) + 1, (strlen(dnode->token_str)-2));
-    str[strlen(dnode->token_str)-2] = '\0';
-
     token->type = TokenType::StringLiteral;
-    token->str_value.append(str);
+    token->str_value.append(dnode->token_str + 1,
+                            (strlen(dnode->token_str) - 2));
 
     Node *n = new Node(token);
     setNodeMacroPosition(n, dnode);
