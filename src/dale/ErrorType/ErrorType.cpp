@@ -90,6 +90,10 @@ errorInstanceToString(int error_instance)
         ret = "overloaded function/macro not in scope: '%s' "
               "(parameters are %s, closest candidate expects %s)";
         break;
+    case ErrorInst::OverloadedFunctionOrMacroNotInScopeWithClosestFirstMatches:
+        ret = "overloaded function/macro not in scope: '%s' "
+              "(parameters are %s, closest candidate expects %s)";
+        break;
     case ErrorInst::NotInScope:
         ret = "not in scope: '%s'";
         break;

@@ -419,6 +419,8 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
     invoke_lst->push_back(token_node);
     std::copy(lst->begin(), lst->end(), std::back_inserter(*invoke_lst));
     Node invoke_node(invoke_lst);
+    (*lst->begin())->copyMetaTo(token_node);
+    (*lst->begin())->copyMetaTo(&invoke_node);
 
     last_error_count =
         ctx->er->getErrorTypeCount(ErrorType::Error);
@@ -428,6 +430,17 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
     if (res) {
         return true;
     }
+
+    /* If the call is not successful, but there is an 'invoke'
+     * function/macro that has a matching first argument, then
+     * return that error instead. */
+    Error *err = ctx->er->popLastError();
+    if (err->instance ==
+            OverloadedFunctionOrMacroNotInScopeWithClosestFirstMatches) {
+        ctx->er->addError(err);
+        return false;
+    }
+
     ctx->er->popErrors(last_error_count);
 
     Error *e = new Error(NotInScope, n, t->str_value.c_str());

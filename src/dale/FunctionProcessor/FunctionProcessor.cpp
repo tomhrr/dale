@@ -505,6 +505,27 @@ addNotFoundError(std::vector<Type *> *call_arg_types, const char *name,
     typesToString(call_arg_types, &args);
 
     if (closest_fn) {
+        Type *first_passed =
+            (call_arg_types->size()
+                ? call_arg_types->at(0)
+                : NULL);
+        Type *first_closest =
+            (closest_fn->is_macro)
+                ? (closest_fn->parameters.size() > 1)
+                    ? closest_fn->parameters.at(1)->type
+                    : NULL
+                : (closest_fn->parameters.size())
+                    ? closest_fn->parameters.at(0)->type
+                    : NULL;
+        bool first_matches =
+            (first_passed
+                && first_closest
+                && first_passed->isEqualTo(first_closest, true));
+        int error_type =
+            first_matches
+                ? OverloadedFunctionOrMacroNotInScopeWithClosestFirstMatches
+                : OverloadedFunctionOrMacroNotInScopeWithClosest;
+
         std::string expected;
         typesToString(closest_fn->parameters.begin() +
                           (closest_fn->is_macro ? 1 : 0),
@@ -512,7 +533,7 @@ addNotFoundError(std::vector<Type *> *call_arg_types, const char *name,
                       &expected);
 
         Error *e = new Error(
-            OverloadedFunctionOrMacroNotInScopeWithClosest,
+            error_type,
             n, name, args.c_str(), expected.c_str()
         );
         er->addError(e);

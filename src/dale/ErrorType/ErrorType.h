@@ -55,6 +55,7 @@ enum
     IncorrectParameterTypeNumberOfArgs,
     OverloadedFunctionOrMacroNotInScope,
     OverloadedFunctionOrMacroNotInScopeWithClosest,
+    OverloadedFunctionOrMacroNotInScopeWithClosestFirstMatches,
     NamespaceNotInScope,
     TypeNotInScope,
     MacroNotInScope,

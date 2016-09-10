@@ -1,0 +1,2 @@
+t/error-src/invoke-errors.dt:17:4: error: overloaded function/macro not in scope: 'invoke' (parameters are int int, closest candidate expects int int int)
+t/error-src/invoke-errors.dt:18:3: error: not in scope: 'y'
