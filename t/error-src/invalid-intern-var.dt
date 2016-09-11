@@ -1,0 +1,7 @@
+(import macros)
+
+(def main (fn extern-c int (void)
+  (def asdf (var auto int 0))
+  (def testvar (var intern int asdf))
+  (printf "%d\n" testvar)
+  0))

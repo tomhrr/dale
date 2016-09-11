@@ -17,11 +17,30 @@ using namespace dale::ErrorInst;
 namespace dale
 {
 Function *
-get_init_fn(Context *ctx, Type *type)
+getInitFn(Context *ctx, Type *type)
 {
     std::vector<Type *> init_arg_types;
     init_arg_types.push_back(type);
     return ctx->getFunction("init", &init_arg_types, NULL, 0);
+}
+
+llvm::Constant *
+parseGlobalLiteral(Units *units, Type *type, Node *node)
+{
+    Context *ctx = units->top()->ctx;
+
+    std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
+    std::vector<NSNode *> used_ns_nodes   = ctx->used_ns_nodes;
+    ctx->popUntilNamespace(units->prefunction_ns);
+
+    llvm::Constant *init = NULL;
+    int size;
+    init = parseLiteral(units, type, node, &size);
+
+    ctx->active_ns_nodes = active_ns_nodes;
+    ctx->used_ns_nodes   = used_ns_nodes;
+
+    return init;
 }
 
 bool
@@ -29,7 +48,7 @@ initialise(Context *ctx, llvm::IRBuilder<> *builder, Type *type,
            llvm::Value *value, Function *init_fn)
 {
     if (!init_fn) {
-        init_fn = get_init_fn(ctx, type);
+        init_fn = getInitFn(ctx, type);
     }
 
     if (init_fn) {
@@ -41,7 +60,7 @@ initialise(Context *ctx, llvm::IRBuilder<> *builder, Type *type,
     }
 
     if (type->array_type) {
-        init_fn = get_init_fn(ctx, type->array_type);
+        init_fn = getInitFn(ctx, type->array_type);
         if (!init_fn) {
             return true;
         }
@@ -273,7 +292,7 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    Function *init_fn = get_init_fn(ctx, type);
+    Function *init_fn = getInitFn(ctx, type);
     bool is_zero_sized = (type->array_type && (type->array_size == 0));
 
     llvm::IRBuilder<> builder(block);
@@ -404,9 +423,8 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
             return true;
         }
 
-        llvm::Constant *init = NULL;
-        int size;
-        init = parseLiteral(units, type, (*value_node->list)[3], &size);
+        llvm::Constant *init = parseGlobalLiteral(units, type,
+                                                  (*value_node->list)[3]);
         if (!init) {
             return false;
         }
