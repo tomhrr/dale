@@ -168,11 +168,6 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     Node *value_node = (*lst)[2];
-    value_node = units->top()->mp->parsePotentialMacroCall(value_node);
-    if (!value_node) {
-        return false;
-    }
-
     llvm::IRBuilder<> builder(variable_pr.block);
     ParseResult value_pr;
     value_pr.retval = variable_pr.value;
