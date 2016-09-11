@@ -14,6 +14,7 @@
 #include "../../Literal/Struct/Struct.h"
 #include "../../Literal/Array/Array.h"
 #include "../../Type/Type.h"
+#include "../../TopLevel/Import/Import.h"
 
 #include <cstdio>
 
@@ -353,6 +354,11 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
         }
         return FormProcInstParse(units, fn, block, new_node,
                                  get_address, false, wanted_type, pr);
+    }
+
+    if (!strcmp(t->str_value.c_str(), "import")) {
+        pr->set(block, NULL, NULL);
+        return FormTopLevelImportParse(units, n);
     }
 
     /* Not core form/macro, nor function. If the string token is
