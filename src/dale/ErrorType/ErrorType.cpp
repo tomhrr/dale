@@ -179,7 +179,7 @@ errorInstanceToString(int error_instance)
         ret = "'def' within a function may only be used "
               "for var and struct forms";
         break;
-        // this is very much a 'last resort' error.
+        // This is very much a 'last resort' error.
     case ErrorInst::UnableToParseForm:
         ret = "unable to parse form";
         break;
@@ -193,6 +193,9 @@ errorInstanceToString(int error_instance)
         ret = "macro '%s' returned a null pointer";
         break;
     case ErrorInst::UnableToParseInteger:
+        ret = "unable to parse integer %s";
+        break;
+    case ErrorInst::UnableToParseIntegerNoString:
         ret = "unable to parse integer %s";
         break;
     case ErrorInst::UnableToConvertTypeToLLVMType:

@@ -223,15 +223,9 @@ has_2D_errors(MContext *mc, DNode *form)
     }
 
     ParseResult pr;
-
-    /* PPMC may succeed, but the underlying macro may return a null
-     * DNode pointer.  This is not necessarily an error. */
-    n = units->top()->mp->parsePotentialMacroCall(n);
-    if (n) {
-        FormProcInstParse(units, units->top()->getGlobalFunction(),
-                          units->top()->getGlobalBlock(),
-                          n, false, false, NULL, &pr);
-    }
+    FormProcInstParse(units, units->top()->getGlobalFunction(),
+                      units->top()->getGlobalBlock(),
+                      n, false, false, NULL, &pr);
 
     if (made_temp) {
         units->top()->removeTemporaryGlobalFunction();
@@ -665,6 +659,9 @@ is_2D_copy_2D_permitted(MContext *mc, DNode *t, bool report)
 
     Node *n = units->top()->dnc->toNode(t);
     n = units->top()->mp->parsePotentialMacroCall(n);
+    if (!n) {
+        return false;
+    }
 
     Type *type = FormTypeParse(units, n, false, false);
     if (!type) {

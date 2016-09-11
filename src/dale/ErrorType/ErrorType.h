@@ -92,6 +92,7 @@ enum
     GotNullPointerFromMacroCall,
     LabelNotInScope,
     UnableToParseInteger,
+    UnableToParseIntegerNoString,
     UnableToConvertTypeToLLVMType,
     TypeIsNotFirstClass,
     ArraysCannotBeFunctionParameters,

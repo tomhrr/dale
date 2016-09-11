@@ -18,6 +18,9 @@ FormTopLevelStructParse(Units *units, Node *top, const char *name)
             return false;
         }
         Node *name_node = units->top()->mp->parsePotentialMacroCall((*lst)[1]);
+        if (!name_node) {
+            return false;
+        }
         name = name_node->token->str_value.c_str();
         top = (*lst)[2];
     }

@@ -2,6 +2,7 @@
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Form/TopLevel/GlobalVariable/GlobalVariable.h"
 #include "../../Type/Type.h"
 #include "../../Literal/Array/Array.h"
 #include "../../Literal/Integer/Integer.h"
@@ -25,24 +26,28 @@ FormProcArrayOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     Node *type_node = (*lst)[2];
     Node *data_node = (*lst)[3];
 
-    Node *array_size = units->top()->mp->parsePotentialMacroCall(size_node);
-    if (!array_size) {
-        return false;
-    }
-
-    int size = FormLiteralIntegerParse(array_size, ctx->er);
-    if (size == -1) {
-        return false;
-    }
-
     Type *type = FormTypeParse(units, type_node, false, false);
     if (!type) {
         return false;
     }
 
+    llvm::Constant *size_value = NULL;
+    int unused_size;
+    size_value = parseLiteral(units, type, size_node, &unused_size);
+    if (!size_value) {
+	return false;
+    }
+    llvm::ConstantInt *size_value_int =
+        llvm::dyn_cast<llvm::ConstantInt>(size_value);
+    if (!size_value_int) {
+        Error *e = new Error(ErrorInst::UnableToParseIntegerNoString, size_node);
+        ctx->er->addError(e);
+        return false;
+    }
+    int size = size_value_int->getZExtValue();
+
     Type *array_type = ctx->tr->getArrayType(type, size);
 
-    int unused_size;
     return FormLiteralArrayParse(units, fn, block, data_node,
                                  array_type, get_address, &unused_size, pr);
 }

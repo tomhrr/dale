@@ -1,3 +1,0 @@
-./t/error-src/never-null.dt:11:15: error: this value will never be null
-./t/error-src/never-null.dt:15:15: error: this value will never be null
-./t/error-src/never-null.dt:20:13: error: this value will never be null (see macro at 19:5)

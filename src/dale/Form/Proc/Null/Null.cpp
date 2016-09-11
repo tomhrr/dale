@@ -24,27 +24,12 @@ FormProcNullParse(Units *units, Function *fn, llvm::BasicBlock *block,
     std::vector<Node *> *lst = node->list;
     Node *node_value = (*lst)[1];
 
-    /* Take the second value, call parsePotentialMacroCall, and see if
-     * it's a list.  If it is a list, and the form is : or $, then
-     * show an error about that value never being null. */
-
-    if (node_value->is_list) {
-        node_value = units->top()->mp->parsePotentialMacroCall(node_value);
-        if (!node_value) {
-            return false;
-        }
-        if (node_value->is_list) {
-            Node *first = (*node_value->list)[0];
-            if (first->is_token) {
-                const char *v = first->token->str_value.c_str();
-                if ((!strcmp(v, ":")) || (!strcmp(v, "$"))) {
-                    Error *e = new Error(ValueWillNeverBeNull, node_value);
-                    ctx->er->addError(e);
-                    return false;
-                }
-            }
-        }
-    }
+    /* Previously, this called parsePotentialMacroCall on the
+     * expression, and if it evaluated to a form that was guaranteed
+     * to return a non-null value (i.e. : or $), it would return an
+     * error.  However, due to procedure macro evaluation in some cases
+     * depending on the availability of functions (e.g. with
+     * operator-macros), this is not done anymore. */
 
     ParseResult value_pr;
     bool res = FormProcInstParse(units, fn, block, node_value, false,
