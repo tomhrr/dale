@@ -5,7 +5,7 @@
 (using-namespace std.macros
 (def my-type-of
   (macro extern (var)
-    (let ((type-dnode (p DNode) (type-of mc var)))
+    (let ((type-dnode (p DNode) (type-of mc var true)))
       (if (null type-dnode)
           (do (report-error mc var "Unable to get type for node")
               (return (nullptr DNode)))

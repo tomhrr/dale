@@ -33,9 +33,10 @@ createAnonymousFunction(Units *units, llvm::BasicBlock *block,
 
     std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
     std::vector<NSNode *> used_ns_nodes   = ctx->used_ns_nodes;
-    if (units->prefunction_ns) {
-        ctx->popUntilNamespace(units->prefunction_ns);
+    if (!units->prefunction_ns) {
+        units->prefunction_ns = ctx->active_ns_nodes.front()->ns;
     }
+    ctx->popUntilNamespace(units->prefunction_ns);
 
     int error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
 
