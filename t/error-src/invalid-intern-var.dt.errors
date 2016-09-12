@@ -1,1 +1,2 @@
 t/error-src/invalid-intern-var.dt:5:32: error: variable not in scope: 'asdf'
+t/error-src/invalid-intern-var.dt:6:17: error: variable not in scope: 'testvar'

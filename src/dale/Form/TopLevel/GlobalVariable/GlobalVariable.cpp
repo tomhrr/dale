@@ -406,6 +406,8 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
 
     int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
     if (error_count_begin != error_count_end) {
+        llvm_fn->replaceAllUsesWith(llvm::UndefValue::get(llvm_fn->getType()));
+        llvm_fn->eraseFromParent();
         return NULL;
     }
 

@@ -397,22 +397,6 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         std::string var_name;
         ctx->ns()->nameToSymbol(name, &var_name);
 
-        bool res = ctx->ns()->addVariable(name, var);
-        if (!res) {
-            Error *e = new Error(RedefinitionOfVariable, node, name);
-            ctx->er->addError(e);
-            return false;
-        }
-
-        llvm::IRBuilder<> builder(block);
-        llvm::GlobalVariable *llvm_var =
-            llvm::cast<llvm::GlobalVariable>(
-                units->top()->module->getOrInsertGlobal(var_name.c_str(),
-                                                        llvm_type)
-            );
-        llvm_var->setLinkage(ctx->toLLVMLinkage(linkage));
-        var->value = llvm::cast<llvm::Value>(llvm_var);
-
         if (value_node_list->size() == 3) {
             if (type->is_const && !init_fn) {
                 Error *e = new Error(MustHaveInitialiserForConstType,
@@ -431,7 +415,24 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         if (!init) {
             return false;
         }
+
+        llvm::IRBuilder<> builder(block);
+        llvm::GlobalVariable *llvm_var =
+            llvm::cast<llvm::GlobalVariable>(
+                units->top()->module->getOrInsertGlobal(var_name.c_str(),
+                                                        llvm_type)
+            );
+        llvm_var->setLinkage(ctx->toLLVMLinkage(linkage));
+        var->value = llvm::cast<llvm::Value>(llvm_var);
+
         llvm_var->setInitializer(init);
+
+        bool res = ctx->ns()->addVariable(name, var);
+        if (!res) {
+            Error *e = new Error(RedefinitionOfVariable, node, name);
+            ctx->er->addError(e);
+            return false;
+        }
 
         return true;
     }
