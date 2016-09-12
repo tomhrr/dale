@@ -88,6 +88,8 @@ Context::popUntilNamespace(Namespace *ns)
 bool
 Context::activateNamespace(const char *name)
 {
+    assert(active_ns_nodes.size() && "no active namespace nodes");
+
     NSNode *current_nsnode = active_ns_nodes.back();
     std::map<std::string, NSNode *> *children = &current_nsnode->children;
 

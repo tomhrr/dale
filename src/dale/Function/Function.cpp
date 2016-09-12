@@ -12,6 +12,7 @@ Function::Function()
     is_destructor = false;
     is_setf_fn    = false;
     serialise     = true;
+    index         = 0;
 }
 
 Function::Function(
@@ -33,6 +34,7 @@ Function::Function(
     is_destructor = false;
     is_setf_fn    = false;
     serialise     = true;
+    index         = 0;
 }
 
 Function::~Function()

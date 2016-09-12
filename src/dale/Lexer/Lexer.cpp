@@ -273,7 +273,8 @@ Lexer::getNextToken(Token *token, Error *error)
 
         /* Previous potential integer. */
         if ((type == TokenType::Int)
-                && (*(token->str_value.rbegin()) == '-')
+                && (token->str_value.size() == 1)
+                && (*(token->str_value.begin()) == '-')
                 && !isdigit(c)) {
             type = TokenType::String;
         }
