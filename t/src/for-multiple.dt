@@ -1,0 +1,8 @@
+(import stdlib)
+
+(def main (fn extern-c int (void)
+  (for ((i \ 0) (j \ 0))
+       (and (< i 10) (< j 10))
+       (do (incv i) (incv j))
+    (printf "%d %d\n" i j))
+  0))
