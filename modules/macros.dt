@@ -47,7 +47,7 @@ Provides the quasiquotation macro.
   (if (is-unquote-form frm)
       (do (return true) true)
       true)
-  (def frm-type (var auto \ (type-of mc frm)))
+  (def frm-type (var auto \ (type-of mc frm true)))
   (if (null frm-type)
       (do (return false))
       true)

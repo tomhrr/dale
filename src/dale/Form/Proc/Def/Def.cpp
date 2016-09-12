@@ -31,7 +31,9 @@ parseGlobalLiteral(Units *units, Type *type, Node *node)
 
     std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
     std::vector<NSNode *> used_ns_nodes   = ctx->used_ns_nodes;
-    ctx->popUntilNamespace(units->prefunction_ns);
+    if (units->prefunction_ns) {
+        ctx->popUntilNamespace(units->prefunction_ns);
+    }
 
     llvm::Constant *init = NULL;
     int size;

@@ -214,22 +214,16 @@ has_2D_errors(MContext *mc, DNode *form)
     int error_count_begin =
         units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    bool made_temp = false;
     std::vector<DeferredGoto*> dgs;
     std::map<std::string, Label*> mls;
-    if (!units->top()->getGlobalFunction()) {
-        units->top()->makeTemporaryGlobalFunction();
-        made_temp = true;
-    }
+    units->top()->makeTemporaryGlobalFunction();
 
     ParseResult pr;
     FormProcInstParse(units, units->top()->getGlobalFunction(),
                       units->top()->getGlobalBlock(),
                       n, false, false, NULL, &pr);
 
-    if (made_temp) {
-        units->top()->removeTemporaryGlobalFunction();
-    }
+    units->top()->removeTemporaryGlobalFunction();
 
     int error_count_end =
         units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
@@ -568,19 +562,18 @@ register_2D_type(MContext *mc, const char *from, const char *to)
 }
 
 DNode *
-type_2D_of(MContext *mc, DNode *form)
+type_2D_of(MContext *mc, DNode *form, bool report_errors)
 {
     dale::Units *units = (dale::Units*) mc->units;
 
     Node *n = units->top()->dnc->toNode(form);
 
-    bool made_temp = false;
+    int error_count_begin =
+        units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
+
     std::vector<DeferredGoto*> dgs;
     std::map<std::string, Label*> mls;
-    if (!units->top()->getGlobalFunction()) {
-        units->top()->makeTemporaryGlobalFunction();
-        made_temp = true;
-    }
+    units->top()->makeTemporaryGlobalFunction();
 
     ParseResult pr;
     bool res =
@@ -588,8 +581,10 @@ type_2D_of(MContext *mc, DNode *form)
                           units->top()->getGlobalBlock(),
                           n, false, false, NULL, &pr);
 
-    if (made_temp) {
-        units->top()->removeTemporaryGlobalFunction();
+    units->top()->removeTemporaryGlobalFunction();
+
+    if (!report_errors) {
+        units->top()->ctx->er->popErrors(error_count_begin);
     }
 
     if (!res) {

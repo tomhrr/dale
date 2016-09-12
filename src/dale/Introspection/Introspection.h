@@ -131,8 +131,9 @@ extern "C" {
     /*! Get the type of a given form.
      *  @param mc The current macro context.
      *  @param form The form.
+     *  @param report_errors Whether to report or suppress errors.
      */
-    DNode *type_2D_of(MContext *mc, DNode *form);
+    DNode *type_2D_of(MContext *mc, DNode *form, bool report_errors);
 
     /*! Get the printf format specifier for the given type.
      *  @param mc The current macro context.

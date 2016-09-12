@@ -66,10 +66,13 @@ like `(testmacro int bool int)` will return `true`.
 Evaluates the form and returns its type. For example, if `frm` is `(+
 1 1)`, the result node will be `int` (single token node).
 
-@param mc       An MContext.
-@param frm      The form for which the type should be determined.
+@param mc               An MContext.
+@param frm              The form for which the type should be determined.
+@param report-errors    Whether to report or suppress errors.
 |#
-(def type-of (fn extern-c (p DNode) ((mc (p MContext)) (frm (p DNode)))))
+(def type-of (fn extern-c (p DNode) ((mc (p MContext))
+                                     (frm (p DNode))
+                                     (report-errors bool))))
 
 #|
 @fn codomain
@@ -107,7 +110,7 @@ argument should contain only the name of the function.
 @param frm      The token node containing the function name.
 @param n        The parameter index (begins from 0).
 |#
-(def input-type (fn extern-c (p DNode) ((mc (p MContext)) 
+(def input-type (fn extern-c (p DNode) ((mc (p MContext))
                                         (frm (p DNode)) (n int))))
 
 #|
@@ -188,7 +191,7 @@ stringification of the provided form.
 @param buf      A buffer into which the display string will be written.
 |#
 (def type-to-display-string (fn extern-c bool ((mc  (p MContext))
-                                               (frm (p DNode)) 
+                                               (frm (p DNode))
                                                (buf (p char)))))
 
 #|
@@ -287,7 +290,7 @@ to the type represented by the second form.
 @param pte-type     The pointee type form.
 |#
 (def is-pointer-to-type (fn extern-c bool ((mc (p MContext))
-                                           (ptr-type (p DNode)) 
+                                           (ptr-type (p DNode))
                                            (pte-type (p DNode)))))
 
 #|
@@ -298,7 +301,7 @@ Returns the type to which the type form points.
 @param mc           An MContext.
 @param ptr-type     The pointer type form.
 |#
-(def pointee-type (fn extern-c (p DNode) 
+(def pointee-type (fn extern-c (p DNode)
                                 ((mc (p MContext))
                                  (ptr-type (p DNode)))))
 
@@ -344,7 +347,7 @@ to `fn-by-args-count` that uses the same set of parameter types.
 @param n        The function list index.
 |#
 (def fn-by-args-name (fn extern-c (p (const char))
-                                  ((mc (p MContext)) 
+                                  ((mc (p MContext))
                                    (frm (p DNode)) (n int))))
 
 #|

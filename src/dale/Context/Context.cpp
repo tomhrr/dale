@@ -63,6 +63,8 @@ Context::ns()
 bool
 Context::popUntilNamespace(Namespace *ns)
 {
+    assert(ns && "null argument to popUntilNamespace");
+
     for (;;) {
         if (active_ns_nodes.size() == 0) {
             break;

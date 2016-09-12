@@ -7,6 +7,7 @@ namespace dale
 Units::Units(Module::Reader *mr)
 {
     this->mr = mr;
+    this->prefunction_ns = NULL;
 }
 
 Units::~Units()
