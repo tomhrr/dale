@@ -268,7 +268,9 @@ terminateBlocks(Context *ctx, Function *fn, llvm::Function *llvm_fn,
 
         /* The underlying error here will have been reported earlier,
          * if there is no last_value. */
-        if (!fn->hasRetval() && last_value) {
+        if (fn->return_type->base_type == BaseType::Void) {
+            builder.CreateRetVoid();
+        } else if (!fn->hasRetval() && last_value) {
             Type *got_type = last_type;
             if (!fn->return_type->canBePassedFrom(got_type)) {
                 std::string wanted;
@@ -281,12 +283,7 @@ terminateBlocks(Context *ctx, Function *fn, llvm::Function *llvm_fn,
                 ctx->er->addError(e);
                 return false;
             }
-
-            if (fn->return_type->base_type == BaseType::Void) {
-                builder.CreateRetVoid();
-            } else {
-                builder.CreateRet(last_value);
-            }
+            builder.CreateRet(last_value);
         } else {
             builder.CreateRetVoid();
         }

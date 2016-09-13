@@ -1,0 +1,8 @@
+(import cstdio)
+
+(def void-fn (fn intern void (void)
+  (printf "void return\n")))
+
+(def main (fn extern-c int (void)
+  (void-fn)
+  0))
