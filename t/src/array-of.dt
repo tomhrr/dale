@@ -1,0 +1,6 @@
+(import cstdio)
+
+(def main (fn extern-c int (void)
+  (def x (var auto \ (array-of 2 float (array 0.1 0.2))))
+  (printf "%f %f\n" (@$ x 0) (@$ x 1))
+  (return 0)))

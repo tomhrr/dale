@@ -33,7 +33,7 @@ FormProcArrayOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     llvm::Constant *size_value = NULL;
     int unused_size;
-    size_value = parseLiteral(units, type, size_node, &unused_size);
+    size_value = parseLiteral(units, ctx->tr->type_int, size_node, &unused_size);
     if (!size_value) {
 	return false;
     }
