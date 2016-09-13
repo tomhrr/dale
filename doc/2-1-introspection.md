@@ -89,6 +89,7 @@ Parameters:
 
   * `(mc (p MContext))`: An MContext.
   * `(frm (p DNode))`: The form for which the type should be determined.
+  * `(report-errors bool)`: Whether to report or suppress errors.
 
 
 Evaluates the form and returns its type. For example, if `frm` is `(+
@@ -520,6 +521,26 @@ Parameters:
 
 Returns a boolean indicating whether values of this type can be
 copied.
+
+
+#### `eval-expression`
+
+Linkage: `extern-c`
+Returns: `bool`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+  * `(type (p DNode))`: The type form.
+  * `(frm (p DNode))`: The literal form.
+  * `(buf (p void))`: The buffer for the literal's memory.
+
+
+Attempts to evaluate the provided form as a value of the specified
+type, and writes the memory of the literal into the buffer.  If the
+form does not evaluate successfully, returns false.  If the type is
+not supported, reports an error and returns false.
+
+Currently, the only supported type is `int`.
 
 
 [Previous](./1-11-form-reference.md) | [Next](./2-2-ctype.md)
