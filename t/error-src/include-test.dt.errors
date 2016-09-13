@@ -1,2 +1,2 @@
-./t/error-src/include/test.dt:2:2: error: 'def' requires 2 arguments (got 3 instead)
-./t/error-src/include-test.dt:4:3: error: 'def' requires 2 arguments (got 3 instead)
+t/error-src/include/test.dt:2:2: error: 'def' requires 2 arguments (got 3 instead)
+t/error-src/include-test.dt:4:3: error: 'def' requires 2 arguments (got 3 instead)

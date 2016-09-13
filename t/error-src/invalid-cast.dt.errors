@@ -1,0 +1,1 @@
+./t/error-src/invalid-cast.dt:5:37: error: unable to cast from type (p int) to type (array-of 2 int)

@@ -1,0 +1,8 @@
+(import cstdio)
+
+(def main (fn extern-c int (void)
+  (def x (var auto (array-of 2 int) (array 0 0)))
+  (def y (var auto (array-of 2 int) (cast x (array-of 2 int))))
+  (printf "%d %d\n" (@$ x 0) (@$ x 1))
+  (printf "%d %d\n" (@$ y 0) (@$ y 1))
+  (return)))

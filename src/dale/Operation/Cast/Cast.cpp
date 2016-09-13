@@ -83,22 +83,6 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
                && !from_type->is_const
                && to_type->is_const) {
         res = builder.CreateBitCast(value, llvm_to_type);
-    } else if (to_type->is_array) {
-        llvm::Value *pointer =
-            llvm::cast<llvm::Value>(
-                builder.CreateAlloca(llvm_from_type)
-            );
-        builder.CreateStore(value, pointer);
-        llvm::Value *int_pointer =
-            builder.CreateBitCast(
-                pointer,
-                ctx->toLLVMType(ctx->tr->getPointerType(to_type),
-                                NULL, false)
-            );
-
-        llvm::Value *new_int =
-            builder.CreateLoad(int_pointer);
-        res = new_int;
     } else {
         std::string fts;
         std::string tts;
