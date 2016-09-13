@@ -1,6 +1,7 @@
 #include "Introspection.h"
 #include "../Type/Type.h"
 #include "../Form/Type/Type.h"
+#include "../Form/TopLevel/GlobalVariable/GlobalVariable.h"
 #include "../Form/Proc/Inst/Inst.h"
 #include "../Utils/Utils.h"
 #include "../Operation/Copy/Copy.h"
@@ -900,6 +901,64 @@ struct_2D_member_2D_count(MContext *mc, DNode *name)
     return st->member_types.size();
 }
 
+bool
+eval_2D_expression(MContext *mc, DNode *type_form, DNode *form, void *buffer)
+{
+    dale::Units *units = (dale::Units*) mc->units;
+    Context *ctx = units->top()->ctx;
+
+    Node *n = units->top()->dnc->toNode(form);
+
+    Node *type_node = units->top()->dnc->toNode(type_form);
+    type_node = units->top()->mp->parsePotentialMacroCall(type_node);
+    Type *type = FormTypeParse(units, type_node, false, false);
+    if (!type->isEqualTo(ctx->tr->type_int)) {
+        Error *e = new Error(UnsupportedEvalExpressionType, type_node);
+        units->top()->ctx->er->addError(e);
+        return false;
+    }
+
+    int error_count_begin =
+        ctx->er->getErrorTypeCount(ErrorType::Error);
+
+    units->top()->makeTemporaryGlobalFunction();
+
+    std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
+    std::vector<NSNode *> used_ns_nodes   = ctx->used_ns_nodes;
+    if (!units->prefunction_ns) {
+        units->prefunction_ns = ctx->active_ns_nodes.front()->ns;
+    }
+    ctx->popUntilNamespace(units->prefunction_ns);
+
+    llvm::Constant *init = NULL;
+    int size;
+    init = parseLiteral(units, type, n, &size);
+
+    ctx->active_ns_nodes = active_ns_nodes;
+    ctx->used_ns_nodes   = used_ns_nodes;
+
+    units->top()->removeTemporaryGlobalFunction();
+
+    int error_count_end =
+        ctx->er->getErrorTypeCount(ErrorType::Error);
+
+    bool has_errors =
+        ((error_count_end - error_count_begin) != 0);
+    units->top()->ctx->er->popErrors(error_count_begin);
+    if (has_errors) {
+        return false;
+    }
+
+    llvm::ConstantInt *myint = llvm::dyn_cast<llvm::ConstantInt>(init);
+    if (myint) {
+        int n = myint->getSExtValue();
+        memcpy(buffer, &n, sizeof(int));
+        return true;
+    }
+
+    return false;
+}
+
 static std::map<std::string, void*> fns;
 
 void
@@ -932,6 +991,7 @@ init_introspection_functions()
     fns["fn-by-args-name"]          = (void *) fn_2D_by_2D_args_2D_name;
     fns["has-errors"]               = (void *) has_2D_errors;
     fns["is-const"]                 = (void *) is_2D_const;
+    fns["eval-expression"]          = (void *) eval_2D_expression;
 }
 
 #define eq(str) !strcmp(name, str)

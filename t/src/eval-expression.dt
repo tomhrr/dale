@@ -1,0 +1,27 @@
+(import cstdio)
+(import macros)
+(import operator-macros)
+(import math)
+
+(def pow (fn intern int ((x int) (y int))
+  (cast (pow (cast x double) (cast y double)) int)))
+
+(using-namespace std.macros
+  (def pow' (macro intern ((x int) (y int))
+    (def y' (var auto int))
+    (if (eval-expression mc (q int) y (cast (# y') (p void)))
+        (do (cond ((= y' 1) x)
+                  ((= y' 2) (qq * (uq x) (uq x)))
+                  ((= y' 3) (qq * (uq x) (uq x) (uq x)))
+                  (true     (qq pow (uq x) (uq y)))))
+        (do (printf "unable to evaluate\n")
+            (qq pow (uq x) (uq y)))))))
+
+(def main (fn extern-c int (void)
+  (def n (var auto int 5))
+  (printf "%d\n" (pow' 2 1))
+  (printf "%d\n" (pow' 2 2))
+  (printf "%d\n" (pow' 2 3))
+  (printf "%d\n" (pow' 2 4))
+  (printf "%d\n" (pow' 2 n))
+  0))

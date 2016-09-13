@@ -139,6 +139,7 @@ enum
     MacroExpansionError,
     ArityForExternCOnly,
     NoRefsInExternC,
+    UnsupportedEvalExpressionType,
 
     ExternalError,
 

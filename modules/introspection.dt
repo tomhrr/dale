@@ -448,3 +448,23 @@ copied.
 (def is-copy-permitted (fn extern-c bool ((mc (p MContext))
                                           (frm (p DNode))
                                           (report bool))))
+
+#|
+@fn eval-expression
+
+Attempts to evaluate the provided form as a value of the specified
+type, and writes the memory of the literal into the buffer.  If the
+form does not evaluate successfully, returns false.  If the type is
+not supported, reports an error and returns false.
+
+Currently, the only supported type is `int`.
+
+@param mc       An MContext.
+@param type     The type form.
+@param frm      The literal form.
+@param buf      The buffer for the literal's memory.
+|#
+(def eval-expression (fn extern-c bool ((mc (p MContext))
+                                        (type (p DNode))
+                                        (frm (p DNode))
+                                        (buf (p void)))))
