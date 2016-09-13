@@ -240,7 +240,7 @@ parseCharLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
 
 void
 parseVariableLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
-                     bool get_address, ParseResult *pr)
+                     bool get_address, Type *wanted_type, ParseResult *pr)
 {
     Token *t = node->token;
     Variable *var = ctx->getVariable(t->str_value.c_str());
@@ -261,16 +261,20 @@ parseVariableLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
 
     /* Array-type variables. */
     if (var->type->is_array) {
-        llvm::Value *ptr_to_array =
-            builder.CreateGEP(var->value, ctx->nt->getTwoLLVMZeros());
+        if (wanted_type && var->type->isEqualTo(wanted_type)) {
+            llvm::Value *array = builder.CreateLoad(var->value);
+            pr->set(block, var->type, array);
+            pr->value_is_lvalue = false;
+        } else {
+           llvm::Value *ptr_to_array =
+               builder.CreateGEP(var->value, ctx->nt->getTwoLLVMZeros());
 
-        pr->set(block, ctx->tr->getPointerType(var->type->array_type),
-                ptr_to_array);
-
-        pr->address_of_value = var->value;
-        pr->value_is_lvalue = true;
-        pr->type_of_address_of_value =
-            ctx->tr->getPointerType(var->type);
+           pr->set(block, ctx->tr->getPointerType(var->type->array_type),
+                   ptr_to_array);
+           pr->address_of_value = var->value;
+           pr->value_is_lvalue = true;
+           pr->type_of_address_of_value = ctx->tr->getPointerType(var->type);
+        }
         return;
     }
 
@@ -310,7 +314,7 @@ FormProcTokenParse(Units *units, Function *fn, llvm::BasicBlock *block,
             return true;
         }
 
-        parseVariableLiteral(ctx, block, node, get_address, pr);
+        parseVariableLiteral(ctx, block, node, get_address, wanted_type, pr);
         if (pr->value) {
             return true;
         } else {
