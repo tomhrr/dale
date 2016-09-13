@@ -66,25 +66,11 @@ FormTopLevelIncludeParse(Units *units, Node *node)
 
     Unit *unit = new Unit(path_buf.c_str(), units, ctx->er, ctx->nt,
                           ctx->tr, units->top()->ee,
-                          units->top()->is_x86_64);
+                          units->top()->is_x86_64, ctx,
+                          units->top()->mp, units->top()->fp,
+                          units->top()->module, units->top()->linker);
     units->push(unit);
     units->top()->once_tag.clear();
-
-    units->top()->ee->addModule(units->top()->module);
-    CommonDecl::addVarargsFunctions(unit);
-
-    if (!units->no_common) {
-        if (units->no_dale_stdlib) {
-            units->top()->addCommonDeclarations();
-        } else {
-            std::vector<const char*> import_forms;
-            units->mr->run(ctx, units->top()->linker,
-                           units->top()->module, nullNode(), "drt",
-                           &import_forms);
-        }
-    }
-
-    units->top()->ctx->regetPointers(units->top()->module);
 
     return true;
 }

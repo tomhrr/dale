@@ -44,6 +44,8 @@ private:
     int fn_count;
     /*! The unused name prefix. */
     char unused_name_prefix[4];
+    /*! Whether this unit has its own module. */
+    bool has_own_module;
 
 public:
     /*! The unit's LLVM module. */
@@ -80,7 +82,8 @@ public:
      */
     Unit(const char *path, Units *units, ErrorReporter *er,
          NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee,
-         bool is_x86_64);
+         bool is_x86_64, Context *ctx, MacroProcessor *mp,
+         FunctionProcessor *fp, llvm::Module *module, llvm::Linker *linker);
     ~Unit();
     /*! Check whether this unit has a once tag.
      */
@@ -121,6 +124,9 @@ public:
     /*! Get an unused LLVM function name.
      */
     void getUnusedFunctionName(std::string *buf);
+    /*! Returns a boolean indicating whether this unit has its own
+     *  module. */
+    bool hasOwnModule();
 };
 }
 

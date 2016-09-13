@@ -1,0 +1,7 @@
+(import cstdio)
+
+(include "include-test-2.dt")
+
+(def main (fn extern-c int (void)
+  (printf "%d\n" var1)
+  0))

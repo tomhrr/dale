@@ -46,13 +46,15 @@ Units::pop()
 
     std::string link_error;
 
+    if (popped->hasOwnModule()) {
 #if D_LLVM_VERSION_MINOR <= 2
-    bool res = current->linker->LinkInModule(popped->module, &link_error);
+        bool res = current->linker->LinkInModule(popped->module, &link_error);
 #else
-    bool res = current->linker->linkInModule(popped->module, &link_error);
+        bool res = current->linker->linkInModule(popped->module, &link_error);
 #endif
-    assert(!res && "unable to link modules");
-    _unused(res);
+        assert(!res && "unable to link modules");
+        _unused(res);
+    }
 
     current->ctx->merge(popped->ctx);
     current->ctx->regetPointers(current->module);

@@ -1,0 +1,1 @@
+(def var1  (var intern int 1000))

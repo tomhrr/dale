@@ -322,7 +322,8 @@ Generator::run(std::vector<const char *> *file_paths,
         const char *filename = *b;
         assert(!units.size());
 
-        Unit *unit = new Unit(filename, &units, &er, &nt, &tr, NULL, is_x86_64);
+        Unit *unit = new Unit(filename, &units, &er, &nt, &tr, NULL,
+                              is_x86_64, NULL, NULL, NULL, NULL, NULL);
         units.push(unit);
         ctx    = unit->ctx;
         mod    = unit->module;

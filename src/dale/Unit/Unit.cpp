@@ -10,7 +10,9 @@
 namespace dale
 {
 Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
-           TypeRegister *tr, llvm::ExecutionEngine *ee, bool is_x86_64)
+           TypeRegister *tr, llvm::ExecutionEngine *ee, bool is_x86_64,
+           Context *ctx, MacroProcessor *mp, FunctionProcessor *fp,
+           llvm::Module *module, llvm::Linker *linker)
 {
     FILE *mfp = fopen(path, "r");
     if (!mfp) {
@@ -19,23 +21,38 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
         error(buf, true);
     }
 
+    if (!module) {
+        has_own_module = true;
+    }
+
     er->current_filename = path;
     dnc = new DNodeConverter(er);
 
-    ctx = new Context(er, nt, tr);
-    mp = new MacroProcessor(units, ctx, ee);
-    fp = new FunctionProcessor(units);
+    if (!ctx) {
+        ctx = new Context(er, nt, tr);
+        mp = new MacroProcessor(units, ctx, ee);
+        fp = new FunctionProcessor(units);
+    }
+    this->ctx = ctx;
+    this->mp = mp;
+    this->fp = fp;
 
     Lexer *lxr = new Lexer(mfp);
     parser = new Parser(lxr, er, path);
 
-    module = new llvm::Module(path, llvm::getGlobalContext());
+    if (!module) {
+        module = new llvm::Module(path, llvm::getGlobalContext());
+    }
+    this->module = module;
 
+    if (!linker) {
 #if D_LLVM_VERSION_MINOR <= 2
-    linker = new llvm::Linker(path, module, false);
+        linker = new llvm::Linker(path, module, false);
 #else
-    linker = new llvm::Linker(module);
+        linker = new llvm::Linker(module);
 #endif
+    }
+    this->linker = linker;
 
     this->ee = ee;
     this->is_x86_64 = is_x86_64;
@@ -226,5 +243,11 @@ Unit::getUnusedFunctionName(std::string *buf)
 
     buf->append(ibuf);
     return;
+}
+
+bool
+Unit::hasOwnModule()
+{
+    return has_own_module;
 }
 }
