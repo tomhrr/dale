@@ -517,6 +517,13 @@ FormProcDefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     Node *def_type = (*value_node_list)[0];
+    if (!def_type->token) {
+        Error *e = new Error(UnexpectedElement, def_type,
+                             "symbol", "def type", "list");
+        ctx->er->addError(e);
+        return false;
+    }
+
     if (!(def_type->token->str_value.compare("struct"))) {
         FormStructParse(units, value_node, name);
         pr->set(block, ctx->tr->type_int, ctx->nt->getLLVMZero());

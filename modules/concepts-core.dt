@@ -259,7 +259,7 @@ constructed by way of `def-concept-macro`.
               (def function-arg-list
                 (var auto \ (qq a (uq (uq myn)))))
               (let ((mine2 \ (qq do
-                (uq linked-rnodes)
+                (uql linked-rnodes)
                 (def (uq implements-name-node)
                   (fn extern int ((uq (uq function-arg-list)))
                   0)))))

@@ -1,0 +1,52 @@
+(import concepts)
+(import concept-defs)
+
+(using-namespace std.concepts
+(using-namespace std.macros
+  (def-concept Addable (refines Type) (T)
+    (let ((success \ true))
+      (concept-assert (exists-fn mc (qq (uq T) + (uq T) (uq T)))
+                      T "+ is not defined over this type")
+      success))
+
+  (def-concept Subtractable (refines Type) (T)
+    (let ((success \ true))
+      (concept-assert (exists-fn mc (qq (uq T) - (uq T) (uq T)))
+                      T "- is not defined over this type")
+      success))
+
+  (def-concept BasicMath (refines Addable Subtractable) (T) true)
+
+  (def-concept-macro an-op-0 extern ((T BasicMath))
+    (qq do
+      (def an-op-0 (fn extern (uq T) ((n (uq T)) (m (uq T)))
+        (- (+ n m) m)))))
+
+  (def-concept-macro an-op-1 extern ((T Addable))
+    (qq do
+      (def an-op-1 (fn extern (uq T) ((n (uq T)) (m (uq T)))
+        (+ n m)))))
+
+  (def-concept-macro an-op-2 extern ((T Subtractable))
+    (qq do
+      (def an-op-2 (fn extern (uq T) ((n (uq T)) (m (uq T)))
+        (- n m)))))
+
+  (def mys (struct intern ((n int))))
+  (def + (fn intern mys ((a mys) (b mys))
+    ((n (+ (@: a n) (@: b n))))))
+  (def - (fn intern mys ((a mys) (b mys))
+    ((n (- (@: a n) (@: b n))))))
+  (implement BasicMath mys)
+
+  (instantiate an-op-0 mys)
+  (instantiate an-op-1 mys)
+  (instantiate an-op-2 mys)))
+
+(def main (fn extern-c int (void)
+  (def a (var auto mys ((n 5))))
+  (def b (var auto mys ((n 2))))
+  (printf "%d\n" (an-op-0 a b))
+  (printf "%d\n" (an-op-1 a b))
+  (printf "%d\n" (an-op-2 a b))
+  0))
