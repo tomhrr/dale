@@ -1,0 +1,3 @@
+
+ (def var v (var intern int 100))
+

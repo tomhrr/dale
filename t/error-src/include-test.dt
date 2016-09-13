@@ -1,0 +1,5 @@
+(include "include/test.dt")
+
+(def main (fn extern-c int (void)
+  (def x y (var auto int 0))
+  0))

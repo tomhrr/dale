@@ -25,6 +25,7 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
         has_own_module = true;
     }
 
+    path = strdup(path);
     er->current_filename = path;
     dnc = new DNodeConverter(er);
 
@@ -68,7 +69,9 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
 
 Unit::~Unit()
 {
-    delete ctx;
+    if (hasOwnModule()) {
+        delete ctx;
+    }
     delete parser;
 }
 
