@@ -77,7 +77,7 @@ FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
         ParseResult value_pr;
         bool res = FormProcInstParse(units, fn, block, value_node, false,
-                                      false, NULL, &value_pr);
+                                      false, type, &value_pr);
         if (!res) {
             return false;
         }

@@ -1,0 +1,10 @@
+(import cstdio)
+
+(def X (struct intern ((value (array-of 2 int)))))
+
+(def main (fn extern-c int (void)
+  (def a (var auto (array-of 2 int) (array 1 1)))
+  (setv a (array 0 0))
+  (def x (var auto X ((value (array 1 2)))))
+  (printf "%d %d\n" (@$ (@: x value) 0) (@$ (@: x value) 1))
+  0))
