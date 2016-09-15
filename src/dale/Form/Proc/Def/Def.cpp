@@ -453,6 +453,13 @@ parseVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
+    if (value_node_list->size() > 4) {
+        Error *e = new Error(IncorrectMaximumNumberOfArgs, value_node,
+                             "var", "3", (value_node_list->size() - 1));
+        units->top()->ctx->er->addError(e);
+        return false;
+    }
+
     if ((linkage != Linkage::Auto)
             && (linkage != Linkage::Intern)
             && (value_node_list->size() > 3)) {

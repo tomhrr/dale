@@ -1,0 +1,12 @@
+(import cstdio)
+(import stdlib)
+
+(def x (var intern int 0 0))
+(def y (var intern int 0))
+
+(def main (fn extern-c int (void)
+  (def x (var auto int 0 0))
+  (def y (var auto int 0))
+  (let ((m \ y y))
+    (printf "%d\n" m))
+  0))

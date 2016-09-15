@@ -251,7 +251,7 @@ a `let` variable binding (e.g. `(i \ 0)`), or a `setv` call (e.g.
         (var auto (p DNode) (make-gensym-label-node mc "continuelabel")))
     (def end-label
         (var auto (p DNode) (make-gensym-label-node mc "breaklabel")))
-    
+
     (and (null varargs-list)
       (do (report-error mc init-form "no body forms provided")
           (return (nullptr DNode))))
@@ -356,7 +356,7 @@ expands to:
 
     (def vars-node (var auto (p DNode) (@:@ new-vars list-node)))
     (and (null vars-node)
-      (do (report-error mc new-vars "argument must be a list")
+      (do (report-error mc new-vars "variable forms must be a list")
           (return (nullptr DNode))))
 
     (def name-node    (var auto (p DNode) (cast 0 (p DNode))))
@@ -369,13 +369,18 @@ expands to:
 
       (setv name-node    (@:@ vars-node list-node))
       (and (null name-node)
-        (do (report-error mc vars-node "argument must be a list")
+        (do (report-error mc vars-node "variable form must be a list")
             (return (nullptr DNode))))
       (setv type-node    (@:@ name-node next-node))
       (and (null type-node)
-        (do (report-error mc vars-node "list needs variable name and type")
+        (do (report-error mc vars-node "form needs variable name and type")
             (return (nullptr DNode))))
       (setv default-node (@:@ type-node next-node))
+
+      (and (and (not (null default-node))
+                (not (null (@:@ default-node next-node))))
+        (do (report-error mc default-node "variable form has too many arguments")
+            (return (nullptr DNode))))
 
       (setf (:@ name-node next-node) nullp)
       (setf (:@ type-node next-node) nullp)

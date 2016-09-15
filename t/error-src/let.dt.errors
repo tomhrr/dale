@@ -1,2 +1,2 @@
-t/error-src/let.dt:4:8: error: argument must be a list (see macro at 4:3)
+t/error-src/let.dt:4:8: error: variable forms must be a list (see macro at 4:3)
 t/error-src/let.dt:4:3: error: macro expansion error (see previous)

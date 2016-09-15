@@ -1,0 +1,4 @@
+t/error-src/excess-var-arguments.dt:4:8: error: 'var' takes at most 3 arguments (got 4 instead)
+t/error-src/excess-var-arguments.dt:8:10: error: 'var' takes at most 3 arguments (got 4 instead)
+t/error-src/excess-var-arguments.dt:10:14: error: variable form has too many arguments (see macro at 10:3)
+t/error-src/excess-var-arguments.dt:10:3: error: macro expansion error (see previous)
