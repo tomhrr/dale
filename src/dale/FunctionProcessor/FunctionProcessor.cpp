@@ -46,6 +46,8 @@ processRetval(Context *ctx,
                        pr->retval, getInitFn(ctx, return_type));
             call_args->push_back(pr->retval);
             return;
+        } else {
+            fprintf(stderr,"no init required\n");
         }
     }
 
