@@ -72,6 +72,9 @@ public:
     Type *retval_type;
     /*! Whether the retval has been used. */
     bool retval_used;
+    /*! Whether the retval requires initialisation before being passed
+     *  to a function. */
+    bool retval_requires_init;
 
     ParseResult();
     /*! Construct a new ParseResult.

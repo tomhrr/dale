@@ -17,6 +17,7 @@ is($?, 0, 'Program executed successfully');
 
 chomp for @res;
 is_deeply(\@res, [
+'Called setf-copy-init',
 '3 3'
 ], 'Got expected results');
 

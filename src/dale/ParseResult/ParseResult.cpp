@@ -20,6 +20,7 @@ ParseResult::init()
     retval = NULL;
     retval_type = NULL;
     retval_used = false;
+    retval_requires_init = false;
 }
 
 ParseResult::ParseResult()
@@ -54,6 +55,7 @@ ParseResult::copyTo(ParseResult *x)
     x->retval_type = retval_type;
     x->retval = retval;
     x->retval_used = retval_used;
+    x->retval_requires_init = retval_requires_init;
 }
 
 void

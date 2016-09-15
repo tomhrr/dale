@@ -20,7 +20,7 @@ chomp for @res;
 is_deeply(\@res,
 [
 '....prefold',
-'.postfold',
+'.....postfold',
 '6 12 18',
 ],
     'Got expected results');

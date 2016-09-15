@@ -338,6 +338,7 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         ParseResult value_pr;
         value_pr.retval      = dst_ptr;
         value_pr.retval_type = ctx->tr->getPointerType(type);
+        value_pr.retval_requires_init = true;
         res = FormProcInstParse(units, fn, block,
                                 (*value_node->list)[3],
                                 get_address, false, type, &value_pr);

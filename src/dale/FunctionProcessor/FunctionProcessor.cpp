@@ -2,6 +2,7 @@
 
 #include "../SavePoint/SavePoint.h"
 #include "../Form/Proc/Inst/Inst.h"
+#include "../Form/Proc/Def/Def.h"
 #include "../Operation/Coerce/Coerce.h"
 #include "../Operation/Cast/Cast.h"
 #include "../Operation/Destruct/Destruct.h"
@@ -37,12 +38,17 @@ processRetval(Context *ctx,
     pr->do_not_copy_with_setf = 1;
     pr->retval_used = true;
 
+    llvm::IRBuilder<> builder(block);
+
     if (pr->retval) {
-        call_args->push_back(pr->retval);
-        return;
+        if (pr->retval_requires_init) {
+            initialise(ctx, &builder, return_type,
+                       pr->retval, getInitFn(ctx, return_type));
+            call_args->push_back(pr->retval);
+            return;
+        }
     }
 
-    llvm::IRBuilder<> builder(block);
     llvm::Type *et =
         ctx->toLLVMType(return_type, NULL, false, false);
     if (!et) {
@@ -50,9 +56,13 @@ processRetval(Context *ctx,
     }
     llvm::Value *retval_ptr =
         llvm::cast<llvm::Value>(builder.CreateAlloca(et));
+    initialise(ctx, &builder, return_type,
+               retval_ptr, getInitFn(ctx, return_type));
     call_args->push_back(retval_ptr);
-    pr->retval = retval_ptr;
-    pr->retval_type = ctx->tr->getPointerType(return_type);
+    if (!pr->retval) {
+        pr->retval = retval_ptr;
+        pr->retval_type = ctx->tr->getPointerType(return_type);
+    }
 }
 
 bool
@@ -278,6 +288,21 @@ FunctionProcessor::parseFunctionPointerCall(Function *dfn, Node *n,
                            llvm::ArrayRef<llvm::Value*>(call_args_final));
 
     pr->set(block, fn_ptr->return_type, call_res);
+
+    if (fn_ptr->return_type->is_retval) {
+        if (call_args_final.back() != pr->retval) {
+            ParseResult x;
+            x.value_is_lvalue = false;
+            x.set(block,
+                fn_ptr->return_type,
+                builder.CreateLoad(call_args_final.back()));
+            x.address_of_value = call_args_final.back();
+            x.type_of_address_of_value =
+                units->top()->ctx->tr->getPointerType(fn_ptr->return_type);
+            storeValue(units->top()->ctx, n, fn_ptr->return_type, &builder,
+                       pr->retval, &x);
+        }
+    }
 
     fn_ptr_pr->block = pr->block;
     ParseResult destruct_pr;
@@ -771,6 +796,21 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
         builder.CreateCall(fn->llvm_function,
                            llvm::ArrayRef<llvm::Value*>(call_args_final));
     pr->set(block, fn->return_type, call_res);
+
+    if (fn->return_type->is_retval) {
+        if (call_args_final.back() != pr->retval) {
+            ParseResult x;
+            x.value_is_lvalue = false;
+            x.set(block,
+                fn->return_type,
+                builder.CreateLoad(call_args_final.back()));
+            x.address_of_value = call_args_final.back();
+            x.type_of_address_of_value =
+                units->top()->ctx->tr->getPointerType(fn->return_type);
+            storeValue(units->top()->ctx, n, fn->return_type, &builder,
+                       pr->retval, &x);
+        }
+    }
 
     /* If the return type of the function is one that should be copied
      * with an overridden setf, that will occur in the function, so

@@ -15,6 +15,17 @@ namespace dale
 bool FormProcDefParse(Units *units, Function *fn, llvm::BasicBlock *block,
                       Node *node, bool get_address, bool prefixed_with_core,
                       ParseResult *pr);
+
+Function *
+getInitFn(Context *ctx, Type *type);
+bool
+initialise(Context *ctx, llvm::IRBuilder<> *builder, Type *type,
+           llvm::Value *value, Function *init_fn);
+bool
+storeValue(Context *ctx, Node *node, Type *type,
+           llvm::IRBuilder<> *builder, llvm::Value *dst_ptr, ParseResult *pr);
+
+
 }
 
 #endif
