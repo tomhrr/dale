@@ -5,6 +5,7 @@
 #include "../Form/Proc/Inst/Inst.h"
 #include "../Utils/Utils.h"
 #include "../Operation/Copy/Copy.h"
+#include "../SavePoint/SavePoint.h"
 
 using namespace dale;
 using namespace dale::ErrorInst;
@@ -959,6 +960,37 @@ eval_2D_expression(MContext *mc, DNode *type_form, DNode *form, void *buffer)
     return false;
 }
 
+bool
+is_2D_lvalue(MContext *mc, DNode *form)
+{
+    dale::Units *units = (dale::Units*) mc->units;
+
+    Node *n = units->top()->dnc->toNode(form);
+
+    int error_count_begin =
+        units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+    SavePoint sp(units->top()->ctx, units->top()->getGlobalFunction(),
+                 units->top()->getGlobalBlock());
+
+    ParseResult pr;
+    FormProcInstParse(units, units->top()->getGlobalFunction(),
+                      units->top()->getGlobalBlock(),
+                      n, false, false, NULL, &pr);
+
+    sp.restore();
+
+    int error_count_end =
+        units->top()->ctx->er->getErrorTypeCount(ErrorType::Error);
+
+    bool has_errors =
+        ((error_count_end - error_count_begin) != 0);
+
+    units->top()->ctx->er->popErrors(error_count_begin);
+
+    return (!has_errors && pr.value_is_lvalue);
+}
+
 static std::map<std::string, void*> fns;
 
 void
@@ -992,6 +1024,7 @@ init_introspection_functions()
     fns["has-errors"]               = (void *) has_2D_errors;
     fns["is-const"]                 = (void *) is_2D_const;
     fns["eval-expression"]          = (void *) eval_2D_expression;
+    fns["is-lvalue"]                = (void *) is_2D_lvalue;
 }
 
 #define eq(str) !strcmp(name, str)

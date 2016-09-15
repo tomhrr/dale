@@ -543,5 +543,18 @@ not supported, reports an error and returns false.
 Currently, the only supported type is `int`.
 
 
+#### `is-lvalue`
+
+Linkage: `extern-c`
+Returns: `bool`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+  * `(frm (p DNode))`: The form.
+
+
+Determine whether a form is an lvalue.
+
+
 [Previous](./1-11-form-reference.md) | [Next](./2-2-ctype.md)
 

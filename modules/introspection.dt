@@ -468,3 +468,14 @@ Currently, the only supported type is `int`.
                                         (type (p DNode))
                                         (frm (p DNode))
                                         (buf (p void)))))
+
+#|
+@fn is-lvalue
+
+Determine whether a form is an lvalue.
+
+@param mc       An MContext.
+@param frm      The form.
+|#
+(def is-lvalue (fn extern-c bool ((mc (p MContext))
+                                  (frm (p DNode)))))

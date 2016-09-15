@@ -345,7 +345,11 @@ The list of refinements has the following form:
 A concept P 'refines' another concept Q when it must meet the criteria
 of Q, as well as certain other criteria. If the concept being defined
 does not refine any other concept, then the second argument should be
-`(refines)`.
+`(refines)`.  Apart from allowing a concept to import the criteria of
+another concept, refinements are also used during `instantiate`: the
+instantiation that is most-specific with respect to the arguments'
+concepts, taking into account their refinements, is the one that is
+used.
 
 The parameter list is as per a macro's parameter list, except that all
 of the parameters must be untyped. Currently, a concept may only
@@ -450,11 +454,16 @@ call to that macro. The term `instantiate` is used because in nearly
 all cases, the concept macro being run is something that in turn
 expands into a series of bindings; for example, `Vector`.
 
-When multiple instantiations are available for a given call, this will
-report an error and expand to nothing. Disambiguation is achieved by
-way of the `force` form:
+When multiple equally-preferred instantiations are available for a
+given call, this will report an error and expand to nothing.
+Disambiguation is achieved by way of the `force` form:
 
         (instantiate MacroName (force ConceptName Type) ...)
+
+Disambiguation is not required when an argument implements a concept
+that refines another concept, and there are instantiations available
+for both concepts.  In that case, the instantiation for the former
+concept will be preferred.
 
 Each argument to `instantiate` must implement one or more concepts.
 If any argument does not, the expansion will fail with the error

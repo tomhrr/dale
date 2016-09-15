@@ -1,0 +1,20 @@
+(import cstdio)
+
+(def mys (struct intern ((a int) (b int))))
+
+(def m-is-lvalue (macro intern (frm)
+  (printf "%d\n" (is-lvalue mc frm))
+  (return (nullptr DNode))))
+
+(def main (fn extern-c int (void)
+  (m-is-lvalue not-exists)
+  (def x (var auto int 0))
+  (m-is-lvalue x)
+  (def y (var auto mys))
+  (m-is-lvalue y)
+  (m-is-lvalue (@: y a))
+  (m-is-lvalue (@: y b))
+  (def z (var auto (array-of 100 int)))
+  (m-is-lvalue (@$ z 50))
+  (m-is-lvalue (arbitrary form))
+  0))
