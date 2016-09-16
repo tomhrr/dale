@@ -35,6 +35,7 @@
 #include "../Form/Proc/NewScope/NewScope.h"
 #include "../Form/Proc/ArrayOf/ArrayOf.h"
 #include "../Form/Proc/Move/Move.h"
+#include "../Form/Proc/Include/Include.h"
 #include "../Form/Macro/ArrayDeref/ArrayDeref.h"
 #include "../Form/Macro/StructDeref/StructDeref.h"
 #include "../Form/Macro/DerefStructDeref/DerefStructDeref.h"
@@ -113,6 +114,7 @@ init()
     ADD_SC("new-scope",       &FormProcNewScopeParse);
     ADD_SC("array-of",        &FormProcArrayOfParse);
     ADD_SC("move",            &FormProcMoveParse);
+    ADD_SC("include",         &FormProcIncludeParse);
 
     ADD_MC("setv",            &FormMacroSetvParse);
     ADD_MC("@$",              &FormMacroArrayDerefParse);

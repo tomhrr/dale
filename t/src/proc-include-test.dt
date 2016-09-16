@@ -1,0 +1,5 @@
+(import cstdio)
+
+(def main (fn extern-c int (void)
+  (printf (include "t/src/proc-include.dt"))
+  0))
