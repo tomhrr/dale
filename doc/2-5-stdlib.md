@@ -319,7 +319,8 @@ expands to:
 Linkage: `extern`
 Parameters: N/A
 
-Expands to nothing.
+Expands to an empty `do` form, which is a no-op both at the top-level
+and within a procedure.
 
 
 #### `identity`

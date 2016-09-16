@@ -902,7 +902,8 @@ linked against manually.
 
 The `include` core form is supported for completeness' sake. It
 operates in the same way as an `#include` directive in C's
-preprocessor. 
+preprocessor.  It may be used both at the top level and within a
+procedure.
 
 To prevent a file from being included more than once, the core form
 `once` can be used as the first form within the file. It takes an
@@ -2723,7 +2724,8 @@ expands to:
 Linkage: `extern`
 Parameters: N/A
 
-Expands to nothing.
+Expands to an empty `do` form, which is a no-op both at the top-level
+and within a procedure.
 
 
 #### `identity`
