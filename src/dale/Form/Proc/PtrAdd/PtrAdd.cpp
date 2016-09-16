@@ -50,16 +50,16 @@ FormProcPtrAddParse(Units *units, Function *fn, llvm::BasicBlock *block,
     llvm::Value *addend_value = NULL;
 
     if (addend_pr.type->isIntegerType()) {
-        ParseResult size_pr;
-        res = Operation::Sizeof(ctx, addend_pr.block,
-                                ptr_pr.type->points_to, &size_pr);
-        if (!res) {
-            return false;
-        }
+        size_t size = Operation::SizeofGet(units->top(), ptr_pr.type->points_to);
 
         ParseResult addend_value_pr;
-        res = Operation::Cast(ctx, size_pr.block, size_pr.value,
-                              size_pr.type, ctx->tr->type_intptr,
+        res = Operation::Cast(ctx, block,
+                              llvm::ConstantInt::get(
+                                  ctx->toLLVMType(ctx->tr->type_size,
+                                                  NULL, false),
+                                  size
+                              ),
+                              ctx->tr->type_size, ctx->tr->type_intptr,
                               addend_node, 0, &addend_value_pr);
         if (!res) {
             return false;

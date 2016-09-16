@@ -50,16 +50,16 @@ FormProcPtrSubtractParse(Units *units, Function *fn, llvm::BasicBlock *block,
     llvm::Value *minuend_value = NULL;
 
     if (minuend_pr.type->isIntegerType()) {
-        ParseResult size_pr;
-        res = Operation::Sizeof(ctx, minuend_pr.block,
-                                ptr_pr.type->points_to, &size_pr);
-        if (!res) {
-            return false;
-        }
+        size_t size = Operation::SizeofGet(units->top(), ptr_pr.type->points_to);
 
         ParseResult minuend_value_pr;
-        res = Operation::Cast(ctx, size_pr.block, size_pr.value,
-                              size_pr.type, ctx->tr->type_intptr,
+        res = Operation::Cast(ctx, block,
+                              llvm::ConstantInt::get(
+                                  ctx->toLLVMType(ctx->tr->type_size,
+                                                  NULL, false),
+                                  size
+                              ),
+                              ctx->tr->type_size, ctx->tr->type_intptr,
                               minuend_node, 0, &minuend_value_pr);
         if (!res) {
             return false;
