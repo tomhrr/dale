@@ -690,13 +690,14 @@ expands to:
 #|
 @macro no-op
 
-Expands to nothing.
+Expands to an empty `do` form, which is a no-op both at the top-level
+and within a procedure.
 
 @linkage extern
 |#
 (def no-op
   (macro extern (void)
-    (nullptr DNode)))
+    (q (do))))
 
 #|
 @macro identity

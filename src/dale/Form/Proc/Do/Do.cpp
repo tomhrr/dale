@@ -15,8 +15,9 @@ FormProcDoParse(Units *units, Function *fn, llvm::BasicBlock *block,
 {
     Context *ctx = units->top()->ctx;
 
-    if (!ctx->er->assertArgNums("do", node, 1, -1)) {
-        return false;
+    if (node->list->size() == 1) {
+        pr->set(block, ctx->tr->type_void, NULL);
+        return true;
     }
 
     for (std::vector<Node*>::iterator b = (node->list->begin() + 1),

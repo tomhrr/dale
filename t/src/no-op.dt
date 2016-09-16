@@ -1,0 +1,14 @@
+(import cstdio)
+
+(no-op)
+
+(def main (fn extern-c int (void)
+  (no-op)
+  (using-namespace std
+    (no-op)
+    (def x (var auto \ 1))
+    (no-op))
+  (def z (var auto \ x))
+  (printf "%d\n" z)
+  (no-op)
+  0))
