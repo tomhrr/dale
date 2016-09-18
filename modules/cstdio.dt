@@ -88,6 +88,8 @@ The standard error handle.
 (def fclose
   (fn extern-c int ((stream (p file)))))
 
+(def destroy (fn extern void ((val (ref (p file))))
+  (fclose (@ file))))
 #|
 @fn remove
 |#
