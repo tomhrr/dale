@@ -69,7 +69,10 @@ Defines a macro:
 (def def-left-associative-macro (macro extern (name linkage)
   (qq std.macros.def-left-associative-macro (uq name) (uq linkage) (uq name))))))
 
+(mfor op (and or)
+  (std.macros.def-right-associative-macro op extern))
+
 (mfor op (+  -  *  /
           +' -' *' /'
-          &  | and or)
+          &  |)
   (std.macros.def-left-associative-macro op extern))
