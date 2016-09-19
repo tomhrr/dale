@@ -59,7 +59,7 @@ the form. If the condition is false, returns `false`.
 @param condition    The condition expression.
 @param true-case    The form to run when condition is true.
 |#
-(def and (macro extern (condition true-case)
+(def and (macro extern ((condition bool) true-case)
   (bqq if (uq condition) (uq true-case) false)))
 
 #|
@@ -72,7 +72,7 @@ the form. If the condition is true, returns `true`.
 @param condition    The condition expression.
 @param false-case   The form to run when condition is false.
 |#
-(def or (macro extern (condition false-case)
+(def or (macro extern ((condition bool) false-case)
   (bqq if (uq condition) true (uq false-case))))
 
 (def break-to-goto
