@@ -1,0 +1,10 @@
+(import cstdio)
+
+(namespace a
+  (def x (var intern int 10)))
+
+(def main (fn extern-c int (void)
+  (using-namespace a
+    (def y (var intern int x)))
+  (printf "%d\n" y)
+  0))

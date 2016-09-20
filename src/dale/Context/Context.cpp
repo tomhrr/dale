@@ -74,6 +74,7 @@ Context::popUntilNamespace(Namespace *ns)
         }
         active_ns_nodes.pop_back();
     }
+    std::vector<NSNode *> new_used_nodes;
     for (;;) {
         if (used_ns_nodes.size() == 0) {
             break;
@@ -81,8 +82,15 @@ Context::popUntilNamespace(Namespace *ns)
         if (used_ns_nodes.back()->ns == ns) {
             break;
         }
+        if (used_ns_nodes.back()->ns->name.compare(0, 4, "anon")) {
+            new_used_nodes.push_back(used_ns_nodes.back());
+        }
         used_ns_nodes.pop_back();
     }
+    std::reverse(new_used_nodes.begin(), new_used_nodes.end());
+    std::copy(new_used_nodes.begin(),
+              new_used_nodes.end(),
+              back_inserter(used_ns_nodes));
 
     return true;
 }

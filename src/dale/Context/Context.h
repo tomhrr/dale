@@ -82,7 +82,9 @@ public:
     /*! Get the currently-active namespace.
      */
     Namespace *ns();
-    /*! Pop active/used namespaces until the given namespace has been reached.
+    /*! Pop active namespaces until the given namespace has been
+     *  reached.  Does the same thing for used namespaces, save that
+     *  only anonymous namespaces are removed.
      *  @param ns The namespace that needs to be reached.
      */
     bool popUntilNamespace(Namespace *ns);
