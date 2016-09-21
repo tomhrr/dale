@@ -327,11 +327,11 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     Context *ctx = units->top()->ctx;
 
     /* If the argument node is an address-of form for a global
-     * variable name, return the address of that global
-     * variable as a constant value.  This is to get around the
-     * fact that arbitrary pointer values returned from the
-     * function created below will not be valid with respect to
-     * global variables. */
+     * variable/function, return the address of that global
+     * variable/function as a constant value.  This is to get around
+     * the fact that arbitrary pointer values returned from the
+     * function created below will not be valid with respect to global
+     * variables/functions. */
 
     bool is_rvalue = false;
     if (top->is_list
@@ -339,24 +339,55 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
             && ((*top->list)[0]->is_token)
             && (!(*top->list)[0]->token->str_value.compare("#"))
             && (type->points_to)) {
-        Node *var_node = (*top->list)[1];
-        var_node = units->top()->mp->parsePotentialMacroCall(var_node);
-        if (var_node && var_node->is_token) {
-            Variable *gv =
-                ctx->getVariable(var_node->token->str_value.c_str());
-            if (!(type->points_to->isEqualTo(gv->type))) {
-                std::string want;
-                std::string got;
-                gv->type->toString(&got);
-                type->toString(&want);
-                Error *e = new Error(IncorrectType, top,
-                                     want.c_str(), got.c_str());
-                ctx->er->addError(e);
-                return NULL;
+        Node *node = (*top->list)[1];
+        node = units->top()->mp->parsePotentialMacroCall(node);
+        if (node && node->is_token) {
+            const char *node_str = node->token->str_value.c_str();
+            Variable *gv = ctx->getVariable(node_str);
+            if (gv) {
+                if (!(type->points_to->isEqualTo(gv->type))) {
+                    std::string want;
+                    std::string got;
+                    gv->type->toString(&got);
+                    type->toString(&want);
+                    Error *e = new Error(IncorrectType, top,
+                                        want.c_str(), got.c_str());
+                    ctx->er->addError(e);
+                    return NULL;
+                }
+                llvm::Constant *const_ptr =
+                    llvm::cast<llvm::Constant>(gv->value);
+                return const_ptr;
             }
-            llvm::Constant *const_ptr =
-                llvm::cast<llvm::Constant>(gv->value);
-            return const_ptr;
+            Function *fn = ctx->getFunction(node_str, NULL, NULL, 0);
+            if (fn) {
+                /* todo: Refactor, same code appears in Inst. */
+		Type *fn_type = new Type();
+		fn_type->is_function = 1;
+		fn_type->return_type = fn->return_type;
+
+		for (std::vector<Variable *>::iterator
+			b = fn->parameters.begin(),
+			e = fn->parameters.end();
+			b != e;
+			++b) {
+		    fn_type->parameter_types.push_back((*b)->type);
+		}
+                fn_type = ctx->tr->getPointerType(fn_type);
+                if (!(type->isEqualTo(fn_type))) {
+                    std::string want;
+                    std::string got;
+                    fn_type->toString(&got);
+                    type->toString(&want);
+                    Error *e = new Error(IncorrectType, top,
+                                        want.c_str(), got.c_str());
+                    ctx->er->addError(e);
+                    return NULL;
+                }
+                llvm::Constant *const_ptr =
+                    llvm::cast<llvm::Constant>(fn->llvm_function);
+                return const_ptr;
+            }
         }
     } else if (top->is_list
             && (top->list->size() == 2)

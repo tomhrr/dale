@@ -1,0 +1,10 @@
+(import cstdio)
+
+(def fun (fn intern int (void)
+  (return 123)))
+
+(def fun-ptr (var intern (p (fn int (void))) (# fun)))
+
+(def main (fn extern-c int (void)
+  (printf "%d %d\n" (fun) (fun-ptr))
+  0))
