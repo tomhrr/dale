@@ -1052,6 +1052,10 @@ being of the Value concept.
           true)
       (setv myvl (@:@ myvl next-node)))
 
+    (for (i \ 0) (< i (- varargs-count 1)) (incv i)
+      (setf (:@ (@$ type-list i) next-node)
+            (@$ type-list (+ i 1))))
+
     true))
 
 #|

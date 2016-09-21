@@ -1,0 +1,11 @@
+(import array)
+
+(using-namespace std.concepts
+  (instantiate Array (force Type float) 2))
+
+(def main (fn extern-c int (void)
+  (def fs (var auto (Array float 2)))
+  (setf ($ fs 0) 1.0)
+  (setf ($ fs 1) 2.0)
+  (printf "%f %f\n" (@$ fs 0) (@$ fs 1))
+  0))
