@@ -550,13 +550,11 @@ addNotFoundError(std::vector<Type *> *call_arg_types, const char *name,
             first_matches
                 ? OverloadedFunctionOrMacroNotInScopeWithClosestFirstMatches
                 : OverloadedFunctionOrMacroNotInScopeWithClosest;
-
         std::string expected;
         typesToString(closest_fn->parameters.begin() +
                           (closest_fn->is_macro ? 1 : 0),
                       closest_fn->parameters.end(),
                       &expected);
-
         Error *e = new Error(
             error_type,
             n, name, args.c_str(), expected.c_str()

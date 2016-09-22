@@ -688,6 +688,17 @@ ambiguous. However, if a macro's set of parameters only differs from
 that of a function insofar as one or more of the macro's parameters is
 untyped, then both may be defined.
 
+For dispatch, the procedure to call is selected from the set of
+procedures that can be called using the following logic:
+
+   * non-varargs functions are preferred to varargs functions;
+   * varargs functions are preferred to macros;
+   * macros with fewer `(p DNode)` parameters are preferred to other
+     macros;
+   * if there are multiple macros with the same number of `(p DNode)`
+     parameters, the one with the earliest typed parameter is
+     preferred.
+
 ### Idempotence
 
 Macros may be evaluated more than once per call site by the compiler,
@@ -2444,7 +2455,7 @@ is `(@:@ (@:@ structp member1) member2)`.
 Linkage: `extern`
 Parameters:
 
-  * `condition`: The condition expression.
+  * `(condition bool)`: The condition expression.
   * `true-case`: The form to run when condition is true.
 
 
@@ -2458,7 +2469,7 @@ the form. If the condition is false, returns `false`.
 Linkage: `extern`
 Parameters:
 
-  * `condition`: The condition expression.
+  * `(condition bool)`: The condition expression.
   * `false-case`: The form to run when condition is false.
 
 

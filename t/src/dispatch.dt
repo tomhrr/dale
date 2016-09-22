@@ -1,0 +1,39 @@
+(import cstdio)
+
+(def a (fn intern int ((a int))     (printf "fn11\n") a))
+(def a (fn intern int ((a int) ...) (printf "fn12\n") a))
+
+(def b (fn intern int ((a int) ...) (printf "fn22\n") a))
+(def b (fn intern int ((a int))     (printf "fn21\n") a))
+
+(def b (macro intern (a)     (printf "macro31\n") a))
+(def b (macro intern (a ...) (printf "macro32\n") a))
+
+(def c (macro intern (a ...) (printf "macro42\n") a))
+(def c (macro intern (a)     (printf "macro41\n") a))
+
+(def d (macro intern ((a int) b c)       (printf "macro51\n") a))
+(def d (macro intern ((a int) (b int) c) (printf "macro52\n") a))
+
+(def e (macro intern ((a int) b (c int)) (printf "macro61\n") a))
+(def e (macro intern ((a int) (b int) c) (printf "macro62\n") a))
+
+(b (no-op))
+(b (no-op) (no-op))
+
+(def main (fn extern-c int (void)
+  (a 0)
+  (a 0 1)
+
+  (b 0)
+  (b 0 1)
+
+  (c 0)
+  (c 0 1)
+
+  (d 0 0 0)
+  (d 0 a b)
+
+  (e 0 0 0)
+  (e 0 a 0)
+  0))

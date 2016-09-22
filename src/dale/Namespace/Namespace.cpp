@@ -264,6 +264,9 @@ Namespace::getFunction(const char *name,
      * macros at a given point (the top-level), but there is no point
      * at which you want prospective functions only. */
 
+    Type *dnode = tr->getStructType("DNode");
+    Type *pdnode = tr->getPointerType(dnode);
+
     std::vector<Function *>::iterator fn_iter;
     std::vector<Type *>::iterator arg_type_iter;
     std::vector<Variable *>::iterator fn_arg_type_iter;
@@ -278,7 +281,16 @@ Namespace::getFunction(const char *name,
     Function *closest_fn = NULL;
     int best_closest_count = -1;
 
+    int best_macro_dnode_count    = 1024;
+    int earliest_macro_type_count = 1024;
+    Function *best_dnode_macro    = NULL;
+    Function *earliest_type_macro = NULL;
+
+    int arg_index = -1;
+
     while (fn_iter != function_list->end()) {
+        arg_index++;
+
         Function *current = (*fn_iter);
         if (is_macro && !current->is_macro) {
             ++fn_iter;
@@ -295,12 +307,16 @@ Namespace::getFunction(const char *name,
         bool broke_on_va      = false;
         bool broke_on_failure = false;
 
+        int dnode_count = 0;
+
         /* If this is a macro, then increment the function's parameter
          * types iterator, to account for the implicit MContext
          * argument. */
         if (current->is_macro) {
             ++fn_arg_type_iter;
         }
+
+        int local_earliest_macro_type_count = 1024;
 
         while (fn_arg_type_iter != current->parameters.end()) {
             /* If the function's current parameter is varargs, then
@@ -325,17 +341,19 @@ Namespace::getFunction(const char *name,
                 break;
             }
 
+            Type *fn_arg_type = (*fn_arg_type_iter)->type;
+
             if (lvalues && (lvalue_iter != lvalues->end())) {
-                Type *type = (*fn_arg_type_iter)->type;
                 bool is_lvalue = *lvalue_iter;
 
-                if ((!type->is_const && type->is_reference) && !is_lvalue) {
+                if ((!fn_arg_type->is_const && fn_arg_type->is_reference)
+                        && !is_lvalue) {
                     broke_on_failure = true;
                     break;
-                } else if (type->is_rvalue_reference && is_lvalue) {
+                } else if (fn_arg_type->is_rvalue_reference && is_lvalue) {
                     broke_on_failure = true;
                     break;
-                } else if (type->is_rvalue_reference
+                } else if (fn_arg_type->is_rvalue_reference
                         && (*arg_type_iter)->is_const) {
                     broke_on_failure = true;
                     break;
@@ -343,12 +361,26 @@ Namespace::getFunction(const char *name,
             }
 
             bool result =
-                (*fn_arg_type_iter)->type->canBePassedFrom(
+                fn_arg_type->canBePassedFrom(
                     (*arg_type_iter),
                     ignore_arg_constness
                 );
 
             if (result) {
+                if (current->is_macro) {
+                    if (arg_index < local_earliest_macro_type_count) {
+                        local_earliest_macro_type_count = arg_index;
+                    }
+                }
+                ++arg_type_iter;
+                ++fn_arg_type_iter;
+                ++matched_arg_count;
+                if (lvalues && (lvalue_iter != lvalues->end())) {
+                    ++lvalue_iter;
+                }
+                continue;
+            } else if (current->is_macro && fn_arg_type->isEqualTo(pdnode)) {
+                ++dnode_count;
                 ++arg_type_iter;
                 ++fn_arg_type_iter;
                 ++matched_arg_count;
@@ -370,8 +402,33 @@ Namespace::getFunction(const char *name,
             if (!current->llvm_function
                     || (!current->llvm_function->size())) {
                 decl_fn = current;
-            } else {
+            } else if (!current->is_macro) {
                 return current;
+            }
+        }
+
+        if (!broke_on_failure) {
+            if (current->is_macro && (dnode_count < best_macro_dnode_count)) {
+                best_macro_dnode_count = dnode_count;
+                best_dnode_macro = current;
+            }
+            if (current->is_macro
+                    && (dnode_count == best_macro_dnode_count)
+                    && (arg_type_iter == types->end())
+                    && (!current->isVarArgs())) {
+                best_dnode_macro = current;
+            }
+            if (current->is_macro
+                    && (dnode_count == best_macro_dnode_count)
+                    && (arg_type_iter != types->end())
+                    && (current->isVarArgs())) {
+                best_dnode_macro = current;
+            }
+            if (current->is_macro && (local_earliest_macro_type_count
+            < earliest_macro_type_count)) {
+                earliest_macro_type_count =
+                local_earliest_macro_type_count;
+                earliest_type_macro = current;
             }
         }
 
@@ -384,49 +441,49 @@ Namespace::getFunction(const char *name,
         ++fn_iter;
     }
 
-    /* If this part is reached, there was no exact match.  Return the
-     * best varargs candidate, if one exists.  Otherwise, return the
-     * declaration match, if one exists. */
+    if (decl_fn) {
+        return decl_fn;
+    }
+
+    if (best_va_fn && !best_va_fn->is_macro) {
+        return best_va_fn;
+    }
+
+    Function *best_macro = NULL;
+    if (best_dnode_macro && !earliest_type_macro) {
+        best_macro = best_dnode_macro;
+    } else if (earliest_type_macro && !best_dnode_macro) {
+        best_macro = earliest_type_macro;
+    } else if (earliest_type_macro && best_dnode_macro) {
+        std::vector<Variable *> *params =
+            &(earliest_type_macro->parameters);
+        int dnode_count = 0;
+        for (std::vector<Variable *>::iterator pb = params->begin(),
+                                               pe = params->end();
+                pb != pe;
+                ++pb) {
+            if ((*pb)->type->isEqualTo(pdnode)) {
+                dnode_count++;
+            }
+        }
+        best_macro =
+            (dnode_count < best_macro_dnode_count)
+                ? earliest_type_macro
+                : best_dnode_macro;
+    }
+    if (best_macro) {
+        return best_macro;
+    }
 
     if (best_va_fn) {
         return best_va_fn;
-    } else if (decl_fn) {
-        return decl_fn;
     }
 
     /* If this part is reached, then set the closest function pointer,
      * so that the callers can use it in an error message. */
 
-    if (pclosest_fn) {
+    if (pclosest_fn && closest_fn) {
         *pclosest_fn = closest_fn;
-    }
-
-    /* If the argument type list does not comprise (p DNode)s, then
-     * change the last argument to a (p DNode) and recall this
-     * function.  This is so as to find macro candidates which aren't
-     * an exact type match for the current arguments. */
-
-    Type *dnode = tr->getStructType("DNode");
-    Type *pdnode = tr->getPointerType(dnode);
-
-    std::vector<Type *>::reverse_iterator rb, re;
-    for (rb = types->rbegin(), re = types->rend(); rb != re; ++rb) {
-        Type *current_type = *rb;
-        if (!(current_type->isEqualTo(pdnode))) {
-            break;
-        }
-    }
-
-    if (rb == re) {
-        return NULL;
-    }
-
-    Type *substituted_type = (*rb);
-    (*rb) = pdnode;
-    Function *macro_candidate = getFunction(name, types, NULL, 1);
-    (*rb) = substituted_type;
-    if (macro_candidate) {
-        return macro_candidate;
     }
 
     return NULL;

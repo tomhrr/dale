@@ -105,7 +105,7 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
             Error *e = new Error(IncorrectMinimumNumberOfArgs,
                                  n, macro_name,
                                  (mc->numberOfRequiredArgs() - 1),
-                                 size);
+                                 (size - 1));
             ctx->er->addError(e);
             return NULL;
         }
@@ -114,7 +114,7 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
             Error *e = new Error(IncorrectNumberOfArgs,
                                  n, macro_name,
                                  (mc->numberOfRequiredArgs() - 1),
-                                 size);
+                                 (size - 1));
             ctx->er->addError(e);
             return NULL;
         }

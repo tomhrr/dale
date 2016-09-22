@@ -39,7 +39,7 @@ is `(@:@ (@:@ structp member1) member2)`.
 Linkage: `extern`
 Parameters:
 
-  * `condition`: The condition expression.
+  * `(condition bool)`: The condition expression.
   * `true-case`: The form to run when condition is true.
 
 
@@ -53,7 +53,7 @@ the form. If the condition is false, returns `false`.
 Linkage: `extern`
 Parameters:
 
-  * `condition`: The condition expression.
+  * `(condition bool)`: The condition expression.
   * `false-case`: The form to run when condition is false.
 
 
