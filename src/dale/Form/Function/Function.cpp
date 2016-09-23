@@ -523,11 +523,13 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     ctx->deactivateNamespace(anon_name.c_str());
 
     if (units->debug) {
+#if D_LLVM_VERSION_MINOR >= 5
 	if (llvm::verifyModule(*(units->top()->module),
 			    &(llvm::errs()))) {
 	    llvm::dbgs() << *(llvm_fn) << "\n";
 	    abort();
 	}
+#endif
     }
 
     return true;

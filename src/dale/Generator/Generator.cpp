@@ -495,9 +495,11 @@ Generator::run(std::vector<const char *> *file_paths,
 
     if (debug) {
         mod->dump();
+#if D_LLVM_VERSION_MINOR >= 5
         if (llvm::verifyModule(*mod, &(llvm::errs()))) {
             abort();
         }
+#endif
     }
 
     pass_manager.run(*mod);

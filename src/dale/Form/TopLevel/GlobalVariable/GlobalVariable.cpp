@@ -576,12 +576,14 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     builder.CreateRet(builder.CreateLoad(new_ptr_value));
 
     if (units->debug) {
+#if D_LLVM_VERSION_MINOR >= 5
         if (llvm::verifyModule(*(units->top()->module),
                                &(llvm::errs()))) {
             llvm::dbgs() << *llvm_fn << "\n";
             llvm::dbgs() << *wrapper_fn << "\n";
             abort();
         }
+#endif
     }
 
     std::vector<llvm::GenericValue> values;
