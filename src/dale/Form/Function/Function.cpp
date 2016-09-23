@@ -11,6 +11,8 @@
 #include "../Parameter/Parameter.h"
 #include "../Utils/Utils.h"
 #include "../../llvm_Function.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/raw_ostream.h"
 #include "Config.h"
 
 using namespace dale::ErrorInst;
@@ -519,6 +521,14 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     }
 
     ctx->deactivateNamespace(anon_name.c_str());
+
+    if (units->debug) {
+	if (llvm::verifyModule(*(units->top()->module),
+			    &(llvm::errs()))) {
+	    llvm::dbgs() << *(llvm_fn) << "\n";
+	    abort();
+	}
+    }
 
     return true;
 }

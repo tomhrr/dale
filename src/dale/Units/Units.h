@@ -39,6 +39,8 @@ public:
     bool no_dale_stdlib;
     /*! Whether macro expansions should be printed to standard output. */
     bool print_expansions;
+    /*! Whether debug mode is enabled. */
+    bool debug;
 
     /*! Construct a new Units object.
      *  @param mr A module reader.

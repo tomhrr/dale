@@ -285,6 +285,7 @@ Generator::run(std::vector<const char *> *file_paths,
     units.no_common        = no_common;
     units.no_dale_stdlib   = no_dale_stdlib;
     units.print_expansions = print_expansions;
+    units.debug            = debug;
 
     Context *ctx         = NULL;
     llvm::Module *mod    = NULL;
@@ -493,10 +494,11 @@ Generator::run(std::vector<const char *> *file_paths,
 
     if (debug) {
         mod->dump();
+        if (llvm::verifyModule(*mod, &(llvm::errs()))) {
+            abort();
+        }
     }
-    if (debug) {
-        llvm::verifyModule(*mod);
-    }
+
     pass_manager.run(*mod);
 
     if (produce == BitCode) {
