@@ -51,10 +51,6 @@ FormProcDereferenceParse(Units *units, Function *fn, llvm::BasicBlock *block,
     pr->set(ptr_pr.block, NULL, NULL);
 
     if (!get_address) {
-        llvm::IRBuilder<> builder(ptr_pr.block);
-        llvm::Value *val =
-            llvm::cast<llvm::Value>(builder.CreateLoad(ptr_pr.getValue(ctx)));
-
         pr->address_of_value = ptr_pr.getValue(ctx);
         pr->value_is_lvalue = true;
         pr->type_of_address_of_value = ptr_type;

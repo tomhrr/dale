@@ -112,7 +112,6 @@ public:
      *  the underlying value therefrom.
      */
     llvm::Value *getValue(Context *ctx);
-    llvm::Value *getValue(Context *ctx, llvm::BasicBlock *block);
 };
 }
 
