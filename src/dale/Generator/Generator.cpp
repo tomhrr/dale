@@ -338,6 +338,7 @@ Generator::run(std::vector<const char *> *file_paths,
 
         llvm::EngineBuilder eb = llvm::EngineBuilder(mod);
         eb.setEngineKind(llvm::EngineKind::JIT);
+        //eb.setEngineKind(llvm::EngineKind::Interpreter);
         ee = eb.create();
         assert(ee);
         ee->InstallLazyFunctionCreator(&lazyFunctionCreator);
