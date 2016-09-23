@@ -85,7 +85,7 @@ FormLiteralArrayParse(Units *units, Function *dfn, llvm::BasicBlock *block,
                 "aref"
             );
 
-        builder.CreateStore(elements[i]->value, element_storage);
+        builder.CreateStore(elements[i]->getValue(ctx), element_storage);
 
         indices.pop_back();
         delete elements[i];
@@ -107,9 +107,10 @@ FormLiteralArrayParse(Units *units, Function *dfn, llvm::BasicBlock *block,
     if (!get_address) {
         pr->value_is_lvalue = false;
         pr->type_of_address_of_value = pr->type;
-        pr->address_of_value = pr->value;
+        pr->address_of_value = pr->getValue(ctx);
         pr->type = array_type;
-        pr->value = llvm::cast<llvm::Value>(builder.CreateLoad(llvm_array));
+        pr->set(pr->block, pr->type,
+                llvm::cast<llvm::Value>(builder.CreateLoad(llvm_array)));
     }
 
     return true;

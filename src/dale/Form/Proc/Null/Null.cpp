@@ -44,7 +44,8 @@ FormProcNullParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     llvm::IRBuilder<> builder(value_pr.block);
     llvm::Value *int_res =
-        builder.CreatePtrToInt(value_pr.value, ctx->nt->getNativeIntType());
+        builder.CreatePtrToInt(value_pr.getValue(ctx),
+                               ctx->nt->getNativeIntType());
 
     llvm::Value *null_res =
         llvm::cast<llvm::Value>(

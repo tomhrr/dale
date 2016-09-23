@@ -286,7 +286,8 @@ makeShlFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
     llvm::Twine unused_twine;
     llvm::Value *res =
         llvm::cast<llvm::Value>(
-            builder.CreateShl((*iter)->value, cast_pr.value, unused_twine)
+            builder.CreateShl((*iter)->value, cast_pr.getValue(ctx),
+                              unused_twine)
         );
     builder.CreateRet(res);
 }
@@ -315,7 +316,8 @@ makeShrFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
     llvm::Twine unused_twine;
     llvm::Value *res =
         llvm::cast<llvm::Value>(
-            builder.CreateLShr((*iter)->value, cast_pr.value, unused_twine)
+            builder.CreateLShr((*iter)->value, cast_pr.getValue(ctx),
+                               unused_twine)
         );
     builder.CreateRet(res);
 }

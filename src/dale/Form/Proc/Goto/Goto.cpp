@@ -84,7 +84,8 @@ FormProcGotoParse(Units *units, Function *fn, llvm::BasicBlock *block,
             Variable *var = (*b);
             destruct_pr.type = var->type;
             llvm::Value *var_value = builder.CreateLoad(var->value);
-            destruct_pr.value = var_value;
+            destruct_pr.set(destruct_pr.block, destruct_pr.type,
+                            var_value);
 
             Operation::Destruct(ctx, &destruct_pr, &destruct_pr);
         }

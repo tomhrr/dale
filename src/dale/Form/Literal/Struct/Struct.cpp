@@ -89,7 +89,7 @@ FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
                         && value_pr.type->isFloatingPointType())) {
                 ParseResult cast_pr;
                 res = Operation::Cast(ctx, value_pr.block,
-                                      value_pr.value, value_pr.type,
+                                      value_pr.getValue(ctx), value_pr.type,
                                       type, member_node, 0, &cast_pr);
                 if (!res) {
                     return false;

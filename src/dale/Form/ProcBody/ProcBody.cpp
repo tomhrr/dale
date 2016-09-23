@@ -377,7 +377,7 @@ FormProcBodyParse(Units *units, Node *node, Function *fn,
                 if (!res) {
                     return false;
                 }
-                last_value = res_pr.value;
+                last_value = res_pr.getValue(ctx);
                 last_type = res_pr.type;
                 last_position = (*b);
             } else {

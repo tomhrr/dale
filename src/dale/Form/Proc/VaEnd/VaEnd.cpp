@@ -32,7 +32,8 @@ FormProcVaEndParse(Units *units, Function *fn, llvm::BasicBlock *block,
         units->top()->module->getFunction(llvm::StringRef("llvm.va_end"));
 
     ParseResult pchar_pr;
-    res = Operation::Cast(ctx, valist_pr.block, valist_pr.value,
+    res = Operation::Cast(ctx, valist_pr.block,
+                          valist_pr.getValue(ctx),
                           valist_pr.type, ctx->tr->type_pchar,
                           node, 0, &pchar_pr);
     if (!res) {
@@ -40,7 +41,7 @@ FormProcVaEndParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     std::vector<llvm::Value*> call_args;
-    call_args.push_back(pchar_pr.value);
+    call_args.push_back(pchar_pr.getValue(ctx));
     llvm::IRBuilder<> builder(valist_pr.block);
     builder.CreateCall(va_end, llvm::ArrayRef<llvm::Value*>(call_args));
 

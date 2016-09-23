@@ -251,7 +251,7 @@ FunctionProcessor::parseFunctionPointerCall(Function *dfn, Node *n,
                 return false;
             } else {
                 args_coerced = true;
-                call_args.push_back(coerce_pr.value);
+                call_args.push_back(coerce_pr.getValue(units->top()->ctx));
             }
         } else {
             call_args.push_back(arg_pr.getValue(units->top()->ctx));
@@ -284,7 +284,7 @@ FunctionProcessor::parseFunctionPointerCall(Function *dfn, Node *n,
                   block, pr, &call_args_final);
 
     llvm::Value *call_res =
-        builder.CreateCall(fn_ptr_pr->value,
+        builder.CreateCall(fn_ptr_pr->getValue(units->top()->ctx),
                            llvm::ArrayRef<llvm::Value*>(call_args_final));
 
     pr->set(block, fn_ptr->return_type, call_res);

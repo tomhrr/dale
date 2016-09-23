@@ -51,7 +51,7 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
                                  "else", fn->llvm_function);
 
     llvm::IRBuilder<> builder_cond(cond_pr.block);
-    builder_cond.CreateCondBr(cond_pr.value, then_block, else_block);
+    builder_cond.CreateCondBr(cond_pr.getValue(ctx), then_block, else_block);
 
     ParseResult destruct_pr;
     res = Operation::Destruct(ctx, &cond_pr, &destruct_pr, &builder_cond);
@@ -121,7 +121,7 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         builder_final.CreateBr(done_block);
 
         pr->set(done_block, else_pr.type,
-              llvm::cast<llvm::Value>(else_pr.value));
+              llvm::cast<llvm::Value>(else_pr.getValue(ctx)));
         return true;
     }
 
@@ -134,7 +134,7 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         builder_final.CreateBr(done_block);
 
         pr->set(done_block, then_pr.type,
-              llvm::cast<llvm::Value>(then_pr.value));
+              llvm::cast<llvm::Value>(then_pr.getValue(ctx)));
         return true;
     }
 
@@ -177,8 +177,8 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     llvm::IRBuilder<> builder_done(done_block);
     llvm::PHINode *pn = builder_done.CreatePHI(llvm_then_type, 0);
 
-    pn->addIncoming(then_pr.value, then_pr.block);
-    pn->addIncoming(else_pr.value, else_pr.block);
+    pn->addIncoming(then_pr.getValue(ctx), then_pr.block);
+    pn->addIncoming(else_pr.getValue(ctx), else_pr.block);
 
     pr->set(done_block, then_pr.type,
             llvm::cast<llvm::Value>(pn));

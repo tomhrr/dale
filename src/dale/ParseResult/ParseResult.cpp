@@ -103,7 +103,7 @@ ParseResult::getAddressOfValue(Context *ctx, ParseResult *pr)
 llvm::Value *
 ParseResult::getValue(Context *ctx)
 {
-    if (retval) {
+    if (retval && retval_used) {
         llvm::IRBuilder<> builder(block);
         return builder.CreateLoad(retval);
     } else {

@@ -142,7 +142,7 @@ storeValue(Context *ctx, Node *node, Type *type,
         if (!res) {
             return false;
         }
-        llvm::Value *src_ptr = address_pr.value;
+        llvm::Value *src_ptr = address_pr.getValue(ctx);
         call_args.push_back(src_ptr);
 
         builder->CreateCall(or_setf_move->llvm_function,
@@ -168,7 +168,7 @@ storeValue(Context *ctx, Node *node, Type *type,
                 builder->CreateAlloca(ctx->toLLVMType(type, NULL,
                                                       false, false))
             );
-        builder->CreateStore(pr->value, src_ptr);
+        builder->CreateStore(pr->getValue(ctx), src_ptr);
         call_args.push_back(src_ptr);
 
         builder->CreateCall(or_setf->llvm_function,
@@ -184,7 +184,7 @@ storeValue(Context *ctx, Node *node, Type *type,
     if (or_setf) {
         std::vector<llvm::Value *> call_args;
         call_args.push_back(dst_ptr);
-        call_args.push_back(pr->value);
+        call_args.push_back(pr->getValue(ctx));
         builder->CreateCall(or_setf->llvm_function,
                             llvm::ArrayRef<llvm::Value*>(call_args));
         return true;
@@ -199,7 +199,7 @@ storeValue(Context *ctx, Node *node, Type *type,
         return false;
     }
 
-    builder->CreateStore(pr->value, dst_ptr);
+    builder->CreateStore(pr->getValue(ctx), dst_ptr);
     return true;
 }
 

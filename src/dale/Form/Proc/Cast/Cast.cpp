@@ -50,7 +50,7 @@ FormProcCastParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     ParseResult cast_pr;
-    res = Operation::Cast(ctx, value_pr.block, value_pr.value,
+    res = Operation::Cast(ctx, value_pr.block, value_pr.getValue(ctx),
                           value_pr.type, type, node, 0, &cast_pr);
     if (!res) {
         return false;
@@ -63,7 +63,7 @@ FormProcCastParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    pr->set(destruct_pr.block, cast_pr.type, cast_pr.value);
+    pr->set(destruct_pr.block, cast_pr.type, cast_pr.getValue(ctx));
     return true;
 }
 }

@@ -303,25 +303,25 @@ FormProcTokenParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     if (t->type == TokenType::String) {
-        pr->value = NULL;
+        pr->set(pr->block, pr->type, NULL);
         parseBoolLiteral(ctx, block, node, pr);
-        if (pr->value) {
+        if (pr->getValue(ctx)) {
             return true;
         }
 
         parseCharLiteral(ctx, block, node, pr);
-        if (pr->value) {
+        if (pr->getValue(ctx)) {
             return true;
         }
 
         parseVariableLiteral(ctx, block, node, get_address, wanted_type, pr);
-        if (pr->value) {
+        if (pr->getValue(ctx)) {
             return true;
         } else {
             return false;
         }
     } else if (t->type == TokenType::StringLiteral) {
-        pr->value = NULL;
+        pr->set(pr->block, pr->type, NULL);
         return parseStringLiteral(units, ctx, block, node, pr);
     } else {
         Error *e = new Error(UnableToParseForm, node);

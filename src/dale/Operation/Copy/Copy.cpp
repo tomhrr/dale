@@ -84,7 +84,7 @@ Copy(Context *ctx, Function *fn, Node *node, ParseResult *pr,
         llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type_pr));
     llvm::Value *value_ptr =
         llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type_pr));
-    builder.CreateStore(pr->value, value_ptr);
+    builder.CreateStore(pr->getValue(ctx), value_ptr);
 
     std::vector<llvm::Value *> call_args;
     call_args.push_back(result_ptr);

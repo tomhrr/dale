@@ -50,10 +50,10 @@ processCopyPtrCall(Context *ctx, Function *over_setf,
                 ctx->toLLVMType(value_pr->type, NULL, false, false)
             )
         );
-    builder->CreateStore(value_pr->value, src_ptr);
+    builder->CreateStore(value_pr->getValue(ctx), src_ptr);
 
     std::vector<llvm::Value *> call_args;
-    call_args.push_back(variable_pr->value);
+    call_args.push_back(variable_pr->getValue(ctx));
     call_args.push_back(src_ptr);
     llvm::Value *ret =
         builder->CreateCall(over_setf->llvm_function,
@@ -76,8 +76,8 @@ processCopyExactCall(Context *ctx, Function *over_setf,
                      ParseResult *pr)
 {
     std::vector<llvm::Value *> call_args;
-    call_args.push_back(variable_pr->value);
-    call_args.push_back(value_pr->value);
+    call_args.push_back(variable_pr->getValue(ctx));
+    call_args.push_back(value_pr->getValue(ctx));
     llvm::Value *ret =
         builder->CreateCall(over_setf->llvm_function,
                             llvm::ArrayRef<llvm::Value*>(call_args));
@@ -118,8 +118,8 @@ processMovePtrCall(Context *ctx, Function *over_setf,
     }
 
     std::vector<llvm::Value *> call_args;
-    call_args.push_back(variable_pr->value);
-    call_args.push_back(value_ptr_pr.value);
+    call_args.push_back(variable_pr->getValue(ctx));
+    call_args.push_back(value_ptr_pr.getValue(ctx));
     llvm::Value *ret =
         builder->CreateCall(over_setf->llvm_function,
                             llvm::ArrayRef<llvm::Value*>(call_args));
@@ -170,7 +170,7 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     Node *value_node = (*lst)[2];
     llvm::IRBuilder<> builder(variable_pr.block);
     ParseResult value_pr;
-    value_pr.retval = variable_pr.value;
+    value_pr.retval = variable_pr.getValue(ctx);
     value_pr.retval_type = variable_pr.type;
 
     res = FormProcInstParse(units, fn, block, value_node, get_address,
@@ -183,6 +183,8 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         pr->block = value_pr.block;
         pr->type = ctx->tr->getBasicType(BaseType::Void);
         return true;
+    } else {
+        value_pr.retval = NULL;
     }
 
     builder.SetInsertPoint(value_pr.block);
@@ -228,7 +230,8 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     if (variable_pr.type->points_to->canBeSetFrom(value_pr.type)) {
-        builder.CreateStore(value_pr.value, variable_pr.value);
+        builder.CreateStore(value_pr.getValue(ctx),
+                            variable_pr.getValue(ctx));
 
         ParseResult destruct_pr;
         bool res = destructTwo(ctx, &variable_pr, &value_pr,

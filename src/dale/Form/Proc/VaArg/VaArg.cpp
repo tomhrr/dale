@@ -94,7 +94,7 @@ parseVaArg64(Units *units, Function *fn, Type *type, llvm::Type *llvm_type,
     llvm::Value *pvlstr =
         llvm::cast<llvm::Value>(
             builder.CreateBitCast(
-                arglist_pr->value,
+                arglist_pr->getValue(ctx),
                 llvm::PointerType::getUnqual(
                     ctx->getStruct("va-list")->type
                 )
@@ -274,7 +274,8 @@ FormProcVaArgParse(Units *units, Function *fn, llvm::BasicBlock *block,
     if (!units->top()->is_x86_64) {
         /* Use the default va-arg intrinsic implementation. */
         llvm::IRBuilder<> builder(block);
-        llvm::Value *res = builder.CreateVAArg(arglist_pr.value, llvm_type);
+        llvm::Value *res =
+            builder.CreateVAArg(arglist_pr.getValue(ctx), llvm_type);
         pr->set(arglist_pr.block, type, res);
         return true;
     } else {

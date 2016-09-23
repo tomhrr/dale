@@ -511,7 +511,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
         return NULL;
     }
     block = cast_pr.block;
-    llvm::Value *ret_cast = cast_pr.value;
+    llvm::Value *ret_cast = cast_pr.getValue(ctx);
 
     char data[256];
     memset(data, 0, 256);
@@ -532,7 +532,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
         return NULL;
     }
 
-    llvm::Value *store = cast_pr_ptr.value;
+    llvm::Value *store = cast_pr_ptr.getValue(ctx);
     builder.SetInsertPoint(cast_pr_ptr.block);
     Function *memcpy = ctx->getFunction("memcpy", NULL, NULL, 0);
     assert(memcpy && "no memcpy function available");

@@ -63,8 +63,8 @@ FormProcReturnParse(Units *units, Function *fn, llvm::BasicBlock *block,
         builder.CreateRetVoid();
         pr->set(block, ctx->tr->type_void, NULL);
     } else {
-        builder.CreateRet(value_pr.value);
-        pr->set(block, fn->return_type, value_pr.value);
+        builder.CreateRet(value_pr.getValue(ctx));
+        pr->set(block, fn->return_type, value_pr.getValue(ctx));
     }
 
     return true;

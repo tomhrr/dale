@@ -66,15 +66,15 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     llvm::IRBuilder<> builder(index_pr.block);
     std::vector<llvm::Value *> indices;
     if (!is_array) {
-        indices.push_back(llvm::cast<llvm::Value>(index_pr.value));
+        indices.push_back(llvm::cast<llvm::Value>(index_pr.getValue(ctx)));
     } else {
         STL::push_back2(&indices, ctx->nt->getLLVMZero(),
-                        llvm::cast<llvm::Value>(index_pr.value));
+                        llvm::cast<llvm::Value>(index_pr.getValue(ctx)));
     }
     llvm::Value *index_ptr =
         builder.Insert(
             llvm::GetElementPtrInst::Create(
-                array_pr.value, llvm::ArrayRef<llvm::Value*>(indices)
+                array_pr.getValue(ctx), llvm::ArrayRef<llvm::Value*>(indices)
             ),
             "aref"
         );
@@ -87,7 +87,7 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
         pr->type = array_pr.type;
     }
 
-    pr->value = index_ptr;
+    pr->set(pr->block, pr->type, index_ptr);
     array_pr.block = index_pr.block;
     ParseResult destruct_pr;
     res = Operation::Destruct(ctx, &array_pr, &destruct_pr);

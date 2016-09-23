@@ -53,17 +53,15 @@ FormProcDereferenceParse(Units *units, Function *fn, llvm::BasicBlock *block,
     if (!get_address) {
         llvm::IRBuilder<> builder(ptr_pr.block);
         llvm::Value *val =
-            llvm::cast<llvm::Value>(builder.CreateLoad(ptr_pr.value));
+            llvm::cast<llvm::Value>(builder.CreateLoad(ptr_pr.getValue(ctx)));
 
-        pr->address_of_value = ptr_pr.value;
+        pr->address_of_value = ptr_pr.getValue(ctx);
         pr->value_is_lvalue = true;
         pr->type_of_address_of_value = ptr_type;
 
-        pr->type  = ptr_type->points_to;
-        pr->value = val;
+        pr->set(pr->block, ptr_type->points_to, val);
     } else {
-        pr->type  = ptr_type;
-        pr->value = ptr_pr.value;
+        pr->set(pr->block, ptr_type, ptr_pr.getValue(ctx));
     }
 
     /* Core dereference call results should not be copied.  Otherwise,

@@ -28,8 +28,7 @@ CloseScope(Context *ctx, Function *fn, llvm::BasicBlock *block,
         if (skip_value && ((*b)->value == skip_value)) {
             continue;
         }
-        element.type = (*b)->type;
-        element.value = (*b)->value;
+        element.set(element.block, (*b)->type, (*b)->value);
         element.do_not_destruct = false;
         Operation::Destruct(ctx, &element, &element, NULL, true);
     }

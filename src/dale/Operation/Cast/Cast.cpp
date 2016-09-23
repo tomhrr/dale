@@ -94,9 +94,7 @@ Cast(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
         return false;
     }
 
-    pr->block = block;
-    pr->type = to_type;
-    pr->value = res;
+    pr->set(block, to_type, res);
 
     return true;
 }

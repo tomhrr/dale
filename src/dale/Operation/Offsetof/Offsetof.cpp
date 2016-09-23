@@ -108,7 +108,7 @@ OffsetofGetByIndex(Unit *unit,
     }
 
     llvm::IRBuilder<> builder(block);
-    builder.CreateRet(by_index_pr.value);
+    builder.CreateRet(by_index_pr.getValue(ctx));
 
     void* fptr = unit->ee->getPointerToFunction(llvm_fn);
     assert(fptr);

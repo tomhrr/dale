@@ -65,18 +65,19 @@ FormProcPtrSubtractParse(Units *units, Function *fn, llvm::BasicBlock *block,
             return false;
         }
         block = minuend_value_pr.block;
-        minuend_value = minuend_value_pr.value;
+        minuend_value = minuend_value_pr.getValue(ctx);
     }
 
     ParseResult ptr_cast_pr;
-    res = Operation::Cast(ctx, block, ptr_pr.value, ptr_pr.type,
+    res = Operation::Cast(ctx, block, ptr_pr.getValue(ctx), ptr_pr.type,
                           ctx->tr->type_intptr, ptr_node, 0, &ptr_cast_pr);
     if (!res) {
         return false;
     }
 
     ParseResult minuend_cast_pr;
-    res = Operation::Cast(ctx, ptr_cast_pr.block, minuend_pr.value,
+    res = Operation::Cast(ctx, ptr_cast_pr.block,
+                          minuend_pr.getValue(ctx),
                           minuend_pr.type, ctx->tr->type_intptr,
                           minuend_node, 0, &minuend_cast_pr);
     if (!res) {
@@ -87,12 +88,12 @@ FormProcPtrSubtractParse(Units *units, Function *fn, llvm::BasicBlock *block,
     llvm::Value *final_minuend =
         (minuend_pr.type->isIntegerType())
             ? builder.CreateMul(minuend_value,
-                                minuend_cast_pr.value)
-            : minuend_cast_pr.value;
+                                minuend_cast_pr.getValue(ctx))
+            : minuend_cast_pr.getValue(ctx);
 
     llvm::Value *sum =
         llvm::cast<llvm::Value>(
-            builder.CreateSub(ptr_cast_pr.value, final_minuend)
+            builder.CreateSub(ptr_cast_pr.getValue(ctx), final_minuend)
         );
 
     ParseResult final_res;
@@ -112,7 +113,7 @@ FormProcPtrSubtractParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     final_res.block = destruct_pr.block;
-    pr->set(final_res.block, ptr_pr.type, final_res.value);
+    pr->set(final_res.block, ptr_pr.type, final_res.getValue(ctx));
 
     return true;
 }

@@ -46,8 +46,8 @@ FormProcPtrEqualsParse(Units *units, Function *fn,
 
     llvm::IRBuilder<> builder(ptr_pr2.block);
     llvm::Value *cmp_res =
-        llvm::cast<llvm::Value>(builder.CreateICmpEQ(ptr_pr1.value,
-                                                     ptr_pr2.value));
+        llvm::cast<llvm::Value>(builder.CreateICmpEQ(ptr_pr1.getValue(ctx),
+                                                     ptr_pr2.getValue(ctx)));
 
     ptr_pr1.block = ptr_pr2.block;
     ParseResult destruct_pr;
