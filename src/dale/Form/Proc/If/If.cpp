@@ -51,7 +51,8 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
                                  "else", fn->llvm_function);
 
     llvm::IRBuilder<> builder_cond(cond_pr.block);
-    builder_cond.CreateCondBr(cond_pr.getValue(ctx), then_block, else_block);
+    builder_cond.CreateCondBr(cond_pr.getValue(ctx, cond_pr.block),
+                              then_block, else_block);
 
     ParseResult destruct_pr;
     res = Operation::Destruct(ctx, &cond_pr, &destruct_pr, &builder_cond);
@@ -121,7 +122,7 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         builder_final.CreateBr(done_block);
 
         pr->set(done_block, else_pr.type,
-              llvm::cast<llvm::Value>(else_pr.getValue(ctx)));
+              llvm::cast<llvm::Value>(else_pr.getValue(ctx, done_block)));
         return true;
     }
 
@@ -134,7 +135,7 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         builder_final.CreateBr(done_block);
 
         pr->set(done_block, then_pr.type,
-              llvm::cast<llvm::Value>(then_pr.getValue(ctx)));
+              llvm::cast<llvm::Value>(then_pr.getValue(ctx, done_block)));
         return true;
     }
 
@@ -164,8 +165,10 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
                                  "done_phi", fn->llvm_function);
 
     llvm::IRBuilder<> builder_then(then_pr.block);
+    then_pr.getValue(ctx);
     builder_then.CreateBr(done_block);
     llvm::IRBuilder<> builder_else(else_pr.block);
+    else_pr.getValue(ctx);
     builder_else.CreateBr(done_block);
 
     llvm::Type *llvm_then_type =

@@ -59,7 +59,7 @@ FormProcDereferenceParse(Units *units, Function *fn, llvm::BasicBlock *block,
         pr->value_is_lvalue = true;
         pr->type_of_address_of_value = ptr_type;
 
-        pr->set(pr->block, ptr_type->points_to, val);
+        pr->set(pr->block, ptr_type->points_to, NULL);
     } else {
         pr->set(pr->block, ptr_type, ptr_pr.getValue(ctx));
     }

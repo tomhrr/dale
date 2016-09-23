@@ -36,10 +36,10 @@ private:
     /*! Reset the state of the parse result.
      */
     void init();
-
-public:
     /*! The value. */
     llvm::Value *value;
+
+public:
     /*! The address of the value. */
     llvm::Value *address_of_value;
     /*! The type of the value. */
@@ -112,6 +112,7 @@ public:
      *  the underlying value therefrom.
      */
     llvm::Value *getValue(Context *ctx);
+    llvm::Value *getValue(Context *ctx, llvm::BasicBlock *block);
 };
 }
 

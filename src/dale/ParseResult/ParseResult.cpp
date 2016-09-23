@@ -101,13 +101,23 @@ ParseResult::getAddressOfValue(Context *ctx, ParseResult *pr)
 }
 
 llvm::Value *
-ParseResult::getValue(Context *ctx)
+ParseResult::getValue(Context *ctx, llvm::BasicBlock *m_block)
 {
     if (retval && retval_used) {
-        llvm::IRBuilder<> builder(block);
+        llvm::IRBuilder<> builder(m_block);
         return builder.CreateLoad(retval);
+    } else if (!value && address_of_value) {
+        llvm::IRBuilder<> builder(m_block);
+        value = builder.CreateLoad(address_of_value);
+        return value;
     } else {
         return value;
     }
+}
+
+llvm::Value *
+ParseResult::getValue(Context *ctx)
+{
+    return getValue(ctx, block);
 }
 }
