@@ -16,23 +16,14 @@ namespace dale
 namespace Operation
 {
 /*! Get the offset of a particular struct member.
- *  @param ctx The current context.
+ *  @param unit The current unit.
  *  @param block The current block.
  *  @param type The struct type.
  *  @param member_name The struct member name.
  *  @param pr The parse result for the offset.
  */
-bool Offsetof(Context *ctx, llvm::BasicBlock *block, Type *type,
+bool Offsetof(Unit *unit, llvm::BasicBlock *block, Type *type,
               const char *field_name, ParseResult *pr);
-/*! Get the offset of a particular struct member by index.
- *  @param ctx The current context.
- *  @param block The current block.
- *  @param type The struct type.
- *  @param index The struct member index.
- *  @param pr The parse result for the offset.
- */
-bool OffsetofByIndex(Context *ctx, llvm::BasicBlock *block,
-                     Type *type, int index, ParseResult *pr);
 /*! Get the offset of a particular struct member by index.
  *  @param unit The current unit.
  *  @param type The struct type.

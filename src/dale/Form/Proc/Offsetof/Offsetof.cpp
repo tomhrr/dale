@@ -53,7 +53,7 @@ FormProcOffsetOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    return Operation::Offsetof(ctx, block, type,
+    return Operation::Offsetof(units->top(), block, type,
                                member_node->token->str_value.c_str(),
                                pr);
 }
