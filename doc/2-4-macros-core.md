@@ -275,18 +275,6 @@ As per `link-nodes`, except that instead of being a varargs function,
 it takes an array of nodes as its second argument.
 
 
-#### `std.macros.valist-to-dnode-array`
-
-Linkage: `extern`
-Returns: `int`
-Parameters:
-
-  * `(arglist (p (p void)))`: An argument list.
-  * `(argcount int)`: The number of arguments in the list.
-  * `(arg-array (p (p DNode)))`: The array into which the arguments will be put.
-
-
-
 #### `std.macros.gensym-var`
 
 Linkage: `extern`
@@ -439,7 +427,7 @@ Linkage: `extern`
 Parameters:
 
   * `frm`: A node.
-  * `...`
+  * `rest`
 
 
 The bootstrap quasiquotation macro. The general-use quasiquotation
@@ -459,10 +447,13 @@ Parameters:
   * `DNode`
 
 
-Takes a macro context, an argument count, and a pointer to `va-list`
-as its arguments.  Returns the first node of a linked node list
-containing each of the nodes from the `va-list`, suitable for using as
-the argument to the `uql` and `uql-nc` forms.
+Takes a macro context, an argument count, and a pointer to a DNode
+pointer as its arguments.  Returns the first node of a linked node
+list containing each of the nodes from the DNode pointer list,
+suitable for using as the argument to the `uql` and `uql-nc` forms.
+(The third argument here is typically the macro's 'rest' argument.
+The difference between 'rest' and the return value of this function is
+that the nodes here will be linked together.)
 
 
 #### `std.macros.get-varargs-list`

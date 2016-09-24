@@ -44,7 +44,7 @@ Parameters:
 
 
 Defines a macro:
-`(name a b ...)` will be expanded to `(opname a (name b ...))`
+`(name a b rest) will be expanded to `(opname a (name b rest))`
 
 
 #### `std.macros.def-left-associative-macro`
@@ -58,7 +58,7 @@ Parameters:
 
 
 Defines a macro:
-`(name a b ...)` will be expanded to `(name (opname a b) ...)`
+`(name a b rest)` will be expanded to `(name (opname a b) rest)`
 
 
 [Previous](./2-20-unique-ptr.md) | [Next](./2-22-bitset-enum.md)

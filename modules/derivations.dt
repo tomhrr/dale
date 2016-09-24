@@ -18,7 +18,7 @@ the `swap` function.
 (using-namespace std.concepts
 
 (def setf-dsref-mul
-  (macro intern (struct-name ...)
+  (macro intern (struct-name rest)
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 1))
 
@@ -32,21 +32,20 @@ the `swap` function.
     ; linked to it.
     (def anchor-node (var auto (p DNode) (cast 0 (p DNode))))
 
-    (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
-
     (def va-dnode (var auto (p DNode) (cast 0 (p DNode))))
     (def sf-dnode (var auto (p DNode) (cast 0 (p DNode))))
     (def sv-dnode (var auto (p DNode) (cast 0 (p DNode))))
 
     (def st-dnode (var auto (p DNode) (mnfv mc (@:@ struct-name token-str))))
+    (def index (var auto int 0))
 
     (label begin-loop)
     (if (= arg-count 0)
         (goto end-loop)
         (do
             ; Load the next DNode ptr.
-            (setv va-dnode (va-arg (# arglist) (p DNode)))
+            (setv va-dnode (@$ rest index))
+            (setv index (+ index 1))
             (setv arg-count (- arg-count 1))
 
             ; Get the struct-field and struct-value nodes.
@@ -74,7 +73,6 @@ the `swap` function.
             (goto begin-loop)))
 
     (label end-loop)
-    (va-end (cast (# arglist) (p void)))
 
     ; Create a 'do' node, link it to first-node.
     (return (link-nodes-list mc 2 (mnfv mc "do") first-node))))

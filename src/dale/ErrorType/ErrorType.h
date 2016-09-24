@@ -65,6 +65,7 @@ enum
     UnexpectedElement,
     VoidMustBeTheOnlyParameter,
     VarArgsMustBeLastParameter,
+    VarArgsNotPermittedForMacros,
     TypeNotAllowedInStruct,
     CannotInitialiseExternVar,
     InvalidType,

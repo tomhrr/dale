@@ -27,8 +27,13 @@ addVariables(Context *ctx, Node *node, Function *fn, llvm::BasicBlock *block)
             b != e;
             ++b) {
         Variable *var = (*b);
+        bool is_macro_varargs = false;
         if (var->type->base_type == BaseType::VarArgs) {
-            break;
+            if (!var->name.compare("rest")) {
+                is_macro_varargs = true;
+            } else {
+                break;
+            }
         }
         Variable *param_var = new Variable();
         var->copyTo(param_var);
@@ -53,8 +58,13 @@ addVariables(Context *ctx, Node *node, Function *fn, llvm::BasicBlock *block)
         if (past_first && fn->is_macro) {
             /* Macro arguments, past the first, always have a type of
              * (p DNode), notwithstanding that the type in the
-             * Function is unrestricted (to support overloading). */
+             * Function is unrestricted (to support overloading).
+             * (Except for the 'rest' parameter.) */
             param_var->type = ctx->tr->type_pdnode;
+            if (is_macro_varargs) {
+                param_var->type =
+                    ctx->tr->getPointerType(ctx->tr->type_pdnode);
+            }
         }
         bool res = ctx->ns()->addVariable(param_var->name.c_str(), param_var);
         if (!res) {

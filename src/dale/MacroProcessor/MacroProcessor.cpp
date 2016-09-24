@@ -7,7 +7,8 @@
 #include "../Form/Macro/DerefStructDeref/DerefStructDeref.h"
 #include "../Form/Macro/DerefStruct/DerefStruct.h"
 #include "../Form/Macro/Setv/Setv.h"
-#include FFI_HEADER
+#include "llvm/ExecutionEngine/GenericValue.h"
+#include "llvm/Support/Debug.h"
 
 #define eq(str) !strcmp(macro_name, str)
 
@@ -16,7 +17,6 @@ using namespace dale::ErrorInst;
 namespace dale
 {
 llvm::Function *pool_free_fn;
-void (*pool_free_fptr)(MContext *);
 
 MacroProcessor::MacroProcessor(Units *units, Context *ctx,
                                llvm::ExecutionEngine* ee)
@@ -30,40 +30,11 @@ MacroProcessor::~MacroProcessor()
 {
 }
 
-static DNode *
-callmacro(int arg_count, void *units, void *mac, DNode **dnodes, MContext *mc)
-{
-    ffi_type *args[arg_count];
-    void *vals[arg_count];
-
-    args[0] = &ffi_type_pointer;
-    vals[0] = (void*) &mc;
-
-    for (int i = 1; i < arg_count; i++) {
-        args[i] = &ffi_type_pointer;
-        vals[i] = (void *) &(dnodes[i - 1]);
-    }
-
-    ffi_cif cif;
-    ffi_status res = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, arg_count,
-                                  &ffi_type_pointer, args);
-    _unused(res);
-    assert((res == FFI_OK) && "prep_cif failed, cannot run macro");
-
-    DNode *ret_node = NULL;
-    ffi_call(&cif, (void (*)()) mac, (void *) &ret_node, vals);
-
-    return ret_node;
-}
-
 void
 MacroProcessor::setPoolfree()
 {
-    if (!pool_free_fptr) {
+    if (!pool_free_fn) {
         pool_free_fn = ctx->getFunction("pool-free", NULL, NULL, 0)->llvm_function;
-        pool_free_fptr =
-            (void (*)(MContext *mcp))
-                ee->getPointerToFunction(pool_free_fn);
     }
 }
 
@@ -146,22 +117,37 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
     mcontext.pool_node = pn;
     mcontext.units     = units;
 
-    void *callmacro_fptr = (void*) &callmacro;
-    void *macro_fptr     = ee->getPointerToFunction(mc->llvm_function);
+    std::vector<llvm::GenericValue> values;
+    llvm::GenericValue mc_val;
+    mc_val.PointerVal = &mcontext;
+    values.push_back(mc_val);
+    int i = 0;
+    for (; i < (mc->numberOfRequiredArgs() - 1); i++) {
+        llvm::GenericValue dn_val;
+        dn_val.PointerVal = macro_args[i];
+        values.push_back(dn_val);
+    }
+    if (mc->isVarArgs()) {
+        llvm::GenericValue rest_val;
+        rest_val.PointerVal = &(macro_args[i]);
+        values.push_back(rest_val);
+    }
 
-    DNode* (*callmacro_fptr_typed)
-        (int arg_count, void *units, void *mac_fn, DNode **dnodes,
-         MContext *mcp) =
-            (DNode* (*)(int, void*, void*, DNode**, MContext*)) callmacro_fptr;
+    if (units->debug) {
+#if D_LLVM_VERSION_MINOR >= 5
+        llvm::dbgs() << *(mc->llvm_function) << "\n";
+#endif
+    }
 
-    DNode *result_dnode =
-        callmacro_fptr_typed(macro_args_count + 1, (void *) units,
-                             (char *) macro_fptr, macro_args, &mcontext);
+    DNode *result_dnode = (DNode *)
+        ee->runFunction(mc->llvm_function, values).PointerVal;
 
     Node *result_node =
         (result_dnode) ? units->top()->dnc->toNode(result_dnode) : NULL;
 
-    pool_free_fptr(&mcontext);
+    std::vector<llvm::GenericValue> values_pf;
+    values_pf.push_back(mc_val);
+    ee->runFunction(pool_free_fn, values_pf);
 
     if (result_node) {
         result_node->addMacroPosition(n);

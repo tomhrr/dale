@@ -331,7 +331,7 @@ Parameters:
   * `concept-name-node`
   * `refinement-list`
   * `type-arguments`
-  * `...`
+  * `rest`
 
 
 Define a new concept. Takes a name, a list of refinements, a list of
@@ -369,7 +369,7 @@ Linkage: `extern`
 Parameters:
 
   * `concept-name-node`
-  * `...`
+  * `rest`
 
 
 Takes a concept name and a list of type arguments. Attempts to
@@ -401,7 +401,7 @@ Parameters:
   * `macro-name`: The name of the concept macro.
   * `linkage`: The linkage of the concept macro.
   * `macro-types`: The parameters (typed) for the macro.
-  * `...`
+  * `rest`
 
 
 Define a new concept macro. Takes a name, a linkage type, a list of
@@ -444,7 +444,7 @@ Linkage: `extern`
 Parameters:
 
   * `macro-name`: The name of the macro to be instantiated.
-  * `...`
+  * `rest`
 
 
 Takes a concept macro name and a series of arguments for that concept

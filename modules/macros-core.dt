@@ -537,30 +537,6 @@ it takes an array of nodes as its second argument.
     (label end-loop)
       (return very-fst-node)))
 
-#|
-@fn std.macros.valist-to-dnode-array
-
-@param arglist      An argument list.
-@param argcount     The number of arguments in the list.
-@param arg-array    The array into which the arguments will be put.
-|#
-(def valist-to-dnode-array
-  (fn extern int ((arglist   (p (p void)))
-                  (argcount  int)
-                  (arg-array (p (p DNode))))
-    (label begin-loop)
-      (if (= argcount 0)
-          (goto end-loop)
-          (do
-            ; todo - is this really right?
-            (setf arg-array (va-arg arglist (p DNode)))
-            (setv arg-array (p+ arg-array 1))
-            (setv argcount (- argcount 1))
-            (goto begin-loop)))
-
-    (label end-loop)
-      (return 0)))
-
 (def var-marker (var intern int 0))
 #|
 @fn std.macros.gensym-var
@@ -993,7 +969,7 @@ used again.
 
 @param frm      A node.
 |#
-(def bqq (macro extern (frm ...)
+(def bqq (macro extern (frm rest)
     (def arg-count (var auto \ (arg-count mc)))
 
     (setv arg-count (- arg-count 1))
@@ -1002,12 +978,10 @@ used again.
     (def nullp (var auto (p DNode) (nullptr DNode)))
     (def holder (var auto (p DNode) (make-node mc)))
 
-    (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
     (def va-dnode (var auto (p DNode)))
     (def temp-node (var auto (p DNode)))
 
-    (def begin (var auto int 1))
+    (def begin (var auto int 0))
 
     (setf (:@ holder is-list)   1)
     (setf (:@ holder list-node) frm)
@@ -1017,7 +991,8 @@ used again.
     (label begin-loop)
         (if (= arg-count 0) (goto end-loop) 0)
 
-        (setv va-dnode (va-arg (# arglist) (p DNode)))
+        (setv va-dnode (@$ rest begin))
+        (setv begin (+ begin 1))
         (setf (:@ temp-node next-node) va-dnode)
         (setv temp-node va-dnode)
         (setv arg-count (- arg-count 1))
@@ -1030,15 +1005,18 @@ used again.
 #|
 @macro std.macros.get-varargs-list
 
-Takes a macro context, an argument count, and a pointer to `va-list`
-as its arguments.  Returns the first node of a linked node list
-containing each of the nodes from the `va-list`, suitable for using as
-the argument to the `uql` and `uql-nc` forms.
+Takes a macro context, an argument count, and a pointer to a DNode
+pointer as its arguments.  Returns the first node of a linked node
+list containing each of the nodes from the DNode pointer list,
+suitable for using as the argument to the `uql` and `uql-nc` forms.
+(The third argument here is typically the macro's 'rest' argument.
+The difference between 'rest' and the return value of this function is
+that the nodes here will be linked together.)
 
 @linkage extern
 |#
 (def get-varargs-list
-  (fn extern (p DNode) ((mc (p MContext)) (arg-count int) (arglist (p va-list)))
+  (fn extern (p DNode) ((mc (p MContext)) (arg-count int) (arglist (p (p DNode))))
     (def arg-count-original (var auto int arg-count))
     (def arg-array-original
         (var auto (p (p DNode))
@@ -1047,12 +1025,14 @@ the argument to the `uql` and `uql-nc` forms.
                                       (cast arg-count size)))
                       (p (p DNode)))))
     (def arg-array (var auto (p (p DNode)) arg-array-original))
+    (def index (var auto int 0))
 
     (label begin)
       (if (= arg-count 0)
         (goto end)
         (do
-            (setf arg-array (va-arg (cast arglist (p void)) (p DNode)))
+            (setf arg-array (@$ arglist index))
+            (setv index (+ index 1))
             (setv arg-array (p+ arg-array 1))
             (setv arg-count (- arg-count 1))
             (goto begin)))
@@ -1067,10 +1047,7 @@ the argument to the `uql` and `uql-nc` forms.
   (bqq do
     (def (uq name) (var auto (p DNode)))
     (new-scope
-      (def argslist (var auto va-list))
-      (va-start (cast (# argslist) (p void)))
-      (setv (uq name) (std.macros.get-varargs-list mc (uq count) (# argslist)))
-      (va-end (cast (# argslist) (p void)))))))
+      (setv (uq name) (std.macros.get-varargs-list mc (uq count) rest))))))
 
 #|
 @macro std.macros.get-varargs-list

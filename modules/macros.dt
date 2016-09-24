@@ -80,7 +80,7 @@ be used again.
 
 @linkage extern
 |#
-(def qq (macro extern (frm ...)
+(def qq (macro extern (frm rest)
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 1))
     (def myargcount (var auto int arg-count))
@@ -91,12 +91,10 @@ be used again.
     (setf (:@ holder token-str) (nullptr char))
     (setf (:@ holder list-node) (nullptr DNode))
 
-    (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
     (def va-dnode (var auto (p DNode)))
     (def temp-node (var auto (p DNode)))
 
-    (def begin (var auto int 1))
+    (def begin (var auto int 0))
 
     (setf (:@ holder is-list) 1)
     (setf (:@ holder list-node) frm)
@@ -105,7 +103,8 @@ be used again.
     (label begin-loop)
         (if (= arg-count 0) (goto end-loop) 0)
 
-        (setv va-dnode (va-arg (# arglist) (p DNode)))
+        (setv va-dnode (@$ rest begin))
+        (setv begin (+ begin 1))
         (setf (:@ temp-node next-node) va-dnode)
         (setv temp-node va-dnode)
         (setv arg-count (- arg-count 1))

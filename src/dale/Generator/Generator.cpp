@@ -394,10 +394,6 @@ Generator::run(std::vector<const char *> *file_paths,
             ctx->eraseLLVMMacros();
         }
 
-        if (dale::pool_free_fptr) {
-            ee->freeMachineCodeForFunction(dale::pool_free_fn);
-        }
-
         if (last_module) {
             linkModule(linker, last_module);
         }

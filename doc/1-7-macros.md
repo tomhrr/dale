@@ -69,8 +69,11 @@ The number of arguments passed to the macro can be retrieved by way of
 the `arg-count` function, which takes the context as its single
 argument. This function is present so that varargs macros can be
 supported without requiring macro users to also provide the number of
-arguments/forms being passed to the macro. Varargs macros otherwise
-operate in the same way as varargs functions.
+arguments/forms being passed to the macro. Varargs macros are defined
+different from varargs functions: to mark a macro as varargs, add a
+final parameter with the name `rest`.  Within the macro, `rest` will
+be bound to a pointer to a DNode pointer, containing the rest of the
+arguments that were passed to the macro.
 
 ### Examples
 

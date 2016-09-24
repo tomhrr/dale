@@ -109,7 +109,7 @@ constructed by way of `def-concept-macro`.
 
 |#
 (def def-concept
-  (macro extern (concept-name-node refinement-list type-arguments ...)
+  (macro extern (concept-name-node refinement-list type-arguments rest)
     (if (= 1 (@:@ concept-name-node is-list))
         (do (report-error mc concept-name-node
                           "concept name argument must not be a list")
@@ -221,10 +221,7 @@ constructed by way of `def-concept-macro`.
 
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 3))
-    (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
-    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
-    (va-end (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
 
     (def function-name
       (var auto (p char) (pool-malloc' 255 char)))
@@ -301,15 +298,12 @@ body may (generally, will) add errors if its requirements are not met.
 
 |#
 (def implement
-  (macro extern (concept-name-node ...)
+  (macro extern (concept-name-node rest)
     (def concept-name 
       (var auto (p char) (@:@ concept-name-node token-str)))
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 1))
-    (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
-    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
-    (va-end (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
     (def macro-name
       (var auto (p char) (pool-malloc' 255 char)))
     (sprintf macro-name "_impl-concept-%s" concept-name)
@@ -699,13 +693,10 @@ arguments.
 @param macro-types  The parameters (typed) for the macro.
 |#
 (def def-concept-macro
-  (macro extern (macro-name linkage macro-types ...)
+  (macro extern (macro-name linkage macro-types rest)
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 3))
-    (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
-    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
-    (va-end (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
     (let ((newname (array-of 255 char)))
       (if (not (get-concept-macro-name mc macro-name 
                                        (@:@ macro-types list-node)
@@ -1092,7 +1083,7 @@ missing import statement.
 @param macro-name       The name of the macro to be instantiated.
 |#
 (def instantiate
-  (macro extern (macro-name ...)
+  (macro extern (macro-name rest)
     (let ((i \ 0)
           (name \ (@:@ macro-name token-str))
           (finder-name-str (array-of 256 char)))
@@ -1106,10 +1097,7 @@ missing import statement.
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 1))
     (def pre-arg-count (var auto \ arg-count))
-    (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
-    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
-    (va-end (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
     (setv arg-count pre-arg-count)
 
     (assert-return (= 0 arg-count) 

@@ -577,12 +577,8 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
 
     if (units->debug) {
 #if D_LLVM_VERSION_MINOR >= 5
-        if (llvm::verifyModule(*(units->top()->module),
-                               &(llvm::errs()))) {
-            llvm::dbgs() << *llvm_fn << "\n";
-            llvm::dbgs() << *wrapper_fn << "\n";
-            abort();
-        }
+        llvm::dbgs() << *llvm_fn << "\n";
+        llvm::dbgs() << *wrapper_fn << "\n";
 #endif
     }
 

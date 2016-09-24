@@ -624,8 +624,11 @@ The number of arguments passed to the macro can be retrieved by way of
 the `arg-count` function, which takes the context as its single
 argument. This function is present so that varargs macros can be
 supported without requiring macro users to also provide the number of
-arguments/forms being passed to the macro. Varargs macros otherwise
-operate in the same way as varargs functions.
+arguments/forms being passed to the macro. Varargs macros are defined
+different from varargs functions: to mark a macro as varargs, add a
+final parameter with the name `rest`.  Within the macro, `rest` will
+be bound to a pointer to a DNode pointer, containing the rest of the
+arguments that were passed to the macro.
 
 ### Examples
 
@@ -2217,18 +2220,6 @@ As per `link-nodes`, except that instead of being a varargs function,
 it takes an array of nodes as its second argument.
 
 
-#### `std.macros.valist-to-dnode-array`
-
-Linkage: `extern`
-Returns: `int`
-Parameters:
-
-  * `(arglist (p (p void)))`: An argument list.
-  * `(argcount int)`: The number of arguments in the list.
-  * `(arg-array (p (p DNode)))`: The array into which the arguments will be put.
-
-
-
 #### `std.macros.gensym-var`
 
 Linkage: `extern`
@@ -2381,7 +2372,7 @@ Linkage: `extern`
 Parameters:
 
   * `frm`: A node.
-  * `...`
+  * `rest`
 
 
 The bootstrap quasiquotation macro. The general-use quasiquotation
@@ -2401,10 +2392,13 @@ Parameters:
   * `DNode`
 
 
-Takes a macro context, an argument count, and a pointer to `va-list`
-as its arguments.  Returns the first node of a linked node list
-containing each of the nodes from the `va-list`, suitable for using as
-the argument to the `uql` and `uql-nc` forms.
+Takes a macro context, an argument count, and a pointer to a DNode
+pointer as its arguments.  Returns the first node of a linked node
+list containing each of the nodes from the DNode pointer list,
+suitable for using as the argument to the `uql` and `uql-nc` forms.
+(The third argument here is typically the macro's 'rest' argument.
+The difference between 'rest' and the return value of this function is
+that the nodes here will be linked together.)
 
 
 #### `std.macros.get-varargs-list`
@@ -2441,7 +2435,7 @@ Parameters:
 
   * `structp`: The struct pointer argument.
   * `member`: The first member's name.
-  * `...`
+  * `rest`
 
 
 Takes a struct pointer and one or more struct member names as its
@@ -2484,7 +2478,7 @@ Linkage: `extern`
 Parameters:
 
   * `condition`: The condition expression form.
-  * `...`
+  * `rest`
 
 
 Takes a condition expression and an arbitrary number of other forms as
@@ -2548,7 +2542,7 @@ Parameters:
   * `init-form`: The initialisation form.
   * `condition`: The condition expression.
   * `loop-entry`: The loop entry form.
-  * `...`
+  * `rest`
 
 
 Takes an initialisation form, a condition expression, a loop entry
@@ -2567,7 +2561,7 @@ Linkage: `extern`
 Parameters:
 
   * `new-vars`
-  * `...`
+  * `rest`
 
 
 A form for introducing local (automatic storage) variables. It's
@@ -2592,7 +2586,7 @@ expands to:
 Linkage: `extern`
 Parameters:
 
-  * `...`
+  * `rest`
 
 
 As per Common Lisp's `cond`, except that the first element of each
@@ -2711,7 +2705,7 @@ Parameters:
 
   * `value-name`
   * `value-list`
-  * `...`
+  * `rest`
 
 
 Short for 'macro for', but more akin to a 'foreach'. Takes a
@@ -2782,7 +2776,7 @@ Linkage: `extern`
 Parameters:
 
   * `frm`
-  * `...`
+  * `rest`
 
 
 The 'general-use' quasiquotation macro. The forms handled specially
@@ -3185,7 +3179,7 @@ Parameters:
   * `concept-name-node`
   * `refinement-list`
   * `type-arguments`
-  * `...`
+  * `rest`
 
 
 Define a new concept. Takes a name, a list of refinements, a list of
@@ -3223,7 +3217,7 @@ Linkage: `extern`
 Parameters:
 
   * `concept-name-node`
-  * `...`
+  * `rest`
 
 
 Takes a concept name and a list of type arguments. Attempts to
@@ -3255,7 +3249,7 @@ Parameters:
   * `macro-name`: The name of the concept macro.
   * `linkage`: The linkage of the concept macro.
   * `macro-types`: The parameters (typed) for the macro.
-  * `...`
+  * `rest`
 
 
 Define a new concept macro. Takes a name, a linkage type, a list of
@@ -3298,7 +3292,7 @@ Linkage: `extern`
 Parameters:
 
   * `macro-name`: The name of the macro to be instantiated.
-  * `...`
+  * `rest`
 
 
 Takes a concept macro name and a series of arguments for that concept
@@ -6719,7 +6713,7 @@ Parameters:
 
 
 Defines a macro:
-`(name a b ...)` will be expanded to `(opname a (name b ...))`
+`(name a b rest) will be expanded to `(opname a (name b rest))`
 
 
 #### `std.macros.def-left-associative-macro`
@@ -6733,7 +6727,7 @@ Parameters:
 
 
 Defines a macro:
-`(name a b ...)` will be expanded to `(name (opname a b) ...)`
+`(name a b rest)` will be expanded to `(name (opname a b) rest)`
 
 
 ## <a name="bitset-enum"></a> 2.22 bitset-enum

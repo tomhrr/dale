@@ -21,6 +21,12 @@ linkVariablesToFunction(std::vector<Variable *> *vars, llvm::Function *llvm_fn)
             b != e;
             ++b) {
         if ((*b)->type->base_type == BaseType::VarArgs) {
+            if (!(*b)->name.compare("rest")) {
+                llvm::Value *llvm_param = llvm_arg_iter;
+                ++llvm_arg_iter;
+                llvm_param->setName((*b)->name.c_str());
+                (*b)->value = llvm_param;
+            }
             break;
         }
         llvm::Value *llvm_param = llvm_arg_iter;

@@ -3,12 +3,9 @@
 
 (using-namespace std.macros
 (def def-main-fn
-  (macro intern (...)
+  (macro intern (rest)
     (def arg-count (var auto \ (arg-count mc)))
-    (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
-    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
-    (va-end (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
     (bqq def main (fn extern-c int (void) (uql varargs-list) 0))))
 )
 (def-main-fn (printf "Hello world part 2\n"))

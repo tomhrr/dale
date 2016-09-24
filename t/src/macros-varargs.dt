@@ -3,25 +3,24 @@
 (import cstdlib)
 
 (def m-va-test
-  (macro intern (...)
-    (def arglist   (var auto va-list))
+  (macro intern (rest)
     (def temp-node (var auto (p DNode)))
     (def my-sum    (var auto int 0))
 
-    (va-start (cast (# arglist) (p void)))
     (def arg-count (var auto \ (arg-count mc)))
+    (def index (var auto int 0))
 
     (label begin-loop)
       (if (= 0 arg-count)
           (goto end-loop)
           (do
             (setv arg-count (- arg-count 1))
-            (setv temp-node (va-arg (# arglist) (p DNode)))
+            (setv temp-node (@$ rest index))
+            (setv index (+ index 1))
             (setv my-sum (+ my-sum (atoi (@ (: (@ temp-node) token-str)))))
             (goto begin-loop)))
 
     (label end-loop)
-      (va-end (cast (# arglist) (p void)))
 
       (def retval (var auto (p DNode)
                           (cast (pool-malloc mc (sizeof DNode)) (p DNode))))

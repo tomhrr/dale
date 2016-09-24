@@ -26,7 +26,7 @@ is `(@:@ (@:@ structp member1) member2)`.
 @param member       The first member's name.
 |#
 (def @:'
-  (macro extern (structp member ...)
+  (macro extern (structp member rest)
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 2))
     (def myargcount (var auto int arg-count))
@@ -34,14 +34,13 @@ is `(@:@ (@:@ structp member1) member2)`.
     (def frm (var auto (p DNode) (bqq @:@ (uq-nc structp) (uq-nc member))))
     (def va-dnode (var auto (p DNode)))
 
-    (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
-    (def begin (var auto int 1))
+    (def begin (var auto int 0))
 
     (label begin-loop)
         (if (= arg-count 0) (goto end-loop) 0)
 
-        (setv va-dnode (va-arg (# arglist) (p DNode)))
+        (setv va-dnode (@$ rest begin))
+        (setv begin (+ begin 1))
         (setv frm (bqq @:@ (uq-nc frm) (uq-nc va-dnode)))
         (setv arg-count (- arg-count 1))
         (goto begin-loop)
@@ -141,14 +140,12 @@ for so long as the condition expression evaluates to `true`.
 @param condition    The condition expression form.
 |#
 (def while
-  (macro extern (condition ...)
+  (macro extern (condition rest)
     (def arg-count (var auto \ (arg-count mc)))
 
     (setv arg-count (- arg-count 1))
     (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
-    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
-    (va-end (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
 
     (def begin-label
         (var auto (p DNode) (make-gensym-label-node mc "continuelabel")))
@@ -237,13 +234,10 @@ a `let` variable binding (e.g. `(i \ 0)`), or a `setv` call (e.g.
 @param loop-entry   The loop entry form.
 |#
 (def for
-  (macro extern (init-form condition loop-entry ...)
+  (macro extern (init-form condition loop-entry rest)
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 3))
-    (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
-    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
-    (va-end (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
 
     (def begin-label
         (var auto (p DNode) (make-gensym-label-node mc)))
@@ -333,13 +327,10 @@ expands to:
 @linkage extern
 |#
 (def let
-  (macro extern (new-vars ...)
+  (macro extern (new-vars rest)
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 1))
-    (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
-    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
-    (va-end (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
 
     (and (null varargs-list)
       (do (report-error mc new-vars "no body forms provided")
@@ -436,7 +427,7 @@ expands to:
 The last condition test must be the literal `true`.
 |#
 (def cond
-  (macro extern (...)
+  (macro extern (rest)
     (def arg-count (var auto \ (arg-count mc)))
 
     (cond-error-check
@@ -447,14 +438,14 @@ The last condition test must be the literal `true`.
     (def frm (var auto (p DNode)))
     (def va-dnode (var auto (p DNode)))
 
-    (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
     (def begin (var auto bool true))
     (def last (var auto (p DNode)))
+    (def index (var auto int 0))
 
     (label begin-loop)
         (if (= arg-count 0) (goto end-loop) 0)
-        (setv va-dnode (va-arg (# arglist) (p DNode)))
+        (setv va-dnode (@$ rest index))
+        (setv index (+ index 1))
         (cond-error-check
           (null (@:@ va-dnode list-node))
           va-dnode
@@ -655,13 +646,10 @@ expands to:
 @linkage extern
 |#
 (def mfor
-  (macro extern (value-name value-list ...)
+  (macro extern (value-name value-list rest)
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 2))
-    (def arglist (var auto va-list))
-    (va-start (cast (# arglist) (p void)))
-    (def varargs-list (var auto \ (get-varargs-list mc arg-count (# arglist))))
-    (va-end (cast (# arglist) (p void)))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
 
     (and (null varargs-list)
       (do (report-error mc value-name "no body forms provided")

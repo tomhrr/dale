@@ -6,11 +6,11 @@
 (def b (fn intern int ((a int) ...) (printf "fn22\n") a))
 (def b (fn intern int ((a int))     (printf "fn21\n") a))
 
-(def b (macro intern (a)     (printf "macro31\n") a))
-(def b (macro intern (a ...) (printf "macro32\n") a))
+(def b (macro intern (a)      (printf "macro31\n") a))
+(def b (macro intern (a rest) (printf "macro32\n") a))
 
-(def c (macro intern (a ...) (printf "macro42\n") a))
-(def c (macro intern (a)     (printf "macro41\n") a))
+(def c (macro intern (a rest) (printf "macro42\n") a))
+(def c (macro intern (a)      (printf "macro41\n") a))
 
 (def d (macro intern ((a int) b c)       (printf "macro51\n") a))
 (def d (macro intern ((a int) (b int) c) (printf "macro52\n") a))

@@ -109,6 +109,9 @@ errorInstanceToString(int error_instance)
     case ErrorInst::VarArgsMustBeLastParameter:
         ret = "the varargs specifier must be the last parameter";
         break;
+    case ErrorInst::VarArgsNotPermittedForMacros:
+        ret = "the varargs specifier may not be used in macros (use 'rest' instead)";
+        break;
     case ErrorInst::TypeNotAllowedInStruct:
         ret = "'%s' fields are not allowed in structs";
         break;

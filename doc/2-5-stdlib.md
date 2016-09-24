@@ -25,7 +25,7 @@ Parameters:
 
   * `structp`: The struct pointer argument.
   * `member`: The first member's name.
-  * `...`
+  * `rest`
 
 
 Takes a struct pointer and one or more struct member names as its
@@ -68,7 +68,7 @@ Linkage: `extern`
 Parameters:
 
   * `condition`: The condition expression form.
-  * `...`
+  * `rest`
 
 
 Takes a condition expression and an arbitrary number of other forms as
@@ -132,7 +132,7 @@ Parameters:
   * `init-form`: The initialisation form.
   * `condition`: The condition expression.
   * `loop-entry`: The loop entry form.
-  * `...`
+  * `rest`
 
 
 Takes an initialisation form, a condition expression, a loop entry
@@ -151,7 +151,7 @@ Linkage: `extern`
 Parameters:
 
   * `new-vars`
-  * `...`
+  * `rest`
 
 
 A form for introducing local (automatic storage) variables. It's
@@ -176,7 +176,7 @@ expands to:
 Linkage: `extern`
 Parameters:
 
-  * `...`
+  * `rest`
 
 
 As per Common Lisp's `cond`, except that the first element of each
@@ -295,7 +295,7 @@ Parameters:
 
   * `value-name`
   * `value-list`
-  * `...`
+  * `rest`
 
 
 Short for 'macro for', but more akin to a 'foreach'. Takes a

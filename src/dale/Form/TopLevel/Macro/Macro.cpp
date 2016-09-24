@@ -85,7 +85,6 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
     mc_params_internal.push_back(mc_var);
 
     bool past_first = false;
-    bool varargs = false;
 
     std::vector<Node *> *params = macro_params->list;
     for (std::vector<Node *>::iterator b = params->begin(),
@@ -111,16 +110,16 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
                 }
                 break;
             } else if (!value->compare("...")) {
-                if ((e - b) != 1) {
-                    Error *e = new Error(VarArgsMustBeLastParameter,
-                                         macro_params);
-                    ctx->er->addError(e);
-                    return false;
-                }
+                Error *e = new Error(VarArgsNotPermittedForMacros,
+                                     macro_params);
+                ctx->er->addError(e);
+                return false;
+            } else if (!value->compare("rest")
+                            && ((b + 1) == e)) {
                 var = new Variable();
                 var->type = ctx->tr->type_varargs;
+                var->name.append((*b)->token->str_value);
                 var->linkage = Linkage::Auto;
-                varargs = true;
                 mc_params_internal.push_back(var);
                 break;
             }
@@ -148,7 +147,12 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
             b != e;
             ++b) {
         if ((*b)->type->base_type == BaseType::VarArgs) {
-            break;
+            mc_params.push_back(
+                ctx->toLLVMType(
+                    ctx->tr->getPointerType(ret_type), NULL, false
+                )
+            );
+            continue;
         }
         llvm::Type *llvm_type = ctx->toLLVMType(ret_type, NULL, false);
         if (!llvm_type) {
@@ -162,7 +166,7 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
         return false;
     }
     llvm::FunctionType *ft = getFunctionType(llvm_ret_type, mc_params,
-                                             varargs);
+                                             false);
 
     std::string new_name;
     ctx->ns()->functionNameToSymbol(name, &new_name, linkage,

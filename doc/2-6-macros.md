@@ -22,7 +22,7 @@ Linkage: `extern`
 Parameters:
 
   * `frm`
-  * `...`
+  * `rest`
 
 
 The 'general-use' quasiquotation macro. The forms handled specially

@@ -849,6 +849,7 @@ Context::rebuildFunction(Function *fn, const char *name,
 {
     std::vector<llvm::Type*> types;
 
+    int arg_count = 0;
     for (std::vector<Variable *>::iterator
             vb = fn->parameters.begin(),
             ve = fn->parameters.end();
@@ -856,22 +857,30 @@ Context::rebuildFunction(Function *fn, const char *name,
             ++vb) {
         Variable *var = (*vb);
         Type *var_type = var->type;
-        if (var_type->is_reference) {
+        if (!fn->is_macro && var_type->is_reference) {
             var_type = tr->getPointerType(var_type);
         }
         if (var_type->base_type == BaseType::VarArgs) {
-            break;
+            if (!(var->name.compare("rest"))) {
+                var_type = tr->getPointerType(tr->type_pdnode);
+            } else {
+                break;
+            }
+        } else if (fn->is_macro && (arg_count > 0)) {
+            var_type = tr->type_pdnode;
         }
+
         llvm::Type *llvm_type = toLLVMType(var_type, NULL, false, false);
         assert(llvm_type && "failed type conversion");
         types.push_back(llvm_type);
+        arg_count++;
     }
 
     llvm::Type *llvm_return_type =
         toLLVMType(fn->return_type, NULL, true, false);
     assert(llvm_return_type && "failed type conversion");
 
-    bool varargs = fn->isVarArgs();
+    bool varargs = fn->isVarArgs() && !fn->is_macro;
 
     llvm::FunctionType *ft =
         llvm::FunctionType::get(
