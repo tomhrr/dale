@@ -13,7 +13,6 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include FFI_HEADER
 
 #if D_LLVM_VERSION_MINOR <= 4
 #include "llvm/Support/system_error.h"
