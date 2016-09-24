@@ -19,6 +19,14 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
 {
     Type *array_type = pr->type->array_type;
     llvm::BasicBlock *block = pr->block;
+
+    if (!array_type->is_array) {
+        Function *fn = getDestructor(ctx, array_type);
+        if (!fn) {
+            return true;
+        }
+    }
+
     llvm::Value *array_value = pr->getValue(ctx);
 
     if (!array_value) {
@@ -26,13 +34,6 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
     }
     if (!array_value->getType()) {
         return true;
-    }
-
-    if (!array_type->is_array) {
-        Function *fn = getDestructor(ctx, array_type);
-        if (!fn) {
-            return true;
-        }
     }
 
     llvm::Type *llvm_array_type = ctx->toLLVMType(pr->type, NULL, false);
