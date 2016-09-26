@@ -707,9 +707,8 @@ Expands to a `no-op`. Useful for ignoring parts of s-expressions without having 
 @param ... takes any number of arguments, and ignores them.
 |#
 
-(def ignore (macro extern (...)
-  (qq no-op)))
-Expands to the argument form.
+(def ignore (macro extern (rest)
+  (bqq no-op)))
 
 #|
 @macro identity
