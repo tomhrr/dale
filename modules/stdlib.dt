@@ -699,6 +699,30 @@ Expands to the argument form.
     frm))
 
 #|
+@macro in
+
+Iterates over a container of type T using iterators.
+
+@param name The name to access the elements of type (p T)-
+@param value The container.
+@param rest The forms executed as body.
+|#
+
+(def in (macro extern (name value rest)
+  (let ((list \ (get-varargs-list mc (- (arg-count mc) 2) rest))
+        (en \ (make-gensym-var-node mc))
+        (bn \ (make-gensym-var-node mc)))
+    (if (is-lvalue mc value)
+      (bqq for (((uq bn) \ (begin (uq value))) ((uq en) \ (end (uq value))))
+              (< (uq bn) (uq en))
+              (setv (uq bn) (successor (uq bn)))
+        (let (((uq name) \ (source (uq bn))))
+          (uql list)))
+      (let ((val \ (make-gensym-var-node mc)))
+        (bqq let (((uq val) \ (uq value)))
+          (in (uq name) (uq val) (uql list))))))))
+
+#|
 @macro +'
 
 For each of the primitive numeric types, macros that correspond to the
@@ -708,6 +732,7 @@ these macros has the same name as the original function, except with a
 ' symbol appended.
 
 |#
+
 (def prime-function
   (macro intern (T F)
     (let ((buf (array-of 4 char)))
