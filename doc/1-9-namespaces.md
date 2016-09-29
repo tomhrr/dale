@@ -24,7 +24,11 @@ periods:
 
         (def function (fn intern int (void) 
           ns1.value)) ; returns 123
-            
+
+To qualify a reference to a binding that is in the root namespace,
+where e.g. the current namespace also defines a binding with that
+name, prefix the name with a single period.
+
 Namespaces may be nested:
 
         (namespace ns1

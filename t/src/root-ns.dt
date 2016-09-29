@@ -1,0 +1,15 @@
+(import cstdio)
+(import stdlib)
+
+(namespace test
+  (def + (fn intern int ((a int) (b int))
+    (printf "calling +\n")
+    (def x (var auto \ (.+ a b)))
+    (printf "called +\n")
+    (return x))))
+
+(def main (fn extern-c int (void)
+  (printf "%d\n" (+ 1 2))
+  (using-namespace test
+    (printf "%d\n" (+ 1 2)))
+  0))
