@@ -114,25 +114,13 @@ Type::isEqualTo(Type *other_type,
         return false;
     }
     if (is_function) {
-        if (!return_type->isEqualTo(other_type->return_type,
-                                    ignore_arg_constness)) {
-            return false;
+        if (!return_type->isEqualTo(other_type->return_type)) {
+             return false;
         }
-        for (std::vector<Type*>::iterator
-                b1 = parameter_types.begin(),
-                e1 = parameter_types.end(),
-                b2 = other_type->parameter_types.begin(),
-                e2 = other_type->parameter_types.end();
-                b1 != e1;
-                ++b1, ++b2) {
-            if (b2 == e2) {
-                return false;
-            }
-            if (!(*b1)->isEqualTo((*b2), ignore_arg_constness)) {
-                return false;
-            }
-        }
-        return true;
+        return dale::STL::isEqualTo(
+                   &(parameter_types),
+                   &(other_type->parameter_types)
+               );
     }
 
     if ((points_to == NULL) && (other_type->points_to != NULL)) {
