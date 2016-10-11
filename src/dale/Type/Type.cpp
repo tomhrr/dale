@@ -353,11 +353,14 @@ void Type::toString(std::string *str)
         return_type->toString(str);
         str->append(" (");
 
-        std::vector<Type *>::iterator iter =
-            parameter_types.begin();
-        while (iter != parameter_types.end()) {
-            (*iter)->toString(str);
-            ++iter;
+        for (std::vector<Type *>::iterator pb = parameter_types.begin(),
+                                           pe = parameter_types.end();
+                pb != pe;
+                ++pb) {
+            (*pb)->toString(str);
+            if ((pb + 1) != pe) {
+                str->append(" ");
+            }
         }
 
         str->append(")");
