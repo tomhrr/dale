@@ -17,11 +17,24 @@ namespace dale
 bool
 FormParameterParse(Units *units, Variable *var, Node *node,
                    bool allow_anon_structs, bool allow_bitfields,
-                   bool allow_refs)
+                   bool allow_refs, bool allow_anonymous)
 {
     Context *ctx = units->top()->ctx;
 
     var->linkage = Linkage::Auto;
+
+    if (allow_anonymous) {
+	int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
+        Type *type = FormTypeParse(units, node, allow_anon_structs,
+                                   allow_bitfields, allow_refs);
+        if (type) {
+            var->name.clear();
+            var->name.append("anon");
+            var->type = type;
+            return true;
+        }
+        ctx->er->popErrors(error_count);
+    }
 
     if (!node->is_list) {
         /* Can only be void or varargs. */

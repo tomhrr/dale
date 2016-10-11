@@ -125,7 +125,7 @@ FormStructParse(Units *units, Node *top, const char *name)
         Variable *var = new Variable();
         var->type = NULL;
 
-        FormParameterParse(units, var, (*b), true, true, false);
+        FormParameterParse(units, var, (*b), true, true, false, false);
         if (!var->type) {
             Error *e = new Error(InvalidType, (*b));
             ctx->er->addError(e);

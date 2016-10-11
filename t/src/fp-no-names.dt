@@ -1,0 +1,12 @@
+(import cstdio)
+
+(def x (fn intern int ((a int) (b int))
+  (+ a b)))
+
+(def apply (fn intern int ((f (p (fn int (int int)))) (a int) (b int))
+  (f a b)))
+
+(def main (fn extern-c int (void)
+  (def y (var auto \ (# x int int)))
+  (printf "%d\n" (apply y 1 2))
+  0))

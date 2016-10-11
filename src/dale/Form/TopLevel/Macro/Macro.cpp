@@ -94,7 +94,7 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
         Variable *var = NULL;
         if (!(*b)->is_token) {
             var = new Variable();
-            FormParameterParse(units, var, (*b), false, false, false);
+            FormParameterParse(units, var, (*b), false, false, false, false);
             if (!var->type) {
                 return false;
             }

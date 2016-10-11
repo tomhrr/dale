@@ -59,7 +59,7 @@ parseParameters(Units *units, Node *args_node,
         Variable *var = new Variable();
         var->type = NULL;
 
-        FormParameterParse(units, var, (*b), false, false, true);
+        FormParameterParse(units, var, (*b), false, false, true, false);
         if (var->type == NULL) {
             delete var;
             return false;

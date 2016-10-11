@@ -12,10 +12,11 @@ namespace dale
  *  @param allow_anon_structs Whether anonymous struct types may be used.
  *  @param allow_bitfields Whether bitfield types may be used.
  *  @param allow_refs Whether reference types may be used.
+ *  @param allow_anonymous Whether types alone may be used.
  */
 bool FormParameterParse(Units *units, Variable *var, Node *node,
                         bool allow_anon_structs, bool allow_bitfields,
-                        bool allow_refs);
+                        bool allow_refs, bool allow_anonymous);
 }
 
 #endif
