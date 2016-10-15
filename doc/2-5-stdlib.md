@@ -323,6 +323,18 @@ Expands to an empty `do` form, which is a no-op both at the top-level
 and within a procedure.
 
 
+#### `ignore`
+
+Linkage: `extern`
+Parameters:
+
+  * `rest`
+
+Takes any number of arguments, and expands to `(no-op)`.  Useful for
+ignoring parts of s-expressions without having to search, where they
+end.
+
+
 #### `identity`
 
 Linkage: `extern`

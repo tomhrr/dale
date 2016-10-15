@@ -690,11 +690,11 @@ and within a procedure.
 #|
 @macro ignore
 
-Expands to a `no-op`. Useful for ignoring parts of s-expressions without having to search, where they end.
+Takes any number of arguments, and expands to `(no-op)`.  Useful for
+ignoring parts of s-expressions without having to search, where they
+end.
 
-@param ... takes any number of arguments, and ignores them.
 |#
-
 (def ignore (macro extern (rest)
   (bqq no-op)))
 
