@@ -1,0 +1,25 @@
+(import operator-macros)
+
+(def object (struct intern ((value int))))
+
+(def make-object (fn intern (p object) ((num int))
+  (def object (var intern object ((value 0))))
+  (printf "Trying to create object %i\n" num) ;;check if only evaluated once
+  (if (= num 0) (# object)
+                (nullptr object)))) ;;object not yet defined for 
+
+(def main (fn extern-c int (void)
+  (let ((is-valid \ (fn bool ((a (p object)))
+                      (not (null a)))))
+    (let ((object1 \ (make-object -1))
+          (object2 \ (make-object 0))
+          (object3 \ (make-object 1))
+          (first-valid-object \ (or object1 object2 object3))
+          (no-valid-object \ (or (make-object -5) (make-object 12) (make-object 3))))
+      (printf
+        (if (not (null first-valid-object)) "Some valid object has been created\n"
+                                            "No valid object has been created\n"))
+      (printf
+        (if (not (null no-valid-object)) "Some valid object has been created\n"
+                                         "No valid object has been created\n"))))
+  0))
