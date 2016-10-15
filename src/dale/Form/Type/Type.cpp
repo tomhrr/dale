@@ -326,7 +326,7 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
             var->type = NULL;
 
             FormParameterParse(units, var, (*b), allow_anon_structs,
-                               allow_bitfields, true, true);
+                               allow_bitfields, true, false);
             if (var->type == NULL) {
                 delete var;
                 return NULL;
