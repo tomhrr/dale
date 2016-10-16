@@ -720,12 +720,13 @@ true.
 @param condition    The condition expression.
 @param true-case    The form to run when condition is true.
 |#
-(def and (macro extern (a b)
-  (if (is-lvalue mc a)
-    (bqq if (not (is-valid (uq a))) (uq a) (uq b))
-    (let ((tmp \ (make-gensym-var-node mc)))
-      (bqq let (((uq tmp) \ (uq a)))
-        (if (not (is-valid (uq tmp))) (uq tmp) (uq b)))))))
+; todo: Dispatch problems prevent this from working correctly.
+;(def and (macro extern (a b)
+;  (if (is-lvalue mc a)
+;    (bqq if (not (is-valid (uq a))) (uq a) (uq b))
+;    (let ((tmp \ (make-gensym-var-node mc)))
+;      (bqq let (((uq tmp) \ (uq a)))
+;        (if (not (is-valid (uq tmp))) (uq tmp) (uq b)))))))
 
 #|
 @macro or
@@ -736,12 +737,13 @@ otherwise.  A object `o` is valid if `(is-valid o)` returns true.
 @param condition    The condition expression.
 @param false-case   The form to run when condition is false.
 |#
-(def or (macro extern (a b)
-  (if (is-lvalue mc a)
-    (bqq if (is-valid (uq a)) (uq a) (uq b))
-    (let ((tmp \ (make-gensym-var-node mc)))
-      (bqq let (((uq tmp) \ (uq a)))
-        (if (is-valid (uq tmp)) (uq tmp) (uq b)))))))
+; todo: Dispatch problems prevent this from working correctly.
+;(def or (macro extern (a b)
+;  (if (is-lvalue mc a)
+;    (bqq if (is-valid (uq a)) (uq a) (uq b))
+;    (let ((tmp \ (make-gensym-var-node mc)))
+;      (bqq let (((uq tmp) \ (uq a)))
+;        (if (is-valid (uq tmp)) (uq tmp) (uq b)))))))
 
 #|
 @macro +'
