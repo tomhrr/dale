@@ -77,43 +77,43 @@ Defines a macro:
           &  |)
   (std.macros.def-left-associative-macro op extern))
 
-
 (namespace std (namespace macros
 
 #|
 @macro def-transitive-macro
 
-Defines a macro for transitive binary functions (that normally should return bool and transitive), so that you don't have to use variables twice when you want to test some Function.
+Defines a macro for transitive binary functions (that normally should
+return bool and transitive), so that you don't have to use variables
+twice when you want to test some function.
 
-```
-(def-transitive-macro < intern)
+For example:
 
-(< 0.0 x 1.0) ;;would expand to `(and (< 0.0 x) (< x 1.0))`, but seems clearer that x is between 0.0 and 1.0
+        (def-transitive-macro < intern)
+        (< 0.0 x 1.0)
 
-```
+expands to:
 
-@param name The macro name.
-@param linkage Linkage.
-@param fn The name of the binary function. Defaults to name.
+        (and (< 0.0 x) (< x 1.0))
+
+
+@param name     The macro name.
+@param linkage  Linkage.
+@param fn       The name of the binary function. Defaults to name.
 |#
-
 (def def-transitive-macro (macro extern (name linkage fn)
   (qq using-namespace std.macros
     (def (uq name) (macro (uq linkage) (a b rest)
       (let ((list \ (get-varargs-list mc (- (arg-count mc) 2) rest)))
         (if (is-lvalue mc b)
-          (qq and ((uq fn) (uq (uq a)) (uq (uq b))) ((uq name) (uq (uq b)) (uq (uql list))))
+          (qq and ((uq fn) (uq (uq a)) (uq (uq b)))
+                  ((uq name) (uq (uq b)) (uq (uql list))))
           (let ((var \ (make-gensym-var-node mc)))
             (qq let (((uq (uq var)) \ (uq (uq b))))
               ((uq name) (uq (uq a)) (uq (uq var)) (uq (uql list))))))))))))
 
 (def def-transitive-macro (macro extern (name linkage)
-  (qq def-transitive-macro (uq name) (uq linkage) (uq name))))
-))
+  (qq std.macros.def-transitive-macro (uq name) (uq linkage) (uq name))))))
 
-(using-namespace std.macros
 (mfor op (< <= = => > !=
           <' <=' =' =>' >' !=')
-  (def-transitive-macro op extern))
-)
-
+  (std.macros.def-transitive-macro op extern))

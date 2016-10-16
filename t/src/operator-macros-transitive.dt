@@ -1,0 +1,9 @@
+(import operator-macros)
+
+(def main (fn extern-c int (void)
+  (printf "%s\n" (if (< 1 2 3) "ok" "not ok"))
+  (def x (var auto \ 5.0))
+  (printf "%s\n" (if (< 1.0 x 10.0) "ok" "not ok"))
+  (printf "%s\n" (if (> 10.0 x 5.0) "ok" "not ok"))
+  (printf "%s\n" (if (= x 5.0 x 5.0 x 5.0) "ok" "not ok"))
+  0))
