@@ -49,30 +49,52 @@ is `(@:@ (@:@ structp member1) member2)`.
         (return frm)))
 
 #|
+@fn is-valid
+
+Returns its boolean argument.  Defined for use with `and` and `or`.
+
+@param arg  A boolean.
+|#
+(def is-valid
+  (macro extern ((arg bool))
+    arg))
+
+#|
 @macro and
 
-Takes a condition expression and a form to execute when the condition
-is true. If the condition is true, returns the result of evaluating
-the form. If the condition is false, returns `false`.
+Returns the first argument, if it is not valid. Returns the last
+argument otherwise.  A object `o` is valid if `(is-valid o)` returns
+true.
 
 @param condition    The condition expression.
 @param true-case    The form to run when condition is true.
 |#
-(def and (macro extern ((condition bool) true-case)
-  (bqq if (uq condition) (uq true-case) false)))
+(def and (macro extern (a b)
+  (if (is-lvalue mc a)
+    (bqq if (not (is-valid (uq a))) (uq a) (uq b))
+    (new-scope
+      (def tmp (var auto \ (make-gensym-var-node mc)))
+      (bqq new-scope
+        (def (uq tmp) (var auto \ (uq a)))
+        (if (not (is-valid (uq tmp))) (uq tmp) (uq b)))))))
 
 #|
 @macro or
 
-Takes a condition expression and a form to execute when the condition
-is false. If the condition is false, returns the result of evaluating
-the form. If the condition is true, returns `true`.
+Returns the first argument, if it is valid. Returns the last argument
+otherwise.  A object `o` is valid if `(is-valid o)` returns true.
 
 @param condition    The condition expression.
 @param false-case   The form to run when condition is false.
 |#
-(def or (macro extern ((condition bool) false-case)
-  (bqq if (uq condition) true (uq false-case))))
+(def or (macro extern (a b)
+  (if (is-lvalue mc a)
+    (bqq if (is-valid (uq a)) (uq a) (uq b))
+    (new-scope
+      (def tmp (var auto \ (make-gensym-var-node mc)))
+      (bqq new-scope
+        (def (uq tmp) (var auto \ (uq a)))
+        (if (is-valid (uq tmp)) (uq tmp) (uq b)))))))
 
 (def break-to-goto
   (fn (attr cto) intern int ((frm      (p DNode))
@@ -708,42 +730,6 @@ Expands to the argument form.
 (def identity
   (macro extern (frm)
     frm))
-
-
-#|
-@macro and
-
-Returns the first argument, if it is not valid. Returns the last
-argument otherwise.  A object `o` is valid if `(is-valid o)` returns
-true.
-
-@param condition    The condition expression.
-@param true-case    The form to run when condition is true.
-|#
-; todo: Dispatch problems prevent this from working correctly.
-;(def and (macro extern (a b)
-;  (if (is-lvalue mc a)
-;    (bqq if (not (is-valid (uq a))) (uq a) (uq b))
-;    (let ((tmp \ (make-gensym-var-node mc)))
-;      (bqq let (((uq tmp) \ (uq a)))
-;        (if (not (is-valid (uq tmp))) (uq tmp) (uq b)))))))
-
-#|
-@macro or
-
-Returns the first argument, if it is valid. Returns the last argument
-otherwise.  A object `o` is valid if `(is-valid o)` returns true.
-
-@param condition    The condition expression.
-@param false-case   The form to run when condition is false.
-|#
-; todo: Dispatch problems prevent this from working correctly.
-;(def or (macro extern (a b)
-;  (if (is-lvalue mc a)
-;    (bqq if (is-valid (uq a)) (uq a) (uq b))
-;    (let ((tmp \ (make-gensym-var-node mc)))
-;      (bqq let (((uq tmp) \ (uq a)))
-;        (if (is-valid (uq tmp)) (uq tmp) (uq b)))))))
 
 #|
 @macro +'
