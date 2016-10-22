@@ -20,7 +20,6 @@ doc/3-
 doc/drt.md
 a.out
 Config.h
-dalec.core
 .ninja_deps
 .ninja_log
 build.ninja
@@ -30,3 +29,4 @@ src/doxygen_sqlite3.db
 src/html
 src/latex
 core
+*.core
