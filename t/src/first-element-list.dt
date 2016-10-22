@@ -1,0 +1,8 @@
+(import cstdio)
+
+(def main (fn extern-c int (void)
+  (def x (var auto \ ((identity +) 1 2)))
+  (printf "%d\n" x)
+  (def y (var auto \ ((# + int int) 3 4)))
+  (printf "%d\n" y)
+  0))

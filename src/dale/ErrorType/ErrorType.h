@@ -44,6 +44,7 @@ enum
     OnlyListsAtTopLevel,
     NoEmptyLists,
     FirstListElementMustBeAtom,
+    FirstListElementMustBeAtomOrMacroOrFP,
     FirstListElementMustBeSymbol,
     NoEmptyDo,
     CannotOnceTheLastOpenFile,

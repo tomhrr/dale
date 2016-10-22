@@ -43,6 +43,9 @@ errorInstanceToString(int error_instance)
     case ErrorInst::FirstListElementMustBeAtom:
         ret = "first list element must be atom";
         break;
+    case ErrorInst::FirstListElementMustBeAtomOrMacroOrFP:
+        ret = "first list element must be atom, or macro call, or evaluate to a function pointer";
+        break;
     case ErrorInst::FirstListElementMustBeSymbol:
         ret = "first list element must be symbol";
         break;

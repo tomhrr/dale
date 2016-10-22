@@ -245,9 +245,26 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     if (!first->is_token) {
-        Error *e = new Error(FirstListElementMustBeAtom, n);
-        ctx->er->addError(e);
-        return false;
+        Node *n2 = units->top()->mp->parsePotentialMacroCall(first);
+        if (n2 && n2->is_token) {
+            first = n2;
+        } else {
+            ParseResult fp_pr;
+            bool res =
+                FormProcInstParse(units, fn, block, n2,
+                                  get_address, false, NULL, &fp_pr);
+            if (res
+                    && fp_pr.type->points_to
+                    && fp_pr.type->points_to->is_function) {
+                return units->top()->fp->parseFunctionPointerCall(
+                    fn, n, &fp_pr, 1, NULL, pr
+                );
+            } else {
+                Error *e = new Error(FirstListElementMustBeAtomOrMacroOrFP, n);
+                ctx->er->addError(e);
+                return false;
+            }
+        }
     }
 
     Token *t = first->token;
