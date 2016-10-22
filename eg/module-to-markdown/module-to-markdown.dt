@@ -209,6 +209,9 @@
       (setv last c)
       (and (is-whitespace c)
            (continue))
+      ; todo: a separating statement is needed to make this work, but
+      ; shouldn't be.
+      (printf "")
       (break))
     (and (= c #\))
          (do (set-to-string retval (nullptr char))

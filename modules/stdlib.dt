@@ -49,7 +49,7 @@ is `(@:@ (@:@ structp member1) member2)`.
         (return frm)))
 
 #|
-@fn is-valid
+@macro is-valid
 
 Returns its boolean argument.  Defined for use with `and` and `or`.
 

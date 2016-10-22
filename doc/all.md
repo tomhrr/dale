@@ -811,7 +811,11 @@ periods:
 
         (def function (fn intern int (void) 
           ns1.value)) ; returns 123
-            
+
+To qualify a reference to a binding that is in the root namespace,
+where e.g. the current namespace also defines a binding with that
+name, prefix the name with a single period.
+
 Namespaces may be nested:
 
         (namespace ns1
@@ -2444,18 +2448,29 @@ member names. For example, if two members are provided, the expansion
 is `(@:@ (@:@ structp member1) member2)`.
 
 
+#### `is-valid`
+
+Linkage: `extern`
+Parameters:
+
+  * `(arg bool)`: A boolean.
+
+
+Returns its boolean argument.  Defined for use with `and` and `or`.
+
+
 #### `and`
 
 Linkage: `extern`
 Parameters:
 
-  * `(condition bool)`: The condition expression.
-  * `true-case`: The form to run when condition is true.
+  * `a`: The condition expression.
+  * `b`: The form to run when condition is true.
 
 
-Takes a condition expression and a form to execute when the condition
-is true. If the condition is true, returns the result of evaluating
-the form. If the condition is false, returns `false`.
+Returns the first argument, if it is not valid. Returns the last
+argument otherwise.  A object `o` is valid if `(is-valid o)` returns
+true.
 
 
 #### `or`
@@ -2463,13 +2478,12 @@ the form. If the condition is false, returns `false`.
 Linkage: `extern`
 Parameters:
 
-  * `(condition bool)`: The condition expression.
-  * `false-case`: The form to run when condition is false.
+  * `a`: The condition expression.
+  * `b`: The form to run when condition is false.
 
 
-Takes a condition expression and a form to execute when the condition
-is false. If the condition is false, returns the result of evaluating
-the form. If the condition is true, returns `true`.
+Returns the first argument, if it is valid. Returns the last argument
+otherwise.  A object `o` is valid if `(is-valid o)` returns true.
 
 
 #### `while`
@@ -2731,6 +2745,19 @@ Parameters: N/A
 
 Expands to an empty `do` form, which is a no-op both at the top-level
 and within a procedure.
+
+
+#### `ignore`
+
+Linkage: `extern`
+Parameters:
+
+  * `rest`
+
+
+Takes any number of arguments, and expands to `(no-op)`.  Useful for
+ignoring parts of s-expressions without having to search, where they
+end.
 
 
 #### `identity`
@@ -6683,9 +6710,9 @@ Provides utilities to generate operators that accept an arbitrary
 number of arguments.  Such operators are already defined for the
 following operators:
 
- - arithmetic operators: `+ - * / +' -' *' /'`; and
- - bitwise and logical or: `& | and or`.
-
+ - arithmetic operators: `+ - * / +' -' *' /'`
+ - bitwise and logical or: `& | and or`
+ - arithmetic relations: `< <= = => > <' <=' =' =>' >'
 
 
 ### Macros
@@ -6728,6 +6755,31 @@ Parameters:
 
 Defines a macro:
 `(name a b rest)` will be expanded to `(name (opname a b) rest)`
+
+
+#### `def-transitive-macro`
+
+Linkage: `extern`
+Parameters:
+
+  * `name`: The macro name.
+  * `linkage`: Linkage.
+  * `fn`: The name of the binary function. Defaults to name.
+
+
+Defines a macro for transitive binary functions (that normally should
+return bool and transitive), so that you don't have to use variables
+twice when you want to test some function.
+
+For example:
+
+        (def-transitive-macro < intern)
+        (< 0.0 x 1.0)
+
+expands to:
+
+        (and (< 0.0 x) (< x 1.0))
+
 
 
 ## <a name="bitset-enum"></a> 2.22 bitset-enum

@@ -34,18 +34,29 @@ member names. For example, if two members are provided, the expansion
 is `(@:@ (@:@ structp member1) member2)`.
 
 
+#### `is-valid`
+
+Linkage: `extern`
+Parameters:
+
+  * `(arg bool)`: A boolean.
+
+
+Returns its boolean argument.  Defined for use with `and` and `or`.
+
+
 #### `and`
 
 Linkage: `extern`
 Parameters:
 
-  * `(condition bool)`: The condition expression.
-  * `true-case`: The form to run when condition is true.
+  * `a`: The condition expression.
+  * `b`: The form to run when condition is true.
 
 
-Takes a condition expression and a form to execute when the condition
-is true. If the condition is true, returns the result of evaluating
-the form. If the condition is false, returns `false`.
+Returns the first argument, if it is not valid. Returns the last
+argument otherwise.  A object `o` is valid if `(is-valid o)` returns
+true.
 
 
 #### `or`
@@ -53,13 +64,12 @@ the form. If the condition is false, returns `false`.
 Linkage: `extern`
 Parameters:
 
-  * `(condition bool)`: The condition expression.
-  * `false-case`: The form to run when condition is false.
+  * `a`: The condition expression.
+  * `b`: The form to run when condition is false.
 
 
-Takes a condition expression and a form to execute when the condition
-is false. If the condition is false, returns the result of evaluating
-the form. If the condition is true, returns `true`.
+Returns the first argument, if it is valid. Returns the last argument
+otherwise.  A object `o` is valid if `(is-valid o)` returns true.
 
 
 #### `while`
@@ -329,6 +339,7 @@ Linkage: `extern`
 Parameters:
 
   * `rest`
+
 
 Takes any number of arguments, and expands to `(no-op)`.  Useful for
 ignoring parts of s-expressions without having to search, where they
