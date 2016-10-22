@@ -102,6 +102,7 @@ sub update_examples
                 }
                 push @readme, "```\n```\n";
                 my @output = `./dalec -lm eg/doc/$example.dt 2>&1`;
+                @output = grep { !/lower than advertised precision/ } @output;
                 if ($? == 0) {
                     push @output, `./a.out`;
                 }
