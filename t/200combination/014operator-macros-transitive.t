@@ -9,16 +9,16 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 3;
 
-my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/operator-macros.dt -o operator-macros `;
+my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/operator-macros-transitive.dt -o operator-macros-transitive `;
 is_deeply(\@res, [], 'No compilation errors');
-@res = `./operator-macros`;
+@res = `./operator-macros-transitive`;
 is($?, 0, 'Program executed successfully');
 
 chomp for @res;
 
-is_deeply(\@res, [qw(15 5)],
+is_deeply(\@res, ['ok', 'ok', 'not ok', 'ok'],
         'Got correct results');
 
-`rm operator-macros`;
+`rm operator-macros-transitive`;
 
 1;
