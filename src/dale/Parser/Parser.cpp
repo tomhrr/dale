@@ -105,14 +105,6 @@ Parser::getNextList()
         return NULL;
     }
 
-    if (list->size() == 0) {
-        e.begin = new Position(ts.begin);
-        e.end   = new Position(ts.end);
-        e.instance = ErrorInst::NoEmptyLists;
-        erep->addError(e);
-        return NULL;
-    }
-
     Node *node = new Node(list);
     node->filename = filename;
     ts.begin.copyTo(node->getBeginPos());
@@ -177,14 +169,6 @@ Parser::getNextListInternal(std::vector<Node*> *list)
             e.begin = new Position(t.begin);
             e.end   = new Position(t.end);
             e.instance = ErrorInst::MissingRightParen;
-            erep->addError(e);
-            return 0;
-        }
-
-        if (sublist->size() == 0) {
-            node->getBeginPos()->copyTo(&e.begin);
-            node->getEndPos()->copyTo(&e.end);
-            e.instance = ErrorInst::NoEmptyLists;
             erep->addError(e);
             return 0;
         }

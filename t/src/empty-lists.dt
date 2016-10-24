@@ -1,0 +1,11 @@
+(import cstdio)
+
+(using-namespace std.macros
+  (def mym (macro intern (a b)
+    (print b)
+    (printf "\n")
+    a)))
+
+(def main (fn extern-c int (void)
+  (printf "%d\n" (mym 1 ()))
+  0))

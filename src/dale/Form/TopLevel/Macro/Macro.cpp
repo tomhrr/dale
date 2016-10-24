@@ -86,6 +86,12 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
 
     bool past_first = false;
 
+    if (macro_params->list->size() == 0) {
+        Error *e = new Error(NoEmptyLists, macro_params);
+        ctx->er->addError(e);
+        return false;
+    }
+
     std::vector<Node *> *params = macro_params->list;
     for (std::vector<Node *>::iterator b = params->begin(),
                                        e = params->end();

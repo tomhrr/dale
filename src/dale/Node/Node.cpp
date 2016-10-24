@@ -194,6 +194,7 @@ Node::toDNode()
         top_node->is_list   = true;
         top_node->token_str = NULL;
         top_node->next_node = NULL;
+        top_node->list_node = NULL;
 
         DNode *current_dnode = NULL;
 

@@ -39,7 +39,8 @@ removed/changed without notice.)
 
 `is-list` will be set to a non-zero value for nodes that represent
 lists. For such nodes, `list-node` will point to the first node of the
-list. If `is-list` is zero, then the node is a non-list node, and
+list, unless the list is empty, in which case `list-node` will be
+null. If `is-list` is zero, then the node is a non-list node, and
 `token-str` will contain the node's content. `next-node` is applicable
 to both list and non-list nodes, and points to the next node after the
 current node.

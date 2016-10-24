@@ -52,6 +52,12 @@ parseParameters(Units *units, Node *args_node,
     Context *ctx = units->top()->ctx;
     std::vector<Node *> *args = args_node->list;
 
+    if (args->size() == 0) {
+        Error *e = new Error(NoEmptyLists, args_node);
+        ctx->er->addError(e);
+        return false;
+    }
+
     for (std::vector<Node *>::iterator b = args->begin(),
                                        e = args->end();
             b != e;

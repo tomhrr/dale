@@ -1,1 +1,1 @@
-./t/error-src/empty-list-in-macro.dt:5:36: error: lists cannot be empty
+./t/error-src/empty-list-in-macro.dt:5:36: error: lists cannot be empty (see macro at 10:1)

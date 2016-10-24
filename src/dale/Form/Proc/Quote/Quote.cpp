@@ -145,7 +145,11 @@ IntNodeToStaticDNode(Units *units, Node *node, llvm::Value *next_node)
             ++list_iter;
         }
 
-        constants.push_back(llvm::cast<llvm::Constant>(sub_next_node));
+        if (sub_next_node) {
+            constants.push_back(llvm::cast<llvm::Constant>(sub_next_node));
+        } else {
+            constants.push_back(getNullConstant(llvm_r_type));
+        }
     }
 
     if (next_node) {

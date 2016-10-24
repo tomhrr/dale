@@ -29,6 +29,19 @@ Returns a newly-allocated node.
     n))
 
 #|
+@fn std.macros.is-non-empty-list
+
+@param form     The node.
+|#
+(def is-non-empty-list
+  (fn extern bool ((form (p DNode)))
+    (if (= 1 (@:@ form is-list))
+        (if (not (null (@:@ form list-node)))
+            true
+            false)
+        false)))
+
+#|
 @fn std.macros.copy
 
 @param mc An MContext.
@@ -47,7 +60,7 @@ Returns a newly-allocated node.
             (cast form     (p void))
             (cast (sizeof DNode) int))
 
-    (if (= 1 (@:@ form is-list))
+    (if (not (null (@:@ form list-node)))
         (setf (:@ new-node list-node)
               (copy mc true (@:@ form list-node)))
         true)
@@ -55,7 +68,7 @@ Returns a newly-allocated node.
     (setf (:@ new-node next-node)
           (if follow
               (if (not (null (@:@ form next-node)))
-                  (do (copy mc true (@:@ form next-node)))
+                  (copy mc true (@:@ form next-node))
                   nullp)
               nullp))
 
@@ -103,8 +116,11 @@ node.
                     nullp)))
         (do
             (setf (:@ new-node is-list) 1)
-            (setf (:@ new-node list-node)
-                  (copy mc true (@:@ form list-node)))))
+            (if (not (null (@:@ form list-node)))
+                (do (setf (:@ new-node list-node)
+                          (copy mc true (@:@ form list-node)))
+                    0)
+                0)))
 
     (setf (:@ new-node begin-line) (@:@ form begin-line))
     (setf (:@ new-node begin-column) (@:@ form begin-column))
@@ -158,10 +174,12 @@ Prints the node to `stdout`.
 (def print
   (fn extern bool ((form (p DNode)))
     (if (= 0 (@:@ form is-list))
-        (do (printf "%s" (@ (: (@ form) token-str)))
+        (do (printf "%s" (@:@ form token-str))
             true)
         (do (printf "(")
-            (print (@ (: (@ form) list-node)))
+            (if (not (null (@:@ form list-node)))
+                (print (@:@ form list-node))
+                true)
             (printf ")")
             true))
     (if (not (null (@:@ form next-node)))
@@ -187,7 +205,9 @@ Prints the node to the provided buffer.
         (do (setf ($ buf 0) (cast 40 char))
             (setv buf (p+ buf 1))
             (setf buf #\NULL)
-            (sprint buf (@:@ form list-node))
+            (if (not (null (@:@ form list-node)))
+                (sprint buf (@:@ form list-node))
+                0)
             (setv buf (strchr buf (cast #\NULL int)))
             (setf ($ buf 0) (cast 41 char))
             (setv buf (p+ buf 1))
