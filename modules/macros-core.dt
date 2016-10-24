@@ -29,6 +29,19 @@ Returns a newly-allocated node.
     n))
 
 #|
+@fn std.macros.make-empty-list-node
+
+Returns a newly-allocated empty list node.
+
+@param mc An MContext.
+|#
+(def make-empty-list-node
+  (fn extern (p DNode) ((mc (p MContext)))
+    (def node (var auto \ (make-node mc)))
+    (setf (:@ node is-list) 1)
+    (return node)))
+
+#|
 @fn std.macros.is-non-empty-list
 
 @param form     The node.
@@ -903,7 +916,11 @@ A helper function for `bqq` (bootstrap-qq).
                     (setv anchor-node temp-node)
                     0)
             (do
-                (if (= 0 (@:@ (@:@ va-dnode list-node) is-list))
+                (if (if (not (null (@:@ va-dnode list-node)))
+                        (if (= 0 (@:@ (@:@ va-dnode list-node) is-list))
+                            true
+                            false)
+                        false)
                     (if (if (= 0 (strcmp (@:@ (@:@ va-dnode list-node) token-str) "uq"))
                             (if (not (null (@:@ (@:@ va-dnode list-node) next-node)))
                                 true
@@ -965,9 +982,11 @@ A helper function for `bqq` (bootstrap-qq).
                         (setv anchor-node (get-last-node temp-node)) 0)))))
                 (do
                     (setv temp-node
-                        (bqq-helper va-dnode
-                                mc
-                                (list-count va-dnode)))
+                          (if (null (@:@ va-dnode list-node))
+                              (make-empty-list-node mc)
+                              (bqq-helper va-dnode
+                                          mc
+                                          (list-count va-dnode))))
                     (setf (:@ anchor-node next-node)
                         temp-node)
                     (setv anchor-node (get-last-node temp-node))
