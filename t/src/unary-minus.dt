@@ -1,0 +1,12 @@
+(import cstdio)
+
+(def main (fn extern-c int (void)
+  (let ((a int   10)
+        (b int16 10)
+        (c uint  10)
+        (d float 10.0))
+    (printf "%d\n" (- a))
+    (printf "%d\n" (- b))
+    (printf "%d\n" (- c))
+    (printf "%f\n" (- d))
+    0)))

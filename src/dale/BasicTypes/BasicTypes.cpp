@@ -323,6 +323,36 @@ makeShrFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
 }
 
 void
+makeUnaryMinus(Context *ctx, llvm::Module *mod, std::string *once_tag,
+               Type *type)
+{
+    Function *fn = addSimpleUnaryFunction(ctx, mod, once_tag, "-", type, type);
+
+    std::vector<Variable *>::iterator iter;
+    iter = fn->parameters.begin();
+
+    llvm::BasicBlock *block =
+        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+                                 fn->llvm_function);
+    llvm::IRBuilder<> builder(block);
+
+    llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
+    if (!llvm_type) {
+        return;
+    }
+
+    llvm::Value *zero =
+        type->isIntegerType()
+            ? llvm::ConstantInt::get(llvm_type, 0)
+            : llvm::ConstantFP::get(llvm_type, 0);
+    llvm::Value *ret_val =
+        llvm::cast<llvm::Value>(
+            builder.CreateSub(zero, (*iter)->value)
+        );
+    builder.CreateRet(ret_val);
+}
+
+void
 addSignedInt(Context *ctx, llvm::Module *mod, std::string *once_tag,
              Type *type)
 {
@@ -347,6 +377,7 @@ addSignedInt(Context *ctx, llvm::Module *mod, std::string *once_tag,
 
     makeShlFunction(ctx, mod, once_tag, type);
     makeShrFunction(ctx, mod, once_tag, type);
+    makeUnaryMinus(ctx, mod, once_tag, type);
 }
 
 void
@@ -405,6 +436,7 @@ addUnsignedInt(Context *ctx, llvm::Module *mod, std::string *once_tag,
     makeShlFunction(ctx, mod, once_tag, type);
     makeShrFunction(ctx, mod, once_tag, type);
     makeNegateFunction(ctx, mod, once_tag, type);
+    makeUnaryMinus(ctx, mod, once_tag, type);
 }
 
 void
@@ -425,6 +457,8 @@ addFloatingPoint(Context *ctx, llvm::Module *mod, std::string *once_tag,
     ADD_CMPF("<=", &llvm::IRBuilder<>::CreateFCmpOLE);
     ADD_CMPF(">",  &llvm::IRBuilder<>::CreateFCmpOGT);
     ADD_CMPF(">=", &llvm::IRBuilder<>::CreateFCmpOGE);
+
+    makeUnaryMinus(ctx, mod, once_tag, type);
 }
 }
 }

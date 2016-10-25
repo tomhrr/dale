@@ -31,6 +31,28 @@ Parameters:
 Returns a newly-allocated node.
 
 
+#### `std.macros.make-empty-list-node`
+
+Linkage: `extern`
+Returns: `(p DNode)`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+
+
+Returns a newly-allocated empty list node.
+
+
+#### `std.macros.is-non-empty-list`
+
+Linkage: `extern`
+Returns: `bool`
+Parameters:
+
+  * `(form (p DNode))`: The node.
+
+
+
 #### `std.macros.copy`
 
 Linkage: `extern`

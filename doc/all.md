@@ -594,7 +594,8 @@ removed/changed without notice.)
 
 `is-list` will be set to a non-zero value for nodes that represent
 lists. For such nodes, `list-node` will point to the first node of the
-list. If `is-list` is zero, then the node is a non-list node, and
+list, unless the list is empty, in which case `list-node` will be
+null. If `is-list` is zero, then the node is a non-list node, and
 `token-str` will contain the node's content. `next-node` is applicable
 to both list and non-list nodes, and points to the next node after the
 current node.
@@ -1111,7 +1112,8 @@ The following functions are provided for the numeric types:
 They operate in the same way as normal functions, i.e. they can be
 addressed, cf. the core forms and macros. The last five operations are
 'left shift', 'right shift', 'bitwise and', 'bitwise or' and 'bitwise
-xor', respectively.
+xor', respectively.  `-` is defined for both one argument (unary
+negation) and two (standard subtraction).
 
 Each shift function takes an `int` value as its second argument, and
 returns a value of the type of its first argument.
@@ -1980,6 +1982,28 @@ Parameters:
 Returns a newly-allocated node.
 
 
+#### `std.macros.make-empty-list-node`
+
+Linkage: `extern`
+Returns: `(p DNode)`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+
+
+Returns a newly-allocated empty list node.
+
+
+#### `std.macros.is-non-empty-list`
+
+Linkage: `extern`
+Returns: `bool`
+Parameters:
+
+  * `(form (p DNode))`: The node.
+
+
+
 #### `std.macros.copy`
 
 Linkage: `extern`
@@ -2809,13 +2833,15 @@ Parameters:
 The 'general-use' quasiquotation macro. The forms handled specially
 are:
 
-  * `uq` (unquote): expands to the argument node (token or list);
-  * `uql` (unquote-list): expands to the list node of the argument
-    node, including all following nodes;
+  * `uq` (unquote): expands to the argument node, excluding any
+    following nodes (i.e. excluding `next-node`);
+  * `uql` (unquote-list): expands to the argument node, including all
+    following nodes (i.e. including `next-node` and any subsequent
+    `next-node`s of that node);
   * `uq-nc` (unquote no-copy): as per `uq`, except that the argument
     node is not copied on substitution; and
-  * `uql-nc` (unquote-list no-copy): as per `uql`, except that the list
-    nodes are not copied on substitution.
+  * `uql-nc` (unquote-list no-copy): as per `uql`, except that the nodes
+    are not copied on substitution.
 
 Quasiquotation forms may be nested: each specially-handled form in a
 nested `qq` must be wrapped with an additional `uq` for each level of

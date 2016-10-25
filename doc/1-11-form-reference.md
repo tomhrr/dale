@@ -182,7 +182,8 @@ The following functions are provided for the numeric types:
 They operate in the same way as normal functions, i.e. they can be
 addressed, cf. the core forms and macros. The last five operations are
 'left shift', 'right shift', 'bitwise and', 'bitwise or' and 'bitwise
-xor', respectively.
+xor', respectively.  `-` is defined for both one argument (unary
+negation) and two (standard subtraction).
 
 Each shift function takes an `int` value as its second argument, and
 returns a value of the type of its first argument.
