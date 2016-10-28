@@ -52,7 +52,8 @@ Type::reset()
 
 bool
 Type::isEqualTo(Type *other_type,
-                bool ignore_arg_constness)
+                bool ignore_arg_constness,
+                bool checking_passed_from)
 {
     if (is_reference && other_type->is_rvalue_reference) {
         return false;
@@ -107,7 +108,8 @@ Type::isEqualTo(Type *other_type,
             return false;
         }
         return array_type->isEqualTo(other_type->array_type,
-                                     ignore_arg_constness);
+                                     ignore_arg_constness,
+                                     checking_passed_from);
     }
 
     if (is_function != other_type->is_function) {
@@ -117,10 +119,26 @@ Type::isEqualTo(Type *other_type,
         if (!return_type->isEqualTo(other_type->return_type)) {
              return false;
         }
-        return dale::STL::isEqualTo(
-                   &(parameter_types),
-                   &(other_type->parameter_types)
-               );
+        std::vector<Type *>::iterator
+            b  = parameter_types.begin(),
+            e  = parameter_types.end(),
+            ob = other_type->parameter_types.begin(),
+            oe = other_type->parameter_types.end();
+        for (; (b != e) && (ob != oe); ++b, ++ob) {
+            if (checking_passed_from) {
+                if (!(*b)->canBePassedFrom(*ob, true)) {
+                    return false;
+                }
+            } else {
+                if (!(*b)->isEqualTo(*ob)) {
+                    return false;
+                }
+            }
+        }
+        if (!((b == e) && (ob == oe))) {
+            return false;
+        }
+        return true;
     }
 
     if ((points_to == NULL) && (other_type->points_to != NULL)) {
@@ -134,20 +152,22 @@ Type::isEqualTo(Type *other_type,
     }
 
     return points_to->isEqualTo(other_type->points_to,
-                                ignore_arg_constness);
+                                ignore_arg_constness,
+                                checking_passed_from);
 }
 
 bool
 Type::canBeSetFrom(Type *value_type,
-                   bool ignore_arg_constness)
+                   bool ignore_arg_constness,
+                   bool checking_passed_from)
 {
     int iac = (ignore_arg_constness ? 1 : 0);
     int prev_const = value_type->is_const;
     value_type->is_const = 0;
     bool result =
         (points_to && value_type->points_to)
-            ? value_type->isEqualTo(this, iac)
-            : this->isEqualTo(value_type, iac);
+            ? value_type->isEqualTo(this, iac, checking_passed_from)
+            : this->isEqualTo(value_type, iac, checking_passed_from);
     value_type->is_const = prev_const;
     return result;
 }
@@ -158,7 +178,7 @@ Type::canBePassedFrom(Type *value_type,
 {
     int prev_const = is_const;
     is_const = false;
-    bool result = canBeSetFrom(value_type, ignore_arg_constness);
+    bool result = canBeSetFrom(value_type, ignore_arg_constness, true);
     is_const = prev_const;
     return result;
 }

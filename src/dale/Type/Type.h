@@ -83,24 +83,33 @@ public:
     /*! Check whether a type is equal to another type.
      *  @param other type The other type.
      *  @param ignore_arg_constness
+     *  @param checking_passed_from
      *
      *  ignore_arg_constness defaults to false.  If it is true, then
      *  the fact that the current type is not const while the
      *  other_type is will not cause the types to be considered
      *  unequal.
+     *
+     *  checking_passed_from defaults to false.  If it is true, then
+     *  canBePassedFrom will be used to compare function pointer
+     *  arguments.
      */
     bool isEqualTo(Type *other_type,
-                   bool ignore_arg_constness = false);
+                   bool ignore_arg_constness = false,
+                   bool checking_passed_from = false);
     /*! Check whether a variable with this type can be set based on a
      *  value of another type.
      *  @param other type The other type.
      *  @param ignore_arg_constness
+     *  @param checking_passed_from
      *
      *  ignore_arg_constness has the same semantics as in isEqualTo,
-     *  except that it defaults to true.
+     *  except that it defaults to true.  checking_passed_from should
+     *  be set if this was called via canBePassedFrom.
      */
     bool canBeSetFrom(Type *other_type,
-                      bool ignore_arg_constness = true);
+                      bool ignore_arg_constness = true,
+                      bool checking_passed_from = false);
     /*! Check whether a parameter with this type can be set based on a
      *  value of another type.
      *  @param other type The other type.
