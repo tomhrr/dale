@@ -311,22 +311,35 @@ Context::eraseLLVMMacros()
 }
 
 void
-eraseLLVMMacrosAndCTOFunctions_(NSNode *node)
+eraseLLVMMacrosAndCTOFunctions_(NSNode *node,
+                                std::vector<Function *> *cto_functions)
 {
     for (std::map<std::string, NSNode *>::iterator
             b = node->children.begin(),
             e = node->children.end();
             b != e;
             ++b) {
-        eraseLLVMMacrosAndCTOFunctions_(b->second);
+        eraseLLVMMacrosAndCTOFunctions_(b->second, cto_functions);
     }
-    node->ns->eraseLLVMMacrosAndCTOFunctions();
+    node->ns->eraseLLVMMacrosAndCTOFunctions(cto_functions);
 }
 
 void
 Context::eraseLLVMMacrosAndCTOFunctions()
 {
-    eraseLLVMMacrosAndCTOFunctions_(namespaces);
+    std::vector<Function *> cto_functions;
+    eraseLLVMMacrosAndCTOFunctions_(namespaces, &cto_functions);
+
+    for (std::vector<Function *>::iterator b = cto_functions.begin(),
+                                           e = cto_functions.end();
+            b != e;
+            ++b) {
+        int n = (*b)->llvm_function->getNumUses();
+        if (n) {
+            assert(false && "CTO function used by runtime function");
+            abort();
+        }
+    }
 }
 
 bool
