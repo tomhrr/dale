@@ -334,7 +334,11 @@ Context::eraseLLVMMacrosAndCTOFunctions()
                                            e = cto_functions.end();
             b != e;
             ++b) {
-        int n = (*b)->llvm_function->getNumUses();
+        llvm::Function *lfn = (*b)->llvm_function;
+        if (!lfn) {
+            continue;
+        }
+        int n = lfn->getNumUses();
         if (n) {
             assert(false && "CTO function used by runtime function");
             abort();
