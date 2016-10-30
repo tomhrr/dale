@@ -330,6 +330,7 @@ Context::eraseLLVMMacrosAndCTOFunctions()
     std::vector<Function *> cto_functions;
     eraseLLVMMacrosAndCTOFunctions_(namespaces, &cto_functions);
 
+    /*
     for (std::vector<Function *>::iterator b = cto_functions.begin(),
                                            e = cto_functions.end();
             b != e;
@@ -344,6 +345,7 @@ Context::eraseLLVMMacrosAndCTOFunctions()
             abort();
         }
     }
+    */
 }
 
 bool
