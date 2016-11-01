@@ -318,9 +318,9 @@ eraseLLVMMacrosAndCTOFunctions_(NSNode *node)
             e = node->children.end();
             b != e;
             ++b) {
-        eraseLLVMMacrosAndCTOFunctions_(b->second, cto_functions);
+        eraseLLVMMacrosAndCTOFunctions_(b->second);
     }
-    node->ns->eraseLLVMMacrosAndCTOFunctions(cto_functions);
+    node->ns->eraseLLVMMacrosAndCTOFunctions();
 }
 
 void
