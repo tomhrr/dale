@@ -1,0 +1,1 @@
+cto-from-non-cto.dt:7:17: error: CTO functions may only be called from macros or other CTO functions

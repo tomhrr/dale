@@ -215,13 +215,11 @@ public:
      */
     void eraseLLVMMacros();
     /*! Erase all LLVM macros and CTO functions from the namespace.
-     *  @param cto_functions CTO functions erased by this method
-     *                       will be added to this vector.
      *
      *  As per eraseLLVMMacros, but also erases functions that have
      *  been marked as compile-time only.
      */
-    void eraseLLVMMacrosAndCTOFunctions(std::vector<Function *> *cto_functions);
+    void eraseLLVMMacrosAndCTOFunctions();
 
     /*! Set the namespace names for the current namespace.
      *  @param namespaces A vector to which the namespace names will be added.

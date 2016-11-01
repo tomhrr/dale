@@ -128,6 +128,7 @@ enum
     CopyDisabled,
     RefsNotPermittedHere,
     RetvalsNotPermittedHere,
+    CTOFromNonCTO,
 
     DNodeHasNoString,
     DNodeIsNeitherTokenNorList,

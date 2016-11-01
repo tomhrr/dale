@@ -354,6 +354,9 @@ errorInstanceToString(int error_instance)
     case ErrorInst::RetvalsNotPermittedHere:
         ret = "retval types not permitted in this context";
         break;
+    case ErrorInst::CTOFromNonCTO:
+        ret = "CTO functions may only be called from macros or other CTO functions";
+        break;
     case ErrorInst::OnlyOneModuleFormPermitted:
         ret = "a 'module' form may only appear once";
         break;

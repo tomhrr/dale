@@ -1,0 +1,8 @@
+(import cstdio)
+
+(def myfn (fn (attr cto) intern int ((n int))
+  (* 2 n)))
+
+(def main (fn extern-c int (void)
+  (printf "%d\n" (myfn 2))
+  0))

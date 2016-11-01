@@ -652,7 +652,7 @@ Namespace::eraseLLVMMacros()
 }
 
 void
-Namespace::eraseLLVMMacrosAndCTOFunctions(std::vector<Function *> *cto_functions)
+Namespace::eraseLLVMMacrosAndCTOFunctions()
 {
     std::vector<Function *>::reverse_iterator fn_b, fn_e;
 
@@ -666,9 +666,6 @@ Namespace::eraseLLVMMacrosAndCTOFunctions(std::vector<Function *> *cto_functions
         }
         if (!fn->llvm_function) {
             continue;
-        }
-        if (!fn->is_macro && fn->cto) {
-            cto_functions->push_back(fn);
         }
         llvm::Function *lfn = fn->llvm_function;
         if (erased.find(lfn) == erased.end()) {

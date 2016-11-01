@@ -757,6 +757,13 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
         }
     }
 
+    /* If the function is CTO, but this function is not, report an error. */
+    if (fn->cto && !(dfn->cto || dfn->is_macro)) {
+        Error *e = new Error(CTOFromNonCTO, n);
+        er->addError(e);
+        return false;
+    }
+
     llvm::IRBuilder<> builder(block);
 
     /* If this function is varargs, promote arguments accordingly. */
