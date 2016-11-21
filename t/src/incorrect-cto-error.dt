@@ -1,0 +1,18 @@
+(import cstdio)
+(import macros)
+
+(using-namespace std.macros
+  (def when (macro extern (con rest)  ;this works
+    (def list (var auto \ (get-varargs-list mc (- (arg-count mc) 1) rest)))
+    (qq if (uq con)
+           false
+           (do (uql list)))))
+
+  (def unless (macro extern (con rest)  ;this doesn't
+    (qq if (uq con) 
+           false 
+           (do (uql (get-varargs-list mc (- (arg-count mc) 1) rest)))))))
+
+(def main
+  (fn extern-c int (void)
+    0))

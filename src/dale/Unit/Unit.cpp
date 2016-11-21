@@ -171,6 +171,7 @@ Unit::makeTemporaryGlobalFunction()
         new Function(ctx->tr->type_int, &vars, llvm_fn, 0,
                      new std::string(new_name), 0);
     fn->linkage = Linkage::Intern;
+    fn->cto = true;
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", llvm_fn);
