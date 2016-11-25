@@ -156,16 +156,16 @@ NativeTypes::getNativeInt(int n)
 llvm::ConstantInt *
 NativeTypes::getConstantInt(llvm::IntegerType *type, const char *nstr)
 {
-    int len = strlen(nstr);
-    int radix = 10;
-    if ((len >= 3) && (nstr[0] == '0') && (nstr[1] == 'x')) {
-        nstr += 2;
-        radix = 16;
+    if (strncmp(nstr, "0x", 2) == 0) {
+        return llvm::ConstantInt::get(type, llvm::StringRef(nstr + 2), 16);
+    } else if (strncmp(nstr, "-0x", 3) == 0) {
+        std::string nstr_final;
+        nstr_final.push_back('-');
+        nstr_final.append(nstr + 3);
+        return llvm::ConstantInt::get(type, llvm::StringRef(nstr_final), 16);
+    } else {
+        return llvm::ConstantInt::get(type, llvm::StringRef(nstr), 10);
     }
-
-    return llvm::ConstantInt::get(type,
-                                  llvm::StringRef(nstr),
-                                  radix);
 }
 
 int

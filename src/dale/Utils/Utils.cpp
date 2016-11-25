@@ -50,6 +50,16 @@ isSimpleInt(const char *str)
                 return false;
             }
         }
+    } else if ((len >= 4)
+            && (str[0] == '-')
+            && (str[1] == '0')
+            && (str[2] == 'x')) {
+        for (j = 3; j < len; j++) {
+            char c = str[j];
+            if (!isxdigit(c)) {
+                return false;
+            }
+        }
     } else {
         for (j = 0; j < len; j++) {
             char c = str[j];
