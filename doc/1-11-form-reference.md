@@ -53,6 +53,29 @@ Returns a null pointer to `type`.
 
 Casts `from-value` to the specified type and returns it.
 
+Depending on the types involved, casting may change the underlying
+representation of the data.  The instances where casting may occur are
+listed below, with instances that may change representation marked with an
+asterisk:
+
+ - where the source and target types are integer types (includes
+   `bool`) ( * );
+ - where the source and target types are floating-point types ( * );
+ - where the source type is a floating-point type and the targer type
+   is an integer type, or vice-versa ( * );
+ - where the source and target types are pointer types;
+ - where the source type is a non-const struct type and the target
+   type is a const struct type; and
+ - where the source type is a pointer type and the target type is an
+   integer type, or vice-versa ( * );
+
+Casts may also occur implicitly during the compilation process.  The
+instances where this occurs are:
+
+ - during struct literal parsing, but only when both the source and
+   target types are integer types or floating-point types; and
+ - during `extern-c` function processing, for each argument.
+
 #### (`funcall` {`function-pointer`} {`arg1`} {`arg2`} ... {`argN`})
 
 Executes `function-pointer` using the provided arguments, and returns
