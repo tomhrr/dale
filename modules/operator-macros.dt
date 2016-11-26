@@ -42,7 +42,7 @@ Defines a macro:
   (qq do
     (def (uq name) (macro (uq linkage) (a rest)
       (using-namespace std.macros
-        (let ((varargs-list \ (get-varargs-list (- (arg-count mc) 1))))
+        (let ((varargs-list \ (get-varargs-list mc (- (arg-count mc) 1) rest)))
           (qq (uq opname) (uq (uq a)) ((uq name) (uq (uql varargs-list)))))))))))
 
 (def def-right-associative-macro (macro extern (name linkage)
@@ -62,7 +62,7 @@ Defines a macro:
   (qq do
     (def (uq name) (macro (uq linkage) (a b rest)
       (using-namespace std.macros
-        (let ((varargs-list \ (get-varargs-list (- (arg-count mc) 2))))
+        (let ((varargs-list \ (get-varargs-list mc (- (arg-count mc) 2) rest)))
           (qq (uq opname) ((uq name) (uq (uq a)) (uq (uq b)))
                           (uq (uql varargs-list))))))))))
 
