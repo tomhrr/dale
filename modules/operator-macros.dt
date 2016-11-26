@@ -40,10 +40,14 @@ Defines a macro:
 |#
 (def def-right-associative-macro (macro extern (name linkage opname)
   (qq do
-    (def (uq name) (macro (uq linkage) (a rest)
+    (def (uq name) (macro (uq linkage) (a b rest)
       (using-namespace std.macros
-        (let ((varargs-list \ (get-varargs-list (- (arg-count mc) 1))))
-          (qq (uq opname) (uq (uq a)) ((uq name) (uq (uql varargs-list)))))))))))
+        (let ((varargs-list \ (get-varargs-list (- (arg-count mc) 2))))
+          (and (null varargs-list)
+            (do (report-error mc a "arguments have different types")
+                (return (nullptr DNode))))
+          (qq (uq opname) (uq (uq a))
+                          ((uq name) (uq (uq b)) (uq (uql varargs-list)))))))))))
 
 (def def-right-associative-macro (macro extern (name linkage)
   (qq std.macros.def-right-associative-macro (uq name) (uq linkage) (uq name))))
@@ -63,6 +67,9 @@ Defines a macro:
     (def (uq name) (macro (uq linkage) (a b rest)
       (using-namespace std.macros
         (let ((varargs-list \ (get-varargs-list (- (arg-count mc) 2))))
+          (and (null varargs-list)
+            (do (report-error mc a "arguments have different types")
+                (return (nullptr DNode))))
           (qq (uq opname) ((uq name) (uq (uq a)) (uq (uq b)))
                           (uq (uql varargs-list))))))))))
 
@@ -104,6 +111,9 @@ expands to:
   (qq using-namespace std.macros
     (def (uq name) (macro (uq linkage) (a b rest)
       (let ((list \ (get-varargs-list mc (- (arg-count mc) 2) rest)))
+        (and (null list)
+          (do (report-error mc a "arguments have different types")
+              (return (nullptr DNode))))
         (if (is-lvalue mc b)
           (qq and ((uq fn) (uq (uq a)) (uq (uq b)))
                   ((uq name) (uq (uq b)) (uq (uql list))))
