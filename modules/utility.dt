@@ -133,7 +133,7 @@ nodes.
            (return false))
       (and (not (tts mc T2 tstr2))
            (return false))
-      (and (not (tts mc T3 tstr2))
+      (and (not (tts mc T3 tstr3))
            (return false))
       (sprintf buf "%s%s%s%s" prefix tstr1 tstr2 tstr3)
       true)))
