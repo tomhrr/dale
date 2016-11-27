@@ -107,6 +107,7 @@ enums can be cast to and from their underlying types, too.
             (setf retval ((value n))))))
         (namespace (uq name) (uql holder))
         (using-namespace std.macros
-          (def (uq name) (macro (uq linkage) (var)
-            (qq using-namespace (uq name) (uq (uq var))))))))))
+          (def (uq name) (macro (uq linkage) (form)
+            (qq using-namespace (uq name)
+              (uq (uq form))))))))))
 
