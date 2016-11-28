@@ -1105,4 +1105,29 @@ Simple version of `get-varargs-list`, only takes the count as parameter.
   (bqq cast (pool-malloc mc (* (cast (uq n) size) (sizeof (uq T))))
             (p (uq T)))))
 
+#|
+@fn std.macros.apply-list
+
+Similar to `walk-nodes` but returns a list of the nodes
+
+@param mc An MContext.
+@param form     The node to walk.
+@param data     Arbitrary data.
+@param fn       The function pointer to call on each node.
+|#
+(def apply-list
+  (fn (attr cto) extern (p DNode)
+      ((mc (p MContext))
+       (list (p DNode))
+       (data (p void))
+       (fun (p (fn (p DNode) ((mc (p MContext))
+                              (node (p DNode))
+                              (data (p void)))))))
+    (def elt (var auto \ (fun mc list data)))
+    (if (not (null (@:@ list next-node)))
+      (new-scope (def rest (var auto \ (@:@ (apply-list mc (@:@ list next-node) data fun) list-node)))
+                 (bqq (uq elt) (uql rest)))
+      (bqq (uq elt)))))
+
+
 ))
