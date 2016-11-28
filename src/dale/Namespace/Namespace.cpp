@@ -393,6 +393,9 @@ Namespace::getFunction(const char *name,
                 break;
             }
         }
+        if (!broke_on_va && (arg_type_iter != types->end())) {
+            broke_on_failure = true;
+        }
 
         if (!broke_on_failure && !broke_on_va
                 && (arg_type_iter == types->end())) {
