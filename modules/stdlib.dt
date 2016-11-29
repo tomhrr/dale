@@ -732,6 +732,57 @@ Expands to the argument form.
     frm))
 
 #|
+@function range-fn
+
+Takes two integers as DNode and generates a list of integers.
+
+@param mc  A MContext.
+@param a   An integer DNode.
+@param b   An integer DNode.
+|#
+(def range-fn (fn (attr cto) extern (p DNode) ((mc (p MContext)) (a (p DNode)) (b (p DNode)))
+  (let ((x int)
+        (y int)
+        (erra bool (eval-expression mc (q int) a (cast (# x) (p void))))
+        (errb bool (eval-expression mc (q int) b (cast (# y) (p void)))))
+      (or erra (report-error mc a "Unable to eval"))
+      (or errb (report-error mc b "Unable to eval"))
+      (if (< x y)
+        (bqq (uq a) (uql (@:@ (range-fn mc (mnfv mc (+ x 1)) b) list-node)))
+        (if (> x y)
+          (bqq (uq a) (uql (@:@ (range-fn mc (mnfv mc (- x 1)) b) list-node)))
+          (bqq (uq a)))))))
+
+#|
+@macro range
+
+Expands to a list of integers.
+
+@param a   An integer DNode.
+@param b   An integer DNode.
+|#
+(def range (macro extern (a b)
+  (range-fn mc a b)))
+
+#|
+@macro in-range
+
+Executes the body for `var` in range from `first` to `last`.
+
+@param var     The variable.
+@param first   An integer DNode.
+@param last    An integer DNode.
+@param rest    The body.
+|#
+(def in-range (macro extern (var first last rest)
+(let ((range \ (range-fn mc first last))
+      (list \ (get-varargs-list mc (- (arg-count mc) 3) rest)))
+  (bqq mfor (uq var) (uq range) (uql list)))))
+
+
+
+
+#|
 @macro +'
 
 For each of the primitive numeric types, macros that correspond to the
