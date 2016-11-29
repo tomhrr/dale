@@ -45,6 +45,13 @@ nesting.
 The `-nc` versions should only be used when the argument node will not
 be used again.
 
+Argument nodes for the various unquote forms must be DNode pointer
+variable names.  If any other type of argument is provided, the
+unquote form will expand to that argument.  For example, `(qq do (uq
+(mnfv mc 1)))` will expand to `(do (mnfv mc 1))`.  Issue #140 is
+tracking this problem, and will be resolved when arbitrary argument
+nodes are supported.
+
 
 [Previous](./2-5-stdlib.md) | [Next](./2-7-assert.md)
 

@@ -196,6 +196,9 @@ is a literal unsigned integer. A zero-sized array may be declared when
 the array is populated during declaration: see
 [Variables](#Variables).
 
+The instances where arrays decay into pointers on use are the same as
+in C.
+
 ### Structures
 
 A structure is declared like so:
@@ -982,6 +985,29 @@ Returns a null pointer to `type`.
 #### (`cast` {`from-value`} {`to-type`})
 
 Casts `from-value` to the specified type and returns it.
+
+Depending on the types involved, casting may change the underlying
+representation of the data.  The instances where casting may occur are
+listed below, with instances that may change representation marked with an
+asterisk:
+
+ - where the source and target types are integer types (includes
+   `bool`) ( * );
+ - where the source and target types are floating-point types ( * );
+ - where the source type is a floating-point type and the targer type
+   is an integer type, or vice-versa ( * );
+ - where the source and target types are pointer types;
+ - where the source type is a non-const struct type and the target
+   type is a const struct type; and
+ - where the source type is a pointer type and the target type is an
+   integer type, or vice-versa ( * );
+
+Casts may also occur implicitly during the compilation process.  The
+instances where this occurs are:
+
+ - during struct literal parsing, but only when both the source and
+   target types are integer types or floating-point types; and
+ - during `extern-c` function processing, for each argument.
 
 #### (`funcall` {`function-pointer`} {`arg1`} {`arg2`} ... {`argN`})
 
@@ -2849,6 +2875,13 @@ nesting.
 
 The `-nc` versions should only be used when the argument node will not
 be used again.
+
+Argument nodes for the various unquote forms must be DNode pointer
+variable names.  If any other type of argument is provided, the
+unquote form will expand to that argument.  For example, `(qq do (uq
+(mnfv mc 1)))` will expand to `(do (mnfv mc 1))`.  Issue #140 is
+tracking this problem, and will be resolved when arbitrary argument
+nodes are supported.
 
 
 ## <a name="assert"></a> 2.7 assert
