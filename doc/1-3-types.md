@@ -68,6 +68,9 @@ is a literal unsigned integer. A zero-sized array may be declared when
 the array is populated during declaration: see
 [Variables](./1-4-variables.md).
 
+The instances where arrays decay into pointers on use are the same as
+in C.
+
 ### Structures
 
 A structure is declared like so:
