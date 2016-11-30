@@ -1108,7 +1108,8 @@ Simple version of `get-varargs-list`, only takes the count as parameter.
 #|
 @fn std.macros.apply-list
 
-Similar to `walk-nodes` but returns a list of the nodes
+Similar to `walk-nodes` but returns a list of the nodes.
+Does only call the specified function `fn` on the supplied node and it's next-node.
 
 @param mc An MContext.
 @param form     The node to walk.
