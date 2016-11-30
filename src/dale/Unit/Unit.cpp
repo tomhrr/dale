@@ -65,6 +65,9 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
     for (int i = 0; i < 4; i++) {
         unused_name_prefix[i] = (rand() % 25 + 97);
     }
+
+    global_function = NULL;
+    global_block = NULL;
 }
 
 Unit::~Unit()

@@ -17,6 +17,10 @@ Units::~Units()
 Unit*
 Units::top()
 {
+    if (!units.size()) {
+        assert(false && "no unit available");
+        abort();
+    }
     return units.top();
 }
 
