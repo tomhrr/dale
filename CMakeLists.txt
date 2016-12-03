@@ -274,7 +274,6 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/TopLevel/Macro/Macro.cpp
                       src/dale/Form/Struct/Struct.cpp
                       src/dale/Form/TopLevel/Def/Def.cpp
-                      src/dale/Form/TopLevel/Once/Once.cpp
                       src/dale/Form/TopLevel/Module/Module.cpp
                       src/dale/Form/TopLevel/Import/Import.cpp
                       src/dale/Form/TopLevel/Inst/Inst.cpp

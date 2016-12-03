@@ -31,9 +31,6 @@ errorInstanceToString(int error_instance)
     case ErrorInst::InvalidFloatingPointNumber:
         ret = "invalid floating point number";
         break;
-    case ErrorInst::CannotOnceTheLastOpenFile:
-        ret = "'once' cannot be used in the last open file";
-        break;
     case ErrorInst::OnlyListsAtTopLevel:
         ret = "top level elements must be lists";
         break;

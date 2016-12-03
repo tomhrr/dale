@@ -48,7 +48,6 @@
 #include "../Form/TopLevel/Include/Include.h"
 #include "../Form/TopLevel/Module/Module.h"
 #include "../Form/TopLevel/Import/Import.h"
-#include "../Form/TopLevel/Once/Once.h"
 
 #define ADD_SC(a, b) standard_core_forms.insert(std::pair<std::string, standard_core_form_t>(a, b));
 #define ADD_MC(a, b) macro_core_forms.insert(std::pair<std::string, macro_core_form_t>(a, b));
@@ -129,7 +128,6 @@ init()
     ADD_TC("include",         &FormTopLevelIncludeParse);
     ADD_TC("module",          &FormTopLevelModuleParse);
     ADD_TC("import",          &FormTopLevelImportParse);
-    ADD_TC("once",            &FormTopLevelOnceParse);
 
     for (int i = 0; i < core_forms_no_override_max; i++) {
         core_forms_no_override.insert(core_forms_no_override_strs[i]);

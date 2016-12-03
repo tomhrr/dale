@@ -47,7 +47,6 @@ enum
     FirstListElementMustBeAtomOrMacroOrFP,
     FirstListElementMustBeSymbol,
     NoEmptyDo,
-    CannotOnceTheLastOpenFile,
     IncorrectNumberOfArgs,
     IncorrectMinimumNumberOfArgs,
     IncorrectMaximumNumberOfArgs,
