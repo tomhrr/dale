@@ -1,0 +1,13 @@
+(namespace include
+
+(include "include-non-toplevel-include.dt")
+
+(def print-enum (fn intern void ((a enum)) ;;type enum not defined in this scope
+  (printf "%u" a)))
+
+  )
+
+  (def main (fn extern-c int (void)
+    (include.print-enum include.value)
+    (printf "\n")
+    0))

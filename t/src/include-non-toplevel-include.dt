@@ -1,0 +1,4 @@
+(import enum)
+
+(def-enum enum extern uint
+  ((value 0)))

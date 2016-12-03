@@ -3,6 +3,7 @@
 #include "../../../Units/Units.h"
 #include "../../../CommonDecl/CommonDecl.h"
 #include "../../../Node/Node.h"
+#include "../../../Form/TopLevel/Inst/Inst.h"
 
 #include <cstdio>
 
@@ -57,21 +58,31 @@ FormTopLevelIncludeParse(Units *units, Node *node)
                              strerror(errno));
         ctx->er->addError(e);
         return false;
-    } else {
-        int res = fclose(include_file);
-        if (res != 0) {
-            error("unable to close include file %s", path_buf.c_str(), true);
-        }
     }
 
-    Unit *unit = new Unit(path_buf.c_str(), units, ctx->er, ctx->nt,
-                          ctx->tr, units->top()->ee,
-                          units->top()->is_x86_64, ctx,
-                          units->top()->mp, units->top()->fp,
-                          units->top()->module, units->top()->linker);
-    units->push(unit);
-    units->top()->once_tag.clear();
+    Lexer *lxr = new Lexer(include_file);
+    Parser parser(lxr, ctx->er, strdup(path_buf.c_str()));
 
-    return true;
+    int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
+    std::vector<Node *> *do_nodes = new std::vector<Node *>();
+    Token *do_token = new Token(TokenType::String);
+    do_token->str_value.append("do");
+    do_nodes->push_back(new Node(do_token));
+    for (;;) {
+        Node *new_top = parser.getNextList();
+        if (!new_top) {
+            break;
+        }
+        if (!new_top->is_token && !new_top->is_list) {
+            break;
+        }
+        do_nodes->push_back(new_top);
+    }
+    if (ctx->er->getErrorTypeCount(ErrorType::Error) > error_count) {
+        return false;
+    }
+    Node *wrapper = new Node(do_nodes);
+
+    return FormTopLevelInstParse(units, wrapper);
 }
 }
