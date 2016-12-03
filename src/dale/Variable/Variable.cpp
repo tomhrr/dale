@@ -9,6 +9,7 @@ Variable::Variable()
     serialise       = true;
     linkage         = Linkage::Auto;
     type            = NULL;
+    value           = NULL;
 }
 
 Variable::Variable(const char *name, Type *type)
@@ -20,6 +21,7 @@ Variable::Variable(const char *name, Type *type)
     index           = 0;
     serialise       = true;
     linkage         = Linkage::Auto;
+    value           = NULL;
 }
 
 Variable::~Variable()

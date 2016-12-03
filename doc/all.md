@@ -1761,6 +1761,21 @@ not supported, reports an error and returns false.
 Currently, the only supported type is `int`.
 
 
+#### `eval-macro-call`
+
+Linkage: `extern-c`
+Returns: `(p DNode)`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
+  * `(frm (p DNode))`: The form.
+
+
+Attempts to evaluate the provided form as a macro call, and returns
+the resulting form.  If the form is not a macro call, the original
+form is returned.
+
+
 #### `is-lvalue`
 
 Linkage: `extern-c`

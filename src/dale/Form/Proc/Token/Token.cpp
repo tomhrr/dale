@@ -278,6 +278,12 @@ parseVariableLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
         return;
     }
 
+    if (!var->value) {
+        Error *e = new Error(CannotDereferencePointerInContext, node);
+        ctx->er->addError(e);
+        return;
+    }
+
     /* All other variables. */
     pr->set(block, var->type,
             llvm::cast<llvm::Value>(builder.CreateLoad(var->value)));

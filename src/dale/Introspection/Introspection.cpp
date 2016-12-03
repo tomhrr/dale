@@ -960,6 +960,20 @@ eval_2D_expression(MContext *mc, DNode *type_form, DNode *form, void *buffer)
     return false;
 }
 
+DNode *
+eval_2D_macro_2D_call(MContext *mc, DNode *form)
+{
+    dale::Units *units = (dale::Units*) mc->units;
+
+    Node *n = units->top()->dnc->toNode(form);
+    n = units->top()->mp->parsePotentialMacroCall(n);
+    if (!n) {
+        return NULL;
+    }
+
+    return n->toDNode();
+}
+
 bool
 is_2D_lvalue(MContext *mc, DNode *form)
 {
@@ -1024,6 +1038,7 @@ init_introspection_functions()
     fns["has-errors"]               = (void *) has_2D_errors;
     fns["is-const"]                 = (void *) is_2D_const;
     fns["eval-expression"]          = (void *) eval_2D_expression;
+    fns["eval-macro-call"]          = (void *) eval_2D_macro_2D_call;
     fns["is-lvalue"]                = (void *) is_2D_lvalue;
 }
 

@@ -165,6 +165,9 @@ errorInstanceToString(int error_instance)
     case ErrorInst::CannotDereferenceVoidPointer:
         ret = "cannot dereference void pointer (type is %s)";
         break;
+    case ErrorInst::CannotDereferencePointerInContext:
+        ret = "cannot dereference pointer in this context";
+        break;
     case ErrorInst::OverloadedFunctionAddressWithoutTypes:
         ret = "cannot take address of overloaded function "
               "without also providing the function's types";

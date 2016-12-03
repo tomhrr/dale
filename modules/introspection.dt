@@ -470,6 +470,19 @@ Currently, the only supported type is `int`.
                                         (buf (p void)))))
 
 #|
+@fn eval-macro-call
+
+Attempts to evaluate the provided form as a macro call, and returns
+the resulting form.  If the form is not a macro call, the original
+form is returned.
+
+@param mc       An MContext.
+@param frm      The form.
+|#
+(def eval-macro-call (fn extern-c (p DNode) ((mc (p MContext))
+                                             (frm (p DNode)))))
+
+#|
 @fn is-lvalue
 
 Determine whether a form is an lvalue.

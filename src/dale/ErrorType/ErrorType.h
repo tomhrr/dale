@@ -82,6 +82,7 @@ enum
     IncorrectReturnType,
     CannotDereferenceNonPointer,
     CannotDereferenceVoidPointer,
+    CannotDereferencePointerInContext,
     OverloadedFunctionAddressWithoutTypes,
     NoSuchFileOrDirectory,
     FileError,
