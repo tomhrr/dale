@@ -341,13 +341,13 @@ makeUnaryMinus(Context *ctx, llvm::Module *mod, std::string *once_tag,
         return;
     }
 
-    llvm::Value *zero =
-        type->isIntegerType()
-            ? llvm::ConstantInt::get(llvm_type, 0)
-            : llvm::ConstantFP::get(llvm_type, 0);
     llvm::Value *ret_val =
         llvm::cast<llvm::Value>(
-            builder.CreateSub(zero, (*iter)->value)
+            (type->isIntegerType())
+                ? builder.CreateSub(llvm::ConstantInt::get(llvm_type, 0),
+                                    (*iter)->value)
+                : builder.CreateFSub(llvm::ConstantFP::get(llvm_type, 0),
+                                     (*iter)->value)
         );
     builder.CreateRet(ret_val);
 }
