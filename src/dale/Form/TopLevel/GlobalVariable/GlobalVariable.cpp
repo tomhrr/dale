@@ -547,8 +547,11 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
         )
     );
     builder.CreateStore(
-        builder.CreateCall(malloc->llvm_function,
-            llvm::ArrayRef<llvm::Value*>(malloc_args)
+        builder.CreateBitCast(
+            builder.CreateCall(malloc->llvm_function,
+                llvm::ArrayRef<llvm::Value*>(malloc_args)
+            ),
+            ctx->toLLVMType(ctx->tr->type_pchar, NULL, false)
         ),
         new_ptr_value
     );
@@ -561,8 +564,14 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     sprintf(struct_size_str, "%u", (unsigned) struct_size);
 
     std::vector<llvm::Value*> memcpy_args;
-    memcpy_args.push_back(builder.CreateLoad(new_ptr_value));
-    memcpy_args.push_back(ret_cast);
+    memcpy_args.push_back(builder.CreateBitCast(
+                              builder.CreateLoad(new_ptr_value),
+                              ctx->toLLVMType(ctx->tr->type_pvoid, NULL, false)
+                          ));
+    memcpy_args.push_back(builder.CreateBitCast(
+                              ret_cast,
+                              ctx->toLLVMType(ctx->tr->type_pvoid, NULL, false)
+                          ));
     memcpy_args.push_back(
         ctx->nt->getConstantInt(
             (llvm::IntegerType*) ctx->toLLVMType(ctx->tr->type_size, NULL,
