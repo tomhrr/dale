@@ -27,6 +27,7 @@ bool
 SavePoint::restore()
 {
     int block_pop_back = fn->llvm_function->size() - block_count;
+    std::vector<llvm::BasicBlock*> blocks;
     while (block_pop_back--) {
         llvm::Function::iterator bi = fn->llvm_function->begin(),
                                  be = fn->llvm_function->end(),
@@ -35,7 +36,9 @@ SavePoint::restore()
             bl = bi;
             ++bi;
         }
-        bl->eraseFromParent();
+        bl->removeFromParent();
+        bl->dropAllReferences();
+        blocks.push_back(bl);
     }
 
     int to_pop_back = block->size() - instruction_index;
@@ -59,6 +62,13 @@ SavePoint::restore()
     csp->restore();
     delete csp;
     csp = NULL;
+
+    for (std::vector<llvm::BasicBlock*>::iterator b = blocks.begin(),
+                                                  e = blocks.end();
+            b != e;
+            ++b) {
+        delete (*b);
+    }
 
     return true;
 }
