@@ -26,7 +26,8 @@ OffsetofGet(Unit *unit,
             int index)
 {
     Context *ctx = unit->ctx;
-    llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
+    llvm::Type *llvm_type =
+        ctx->toLLVMType(ctx->tr->getPointerType(type), NULL, false);
     if (!llvm_type) {
         return false;
     }
