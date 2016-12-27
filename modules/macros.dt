@@ -127,9 +127,8 @@ nodes are supported.
     (def current-lastnode  (var auto (p DNode)
         (@:' current-firstnode list-node next-node next-node)))
 
-    (def block (var auto (p DNode) (bqq do 0)))
-    (def blockstart (var auto (p DNode) block))
-    (setv block (@:' block list-node next-node))
+    (def blocks (var auto (array-of 255 (p DNode))))
+    (def block-count (var auto \ 0))
 
     (def cn (var auto (p DNode) (@:' holder list-node)))
     (def upvs (var auto (array-of 256 (p DNode))))
@@ -169,7 +168,7 @@ nodes are supported.
                             (if (not (ct-node-checks mc checkform))
                                 (return (nullptr DNode))
                                 true)
-                            (setf (:@ block next-node) (bqq do
+                            (setf ($ blocks block-count) (bqq do
                                 (setv firstnode (uq current-firstnode))
                                 (if (null (uq tempform))
                                     (do (report-error mc firstnode "unquoting null node")
@@ -178,7 +177,7 @@ nodes are supported.
                                         (std.macros.copy mc false (uq tempform)))
                                         (std.macros.copy-to firstnode newnode)
                                         true))))
-                            (setv block (@:@ block next-node))
+                            (incv block-count)
                             ;(getchar)
                             0))
                     (if (and (= 0 (strcmp (@:' cn list-node token-str) "uql"))
@@ -192,7 +191,7 @@ nodes are supported.
                             (setv no-down 1)
                             (def vn (var auto \ (make-gensym-var-node
                                                  mc)))
-                            (setf (:@ block next-node) (bqq do
+                            (setf ($ blocks block-count) (bqq do
                                 (setv firstnode (uq current-firstnode))
                                 (if (null (uq tempform))
                                     (do (report-error mc firstnode "unquoting null node")
@@ -208,7 +207,7 @@ nodes are supported.
                                         (setf
                                             (:@ (std.macros.get-last-node newnode)
                                                     next-node) (uq vn))))))
-                            (setv block (@:@ block next-node))
+                            (incv block-count)
                             ;(getchar)
                             0))
                     (if (and (= 0 (strcmp (@:' cn list-node token-str) "uq-nc"))
@@ -220,7 +219,7 @@ nodes are supported.
                                 (return (nullptr DNode))
                                 true)
                             (setv no-down 1)
-                            (setf (:@ block next-node) (bqq do
+                            (setf ($ blocks block-count) (bqq do
                                 (setv firstnode (uq current-firstnode))
                                 (if (null (uq tempform))
                                     (do (report-error mc firstnode "unquoting null node")
@@ -228,7 +227,7 @@ nodes are supported.
                                     (do (setv newnode (uq tempform))
                                         (std.macros.copy-to firstnode newnode)
                                         true))))
-                            (setv block (@:@ block next-node))
+                            (incv block-count)
                             ;(getchar)
                             0))
                     (if (and (= 0 (strcmp (@:' cn list-node token-str) "uql-nc"))
@@ -240,7 +239,7 @@ nodes are supported.
                                 (return (nullptr DNode))
                                 true)
                             (setv no-down 1)
-                            (setf (:@ block next-node) (bqq do
+                            (setf ($ blocks block-count) (bqq do
                                 (setv firstnode (uq current-firstnode))
                                 (if (null (uq tempform))
                                     (do (report-error mc firstnode "unquoting null node")
@@ -255,7 +254,7 @@ nodes are supported.
                                         (setf (:@ (get-last-node newnode)
                                         next-node) tv222)
                                         true))))
-                            (setv block (@:@ block next-node))
+                            (incv block-count)
                             ;(getchar)
                             0))
 
@@ -309,13 +308,29 @@ nodes are supported.
                 (goto end-loop2)))))
 
     (label end-loop2)
+        (def block-start (var auto (p DNode) (nullptr DNode)))
+        (def block-last (var auto (p DNode) (nullptr DNode)))
+        (label block-loop)
+        (if (= 0 block-count)
+            (goto block-loop-end)
+            (do (decv block-count)
+                (if (null block-start)
+                    (do (setv block-start (@$ blocks block-count))
+                        (setv block-last block-start))
+                    (do (setf (:@ block-last next-node) (@$ blocks block-count))
+                        (setv block-last (@:@ block-last next-node))))
+                (goto block-loop)))
+        (label block-loop-end)
+        (and (null block-start)
+          (setv block-start (mnfv mc "0")))
+
         (let ((res \ (bqq do (new-scope
             (def (uq vn) (var auto (p DNode) (std.macros.copy mc true
             (q (uq-nc holder)))))
             (def firstnode (var auto (p DNode)))
             (def trailing  (var auto (p DNode)))
             (def newnode   (var auto (p DNode)))
-            (uql-nc blockstart)
+            (uql-nc block-start)
             (uq vn)))))
           ;(DNode-print res)
           ;(printf "\n")

@@ -1,0 +1,19 @@
+(import macros)
+
+(using-namespace std.macros
+  (def qq-test (macro intern (lst1 lst2)
+    (let ((ilst1 \ (@:@ lst1 list-node))
+          (ilst2 \ (@:@ lst2 list-node))
+          (temp \ (mnfv mc "1")))
+      (qq def my-fn (fn intern void (void)
+        (printf "%d %d %d %d %d %d %d\n"
+          (uq temp)
+          (uql ilst1)
+          (uql ilst2))
+        (return)))))))
+
+(qq-test (2 3 4) (5 6 7))
+
+(def main (fn extern-c int (void)
+  (my-fn)
+  0))
