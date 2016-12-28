@@ -6,4 +6,4 @@
   (fn extern-c (p int) (void)))
 
 (def errno-arch
-  (macro extern (void) (std.macros.bqq @ (__errno_location))))
+  (macro extern (void) (std.macros.qq @ (__errno_location))))
