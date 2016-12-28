@@ -55,7 +55,7 @@ the `swap` function.
             (setf (:@ sf-dnode next-node) nullp)
 
             (def setf-list-node (var auto (p DNode)
-                (bqq setf (:@ (uq st-dnode) (uq sf-dnode)) (uq sv-dnode))))
+                (qq setf (:@ (uq st-dnode) (uq sf-dnode)) (uq sv-dnode))))
 
             ; Set first-node to this node, if it's null.
             (setv first-node (if (null first-node) setf-list-node first-node))
@@ -102,7 +102,7 @@ over the type before calling this macro.
 @param T    The type node.
 |#
 (def-concept-macro != extern ((T Type))
-  (and (not (exists-fn mc (bqq bool = (uq T) (uq T))))
+  (and (not (exists-fn mc (qq bool = (uq T) (uq T))))
        (do (report-error mc T "type does not implement =")
            (return (nullptr DNode))))
   (qq do
@@ -110,7 +110,7 @@ over the type before calling this macro.
       (not (= a b))))))
 
 (def-concept-macro != extern ((T PreferRefs))
-  (and (not (exists-fn mc (bqq bool = (uq T) (uq T))))
+  (and (not (exists-fn mc (qq bool = (uq T) (uq T))))
        (do (report-error mc T "type does not implement =")
            (return (nullptr DNode))))
   (qq do
@@ -126,7 +126,7 @@ over the type before calling this macro.
 @param T    The type node.
 |#
 (def-concept-macro <= extern ((T Type))
-  (and (not (exists-fn mc (bqq bool < (uq T) (uq T))))
+  (and (not (exists-fn mc (qq bool < (uq T) (uq T))))
        (do (report-error mc T "type does not implement <")
            (return (nullptr DNode))))
   (qq do
@@ -135,7 +135,7 @@ over the type before calling this macro.
           (not (< b a)))))))
 
 (def-concept-macro <= extern ((T PreferRefs))
-  (and (not (exists-fn mc (bqq bool < (uq T) (uq T))))
+  (and (not (exists-fn mc (qq bool < (uq T) (uq T))))
        (do (report-error mc T "type does not implement <")
            (return (nullptr DNode))))
   (qq do
@@ -152,7 +152,7 @@ over the type before calling this macro.
 @param T    The type node.
 |#
 (def-concept-macro > extern ((T Type))
-  (and (not (exists-fn mc (bqq bool < (uq T) (uq T))))
+  (and (not (exists-fn mc (qq bool < (uq T) (uq T))))
        (do (report-error mc T "type does not implement <")
            (return (nullptr DNode))))
   (qq do
@@ -160,7 +160,7 @@ over the type before calling this macro.
       (and (not (< a b)) (< b a))))))
 
 (def-concept-macro > extern ((T PreferRefs))
-  (and (not (exists-fn mc (bqq bool < (uq T) (uq T))))
+  (and (not (exists-fn mc (qq bool < (uq T) (uq T))))
        (do (report-error mc T "type does not implement <")
            (return (nullptr DNode))))
   (qq do
@@ -177,7 +177,7 @@ over the type before calling this macro.
 @param T    The type node.
 |#
 (def-concept-macro >= extern ((T Type))
-  (and (not (exists-fn mc (bqq bool < (uq T) (uq T))))
+  (and (not (exists-fn mc (qq bool < (uq T) (uq T))))
        (do (report-error mc T "type does not implement <")
            (return (nullptr DNode))))
   (qq do
@@ -185,7 +185,7 @@ over the type before calling this macro.
       (or (not (< a b)) (< b a))))))
 
 (def-concept-macro >= extern ((T PreferRefs))
-  (and (not (exists-fn mc (bqq bool < (uq T) (uq T))))
+  (and (not (exists-fn mc (qq bool < (uq T) (uq T))))
        (do (report-error mc T "type does not implement <")
            (return (nullptr DNode))))
   (qq do
@@ -222,7 +222,7 @@ macro.
       (let ((name (p DNode) (mnfv mc (struct-member-name mc T i)))
             (type (p DNode) (struct-member-type mc T i)))
 
-        (and (not (exists-fn mc (bqq bool = (uq type) (uq type))))
+        (and (not (exists-fn mc (qq bool = (uq type) (uq type))))
              (let ((stc (array-of 255 char))
                    (ts  (array-of 255 char)))
                (setf ($ ts 0) #\NULL)
@@ -236,7 +236,7 @@ macro.
                (return (mnfv mc "0"))))
 
         (let ((part (p DNode) 
-                    (bqq and (= (@ (: ((uq tvw-1) a) (uq name)))
+                    (qq and (= (@ (: ((uq tvw-1) a) (uq name)))
                                 (@ (: ((uq tvw-1) b) (uq name)))))))
           (if (not (null current-node))
               (do (setf (:@ current-node next-node) part)
@@ -247,7 +247,7 @@ macro.
     (setf (:@ current-node next-node) (mnfv mc "true"))
 
     (setv holder-node
-      (bqq def = (fn extern bool ((a ((uq tpw-1) (uq T)))
+      (qq def = (fn extern bool ((a ((uq tpw-1) (uq T)))
                                   (b ((uq tpw-1) (uq T))))
         (uq holder-node))))
 
@@ -282,7 +282,7 @@ macro.
       (let ((name (p DNode) (mnfv mc (struct-member-name mc T i)))
             (type (p DNode) (struct-member-type mc T i)))
         
-        (and (not (exists-fn mc (bqq bool < (uq type) (uq type))))
+        (and (not (exists-fn mc (qq bool < (uq type) (uq type))))
              (let ((stc (array-of 255 char))
                    (ts  (array-of 255 char)))
                (setf ($ ts 0) #\NULL)
@@ -296,7 +296,7 @@ macro.
                (return (mnfv mc "0"))))
 
         (let ((part (p DNode) 
-                    (bqq or (< (@ (: ((uq tvw-1) a) (uq name)))
+                    (qq or (< (@ (: ((uq tvw-1) a) (uq name)))
                                (@ (: ((uq tvw-1) b) (uq name)))))))
           (if (not (null current-node))
               (do (setf (:@ current-node next-node) part)
@@ -307,7 +307,7 @@ macro.
     (setf (:@ current-node next-node) (mnfv mc "false"))
 
     (setv holder-node
-      (bqq def < (fn extern bool ((a ((uq tpw-1) (uq T)))
+      (qq def < (fn extern bool ((a ((uq tpw-1) (uq T)))
                                   (b ((uq tpw-1) (uq T))))
         (uq holder-node))))
 
@@ -322,24 +322,24 @@ provided struct type. Any that have already been defined are skipped.
 @param T    The struct type node.
 |#
 (def-concept-macro relations extern ((T Struct))
-  (let ((n=  (p DNode) (if (not (exists-fn mc (bqq bool = (uq T) (uq T))))
-                 (bqq std.concepts.instantiate = (uq T))
-                 (bqq no-op)))
-        (n!= (p DNode) (if (not (exists-fn mc (bqq bool != (uq T) (uq T))))
-                 (bqq std.concepts.instantiate != (uq T))
-                 (bqq no-op)))
-        (n< (p DNode) (if (not (exists-fn mc (bqq bool < (uq T) (uq T))))
-                 (bqq std.concepts.instantiate < (uq T))
-                 (bqq no-op)))
-        (n<= (p DNode) (if (not (exists-fn mc (bqq bool <= (uq T) (uq T))))
-                 (bqq std.concepts.instantiate <= (uq T))
-                 (bqq no-op)))
-        (n> (p DNode) (if (not (exists-fn mc (bqq bool > (uq T) (uq T))))
-                 (bqq std.concepts.instantiate > (uq T))
-                 (bqq no-op)))
-        (n>= (p DNode) (if (not (exists-fn mc (bqq bool >= (uq T) (uq T))))
-                 (bqq std.concepts.instantiate >= (uq T))
-                 (bqq no-op))))
-      (bqq do (uq n=) (uq n!=) (uq n<) (uq n<=) (uq n>) (uq n>=))))
+  (let ((n=  (p DNode) (if (not (exists-fn mc (qq bool = (uq T) (uq T))))
+                 (qq std.concepts.instantiate = (uq T))
+                 (qq no-op)))
+        (n!= (p DNode) (if (not (exists-fn mc (qq bool != (uq T) (uq T))))
+                 (qq std.concepts.instantiate != (uq T))
+                 (qq no-op)))
+        (n< (p DNode) (if (not (exists-fn mc (qq bool < (uq T) (uq T))))
+                 (qq std.concepts.instantiate < (uq T))
+                 (qq no-op)))
+        (n<= (p DNode) (if (not (exists-fn mc (qq bool <= (uq T) (uq T))))
+                 (qq std.concepts.instantiate <= (uq T))
+                 (qq no-op)))
+        (n> (p DNode) (if (not (exists-fn mc (qq bool > (uq T) (uq T))))
+                 (qq std.concepts.instantiate > (uq T))
+                 (qq no-op)))
+        (n>= (p DNode) (if (not (exists-fn mc (qq bool >= (uq T) (uq T))))
+                 (qq std.concepts.instantiate >= (uq T))
+                 (qq no-op))))
+      (qq do (uq n=) (uq n!=) (uq n<) (uq n<=) (uq n>) (uq n>=))))
 
 ))
