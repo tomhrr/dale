@@ -50,7 +50,7 @@ Expands to the current error number.
 
 |#
 (def errno
-  (macro extern (void) (std.macros.bqq do (errno-arch))))
+  (macro extern (void) (std.macros.qq do (errno-arch))))
 
 (make-macro-constant ENOENT   2)
 (make-macro-constant ESRCH    3)
