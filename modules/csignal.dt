@@ -41,6 +41,7 @@ Bindings to `signal.h`. Provides the following signal macro constants:
 (module csignal)
 
 (import macros)
+(import stdlib)
 
 #|
 @fn signal

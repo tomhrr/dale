@@ -15,40 +15,6 @@ provided by this library are in the root namespace.
 (using-namespace std.macros
 
 #|
-@macro @:'
-
-Takes a struct pointer and one or more struct member names as its
-arguments. Expands to repeated calls to `@:@` over the struct and the
-member names. For example, if two members are provided, the expansion
-is `(@:@ (@:@ structp member1) member2)`.
-
-@param structp      The struct pointer argument.
-@param member       The first member's name.
-|#
-(def @:'
-  (macro extern (structp member rest)
-    (def arg-count (var auto \ (arg-count mc)))
-    (setv arg-count (- arg-count 2))
-    (def myargcount (var auto int arg-count))
-
-    (def frm (var auto (p DNode) (bqq @:@ (uq-nc structp) (uq-nc member))))
-    (def va-dnode (var auto (p DNode)))
-
-    (def begin (var auto int 0))
-
-    (label begin-loop)
-        (if (= arg-count 0) (goto end-loop) 0)
-
-        (setv va-dnode (@$ rest begin))
-        (setv begin (+ begin 1))
-        (setv frm (bqq @:@ (uq-nc frm) (uq-nc va-dnode)))
-        (setv arg-count (- arg-count 1))
-        (goto begin-loop)
-
-    (label end-loop)
-        (return frm)))
-
-#|
 @macro is-valid
 
 Returns its boolean argument.  Defined for use with `and` and `or`.

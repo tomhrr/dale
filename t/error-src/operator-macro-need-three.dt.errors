@@ -1,6 +1,6 @@
 operator-macros.dt:73:31: error: overloaded function/macro not in scope: '\+' (parameters are int size, closest candidate expects (p DNode) (p DNode) (p DNode) ...) (see macro at 9:17)
 operator-macros.dt:119:23: error: overloaded function/macro not in scope: '<' (parameters are int size, closest candidate expects (p DNode) (p DNode) (p DNode) ...) (see macro at 119:19)
-<unknown>:79:19: error: overloaded function/macro not in scope: 'is-valid' (parameters are int, closest candidate expects bool) (see macro at 82:11)
+<unknown>:45:19: error: overloaded function/macro not in scope: 'is-valid' (parameters are int, closest candidate expects bool) (see macro at 82:11)
 operator-macro-need-three.dt:12:17: error: overloaded function/macro not in scope: '\+' (parameters are int size, closest candidate expects (p DNode) (p DNode) (p DNode) ...)
 operator-macro-need-three.dt:13:17: error: overloaded function/macro not in scope: '<' (parameters are int size, closest candidate expects (p DNode) (p DNode) (p DNode) ...)
-<unknown>:79:19: error: overloaded function/macro not in scope: 'is-valid' (parameters are int, closest candidate expects bool) (see macro at 14:17)
+<unknown>:45:19: error: overloaded function/macro not in scope: 'is-valid' (parameters are int, closest candidate expects bool) (see macro at 14:17)

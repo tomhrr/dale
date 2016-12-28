@@ -9,7 +9,6 @@ Provides the quasiquotation macro.
 (import cstdio-core)
 (import macros-core)
 (import introspection)
-(import stdlib)
 
 (namespace std (namespace macros
 
@@ -150,8 +149,11 @@ nodes are supported.
                 (if (not (is-non-empty-list (@:' cn list-node)))
                     (do ;(printf "CN is list with first token: %s\n"
                                 ;(@:' cn list-node token-str))
-                    (if (and (= 0 (strcmp (@:' cn list-node token-str) "uq"))
-                             (not (null (@:' cn list-node next-node))))
+                    (if (if (= 0 (strcmp (@:' cn list-node token-str) "uq"))
+                            (if (not (null (@:' cn list-node next-node)))
+                                true
+                                false)
+                            false)
                         (do ;(printf "CN is uq!\n")
                             (setv processed-list 1)
                         (do (def checkform (var auto \ (@:' cn list-node next-node)))
@@ -177,11 +179,14 @@ nodes are supported.
                                         (std.macros.copy mc false (uq tempform)))
                                         (std.macros.copy-to firstnode newnode)
                                         true))))
-                            (incv block-count)
+                            (setv block-count (+ block-count 1))
                             ;(getchar)
                             0))
-                    (if (and (= 0 (strcmp (@:' cn list-node token-str) "uql"))
-                             (not (null (@:' cn list-node next-node))))
+                    (if (if (= 0 (strcmp (@:' cn list-node token-str) "uql"))
+                            (if (not (null (@:' cn list-node next-node)))
+                                true
+                                false)
+                            false)
                         (do ;(printf "CN is uq!\n")
                             (setv processed-list 1)
                         (do (setv tempform (@:' cn list-node next-node))
@@ -207,11 +212,14 @@ nodes are supported.
                                         (setf
                                             (:@ (std.macros.get-last-node newnode)
                                                     next-node) (uq vn))))))
-                            (incv block-count)
+                            (setv block-count (+ block-count 1))
                             ;(getchar)
                             0))
-                    (if (and (= 0 (strcmp (@:' cn list-node token-str) "uq-nc"))
-                             (not (null (@:' cn list-node next-node))))
+                    (if (if (= 0 (strcmp (@:' cn list-node token-str) "uq-nc"))
+                            (if (not (null (@:' cn list-node next-node)))
+                                true
+                                false)
+                            false)
                         (do ;(printf "CN is uq!\n")
                             (setv processed-list 1)
                         (do (setv tempform (@:' cn list-node next-node))
@@ -227,11 +235,14 @@ nodes are supported.
                                     (do (setv newnode (uq tempform))
                                         (std.macros.copy-to firstnode newnode)
                                         true))))
-                            (incv block-count)
+                            (setv block-count (+ block-count 1))
                             ;(getchar)
                             0))
-                    (if (and (= 0 (strcmp (@:' cn list-node token-str) "uql-nc"))
-                             (not (null (@:' cn list-node next-node))))
+                    (if (if (= 0 (strcmp (@:' cn list-node token-str) "uql-nc"))
+                            (if (not (null (@:' cn list-node next-node)))
+                                true
+                                false)
+                            false)
                         (do ;(printf "CN is uq!\n")
                             (setv processed-list 1)
                         (do (setv tempform (@:' cn list-node next-node))
@@ -254,7 +265,7 @@ nodes are supported.
                                         (setf (:@ (get-last-node newnode)
                                         next-node) tv222)
                                         true))))
-                            (incv block-count)
+                            (setv block-count (+ block-count 1))
                             ;(getchar)
                             0))
 
@@ -262,12 +273,16 @@ nodes are supported.
                     0))
                 0)
 
-            (if (and (= 0 no-down) (not (null (@:@ cn list-node))))
+            (if (if (= 0 no-down)
+                    (if (not (null (@:@ cn list-node)))
+                        true
+                        false)
+                    false)
                 (do ;(printf "Moving down into this list: ") (DNode-print cn) (printf "\n")
 
                     (setf ($ upvs upvs-count) cn)
                     (setf ($ lastnodes upvs-count) current-lastnode)
-                    (incv upvs-count)
+                    (setv upvs-count (+ upvs-count 1))
 
                     (setf (:@ current-lastnode next-node)
                           (mnfv mc "list-node"))
@@ -289,19 +304,22 @@ nodes are supported.
             (if (> upvs-count 0)
                 (do ;(printf "Moving upwards: ") (DNode-print cn) (printf "\n")
                     (setv no-down 0)
-                    (while (> upvs-count 0)
-                        (decv upvs-count)
-                        (setv cn (@ ($ upvs upvs-count)))
-                        (setv current-lastnode (@ ($ lastnodes upvs-count)))
-                        (if (not (null (@:@ cn next-node)))
-                            (do
-                                (setf (:@ current-lastnode next-node)
-                                    (mnfv mc "next-node"))
-                                (setv current-lastnode
-                                    (@:@ current-lastnode next-node))
-                                (setv cn (@:@ cn next-node))
-                                (goto begin-loop2))
-                            0))
+                    (label while-begin)
+                    (if (> upvs-count 0)
+                        (do (setv upvs-count (- upvs-count 1))
+                            (setv cn (@ ($ upvs upvs-count)))
+                            (setv current-lastnode (@ ($ lastnodes upvs-count)))
+                            (if (not (null (@:@ cn next-node)))
+                                (do
+                                    (setf (:@ current-lastnode next-node)
+                                        (mnfv mc "next-node"))
+                                    (setv current-lastnode
+                                        (@:@ current-lastnode next-node))
+                                    (setv cn (@:@ cn next-node))
+                                    (goto begin-loop2))
+                                0)
+                            (goto while-begin))
+                        (goto end-loop2))
                     (goto end-loop2))
 
 
@@ -313,7 +331,7 @@ nodes are supported.
         (label block-loop)
         (if (= 0 block-count)
             (goto block-loop-end)
-            (do (decv block-count)
+            (do (setv block-count (- block-count 1))
                 (if (null block-start)
                     (do (setv block-start (@$ blocks block-count))
                         (setv block-last block-start))
@@ -321,10 +339,11 @@ nodes are supported.
                         (setv block-last (@:@ block-last next-node))))
                 (goto block-loop)))
         (label block-loop-end)
-        (and (null block-start)
-          (setv block-start (mnfv mc "0")))
+        (if (null block-start)
+            (setv block-start (mnfv mc "0"))
+            0)
 
-        (let ((res \ (bqq do (new-scope
+        (def res (var auto \ (bqq do (new-scope
             (def (uq vn) (var auto (p DNode) (std.macros.copy mc true
             (q (uq-nc holder)))))
             (def firstnode (var auto (p DNode)))
@@ -334,5 +353,5 @@ nodes are supported.
             (uq vn)))))
           ;(DNode-print res)
           ;(printf "\n")
-          res)))
+          res))
 ))

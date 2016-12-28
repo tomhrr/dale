@@ -31,6 +31,7 @@ Provides the following floating-point macro constants:
 (module cfloat)
 
 (import macros)
+(import stdlib)
 
 (make-macro-constant FLT-RADIX    FLT_RADIX)
 (make-macro-constant FLT-ROUNDS   FLT_ROUNDS)

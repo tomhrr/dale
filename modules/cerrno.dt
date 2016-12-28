@@ -42,6 +42,7 @@ Provides the `errno` macro, and the standard error constant macros:
 
 (import cerrno-arch)
 (import macros)
+(import stdlib)
 
 #|
 @macro errno

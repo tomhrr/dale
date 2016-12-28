@@ -1,4 +1,5 @@
 (import macros)
+(import stdlib)
 
 (def mysuperstruct 
   (struct intern ((a int) (b int))))

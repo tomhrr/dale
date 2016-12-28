@@ -1,4 +1,4 @@
-(import macros)
+(import macros) (import stdlib)
 
 (def main (fn extern-c int (void)
   (for 1 2 3)

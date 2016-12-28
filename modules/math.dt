@@ -29,6 +29,7 @@ A macro constant for `e` is also provided.
 (module math)
 
 (import macros)
+(import stdlib)
 (import cmath)
 
 (using-namespace std.macros

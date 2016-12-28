@@ -1,4 +1,5 @@
 (import macros)
+(import stdlib)
 
 (using-namespace std.macros
   (def qq-test (macro intern (lst1 lst2)

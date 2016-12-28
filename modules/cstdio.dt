@@ -16,6 +16,7 @@ Bindings to `stdio.h`. Provides the following macro constants:
 
 (import cstdio-arch)
 (import macros)
+(import stdlib)
 
 #|
 @struct file

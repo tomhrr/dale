@@ -1,4 +1,5 @@
 (import macros)
+(import stdlib)
 
 (def mys1 (struct intern ((a int))))
 

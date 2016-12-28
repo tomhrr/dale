@@ -10,6 +10,7 @@ the `introspection` module.
 
 (import cstdio)
 (import macros)
+(import stdlib)
 (import cstdlib)
 (import introspection)
 

@@ -11,6 +11,7 @@ directly. Instead, use the functions with the explicit type names: e.g.
 (module cstdlib)
 
 (import macros)
+(import stdlib)
 
 #|
 @fn atexit
