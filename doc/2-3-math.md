@@ -1,6 +1,6 @@
 # Dale
 
-[Previous](./2-2-ctype.md) | [Next](./2-4-macros-core.md)
+[Previous](./2-2-ctype.md) | [Next](./2-4-macros.md)
 
 ## 2.3 math
 
@@ -34,5 +34,5 @@ Defines overloaded functions corresponding generally with those from
 
 A macro constant for `e` is also provided.
 
-[Previous](./2-2-ctype.md) | [Next](./2-4-macros-core.md)
+[Previous](./2-2-ctype.md) | [Next](./2-4-macros.md)
 

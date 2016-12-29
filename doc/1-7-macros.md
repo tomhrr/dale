@@ -95,12 +95,11 @@ a pointer to a `DNode` (static). For example:
 
         (def const-string (macro extern (void) (q (p (const char)))))
 
-There are two principal standard libraries that deal with macros:
-[`macros-core`](./2-4-macros-core.md) and [`macros`](./2-6-macros.md).
-The former provides many functions that ease macro authorship. The
-latter provides the quasiquotation (`qq`) macro, which is one of the
-more useful macro-writing macros. For example, an `unless` (opposite
-of `if`) macro would look like so, when using `qq`:
+The standard library for dealing with macros is (unsurprisingly)
+[`macros`](./2-6-macros.md).  It provides many functions that ease
+macro authorship, as well as the quasiquotation (`qq`) macro, which is
+one of the more useful macro-writing macros. For example, an `unless`
+(opposite of `if`) macro would look like so, when using `qq`:
 
         (def unless (macro extern (expr tc fc)
           (qq if (not (uq expr)) (uq tc) (uq fc))))

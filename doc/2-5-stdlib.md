@@ -1,6 +1,6 @@
 # Dale
 
-[Previous](./2-4-macros-core.md) | [Next](./2-6-macros.md)
+[Previous](./2-4-macros.md) | [Next](./2-6-assert.md)
 
 ## 2.5 stdlib
 
@@ -17,22 +17,6 @@ provided by this library are in the root namespace.
 
 
 ### Macros
-
-#### `@:'`
-
-Linkage: `extern`
-Parameters:
-
-  * `structp`: The struct pointer argument.
-  * `member`: The first member's name.
-  * `rest`
-
-
-Takes a struct pointer and one or more struct member names as its
-arguments. Expands to repeated calls to `@:@` over the struct and the
-member names. For example, if two members are provided, the expansion
-is `(@:@ (@:@ structp member1) member2)`.
-
 
 #### `is-valid`
 
@@ -369,5 +353,5 @@ these macros has the same name as the original function, except with a
 ' symbol appended.
 
 
-[Previous](./2-4-macros-core.md) | [Next](./2-6-macros.md)
+[Previous](./2-4-macros.md) | [Next](./2-6-assert.md)
 

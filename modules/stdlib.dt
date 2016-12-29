@@ -9,7 +9,7 @@ provided by this library are in the root namespace.
 (module stdlib (attr cto))
 
 (import cstdio-core)
-(import macros-core)
+(import macros)
 (import introspection)
 
 (using-namespace std.macros

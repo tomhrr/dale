@@ -19,7 +19,6 @@ my @targets = qw(
     clocale
     cstdio-core
     introspection
-    macros-core
     stdlib
     macros
     assert

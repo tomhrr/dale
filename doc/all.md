@@ -653,12 +653,11 @@ a pointer to a `DNode` (static). For example:
 
         (def const-string (macro extern (void) (q (p (const char)))))
 
-There are two principal standard libraries that deal with macros:
-[`macros-core`](#macros-core) and [`macros`](#macros).
-The former provides many functions that ease macro authorship. The
-latter provides the quasiquotation (`qq`) macro, which is one of the
-more useful macro-writing macros. For example, an `unless` (opposite
-of `if`) macro would look like so, when using `qq`:
+The standard library for dealing with macros is (unsurprisingly)
+[`macros`](#macros).  It provides many functions that ease
+macro authorship, as well as the quasiquotation (`qq`) macro, which is
+one of the more useful macro-writing macros. For example, an `unless`
+(opposite of `if`) macro would look like so, when using `qq`:
 
         (def unless (macro extern (expr tc fc)
           (qq if (not (uq expr)) (uq tc) (uq fc))))
@@ -1994,18 +1993,17 @@ Defines overloaded functions corresponding generally with those from
 
 A macro constant for `e` is also provided.
 
-## <a name="macros-core"></a> 2.4 macros-core
+## <a name="macros"></a> 2.4 macros
 
 ### Details
 
-Module: macros-core
+Module: macros
 
 ### Description
 
 Provides the core macro development functions: making, copying and
-printing nodes, linking nodes together, and gensym functions for
-variables and labels. Also provides a 'bootstrap' quasiquotation
-function (not intended for use outside the standard libraries).
+printing nodes, linking nodes together, gensym functions for
+variables and labels, and the quasiquotation form.
 
 
 
@@ -2481,22 +2479,6 @@ Parameters:
 Simple version of `get-varargs-list`, only takes the count as parameter.
 
 
-## <a name="stdlib"></a> 2.5 stdlib
-
-### Details
-
-Module: stdlib
-
-### Description
-
-Provides commonly-used macros and functions, including the core
-control structures (`for`, `while` and `let`). All of the bindings
-provided by this library are in the root namespace.
-
-
-
-### Macros
-
 #### `@:'`
 
 Linkage: `extern`
@@ -2512,6 +2494,59 @@ arguments. Expands to repeated calls to `@:@` over the struct and the
 member names. For example, if two members are provided, the expansion
 is `(@:@ (@:@ structp member1) member2)`.
 
+
+#### `qq`
+
+Linkage: `extern`
+Parameters:
+
+  * `frm`
+  * `rest`
+
+
+The 'general-use' quasiquotation macro. The forms handled specially
+are:
+
+  * `uq` (unquote): expands to the argument node, excluding any
+    following nodes (i.e. excluding `next-node`);
+  * `uql` (unquote-list): expands to the argument node, including all
+    following nodes (i.e. including `next-node` and any subsequent
+    `next-node`s of that node);
+  * `uq-nc` (unquote no-copy): as per `uq`, except that the argument
+    node is not copied on substitution; and
+  * `uql-nc` (unquote-list no-copy): as per `uql`, except that the nodes
+    are not copied on substitution.
+
+Quasiquotation forms may be nested: each specially-handled form in a
+nested `qq` must be wrapped with an additional `uq` for each level of
+nesting.
+
+The `-nc` versions should only be used when the argument node will not
+be used again.
+
+Argument nodes for the various unquote forms must be DNode pointer
+variable names.  If any other type of argument is provided, the
+unquote form will expand to that argument.  For example, `(qq do (uq
+(mnfv mc 1)))` will expand to `(do (mnfv mc 1))`.  Issue #140 is
+tracking this problem, and will be resolved when arbitrary argument
+nodes are supported.
+
+
+## <a name="stdlib"></a> 2.5 stdlib
+
+### Details
+
+Module: stdlib
+
+### Description
+
+Provides commonly-used macros and functions, including the core
+control structures (`for`, `while` and `let`). All of the bindings
+provided by this library are in the root namespace.
+
+
+
+### Macros
 
 #### `is-valid`
 
@@ -2848,58 +2883,7 @@ these macros has the same name as the original function, except with a
 ' symbol appended.
 
 
-## <a name="macros"></a> 2.6 macros
-
-### Details
-
-Module: macros
-
-### Description
-
-Provides the quasiquotation macro.
-
-
-
-### Macros
-
-#### `qq`
-
-Linkage: `extern`
-Parameters:
-
-  * `frm`
-  * `rest`
-
-
-The 'general-use' quasiquotation macro. The forms handled specially
-are:
-
-  * `uq` (unquote): expands to the argument node, excluding any
-    following nodes (i.e. excluding `next-node`);
-  * `uql` (unquote-list): expands to the argument node, including all
-    following nodes (i.e. including `next-node` and any subsequent
-    `next-node`s of that node);
-  * `uq-nc` (unquote no-copy): as per `uq`, except that the argument
-    node is not copied on substitution; and
-  * `uql-nc` (unquote-list no-copy): as per `uql`, except that the nodes
-    are not copied on substitution.
-
-Quasiquotation forms may be nested: each specially-handled form in a
-nested `qq` must be wrapped with an additional `uq` for each level of
-nesting.
-
-The `-nc` versions should only be used when the argument node will not
-be used again.
-
-Argument nodes for the various unquote forms must be DNode pointer
-variable names.  If any other type of argument is provided, the
-unquote form will expand to that argument.  For example, `(qq do (uq
-(mnfv mc 1)))` will expand to `(do (mnfv mc 1))`.  Issue #140 is
-tracking this problem, and will be resolved when arbitrary argument
-nodes are supported.
-
-
-## <a name="assert"></a> 2.7 assert
+## <a name="assert"></a> 2.6 assert
 
 ### Details
 
@@ -2951,7 +2935,7 @@ If assertions have been disabled, by way of `disable-assertions`, then
 subsequent calls to this macro will expand to no-ops.
 
 
-## <a name="concepts-core"></a> 2.8 concepts-core
+## <a name="concepts-core"></a> 2.7 concepts-core
 
 ### Details
 
@@ -3425,7 +3409,7 @@ fail with the error "concept not found".  This is usually caused by a
 missing import statement.
 
 
-## <a name="concept-defs"></a> 2.9 concept-defs
+## <a name="concept-defs"></a> 2.8 concept-defs
 
 ### Details
 
@@ -3670,7 +3654,7 @@ type, and `+` and `-` must also be defined, each taking an iterator
 and a value of type `distance-type`, and returning a new iterator.
 
 
-## <a name="concepts"></a> 2.10 concepts
+## <a name="concepts"></a> 2.9 concepts
 
 ### Details
 
@@ -3742,7 +3726,7 @@ appropriate type parameter and value wrappers, but otherwise operates
 as per the other version.
 
 
-## <a name="utility"></a> 2.11 utility
+## <a name="utility"></a> 2.10 utility
 
 ### Details
 
@@ -3961,7 +3945,7 @@ Expands to the concrete type name of the `Triple` generated by way of
 the concept macro.
 
 
-## <a name="derivations"></a> 2.12 derivations
+## <a name="derivations"></a> 2.11 derivations
 
 ### Details
 
@@ -4075,7 +4059,7 @@ Expands to `=`, `!=`, `<`, `<=`, `>` and `>=` functions over the
 provided struct type. Any that have already been defined are skipped.
 
 
-## <a name="algorithms"></a> 2.13 algorithms
+## <a name="algorithms"></a> 2.12 algorithms
 
 ### Details
 
@@ -4377,7 +4361,7 @@ Parameters:
 Like `Action`, except the function pointer takes a reference.
 
 
-## <a name="list"></a> 2.14 list
+## <a name="list"></a> 2.13 list
 
 ### Details
 
@@ -4807,7 +4791,7 @@ Parameters:
 Expands to the underlying distance type of the iterator.
 
 
-## <a name="vector"></a> 2.15 vector
+## <a name="vector"></a> 2.14 vector
 
 ### Details
 
@@ -5319,7 +5303,7 @@ Parameters:
 Expands to the underlying distance type of the iterator.
 
 
-## <a name="set"></a> 2.16 set
+## <a name="set"></a> 2.15 set
 
 ### Details
 
@@ -5731,7 +5715,7 @@ Parameters:
 Expands to the underlying value type (i.e. `T`) of the iterator.
 
 
-## <a name="map"></a> 2.17 map
+## <a name="map"></a> 2.16 map
 
 ### Details
 
@@ -6158,7 +6142,7 @@ Expands to the underlying value type of the iterator. This is the
 same as that of `value-type` for the container.
 
 
-## <a name="array"></a> 2.18 array
+## <a name="array"></a> 2.17 array
 
 ### Details
 
@@ -6548,7 +6532,7 @@ Parameters:
 Expands to the underlying distance type of the iterator.
 
 
-## <a name="shared-ptr"></a> 2.19 shared-ptr
+## <a name="shared-ptr"></a> 2.18 shared-ptr
 
 ### Details
 
@@ -6660,7 +6644,7 @@ Expands to the concrete type name of the `SharedPtr` generated by way
 of the concept macro.
 
 
-## <a name="unique-ptr"></a> 2.20 unique-ptr
+## <a name="unique-ptr"></a> 2.19 unique-ptr
 
 ### Details
 
@@ -6772,7 +6756,7 @@ Expands to the concrete type name of the `UniquePtr` generated by way
 of the concept macro.
 
 
-## <a name="operator-macros"></a> 2.21 operator-macros
+## <a name="operator-macros"></a> 2.20 operator-macros
 
 ### Details
 
@@ -6856,7 +6840,7 @@ expands to:
 
 
 
-## <a name="bitset-enum"></a> 2.22 bitset-enum
+## <a name="bitset-enum"></a> 2.21 bitset-enum
 
 ### Details
 
@@ -6899,7 +6883,7 @@ Parameters:
 
 
 
-## <a name="variant"></a> 2.23 variant
+## <a name="variant"></a> 2.22 variant
 
 ### Details
 

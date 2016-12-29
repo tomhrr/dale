@@ -12,7 +12,6 @@ following operators:
 (module operator-macros (attr cto))
 
 (import macros)
-(import macros-core)
 (import stdlib)
 
 (namespace std (namespace macros

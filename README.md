@@ -196,10 +196,8 @@ able to be built.  It has been tested on the following:
     0)))
 ```
 ```
-> Struct: Point
-> Member count: 2
-> Member 1: x
-> Member 2: y
+> ./introspection.dt:8:7: error: not in scope: 'let'
+> ./introspection.dt:18:6: error: not in scope: 'show-struct-details'
 ```
 
 **error-reporting**
@@ -221,8 +219,8 @@ able to be built.  It has been tested on the following:
     0)))
 ```
 ```
-> ./error-reporting.dt:13:23: error: struct type does not exist (see macro at 13:5)
-> ./error-reporting.dt:13:5: error: macro expansion error (see previous)
+> ./error-reporting.dt:6:6: error: not in scope: 'let'
+> ./error-reporting.dt:13:6: error: not in scope: 'assert-is-struct'
 ```
 
 **derivations**
