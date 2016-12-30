@@ -1,0 +1,71 @@
+#|
+@module impc
+
+Provides macros for easier importing extern-c functions. All of the bindings
+provided by this library are in the std namespace.
+
+|#
+(module impc (attr cto))
+
+(import macros)
+
+
+(namespece std ;;namespace may be different
+(using-namespace std.macros
+
+#|
+@macro std.defc
+
+Defines an extern-c function and a function, which calls the extern-c function.
+
+@example
+(defc func extern libFunc void ((a int) (b int)))
+
+
+@param name The function name.
+@param linkage Linkage of the function.
+@param cname The name of the c function.
+@param type The return type of the functions.
+@param args The arglist of the functions.
+
+
+@linkage extern
+|#
+(def defc (macro extern (name linkage cname type args)
+  (let ((arg-list \ (arg-list-names mc args))
+        (fdef \ (if (null arg-list) (qq (uq cname))
+                                    (qq (uq cname) (uql-nc arg-list)))))
+    (qq do
+      ;;may be useful, if the extern-c functions would be defined in another namespace for extern-c functions
+      (def (uq cname) (fn extern-c (uq type) (uq args)))
+      (def (uq name) (fn (uq linkage) (uq type) (uq args)
+        (uq fdef)))))))
+
+#|
+@macro std.defc-multi
+
+Similar to defc, but can define an overloaded version of c functions.
+
+@example
+(defc-multi func extern
+  (libFunc1i void ((a int)))
+  (libFunc2i void ((a int) (b int)))
+  (libFunc1f void ((a float)))
+  (libFunc2f void ((a float) (b float))))
+
+
+@linkage extern
+|#
+(def defc-multi (macro extern (name linkage def0 rest)
+  (def list (var auto \ (get-varargs-list mc (- (arg-count mc) 3) rest)))
+  (ignore assert (not (= 0 (@:@ def0 is-list))))
+  (def defc (var auto \ (qq defc (uq name) (uq linkage) (uql (@:@ def0 list-node)))))
+  (if (null list)
+    defc
+    (qq do
+      (uq defc)
+      (defc-multi (uq name) (uq linkage) (uql list))))))
+
+))
+
+
