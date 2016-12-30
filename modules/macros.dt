@@ -1482,4 +1482,56 @@ nodes are supported.
           ;(DNode-print res)
           ;(printf "\n")
           res))
+
+#|
+@fn std.macros.apply-list
+
+Similar to `walk-nodes`. Calls function `fn` on all nodes of the list, and returns a new list, containing the return values of the lists.
+
+@param mc An MContext.
+@param form     The first node of a list.
+@param data     Arbitrary data.
+@param fn       The function pointer to call on each node.
+|#
+(def apply-list
+  (fn (attr cto) extern (p DNode)
+      ((mc (p MContext))
+       (list (p DNode))
+       (data (p void))
+       (fun (p (fn (p DNode) ((mc (p MContext))
+                              (node (p DNode))
+                              (data (p void)))))))
+    (def elt (var auto \ (fun mc list data)))
+    (if (not (null (@:@ list next-node)))
+      (new-scope (def rest (var auto \ (@:@ (apply-list mc (@:@ list next-node) data fun) list-node)))
+                 (qq (uq elt) (uql rest)))
+      (qq (uq elt)))))
+
+;;following may be added to an extra module containing functions for parsing names, types, etc.
+#|
+@fn std.macros.arg-list-names
+
+Returns the names of the argument list.
+
+@param mc An MContext.
+@param form     An argument list.
+|#
+(def arg-list-names (fn (attr cto) extern (p DNode) ((mc (p MContext)) (form (p DNode)))
+  (and (not (= 0 (@:@ form is-list)))
+    (and (= 0 (@:' form list-node is-list))
+      (and (= 0 (strncmp (@:' form list-node token-str) "void" (cast 4 size)))
+        ;; (= (@:' form list-node) (q void))
+        (return (nullptr DNode)))))
+  (let ((list \
+         (apply-list mc (@:@ form list-node) (nullptr void)
+           (fn (attr cto) (p DNode) ((mc (p MContext)) (form (p DNode)) (data (p void)))
+             (if (= 0 (@:@ form is-list))
+               form
+               (@:@ form list-node))))))
+    (@:@ list list-node))))
+
+))
+
+
+
 ))
