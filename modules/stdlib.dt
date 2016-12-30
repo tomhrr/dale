@@ -149,7 +149,7 @@ for so long as the condition expression evaluates to `true`.
     (walk-nodes varargs-list mc (cast begin-label (p void))
                 (# continue-to-goto))
 
-    (bqq do
+    (qq do
         (label (uq begin-label))
           (if (uq-nc condition)
               (do (uql-nc varargs-list)

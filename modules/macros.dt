@@ -1332,14 +1332,15 @@ nodes are supported.
                                     (do (setv newnode (std.macros.copy mc
                                                         true (uq tempform)))
                                         (std.macros.copy-to firstnode newnode)
-                                        (def (uq vn)
-                                            (var auto \ (@:@ firstnode
-                                            next-node)))
-                                        (setf (:@ firstnode next-node)
-                                              (@:@ newnode next-node))
-                                        (setf
-                                            (:@ (std.macros.get-last-node newnode)
-                                                    next-node) (uq vn))))))
+                                        (if (not (null (@:@ newnode next-node)))
+                                            (do (def (uq vn)
+                                                  (var auto \ (@:@ firstnode next-node)))
+
+                                                (setf (:@ firstnode next-node)
+                                                      (@:@ newnode next-node))
+                                                (setf (:@ (std.macros.get-last-node newnode) next-node)
+                                                      (uq vn)))
+                                            0)))))
                             (setv block-count (+ block-count 1))
                             ;(getchar)
                             0))
@@ -1385,18 +1386,17 @@ nodes are supported.
                                         false)
                                     (do (setv newnode (uq tempform))
                                         (std.macros.copy-to firstnode newnode)
-                                        (def tv222
-                                            (var auto \ (@:@ firstnode
-                                            next-node)))
-                                        (setf (:@ firstnode next-node)
-                                            (@:@ newnode next-node))
-                                        (setf (:@ (get-last-node newnode)
-                                        next-node) tv222)
-                                        true))))
+                                        (if (not (null (@:@ newnode next-node)))
+                                            (do (def tv222
+                                                  (var auto \ (@:@ firstnode next-node)))
+                                                (setf (:@ firstnode next-node)
+                                                      (@:@ newnode next-node))
+                                                (setf (:@ (std.macros.get-last-node newnode) next-node)
+                                                      tv222))
+                                            0)))))
                             (setv block-count (+ block-count 1))
                             ;(getchar)
                             0))
-
                         0)))))
                     0))
                 0)
