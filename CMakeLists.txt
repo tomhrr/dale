@@ -420,6 +420,7 @@ standard_library (modules/derivations.dt derivations   utility)
 standard_library (modules/enum.dt        enum          utility)
 standard_library (modules/bitset-enum.dt bitset-enum   enum)
 standard_library (modules/variant.dt     variant       enum)
+standard_library (modules/impc.dt     impc       macros)
 
 set_directory_properties (PROPERTIES 
                           ADDITIONAL_MAKE_CLEAN_FILES
