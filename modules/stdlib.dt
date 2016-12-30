@@ -167,7 +167,7 @@ increments the underlying value and returns true.
 |#
 (def incf
   (macro extern (form)
-    (bqq setf (uq form) (+ (@ (uq form)) 1))))
+    (qq setf (uq form) (+ (@ (uq form)) 1))))
 
 #|
 @macro decf
@@ -179,7 +179,7 @@ decrements the underlying value and returns true.
 |#
 (def decf
   (macro extern (form)
-    (bqq setf (uq form) (- (@ (uq form)) 1))))
+    (qq setf (uq form) (- (@ (uq form)) 1))))
 
 #|
 @macro incv
@@ -191,7 +191,7 @@ increments the underlying value and returns true.
 |#
 (def incv
   (macro extern (form)
-    (bqq setv (uq form) (+ (uq form) 1))))
+    (qq setv (uq form) (+ (uq form) 1))))
 
 #|
 @macro decv
@@ -203,7 +203,7 @@ decrements the underlying value and returns true.
 |#
 (def decv
   (macro extern (form)
-    (bqq setv (uq form) (- (uq form) 1))))
+    (qq setv (uq form) (- (uq form) 1))))
 
 #|
 @macro for
@@ -272,7 +272,7 @@ a `let` variable binding (e.g. `(i \ 0)`), or a `setv` call (e.g.
               (and (null type-form)
                 (do (report-error mc init-form-list "list needs variable name and type")
                     (return (nullptr DNode))))
-              (setv next-form (bqq def (uq init-form-list) (var
+              (setv next-form (qq def (uq init-form-list) (var
               auto (uql type-form)))))))
       (if (null init-holder)
           (setv init-holder next-form)
@@ -368,10 +368,10 @@ expands to:
         (do
           (setf (:@ default-node next-node) nullp)
           (setv def-node
-              (bqq def (uq-nc name-node)
+              (qq def (uq-nc name-node)
                   (var auto (uq-nc type-node) (uq-nc default-node)))))
           (setv def-node
-              (bqq def (uq-nc name-node)
+              (qq def (uq-nc name-node)
                   (var auto (uq-nc type-node)))))
 
       (if (null first-node)
@@ -390,7 +390,7 @@ expands to:
 
 (def cond-error-check
   (macro intern (condition element message)
-    (bqq if (uq-nc condition)
+    (qq if (uq-nc condition)
             (do (report-error mc (uq-nc element) (uq-nc message))
                 (return (nullptr DNode)))
             0)))
@@ -485,7 +485,7 @@ Expands to a `malloc` that allocates memory sufficient for `n` `T`s.
 @param T    The type of the objects being allocated.
 |#
 (def malloc' (macro extern (n T)
-  (bqq cast (malloc (* (cast (uq n) size) (sizeof (uq T)))) (p (uq T)))))
+  (qq cast (malloc (* (cast (uq n) size) (sizeof (uq T)))) (p (uq T)))))
 
 #|
 @macro free'
@@ -496,7 +496,7 @@ cast to a void pointer, is passed.
 @param form     The pointer form.
 |#
 (def free' (macro extern (form)
-  (bqq free (cast (uq form) (p void)))))
+  (qq free (cast (uq form) (p void)))))
 
 #|
 @macro p<=
@@ -504,7 +504,7 @@ cast to a void pointer, is passed.
 @linkage extern
 |#
 (def p<= (macro extern (ptr1 ptr2)
-  (bqq or (p< (uq ptr1) (uq ptr2)) (p= (uq ptr1) (uq ptr2)))))
+  (qq or (p< (uq ptr1) (uq ptr2)) (p= (uq ptr1) (uq ptr2)))))
 
 #|
 @macro p>=
@@ -512,7 +512,7 @@ cast to a void pointer, is passed.
 @linkage extern
 |#
 (def p>= (macro extern (ptr1 ptr2)
-  (bqq or (p> (uq ptr1) (uq ptr2)) (p= (uq ptr1) (uq ptr2)))))
+  (qq or (p> (uq ptr1) (uq ptr2)) (p= (uq ptr1) (uq ptr2)))))
 
 #|
 @macro make-macro-constant
@@ -525,7 +525,7 @@ expands to the value.
 |#
 (def make-macro-constant
   (macro extern (name value)
-    (bqq def (uq name)
+    (qq def (uq name)
         (macro extern (void) (std.macros.mnfv mc (uq value))))))
 
 #|
@@ -646,7 +646,7 @@ expands to:
 
     (let ((first-node \ (mnfv mc "do"))
           (anchor   \ first-node)
-          (body     \ (bqq do (uql varargs-list)))
+          (body     \ (qq do (uql varargs-list)))
           (bodycopy (p DNode))
           (ms       mfor-struct))
       (setv value-list (@:@ value-list list-node))
@@ -661,7 +661,7 @@ expands to:
         (setf (:@ anchor next-node) bodycopy)
         (setv anchor (@:@ anchor next-node))
         (setv value-list (@:@ value-list next-node)))
-      (new-scope (bqq (uql first-node))))))
+      (new-scope (qq (uql first-node))))))
 
 #|
 @macro no-op
@@ -684,7 +684,7 @@ end.
 
 |#
 (def ignore (macro extern (rest)
-  (bqq no-op)))
+  (qq no-op)))
 
 #|
 @macro identity
@@ -712,9 +712,9 @@ these macros has the same name as the original function, except with a
     (let ((buf (array-of 4 char)))
       (sprintf buf "%s'" (@:@ F token-str))
       (let ((F' \ (mnfv mc buf)))
-        (bqq def (uq F')
+        (qq def (uq F')
           (macro extern ((a (uq T)) b)
-            (bqq (uq F) (uq (uq a)) (cast (uq (uq b)) (uq T)))))))))
+            (qq (uq F) (uq (uq a)) (cast (uq (uq b)) (uq T)))))))))
 (mfor T (char
          int  int16  int32  int64
          uint uint16 uint32 uint64
