@@ -37,10 +37,10 @@ true.
 |#
 (def and (macro extern (a b)
   (if (is-lvalue mc a)
-    (bqq if (not (is-valid (uq a))) (uq a) (uq b))
+    (qq if (not (is-valid (uq a))) (uq a) (uq b))
     (new-scope
       (def tmp (var auto \ (make-gensym-var-node mc)))
-      (bqq new-scope
+      (qq new-scope
         (def (uq tmp) (var auto \ (uq a)))
         (if (not (is-valid (uq tmp))) (uq tmp) (uq b)))))))
 
@@ -55,10 +55,10 @@ otherwise.  A object `o` is valid if `(is-valid o)` returns true.
 |#
 (def or (macro extern (a b)
   (if (is-lvalue mc a)
-    (bqq if (is-valid (uq a)) (uq a) (uq b))
+    (qq if (is-valid (uq a)) (uq a) (uq b))
     (new-scope
       (def tmp (var auto \ (make-gensym-var-node mc)))
-      (bqq new-scope
+      (qq new-scope
         (def (uq tmp) (var auto \ (uq a)))
         (if (is-valid (uq tmp)) (uq tmp) (uq b)))))))
 
