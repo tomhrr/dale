@@ -281,7 +281,7 @@ a `let` variable binding (e.g. `(i \ 0)`), or a `setv` call (e.g.
       (setv init-form (@:@ init-form next-node)))
 
     (def retform (var auto \
-    (bqq new-scope
+    (qq new-scope
         (do (uql init-holder))
         (label (uq begin-label))
           (if (uq-nc condition)
@@ -386,7 +386,7 @@ expands to:
 
       (setv vars-node (@:@ vars-node next-node)))
 
-    (bqq new-scope (uql-nc first-node) (do (uql-nc varargs-list)))))
+    (qq new-scope (uql-nc first-node) (do (uql-nc varargs-list)))))
 
 (def cond-error-check
   (macro intern (condition element message)
@@ -451,9 +451,11 @@ The last condition test must be the literal `true`.
         (setf (:@ first next-node) (nullptr DNode))
         (if begin
             (do (if (= arg-count 1)
-                    (do (setv frm (bqq do (uq-nc second)))
+                    (do (setv frm (qq do (uq-nc second)))
+                        (setv last (@:' frm list-node next-node))
                         true)
-                    (do (setv frm (bqq if (uq-nc first) (uq-nc second)))
+                    (do (setv frm (qq if (uq-nc first) (uq-nc second)))
+                        (setv last (@:' frm list-node next-node next-node))
                         (setv begin false)
                         true)))
             (do (if (= arg-count 1)
@@ -463,14 +465,15 @@ The last condition test must be the literal `true`.
                           first
                           "last cond argument list condition must be 'true'")
                         (setf (:@ last next-node) second)
+                        (setv last second)
                         true)
                     (do (def nextn
                           (var auto (p DNode)
-                                    (bqq if (uq-nc first) (uq-nc second))))
+                                    (qq if (uq-nc first) (uq-nc second))))
                         (setf (:@ last next-node) nextn)
+                        (setv last (@:' nextn list-node next-node next-node))
                         true))))
         (setv arg-count (- arg-count 1))
-        (setv last second)
         (goto begin-loop)
 
     (label end-loop)

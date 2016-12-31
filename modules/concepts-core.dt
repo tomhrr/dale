@@ -215,8 +215,8 @@ constructed by way of `def-concept-macro`.
         (link-nodes-array rn-count new-linknodes)))
     (if (null linked-refine-nodes)
         (do (setv linked-refine-nodes (link-nodes 2 
-                    (bqq namespace unused1)
-                    (bqq namespace unused2))))
+                    (qq namespace unused1)
+                    (qq namespace unused2))))
         true)
 
     (def arg-count (var auto \ (arg-count mc)))
@@ -247,7 +247,7 @@ constructed by way of `def-concept-macro`.
     (def check-fn-name-node
       (var auto \ (mnfv mc check-fn-name)))
 
-    (let ((mine \ (bqq do
+    (let ((mine \ (qq do
         (def (uq check-fn-name-node)
           (fn (attr cto) extern bool (((uq ta) (p DNode))
                                        (mc (p MContext)))
