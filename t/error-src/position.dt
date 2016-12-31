@@ -4,7 +4,7 @@
 
 (def tm
   (macro extern (T T2)
-    (std.macros.bqq ++ (uq T) (+++ asdf asdf))))
+    (std.macros.qq ++ (uq T) (+++ asdf asdf))))
 
 (def main 
   (fn extern-c int (void)

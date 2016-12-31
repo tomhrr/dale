@@ -1009,7 +1009,7 @@ used again.
 
 @param frm      A node.
 |#
-(def bqq (macro extern (frm rest)
+(def bqq (macro intern (frm rest)
     (def arg-count (var auto \ (arg-count mc)))
 
     (setv arg-count (- arg-count 1))

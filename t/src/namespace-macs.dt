@@ -9,7 +9,7 @@
 (namespace y
   (def other-macro
     (macro intern (y-mac)
-      (std.macros.bqq printf "not the identity macro\n"))))
+      (std.macros.qq printf "not the identity macro\n"))))
 
 (def main
   (fn extern-c int (void)

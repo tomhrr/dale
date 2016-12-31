@@ -11,7 +11,7 @@
                                                 (uq first-arg))))
           (fn2-ret-type (p DNode) (codomain mc (qq (uq fn2)
                                                 (uq fn1-ret-type)))))
-     (bqq def (uq new-name)
+     (qq def (uq new-name)
        (fn extern (uq fn2-ret-type) ((n (uq first-arg)))
          ((uq fn2) ((uq fn1) n)))))))
 )

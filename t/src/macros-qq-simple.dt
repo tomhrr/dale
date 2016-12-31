@@ -3,7 +3,7 @@
 
 (def qq-test
   (macro intern (void)
-    (std.macros.bqq + 1 2)))
+    (std.macros.qq + 1 2)))
 
 (def main
   (fn extern-c int (void)

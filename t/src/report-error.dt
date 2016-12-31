@@ -6,8 +6,8 @@
   (macro intern (f)
     (if (not (exists-type mc f))
         (do (report-error mc f "this node is not a type")
-            (std.macros.bqq + 0 0))
-        (std.macros.bqq + 0 1))))
+            (std.macros.qq + 0 0))
+        (std.macros.qq + 0 1))))
 
 (def main
   (fn extern-c int (void)

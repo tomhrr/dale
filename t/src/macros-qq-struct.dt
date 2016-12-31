@@ -12,7 +12,7 @@
     (strcat buf (@ (:@ frm-name token-str)))
     (def name-node (var auto (p DNode) (mnfv mc buf)))
 
-    (bqq do
+    (qq do
         (def (uq name-node) 
             (struct extern((value (uq frm-type)) 
                      (next   (p (uq name-node)))))))))
