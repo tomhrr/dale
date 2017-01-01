@@ -1043,70 +1043,6 @@ used again.
         (return x)))
 
 #|
-@macro std.macros.get-varargs-list
-
-Takes a macro context, an argument count, and a pointer to a DNode
-pointer as its arguments.  Returns the first node of a linked node
-list containing each of the nodes from the DNode pointer list,
-suitable for using as the argument to the `uql` and `uql-nc` forms.
-(The third argument here is typically the macro's 'rest' argument.
-The difference between 'rest' and the return value of this function is
-that the nodes here will be linked together.)
-
-@linkage extern
-|#
-(def get-varargs-list
-  (fn extern (p DNode) ((mc (p MContext)) (arg-count int) (arglist (p (p DNode))))
-    (def arg-count-original (var auto int arg-count))
-    (def arg-array-original
-        (var auto (p (p DNode))
-                (cast (pool-malloc mc
-                                   (* (sizeof (p DNode))
-                                      (cast arg-count size)))
-                      (p (p DNode)))))
-    (def arg-array (var auto (p (p DNode)) arg-array-original))
-    (def index (var auto int 0))
-
-    (label begin)
-      (if (= arg-count 0)
-        (goto end)
-        (do
-            (setf arg-array (@$ arglist index))
-            (setv index (+ index 1))
-            (setv arg-array (p+ arg-array 1))
-            (setv arg-count (- arg-count 1))
-            (goto begin)))
-
-    (label end)
-      (return (link-nodes-array arg-count-original
-                                arg-array-original))))
-
-
-; Helper function only, use the simple version instead.
-(def get-varargs-list (macro extern (name (count int))
-  (bqq do
-    (def (uq name) (var auto (p DNode)))
-    (new-scope
-      (setv (uq name) (std.macros.get-varargs-list mc (uq count) rest))))))
-
-#|
-@macro std.macros.get-varargs-list
-
-Simple version of `get-varargs-list`, only takes the count as parameter.
-
-@linkage extern
-|#
-(def get-varargs-list (macro extern ((count int))
-  (def name (var auto \ (make-gensym-var-node mc)))
-  (bqq do 
-    (std.macros.get-varargs-list (uq name) (uq count))
-    (move (uq name)))))
-
-(def pool-malloc' (macro extern (n T)
-  (bqq cast (pool-malloc mc (* (cast (uq n) size) (sizeof (uq T))))
-            (p (uq T)))))
-
-#|
 @macro @:'
 
 Takes a struct pointer and one or more struct member names as its
@@ -1482,4 +1418,69 @@ nodes are supported.
           ;(DNode-print res)
           ;(printf "\n")
           res))
+
+#|
+@macro std.macros.get-varargs-list
+
+Takes a macro context, an argument count, and a pointer to a DNode
+pointer as its arguments.  Returns the first node of a linked node
+list containing each of the nodes from the DNode pointer list,
+suitable for using as the argument to the `uql` and `uql-nc` forms.
+(The third argument here is typically the macro's 'rest' argument.
+The difference between 'rest' and the return value of this function is
+that the nodes here will be linked together.)
+
+@linkage extern
+|#
+(def get-varargs-list
+  (fn extern (p DNode) ((mc (p MContext)) (arg-count int) (arglist (p (p DNode))))
+    (def arg-count-original (var auto int arg-count))
+    (def arg-array-original
+        (var auto (p (p DNode))
+                (cast (pool-malloc mc
+                                   (* (sizeof (p DNode))
+                                      (cast arg-count size)))
+                      (p (p DNode)))))
+    (def arg-array (var auto (p (p DNode)) arg-array-original))
+    (def index (var auto int 0))
+
+    (label begin)
+      (if (= arg-count 0)
+        (goto end)
+        (do
+            (setf arg-array (@$ arglist index))
+            (setv index (+ index 1))
+            (setv arg-array (p+ arg-array 1))
+            (setv arg-count (- arg-count 1))
+            (goto begin)))
+
+    (label end)
+      (return (link-nodes-array arg-count-original
+                                arg-array-original))))
+
+
+; Helper function only, use the simple version instead.
+(def get-varargs-list (macro extern (name (count int))
+  (qq do
+    (def (uq name) (var auto (p DNode)))
+    (new-scope
+      (setv (uq name) (std.macros.get-varargs-list mc (uq count) rest))))))
+
+#|
+@macro std.macros.get-varargs-list
+
+Simple version of `get-varargs-list`, only takes the count as parameter.
+
+@linkage extern
+|#
+(def get-varargs-list (macro extern ((count int))
+  (def name (var auto \ (make-gensym-var-node mc)))
+  (qq do
+    (std.macros.get-varargs-list (uq name) (uq count))
+    (move (uq name)))))
+
+(def pool-malloc' (macro extern (n T)
+  (qq cast (pool-malloc mc (* (cast (uq n) size) (sizeof (uq T))))
+            (p (uq T)))))
+
 ))
