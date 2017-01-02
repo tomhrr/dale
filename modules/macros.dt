@@ -30,6 +30,22 @@ Returns a newly-allocated node.
     n))
 
 #|
+@fn std.macros.is-empty-node
+
+Returns a boolean indicating whether the node is an empty node (no
+list and no token).
+
+@param form     The node.
+|#
+(def is-empty-node
+  (fn extern bool ((form (p DNode)))
+    (if (= 0 (@:@ form is-list))
+        (if (null (@:@ form token-str))
+            true
+            false)
+        false)))
+
+#|
 @fn std.macros.make-empty-list-node
 
 Returns a newly-allocated empty list node.
@@ -1120,6 +1136,25 @@ is `(@:@ (@:@ structp member1) member2)`.
       true)
   true))
 
+(def excise-empty-nodes (fn extern bool ((mc (p MContext)) (frm (p DNode)))
+  (if (null frm)
+      (return false)
+      true)
+  (if (not (null (@:@ frm list-node)))
+      (excise-empty-nodes mc (@:@ frm list-node))
+      true)
+  (if (not (null (@:@ frm next-node)))
+      (do (if (is-empty-node (@:@ frm next-node))
+              (do (setf (:@ frm next-node)
+                        (@:' frm next-node next-node))
+                  (excise-empty-nodes mc frm)
+                  true)
+              true)
+          (do (excise-empty-nodes mc (@:@ frm next-node))
+              true))
+      true)
+  true))
+
 #|
 @macro qq
 
@@ -1414,6 +1449,7 @@ nodes are supported.
             (def trailing  (var auto (p DNode)))
             (def newnode   (var auto (p DNode)))
             (uql-nc block-start)
+            (std.macros.excise-empty-nodes mc (uq vn))
             (uq vn)))))
           ;(DNode-print res)
           ;(printf "\n")
