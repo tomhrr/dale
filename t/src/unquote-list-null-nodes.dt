@@ -1,0 +1,10 @@
+(import macros)
+
+(def mym (macro intern (void)
+  (def x (var auto \ (std.macros.make-node mc)))
+  (std.macros.qq (uq x) printf "%s %s\n"
+                 (uq x) (uq-nc x) ((uq x) do "asdf" (uql x)) (uql x) "qwer" (uql-nc x))))
+
+(def main (fn extern-c int (void)
+  (mym)
+  0))
