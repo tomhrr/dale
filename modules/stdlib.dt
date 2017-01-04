@@ -140,7 +140,7 @@ for so long as the condition expression evaluates to `true`.
     (def end-label
         (var auto (p DNode) (make-gensym-label-node mc "breaklabel")))
 
-    (and (null varargs-list)
+    (and (is-empty-node varargs-list)
       (do (report-error mc condition "no body forms provided")
           (return (nullptr DNode))))
 
@@ -234,7 +234,7 @@ a `let` variable binding (e.g. `(i \ 0)`), or a `setv` call (e.g.
     (def end-label
         (var auto (p DNode) (make-gensym-label-node mc "breaklabel")))
 
-    (and (null varargs-list)
+    (and (is-empty-node varargs-list)
       (do (report-error mc init-form "no body forms provided")
           (return (nullptr DNode))))
 
@@ -320,7 +320,7 @@ expands to:
     (setv arg-count (- arg-count 1))
     (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
 
-    (and (null varargs-list)
+    (and (is-empty-node varargs-list)
       (do (report-error mc new-vars "no body forms provided")
           (return (nullptr DNode))))
 
@@ -642,7 +642,7 @@ expands to:
     (setv arg-count (- arg-count 2))
     (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
 
-    (and (null varargs-list)
+    (and (is-empty-node varargs-list)
       (do (report-error mc value-name "no body forms provided")
           (return (nullptr DNode))))
     (def original-value-list (var auto \ value-list))
