@@ -1481,6 +1481,9 @@ that the nodes here will be linked together.)
 |#
 (def get-varargs-list
   (fn extern (p DNode) ((mc (p MContext)) (arg-count int) (arglist (p (p DNode))))
+    (if (= arg-count 0)
+        (return (make-node mc))
+        true)
     (def arg-count-original (var auto int arg-count))
     (def arg-array-original
         (var auto (p (p DNode))

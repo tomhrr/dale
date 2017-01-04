@@ -1,0 +1,18 @@
+(import stdlib)
+
+(using-namespace std.macros
+  (def printf-wrap
+    (macro extern (rest)
+      (def arg-count (var auto \ (arg-count mc)))
+      (def arglist (var auto va-list))
+      (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
+      (qq do (printf "begin\n")
+             (uql varargs-list)
+             (printf "end\n"))))
+
+  (def main
+    (fn extern-c int (void)
+      (printf-wrap)
+      (printf-wrap (printf "1\n"))
+      (printf-wrap)
+      0)))
