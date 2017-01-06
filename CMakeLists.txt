@@ -66,9 +66,11 @@ endif ()
 execute_process (COMMAND ${LLVM_CONFIG} --libs
                  OUTPUT_VARIABLE LLVM_LIBS
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process (COMMAND ${LLVM_CONFIG} --system-libs
-                 OUTPUT_VARIABLE LLVM_SYSTEM_LIBS
-                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+if (${D_LLVM_VERSION_MINOR} GREATER 4)
+    execute_process (COMMAND ${LLVM_CONFIG} --system-libs
+                     OUTPUT_VARIABLE LLVM_SYSTEM_LIBS
+                     OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif ()
 execute_process (COMMAND ${LLVM_CONFIG} --ldflags
                  OUTPUT_VARIABLE LLVM_LINK_FLAGS
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -142,11 +144,22 @@ endif ()
 
 # Set compile/link flags.
 set (DALEC_LIBDIR_FLAGS_ "$ENV{LDFLAGS} ${FFI_LIBRARY_DIR}")
+set (DALEC_LIB_FLAGS_    "-lffi -lpthread")
+
+if (${D_LLVM_VERSION_MINOR} GREATER 4)
+    set (DALEC_LIB_FLAGS_ ${LLVM_SYSTEM_LIBS})
+elseif (${D_LLVM_VERSION_MINOR} GREATER 3)
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        set (DALEC_LIB_FLAGS_ "${DALEC_LIB_FLAGS_} -lz -lncurses")
+    else ()
+        set (DALEC_LIB_FLAGS_ "${DALEC_LIB_FLAGS_} -lz -ltinfo")
+    endif ()
+endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-    set (DALEC_LINK_FLAGS_ "${DALEC_LIBDIR_FLAGS_} -L/usr/local/lib ${LLVM_SYSTEM_LIBS}")
+    set (DALEC_LINK_FLAGS_ "${DALEC_LIBDIR_FLAGS_} -L/usr/local/lib ${DALEC_LIB_FLAGS_}")
 else ()
-    set (DALEC_LINK_FLAGS_ "${DALEC_LIBDIR_FLAGS_} ${LLVM_SYSTEM_LIBS} -ldl")
+    set (DALEC_LINK_FLAGS_ "${DALEC_LIBDIR_FLAGS_} ${DALEC_LIB_FLAGS_} -ldl")
 endif ()
 
 # LLVM 3.5 relies on C++11.
