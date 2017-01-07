@@ -1,0 +1,23 @@
+(import macros)
+(import introspection)
+
+(using-namespace std.macros
+  (def arg-types (fn (attr cto) extern (p DNode) ((mc (p MContext)) (form (p DNode)))
+    (map-nodes mc form (nullptr void)
+      (fn (attr cto) (p DNode) ((mc (p MContext)) (form (p DNode)) (a (p void)))
+        (type-of mc form false)))))
+
+  (def print-arg-types (macro intern (rest)
+    (def vl (var auto \ (get-varargs-list (arg-count mc))))
+    (def at (var auto \ (arg-types mc vl)))
+    (print at)
+    (printf "\n")
+    (return (nullptr DNode))))
+
+  (def main
+    (fn extern-c int (void)
+       (def a (var auto int 0))
+       (print-arg-types a)
+       (def b (var auto float 0.0))
+       (print-arg-types a b)
+       0)))

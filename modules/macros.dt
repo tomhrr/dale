@@ -1533,4 +1533,32 @@ Simple version of `get-varargs-list`, only takes the count as parameter.
   (qq cast (pool-malloc mc (* (cast (uq n) size) (sizeof (uq T))))
             (p (uq T)))))
 
+#|
+@fn std.macros.map-nodes
+
+Similar to `walk-nodes`, except that it does not descend into list
+nodes, and the provided function returns a node (possibly different
+from the argument node), rather than mutating the argument node in
+place.
+
+@param mc       An MContext.
+@param form     The node to map.
+@param data     Arbitrary data.
+@param fn       The function pointer to call for each node.
+|#
+(def map-nodes
+  (fn (attr cto) extern (p DNode) ((mc   (p MContext))
+                                   (list (p DNode))
+                                   (data (p void))
+                                   (fn   (p (fn (p DNode) ((mc   (p MContext))
+                                                           (node (p DNode))
+                                                           (data (p void)))))))
+    (def elt (var auto \ (funcall fn mc list data)))
+    (if (not (null (@:@ list next-node)))
+        (new-scope
+          (def remaining
+            (var auto \ (@:@ (map-nodes mc (@:@ list next-node) data fn)
+                             list-node)))
+          (qq (uq elt) (uql remaining)))
+        (qq (uq elt)))))
 ))
