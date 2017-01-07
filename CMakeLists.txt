@@ -144,17 +144,11 @@ endif ()
 
 # Set compile/link flags.
 set (DALEC_LIBDIR_FLAGS_ "$ENV{LDFLAGS} ${FFI_LIBRARY_DIR}")
-set (DALEC_LIB_FLAGS_    "-lffi -lpthread")
+set (DALEC_LIB_FLAGS_    "")
 
 if (${D_LLVM_VERSION_MINOR} GREATER 4)
     set (DALEC_LIB_FLAGS_ ${LLVM_SYSTEM_LIBS})
-elseif (${D_LLVM_VERSION_MINOR} GREATER 3)
-    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        set (DALEC_LIB_FLAGS_ "${DALEC_LIB_FLAGS_} -lz -lncurses")
-    else ()
-        set (DALEC_LIB_FLAGS_ "${DALEC_LIB_FLAGS_} -lz -ltinfo")
-    endif ()
-endif()
+endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     set (DALEC_LINK_FLAGS_ "${DALEC_LIBDIR_FLAGS_} -L/usr/local/lib ${DALEC_LIB_FLAGS_}")
@@ -306,7 +300,7 @@ add_executable (dalec src/dale/dalec.cpp
                       src/dale/Form/Proc/Include/Include.cpp)
 set_target_properties (dalec PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS} -I.")
 set_target_properties (dalec PROPERTIES LINK_FLAGS "${DALEC_LINK_FLAGS} ${LLVM_LINK_FLAGS} -rdynamic")
-target_link_libraries (dalec ${LLVM_LIBS} ${DALEC_LINK_FLAGS})
+target_link_libraries (dalec ${LLVM_LIBS} ${DALEC_LINK_FLAGS} ${LLVM_LINK_FLAGS})
 install (TARGETS dalec DESTINATION bin)
 
 # Run tests.
