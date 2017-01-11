@@ -17,6 +17,9 @@ sub type_to_string
     if ($tag eq 'pointer') {
         return "(p ".(type_to_string($type->{'type'})).")";
     }
+    if ($tag eq 'struct') {
+        return $type->{'name'};
+    }
 
     return $tag;
 }
@@ -40,6 +43,15 @@ sub process_function
             $param_str);
 }
 
+sub process_variable
+{
+    my ($data) = @_;
+
+    sprintf("(def %s (var extern %s))",
+            $data->{'name'},
+            type_to_string($data->{'type'}));
+}
+
 sub main
 {
     while (defined (my $entry = <>)) {
@@ -52,8 +64,12 @@ sub main
         }
         $entry =~ s/,\s*$//;
         my $data = decode_json($entry);
-        if ($data->{'tag'} eq 'function') {
+        my $tag = $data->{'tag'};
+        if ($tag eq 'function') {
             my $str = process_function($data);
+            print "$str\n";
+        } elsif ($tag eq 'extern') {
+            my $str = process_variable($data);
             print "$str\n";
         }
     }
