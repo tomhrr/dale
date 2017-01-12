@@ -289,7 +289,7 @@ later.)
 
         (let ((holder  \ (nullptr DNode))
               (current \ (nullptr DNode)))
-          (and (not (is-empty-node forms))
+          (and (not (std.macros.is-empty-node forms))
             (while (not (null forms))
               (let ((first       \ (@:@ forms list-node))
                     (second      \ (@:@ first next-node))
