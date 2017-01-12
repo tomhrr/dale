@@ -52,6 +52,20 @@ sub process_variable
             type_to_string($data->{'type'}));
 }
 
+sub process_struct
+{
+    my ($data) = @_;
+
+    my @fields =
+        map { sprintf("(%s %s)", $_->{'name'}, type_to_string($_->{'type'})) }
+            @{$data->{'fields'}};
+    my $field_str = (@fields ? " (".(join ' ', @fields).")" : "");
+
+    sprintf("(def %s (struct extern%s))",
+            $data->{'name'},
+            $field_str);
+}
+
 sub main
 {
     while (defined (my $entry = <>)) {
@@ -70,6 +84,9 @@ sub main
             print "$str\n";
         } elsif ($tag eq 'extern') {
             my $str = process_variable($data);
+            print "$str\n";
+        } elsif ($tag eq 'struct') {
+            my $str = process_struct($data);
             print "$str\n";
         }
     }
