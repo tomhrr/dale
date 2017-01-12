@@ -359,6 +359,7 @@ later.)
         (case-def       \ (create-case mc name enumnode instances)))
     (qq do
       (def-enum (uq enumnode) extern int (uq enum-elements))
+      (def (uq name) (struct extern))
       (uq struct-defs)
       (uq variant-struct)
       (uq constructors)
