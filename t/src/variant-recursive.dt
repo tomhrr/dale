@@ -1,0 +1,21 @@
+(import variant)
+
+(def-variant List ((Cons ((a (p List)) (b (p List)))) Null))
+
+(def print-list (fn intern void ((list List))
+  (case list
+    (Cons (do (printf "a: ")
+              (print-list (@ (@:@ list a)))
+              (printf ", b: ")
+              (print-list (@ (@:@ list b)))
+              (printf " ")))
+    (Null (do (printf "null "))))))
+
+(def main (fn extern-c int (void)
+  (def mylist (var auto List (Null)))
+  (def myotherlist (var auto List (Cons (# mylist) (# mylist))))
+  (print-list mylist)
+  (printf "\n")
+  (print-list myotherlist)
+  (printf "\n")
+  0))
