@@ -52,6 +52,15 @@ sub process_variable
             type_to_string($data->{'type'}));
 }
 
+sub process_const
+{
+    my ($data) = @_;
+
+    sprintf("(def %s (var intern %s))",
+            $data->{'name'},
+            type_to_string($data->{'type'}));
+}
+
 sub process_struct
 {
     my ($data) = @_;
@@ -62,6 +71,20 @@ sub process_struct
     my $field_str = (@fields ? " (".(join ' ', @fields).")" : "");
 
     sprintf("(def %s (struct extern%s))",
+            $data->{'name'},
+            $field_str);
+}
+
+sub process_enum
+{
+    my ($data) = @_;
+
+    my @fields =
+        map { sprintf("(%s %s)", $_->{'name'}, $_->{'value'}) }
+            @{$data->{'fields'}};
+    my $field_str = (@fields ? " (".(join ' ', @fields).")" : "");
+
+    sprintf("(def-enum %s extern int%s)",
             $data->{'name'},
             $field_str);
 }
@@ -87,6 +110,12 @@ sub main
             print "$str\n";
         } elsif ($tag eq 'struct') {
             my $str = process_struct($data);
+            print "$str\n";
+        } elsif ($tag eq 'const') {
+            my $str = process_const($data);
+            print "$str\n";
+        } elsif ($tag eq 'enum') {
+            my $str = process_enum($data);
             print "$str\n";
         }
     }
