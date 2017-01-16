@@ -57,7 +57,7 @@ sub process_function
 
     sprintf("(def %s (fn %s %s %s))",
             $data->{'name'},
-            $data->{'storage_class'},
+            $data->{'storage-class'},
             type_to_string($data->{'return-type'}),
             $param_str);
 }
