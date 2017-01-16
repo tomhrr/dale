@@ -167,6 +167,7 @@ addStandardVariables(Unit *unit)
     AV_INT("FPOS_T",           sizeof (fpos_t));
     AV_INT("TIME_T",           sizeof (time_t));
     AV_INT("CLOCK_T",          sizeof (clock_t));
+    AV_INT("SIZEOF_SHORT",     sizeof (short));
     AV_INT("SIZEOF_LONG",      sizeof (long));
     AV_INT("SIZEOF_LONG_LONG", sizeof (long long));
 

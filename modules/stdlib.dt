@@ -532,10 +532,47 @@ expands to the value.
         (macro extern (void) (std.macros.mnfv mc (uq value))))))
 
 #|
+@macro short-type
+
+Expands to an integer type that has the same size as the system C
+compiler's `short` type. Only intended for use when writing C bindings.
+
+@linkage extern
+|#
+(def short-type
+  (macro extern (void)
+    (let ((n  \ SIZEOF_SHORT)
+          (ts \ (if (= n 2)  "int16"
+                (if (= n 4)  "int32"
+                (if (= n 8)  "int64"
+                (if (= n 16) "int128"
+                             "invalid-short-type"))))))
+      (mnfv mc ts))))
+
+#|
+@macro ushort-type
+
+Expands to an unsigned integer type that has the same size as the
+system C compiler's `unsigned short` type. Only intended for use when
+writing C bindings.
+
+@linkage extern
+|#
+(def ushort-type
+  (macro extern (void)
+    (let ((n  \ SIZEOF_SHORT)
+          (ts \ (if (= n 2)  "uint16"
+                (if (= n 4)  "uint32"
+                (if (= n 8)  "uint64"
+                (if (= n 16) "uint128"
+                             "invalid-ushort-type"))))))
+      (mnfv mc ts))))
+
+#|
 @macro long-type
 
-Expands to `sizeof(long)`. Only intended for use when writing C
-bindings.
+Expands to an integer type that has the same size as the system C
+compiler's `long` type. Only intended for use when writing C bindings.
 
 @linkage extern
 |#
@@ -551,8 +588,9 @@ bindings.
 #|
 @macro ulong-type
 
-Expands to `sizeof(unsigned long)`. Only intended for use when writing
-C bindings.
+Expands to an unsigned integer type that has the same size as the
+system C compiler's `unsigned long` type. Only intended for use when
+writing C bindings.
 
 @linkage extern
 |#
@@ -568,8 +606,9 @@ C bindings.
 #|
 @macro long-long-type
 
-Expands to `sizeof(long long)`. Only intended for use when writing
-C bindings.
+Expands to an integer type that has the same size as the system C
+compiler's `long long` type. Only intended for use when writing C
+bindings.
 
 @linkage extern
 |#
@@ -584,8 +623,9 @@ C bindings.
 #|
 @macro ulong-long-type
 
-Expands to `sizeof(unsigned long long)`. Only intended for use when
-writing C bindings.
+Expands to an unsigned integer type that has the same size as the
+system C compiler's `unsigned long long` type. Only intended for use
+when writing C bindings.
 
 @linkage extern
 |#

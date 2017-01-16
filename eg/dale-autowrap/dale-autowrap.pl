@@ -5,6 +5,17 @@ use strict;
 
 use JSON::XS qw(decode_json);
 
+my %TYPEMAP = (
+    'unsigned-int'       => 'uint',
+    'unsigned-char'      => 'uint8',
+    'short'              => '(short-type)',
+    'unsigned-short'     => '(ushort-type)',
+    'long'               => '(long-type)',
+    'unsigned-long'      => '(ulong-type)',
+    'long-long'          => '(long-long-type)',
+    'unsigned-long-long' => '(ulong-long-type)',
+);
+
 sub type_to_string
 {
     my ($type) = @_;
@@ -17,8 +28,16 @@ sub type_to_string
     if ($tag eq 'pointer') {
         return "(p ".(type_to_string($type->{'type'})).")";
     }
+    if ($tag eq 'array') {
+        return "(array-of ".$type->{'size'}." ".
+                (type_to_string($type->{'type'})).")";
+    }
     if ($tag eq 'struct') {
         return $type->{'name'};
+    }
+    my $mapped_type = $TYPEMAP{$tag};
+    if ($mapped_type) {
+        return $mapped_type;
     }
 
     return $tag;
@@ -91,6 +110,8 @@ sub process_enum
 
 sub main
 {
+    print "(import stdlib)\n";
+
     while (defined (my $entry = <>)) {
         chomp $entry;
         if ($entry eq '[') {
