@@ -16,6 +16,12 @@ my %TYPEMAP = (
     'unsigned-long-long' => '(ulong-long-type)',
 );
 
+my %SCMAP = (
+    'static' => 'intern',
+    'none'   => 'extern-c',
+    'extern' => 'extern-c',
+);
+
 sub type_to_string
 {
     my ($type) = @_;
@@ -43,6 +49,11 @@ sub type_to_string
     return $tag;
 }
 
+sub storage_class_to_string
+{
+    return $SCMAP{$_[0]};
+}
+
 sub process_function
 {
     my ($data) = @_;
@@ -57,7 +68,8 @@ sub process_function
 
     sprintf("(def %s (fn %s %s %s))",
             $data->{'name'},
-            $data->{'storage_class'},
+            storage_class_to_string($data->{'storage_class'}
+                                 || $data->{'storage-class'}),
             type_to_string($data->{'return-type'}),
             $param_str);
 }
