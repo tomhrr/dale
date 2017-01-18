@@ -8,6 +8,7 @@ use JSON::XS qw(decode_json);
 my %TYPEMAP = (
     'unsigned-int'       => 'uint',
     'unsigned-char'      => 'uint8',
+    'signed-char'        => 'int8',
     'short'              => '(short-type)',
     'unsigned-short'     => '(ushort-type)',
     'long'               => '(long-type)',
@@ -120,6 +121,15 @@ sub process_enum
             $field_str);
 }
 
+sub process_typedef
+{
+    my ($data) = @_;
+
+    sprintf("(def %s (struct extern ((a %s))))",
+            $data->{'name'},
+            type_to_string($data->{'type'}));
+}
+
 sub main
 {
     print "(import stdlib)\n";
@@ -149,6 +159,9 @@ sub main
             print "$str\n";
         } elsif ($tag eq 'enum') {
             my $str = process_enum($data);
+            print "$str\n";
+        } elsif ($tag eq 'typedef') {
+            my $str = process_typedef($data);
             print "$str\n";
         }
     }
