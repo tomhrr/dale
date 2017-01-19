@@ -30,6 +30,19 @@ Parameters:
 Returns a newly-allocated node.
 
 
+#### `std.macros.is-empty-node`
+
+Linkage: `extern`
+Returns: `bool`
+Parameters:
+
+  * `(form (p DNode))`: The node.
+
+
+Returns a boolean indicating whether the node is an empty node (no
+list and no token).
+
+
 #### `std.macros.make-empty-list-node`
 
 Linkage: `extern`
@@ -438,13 +451,29 @@ Parameters:
 A helper function for `bqq` (bootstrap-qq).
 
 
+#### `std.macros.map-nodes`
+
+Linkage: `(attr cto)`
+Returns: `extern`
+Parameters:
+
+  * `p`: An MContext.
+  * `DNode`: The node to map.
+
+
+Similar to `walk-nodes`, except that it does not descend into list
+nodes, and the provided function returns a node (possibly different
+from the argument node), rather than mutating the argument node in
+place.
+
+
 
 
 ### Macros
 
 #### `std.macros.bqq`
 
-Linkage: `extern`
+Linkage: `intern`
 Parameters:
 
   * `frm`: A node.
@@ -457,35 +486,6 @@ are `uq` (unquote), `uq-nc` (unquote-no-copy), `uql` (unquote-list)
 and `uql-nc` (unquote-list-no-copy). The no-copy versions of these
 forms should only be used when the nodes being unquoted will not be
 used again.
-
-
-#### `std.macros.get-varargs-list`
-
-Linkage: `extern`
-Parameters:
-
-  * `p`
-  * `DNode`
-
-
-Takes a macro context, an argument count, and a pointer to a DNode
-pointer as its arguments.  Returns the first node of a linked node
-list containing each of the nodes from the DNode pointer list,
-suitable for using as the argument to the `uql` and `uql-nc` forms.
-(The third argument here is typically the macro's 'rest' argument.
-The difference between 'rest' and the return value of this function is
-that the nodes here will be linked together.)
-
-
-#### `std.macros.get-varargs-list`
-
-Linkage: `extern`
-Parameters:
-
-  * `(count int)`
-
-
-Simple version of `get-varargs-list`, only takes the count as parameter.
 
 
 #### `@:'`
@@ -539,6 +539,35 @@ unquote form will expand to that argument.  For example, `(qq do (uq
 (mnfv mc 1)))` will expand to `(do (mnfv mc 1))`.  Issue #140 is
 tracking this problem, and will be resolved when arbitrary argument
 nodes are supported.
+
+
+#### `std.macros.get-varargs-list`
+
+Linkage: `extern`
+Parameters:
+
+  * `p`
+  * `DNode`
+
+
+Takes a macro context, an argument count, and a pointer to a DNode
+pointer as its arguments.  Returns the first node of a linked node
+list containing each of the nodes from the DNode pointer list,
+suitable for using as the argument to the `uql` and `uql-nc` forms.
+(The third argument here is typically the macro's 'rest' argument.
+The difference between 'rest' and the return value of this function is
+that the nodes here will be linked together.)
+
+
+#### `std.macros.get-varargs-list`
+
+Linkage: `extern`
+Parameters:
+
+  * `(count int)`
+
+
+Simple version of `get-varargs-list`, only takes the count as parameter.
 
 
 [Previous](./2-3-math.md) | [Next](./2-5-stdlib.md)

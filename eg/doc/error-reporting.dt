@@ -1,5 +1,5 @@
 (import introspection)
-(import macros)
+(import stdlib)
 
 (using-namespace std.macros
   (def assert-is-struct (macro intern (st)

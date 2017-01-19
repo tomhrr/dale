@@ -176,7 +176,7 @@ able to be built.  It has been tested on the following:
 
 ```
 (import introspection)
-(import macros)
+(import stdlib)
 
 (def Point (struct intern ((x int) (y int))))
 
@@ -196,15 +196,17 @@ able to be built.  It has been tested on the following:
     0)))
 ```
 ```
-> ./introspection.dt:8:7: error: not in scope: 'let'
-> ./introspection.dt:18:6: error: not in scope: 'show-struct-details'
+> Struct: Point
+> Member count: 2
+> Member 1: x
+> Member 2: y
 ```
 
 **error-reporting**
 
 ```
 (import introspection)
-(import macros)
+(import stdlib)
 
 (using-namespace std.macros
   (def assert-is-struct (macro intern (st)
@@ -219,8 +221,8 @@ able to be built.  It has been tested on the following:
     0)))
 ```
 ```
-> ./error-reporting.dt:6:6: error: not in scope: 'let'
-> ./error-reporting.dt:13:6: error: not in scope: 'assert-is-struct'
+> ./error-reporting.dt:13:23: error: struct type does not exist (see macro at 13:5)
+> ./error-reporting.dt:13:5: error: macro expansion error (see previous)
 ```
 
 **derivations**

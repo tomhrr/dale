@@ -1,5 +1,5 @@
 (import introspection)
-(import macros)
+(import stdlib)
 
 (def Point (struct intern ((x int) (y int))))
 
