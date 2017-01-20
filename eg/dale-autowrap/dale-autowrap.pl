@@ -42,6 +42,13 @@ sub type_to_string
     if ($tag eq 'struct') {
         return $type->{'name'};
     }
+    if ($tag eq 'bitfield') {
+        my $bf_type = type_to_string($type->{'type'});
+        return sprintf("(bf %s %s)",
+                       $bf_type,
+                       $type->{'width'});
+    }
+
     my $mapped_type = $TYPEMAP{$tag};
     if ($mapped_type) {
         return $mapped_type;
