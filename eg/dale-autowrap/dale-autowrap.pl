@@ -5,7 +5,7 @@ use strict;
 
 use JSON::XS qw(decode_json);
 
-my %TYPEMAP = (
+my %TYPE_MAP = (
     'unsigned-int'       => 'uint',
     'unsigned-char'      => 'uint8',
     'signed-char'        => 'int8',
@@ -17,15 +17,9 @@ my %TYPEMAP = (
     'unsigned-long-long' => '(ulong-long-type)',
 );
 
-my %SCMAP = (
-    'static' => 'intern',
-    'none'   => 'extern-c',
-    'extern' => 'extern-c',
-);
-
 sub type_to_string
 {
-    my ($type) = @_;
+    my ($type, $imports) = @_;
 
     my $tag = $type->{'tag'};
     if ($tag =~ /^:/) {
@@ -33,17 +27,17 @@ sub type_to_string
     }
 
     if ($tag eq 'pointer') {
-        return "(p ".(type_to_string($type->{'type'})).")";
+        return "(p ".(type_to_string($type->{'type'}, $imports)).")";
     }
     if ($tag eq 'array') {
         return "(array-of ".$type->{'size'}." ".
-                (type_to_string($type->{'type'})).")";
+                (type_to_string($type->{'type'}, $imports)).")";
     }
     if ($tag eq 'struct') {
         return $type->{'name'};
     }
     if ($tag eq 'bitfield') {
-        my $bf_type = type_to_string($type->{'type'});
+        my $bf_type = type_to_string($type->{'type'}, $imports);
         return sprintf("(bf %s %s)",
                        $bf_type,
                        $type->{'width'});
@@ -52,8 +46,11 @@ sub type_to_string
         return $type->{'name'};
     }
 
-    my $mapped_type = $TYPEMAP{$tag};
+    my $mapped_type = $TYPE_MAP{$tag};
     if ($mapped_type) {
+        if ($mapped_type =~ /^\(/) {
+            $imports->{'stdlib'} = 1;
+        }
         return $mapped_type;
     }
 
@@ -62,26 +59,33 @@ sub type_to_string
 
 sub type_to_flat_string
 {
-    my ($type) = @_;
+    my ($type, $imports) = @_;
 
-    my $str = type_to_string($type);
+    my $str = type_to_string($type, $imports);
     $str =~ tr/() /   /;
     $str =~ s/ //g;
 
     return $str;
 }
 
+my %SC_MAP = (
+    'static' => 'intern',
+    'none'   => 'extern-c',
+    'extern' => 'extern-c',
+);
+
 sub storage_class_to_string
 {
-    return $SCMAP{$_[0]};
+    return $SC_MAP{$_[0]};
 }
 
 sub process_function
 {
-    my ($data) = @_;
+    my ($data, $imports) = @_;
 
     my @params =
-        map { sprintf("(%s %s)", $_->{'name'}, type_to_string($_->{'type'})) }
+        map { sprintf("(%s %s)", $_->{'name'},
+                                 type_to_string($_->{'type'}, $imports)) }
             @{$data->{'parameters'}};
     if (not @params) {
         @params = 'void';
@@ -92,34 +96,35 @@ sub process_function
             $data->{'name'},
             storage_class_to_string($data->{'storage_class'}
                                  || $data->{'storage-class'}),
-            type_to_string($data->{'return-type'}),
+            type_to_string($data->{'return-type'}, $imports),
             $param_str);
 }
 
 sub process_variable
 {
-    my ($data) = @_;
+    my ($data, $imports) = @_;
 
     sprintf("(def %s (var extern %s))",
             $data->{'name'},
-            type_to_string($data->{'type'}));
+            type_to_string($data->{'type'}, $imports));
 }
 
 sub process_const
 {
-    my ($data) = @_;
+    my ($data, $imports) = @_;
 
     sprintf("(def %s (var intern %s))",
             $data->{'name'},
-            type_to_string($data->{'type'}));
+            type_to_string($data->{'type'}, $imports));
 }
 
 sub process_struct
 {
-    my ($data) = @_;
+    my ($data, $imports) = @_;
 
     my @fields =
-        map { sprintf("(%s %s)", $_->{'name'}, type_to_string($_->{'type'})) }
+        map { sprintf("(%s %s)", $_->{'name'},
+                                 type_to_string($_->{'type'}, $imports)) }
             @{$data->{'fields'}};
     my $field_str = (@fields ? " (".(join ' ', @fields).")" : "");
 
@@ -130,7 +135,7 @@ sub process_struct
 
 sub process_enum
 {
-    my ($data) = @_;
+    my ($data, $imports) = @_;
 
     my @fields =
         map { sprintf("(%s %s)", $_->{'name'}, $_->{'value'}) }
@@ -144,24 +149,26 @@ sub process_enum
 
 sub process_typedef
 {
-    my ($data) = @_;
+    my ($data, $imports) = @_;
 
     sprintf("(def %s (struct extern ((a %s))))",
             $data->{'name'},
-            type_to_string($data->{'type'}));
+            type_to_string($data->{'type'}, $imports));
 }
 
 sub process_union
 {
-    my ($data) = @_;
+    my ($data, $imports) = @_;
+
+    $imports->{'variant'} = 1;
 
     my $name = $data->{'name'};
 
     my @constructors =
         map { sprintf("(%s-%s ((value %s)))",
                       $name,
-                      type_to_flat_string($_->{'type'}),
-                      type_to_string($_->{'type'})) }
+                      type_to_flat_string($_->{'type'}, $imports),
+                      type_to_string($_->{'type'}, $imports)) }
             @{$data->{'fields'}};
     my $constructor_str = join ' ', @constructors;
 
@@ -170,46 +177,45 @@ sub process_union
             $constructor_str);
 }
 
+my %PROCESS_MAP = (
+    function => \&process_function,
+    extern   => \&process_variable,
+    struct   => \&process_struct,
+    const    => \&process_const,
+    enum     => \&process_enum,
+    typedef  => \&process_typedef,
+    union    => \&process_union,
+);
+
 sub main
 {
-    print "(import stdlib)\n";
-    print "(import variant)\n";
+    my %imports;
+    my @bindings;
 
     while (defined (my $entry = <>)) {
         chomp $entry;
-        if ($entry eq '[') {
-            next;
-        }
-        if ($entry eq ']') {
+        if (($entry eq '[') or ($entry eq ']')) {
             next;
         }
         $entry =~ s/,\s*$//;
         my $data = decode_json($entry);
         my $tag = $data->{'tag'};
-        if ($tag eq 'function') {
-            my $str = process_function($data);
-            print "$str\n";
-        } elsif ($tag eq 'extern') {
-            my $str = process_variable($data);
-            print "$str\n";
-        } elsif ($tag eq 'struct') {
-            my $str = process_struct($data);
-            print "$str\n";
-        } elsif ($tag eq 'const') {
-            my $str = process_const($data);
-            print "$str\n";
-        } elsif ($tag eq 'enum') {
-            my $str = process_enum($data);
-            print "$str\n";
-        } elsif ($tag eq 'typedef') {
-            my $str = process_typedef($data);
-            print "$str\n";
-        } elsif ($tag eq 'union') {
-            my $str = process_union($data);
-            print "$str\n";
+        if ($PROCESS_MAP{$tag}) {
+            push @bindings, $PROCESS_MAP{$tag}->($data, \%imports);
         } else {
             warn "unable to process tag '$tag'";
         }
+    }
+
+    my @imports = sort keys %imports;
+    if (@imports) {
+        for my $import (@imports) {
+            print "(import $import)\n";
+        }
+        print "\n";
+    }
+    for my $binding (@bindings) {
+        print "$binding\n";
     }
 }
 
