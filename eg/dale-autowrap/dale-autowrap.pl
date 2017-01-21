@@ -48,6 +48,9 @@ sub type_to_string
                        $bf_type,
                        $type->{'width'});
     }
+    if ($tag eq 'union') {
+        return $type->{'name'};
+    }
 
     my $mapped_type = $TYPEMAP{$tag};
     if ($mapped_type) {
@@ -55,6 +58,17 @@ sub type_to_string
     }
 
     return $tag;
+}
+
+sub type_to_flat_string
+{
+    my ($type) = @_;
+
+    my $str = type_to_string($type);
+    $str =~ tr/() /   /;
+    $str =~ s/ //g;
+
+    return $str;
 }
 
 sub storage_class_to_string
@@ -137,9 +151,29 @@ sub process_typedef
             type_to_string($data->{'type'}));
 }
 
+sub process_union
+{
+    my ($data) = @_;
+
+    my $name = $data->{'name'};
+
+    my @constructors =
+        map { sprintf("(%s-%s ((value %s)))",
+                      $name,
+                      type_to_flat_string($_->{'type'}),
+                      type_to_string($_->{'type'})) }
+            @{$data->{'fields'}};
+    my $constructor_str = join ' ', @constructors;
+
+    sprintf("(def-variant %s (%s))",
+            $name,
+            $constructor_str);
+}
+
 sub main
 {
     print "(import stdlib)\n";
+    print "(import variant)\n";
 
     while (defined (my $entry = <>)) {
         chomp $entry;
@@ -170,6 +204,11 @@ sub main
         } elsif ($tag eq 'typedef') {
             my $str = process_typedef($data);
             print "$str\n";
+        } elsif ($tag eq 'union') {
+            my $str = process_union($data);
+            print "$str\n";
+        } else {
+            warn "unable to process tag '$tag'";
         }
     }
 }
