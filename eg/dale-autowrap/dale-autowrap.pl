@@ -3,6 +3,7 @@
 use warnings;
 use strict;
 
+use Getopt::Long;
 use JSON::XS qw(decode_json);
 
 my %TYPE_MAP = (
@@ -189,6 +190,8 @@ my %PROCESS_MAP = (
 
 sub main
 {
+    my ($namespaces) = @_;
+
     my %imports;
     my @bindings;
 
@@ -214,11 +217,43 @@ sub main
         }
         print "\n";
     }
-    for my $binding (@bindings) {
+
+    my %by_namespace =
+        map { $_ => [] }
+            @{$namespaces};
+    my @no_namespace;
+    BINDING: for my $binding (@bindings) {
+        my ($name) = ($binding =~ /^\(.*? (.*?) /);
+        for my $namespace (@{$namespaces}) {
+            if ($name =~ /^${namespace}/) {
+                $name =~ s/^${namespace}//;
+                $binding =~ s/ (.*?) / $name /;
+                push @{$by_namespace{$namespace}}, $binding;
+                next BINDING;
+            }
+        }
+        push @no_namespace, $binding;
+    }
+
+    for my $namespace (@{$namespaces}) {
+        my @ns_bindings = @{$by_namespace{$namespace}};
+        if (@ns_bindings) {
+            print "(namespace $namespace \n";
+            for my $binding (@bindings) {
+                print "$binding\n";
+            }
+            print ")\n";
+        }
+    }
+
+    for my $binding (@no_namespace) {
         print "$binding\n";
     }
 }
 
-main();
+my @namespaces;
+GetOptions("namespace=s", \@namespaces);
+
+main(\@namespaces);
 
 1;
