@@ -1,8 +1,8 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 use warnings;
 use strict;
-
+use File::Basename;
 use JSON::XS qw(decode_json);
 
 my %TYPEMAP = (
@@ -134,7 +134,7 @@ sub main
 {
     print "(import stdlib)\n";
 
-    while (defined (my $entry = <>)) {
+    while (defined (my $entry = <STDIN>)) {
         chomp $entry;
         if ($entry eq '[') {
             next;
@@ -144,6 +144,14 @@ sub main
         }
         $entry =~ s/,\s*$//;
         my $data = decode_json($entry);
+        if($#ARGV>=0) {
+          my $path = $data->{'location'};
+          my $name = fileparse($path,qr/\.[^.]*/);  
+          my $arg = $ARGV[0];
+          if(not ($name eq $arg)) {
+            next;
+          }
+        }
         my $tag = $data->{'tag'};
         if ($tag eq 'function') {
             my $str = process_function($data);
