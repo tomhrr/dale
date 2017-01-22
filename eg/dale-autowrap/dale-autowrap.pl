@@ -46,6 +46,9 @@ sub type_to_string
     if ($tag eq 'union') {
         return $type->{'name'};
     }
+    if ($tag eq 'function-pointer') {
+        return "(p void)"
+    }
 
     my $mapped_type = $TYPE_MAP{$tag};
     if ($mapped_type) {
