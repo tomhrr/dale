@@ -246,13 +246,32 @@ Expands to a macro definition, with the specified name, that in turn
 expands to the value.
 
 
+#### `short-type`
+
+Linkage: `extern`
+Parameters: N/A
+
+Expands to an integer type that has the same size as the system C
+compiler's `short` type. Only intended for use when writing C bindings.
+
+
+#### `ushort-type`
+
+Linkage: `extern`
+Parameters: N/A
+
+Expands to an unsigned integer type that has the same size as the
+system C compiler's `unsigned short` type. Only intended for use when
+writing C bindings.
+
+
 #### `long-type`
 
 Linkage: `extern`
 Parameters: N/A
 
-Expands to `sizeof(long)`. Only intended for use when writing C
-bindings.
+Expands to an integer type that has the same size as the system C
+compiler's `long` type. Only intended for use when writing C bindings.
 
 
 #### `ulong-type`
@@ -260,8 +279,9 @@ bindings.
 Linkage: `extern`
 Parameters: N/A
 
-Expands to `sizeof(unsigned long)`. Only intended for use when writing
-C bindings.
+Expands to an unsigned integer type that has the same size as the
+system C compiler's `unsigned long` type. Only intended for use when
+writing C bindings.
 
 
 #### `long-long-type`
@@ -269,8 +289,9 @@ C bindings.
 Linkage: `extern`
 Parameters: N/A
 
-Expands to `sizeof(long long)`. Only intended for use when writing
-C bindings.
+Expands to an integer type that has the same size as the system C
+compiler's `long long` type. Only intended for use when writing C
+bindings.
 
 
 #### `ulong-long-type`
@@ -278,8 +299,9 @@ C bindings.
 Linkage: `extern`
 Parameters: N/A
 
-Expands to `sizeof(unsigned long long)`. Only intended for use when
-writing C bindings.
+Expands to an unsigned integer type that has the same size as the
+system C compiler's `unsigned long long` type. Only intended for use
+when writing C bindings.
 
 
 #### `mfor`
