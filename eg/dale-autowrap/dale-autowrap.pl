@@ -169,9 +169,12 @@ sub process_typedef
 {
     my ($data, $imports) = @_;
     
-    sprintf("(def %s (struct extern ((a %s))))",
-            $data->{'name'},
-            $type);
+    my $type = type_to_string($data->{'type'}, $imports);
+    if (not ($type eq 'void')) {
+      sprintf("(def %s (struct extern ((a %s))))",
+              $data->{'name'},
+              $type);
+    }
 }
 
 sub process_union
