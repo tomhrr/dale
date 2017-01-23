@@ -24,13 +24,12 @@ my %TYPE_MAP = (
     'int16_t'            => 'int16',
     'int32_t'            => 'int32',
     'int64_t'            => 'int64',
-    
 );
 
 sub type_to_string
 {
     my ($type, $imports) = @_;
-
+    our $in_function;
     my $tag = $type->{'tag'};
     if ($tag =~ /^:/) {
         $tag =~ s/^://;
@@ -40,8 +39,12 @@ sub type_to_string
         return "(p ".(type_to_string($type->{'type'}, $imports)).")";
     }
     if ($tag eq 'array') {
-        return "(array-of ".$type->{'size'}." ".
-                (type_to_string($type->{'type'}, $imports)).")";
+        if($in_function) {
+          return "(p ".(type_to_string($type->{'type'}, $imports)).")";
+       } else {
+          return "(array-of ".$type->{'size'}." ".
+                  (type_to_string($type->{'type'}, $imports)).")";
+       }
     }
     if ($tag eq 'struct') {
         return $type->{'name'};
@@ -95,6 +98,7 @@ sub storage_class_to_string
 sub process_function
 {
     my ($data, $imports) = @_;
+    our $in_function = 1;
 
     my @params =
         map { sprintf("(%s %s)", $_->{'name'},
@@ -111,6 +115,7 @@ sub process_function
                                  || $data->{'storage-class'}),
             type_to_string($data->{'return-type'}, $imports),
             $param_str);
+#    our $in_function = 0;
 }
 
 sub process_variable
@@ -163,10 +168,10 @@ sub process_enum
 sub process_typedef
 {
     my ($data, $imports) = @_;
-
+    
     sprintf("(def %s (struct extern ((a %s))))",
             $data->{'name'},
-            type_to_string($data->{'type'}, $imports));
+            $type);
 }
 
 sub process_union
@@ -202,6 +207,7 @@ my %PROCESS_MAP = (
 
 sub main
 {
+    our $in_function = 0;
     my %imports;
     my @bindings;
 
