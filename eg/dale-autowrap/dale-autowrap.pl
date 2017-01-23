@@ -15,6 +15,16 @@ my %TYPE_MAP = (
     'unsigned-long'      => '(ulong-type)',
     'long-long'          => '(long-long-type)',
     'unsigned-long-long' => '(ulong-long-type)',
+    'ptrdiff_t'          => 'ptrdiff',
+    'uint8_t'            => 'uint8',
+    'uint16_t'           => 'uint16',
+    'uint32_t'           => 'uint32',
+    'uint64_t'           => 'uint64',
+    'int8_t'             => 'int8',
+    'int16_t'            => 'int16',
+    'int32_t'            => 'int32',
+    'int64_t'            => 'int64',
+    
 );
 
 sub type_to_string
