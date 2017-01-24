@@ -1,9 +1,11 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 use warnings;
 use strict;
 
+use File::Basename;
 use Getopt::Long;
+
 use JSON::XS qw(decode_json);
 
 my %TYPE_MAP = (
@@ -16,12 +18,21 @@ my %TYPE_MAP = (
     'unsigned-long'      => '(ulong-type)',
     'long-long'          => '(long-long-type)',
     'unsigned-long-long' => '(ulong-long-type)',
+    'ptrdiff_t'          => 'ptrdiff',
+    'uint8_t'            => 'uint8',
+    'uint16_t'           => 'uint16',
+    'uint32_t'           => 'uint32',
+    'uint64_t'           => 'uint64',
+    'int8_t'             => 'int8',
+    'int16_t'            => 'int16',
+    'int32_t'            => 'int32',
+    'int64_t'            => 'int64',
 );
 
 sub type_to_string
 {
     my ($type, $imports) = @_;
-
+    our $in_function;
     my $tag = $type->{'tag'};
     if ($tag =~ /^:/) {
         $tag =~ s/^://;
@@ -31,8 +42,12 @@ sub type_to_string
         return "(p ".(type_to_string($type->{'type'}, $imports)).")";
     }
     if ($tag eq 'array') {
-        return "(array-of ".$type->{'size'}." ".
-                (type_to_string($type->{'type'}, $imports)).")";
+        if($in_function) {
+          return "(p ".(type_to_string($type->{'type'}, $imports)).")";
+       } else {
+          return "(array-of ".$type->{'size'}." ".
+                  (type_to_string($type->{'type'}, $imports)).")";
+       }
     }
     if ($tag eq 'struct') {
         return $type->{'name'};
@@ -45,6 +60,9 @@ sub type_to_string
     }
     if ($tag eq 'union') {
         return $type->{'name'};
+    }
+    if ($tag eq 'function-pointer') {
+        return "(p void)"
     }
 
     my $mapped_type = $TYPE_MAP{$tag};
@@ -83,6 +101,7 @@ sub storage_class_to_string
 sub process_function
 {
     my ($data, $imports) = @_;
+    our $in_function = 1;
 
     my @params =
         map { sprintf("(%s %s)", $_->{'name'},
@@ -99,6 +118,7 @@ sub process_function
                                  || $data->{'storage-class'}),
             type_to_string($data->{'return-type'}, $imports),
             $param_str);
+#    our $in_function = 0;
 }
 
 sub process_variable
@@ -151,10 +171,13 @@ sub process_enum
 sub process_typedef
 {
     my ($data, $imports) = @_;
-
-    sprintf("(def %s (struct extern ((a %s))))",
-            $data->{'name'},
-            type_to_string($data->{'type'}, $imports));
+    
+    my $type = type_to_string($data->{'type'}, $imports);
+    if (not ($type eq 'void')) {
+      sprintf("(def %s (struct extern ((a %s))))",
+              $data->{'name'},
+              $type);
+    }
 }
 
 sub process_union
@@ -192,16 +215,26 @@ sub main
 {
     my ($namespaces) = @_;
 
+    our $in_function = 0;
+
     my %imports;
     my @bindings;
 
-    while (defined (my $entry = <>)) {
+    while (defined (my $entry = <STDIN>)) {
         chomp $entry;
         if (($entry eq '[') or ($entry eq ']')) {
             next;
         }
         $entry =~ s/,\s*$//;
         my $data = decode_json($entry);
+        if($#ARGV>=0) {
+          my $path = $data->{'location'};
+          my $name = fileparse($path,qr/\.[^.]*/);  
+          my $arg = $ARGV[0];
+          if(not ($name eq $arg)) {
+            next;
+          }
+        }
         my $tag = $data->{'tag'};
         if ($PROCESS_MAP{$tag}) {
             push @bindings, $PROCESS_MAP{$tag}->($data, \%imports);
