@@ -1,0 +1,3 @@
+(import variant)
+
+(def-variant test ((test-int ((value int))) (test-char ((value char))) (test-float ((value float)))))

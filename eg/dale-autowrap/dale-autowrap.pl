@@ -157,6 +157,8 @@ sub process_enum
 {
     my ($data, $imports) = @_;
 
+    $imports->{'enum'} = 1;
+
     my @fields =
         map { sprintf("(%s %s)", $_->{'name'}, $_->{'value'}) }
             @{$data->{'fields'}};
