@@ -1,11 +1,10 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 use warnings;
 use strict;
 
 use File::Basename;
 use Getopt::Long;
-
 use JSON::XS qw(decode_json);
 
 my %TYPE_MAP = (
@@ -32,22 +31,22 @@ my %TYPE_MAP = (
 sub type_to_string
 {
     my ($type, $imports) = @_;
+
     our $in_function;
+
     my $tag = $type->{'tag'};
-    if ($tag =~ /^:/) {
-        $tag =~ s/^://;
-    }
+    $tag =~ s/^://;
 
     if ($tag eq 'pointer') {
         return "(p ".(type_to_string($type->{'type'}, $imports)).")";
     }
     if ($tag eq 'array') {
-        if($in_function) {
-          return "(p ".(type_to_string($type->{'type'}, $imports)).")";
-       } else {
-          return "(array-of ".$type->{'size'}." ".
-                  (type_to_string($type->{'type'}, $imports)).")";
-       }
+        if ($in_function) {
+            return "(p ".(type_to_string($type->{'type'}, $imports)).")";
+        } else {
+            return "(array-of ".$type->{'size'}." ".
+                   (type_to_string($type->{'type'}, $imports)).")";
+        }
     }
     if ($tag eq 'struct') {
         return $type->{'name'};
@@ -62,7 +61,7 @@ sub type_to_string
         return $type->{'name'};
     }
     if ($tag eq 'function-pointer') {
-        return "(p void)"
+        return "(p void)";
     }
 
     my $mapped_type = $TYPE_MAP{$tag};
@@ -101,6 +100,7 @@ sub storage_class_to_string
 sub process_function
 {
     my ($data, $imports) = @_;
+
     our $in_function = 1;
 
     my @params =
@@ -118,7 +118,6 @@ sub process_function
                                  || $data->{'storage-class'}),
             type_to_string($data->{'return-type'}, $imports),
             $param_str);
-#    our $in_function = 0;
 }
 
 sub process_variable
@@ -174,9 +173,9 @@ sub process_typedef
     
     my $type = type_to_string($data->{'type'}, $imports);
     if (not ($type eq 'void')) {
-      sprintf("(def %s (struct extern ((a %s))))",
-              $data->{'name'},
-              $type);
+        sprintf("(def %s (struct extern ((a %s))))",
+                $data->{'name'},
+                $type);
     }
 }
 
@@ -227,13 +226,13 @@ sub main
         }
         $entry =~ s/,\s*$//;
         my $data = decode_json($entry);
-        if($#ARGV>=0) {
-          my $path = $data->{'location'};
-          my $name = fileparse($path,qr/\.[^.]*/);  
-          my $arg = $ARGV[0];
-          if(not ($name eq $arg)) {
-            next;
-          }
+        if (@ARGV) {
+            my $path = $data->{'location'};
+            my $name = fileparse($path, qr/\.[^.]*/);  
+            my $arg = $ARGV[0];
+            if ($name ne $arg) {
+                next;
+            }
         }
         my $tag = $data->{'tag'};
         if ($PROCESS_MAP{$tag}) {
