@@ -1,0 +1,3 @@
+(def first_test (fn extern-c int (void)))
+(def secondTest (fn extern-c int (void)))
+(def ThirdTest (fn extern-c int (void)))

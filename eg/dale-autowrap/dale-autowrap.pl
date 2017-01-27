@@ -202,6 +202,76 @@ sub process_union
             $constructor_str);
 }
 
+sub name_to_parts
+{
+    my ($name) = @_;
+
+    if ($name =~ /_/) {
+        my @parts = map { lc $_ } split /_/, $name;
+        return @parts;
+    }
+    if ($name =~ /[a-z][A-Z]/) {
+        my @parts;
+        while ($name =~ s/([A-Z]+[a-z]+)$//) {
+            unshift @parts, $1;
+        }
+        if ($name) {
+            unshift @parts, $name;
+        }
+        return @parts;
+    }
+    return ($name);
+}
+
+sub casing_none
+{
+    my ($name) = @_;
+
+    return $name;
+}
+
+sub casing_standard
+{
+    my ($name) = @_;
+
+    return join '_', map { lc $_ } name_to_parts($name);
+}
+
+sub casing_camel
+{
+    my ($name) = @_;
+
+    return join '', map { ucfirst lc $_ } name_to_parts($name);
+}
+
+sub casing_lisp
+{
+    my ($name) = @_;
+
+    return join '-', map { lc $_ } name_to_parts($name);
+}
+
+my %CASING_MAP = (
+    none     => \&casing_none,
+    standard => \&casing_standard,
+    camel    => \&casing_camel,
+    lisp     => \&casing_lisp,
+);
+
+sub print_binding
+{
+    my ($casing, $binding) = @_;
+
+    my ($name) = ($binding =~ /^\(.*? (.*?) /);
+    my $casing_fn = $CASING_MAP{$casing};
+    my $new_name = $casing_fn->($name);
+    $binding =~ s/ (.*?) / $new_name /;
+
+    print $binding,"\n";
+
+    return 1;
+}
+
 my %PROCESS_MAP = (
     function => \&process_function,
     extern   => \&process_variable,
@@ -214,7 +284,13 @@ my %PROCESS_MAP = (
 
 sub main
 {
-    my ($namespaces) = @_;
+    my ($namespaces, $casing) = @_;
+
+    if (not $CASING_MAP{$casing}) {
+        print STDERR "Casing is invalid: must be one of ".
+                     (join ', ', keys %CASING_MAP)."\n";
+        exit(10);
+    }
 
     our $in_function = 0;
 
@@ -274,20 +350,22 @@ sub main
         if (@ns_bindings) {
             print "(namespace $namespace \n";
             for my $binding (@bindings) {
-                print "$binding\n";
+                print_binding($casing, $binding);
             }
             print ")\n";
         }
     }
 
     for my $binding (@no_namespace) {
-        print "$binding\n";
+        print_binding($casing, $binding);
     }
 }
 
 my @namespaces;
-GetOptions("namespace=s", \@namespaces);
+my $casing = 'none';
+GetOptions("namespace=s", \@namespaces,
+           "casing=s", \$casing);
 
-main(\@namespaces);
+main(\@namespaces, $casing);
 
 1;
