@@ -172,6 +172,11 @@ sub process_enum
 sub process_typedef
 {
     my ($data, $imports) = @_;
+
+    if ($data->{'type'}->{'tag'} eq 'struct') {
+        $data->{'type'}->{'name'} = $data->{'name'};
+        return process_struct($data->{'type'}, $imports);
+    }
     
     my $type = type_to_string($data->{'type'}, $imports);
     if (not ($type eq 'void')) {
