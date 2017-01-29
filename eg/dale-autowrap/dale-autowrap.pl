@@ -215,10 +215,21 @@ sub name_to_parts
         my @parts = map { lc $_ } split /_/, $name;
         return @parts;
     }
-    if ($name =~ /[a-z][A-Z]/) {
+    if ($name =~ /[a-z0-9][A-Z0-9]/) {
         my @parts;
-        while ($name =~ s/([A-Z]+[a-z]+)$//) {
-            unshift @parts, $1;
+        for (;;) {
+            my $used = 0;
+            while ($name =~ s/([A-Z0-9]+[a-z0-9]+)$//) {
+                unshift @parts, $1;
+                $used = 1;
+            }
+            while ($name =~ s/([a-z])([A-Z0-9]+)$/$1/) {
+                unshift @parts, $2;
+                $used = 1;
+            }
+            if (not $used) {
+                last;
+            }
         }
         if ($name) {
             unshift @parts, $name;
@@ -319,7 +330,10 @@ sub main
         }
         my $tag = $data->{'tag'};
         if ($PROCESS_MAP{$tag}) {
-            push @bindings, $PROCESS_MAP{$tag}->($data, \%imports);
+            my $result = $PROCESS_MAP{$tag}->($data, \%imports);
+            if ($result) {
+                push @bindings, $result;
+            }
         } else {
             warn "unable to process tag '$tag'";
         }
