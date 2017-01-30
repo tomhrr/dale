@@ -7,17 +7,27 @@ use File::Basename;
 use Getopt::Long;
 use JSON::XS qw(decode_json);
 
+my $CASING;
+my %IMPORTS;
+
 my %TYPE_MAP = (
-    'unsigned-int'       => 'uint',
+    'char'               => 'char',
+    'signed-char'        => 'char',
     'unsigned-char'      => 'uint8',
-    'signed-char'        => 'int8',
+    'int'                => 'int',
+    'signed-int'         => 'int',
+    'unsigned-int'       => 'uint',
     'short'              => '(short-type)',
+    'signed-short'       => '(short-type)',
     'unsigned-short'     => '(ushort-type)',
     'long'               => '(long-type)',
+    'signed-long'        => '(long-type)',
     'unsigned-long'      => '(ulong-type)',
     'long-long'          => '(long-long-type)',
+    'signed-long-long'   => '(long-long-type)',
     'unsigned-long-long' => '(ulong-long-type)',
     'ptrdiff_t'          => 'ptrdiff',
+    'size_t'             => 'size',
     'uint8_t'            => 'uint8',
     'uint16_t'           => 'uint16',
     'uint32_t'           => 'uint32',
@@ -28,9 +38,16 @@ my %TYPE_MAP = (
     'int64_t'            => 'int64',
 );
 
+my %CASING_MAP = (
+    none     => \&casing_none,
+    standard => \&casing_standard,
+    camel    => \&casing_camel,
+    lisp     => \&casing_lisp,
+);
+
 sub type_to_string
 {
-    my ($type, $imports) = @_;
+    my ($type) = @_;
 
     our $in_function;
 
@@ -38,21 +55,18 @@ sub type_to_string
     $tag =~ s/^://;
 
     if ($tag eq 'pointer') {
-        return "(p ".(type_to_string($type->{'type'}, $imports)).")";
+        return "(p ".(type_to_string($type->{'type'})).")";
     }
     if ($tag eq 'array') {
         if ($in_function) {
-            return "(p ".(type_to_string($type->{'type'}, $imports)).")";
+            return "(p ".(type_to_string($type->{'type'})).")";
         } else {
             return "(array-of ".$type->{'size'}." ".
-                   (type_to_string($type->{'type'}, $imports)).")";
+                   (type_to_string($type->{'type'})).")";
         }
     }
-    if ($tag eq 'struct') {
-        return $type->{'name'};
-    }
     if ($tag eq 'bitfield') {
-        my $bf_type = type_to_string($type->{'type'}, $imports);
+        my $bf_type = type_to_string($type->{'type'});
         return sprintf("(bf %s %s)",
                        $bf_type,
                        $type->{'width'});
@@ -63,23 +77,29 @@ sub type_to_string
     if ($tag eq 'function-pointer') {
         return "(p void)";
     }
-
     my $mapped_type = $TYPE_MAP{$tag};
     if ($mapped_type) {
         if ($mapped_type =~ /^\(/) {
-            $imports->{'stdlib'} = 1;
+            $IMPORTS{'stdlib'} = 1;
         }
         return $mapped_type;
     }
+    if ($tag eq 'struct') {
+        my $casing_fn = $CASING_MAP{$CASING};
+        my $new_name = $casing_fn->($type->{'name'});
+        return $new_name;
+    }
 
-    return $tag;
+    my $casing_fn = $CASING_MAP{$CASING};
+    my $new_name = $casing_fn->($tag);
+    return $new_name;
 }
 
 sub type_to_flat_string
 {
-    my ($type, $imports) = @_;
+    my ($type) = @_;
 
-    my $str = type_to_string($type, $imports);
+    my $str = type_to_string($type);
     $str =~ tr/() /   /;
     $str =~ s/ //g;
 
@@ -99,13 +119,13 @@ sub storage_class_to_string
 
 sub process_function
 {
-    my ($data, $imports) = @_;
+    my ($data) = @_;
 
     our $in_function = 1;
 
     my @params =
         map { sprintf("(%s %s)", $_->{'name'},
-                                 type_to_string($_->{'type'}, $imports)) }
+                                 type_to_string($_->{'type'})) }
             @{$data->{'parameters'}};
     if (not @params) {
         @params = 'void';
@@ -116,35 +136,35 @@ sub process_function
             $data->{'name'},
             storage_class_to_string($data->{'storage_class'}
                                  || $data->{'storage-class'}),
-            type_to_string($data->{'return-type'}, $imports),
+            type_to_string($data->{'return-type'}),
             $param_str);
 }
 
 sub process_variable
 {
-    my ($data, $imports) = @_;
+    my ($data) = @_;
 
     sprintf("(def %s (var extern %s))",
             $data->{'name'},
-            type_to_string($data->{'type'}, $imports));
+            type_to_string($data->{'type'}));
 }
 
 sub process_const
 {
-    my ($data, $imports) = @_;
+    my ($data) = @_;
 
     sprintf("(def %s (var intern %s))",
             $data->{'name'},
-            type_to_string($data->{'type'}, $imports));
+            type_to_string($data->{'type'}));
 }
 
 sub process_struct
 {
-    my ($data, $imports) = @_;
+    my ($data) = @_;
 
     my @fields =
         map { sprintf("(%s %s)", $_->{'name'},
-                                 type_to_string($_->{'type'}, $imports)) }
+                                 type_to_string($_->{'type'})) }
             @{$data->{'fields'}};
     my $field_str = (@fields ? " (".(join ' ', @fields).")" : "");
 
@@ -155,9 +175,9 @@ sub process_struct
 
 sub process_enum
 {
-    my ($data, $imports) = @_;
+    my ($data) = @_;
 
-    $imports->{'enum'} = 1;
+    $IMPORTS{'enum'} = 1;
 
     my @fields =
         map { sprintf("(%s %s)", $_->{'name'}, $_->{'value'}) }
@@ -171,14 +191,14 @@ sub process_enum
 
 sub process_typedef
 {
-    my ($data, $imports) = @_;
+    my ($data) = @_;
 
     if ($data->{'type'}->{'tag'} eq 'struct') {
         $data->{'type'}->{'name'} = $data->{'name'};
-        return process_struct($data->{'type'}, $imports);
+        return process_struct($data->{'type'});
     }
     
-    my $type = type_to_string($data->{'type'}, $imports);
+    my $type = type_to_string($data->{'type'});
     if (not ($type eq 'void')) {
         sprintf("(def %s (struct extern ((a %s))))",
                 $data->{'name'},
@@ -188,17 +208,17 @@ sub process_typedef
 
 sub process_union
 {
-    my ($data, $imports) = @_;
+    my ($data) = @_;
 
-    $imports->{'variant'} = 1;
+    $IMPORTS{'variant'} = 1;
 
     my $name = $data->{'name'};
 
     my @constructors =
         map { sprintf("(%s-%s ((value %s)))",
                       $name,
-                      type_to_flat_string($_->{'type'}, $imports),
-                      type_to_string($_->{'type'}, $imports)) }
+                      type_to_flat_string($_->{'type'}),
+                      type_to_string($_->{'type'})) }
             @{$data->{'fields'}};
     my $constructor_str = join ' ', @constructors;
 
@@ -267,19 +287,12 @@ sub casing_lisp
     return join '-', map { lc $_ } name_to_parts($name);
 }
 
-my %CASING_MAP = (
-    none     => \&casing_none,
-    standard => \&casing_standard,
-    camel    => \&casing_camel,
-    lisp     => \&casing_lisp,
-);
-
 sub print_binding
 {
-    my ($casing, $binding) = @_;
+    my ($binding) = @_;
 
     my ($name) = ($binding =~ /^\(.*? (.*?) /);
-    my $casing_fn = $CASING_MAP{$casing};
+    my $casing_fn = $CASING_MAP{$CASING};
     my $new_name = $casing_fn->($name);
     $binding =~ s/ (.*?) / $new_name /;
 
@@ -300,9 +313,9 @@ my %PROCESS_MAP = (
 
 sub main
 {
-    my ($namespaces, $casing) = @_;
+    my ($namespaces) = @_;
 
-    if (not $CASING_MAP{$casing}) {
+    if (not $CASING_MAP{$CASING}) {
         print STDERR "Casing is invalid: must be one of ".
                      (join ', ', keys %CASING_MAP)."\n";
         exit(10);
@@ -310,7 +323,6 @@ sub main
 
     our $in_function = 0;
 
-    my %imports;
     my @bindings;
 
     while (defined (my $entry = <STDIN>)) {
@@ -330,7 +342,7 @@ sub main
         }
         my $tag = $data->{'tag'};
         if ($PROCESS_MAP{$tag}) {
-            my $result = $PROCESS_MAP{$tag}->($data, \%imports);
+            my $result = $PROCESS_MAP{$tag}->($data);
             if ($result) {
                 push @bindings, $result;
             }
@@ -339,7 +351,7 @@ sub main
         }
     }
 
-    my @imports = sort keys %imports;
+    my @imports = sort keys %IMPORTS;
     if (@imports) {
         for my $import (@imports) {
             print "(import $import)\n";
@@ -369,22 +381,24 @@ sub main
         if (@ns_bindings) {
             print "(namespace $namespace \n";
             for my $binding (@bindings) {
-                print_binding($casing, $binding);
+                print_binding($binding);
             }
             print ")\n";
         }
     }
 
     for my $binding (@no_namespace) {
-        print_binding($casing, $binding);
+        print_binding($binding);
     }
 }
 
 my @namespaces;
-my $casing = 'none';
 GetOptions("namespace=s", \@namespaces,
-           "casing=s", \$casing);
+           "casing=s", \$CASING);
+if (not $CASING) {
+    $CASING = 'none';
+}
 
-main(\@namespaces, $casing);
+main(\@namespaces);
 
 1;

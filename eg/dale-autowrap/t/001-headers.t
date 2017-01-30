@@ -28,7 +28,7 @@ for my $header (@headers) {
     }
 
     $res = system("diff output.dt $header.dt");
-    ok((not $res), "autowrapped result matches expected result");
+    ok((not $res), "autowrapped result for $header matches expected result");
 }
 
 unlink("output");
