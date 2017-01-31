@@ -18,7 +18,15 @@ for my $header (@headers) {
     if ($res != 0) {
         die "$C2FFI against $header failed.";
     }
-    $res = system("cat output | ./dale-autowrap.pl > output.dt");
+    $res = system("$C2FFI -M pre $header >/dev/null");
+    if ($res != 0) {
+        die "$C2FFI for macros against $header failed.";
+    }
+    $res = system("$C2FFI pre > output2");
+    if ($res != 0) {
+        die "$C2FFI for macros against $header failed.";
+    }
+    $res = system("cat output2 output | ./dale-autowrap.pl > output.dt");
     ok((not $res), "autowrap against $header succeeded");
     if ($res) {
         ok(0, "able to compile autowrap result");
@@ -31,7 +39,9 @@ for my $header (@headers) {
     ok((not $res), "autowrapped result for $header matches expected result");
 }
 
+unlink("pre");
 unlink("output");
+unlink("output2");
 unlink("output.dt");
 unlink("output.dt.o");
 

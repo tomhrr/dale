@@ -153,9 +153,10 @@ sub process_const
 {
     my ($data) = @_;
 
-    sprintf("(def %s (var intern %s))",
+    sprintf("(def %s (var intern %s%s))",
             $data->{'name'},
-            type_to_string($data->{'type'}));
+            type_to_string($data->{'type'}),
+            ($data->{'value'} ? ' '.$data->{'value'} : ''));
 }
 
 sub process_struct
@@ -331,6 +332,9 @@ sub main
             next;
         }
         $entry =~ s/,\s*$//;
+        if (not $entry) {
+            next;
+        }
         my $data = decode_json($entry);
         if (@ARGV) {
             my $path = $data->{'location'};
