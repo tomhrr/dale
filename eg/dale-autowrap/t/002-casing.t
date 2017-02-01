@@ -17,7 +17,7 @@ if ($res != 0) {
 
 my @lines =
     map { chomp; $_ }
-        `cat casing-output | ./dale-autowrap.pl --casing=none`;
+        `cat casing-output | ./dale-autowrap --casing=none`;
 is_deeply(\@lines,
           [split /\n/, <<EOF],
 (def first_test (fn extern-c int (void)))
@@ -28,7 +28,7 @@ EOF
 
 @lines =
     map { chomp; $_ }
-        `cat casing-output | ./dale-autowrap.pl --casing=standard`;
+        `cat casing-output | ./dale-autowrap --casing=standard`;
 is_deeply(\@lines,
           [split /\n/, <<EOF],
 (def first_test (fn extern-c int (void)))
@@ -39,7 +39,7 @@ EOF
 
 @lines =
     map { chomp; $_ }
-        `cat casing-output | ./dale-autowrap.pl --casing=camel`;
+        `cat casing-output | ./dale-autowrap --casing=camel`;
 is_deeply(\@lines,
           [split /\n/, <<EOF],
 (def FirstTest (fn extern-c int (void)))
@@ -50,7 +50,7 @@ EOF
 
 @lines =
     map { chomp; $_ }
-        `cat casing-output | ./dale-autowrap.pl --casing=lisp`;
+        `cat casing-output | ./dale-autowrap --casing=lisp`;
 is_deeply(\@lines,
           [split /\n/, <<EOF],
 (def first-test (fn extern-c int (void)))

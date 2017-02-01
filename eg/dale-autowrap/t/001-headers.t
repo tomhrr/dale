@@ -26,7 +26,7 @@ for my $header (@headers) {
     if ($res != 0) {
         die "$C2FFI for macros against $header failed.";
     }
-    $res = system("cat output2 output | ./dale-autowrap.pl > output.dt");
+    $res = system("cat output2 output | ./dale-autowrap > output.dt");
     ok((not $res), "autowrap against $header succeeded");
     if ($res) {
         ok(0, "able to compile autowrap result");
