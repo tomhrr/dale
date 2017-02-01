@@ -13,6 +13,7 @@
 ### 1.9. [Namespaces](./1-9-namespaces.md)
 ### 1.10. [Modules](./1-10-modules.md)
 ### 1.11. [Form reference](./1-11-form-reference.md)  
+### 1.12. [Tools](./1-12-tools.md)  
 
 ## Libraries
 
