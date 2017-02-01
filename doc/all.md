@@ -1223,11 +1223,11 @@ their analogues in C.
 
 ## <a name="Tools"></a> 1.12 Tools
 
-### dale-autowrap
+### [dale-autowrap](#dale-autowrap)
 
-See ./eg/dale-autowrap.  This program converts a
-[c2ffi](#c2ffi) output file into a Dale program
-file, allowing for automatically generating bindings for C libraries.
+Converts [c2ffi](#c2ffi) output files into Dale
+program files, allowing for automatically generating bindings for C
+libraries.
 
 ## <a name="introspection"></a> 2.1 introspection
 
