@@ -45,6 +45,25 @@ my %CASING_MAP = (
     lisp     => \&casing_lisp,
 );
 
+sub usage
+{
+    print <<EOF;
+Usage: $0 [options] < {c2ffi-output} > {dale-header}
+Convert c2ffi data into Dale headers.
+
+Options:
+  --casing=CASING   Format names in a specific way.  Options are none
+                    (default), standard (lowercase words separated
+                    by underscores), camel (camel case), and Lisp
+                    (lowercase words separated by hyphens).
+  --namespace=NS    If provided, bindings that begin with the
+                    specified string will be put within a namespace
+                    having that name, and the string prefix will be
+                    removed from the binding name.
+EOF
+    exit(2);
+}
+
 sub type_to_string
 {
     my ($type) = @_;
@@ -319,7 +338,7 @@ sub main
     if (not $CASING_MAP{$CASING}) {
         print STDERR "Casing is invalid: must be one of ".
                      (join ', ', keys %CASING_MAP)."\n";
-        exit(10);
+        usage();
     }
 
     our $in_function = 0;
@@ -397,10 +416,15 @@ sub main
 }
 
 my @namespaces;
+my $help;
 GetOptions("namespace=s", \@namespaces,
-           "casing=s", \$CASING);
+           "casing=s", \$CASING,
+           "help", \$help);
 if (not $CASING) {
     $CASING = 'none';
+}
+if ($help) {
+    usage();
 }
 
 main(\@namespaces);
