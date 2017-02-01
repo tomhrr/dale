@@ -1219,6 +1219,16 @@ their analogues in C.
   * EXIT_FAILURE
   * EXIT_SUCCESS
 
+
+
+## <a name="Tools"></a> 1.12 Tools
+
+### dale-autowrap
+
+See ./eg/dale-autowrap.  This program converts a
+[c2ffi](#c2ffi) output file into a Dale program
+file, allowing for automatically generating bindings for C libraries.
+
 ## <a name="introspection"></a> 2.1 introspection
 
 ### Details
