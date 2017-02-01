@@ -4,7 +4,7 @@
 
 ## 1.12 Tools
 
-### [dale-autowrap](./eg/dale-autowrap)
+### [dale-autowrap](../eg/dale-autowrap)
 
 Converts [c2ffi](https://github.com/rpav/c2ffi) output files into Dale
 program files, allowing for automatically generating bindings for C
