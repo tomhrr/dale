@@ -330,6 +330,30 @@ expands to:
         (printf "%s\n" "qwer")
 
 
+#### `mfor'`
+
+Linkage: `extern`
+Parameters:
+
+  * `value-name`
+  * `value-list`
+  * `rest`
+
+
+Like `mfor`, except that it evaluates the value-list form as a macro
+call to determine the actual list values that should be used.  This
+allows for calls like:
+
+        (mfor' N (range 0 2)
+          (printf "%d\n" N))
+
+to expand to:
+
+        (printf "0\n")
+        (printf "1\n")
+        (printf "2\n")
+
+
 #### `no-op`
 
 Linkage: `extern`
@@ -361,6 +385,18 @@ Parameters:
 
 
 Expands to the argument form.
+
+
+#### `range`
+
+Linkage: `extern`
+Parameters:
+
+  * `a`: An integer DNode.
+  * `b`: An integer DNode.
+
+
+Expands to a list of integers.
 
 
 #### `+'`

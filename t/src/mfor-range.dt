@@ -1,0 +1,6 @@
+(import stdlib)
+
+(def main (fn extern-c int (void)
+  (mfor' N (range 0 2)
+    (printf "%d\n" N))
+  0))

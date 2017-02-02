@@ -707,6 +707,32 @@ expands to:
       (new-scope (qq (uql first-node))))))
 
 #|
+@macro mfor'
+
+Like `mfor`, except that it evaluates the value-list form as a macro
+call to determine the actual list values that should be used.  This
+allows for calls like:
+
+        (mfor' N (range 0 2)
+          (printf "%d\n" N))
+
+to expand to:
+
+        (printf "0\n")
+        (printf "1\n")
+        (printf "2\n")
+
+@linkage extern
+|#
+(def mfor'
+  (macro extern (value-name value-list rest)
+    (def first (var auto (p DNode) (@ rest)))
+    (def new-value-list (var auto (p DNode) (eval-macro-call mc value-list)))
+    (qq mfor (uq value-name)
+             (uq new-value-list)
+             (uql first))))
+
+#|
 @macro no-op
 
 Expands to an empty `do` form, which is a no-op both at the top-level
@@ -749,18 +775,20 @@ Takes two integers as DNode and generates a list of integers.
 @param a   An integer DNode.
 @param b   An integer DNode.
 |#
-(def range-fn (fn (attr cto) extern (p DNode) ((mc (p MContext)) (a (p DNode)) (b (p DNode)))
+(def range-fn (fn (attr cto) extern (p DNode) ((mc (p MContext))
+                                               (a (p DNode))
+                                               (b (p DNode)))
   (let ((x int)
         (y int)
         (erra bool (eval-expression mc (q int) a (cast (# x) (p void))))
         (errb bool (eval-expression mc (q int) b (cast (# y) (p void)))))
-      (or erra (report-error mc a "Unable to eval"))
-      (or errb (report-error mc b "Unable to eval"))
-      (if (< x y)
-        (bqq (uq a) (uql (@:@ (range-fn mc (mnfv mc (+ x 1)) b) list-node)))
+    (or erra (report-error mc a "Unable to eval"))
+    (or errb (report-error mc b "Unable to eval"))
+    (if (< x y)
+        (qq (uq a) (uql (@:@ (range-fn mc (mnfv mc (+ x 1)) b) list-node)))
         (if (> x y)
-          (bqq (uq a) (uql (@:@ (range-fn mc (mnfv mc (- x 1)) b) list-node)))
-          (bqq (uq a)))))))
+            (qq (uq a) (uql (@:@ (range-fn mc (mnfv mc (- x 1)) b) list-node)))
+            (qq (uq a)))))))
 
 #|
 @macro range
@@ -772,24 +800,6 @@ Expands to a list of integers.
 |#
 (def range (macro extern (a b)
   (range-fn mc a b)))
-
-#|
-@macro in-range
-
-Executes the body for `var` in range from `first` to `last`.
-
-@param var     The variable.
-@param first   An integer DNode.
-@param last    An integer DNode.
-@param rest    The body.
-|#
-(def in-range (macro extern (var first last rest)
-(let ((range \ (range-fn mc first last))
-      (list \ (get-varargs-list mc (- (arg-count mc) 3) rest)))
-  (bqq mfor (uq var) (uq range) (uql list)))))
-
-
-
 
 #|
 @macro +'
