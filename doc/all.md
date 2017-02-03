@@ -1778,11 +1778,14 @@ Parameters:
 
   * `(mc (p MContext))`: An MContext.
   * `(frm (p DNode))`: The form.
+  * `(mandatory bool)`
 
 
 Attempts to evaluate the provided form as a macro call, and returns
-the resulting form.  If the form is not a macro call, the original
-form is returned.
+the resulting form.  If `mandatory` is true, then any errors related
+to the attempted expansion will be retained, and null will be
+returned.  If it is false, then any errors will be suppressed, and the
+original node will be returned.
 
 
 #### `is-lvalue`
