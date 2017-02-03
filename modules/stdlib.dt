@@ -727,7 +727,9 @@ to expand to:
 (def mfor'
   (macro extern (value-name value-list rest)
     (def first (var auto (p DNode) (@ rest)))
-    (def new-value-list (var auto (p DNode) (eval-macro-call mc value-list)))
+    (def new-value-list (var auto (p DNode) (eval-macro-call mc value-list true)))
+    (and (null new-value-list)
+      (return (nullptr DNode)))
     (qq mfor (uq value-name)
              (uq new-value-list)
              (uql first))))

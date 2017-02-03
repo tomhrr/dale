@@ -13,6 +13,9 @@ errorInstanceToString(int error_instance)
     case ErrorInst::Null:
         ret = "Null";
         break;
+    case ErrorInst::ExpectedList:
+        ret = "expected list";
+        break;
     case ErrorInst::ExpectedLeftParen:
         ret = "expected left parenthesis";
         break;

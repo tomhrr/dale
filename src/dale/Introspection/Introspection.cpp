@@ -961,17 +961,61 @@ eval_2D_expression(MContext *mc, DNode *type_form, DNode *form, void *buffer)
 }
 
 DNode *
-eval_2D_macro_2D_call(MContext *mc, DNode *form)
+eval_2D_macro_2D_call(MContext *mc, DNode *form, bool mandatory)
 {
     dale::Units *units = (dale::Units*) mc->units;
+    Context *ctx = units->top()->ctx;
 
     Node *n = units->top()->dnc->toNode(form);
-    n = units->top()->mp->parsePotentialMacroCall(n);
-    if (!n) {
+
+    if (!mandatory) {
+        n = units->top()->mp->parsePotentialMacroCall(n);
+        if (!n) {
+            return NULL;
+        }
+
+        return n->toDNode();
+    } else {
+        if (!n->is_list) {
+            Error *e = new Error(ExpectedList, n);
+            ctx->er->addError(e);
+            return NULL;
+        }
+
+        std::vector<Node *> *lst = n->list;
+        if (!lst->size()) {
+            Error *e = new Error(NoEmptyLists, n);
+            ctx->er->addError(e);
+            return NULL;
+        }
+
+        Node *form_node = (*lst)[0];
+        if (!form_node->is_token) {
+            Error *e = new Error(FirstListElementMustBeAtom, form_node);
+            ctx->er->addError(e);
+            return NULL;
+        }
+
+        Token *form_token = form_node->token;
+        if (form_token->type != TokenType::String) {
+            Error *e = new Error(FirstListElementMustBeSymbol, form_node);
+            ctx->er->addError(e);
+            return NULL;
+        }
+
+        Node *new_node = units->top()->mp->parsePotentialMacroCall(n);
+        if (!new_node) {
+            return NULL;
+        }
+        if (new_node != n) {
+            return new_node->toDNode();
+        }
+
+        Error *e = new Error(NotInScope, form_node,
+                             form_token->str_value.c_str());
+        ctx->er->addError(e);
         return NULL;
     }
-
-    return n->toDNode();
 }
 
 bool

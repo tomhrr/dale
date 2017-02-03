@@ -1,0 +1,2 @@
+mfor.dt:4:13: error: not in scope: 'range' (see macro at 4:3)
+mfor.dt:4:3: error: macro expansion error (see previous)

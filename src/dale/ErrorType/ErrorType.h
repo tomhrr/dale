@@ -41,6 +41,7 @@ enum
     CannotCreateExecutionEngine,
     CannotLoadLibrary,
 
+    ExpectedList,
     OnlyListsAtTopLevel,
     NoEmptyLists,
     FirstListElementMustBeAtom,
