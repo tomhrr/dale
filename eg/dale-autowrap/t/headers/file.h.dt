@@ -1,0 +1,1 @@
+(def test (fn extern-c int (void)))

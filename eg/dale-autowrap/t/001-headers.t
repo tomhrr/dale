@@ -14,19 +14,20 @@ my @headers =
 plan tests => (@headers * 3);
 
 for my $header (@headers) {
-    my $res = system("$C2FFI $header > output");
+    my $res = system("$C2FFI -I ./t/headers $header > output 2>/dev/null");
     if ($res != 0) {
         die "$C2FFI against $header failed.";
     }
-    $res = system("$C2FFI -M pre $header >/dev/null");
+    $res = system("$C2FFI -I ./t/headers -M pre $header >/dev/null");
     if ($res != 0) {
         die "$C2FFI for macros against $header failed.";
     }
-    $res = system("$C2FFI pre > output2");
+    $res = system("$C2FFI -I ./t/headers pre > output2 2>/dev/null");
     if ($res != 0) {
         die "$C2FFI for macros against $header failed.";
     }
-    $res = system("cat output2 output | ./dale-autowrap > output.dt");
+    my $extra = ($header =~ /\/file.h$/) ? '--file=file.h' : '';
+    $res = system("cat output2 output | ./dale-autowrap $extra > output.dt");
     ok((not $res), "autowrap against $header succeeded");
     if ($res) {
         ok(0, "able to compile autowrap result");

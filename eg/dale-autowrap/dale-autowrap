@@ -60,6 +60,8 @@ Options:
                     specified string will be put within a namespace
                     having that name, and the string prefix will be
                     removed from the binding name.
+  --file=FILE       If provided, only bindings that appear in the
+                    specified file(s) will be considered.
 EOF
     exit(2);
 }
@@ -333,7 +335,9 @@ my %PROCESS_MAP = (
 
 sub main
 {
-    my ($namespaces) = @_;
+    my ($namespaces, $files) = @_;
+
+    my %file_lookup = map { $_ => 1 } @{$files};
 
     if (not $CASING_MAP{$CASING}) {
         print STDERR "Casing is invalid: must be one of ".
@@ -355,11 +359,11 @@ sub main
             next;
         }
         my $data = decode_json($entry);
-        if (@ARGV) {
+        if (@{$files}) {
             my $path = $data->{'location'};
-            my $name = fileparse($path, qr/\.[^.]*/);  
-            my $arg = $ARGV[0];
-            if ($name ne $arg) {
+            $path =~ s/:.*//;
+            my $name = basename($path);
+            if (not $file_lookup{$name}) {
                 next;
             }
         }
@@ -416,9 +420,11 @@ sub main
 }
 
 my @namespaces;
+my @files;
 my $help;
 GetOptions("namespace=s", \@namespaces,
            "casing=s", \$CASING,
+           "file=s", \@files,
            "help", \$help);
 if (not $CASING) {
     $CASING = 'none';
@@ -427,6 +433,6 @@ if ($help) {
     usage();
 }
 
-main(\@namespaces);
+main(\@namespaces, \@files);
 
 1;
