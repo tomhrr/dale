@@ -26,6 +26,8 @@ my %TYPE_MAP = (
     'long-long'          => '(long-long-type)',
     'signed-long-long'   => '(long-long-type)',
     'unsigned-long-long' => '(ulong-long-type)',
+    'float'              => 'float',
+    'double'             => 'double',
     'ptrdiff_t'          => 'ptrdiff',
     'size_t'             => 'size',
     'uint8_t'            => 'uint8',
@@ -153,12 +155,30 @@ sub process_function
     }
     my $param_str = "(".(join ' ', @params).")";
 
-    sprintf("(def %s (fn %s %s %s))",
-            $data->{'name'},
-            storage_class_to_string($data->{'storage_class'}
-                                 || $data->{'storage-class'}),
-            type_to_string($data->{'return-type'}),
-            $param_str);
+    my $casing_fn = $CASING_MAP{$CASING};
+    my $new_name = $casing_fn->($data->{'name'});
+
+    if ($new_name ne $data->{'name'}) {
+        sprintf("(def %s (fn %s %s %s %s))",
+                $data->{'name'},
+                storage_class_to_string($data->{'storage_class'}
+                                     || $data->{'storage-class'}),
+                type_to_string($data->{'return-type'}),
+                $param_str,
+                "(".$data->{'name'}.
+                ((@{$data->{'parameters'}})
+                    ? " ".(join ' ', map { $_->{'name'} }
+                                         @{$data->{'parameters'}})
+                    : "").
+                ")");
+    } else {
+        sprintf("(def %s (fn %s %s %s))",
+                $data->{'name'},
+                storage_class_to_string($data->{'storage_class'}
+                                     || $data->{'storage-class'}),
+                type_to_string($data->{'return-type'}),
+                $param_str);
+    }
 }
 
 sub process_variable
