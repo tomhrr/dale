@@ -160,30 +160,40 @@ sub process_function
     my $casing_fn = $CASING_MAP{$CASING};
     my $new_name = $casing_fn->($data->{'name'});
 
-    my $is_in_namespace =
-        first { $data->{'name'} =~ /^$_/ }
-            @NAMESPACES;
-
-    if (($new_name ne $data->{'name'}) or $is_in_namespace) {
-        sprintf("(def %s (fn %s %s %s %s))",
-                $data->{'name'},
-                storage_class_to_string($data->{'storage_class'}
-                                     || $data->{'storage-class'}),
-                type_to_string($data->{'return-type'}),
-                $param_str,
-                "(".$data->{'name'}.
-                ((@{$data->{'parameters'}})
-                    ? " ".(join ' ', map { $_->{'name'} }
-                                         @{$data->{'parameters'}})
-                    : "").
-                ")");
-    } else {
-        sprintf("(def %s (fn %s %s %s))",
+    my $original_fn =
+        sprintf("NC(def %s (fn %s %s %s))",
                 $data->{'name'},
                 storage_class_to_string($data->{'storage_class'}
                                      || $data->{'storage-class'}),
                 type_to_string($data->{'return-type'}),
                 $param_str);
+
+    my $is_in_namespace =
+        first { $data->{'name'} =~ /^$_\w/ }
+            @NAMESPACES;
+
+    if (($new_name ne $data->{'name'}) or $is_in_namespace) {
+        my $sc = storage_class_to_string($data->{'storage_class'}
+                                      || $data->{'storage-class'});
+        if ($is_in_namespace) {
+            $sc =~ s/\-c$//;
+        }
+        return (
+            sprintf("(def %s (fn %s %s %s %s))",
+                    $data->{'name'},
+                    $sc,
+                    type_to_string($data->{'return-type'}),
+                    $param_str,
+                    "(".$data->{'name'}.
+                    ((@{$data->{'parameters'}})
+                        ? " ".(join ' ', map { $_->{'name'} }
+                                             @{$data->{'parameters'}})
+                        : "").
+                    ")"),
+            $original_fn
+        );
+    } else {
+        return $original_fn;
     }
 }
 
@@ -337,12 +347,17 @@ sub casing_lisp
 
 sub print_binding
 {
-    my ($binding) = @_;
+    my ($binding, $no_casing) = @_;
 
-    my ($name) = ($binding =~ /^\(.*? (.*?) /);
-    my $casing_fn = $CASING_MAP{$CASING};
-    my $new_name = $casing_fn->($name);
-    $binding =~ s/ (.*?) / $new_name /;
+    if (not $no_casing) {
+        $no_casing = ($binding =~ s/^(NC)//);
+    }
+    if (not $no_casing) {
+        my ($name) = ($binding =~ /^\(.*? (.*?) /);
+        my $casing_fn = $CASING_MAP{$CASING};
+        my $new_name = $casing_fn->($name);
+        $binding =~ s/ (.*?) / $new_name /;
+    }
 
     print $binding,"\n";
 
@@ -395,9 +410,9 @@ sub main
         }
         my $tag = $data->{'tag'};
         if ($PROCESS_MAP{$tag}) {
-            my $result = $PROCESS_MAP{$tag}->($data);
-            if ($result) {
-                push @bindings, $result;
+            my @results = $PROCESS_MAP{$tag}->($data);
+            if (@results) {
+                push @bindings, @results;
             }
         } else {
             warn "unable to process tag '$tag'";
@@ -412,35 +427,31 @@ sub main
         print "\n";
     }
 
-    my %by_namespace =
-        map { $_ => [] }
-            @NAMESPACES;
-    my @no_namespace;
-    BINDING: for my $binding (@bindings) {
-        my ($name) = ($binding =~ /^\(.*? (.*?) /);
+    use Data::Dumper;
+    print Dumper(\@bindings);
+
+    BINDING: for (my $i = 0; $i < @bindings; $i++) {
+        my $binding = $bindings[$i];
+        my ($name) = ($binding =~ /^N?C?\(.*? (.*?) /);
+        if (not defined $name) {
+            die $binding;
+        }
         for my $namespace (@NAMESPACES) {
-            if ($name =~ /^${namespace}/) {
+            if ($name =~ /^${namespace}\w/) {
+                if ($binding =~ /\(def (\S+?) \(fn /) {
+                    print_binding($bindings[++$i]);
+                }
                 $name =~ s/^${namespace}//;
                 $binding =~ s/ (.*?) / $name /;
-                push @{$by_namespace{$namespace}}, $binding;
+                print "(namespace $namespace \n";
+                print_binding($binding);
+                print ")\n";
                 next BINDING;
             }
         }
-        push @no_namespace, $binding;
-    }
-
-    for my $namespace (@NAMESPACES) {
-        my @ns_bindings = @{$by_namespace{$namespace}};
-        if (@ns_bindings) {
-            print "(namespace $namespace \n";
-            for my $binding (@ns_bindings) {
-                print_binding($binding);
-            }
-            print ")\n";
+        if ($binding =~ /\($name /) {
+            print_binding($bindings[++$i]);
         }
-    }
-
-    for my $binding (@no_namespace) {
         print_binding($binding);
     }
 }
