@@ -20,9 +20,13 @@ my @lines =
         `cat namespace-output | ./dale-autowrap --namespace first_`;
 is_deeply(\@lines,
           [split /\n/, <<EOF],
+(def first_testfn1 (fn extern-c int ((a int) (b float))))
 (namespace first_ 
-(def testfn1 (fn extern-c int ((a int) (b float)) (first_testfn1 a b)))
-(def testfn2 (fn extern-c int (void) (first_testfn2)))
+(def testfn1 (fn extern int ((a int) (b float)) (first_testfn1 a b)))
+)
+(def first_testfn2 (fn extern-c int (void)))
+(namespace first_ 
+(def testfn2 (fn extern int (void) (first_testfn2)))
 )
 (def otherfn (fn extern-c int (void)))
 EOF
