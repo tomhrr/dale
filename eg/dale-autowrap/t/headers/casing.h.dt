@@ -1,3 +1,3 @@
-(def first-test (fn extern-c int ((a int) (b float))))
+(def first_test (fn extern-c int ((a int) (b float))))
 (def secondTest (fn extern-c int (void)))
 (def ThirdTest (fn extern-c int (void)))
