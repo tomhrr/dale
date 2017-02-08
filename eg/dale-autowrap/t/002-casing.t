@@ -32,8 +32,10 @@ EOF
 is_deeply(\@lines,
           [split /\n/, <<EOF],
 (def first_test (fn extern-c int ((a int) (b float))))
-(def second_test (fn extern-c int (void) (secondTest)))
-(def third_test (fn extern-c int (void) (ThirdTest)))
+(def secondTest (fn extern-c int (void)))
+(def second_test (fn extern int (void) (secondTest)))
+(def ThirdTest (fn extern-c int (void)))
+(def third_test (fn extern int (void) (ThirdTest)))
 EOF
           "Standard case applied successfully");
 
@@ -42,8 +44,10 @@ EOF
         `cat casing-output | ./dale-autowrap --casing=camel`;
 is_deeply(\@lines,
           [split /\n/, <<EOF],
-(def FirstTest (fn extern-c int ((a int) (b float)) (first_test a b)))
-(def SecondTest (fn extern-c int (void) (secondTest)))
+(def first_test (fn extern-c int ((a int) (b float))))
+(def FirstTest (fn extern int ((a int) (b float)) (first_test a b)))
+(def secondTest (fn extern-c int (void)))
+(def SecondTest (fn extern int (void) (secondTest)))
 (def ThirdTest (fn extern-c int (void)))
 EOF
           "Camel case applied successfully");
@@ -53,9 +57,12 @@ EOF
         `cat casing-output | ./dale-autowrap --casing=lisp`;
 is_deeply(\@lines,
           [split /\n/, <<EOF],
-(def first-test (fn extern-c int ((a int) (b float)) (first_test a b)))
-(def second-test (fn extern-c int (void) (secondTest)))
-(def third-test (fn extern-c int (void) (ThirdTest)))
+(def first_test (fn extern-c int ((a int) (b float))))
+(def first-test (fn extern int ((a int) (b float)) (first_test a b)))
+(def secondTest (fn extern-c int (void)))
+(def second-test (fn extern int (void) (secondTest)))
+(def ThirdTest (fn extern-c int (void)))
+(def third-test (fn extern int (void) (ThirdTest)))
 EOF
           "Lisp case applied successfully");
 

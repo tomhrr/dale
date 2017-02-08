@@ -175,9 +175,7 @@ sub process_function
     if (($new_name ne $data->{'name'}) or $is_in_namespace) {
         my $sc = storage_class_to_string($data->{'storage_class'}
                                       || $data->{'storage-class'});
-        if ($is_in_namespace) {
-            $sc =~ s/\-c$//;
-        }
+        $sc =~ s/\-c$//;
         return (
             sprintf("(def %s (fn %s %s %s %s))",
                     $data->{'name'},
@@ -427,9 +425,6 @@ sub main
         print "\n";
     }
 
-    use Data::Dumper;
-    print Dumper(\@bindings);
-
     BINDING: for (my $i = 0; $i < @bindings; $i++) {
         my $binding = $bindings[$i];
         my ($name) = ($binding =~ /^N?C?\(.*? (.*?) /);
@@ -449,9 +444,16 @@ sub main
                 next BINDING;
             }
         }
-        if ($binding =~ /\($name /) {
+
+        my $casing_fn = $CASING_MAP{$CASING};
+        my $new_name = $casing_fn->($name);
+
+        if ((($binding =~ /\($name /)
+                and ($binding !~ /\(\($name/))
+                or ($name ne $new_name)) {
             print_binding($bindings[++$i]);
         }
+
         print_binding($binding);
     }
 }
