@@ -1,0 +1,3 @@
+(def first_testfn1 (fn extern-c int ((a int) (b float))))
+(def first_testfn2 (fn extern-c int (void)))
+(def otherfn (fn extern-c int (void)))

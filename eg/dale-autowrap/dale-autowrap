@@ -6,7 +6,9 @@ use strict;
 use File::Basename;
 use Getopt::Long;
 use JSON::XS qw(decode_json);
+use List::Util qw(first);
 
+my @NAMESPACES;
 my $CASING;
 my %IMPORTS;
 
@@ -158,7 +160,11 @@ sub process_function
     my $casing_fn = $CASING_MAP{$CASING};
     my $new_name = $casing_fn->($data->{'name'});
 
-    if ($new_name ne $data->{'name'}) {
+    my $is_in_namespace =
+        first { $data->{'name'} =~ /^$_/ }
+            @NAMESPACES;
+
+    if (($new_name ne $data->{'name'}) or $is_in_namespace) {
         sprintf("(def %s (fn %s %s %s %s))",
                 $data->{'name'},
                 storage_class_to_string($data->{'storage_class'}
@@ -355,7 +361,7 @@ my %PROCESS_MAP = (
 
 sub main
 {
-    my ($namespaces, $files) = @_;
+    my ($files) = @_;
 
     my %file_lookup = map { $_ => 1 } @{$files};
 
@@ -408,11 +414,11 @@ sub main
 
     my %by_namespace =
         map { $_ => [] }
-            @{$namespaces};
+            @NAMESPACES;
     my @no_namespace;
     BINDING: for my $binding (@bindings) {
         my ($name) = ($binding =~ /^\(.*? (.*?) /);
-        for my $namespace (@{$namespaces}) {
+        for my $namespace (@NAMESPACES) {
             if ($name =~ /^${namespace}/) {
                 $name =~ s/^${namespace}//;
                 $binding =~ s/ (.*?) / $name /;
@@ -423,11 +429,11 @@ sub main
         push @no_namespace, $binding;
     }
 
-    for my $namespace (@{$namespaces}) {
+    for my $namespace (@NAMESPACES) {
         my @ns_bindings = @{$by_namespace{$namespace}};
         if (@ns_bindings) {
             print "(namespace $namespace \n";
-            for my $binding (@bindings) {
+            for my $binding (@ns_bindings) {
                 print_binding($binding);
             }
             print ")\n";
@@ -439,10 +445,9 @@ sub main
     }
 }
 
-my @namespaces;
 my @files;
 my $help;
-GetOptions("namespace=s", \@namespaces,
+GetOptions("namespace=s", \@NAMESPACES,
            "casing=s", \$CASING,
            "file=s", \@files,
            "help", \$help);
@@ -453,6 +458,6 @@ if ($help) {
     usage();
 }
 
-main(\@namespaces, \@files);
+main(\@files);
 
 1;
