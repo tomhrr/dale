@@ -538,60 +538,9 @@ Context::getFunction(const char *name,
             ++rb) {
         Function *fn =
             getFunction_((*rb)->ns, name, types, closest_fn, is_macro, lvalues);
-        if (closest_fn && !first_closest_fn) {
-            first_closest_fn = *closest_fn;
-        }
         if (fn) {
-            if (!fn->is_macro) {
-                return fn;
-            } else {
-                candidates.push_back(fn);
-            }
+            return fn;
         }
-    }
-
-    Type *dnode = tr->getStructType("DNode");
-    Type *pdnode = tr->getPointerType(dnode);
-
-    if (closest_fn) {
-        *closest_fn = first_closest_fn;
-    }
-
-    if (candidates.size()) {
-        int dnode_count = 1024;
-        int earliest_type = 1024;
-        Function *best_candidate = NULL;
-        for (std::vector<Function *>::iterator b = candidates.begin(),
-                                               e = candidates.end();
-                b != e;
-                ++b) {
-            int current_dnode_count = 0;
-            int current_earliest_type = 1024;
-            int arg_index = -1;
-            for (std::vector<Variable *>::iterator pb = (*b)->parameters.begin(),
-                                                   pe = (*b)->parameters.end();
-                    pb != pe;
-                    ++pb) {
-                arg_index++;
-                if ((*pb)->type->isEqualTo(pdnode)) {
-                    current_dnode_count++;
-                } else {
-                    if (arg_index < current_earliest_type) {
-                        current_earliest_type = arg_index;
-                    }
-                }
-            }
-            if (current_dnode_count < dnode_count) {
-                dnode_count = current_dnode_count;
-                best_candidate = (*b);
-            } else if (current_dnode_count == dnode_count) {
-                if (current_earliest_type < earliest_type) {
-                    earliest_type = current_earliest_type;
-                    best_candidate = (*b);
-                }
-            }
-        }
-        return best_candidate;
     }
 
     return NULL;
