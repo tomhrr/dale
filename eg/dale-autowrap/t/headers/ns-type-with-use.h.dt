@@ -1,0 +1,2 @@
+(def testStruct (struct extern ((a int))))
+(def anotherStruct2 (struct extern ((b testStruct))))

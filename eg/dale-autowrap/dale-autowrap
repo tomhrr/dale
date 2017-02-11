@@ -115,8 +115,16 @@ sub type_to_string
         return $new_name;
     }
 
+    for my $namespace (@NAMESPACES) {
+        if ($tag =~ /^${namespace}\w/) {
+            $tag =~ s/^${namespace}/${namespace}./;
+            last;
+        }
+    }
+
     my $casing_fn = $CASING_MAP{$CASING};
     my $new_name = $casing_fn->($tag);
+
     return $new_name;
 }
 
