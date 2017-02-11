@@ -1,0 +1,5 @@
+(def LIB_NAMESPACE1 (var intern int))
+(def LibX (struct extern ((a int))))
+(def LIB_NAMESPACE2 (var intern int))
+(def libFn (fn extern-c int ((a int))))
+(def LIB_NAMESPACE3 (var intern int))

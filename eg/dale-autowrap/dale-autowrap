@@ -436,9 +436,11 @@ sub main
         if (not defined $name) {
             die $binding;
         }
+        my ($type) = ($binding =~ /^\(def \S+? \((\w+?) /);
+
         for my $namespace (@NAMESPACES) {
             if ($name =~ /^${namespace}\w/) {
-                if ($binding =~ /\(def (\S+?) \(fn /) {
+                if ($type eq 'fn') {
                     print_binding($bindings[++$i]);
                 }
                 $name =~ s/^${namespace}//;
@@ -453,9 +455,10 @@ sub main
         my $casing_fn = $CASING_MAP{$CASING};
         my $new_name = $casing_fn->($name);
 
-        if ((($binding =~ /\($name /)
+        if (((($binding =~ /\($name /)
                 and ($binding !~ /\(\($name/))
-                or ($name ne $new_name)) {
+                or ($name ne $new_name))
+                and ($type eq 'fn')) {
             print_binding($bindings[++$i]);
         }
 
