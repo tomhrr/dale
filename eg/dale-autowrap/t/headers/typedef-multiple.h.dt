@@ -1,0 +1,6 @@
+(import enum)
+(import variant)
+
+(def S (struct extern ((x int))))
+(def-variant U ((U-int ((value int)))))
+(def-enum E extern int ((x 0)))

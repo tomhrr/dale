@@ -249,13 +249,18 @@ sub process_typedef
 {
     my ($data) = @_;
 
-    if ($data->{'type'}->{'tag'} eq 'struct') {
+    my $type_tag = $data->{'type'}->{'tag'};
+    if (($type_tag eq ':struct')
+            or ($type_tag eq ':union')
+            or ($type_tag eq ':enum')) {
+        return;
+    }
+
+    my $type = type_to_string($data->{'type'});
+    if (not $type) {
         $data->{'type'}->{'name'} = $data->{'name'};
         return process_struct($data->{'type'});
-    }
-    
-    my $type = type_to_string($data->{'type'});
-    if (not ($type eq 'void')) {
+    } elsif (not ($type eq 'void')) {
         sprintf("(def %s (struct extern ((a %s))))",
                 $data->{'name'},
                 $type);
