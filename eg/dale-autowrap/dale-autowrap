@@ -70,6 +70,15 @@ EOF
     exit(2);
 }
 
+sub case_string
+{
+    my ($string) = @_;
+
+    my $casing_fn = $CASING_MAP{$CASING};
+    my $new_string = $casing_fn->($string);
+    return $new_string;
+}
+
 sub type_to_string
 {
     my ($type) = @_;
@@ -110,8 +119,7 @@ sub type_to_string
         return $mapped_type;
     }
     if ($tag eq 'struct') {
-        my $casing_fn = $CASING_MAP{$CASING};
-        my $new_name = $casing_fn->($type->{'name'});
+        my $new_name = case_string($type->{'name'});
         return $new_name;
     }
 
@@ -122,8 +130,7 @@ sub type_to_string
         }
     }
 
-    my $casing_fn = $CASING_MAP{$CASING};
-    my $new_name = $casing_fn->($tag);
+    my $new_name = case_string($tag);
 
     return $new_name;
 }
@@ -165,8 +172,7 @@ sub process_function
     }
     my $param_str = "(".(join ' ', @params).")";
 
-    my $casing_fn = $CASING_MAP{$CASING};
-    my $new_name = $casing_fn->($data->{'name'});
+    my $new_name = case_string($data->{'name'});
 
     my $original_fn =
         sprintf("NC(def %s (fn %s %s %s))",
@@ -227,7 +233,7 @@ sub process_struct
     my ($data) = @_;
 
     my @fields =
-        map { sprintf("(%s %s)", $_->{'name'},
+        map { sprintf("(%s %s)", case_string($_->{'name'}),
                                  type_to_string($_->{'type'})) }
             @{$data->{'fields'}};
     my $field_str = (@fields ? " (".(join ' ', @fields).")" : "");
@@ -244,7 +250,7 @@ sub process_enum
     $IMPORTS{'enum'} = 1;
 
     my @fields =
-        map { sprintf("(%s %s)", $_->{'name'}, $_->{'value'}) }
+        map { sprintf("(%s %s)", case_string($_->{'name'}), $_->{'value'}) }
             @{$data->{'fields'}};
     my $field_str = (@fields ? " (".(join ' ', @fields).")" : "");
 
@@ -285,7 +291,7 @@ sub process_union
 
     my @constructors =
         map { sprintf("(%s-%s ((value %s)))",
-                      $name,
+                      case_string($name),
                       type_to_flat_string($_->{'type'}),
                       type_to_string($_->{'type'})) }
             @{$data->{'fields'}};
@@ -365,8 +371,7 @@ sub print_binding
     }
     if (not $no_casing) {
         my ($name) = ($binding =~ /^\(.*? (.*?) /);
-        my $casing_fn = $CASING_MAP{$CASING};
-        my $new_name = $casing_fn->($name);
+        my $new_name = case_string($name);
         $binding =~ s/ (.*?) / $new_name /;
     }
 
@@ -460,8 +465,7 @@ sub main
             }
         }
 
-        my $casing_fn = $CASING_MAP{$CASING};
-        my $new_name = $casing_fn->($name);
+        my $new_name = case_string($name);
 
         if (((($binding =~ /\($name /)
                 and ($binding !~ /\(\($name/))

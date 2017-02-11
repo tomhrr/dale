@@ -1,0 +1,1 @@
+(def testStruct (struct extern ((firstElement int) (secondElement int))))
