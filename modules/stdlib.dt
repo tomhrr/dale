@@ -726,13 +726,15 @@ to expand to:
 |#
 (def mfor'
   (macro extern (value-name value-list rest)
-    (def first (var auto (p DNode) (@ rest)))
+    (def arg-count (var auto \ (arg-count mc)))
+    (setv arg-count (- arg-count 2))
+    (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
     (def new-value-list (var auto (p DNode) (eval-macro-call mc value-list true)))
     (and (null new-value-list)
       (return (nullptr DNode)))
     (qq mfor (uq value-name)
              (uq new-value-list)
-             (uql first))))
+             (uql varargs-list))))
 
 #|
 @macro no-op

@@ -1,0 +1,9 @@
+(import stdlib)
+
+(def main (fn extern-c int (void)
+  (def sum (var auto int 0))
+  (mfor' i (range 0 4)
+    (printf "adding %i to sum\n" i)
+    (setv sum (+ sum i)))
+  (printf "now sum is %i\n" sum) ;;sum still is 0
+  0))
