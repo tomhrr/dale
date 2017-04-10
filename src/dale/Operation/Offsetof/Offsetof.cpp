@@ -26,18 +26,16 @@ OffsetofGet(Unit *unit,
             int index)
 {
     Context *ctx = unit->ctx;
-    llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
+    llvm::Type *llvm_type =
+        ctx->toLLVMType(ctx->tr->getPointerType(type), NULL, false);
     if (!llvm_type) {
         return false;
     }
     std::vector<llvm::Value *> indices;
+    indices.push_back(ctx->nt->getLLVMZero());
     indices.push_back(ctx->nt->getNativeInt(index));
     llvm::ArrayRef<llvm::Value *> indices_aref(indices);
 
-    /* todo: When built against a debug build of 3.5.2, things fail at
-     * this point, because the argument type to getIndexedOffset is
-     * not a pointer type.  Making that change alone, though, causes
-     * tests to fail, so this required further investigation. */
 #if D_LLVM_VERSION_MINOR <= 4
     llvm::DataLayout data_layout(unit->module->getDataLayout());
     return data_layout.getIndexedOffset(llvm_type, indices_aref);
