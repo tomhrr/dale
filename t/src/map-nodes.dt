@@ -2,10 +2,14 @@
 (import introspection)
 
 (using-namespace std.macros
+  (def inner-fn
+    (fn (attr cto) intern (p DNode) ((mc (p MContext))
+                                     (form (p DNode))
+                                     (a (p void)))
+      (type-of mc form false)))
+
   (def arg-types (fn (attr cto) extern (p DNode) ((mc (p MContext)) (form (p DNode)))
-    (map-nodes mc form (nullptr void)
-      (fn (attr cto) (p DNode) ((mc (p MContext)) (form (p DNode)) (a (p void)))
-        (type-of mc form false)))))
+    (map-nodes mc form (nullptr void) (# inner-fn))))
 
   (def print-arg-types (macro intern (rest)
     (def vl (var auto \ (get-varargs-list (arg-count mc))))
