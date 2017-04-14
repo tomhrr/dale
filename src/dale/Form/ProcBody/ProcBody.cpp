@@ -195,7 +195,7 @@ resolveDeferredGotos(Context *ctx, Node *node, Function *fn,
 
         /* Create a vector of variables to destruct.  This will
          * comprise all variables in the goto's namespace and upwards,
-         * until either null (top of function) or the label's
+         * until either the namespace before the root or the label's
          * namespace is reached. */
 
         std::vector<Variable *> variables;
@@ -204,11 +204,12 @@ resolveDeferredGotos(Context *ctx, Node *node, Function *fn,
         Namespace *current_ns = goto_ns;
 
         while (current_ns != label->ns) {
-            current_ns->getVariables(&variables);
-            current_ns = current_ns->parent_namespace;
-            if (!current_ns) {
+            Namespace *parent = current_ns->parent_namespace;
+            if (parent && !parent->parent_namespace) {
                 break;
             }
+            current_ns->getVariables(&variables);
+            current_ns = parent;
         }
 
         if (current_ns != label->ns) {
