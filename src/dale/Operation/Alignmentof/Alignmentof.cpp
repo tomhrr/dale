@@ -6,8 +6,6 @@ namespace dale
 {
 namespace Operation
 {
-static int alignment_structs = 0;
-
 bool
 Alignmentof(Context *ctx, llvm::BasicBlock *block, Type *type,
             ParseResult *pr)
@@ -26,16 +24,6 @@ Alignmentof(Context *ctx, llvm::BasicBlock *block, Type *type,
     llvm::StructType *llvm_as_struct =
         llvm::StructType::get(llvm::getGlobalContext(),
                               elements_llvm, false);
-
-    char as_name[32];
-    sprintf(as_name, "_as%d", alignment_structs++);
-    std::string as_name_symbol;
-    ctx->ns()->nameToSymbol(as_name, &as_name_symbol);
-    std::string final_name;
-    final_name.append("struct_");
-    final_name.append(as_name_symbol);
-
-    llvm_as_struct->setName(as_name_symbol.c_str());
 
     llvm::IRBuilder<> builder(block);
     llvm::PointerType *lpt = llvm::PointerType::getUnqual(llvm_as_struct);
