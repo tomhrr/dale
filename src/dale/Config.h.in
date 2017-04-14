@@ -11,3 +11,4 @@
 #define D_LLVM_VERSION_MAJOR @D_LLVM_VERSION_MAJOR@
 #define D_LLVM_VERSION_MINOR @D_LLVM_VERSION_MINOR@
 #define LLVM_BIN_DIR         "@LLVM_BIN_DIR@"
+#define DALE_CC              "@CC@"

@@ -283,7 +283,7 @@ exists_2D_fn(MContext *mc, DNode *form)
     Function *fn =
         units->top()->ctx->getFunction(
             node_function_name->token->str_value.c_str(),
-            &parameter_types, NULL, NULL, 0
+            &parameter_types, NULL, false, 0
         );
 
     units->top()->ctx->er->popErrors(error_count_begin);
@@ -436,7 +436,7 @@ fn_2D_by_2D_args_2D_count(MContext *mc, DNode *form, const char *prefix)
             b != e;
             ++b) {
         Function *fn = units->top()->ctx->getFunction(b->c_str(), &parameter_types,
-                                           NULL, NULL, 0);
+                                           NULL, false, 0);
         if (fn && !fn->is_macro) {
             fn_by_args_list->push_back(*b);
         }
@@ -754,7 +754,7 @@ arity(MContext *mc, DNode *name)
 
     const char *fn_name = fn_node->token->str_value.c_str();
 
-    Function *fn = units->top()->ctx->getFunction(fn_name, NULL, NULL, NULL, 0);
+    Function *fn = units->top()->ctx->getFunction(fn_name, NULL, NULL, false, 0);
     if (!fn) {
         return -1;
     }
@@ -803,7 +803,7 @@ DNode *codomain(MContext *mc, DNode *form)
 
     Function *fn =
         units->top()->ctx->getFunction(function_name->token->str_value.c_str(),
-                            &parameter_types, NULL, NULL, 0);
+                            &parameter_types, NULL, false, 0);
 
     units->top()->ctx->er->popErrors(error_count_begin);
     if (fn && !fn->is_macro) {
@@ -825,7 +825,7 @@ input_2D_type(MContext *mc, DNode *fn_name_nd, int index)
     }
     const char *fn_name = fn_node->token->str_value.c_str();
 
-    Function *fn = units->top()->ctx->getFunction(fn_name, NULL, NULL, NULL, 0);
+    Function *fn = units->top()->ctx->getFunction(fn_name, NULL, NULL, false, 0);
     if (!fn) {
         return NULL;
     }

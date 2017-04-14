@@ -352,7 +352,7 @@ main(int argc, char **argv)
     int bytes = 0;
     if (no_linking) {
         bytes = snprintf(compile_cmd, (8192 - 1),
-                         "cc %s -c %s %s %s %s -o %s",
+                         DALE_CC "%s -c %s %s %s %s -o %s",
                          (no_stdlib) ? "--nostdlib" : "",
                          run_path_str.c_str(),
                          rpath_str.c_str(),
@@ -361,7 +361,7 @@ main(int argc, char **argv)
                          output_path.c_str());
     } else {
         bytes = snprintf(compile_cmd, (8192 - 1),
-                         "cc %s %s %s %s %s %s %s -lm -o %s",
+                         DALE_CC "%s %s %s %s %s %s %s -lm -o %s",
                          (no_stdlib) ? "--nostdlib" : "",
                          (strcmp(SYSTEM_NAME, "Darwin")
                              ? "-Wl,--gc-sections"
@@ -374,7 +374,7 @@ main(int argc, char **argv)
                          output_path.c_str());
     }
     if (bytes >= 8192) {
-        error("cc command is too long");
+        error(DALE_CC " command is too long");
     }
 
     int status = system(compile_cmd);
@@ -382,7 +382,7 @@ main(int argc, char **argv)
         if (debug) {
             fprintf(stderr, "%s\n", compile_cmd);
         }
-        error("cc failed");
+        error(DALE_CC " failed");
     }
 
     status = remove(intermediate_output_path.c_str());

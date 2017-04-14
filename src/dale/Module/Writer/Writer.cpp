@@ -83,7 +83,7 @@ Writer::writeSharedObject(const char *suffix)
     lib_path.append(".so");
 
     cmd.clear();
-    cmd.append("cc -shared ");
+    cmd.append(DALE_CC " -shared ");
     if (!strcmp(SYSTEM_NAME, "Darwin")) {
         cmd.append(" -undefined dynamic_lookup"
                    " -install_name @rpath/");
