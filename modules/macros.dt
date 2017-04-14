@@ -324,6 +324,19 @@ copies it, and sets it in the new node.
 @fn std.macros.mnfv
 
 @param mc An MContext.
+@param n  A int64 integer.
+|#
+(def mnfv
+  (fn extern (p DNode) ((mc (p MContext))
+                        (n int64))
+    (def x (var auto (array-of 255 char)))
+    (sprintf x "%ld" n)
+    (mnfv mc x)))
+
+#|
+@fn std.macros.mnfv
+
+@param mc An MContext.
 @param f  A float.
 |#
 (def mnfv

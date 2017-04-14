@@ -60,10 +60,10 @@ enums can be cast to and from their underlying types, too.
             (return (nullptr DNode))))
       (def holder  (var auto (p DNode) (nullptr DNode)))
       (def current (var auto (p DNode) (nullptr DNode)))
-      (for (i uint64 0)
+      (for (i int64 0)
            (not (null forms-list))
            (do (setv forms-list (@:@ forms-list next-node))
-               (setv i (if (=' i 0) (cast 1 uint64) (+' i 1))))
+               (setv i (if (=' i 0) (cast 1 int64) (+' i 1))))
         (def name-node (var auto \ forms-list))
         (def name-list-node (var auto \ (@:@ name-node list-node)))
         (and (not (null name-list-node))
@@ -78,12 +78,12 @@ enums can be cast to and from their underlying types, too.
                 (do (report-error mc forms
                                   "atom required for enum element index")
                     (return (nullptr DNode))))
-              (setv i (strtoul value
-                               (nullptr (p char))
-                               (if (and (= #\0 (@$ value 0))
-                                        (= #\x (@$ value 1)))
-                                   16
-                                   10))))))
+              (setv i (strtol value
+                              (nullptr (p char))
+                              (if (and (= #\0 (@$ value 0))
+                                       (= #\x (@$ value 1)))
+                                  16
+                                  10))))))
         (let ((num-node \ (mnfv mc i))
               (new-form \
                 (qq def (uq name-node)
