@@ -528,9 +528,6 @@ Context::getFunction(const char *name,
         return getFunction_(ns, fn_name, types, closest_fn, is_macro, lvalues);
     }
 
-    std::vector<Function *> candidates;
-    Function *first_closest_fn = NULL;
-
     for (std::vector<NSNode *>::reverse_iterator
             rb = used_ns_nodes.rbegin(),
             re = used_ns_nodes.rend();
