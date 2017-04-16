@@ -9,7 +9,7 @@ $ENV{PATH} .= ":.";
 use Data::Dumper;
 use Test::More tests => 3;
 
-my @res = `dalec $ENV{"DALE_TEST_ARGS"} -I. -lm $test_dir/t/src/proc-include-test.dt -o proc-include-test`;
+my @res = `dalec $ENV{"DALE_TEST_ARGS"} -I$test_dir -lm $test_dir/t/src/proc-include-test.dt -o proc-include-test`;
 is(@res, 0, 'No compilation errors');
 
 @res = `./proc-include-test`;
