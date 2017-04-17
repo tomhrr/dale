@@ -48,8 +48,11 @@ FormProcNullParse(Units *units, Function *fn, llvm::BasicBlock *block,
                                ctx->nt->getNativeIntType());
 
     llvm::Value *null_res =
-        llvm::cast<llvm::Value>(
-            builder.CreateICmpEQ(int_res, ctx->nt->getLLVMZero())
+        builder.CreateZExt(
+            llvm::cast<llvm::Value>(
+                builder.CreateICmpEQ(int_res, ctx->nt->getLLVMZero())
+            ),
+            llvm::Type::getInt8Ty(llvm::getGlobalContext())
         );
 
     ParseResult destruct_pr;

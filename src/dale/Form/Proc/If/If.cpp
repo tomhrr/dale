@@ -51,8 +51,13 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
                                  "else", fn->llvm_function);
 
     llvm::IRBuilder<> builder_cond(cond_pr.block);
-    builder_cond.CreateCondBr(cond_pr.getValue(ctx),
-                              then_block, else_block);
+    builder_cond.CreateCondBr(
+        builder_cond.CreateTrunc(
+            cond_pr.getValue(ctx),
+            llvm::Type::getInt1Ty(llvm::getGlobalContext())
+        ),
+        then_block, else_block
+    );
 
     ParseResult destruct_pr;
     res = Operation::Destruct(ctx, &cond_pr, &destruct_pr, &builder_cond);

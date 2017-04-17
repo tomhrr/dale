@@ -170,6 +170,11 @@ makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                                        (*(iter + 1))->value,
                                        unused_twine)
         );
+    if (ret_type->base_type == BaseType::Bool) {
+        ret_val = builder.CreateZExt(ret_val,
+                                     ctx->toLLVMType(ret_type,
+                                                     NULL, false));
+    }
     builder.CreateRet(ret_val);
 }
 
@@ -199,6 +204,11 @@ makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                                        unused_twine,
                                        false)
         );
+    if (ret_type->base_type == BaseType::Bool) {
+        ret_val = builder.CreateZExt(ret_val,
+                                     ctx->toLLVMType(ret_type,
+                                                     NULL, false));
+    }
     builder.CreateRet(ret_val);
 }
 
@@ -229,6 +239,11 @@ makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                                        false,
                                        true)
         );
+    if (ret_type->base_type == BaseType::Bool) {
+        ret_val = builder.CreateZExt(ret_val,
+                                     ctx->toLLVMType(ret_type,
+                                                     NULL, false));
+    }
     builder.CreateRet(ret_val);
 }
 
@@ -259,6 +274,11 @@ makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                                        false,
                                        true)
         );
+    if (ret_type->base_type == BaseType::Bool) {
+        ret_val = builder.CreateZExt(ret_val,
+                                     ctx->toLLVMType(ret_type,
+                                                     NULL, false));
+    }
     builder.CreateRet(ret_val);
 }
 

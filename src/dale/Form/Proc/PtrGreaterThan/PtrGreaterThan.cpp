@@ -46,8 +46,13 @@ FormProcPtrGreaterThanParse(Units *units, Function *fn,
 
     llvm::IRBuilder<> builder(ptr_pr2.block);
     llvm::Value *cmp_res =
-        llvm::cast<llvm::Value>(builder.CreateICmpUGT(ptr_pr1.getValue(ctx),
-                                                      ptr_pr2.getValue(ctx)));
+        builder.CreateZExt(
+            llvm::cast<llvm::Value>(builder.CreateICmpUGT(
+                ptr_pr1.getValue(ctx),
+                ptr_pr2.getValue(ctx)
+            )),
+            llvm::Type::getInt8Ty(llvm::getGlobalContext())
+        );
 
     ptr_pr1.block = ptr_pr2.block;
     ParseResult destruct_pr;

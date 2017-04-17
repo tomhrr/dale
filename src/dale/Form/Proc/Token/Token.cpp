@@ -193,7 +193,7 @@ parseBoolLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
     if (is_true || is_false) {
         pr->set(block, ctx->tr->type_bool,
                 llvm::ConstantInt::get(
-                    llvm::Type::getInt1Ty(llvm::getGlobalContext()),
+                    llvm::Type::getInt8Ty(llvm::getGlobalContext()),
                     is_true
                 ));
     }

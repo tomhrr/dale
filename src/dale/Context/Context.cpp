@@ -1075,7 +1075,7 @@ Context::toLLVMTypeBase(Type *type,
         case BaseType::UInt:       lbt = nt->getNativeUIntType();         break;
         case BaseType::Char:       lbt = nt->getNativeCharType();         break;
         case BaseType::Void:       lbt = llvm::Type::getVoidTy(lc);       break;
-        case BaseType::Bool:       lbt = llvm::Type::getInt1Ty(lc);       break;
+        case BaseType::Bool:       lbt = nt->getNativeCharType();         break;
         case BaseType::Float:      lbt = llvm::Type::getFloatTy(lc);      break;
         case BaseType::Double:     lbt = llvm::Type::getDoubleTy(lc);     break;
         case BaseType::LongDouble: lbt = nt->getNativeLongDoubleType();   break;

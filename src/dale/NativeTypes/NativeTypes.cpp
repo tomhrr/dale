@@ -13,8 +13,8 @@ NativeTypes::NativeTypes()
     llvm::LLVMContext &lc = llvm::getGlobalContext();
 
     llvm::Type *native_bool_type =
-        llvm::IntegerType::get(lc, 1);
-    native_char_type    = llvm::IntegerType::get(lc, BITS(char));
+    native_char_type             = llvm::IntegerType::get(lc, BITS(char));
+
     native_int_type     =
     native_uint_type    = llvm::IntegerType::get(lc, BITS(int));
     native_intptr_type  = llvm::IntegerType::get(lc, BITS(char *));
