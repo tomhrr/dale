@@ -14,8 +14,11 @@ is(@res, 0, 'No compilation errors');
 @res = `./override-core`;
 is($?, 0, 'Program executed successfully');
 
-chomp for @res;
-like($res[0], qr/^Overrode setf for float: old (0.00|nan), new 0.00$/,
+for (@res) {
+    chomp;
+    s/-0\.00/0\.00/g;
+}
+like($res[0], qr/^Overrode setf for float: old (0\.00|nan), new 0\.00$/,
      'Got expected results (1)');
 shift @res;
 
