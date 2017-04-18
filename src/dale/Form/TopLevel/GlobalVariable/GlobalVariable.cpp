@@ -275,7 +275,7 @@ parseLiteralElement(Units *units, Node *top, char *data, Type *type,
     NativeTypes *nt = ctx->nt;
 
     if (type->base_type == BaseType::Bool) {
-        return parseSmallLiteralInteger(1, data);
+        return parseSmallLiteralInteger(8, data);
     }
 
     if (type->base_type == BaseType::Char) {
