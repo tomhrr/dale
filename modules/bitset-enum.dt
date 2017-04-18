@@ -64,12 +64,12 @@ expands to:
                 (do (report-error mc forms
                                   "atom required for enum element index")
                     (return (nullptr DNode))))
-              (setv i (strtoul value
-                               (nullptr (p char))
-                               (if (and (= #\0 (@$ value 0))
-                                        (= #\x (@$ value 1)))
-                                   16
-                                   10)))
+              (setv i (strtoui64 value
+                                 (nullptr (p char))
+                                 (if (and (= #\0 (@$ value 0))
+                                          (= #\x (@$ value 1)))
+                                     16
+                                     10)))
               (and (=' i 0)
                 (do (report-error mc new-num-node
                                   "invalid enum element index")
