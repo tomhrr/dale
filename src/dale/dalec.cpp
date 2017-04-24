@@ -57,7 +57,7 @@ copyFile(const char *to_path, FILE *from)
     if (!to) {
         error("unable to open %s for writing", to_path, true);
     }
-    char buf[COPY_SIZE];
+    static char buf[COPY_SIZE];  /* on heap, not stack */
     memset(buf, 0, COPY_SIZE);
     size_t bytes;
     size_t wbytes;
@@ -349,7 +349,7 @@ main(int argc, char **argv)
         exit(0);
     }
 
-    char compile_cmd[MAX_COMPILE_COMMAND_LENGTH];
+    static char compile_cmd[MAX_COMPILE_COMMAND_LENGTH];  /* on heap */
     int bytes = 0;
     if (no_linking) {
         bytes = snprintf(compile_cmd, MAX_COMPILE_COMMAND_LENGTH - 1,
