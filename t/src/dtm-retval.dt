@@ -1,0 +1,3 @@
+(module modretval)
+
+(def myfn (fn extern (retval int) (void) 10))

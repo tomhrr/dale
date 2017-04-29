@@ -822,8 +822,16 @@ Context::rebuildFunction(Function *fn, const char *name,
         arg_count++;
     }
 
-    llvm::Type *llvm_return_type =
-        toLLVMType(fn->return_type, NULL, true, false);
+    llvm::Type *llvm_return_type;
+    Type *ret_type = fn->return_type;
+    if (ret_type->is_retval) {
+        types.push_back(toLLVMType(tr->getPointerType(ret_type),
+                                   NULL, true));
+        llvm_return_type = toLLVMType(tr->getBasicType(BaseType::Void),
+                                      NULL, true);
+    } else {
+        llvm_return_type = toLLVMType(ret_type, NULL, true, false);
+    }
     assert(llvm_return_type && "failed type conversion");
 
     bool varargs = fn->isVarArgs() && !fn->is_macro;
