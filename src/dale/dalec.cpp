@@ -20,7 +20,6 @@ using namespace dale;
 
 static const char *options = "M:m:O:a:I:L:l:o:s:b:cdrR";
 static const size_t COPY_SIZE = 8192;
-static const int MAX_COMPILE_COMMAND_LENGTH = 8192;  /* buffer size */
 
 static bool
 appearsToBeLib(const char *str)
@@ -349,36 +348,20 @@ main(int argc, char **argv)
         exit(0);
     }
 
-    static char compile_cmd[MAX_COMPILE_COMMAND_LENGTH];  /* on heap */
-    int bytes = 0;
-    if (no_linking) {
-        bytes = snprintf(compile_cmd, MAX_COMPILE_COMMAND_LENGTH - 1,
-                         DALE_CC "%s -c %s %s %s %s -o %s",
-                         (no_stdlib) ? "--nostdlib" : "",
-                         run_path_str.c_str(),
-                         rpath_str.c_str(),
-                         run_lib_str.c_str(),
-                         intermediate_output_path.c_str(),
-                         output_path.c_str());
-    } else {
-        bytes = snprintf(compile_cmd, MAX_COMPILE_COMMAND_LENGTH - 1,
-                         DALE_CC "%s %s %s %s %s %s %s -lm -o %s",
-                         (no_stdlib) ? "--nostdlib" : "",
-                         (strcmp(SYSTEM_NAME, "Darwin")
-                             ? "-Wl,--gc-sections"
-                             : ""),
-                         run_path_str.c_str(),
-                         rpath_str.c_str(),
-                         intermediate_output_path.c_str(),
-                         input_link_file_str.c_str(),
-                         run_lib_str.c_str(),
-                         output_path.c_str());
-    }
-    if (bytes >= MAX_COMPILE_COMMAND_LENGTH) {
-        error(DALE_CC " command is too long");
-    }
+    // compose the compiler/linker command and execute it
+    std::string compile_cmd = DALE_CC;
+    if (no_stdlib) compile_cmd += " --nostdlib";
+    if (no_linking) compile_cmd += " -c";
+    else compile_cmd += strcmp (SYSTEM_NAME, "Darwin")
+           ? " -Wl,--gc-sections" : "";
+    compile_cmd += run_path_str + rpath_str;
+    if (no_linking) compile_cmd += run_lib_str;
+    compile_cmd += " " + intermediate_output_path;
+    if (! no_linking)
+      compile_cmd += input_link_file_str + run_lib_str + " -lm";
+    compile_cmd += " -o " + output_path;
 
-    int status = system(compile_cmd);
+    int status = system (compile_cmd.c_str ());
     if (status != 0) {
         if (debug) {
             fprintf(stderr, "%s\n", compile_cmd);
