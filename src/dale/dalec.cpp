@@ -35,19 +35,15 @@ appearsToBeLib(const char *str)
     return false;
 }
 
-static void
-joinWithPrefix(std::vector<const char*> *strings, const char *prefix,
-               std::string *buffer)
+std::string
+joinWithPrefix (std::vector<const char*> strings,
+                const std::string prefix, std::string buffer)
 {
-    for (std::vector<const char*>::iterator b = strings->begin(),
-                                            e = strings->end();
-            b != e;
-            ++b) {
-        buffer->append(" ");
-        buffer->append(prefix);
-        buffer->append(" ");
-        buffer->append(*b);
-    }
+  for (std::vector<const char*>::iterator b = strings.begin (),
+                                          e = strings.end ();
+       b != e; buffer += " " + prefix + " " + (* b ++));
+
+  return buffer;
 }
 
 static void
@@ -118,15 +114,16 @@ main(int argc, char **argv)
     int opt;
     char optc;
 
-    std::vector<const char*> input_files;
-    std::vector<const char*> input_link_files;
-    std::vector<const char*> compile_libs;
-    std::vector<const char*> run_libs;
-    std::vector<const char*> include_paths;
-    std::vector<const char*> run_paths;
-    std::vector<const char*> bitcode_paths;
-    std::vector<const char*> static_modules;
-    std::vector<const char*> module_paths;
+    std::vector<const char*>
+      input_files,
+      input_link_files,
+      compile_libs,
+      run_libs,
+      include_paths,
+      run_paths,
+      bitcode_paths,
+      static_modules,
+      module_paths;
 
     std::string output_path;
     const char *output_path_arg = NULL;
@@ -273,21 +270,6 @@ main(int argc, char **argv)
         }
     }
 
-    std::string compile_lib_str;
-    joinWithPrefix(&compile_libs, "-l", &compile_lib_str);
-
-    std::string include_path_str;
-    joinWithPrefix(&include_paths, "-I", &include_path_str);
-
-    std::string run_path_str;
-    joinWithPrefix(&run_paths, "-L", &run_path_str);
-
-    std::string input_file_str;
-    joinWithPrefix(&input_files, " ", &input_file_str);
-
-    std::string input_link_file_str;
-    joinWithPrefix(&input_link_files, " ", &input_link_file_str);
-
     FILE *output_file = tmpfile();
     if (!output_file) {
         error("unable to open temporary file", true);
@@ -322,24 +304,6 @@ main(int argc, char **argv)
         error("unable to flush temporary file", true);
     }
 
-    std::string run_lib_str;
-    joinWithPrefix(&run_libs, " -l ", &run_lib_str);
-
-    std::string rpath_str;
-    if (!strcmp(SYSTEM_NAME, "Darwin")) {
-        joinWithPrefix(&module_paths, "-rpath", &rpath_str);
-    } else {
-        rpath_str = "";
-    }
-
-    for (std::vector<std::string>::reverse_iterator b = so_paths.rbegin(),
-                                                    e = so_paths.rend();
-            b != e;
-            ++b) {
-        input_link_file_str.append(" ");
-        input_link_file_str.append((*b).c_str());
-    }
-
     std::string intermediate_output_path = output_path;
     if (!produce_set) {
         intermediate_output_path.append(".s");
@@ -348,6 +312,26 @@ main(int argc, char **argv)
     if (produce_set) {
         exit(0);
     }
+
+    // prepare the strings to sew the compile command with
+    std::string input_file_str =
+      joinWithPrefix (input_files, " ", "");
+    std::string compile_lib_str =
+      joinWithPrefix (compile_libs, "-l", "");
+    std::string include_path_str =
+      joinWithPrefix (include_paths, "-I", "");
+    std::string run_path_str =
+      joinWithPrefix (run_paths, "-L", "");
+    std::string run_lib_str =
+      joinWithPrefix (run_libs, "-l", "");
+    std::string rpath_str = strcmp (SYSTEM_NAME, "Darwin") ?
+      "" : joinWithPrefix (module_paths, "-rpath", "");
+
+    std::string input_link_file_str =
+      joinWithPrefix (input_link_files, " ", "");
+    for (std::vector<std::string>::iterator b = so_paths.begin (),
+                                            e = so_paths.end ();
+         b != e; input_link_file_str += " " + (* b ++));
 
     // compose the compiler/linker command and execute it
     const char *aux = getenv ("DALE_CC_FLAGS");  // auxiliary options
