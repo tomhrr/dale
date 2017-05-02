@@ -217,12 +217,6 @@ main(int argc, char **argv)
     if (produce_set) exit (0);  // we're done
 
     // prepare the strings to sew the compile command with
-    std::string input_file_str =
-      joinWithPrefix (input_files, " ", "");
-    std::string compile_lib_str =
-      joinWithPrefix (compile_libs, "-l", "");
-    std::string include_path_str =
-      joinWithPrefix (include_paths, "-I", "");
     std::string run_path_str =
       joinWithPrefix (run_paths, "-L", "");
     std::string run_lib_str =
@@ -241,14 +235,10 @@ main(int argc, char **argv)
     std::string compile_cmd = DALE_CC;
     if (no_stdlib) compile_cmd += " --nostdlib";
     if (no_linking) compile_cmd += " -c";
-    else compile_cmd += strcmp (SYSTEM_NAME, "Darwin")
-           ? " -Wl,--gc-sections" : "";
-    compile_cmd += run_path_str + rpath_str;
-    if (no_linking) compile_cmd += run_lib_str;
-    compile_cmd += " " + intermediate_output_path;
-    if (! no_linking)
-      compile_cmd += input_link_file_str + run_lib_str + " -lm";
-    compile_cmd += " -o " + output_path;
+    else compile_cmd += input_link_file_str + " -lm" +
+           (strcmp (SYSTEM_NAME, "Darwin") ? " -Wl,--gc-sections" : "");
+    compile_cmd += run_lib_str + run_path_str + rpath_str
+      + " -o " + output_path + " " + intermediate_output_path;
     if (aux) compile_cmd += " ", compile_cmd += aux;
 
     if (aux) std::cerr << "Going to run: " << compile_cmd << std::endl,
