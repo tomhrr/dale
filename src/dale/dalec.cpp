@@ -22,16 +22,17 @@ using namespace dale;
 static const char *options = "M:m:O:a:I:L:l:o:s:b:cdrR";
 
 static bool
-appearsToBeLib(const char *str)
+is_ending_on (const char *string, const char *ending)
 {
-    int len = strlen(str);
-    if (len >= 2) {
-        const char *end = str + (len - 2);
-        if ((!strcmp(end, ".o")) || (!strcmp(end, ".a"))) {
-            return true;
-        }
-    }
-    return false;
+  size_t sl = strlen (string), el = strlen (ending);
+
+  return (sl >= el) && (strcmp (string + (sl - el), ending) == 0);
+}
+
+static bool
+appearsToBeLib (const char *str)
+{
+  return is_ending_on (str, ".o") || is_ending_on (str, ".a");
 }
 
 std::string
