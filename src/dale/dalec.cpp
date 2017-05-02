@@ -19,8 +19,6 @@
 
 using namespace dale;
 
-static const char *options = "M:m:O:a:I:L:l:o:s:b:cdrR";
-
 static bool
 is_ending_on (const char *string, const char *ending)
 {
@@ -52,9 +50,6 @@ main(int argc, char **argv)
     srand(time(NULL) + getpid());
 
     progname = argv[0];
-
-    int opt;
-    char optc;
 
     std::vector<const char*>
       input_files,
@@ -89,6 +84,7 @@ main(int argc, char **argv)
     int option_index         = 0;
     int forced_remove_macros = 0;
 
+    static const char *options = "M:m:O:a:I:L:l:o:s:b:cdrR";
     static struct option long_options[] = {
         { "no-dale-stdlib",   no_argument,       &no_dale_stdlib,   1 },
         { "no-common",        no_argument,       &no_common,        1 },
@@ -101,15 +97,9 @@ main(int argc, char **argv)
         { 0, 0, 0, 0 }
     };
 
-    if (argc < 2) {
-        error("no input files");
-    }
-
-    while ((opt = getopt_long(argc, argv, options,
-                              long_options, &option_index)) != -1) {
-        optc = (char) opt;
-
-        switch (optc) {
+    for (int opt; (opt = getopt_long (argc, argv, options, long_options,
+                                      &option_index)) != -1; ) {
+        switch ((char) opt) {
             case 'o': {
                 if (output_path_arg) {
                     error("an output path has already been specified");
