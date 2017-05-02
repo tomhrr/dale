@@ -45,62 +45,6 @@ joinWithPrefix (std::vector<const char*> strings,
   return buffer;
 }
 
-static void
-copyFile (FILE *to, FILE *from)
-{
-    static const size_t COPY_SIZE = 8192;
-
-    static char buf[COPY_SIZE];  /* on heap, not stack */
-    memset(buf, 0, COPY_SIZE);
-    size_t bytes;
-    size_t wbytes;
-
-    int res = fseek(from, SEEK_SET, 0);
-    if (res != 0) {
-        error("unable to seek in temporary file", true);
-    }
-
-    while ((bytes = fread(buf, (size_t) 1, (size_t) COPY_SIZE, from))) {
-        if (ferror(from)) {
-            fclose(from);
-            fclose(to);
-            error("unable to read temporary file", true);
-        }
-        wbytes = fwrite(buf, (size_t) 1, bytes, to);
-        if (wbytes != bytes) {
-            if (ferror(from)) {
-                error("unable to copy temporary file content", true);
-            }
-            if (ferror(to)) {
-                error("unable to copy temporary file content", true);
-            }
-        }
-        if (bytes != COPY_SIZE) {
-            if (feof(from)) {
-                break;
-            } else {
-                error("unable to copy temporary file content", true);
-            }
-        }
-        memset(buf, 0, COPY_SIZE);
-    }
-
-    res = fflush(to);
-    if (res != 0) {
-        error("unable to flush temporary file (copy)", true);
-    }
-    res = fclose(from);
-    if (res != 0) {
-        error("unable to close temporary file (copy from)", true);
-    }
-    res = fclose(to);
-    if (res != 0) {
-        error("unable to close temporary file (copy to)", true);
-    }
-
-    return;
-}
-
 int
 main(int argc, char **argv)
 {
@@ -247,49 +191,38 @@ main(int argc, char **argv)
         else output_path = "a.out";  // overwrite what was there
       }
 
-    FILE *output_file = tmpfile();
-    if (!output_file) {
-        error("unable to open temporary file", true);
-    }
     std::vector<std::string> so_paths;
     Generator generator;
-
-    bool generated =
-        generator.run(&input_files,
-                      &bitcode_paths,
-                      &compile_libs,
-                      &include_paths,
-                      &module_paths,
-                      &static_modules,
-                      module_name,
-                      debug,
-                      produce,
-                      optlevel,
-                      remove_macros,
-                      no_common,
-                      no_dale_stdlib,
-                      static_mods_all,
-                      enable_cto,
-                      print_expansions,
-                      &so_paths,
-                      output_file);
-    if (!generated) {
-        exit(1);
-    }
-    int res = fflush(output_file);
-    if (res != 0) {
-        error("unable to flush temporary file", true);
-    }
 
     std::string intermediate_output_path =
       output_path + (produce_set ? "" : ".s");
     {
-      FILE *to = fopen (intermediate_output_path.c_str (), "w");
-      if (!to) error ("unable to open %s for writing",
-                      intermediate_output_path.c_str (), true);
-      copyFile (to, output_file);
+      FILE *output_file =
+        fopen (intermediate_output_path.c_str (), "w");
+      if (output_file == NULL) error ("unable to open %s for writing",
+                                      intermediate_output_path.c_str (),
+                                      true);
+      if (! generator.run (&input_files,
+                           &bitcode_paths,
+                           &compile_libs,
+                           &include_paths,
+                           &module_paths,
+                           &static_modules,
+                           module_name,
+                           debug,
+                           produce,
+                           optlevel,
+                           remove_macros,
+                           no_common,
+                           no_dale_stdlib,
+                           static_mods_all,
+                           enable_cto,
+                           print_expansions,
+                           &so_paths,
+                           output_file)) exit (1);
+      if (fflush (output_file) != 0)
+        error ("unable to flush the intermediate output file", true);
     }
-
     if (produce_set) exit (0);  // we're done
 
     // prepare the strings to sew the compile command with
