@@ -216,10 +216,9 @@ main(int argc, char **argv)
         }
     }
 
-    if (version) {
-        printf("%d.%d\n", DALE_VERSION_MAJOR, DALE_VERSION_MINOR);
-        exit(0);
-    }
+    if (version)
+      std::cout << DALE_VERSION_MAJOR << "."
+                << DALE_VERSION_MINOR << std::endl, exit (0);
 
     /* If the user wants an executable and has not specified either
      * way with respect to removing macros, then remove macros. */
