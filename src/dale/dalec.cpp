@@ -20,7 +20,6 @@
 using namespace dale;
 
 static const char *options = "M:m:O:a:I:L:l:o:s:b:cdrR";
-static const size_t COPY_SIZE = 8192;
 
 static bool
 appearsToBeLib(const char *str)
@@ -47,12 +46,10 @@ joinWithPrefix (std::vector<const char*> strings,
 }
 
 static void
-copyFile(const char *to_path, FILE *from)
+copyFile (FILE *to, FILE *from)
 {
-    FILE *to = fopen(to_path, "w");
-    if (!to) {
-        error("unable to open %s for writing", to_path, true);
-    }
+    static const size_t COPY_SIZE = 8192;
+
     static char buf[COPY_SIZE];  /* on heap, not stack */
     memset(buf, 0, COPY_SIZE);
     size_t bytes;
@@ -284,14 +281,16 @@ main(int argc, char **argv)
         error("unable to flush temporary file", true);
     }
 
-    std::string intermediate_output_path = output_path;
-    if (!produce_set) {
-        intermediate_output_path.append(".s");
+    std::string intermediate_output_path =
+      output_path + (produce_set ? "" : ".s");
+    {
+      FILE *to = fopen (intermediate_output_path.c_str (), "w");
+      if (!to) error ("unable to open %s for writing",
+                      intermediate_output_path.c_str (), true);
+      copyFile (to, output_file);
     }
-    copyFile(intermediate_output_path.c_str(), output_file);
-    if (produce_set) {
-        exit(0);
-    }
+
+    if (produce_set) exit (0);  // we're done
 
     // prepare the strings to sew the compile command with
     std::string input_file_str =
