@@ -125,7 +125,6 @@ main(int argc, char **argv)
       static_modules,
       module_paths;
 
-    std::string output_path;
     const char *output_path_arg = NULL;
     const char *module_name     = NULL;
 
@@ -184,17 +183,14 @@ main(int argc, char **argv)
                 break;
             }
             case 's': {
-                const char *type = optarg;
-                if (!strcmp(type, "as")) {
-                    produce = ASM;
-                } else if (!strcmp(type, "ir")) {
-                    produce = IR;
-                } else if (!strcmp(type, "bc")) {
-                    produce = BitCode;
-                } else {
-                    error("unrecognised output option");
-                }
                 produce_set = true;
+
+                const char *type = optarg;
+                if (!strcmp (type, "as")) produce = ASM;     else
+                if (!strcmp (type, "ir")) produce = IR;      else
+                if (!strcmp (type, "bc")) produce = BitCode; else
+                  error ("unrecognised output file format");
+
                 break;
             }
             case 'd': debug = 1;                                   break;
@@ -239,30 +235,20 @@ main(int argc, char **argv)
     if (input_files.size () == 0) error ("no input files");
 
     /* Set output_path. */
-    if (!no_linking) {
-        if (output_path_arg) {
-            output_path.append(output_path_arg);
-        } else {
-            if (produce == ASM) {
-                output_path.append("a.out");
-            } else if (produce_set) {
-                output_path.append(input_files[0]);
-                output_path.append(
-                      (produce == IR)      ? ".ll"
-                    : (produce == ASM)     ? ".s"
-                    : (produce == BitCode) ? ".bc"
-                                           : ".unknown"
-                );
-            }
-        }
-    } else {
-        if (output_path_arg) {
-            output_path.append(output_path_arg);
-        } else {
-            output_path.append(input_files[0]);
-            output_path.append(".o");
-        }
-    }
+    std::string output_path;
+    if (output_path_arg) output_path = output_path_arg;  // is given
+    else  // otherwise construct it
+      {
+        output_path = input_files [0];  // leave the extension as is
+
+        if (no_linking) output_path += ".o";
+        else if (produce_set) output_path +=
+                            ((produce == IR)      ? ".ll" :
+                             (produce == ASM)     ? ".s"  :
+                             (produce == BitCode) ? ".bc" :
+                             ".unknown" );  // impossible, an error
+        else output_path = "a.out";  // overwrite what was there
+      }
 
     FILE *output_file = tmpfile();
     if (!output_file) {
