@@ -230,19 +230,14 @@ main(int argc, char **argv)
     /* Every argument after the options is treated as an input file.
      * Input files that end with .o or .a should go straight to the
      * linker. */
-    int input_file_count = argc - optind;
-    for (int i = 0; i < input_file_count; ++i) {
-        const char *input_file = argv[optind + i];
-        if (appearsToBeLib(input_file)) {
-            input_link_files.push_back(input_file);
-        } else {
-            input_files.push_back(input_file);
-        }
-    }
+    while (optind != argc)
+      {
+        const char *input_file = argv [optind ++];
 
-    if (!input_files.size()) {
-        error("no input files");
-    }
+        (appearsToBeLib (input_file) ?
+         input_link_files : input_files) .push_back (input_file);
+      }
+    if (input_files.size () == 0) error ("no input files");
 
     /* Set output_path. */
     if (!no_linking) {
