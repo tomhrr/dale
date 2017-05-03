@@ -174,7 +174,7 @@ main(int argc, char **argv)
         (appearsToBeLib (input_file) ?
          input_link_files : input_files) .push_back (input_file);
       }
-    if (input_files.size () == 0) error ("no input files");
+    if (input_files.empty ()) error ("no input files");
 
     /* Set output_path. */
     std::string output_path;
