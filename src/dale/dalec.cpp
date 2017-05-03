@@ -264,21 +264,13 @@ main(int argc, char **argv)
     if (aux) std::cerr << "Going to run: " << compile_cmd << std::endl,
                fflush (stderr);  // show it immediately
 
-    int status = system (compile_cmd.c_str ());
-    if (status != 0) {
-        if (debug) {
-          std::cerr << compile_cmd << std::endl;
-        }
-        error(DALE_CC " failed");
-    }
+    if (system (compile_cmd.c_str ()) != 0)
+      if (debug) std::cerr << compile_cmd << std::endl,
+                   error (DALE_CC " failed");
 
-    status = remove(intermediate_output_path.c_str());
-    if (status != 0) {
-        if (debug) {
-          std::cerr << intermediate_output_path << std::endl;
-        }
-        error("unable to remove temporary file");
-    }
+    if (remove (intermediate_output_path.c_str ()) != 0)
+      if (debug) std::cerr << intermediate_output_path << std::endl,
+                   error ("unable to remove temporary file");
 
     return 0;
 }
