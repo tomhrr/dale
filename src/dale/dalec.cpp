@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <getopt.h>
 #include <cstdio>
+#include <iostream>
 
 /*! dalec
 
@@ -363,10 +364,13 @@ main(int argc, char **argv)
     compile_cmd += " -o " + output_path;
     if (aux) compile_cmd += " ", compile_cmd += aux;
 
+    if (aux) std::cerr << "Going to run: " << compile_cmd << std::endl,
+               fflush (stderr);  // show it immediately
+
     int status = system (compile_cmd.c_str ());
     if (status != 0) {
         if (debug) {
-            fprintf(stderr, "%s\n", compile_cmd);
+          std::cerr << compile_cmd << std::endl;
         }
         error(DALE_CC " failed");
     }
@@ -374,7 +378,7 @@ main(int argc, char **argv)
     status = remove(intermediate_output_path.c_str());
     if (status != 0) {
         if (debug) {
-            fprintf(stderr, "%s\n", intermediate_output_path.c_str());
+          std::cerr << intermediate_output_path << std::endl;
         }
         error("unable to remove temporary file");
     }
