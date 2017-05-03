@@ -349,6 +349,7 @@ main(int argc, char **argv)
     }
 
     // compose the compiler/linker command and execute it
+    const char *aux = getenv ("DALE_CC_FLAGS");  // auxiliary options
     std::string compile_cmd = DALE_CC;
     if (no_stdlib) compile_cmd += " --nostdlib";
     if (no_linking) compile_cmd += " -c";
@@ -360,6 +361,7 @@ main(int argc, char **argv)
     if (! no_linking)
       compile_cmd += input_link_file_str + run_lib_str + " -lm";
     compile_cmd += " -o " + output_path;
+    if (aux) compile_cmd += " ", compile_cmd += aux;
 
     int status = system (compile_cmd.c_str ());
     if (status != 0) {
