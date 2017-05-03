@@ -137,11 +137,7 @@ main(int argc, char **argv)
             case 'M': module_paths.push_back(optarg);              break;
             case 'm': module_name = optarg;                        break;
         };
-
-        if (found_sm) {
-            found_sm = 0;
-            static_modules.push_back(optarg);
-        }
+        if (found_sm) found_sm = 0, static_modules.push_back (optarg);
     }
 
     if (version)
@@ -150,9 +146,8 @@ main(int argc, char **argv)
 
     /* If the user wants an executable and has not specified either
      * way with respect to removing macros, then remove macros. */
-    if (!no_linking && !produce_set && !forced_remove_macros) {
+    if (!no_linking && !produce_set && !forced_remove_macros)
         remove_macros = 1;
-    }
 
     /* Every argument after the options is treated as an input file.
      * Input files that end with .o or .a should go straight to the
@@ -182,6 +177,11 @@ main(int argc, char **argv)
         else output_path = "a.out";  // overwrite what was there
       }
 
+    // Generate an intermediate file, to be compiled and linked later
+    // with the system compiler, by building the executable in memory
+    // and then exporting it into the requested intermediate format.
+    // Access to called shared libraries is necessary right here (!),
+    // not only on the later stage of compilation/linking. It's LLVM.
     std::vector<std::string> so_paths;
     Generator generator;
 
