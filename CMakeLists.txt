@@ -44,6 +44,10 @@ set (D_LLVM_VERSION_MAJOR "${D_LLVM_VERSION_MAJOR}")
 set (D_LLVM_VERSION_MINOR "${D_LLVM_VERSION_MINOR}")
 set (LLVM_BIN_DIR         "${LLVM_BIN_DIR}")
 
+if (NOT CMAKE_INSTALL_MANDIR)
+    set (CMAKE_INSTALL_MANDIR "${CMAKE_INSTALL_PREFIX}/man")
+endif ()
+
 if (NOT CC)
     if (CLANG)
         set (CC "${CLANG}")
@@ -319,7 +323,7 @@ add_dependencies (tests dalec cstdio cstring pthread cfloat ctype cerrno ctime c
 # Manfile for the compiler.
 
 add_custom_target (documentation ALL DEPENDS man/dalec.1.gz)
-install (FILES man/dalec.1.gz DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
+install (FILES man/dalec.1.gz DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 # Dale programs.  (module-to-markdown was previously built with
 # --static-modules, but there's a problem with that option in some
