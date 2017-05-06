@@ -90,39 +90,9 @@ execute_process (COMMAND ${LLVM_CONFIG} --cppflags
                  OUTPUT_VARIABLE LLVM_CXX_FLAGS
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-# Confirm that ffi.h and libffi are present. (Added two common ffi.h
-# path, would be nice if this were a bit more robust.)
-
-find_path (FFI_INCLUDE_PATH ffi.h PATHS /usr/include/i386-linux-gnu /usr/include/x86_64-linux-gnu ${FFI_INCLUDE_DIR})
-if (FFI_INCLUDE_PATH)
-    set (FFI_HEADER ffi.h)
-else ()
-    find_path (FFI_INCLUDE_PATH ffi/ffi.h PATHS ${FFI_INCLUDE_DIR})
-    if (FFI_INCLUDE_PATH)
-        set (FFI_HEADER ffi/ffi.h)
-    endif ()
-endif ()
-
-if (NOT FFI_HEADER)
-    message (FATAL_ERROR "libffi includes (ffi.h) are not found. Re-run cmake with -DFFI_INCLUDE_DIR={path-to-include-dir}")
-endif ()
-
-find_library(FFI_LIBRARY_PATH ffi PATHS ${FFI_LIBRARY_DIR})
-if (NOT FFI_LIBRARY_PATH)
-    message (FATAL_ERROR "libffi is not found. Re-run cmake with -DFFI_LIBRARY_DIR.")
-endif ()
-
-if (NOT FFI_LIBRARY_DIR)
-    set (FFI_LIBRARY_DIR "")
-else ()
-    set (FFI_LIBRARY_DIR "-L${FFI_LIBRARY_DIR}")
-endif ()
-
-if (NOT FFI_INCLUDE_DIR)
-    set (FFI_INCLUDE_DIR "")
-else ()
-    set (FFI_INCLUDE_DIR "-I${FFI_INCLUDE_DIR}")
-endif ()
+# Confirm that ffi.h and libffi are present.
+find_package(PkgConfig REQUIRED)
+pkg_search_module(FFI REQUIRED libffi)
 
 # Populate the configuration header.
 
@@ -155,7 +125,7 @@ if (IS_DEBUG)
 endif ()
 
 # Set compile/link flags.
-set (DALEC_LIBDIR_FLAGS_ "$ENV{LDFLAGS} ${FFI_LIBRARY_DIR}")
+set (DALEC_LIBDIR_FLAGS_ "$ENV{LDFLAGS} ${FFI_LDFLAGS}")
 set (DALEC_LIB_FLAGS_    "")
 
 if (${D_LLVM_VERSION_MINOR} GREATER 4)
@@ -176,7 +146,7 @@ else ()
 endif ()
 
 string(REGEX REPLACE "^ +" "" DALEC_LINK_FLAGS ${DALEC_LINK_FLAGS_})
-set (CMAKE_CXX_FLAGS         "$ENV{CPPFLAGS} ${FFI_INCLUDE_DIR} -Wall -ansi")
+set (CMAKE_CXX_FLAGS         "$ENV{CPPFLAGS} ${FFI_CFLAGS} -Wall -ansi")
 set (CMAKE_CXX_FLAGS_DEBUG   "-g -ggdb -O0 -fno-inline -Wextra -Wno-unused-parameter ${CXX_FLAGS_EXTRA}")
 set (CMAKE_CXX_FLAGS_RELEASE "-O3 -fomit-frame-pointer ${CXX_FLAGS_EXTRA}")
 
