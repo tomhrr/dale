@@ -159,14 +159,6 @@ else ()
     set (DALE_FLAGS ${DALE_FLAGS_RELEASE})
 endif ()
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-    # Adding /usr/local/include here for FreeBSD (ffi.h). todo: there is
-    # definitely a better way to handle this.
-    include_directories ("${PROJECT_BINARY_DIR}" "/usr/local/include")
-else ()
-    include_directories ("${PROJECT_BINARY_DIR}")
-endif ()
-
 # Compile the compiler.
 
 add_executable (dalec src/dale/dalec.cpp
