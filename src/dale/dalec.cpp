@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <getopt.h>
 #include <cstdio>
+#include <iostream>
 
 /*! dalec
 
@@ -18,94 +19,29 @@
 
 using namespace dale;
 
-static const char *options = "M:m:O:a:I:L:l:o:s:b:cdrR";
-static const size_t COPY_SIZE = 8192;
-static const int MAX_COMPILE_COMMAND_LENGTH = 8192;  /* buffer size */
+static bool
+is_ending_on (const char *string, const char *ending)
+{
+  size_t sl = strlen (string), el = strlen (ending);
+
+  return (sl >= el) && (strcmp (string + (sl - el), ending) == 0);
+}
 
 static bool
-appearsToBeLib(const char *str)
+appearsToBeLib (const char *str)
 {
-    int len = strlen(str);
-    if (len >= 2) {
-        const char *end = str + (len - 2);
-        if ((!strcmp(end, ".o")) || (!strcmp(end, ".a"))) {
-            return true;
-        }
-    }
-    return false;
+  return is_ending_on (str, ".o") || is_ending_on (str, ".a");
 }
 
-static void
-joinWithPrefix(std::vector<const char*> *strings, const char *prefix,
-               std::string *buffer)
+std::string
+joinWithPrefix (std::vector<const char*> strings,
+                const std::string prefix, std::string buffer)
 {
-    for (std::vector<const char*>::iterator b = strings->begin(),
-                                            e = strings->end();
-            b != e;
-            ++b) {
-        buffer->append(" ");
-        buffer->append(prefix);
-        buffer->append(" ");
-        buffer->append(*b);
-    }
-}
+  for (std::vector<const char*>::iterator b = strings.begin (),
+                                          e = strings.end ();
+       b != e; buffer += " " + prefix + " " + (* b ++));
 
-static void
-copyFile(const char *to_path, FILE *from)
-{
-    FILE *to = fopen(to_path, "w");
-    if (!to) {
-        error("unable to open %s for writing", to_path, true);
-    }
-    static char buf[COPY_SIZE];  /* on heap, not stack */
-    memset(buf, 0, COPY_SIZE);
-    size_t bytes;
-    size_t wbytes;
-
-    int res = fseek(from, SEEK_SET, 0);
-    if (res != 0) {
-        error("unable to seek in temporary file", true);
-    }
-
-    while ((bytes = fread(buf, (size_t) 1, (size_t) COPY_SIZE, from))) {
-        if (ferror(from)) {
-            fclose(from);
-            fclose(to);
-            error("unable to read temporary file", true);
-        }
-        wbytes = fwrite(buf, (size_t) 1, bytes, to);
-        if (wbytes != bytes) {
-            if (ferror(from)) {
-                error("unable to copy temporary file content", true);
-            }
-            if (ferror(to)) {
-                error("unable to copy temporary file content", true);
-            }
-        }
-        if (bytes != COPY_SIZE) {
-            if (feof(from)) {
-                break;
-            } else {
-                error("unable to copy temporary file content", true);
-            }
-        }
-        memset(buf, 0, COPY_SIZE);
-    }
-
-    res = fflush(to);
-    if (res != 0) {
-        error("unable to flush temporary file (copy)", true);
-    }
-    res = fclose(from);
-    if (res != 0) {
-        error("unable to close temporary file (copy from)", true);
-    }
-    res = fclose(to);
-    if (res != 0) {
-        error("unable to close temporary file (copy to)", true);
-    }
-
-    return;
+  return buffer;
 }
 
 int
@@ -115,20 +51,17 @@ main(int argc, char **argv)
 
     progname = argv[0];
 
-    int opt;
-    char optc;
+    std::vector<const char*>
+      input_files,
+      input_link_files,
+      compile_libs,
+      run_libs,
+      include_paths,
+      run_paths,
+      bitcode_paths,
+      static_modules,
+      module_paths;
 
-    std::vector<const char*> input_files;
-    std::vector<const char*> input_link_files;
-    std::vector<const char*> compile_libs;
-    std::vector<const char*> run_libs;
-    std::vector<const char*> include_paths;
-    std::vector<const char*> run_paths;
-    std::vector<const char*> bitcode_paths;
-    std::vector<const char*> static_modules;
-    std::vector<const char*> module_paths;
-
-    std::string output_path;
     const char *output_path_arg = NULL;
     const char *module_name     = NULL;
 
@@ -151,6 +84,7 @@ main(int argc, char **argv)
     int option_index         = 0;
     int forced_remove_macros = 0;
 
+    static const char *options = "M:m:O:a:I:L:l:o:s:b:cdrR";
     static struct option long_options[] = {
         { "no-dale-stdlib",   no_argument,       &no_dale_stdlib,   1 },
         { "no-common",        no_argument,       &no_common,        1 },
@@ -163,15 +97,9 @@ main(int argc, char **argv)
         { 0, 0, 0, 0 }
     };
 
-    if (argc < 2) {
-        error("no input files");
-    }
-
-    while ((opt = getopt_long(argc, argv, options,
-                              long_options, &option_index)) != -1) {
-        optc = (char) opt;
-
-        switch (optc) {
+    for (int opt; (opt = getopt_long (argc, argv, options, long_options,
+                                      &option_index)) != -1; ) {
+        switch ((char) opt) {
             case 'o': {
                 if (output_path_arg) {
                     error("an output path has already been specified");
@@ -187,17 +115,14 @@ main(int argc, char **argv)
                 break;
             }
             case 's': {
-                const char *type = optarg;
-                if (!strcmp(type, "as")) {
-                    produce = ASM;
-                } else if (!strcmp(type, "ir")) {
-                    produce = IR;
-                } else if (!strcmp(type, "bc")) {
-                    produce = BitCode;
-                } else {
-                    error("unrecognised output option");
-                }
                 produce_set = true;
+
+                const char *type = optarg;
+                if (!strcmp (type, "as")) produce = ASM;     else
+                if (!strcmp (type, "ir")) produce = IR;      else
+                if (!strcmp (type, "bc")) produce = BitCode; else
+                  error ("unrecognised output file format");
+
                 break;
             }
             case 'd': debug = 1;                                   break;
@@ -212,187 +137,120 @@ main(int argc, char **argv)
             case 'M': module_paths.push_back(optarg);              break;
             case 'm': module_name = optarg;                        break;
         };
-
-        if (found_sm) {
-            found_sm = 0;
-            static_modules.push_back(optarg);
-        }
+        if (found_sm) found_sm = 0, static_modules.push_back (optarg);
     }
 
-    if (version) {
-        printf("%d.%d\n", DALE_VERSION_MAJOR, DALE_VERSION_MINOR);
-        exit(0);
-    }
+    if (version)
+      std::cout << DALE_VERSION_MAJOR << "."
+                << DALE_VERSION_MINOR << std::endl, exit (0);
 
     /* If the user wants an executable and has not specified either
      * way with respect to removing macros, then remove macros. */
-    if (!no_linking && !produce_set && !forced_remove_macros) {
+    if (!no_linking && !produce_set && !forced_remove_macros)
         remove_macros = 1;
-    }
 
     /* Every argument after the options is treated as an input file.
      * Input files that end with .o or .a should go straight to the
      * linker. */
-    int input_file_count = argc - optind;
-    for (int i = 0; i < input_file_count; ++i) {
-        const char *input_file = argv[optind + i];
-        if (appearsToBeLib(input_file)) {
-            input_link_files.push_back(input_file);
-        } else {
-            input_files.push_back(input_file);
-        }
-    }
+    while (optind != argc)
+      {
+        const char *input_file = argv [optind ++];
 
-    if (!input_files.size()) {
-        error("no input files");
-    }
+        (appearsToBeLib (input_file) ?
+         input_link_files : input_files) .push_back (input_file);
+      }
+    if (input_files.empty ()) error ("no input files");
 
     /* Set output_path. */
-    if (!no_linking) {
-        if (output_path_arg) {
-            output_path.append(output_path_arg);
-        } else {
-            if (produce == ASM) {
-                output_path.append("a.out");
-            } else if (produce_set) {
-                output_path.append(input_files[0]);
-                output_path.append(
-                      (produce == IR)      ? ".ll"
-                    : (produce == ASM)     ? ".s"
-                    : (produce == BitCode) ? ".bc"
-                                           : ".unknown"
-                );
-            }
-        }
-    } else {
-        if (output_path_arg) {
-            output_path.append(output_path_arg);
-        } else {
-            output_path.append(input_files[0]);
-            output_path.append(".o");
-        }
-    }
+    std::string output_path;
+    if (output_path_arg) output_path = output_path_arg;  // is given
+    else  // otherwise construct it
+      {
+        output_path = input_files [0];  // leave the extension as is
 
-    std::string compile_lib_str;
-    joinWithPrefix(&compile_libs, "-l", &compile_lib_str);
+        if (no_linking) output_path += ".o";
+        else if (produce_set) output_path +=
+                            ((produce == IR)      ? ".ll" :
+                             (produce == ASM)     ? ".s"  :
+                             (produce == BitCode) ? ".bc" :
+                             ".unknown" );  // impossible, an error
+        else output_path = "a.out";  // overwrite what was there
+      }
 
-    std::string include_path_str;
-    joinWithPrefix(&include_paths, "-I", &include_path_str);
-
-    std::string run_path_str;
-    joinWithPrefix(&run_paths, "-L", &run_path_str);
-
-    std::string input_file_str;
-    joinWithPrefix(&input_files, " ", &input_file_str);
-
-    std::string input_link_file_str;
-    joinWithPrefix(&input_link_files, " ", &input_link_file_str);
-
-    FILE *output_file = tmpfile();
-    if (!output_file) {
-        error("unable to open temporary file", true);
-    }
+    // Generate an intermediate file, to be compiled and linked later
+    // with the system compiler, by building the executable in memory
+    // and then exporting it into the requested intermediate format.
+    // Access to called shared libraries is necessary right here (!),
+    // not only on the later stage of compilation/linking. It's LLVM.
     std::vector<std::string> so_paths;
     Generator generator;
 
-    bool generated =
-        generator.run(&input_files,
-                      &bitcode_paths,
-                      &compile_libs,
-                      &include_paths,
-                      &module_paths,
-                      &static_modules,
-                      module_name,
-                      debug,
-                      produce,
-                      optlevel,
-                      remove_macros,
-                      no_common,
-                      no_dale_stdlib,
-                      static_mods_all,
-                      enable_cto,
-                      print_expansions,
-                      &so_paths,
-                      output_file);
-    if (!generated) {
-        exit(1);
+    std::string intermediate_output_path =
+      output_path + (produce_set ? "" : ".s");
+    {
+      FILE *output_file =
+        fopen (intermediate_output_path.c_str (), "w");
+      if (output_file == NULL) error ("unable to open %s for writing",
+                                      intermediate_output_path.c_str (),
+                                      true);
+      if (! generator.run (&input_files,
+                           &bitcode_paths,
+                           &compile_libs,
+                           &include_paths,
+                           &module_paths,
+                           &static_modules,
+                           module_name,
+                           debug,
+                           produce,
+                           optlevel,
+                           remove_macros,
+                           no_common,
+                           no_dale_stdlib,
+                           static_mods_all,
+                           enable_cto,
+                           print_expansions,
+                           &so_paths,
+                           output_file)) exit (1);
+      if (fflush (output_file) != 0)
+        error ("unable to flush the intermediate output file", true);
     }
-    int res = fflush(output_file);
-    if (res != 0) {
-        error("unable to flush temporary file", true);
-    }
+    if (produce_set) exit (0);  // we're done
 
-    std::string run_lib_str;
-    joinWithPrefix(&run_libs, " -l ", &run_lib_str);
+    // prepare the strings to sew the compile command with
+    std::string run_path_str =
+      joinWithPrefix (run_paths, "-L", "");
+    std::string run_lib_str =
+      joinWithPrefix (run_libs, "-l", "");
+    std::string rpath_str = strcmp (SYSTEM_NAME, "Darwin") ?
+      "" : joinWithPrefix (module_paths, "-rpath", "");
 
-    std::string rpath_str;
-    if (!strcmp(SYSTEM_NAME, "Darwin")) {
-        joinWithPrefix(&module_paths, "-rpath", &rpath_str);
-    } else {
-        rpath_str = "";
-    }
+    std::string input_link_file_str =
+      joinWithPrefix (input_link_files, " ", "");
+    for (std::vector<std::string>::iterator b = so_paths.begin (),
+                                            e = so_paths.end ();
+         b != e; input_link_file_str += " " + (* b ++));
 
-    for (std::vector<std::string>::reverse_iterator b = so_paths.rbegin(),
-                                                    e = so_paths.rend();
-            b != e;
-            ++b) {
-        input_link_file_str.append(" ");
-        input_link_file_str.append((*b).c_str());
-    }
+    // compose the compiler/linker command and execute it
+    const char *aux = getenv ("DALE_CC_FLAGS");  // auxiliary options
+    std::string compile_cmd = DALE_CC;
+    if (no_stdlib) compile_cmd += " --nostdlib";
+    if (no_linking) compile_cmd += " -c";
+    else compile_cmd += input_link_file_str + " -lm" +
+           (strcmp (SYSTEM_NAME, "Darwin") ? " -Wl,--gc-sections" : "");
+    compile_cmd += run_lib_str + run_path_str + rpath_str
+      + " -o " + output_path + " " + intermediate_output_path;
+    if (aux) compile_cmd += " ", compile_cmd += aux;
 
-    std::string intermediate_output_path = output_path;
-    if (!produce_set) {
-        intermediate_output_path.append(".s");
-    }
-    copyFile(intermediate_output_path.c_str(), output_file);
-    if (produce_set) {
-        exit(0);
-    }
+    if (aux) std::cerr << "Going to run: " << compile_cmd << std::endl,
+               fflush (stderr);  // show it immediately
 
-    static char compile_cmd[MAX_COMPILE_COMMAND_LENGTH];  /* on heap */
-    int bytes = 0;
-    if (no_linking) {
-        bytes = snprintf(compile_cmd, MAX_COMPILE_COMMAND_LENGTH - 1,
-                         DALE_CC "%s -c %s %s %s %s -o %s",
-                         (no_stdlib) ? "--nostdlib" : "",
-                         run_path_str.c_str(),
-                         rpath_str.c_str(),
-                         run_lib_str.c_str(),
-                         intermediate_output_path.c_str(),
-                         output_path.c_str());
-    } else {
-        bytes = snprintf(compile_cmd, MAX_COMPILE_COMMAND_LENGTH - 1,
-                         DALE_CC "%s %s %s %s %s %s %s -lm -o %s",
-                         (no_stdlib) ? "--nostdlib" : "",
-                         (strcmp(SYSTEM_NAME, "Darwin")
-                             ? "-Wl,--gc-sections"
-                             : ""),
-                         run_path_str.c_str(),
-                         rpath_str.c_str(),
-                         intermediate_output_path.c_str(),
-                         input_link_file_str.c_str(),
-                         run_lib_str.c_str(),
-                         output_path.c_str());
-    }
-    if (bytes >= MAX_COMPILE_COMMAND_LENGTH) {
-        error(DALE_CC " command is too long");
-    }
+    if (system (compile_cmd.c_str ()) != 0)
+      if (debug) std::cerr << compile_cmd << std::endl,
+                   error (DALE_CC " failed");
 
-    int status = system(compile_cmd);
-    if (status != 0) {
-        if (debug) {
-            fprintf(stderr, "%s\n", compile_cmd);
-        }
-        error(DALE_CC " failed");
-    }
-
-    status = remove(intermediate_output_path.c_str());
-    if (status != 0) {
-        if (debug) {
-            fprintf(stderr, "%s\n", intermediate_output_path.c_str());
-        }
-        error("unable to remove temporary file");
-    }
+    if (remove (intermediate_output_path.c_str ()) != 0)
+      if (debug) std::cerr << intermediate_output_path << std::endl,
+                   error ("unable to remove temporary file");
 
     return 0;
 }
