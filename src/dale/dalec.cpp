@@ -8,7 +8,6 @@
 #include <sys/stat.h>
 #include <getopt.h>
 #include <cstdio>
-#include <iostream>
 
 /*! dalec
 
@@ -20,28 +19,30 @@
 using namespace dale;
 
 static bool
-is_ending_on (const char *string, const char *ending)
+isEndingOn(const char *string, const char *ending)
 {
-  size_t sl = strlen (string), el = strlen (ending);
+    size_t sl = strlen (string);
+    size_t el = strlen (ending);
 
-  return (sl >= el) && (strcmp (string + (sl - el), ending) == 0);
+    return (sl >= el) && (strcmp (string + (sl - el), ending) == 0);
 }
 
 static bool
-appearsToBeLib (const char *str)
+appearsToBeLib(const char *str)
 {
-  return is_ending_on (str, ".o") || is_ending_on (str, ".a");
+    return isEndingOn(str, ".o") || isEndingOn(str, ".a");
 }
 
 std::string
-joinWithPrefix (std::vector<const char*> strings,
-                const std::string prefix, std::string buffer)
+joinWithPrefix(std::vector<const char*> strings,
+               const std::string prefix, std::string buffer)
 {
-  for (std::vector<const char*>::iterator b = strings.begin (),
-                                          e = strings.end ();
-       b != e; buffer += " " + prefix + " " + (* b ++));
+    for (std::vector<const char*>::iterator b = strings.begin(),
+                                            e = strings.end();
+            b != e;
+            buffer += " " + prefix + " " + (*b++));
 
-  return buffer;
+    return buffer;
 }
 
 int
@@ -51,16 +52,15 @@ main(int argc, char **argv)
 
     progname = argv[0];
 
-    std::vector<const char*>
-      input_files,
-      input_link_files,
-      compile_libs,
-      run_libs,
-      include_paths,
-      run_paths,
-      bitcode_paths,
-      static_modules,
-      module_paths;
+    std::vector<const char*> input_files;
+    std::vector<const char*> input_link_files;
+    std::vector<const char*> compile_libs;
+    std::vector<const char*> run_libs;
+    std::vector<const char*> include_paths;
+    std::vector<const char*> run_paths;
+    std::vector<const char*> bitcode_paths;
+    std::vector<const char*> static_modules;
+    std::vector<const char*> module_paths;
 
     const char *output_path_arg = NULL;
     const char *module_name     = NULL;
@@ -97,8 +97,8 @@ main(int argc, char **argv)
         { 0, 0, 0, 0 }
     };
 
-    for (int opt; (opt = getopt_long (argc, argv, options, long_options,
-                                      &option_index)) != -1; ) {
+    for (int opt; (opt = getopt_long(argc, argv, options, long_options,
+                                     &option_index)) != -1; ) {
         switch ((char) opt) {
             case 'o': {
                 if (output_path_arg) {
@@ -116,13 +116,16 @@ main(int argc, char **argv)
             }
             case 's': {
                 produce_set = true;
-
                 const char *type = optarg;
-                if (!strcmp (type, "as")) produce = ASM;     else
-                if (!strcmp (type, "ir")) produce = IR;      else
-                if (!strcmp (type, "bc")) produce = BitCode; else
-                  error ("unrecognised output file format");
-
+                if (!strcmp(type, "as")) {
+                    produce = ASM;
+                } else if (!strcmp(type, "ir")) {
+                    produce = IR;
+                } else if (!strcmp(type, "bc")) {
+                    produce = BitCode;
+                } else {
+                    error("unrecognised output option");
+                }
                 break;
             }
             case 'd': debug = 1;                                   break;
@@ -137,120 +140,163 @@ main(int argc, char **argv)
             case 'M': module_paths.push_back(optarg);              break;
             case 'm': module_name = optarg;                        break;
         };
-        if (found_sm) found_sm = 0, static_modules.push_back (optarg);
+        if (found_sm) {
+            found_sm = 0;
+            static_modules.push_back(optarg);
+        }
     }
 
-    if (version)
-      std::cout << DALE_VERSION_MAJOR << "."
-                << DALE_VERSION_MINOR << std::endl, exit (0);
+    if (version) {
+        printf("%d.%d\n", DALE_VERSION_MAJOR, DALE_VERSION_MINOR);
+        exit(0);
+    }
 
     /* If the user wants an executable and has not specified either
      * way with respect to removing macros, then remove macros. */
-    if (!no_linking && !produce_set && !forced_remove_macros)
+    if (!no_linking && !produce_set && !forced_remove_macros) {
         remove_macros = 1;
+    }
 
     /* Every argument after the options is treated as an input file.
      * Input files that end with .o or .a should go straight to the
      * linker. */
-    while (optind != argc)
-      {
+    while (optind != argc) {
         const char *input_file = argv [optind ++];
 
-        (appearsToBeLib (input_file) ?
-         input_link_files : input_files) .push_back (input_file);
-      }
-    if (input_files.empty ()) error ("no input files");
+        (appearsToBeLib(input_file) ? input_link_files : input_files)
+            .push_back(input_file);
+    }
+    if (input_files.empty()) {
+        error("no input files");
+    }
 
     /* Set output_path. */
     std::string output_path;
-    if (output_path_arg) output_path = output_path_arg;  // is given
-    else  // otherwise construct it
-      {
-        output_path = input_files [0];  // leave the extension as is
+    if (output_path_arg) {
+        /* Is given. */
+        output_path = output_path_arg;
+    } else {
+        /* Otherwise, construct it. */
+        output_path = input_files[0];
 
-        if (no_linking) output_path += ".o";
-        else if (produce_set) output_path +=
-                            ((produce == IR)      ? ".ll" :
-                             (produce == ASM)     ? ".s"  :
-                             (produce == BitCode) ? ".bc" :
-                             ".unknown" );  // impossible, an error
-        else output_path = "a.out";  // overwrite what was there
-      }
+        if (no_linking) {
+            output_path += ".o";
+        } else if (produce_set) {
+            /* .unknown should never be reached. */
+            output_path += ((produce == IR)      ? ".ll"
+                          : (produce == ASM)     ? ".s"
+                          : (produce == BitCode) ? ".bc"
+                                                 : ".unknown" );
+        } else {
+            /* Overwrite what was there. */
+            output_path = "a.out";
+        }
+    }
 
-    // Generate an intermediate file, to be compiled and linked later
-    // with the system compiler, by building the executable in memory
-    // and then exporting it into the requested intermediate format.
-    // Access to called shared libraries is necessary right here (!),
-    // not only on the later stage of compilation/linking. It's LLVM.
+    /* Generate an intermediate file, to be compiled and linked later
+     * with the system compiler, by building the executable in memory
+     * and then exporting it into the requested intermediate format. */
     std::vector<std::string> so_paths;
     Generator generator;
 
     std::string intermediate_output_path =
-      output_path + (produce_set ? "" : ".s");
-    {
-      FILE *output_file =
-        fopen (intermediate_output_path.c_str (), "w");
-      if (output_file == NULL) error ("unable to open %s for writing",
-                                      intermediate_output_path.c_str (),
-                                      true);
-      if (! generator.run (&input_files,
-                           &bitcode_paths,
-                           &compile_libs,
-                           &include_paths,
-                           &module_paths,
-                           &static_modules,
-                           module_name,
-                           debug,
-                           produce,
-                           optlevel,
-                           remove_macros,
-                           no_common,
-                           no_dale_stdlib,
-                           static_mods_all,
-                           enable_cto,
-                           print_expansions,
-                           &so_paths,
-                           output_file)) exit (1);
-      if (fflush (output_file) != 0)
-        error ("unable to flush the intermediate output file", true);
-    }
-    if (produce_set) exit (0);  // we're done
+        output_path + (produce_set ? "" : ".s");
 
-    // prepare the strings to sew the compile command with
+    FILE *output_file =
+        fopen(intermediate_output_path.c_str(), "w");
+    if (output_file == NULL) {
+        error("unable to open %s for writing",
+              intermediate_output_path.c_str(), true);
+    }
+    int res = generator.run(&input_files,
+                            &bitcode_paths,
+                            &compile_libs,
+                            &include_paths,
+                            &module_paths,
+                            &static_modules,
+                            module_name,
+                            debug,
+                            produce,
+                            optlevel,
+                            remove_macros,
+                            no_common,
+                            no_dale_stdlib,
+                            static_mods_all,
+                            enable_cto,
+                            print_expansions,
+                            &so_paths,
+                            output_file);
+    if (!res) {
+        exit(1);
+    }
+    res = fflush(output_file);
+    if (res != 0) {
+        error("unable to flush the intermediate output file", true);
+    }
+    if (produce_set) {
+        /* We're done. */
+        exit(0);
+    }
+
+    /* Prepare the strings to sew the compile command with. */
     std::string run_path_str =
-      joinWithPrefix (run_paths, "-L", "");
+      joinWithPrefix(run_paths, "-L", "");
     std::string run_lib_str =
-      joinWithPrefix (run_libs, "-l", "");
-    std::string rpath_str = strcmp (SYSTEM_NAME, "Darwin") ?
-      "" : joinWithPrefix (module_paths, "-rpath", "");
+      joinWithPrefix(run_libs, "-l", "");
+    std::string rpath_str =
+        strcmp(SYSTEM_NAME, "Darwin")
+            ? ""
+            : joinWithPrefix(module_paths, "-rpath", "");
 
     std::string input_link_file_str =
-      joinWithPrefix (input_link_files, " ", "");
-    for (std::vector<std::string>::iterator b = so_paths.begin (),
-                                            e = so_paths.end ();
-         b != e; input_link_file_str += " " + (* b ++));
+      joinWithPrefix(input_link_files, " ", "");
+    for (std::vector<std::string>::iterator b = so_paths.begin(),
+                                            e = so_paths.end();
+            b != e;
+            input_link_file_str += " " + (*b++));
 
-    // compose the compiler/linker command and execute it
-    const char *aux = getenv ("DALE_CC_FLAGS");  // auxiliary options
+    /* Compose the compiler/linker command and execute it. */
+    /* DALEC_CC_FLAGS is an undocumented environment variable that can
+     * be used to provide additional flags to the compiler call here.
+     * It is undocumented because this call may be removed in
+     * the future in favour of using LLVM more directly. */
+    const char *aux = getenv("DALE_CC_FLAGS");
     std::string compile_cmd = DALE_CC;
-    if (no_stdlib) compile_cmd += " --nostdlib";
-    if (no_linking) compile_cmd += " -c";
-    else compile_cmd += input_link_file_str + " -lm" +
-           (strcmp (SYSTEM_NAME, "Darwin") ? " -Wl,--gc-sections" : "");
+    if (no_stdlib) {
+        compile_cmd += " --nostdlib";
+    }
+    if (no_linking) {
+        compile_cmd += " -c";
+    } else {
+        compile_cmd += input_link_file_str
+                     + " -lm"
+                     + (strcmp(SYSTEM_NAME, "Darwin")
+                           ? " -Wl,--gc-sections"
+                           : "");
+    }
     compile_cmd += run_lib_str + run_path_str + rpath_str
-      + " -o " + output_path + " " + intermediate_output_path;
-    if (aux) compile_cmd += " ", compile_cmd += aux;
+                 + " -o " + output_path + " " + intermediate_output_path;
+    if (aux) {
+        compile_cmd += " ";
+        compile_cmd += aux;
+        fprintf(stderr, "Going to run: %s\n", compile_cmd.c_str());
+    }
 
-    if (aux) std::cerr << "Going to run: " << compile_cmd << std::endl,
-               fflush (stderr);  // show it immediately
+    int status = system(compile_cmd.c_str());
+    if (status != 0) {
+        if (debug) {
+            fprintf(stderr, "%s\n", compile_cmd.c_str());
+        }
+        error(DALE_CC " failed");
+    }
 
-    if (system (compile_cmd.c_str ()) != 0)
-      if (debug) std::cerr << compile_cmd << std::endl,
-                   error (DALE_CC " failed");
-
-    if (remove (intermediate_output_path.c_str ()) != 0)
-      if (debug) std::cerr << intermediate_output_path << std::endl,
-                   error ("unable to remove temporary file");
+    status = remove(intermediate_output_path.c_str());
+    if (status != 0) {
+        if (debug) {
+            fprintf(stderr, "%s\n", intermediate_output_path.c_str());
+        }
+        error("unable to remove temporary file");
+    }
 
     return 0;
 }
