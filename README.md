@@ -58,7 +58,7 @@ able to be built.  It has been tested on the following:
 
 **hello-world**
 
-```
+```lisp
 (import cstdio)
 
 (def main (fn extern-c int (void)
@@ -70,7 +70,7 @@ able to be built.  It has been tested on the following:
 
 **hello-name**
 
-```
+```lisp
 (import cstdio)
 
 (def main (fn extern-c int (void)
@@ -83,7 +83,7 @@ able to be built.  It has been tested on the following:
 
 **type-deduction**
 
-```
+```lisp
 (import cstdio)
 (import stdlib)
 
@@ -98,7 +98,7 @@ able to be built.  It has been tested on the following:
 
 **overloading**
 
-```
+```lisp
 (import cstdio)
 (import cstdlib)
 
@@ -121,7 +121,7 @@ able to be built.  It has been tested on the following:
 
 **anonymous-functions**
 
-```
+```lisp
 (import cstdio)
 (import stdlib)
 
@@ -135,7 +135,7 @@ able to be built.  It has been tested on the following:
 
 **macros**
 
-```
+```lisp
 (import cstdio)
 (import stdlib)
 (import macros)
@@ -157,7 +157,7 @@ able to be built.  It has been tested on the following:
 
 **typed-macros**
 
-```
+```lisp
 (import cstdio)
 (import macros)
 
@@ -174,7 +174,7 @@ able to be built.  It has been tested on the following:
 
 **introspection**
 
-```
+```lisp
 (import introspection)
 (import stdlib)
 
@@ -204,7 +204,7 @@ able to be built.  It has been tested on the following:
 
 **error-reporting**
 
-```
+```lisp
 (import introspection)
 (import stdlib)
 
@@ -227,7 +227,7 @@ able to be built.  It has been tested on the following:
 
 **derivations**
 
-```
+```lisp
 (import derivations)
 
 (def Point (struct intern ((x int) (y int))))
@@ -254,7 +254,7 @@ able to be built.  It has been tested on the following:
 
 **containers**
 
-```
+```lisp
 (import vector)
 (import array)
 (import algorithms)
@@ -286,7 +286,7 @@ able to be built.  It has been tested on the following:
 
 **variants**
 
-```
+```lisp
 (import variant)
 (import cstdio)
 
