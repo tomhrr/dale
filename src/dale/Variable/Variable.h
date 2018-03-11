@@ -8,7 +8,6 @@
 
 #include "../llvm_Module.h"
 #include "../llvm_Function.h"
-#include "llvm/PassManager.h"
 #include "../llvm_CallingConv.h"
 #include "../llvm_AnalysisVerifier.h"
 #include "../llvm_AssemblyPrintModulePass.h"
