@@ -1,6 +1,11 @@
 language: cpp
 compiler: gcc
-script: cmake . && make && make tests
+addons:
+  apt:
+    sources:
+      - llvm-3.5
+      - llvm-3.5-dev
+script: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-3.5 . && make && make tests
 notifications:
   email:
     recipients:
