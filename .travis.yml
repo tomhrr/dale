@@ -2,7 +2,7 @@ language: cpp
 compiler: gcc
 addons:
   apt:
-    sources:
+    packages:
       - llvm-3.5
       - llvm-3.5-dev
 script: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-3.5 . && make && make tests
