@@ -82,10 +82,12 @@ llvm::Constant *
 getTokenPointer(Units *units, std::string *value)
 {
     llvm::GlobalVariable *token_gv = getTokenGV(units, value);
+    llvm::Constant *token_gv_const = llvm::cast<llvm::Constant>(token_gv);
 
     llvm::Constant *ptr_to_token =
         llvm::ConstantExpr::getGetElementPtr(
-            llvm::cast<llvm::Constant>(token_gv),
+            token_gv_const->getType()->getPointerElementType(),
+            token_gv_const,
             units->top()->ctx->nt->getTwoLLVMZeros()
         );
 

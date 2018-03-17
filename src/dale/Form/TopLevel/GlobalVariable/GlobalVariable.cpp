@@ -13,6 +13,10 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
 
+#if D_LLVM_VERSION_MINOR >= 8
+#include "llvm/Transforms/Utils/Cloning.h"
+#endif
+
 #include <cstdio>
 
 using namespace dale::ErrorInst;
@@ -200,7 +204,8 @@ parseLiteralString(Units *units, Node *top, char *data, Type *type,
     var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
     llvm::Constant *const_pchar =
-        llvm::ConstantExpr::getGetElementPtr(llvm::cast<llvm::Constant>(var),
+        llvm::ConstantExpr::getGetElementPtr(var->getType()->getPointerElementType(),
+                                             llvm::cast<llvm::Constant>(var),
                                              ctx->nt->getTwoLLVMZeros());
 
     return const_pchar;
@@ -432,10 +437,14 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     nodes.push_back(top);
     Node *wrapper_top = new Node(&nodes);
 
+    Function *temp_fn = new Function();
+    temp_fn->llvm_function = llvm_fn;
+    units->top()->pushGlobalFunction(temp_fn);
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;
     FormProcBodyParse(units, wrapper_top, fn, llvm_fn, 0, 0);
     ctx->deactivateNamespace(anon_name.c_str());
+    units->top()->popGlobalFunction();
 
     int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
     if (error_count_begin != error_count_end) {
@@ -591,8 +600,20 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
 #endif
     }
 
+    Function *globfn = units->top()->getGlobalFunction();
+    llvm::Function *gfn = NULL;
+    if (globfn) {
+        llvm::Function *gfn = globfn->llvm_function;
+        gfn->removeFromParent();
+    }
+    units->top()->ee->addModule(llvm::CloneModule(units->top()->module));
+    if (gfn) {
+        units->top()->module->getFunctionList().push_back(gfn);
+    }
+    llvm::Function *bf = units->top()->ee->FindFunctionNamed(wrapper_new_name.c_str());
     std::vector<llvm::GenericValue> values;
-    llvm::GenericValue res2 = units->top()->ee->runFunction(wrapper_fn, values);
+    units->top()->ee->getFunctionAddress(wrapper_new_name);
+    llvm::GenericValue res2 = units->top()->ee->runFunction(bf, values);
     memcpy(data, res2.PointerVal, 256);
 
     llvm::Constant *parsed =

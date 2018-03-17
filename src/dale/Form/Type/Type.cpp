@@ -255,6 +255,13 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
             return NULL;
         }
 
+        if (snd_node->is_token) {
+            int size = FormLiteralIntegerParse(snd_node, ctx->er);
+            if (size != -1) {
+                return ctx->tr->getArrayType(array_type, size);
+            }
+        }
+
 	llvm::Constant *size_value = NULL;
 	int unused_size;
 	size_value = parseLiteral(units, ctx->tr->type_int, snd_node, &unused_size);
@@ -268,6 +275,7 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
 	    ctx->er->addError(e);
 	    return NULL;
 	}
+
 	int size = size_value_int->getZExtValue();
 
         return ctx->tr->getArrayType(array_type, size);

@@ -4,8 +4,6 @@
 #include "../Context/Context.h"
 
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/ExecutionEngine/JIT.h"
-#include "llvm/ExecutionEngine/Interpreter.h"
 
 struct PoolNode
 {

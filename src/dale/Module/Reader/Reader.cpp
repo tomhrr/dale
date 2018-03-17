@@ -17,9 +17,6 @@
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/CodeGen/LinkAllAsmWriterComponents.h"
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/ExecutionEngine/JIT.h"
-#include "llvm/ExecutionEngine/Interpreter.h"
 #include "llvm/LinkAllPasses.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/TargetRegistry.h"
@@ -131,10 +128,10 @@ Reader::loadModule(std::string *path)
                                    &error_msg);
 #else
     std::string error_msg;
-    llvm::ErrorOr<llvm::Module *> eo_module =
-        llvm::getLazyBitcodeModule(buffer.get(),
+    llvm::ErrorOr<std::unique_ptr<llvm::Module> > eo_module =
+        llvm::getLazyBitcodeModule(move(buffer),
                                    llvm::getGlobalContext());
-    llvm::Module *module = eo_module.get();
+    llvm::Module *module = eo_module.get().get();
     if (!module) {
         error_msg = eo_module.getError().message();
     }
@@ -145,8 +142,14 @@ Reader::loadModule(std::string *path)
 
 #if D_LLVM_VERSION_MINOR <= 4
     bool materialized = module->MaterializeAll(&error_msg);
-#else
+#elif D_LLVM_VERSION_MINOR <= 5
     std::error_code ec = module->materializeAllPermanently();
+    bool materialized = (bool) ec;
+    if (ec) {
+        error_msg = ec.message();
+    }
+#else
+    std::error_code ec = module->materializeAll();
     bool materialized = (bool) ec;
     if (ec) {
         error_msg = ec.message();

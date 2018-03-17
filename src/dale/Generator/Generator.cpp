@@ -24,6 +24,10 @@
 #include "llvm/IRReader/IRReader.h"
 #endif
 
+#if D_LLVM_VERSION_MINOR >= 8
+#include "llvm/Transforms/Utils/Cloning.h"
+#endif
+
 #include "../llvm_LLVMContext.h"
 #include "../llvm_Module.h"
 #include "../llvm_Linker.h"
@@ -41,8 +45,8 @@
 #include "llvm/CodeGen/LinkAllAsmWriterComponents.h"
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/ExecutionEngine/JIT.h"
 #include "llvm/ExecutionEngine/Interpreter.h"
+#include "llvm/ExecutionEngine/MCJIT.h"
 #include "llvm/LinkAllPasses.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/TargetRegistry.h"
@@ -105,6 +109,12 @@ lazyFunctionCreator(const std::string &name)
         return fn_pointer;
     }
 
+    fn_pointer =
+        llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(name.c_str());
+    if (fn_pointer) {
+        return fn_pointer;
+    }
+
     if (name[0] != '_') {
         /* Try for one beginning with an underscore (OS X-specific). */
         std::string osx_name;
@@ -118,7 +128,8 @@ lazyFunctionCreator(const std::string &name)
         }
     }
 
-    assert(false && "unable to find symbol in LFC");
+    fprintf(stderr, "Unable to find symbol (%s) in LFC\n", name.c_str());
+    abort();
     return NULL;
 }
 
@@ -139,17 +150,21 @@ linkModule(llvm::Linker *linker, llvm::Module *mod)
     bool result;
 #if D_LLVM_VERSION_MINOR <= 2
     result = linker->LinkInModule(mod, &error);
-#else
+#elif D_LLVM_VERSION_MINOR <= 5
     result = linker->linkInModule(mod, &error);
+#else
+    std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
+    result = linker->linkInModule(move(module_ptr));
 #endif
     assert(!result && "unable to link module");
     _unused(result);
 }
 
 void
-addDataLayout(llvm::PassManager *pass_manager, llvm::Module *mod)
+addDataLayout(llvm::legacy::PassManager *pass_manager, llvm::Module *mod)
 {
-#if D_LLVM_VERSION_MINOR >= 5
+#if D_LLVM_VERSION_MINOR >= 8
+#elif D_LLVM_VERSION_MINOR >= 5
     pass_manager->add(new llvm::DataLayoutPass(mod));
 #elif D_LLVM_VERSION_MINOR >= 2
     pass_manager->add(new llvm::DataLayout(mod));
@@ -159,7 +174,7 @@ addDataLayout(llvm::PassManager *pass_manager, llvm::Module *mod)
 }
 
 void
-addPrintModulePass(llvm::PassManager *pass_manager,
+addPrintModulePass(llvm::legacy::PassManager *pass_manager,
                    llvm::raw_fd_ostream *ostream)
 {
 #if D_LLVM_VERSION_MINOR <= 4
@@ -333,13 +348,24 @@ Generator::run(std::vector<const char *> *file_paths,
         if (triple.getTriple().empty()) {
             triple.setTriple(getTriple());
         }
-        mod->setDataLayout((is_x86_64) ? x86_64_layout : x86_32_layout);
+    
+        llvm::TargetMachine *target_machine = getTargetMachine(mod);
+        mod->setDataLayout(target_machine->createDataLayout());
 
-        llvm::EngineBuilder eb = llvm::EngineBuilder(mod);
+        //mod->setDataLayout((is_x86_64) ? x86_64_layout : x86_32_layout);
+
+        std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
+        llvm::EngineBuilder eb(move(module_ptr));
         eb.setEngineKind(llvm::EngineKind::JIT);
         //eb.setEngineKind(llvm::EngineKind::Interpreter);
+        std::string error;
+        eb.setErrorStr(&error);
         ee = eb.create();
-        assert(ee);
+        if (!ee) {
+            fprintf(stderr, "Unable to create execution engine: %s\n",
+                    error.c_str());
+            abort();
+        }
         ee->InstallLazyFunctionCreator(&lazyFunctionCreator);
 
         unit->ee = ee;
@@ -438,7 +464,7 @@ Generator::run(std::vector<const char *> *file_paths,
     llvm::TargetMachine *target_machine = getTargetMachine(last_module);
     llvm::raw_fd_ostream ostream(fileno(output_file), false);
 
-    llvm::PassManager pass_manager;
+    llvm::legacy::PassManager pass_manager;
     addDataLayout(&pass_manager, mod);
     pass_manager.add(llvm::createPostDomTree());
 
@@ -452,7 +478,11 @@ Generator::run(std::vector<const char *> *file_paths,
         }
         pass_manager_builder.populateModulePassManager(pass_manager);
         if (lto) {
+#if D_LLVM_VERSION_MINOR <= 5
             pass_manager_builder.populateLTOPassManager(pass_manager, true, true);
+#else
+            pass_manager_builder.populateLTOPassManager(pass_manager);
+#endif
         }
     }
 
@@ -469,16 +499,22 @@ Generator::run(std::vector<const char *> *file_paths,
         ctx->eraseLLVMMacrosAndCTOFunctions();
     }
 
+#if D_LLVM_VERSION_MINOR <= 5
     llvm::formatted_raw_ostream *ostream_formatted =
         new llvm::formatted_raw_ostream(
             ostream,
             llvm::formatted_raw_ostream::DELETE_STREAM
         );
+#else
+    llvm::raw_fd_ostream *ostream_formatted = &ostream;
+#endif
 
     if (produce == IR) {
         addPrintModulePass(&pass_manager, &ostream);
     } else if (produce == ASM) {
+#if D_LLVM_VERSION_MINOR <= 5
         target_machine->setAsmVerbosityDefault(true);
+#endif
         llvm::CodeGenOpt::Level level = llvm::CodeGenOpt::Default;
         bool res = target_machine->addPassesToEmitFile(
             pass_manager, *ostream_formatted,

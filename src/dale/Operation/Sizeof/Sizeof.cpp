@@ -15,8 +15,10 @@ SizeofGet(Unit *unit,
 #if D_LLVM_VERSION_MINOR <= 4
     llvm::DataLayout data_layout(unit->module->getDataLayout());
     return data_layout.getTypeSizeInBits(llvm_type) / 8;
-#else
+#elif D_LLVM_VERSION_MINOR <= 5
     return unit->module->getDataLayout()->getTypeSizeInBits(llvm_type) / 8;
+#else
+    return unit->module->getDataLayout().getTypeSizeInBits(llvm_type) / 8;
 #endif
 }
 }

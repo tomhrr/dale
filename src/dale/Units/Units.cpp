@@ -54,7 +54,8 @@ Units::pop()
 #if D_LLVM_VERSION_MINOR <= 2
         bool res = current->linker->LinkInModule(popped->module, &link_error);
 #else
-        bool res = current->linker->linkInModule(popped->module, &link_error);
+        std::unique_ptr<llvm::Module> module_ptr(popped->module);
+        bool res = current->linker->linkInModule(move(module_ptr));
 #endif
         assert(!res && "unable to link modules");
         _unused(res);

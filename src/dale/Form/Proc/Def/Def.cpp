@@ -76,6 +76,7 @@ initialise(Context *ctx, llvm::IRBuilder<> *builder, Type *type,
             );
             llvm::Value *aref = builder->Insert(
                 llvm::GetElementPtrInst::Create(
+                    ctx->toLLVMType(type->array_type, NULL, false),
                     value,
                     llvm::ArrayRef<llvm::Value*>(indices)
                 ),
@@ -97,21 +98,24 @@ initialise(Context *ctx, llvm::IRBuilder<> *builder, Type *type,
                                            e = st->member_types.end();
                 b != e;
                 ++b) {
-            Type *type = (*b);
+            Type *stype = (*b);
             indices.push_back(
                 llvm::cast<llvm::Value>(
                     ctx->nt->getNativeInt(i++)
                 )
             );
+
             llvm::Value *sref = builder->Insert(
                 llvm::GetElementPtrInst::Create(
+                    ctx->toLLVMType(type, NULL, false),
                     value,
                     llvm::ArrayRef<llvm::Value*>(indices)
                 ),
                 "sref"
             );
+
             indices.pop_back();
-            initialise(ctx, builder, type, sref, NULL);
+            initialise(ctx, builder, stype, sref, NULL);
         }
         return true;
     }

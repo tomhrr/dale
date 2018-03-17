@@ -471,12 +471,14 @@ addFloatingPoint(Context *ctx, llvm::Module *mod, std::string *once_tag,
     ADD_FLTF("*", &llvm::IRBuilder<>::CreateFMul);
     ADD_FLTF("%", &llvm::IRBuilder<>::CreateFRem);
 
+    /*
     ADD_CMPF("=",  &llvm::IRBuilder<>::CreateFCmpOEQ);
     ADD_CMPF("!=", &llvm::IRBuilder<>::CreateFCmpONE);
     ADD_CMPF("<",  &llvm::IRBuilder<>::CreateFCmpOLT);
     ADD_CMPF("<=", &llvm::IRBuilder<>::CreateFCmpOLE);
     ADD_CMPF(">",  &llvm::IRBuilder<>::CreateFCmpOGT);
     ADD_CMPF(">=", &llvm::IRBuilder<>::CreateFCmpOGE);
+    */
 
     makeUnaryMinus(ctx, mod, once_tag, type);
 }

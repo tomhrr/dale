@@ -79,6 +79,7 @@ FormLiteralArrayParse(Units *units, Function *dfn, llvm::BasicBlock *block,
         llvm::Value *element_storage =
             builder.Insert(
                 llvm::GetElementPtrInst::Create(
+                    llvm_array_type, 
                     llvm_array,
                     llvm::ArrayRef<llvm::Value*>(indices)
                 ),
@@ -95,6 +96,7 @@ FormLiteralArrayParse(Units *units, Function *dfn, llvm::BasicBlock *block,
     llvm::Value *array_ptr =
         builder.Insert(
             llvm::GetElementPtrInst::Create(
+                llvm_array_type,
                 llvm_array,
                 llvm::ArrayRef<llvm::Value*>(indices)
             ),

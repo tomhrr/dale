@@ -9,7 +9,7 @@ namespace dale
 namespace Module
 {
 Writer::Writer(std::string module_name, dale::Context *ctx,
-               llvm::Module *mod, llvm::PassManager *pm,
+               llvm::Module *mod, llvm::legacy::PassManager *pm,
                std::set<std::string> *included_once_tags,
                std::set<std::string> *included_modules,
                bool cto)

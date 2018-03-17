@@ -77,8 +77,10 @@ elseif (${D_LLVM_VERSION_MAJOR} EQUAL 3)
     if (${D_LLVM_VERSION_MINOR} LESS 2)
         message (FATAL_ERROR "LLVM >= 3.2 is required.")
     elseif (${D_LLVM_VERSION_MINOR} GREATER 8)
-        message (FATAL_ERROR "LLVM >= 3.6 is not supported.")
+        message (FATAL_ERROR "LLVM >= 3.8 is not supported.")
     endif ()
+elseif (${D_LLVM_VERSION_MAJOR} GREATER 3)
+    message (FATAL_ERROR "LLVM >= 3.8 is required.")
 endif ()
 
 # Get LLVM configuration details.
@@ -155,7 +157,7 @@ endif ()
 
 string(REGEX REPLACE "^ +" "" DALEC_LINK_FLAGS ${DALEC_LINK_FLAGS_})
 set (CMAKE_CXX_FLAGS         "$ENV{CPPFLAGS} ${FFI_CFLAGS} -Wall -ansi")
-set (CMAKE_CXX_FLAGS_DEBUG   "-g -ggdb -O0 -fno-inline -Wextra -Wno-unused-parameter ${CXX_FLAGS_EXTRA}")
+set (CMAKE_CXX_FLAGS_DEBUG   "-g -ggdb -O0 -fno-rtti -fno-inline -Wextra -Wno-unused-parameter ${CXX_FLAGS_EXTRA}")
 set (CMAKE_CXX_FLAGS_RELEASE "-O3 -fomit-frame-pointer ${CXX_FLAGS_EXTRA}")
 
 set (DALE_FLAGS_DEBUG   "-O0")

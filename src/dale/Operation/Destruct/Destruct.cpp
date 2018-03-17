@@ -64,6 +64,7 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
         llvm::Value *res =
             builder->Insert(
                 llvm::GetElementPtrInst::Create(
+                    array_value->getType()->getPointerElementType(),
                     array_value, llvm::ArrayRef<llvm::Value*>(indices)
                 ),
                 "ap"
@@ -116,6 +117,7 @@ destructStruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
         element.set(element.block, element.type,
                     builder->Insert(
                         llvm::GetElementPtrInst::Create(
+                            ctx->toLLVMType(pr->type, NULL, false),
                             struct_value,
                             llvm::ArrayRef<llvm::Value*>(indices)
                         ),

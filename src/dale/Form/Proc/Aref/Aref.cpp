@@ -71,21 +71,24 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
         STL::push_back2(&indices, ctx->nt->getLLVMZero(),
                         llvm::cast<llvm::Value>(index_pr.getValue(ctx)));
     }
-    llvm::Value *index_ptr =
-        builder.Insert(
-            llvm::GetElementPtrInst::Create(
-                array_pr.getValue(ctx), llvm::ArrayRef<llvm::Value*>(indices)
-            ),
-            "aref"
-        );
-
-    pr->block = index_pr.block;
-
+    llvm::Value *array_value = array_pr.getValue(ctx);
     if (array_pr.type->is_array) {
         pr->type = ctx->tr->getPointerType(array_pr.type->array_type);
     } else {
         pr->type = array_pr.type;
     }
+
+    llvm::Value *index_ptr =
+        builder.Insert(
+            llvm::GetElementPtrInst::Create(
+                array_value->getType()->getPointerElementType(),
+                array_value,
+                llvm::ArrayRef<llvm::Value*>(indices)
+            ),
+            "aref"
+        );
+
+    pr->block = index_pr.block;
 
     pr->set(pr->block, pr->type, index_ptr);
     array_pr.block = index_pr.block;

@@ -6,6 +6,10 @@
 #include <cctype>
 #include <sys/stat.h>
 
+#if D_LLVM_VERSION_MINOR >= 8
+#include "llvm/Transforms/Utils/Cloning.h"
+#endif
+
 namespace dale
 {
 const char *progname = NULL;
@@ -292,12 +296,18 @@ linkFile(llvm::Linker *linker, const char *path)
     bool is_native = false;
     bool res = linker->LinkInFile(bb, is_native);
     assert(!res && "unable to link bitcode file");
-#else
+#elif D_LLVM_VERSION_MINOR <= 5
     llvm::SMDiagnostic sm_error;
     llvm::Module *path_mod = llvm::ParseIRFile(path, sm_error,
                                                llvm::getGlobalContext());
     std::string error;
     bool res = linker->linkInModule(path_mod, &error);
+    assert(!res && "unable to link bitcode file module");
+#else
+    llvm::SMDiagnostic sm_error;
+    std::unique_ptr<llvm::Module> module_ptr(llvm::parseIRFile(path, sm_error,
+                                                               llvm::getGlobalContext()));
+    bool res = linker->linkInModule(move(module_ptr));
     assert(!res && "unable to link bitcode file module");
 #endif
     _unused(res);

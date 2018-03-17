@@ -10,6 +10,10 @@
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/Support/Debug.h"
 
+#if D_LLVM_VERSION_MINOR >= 8
+#include "llvm/Transforms/Utils/Cloning.h"
+#endif
+
 #define eq(str) !strcmp(macro_name, str)
 
 using namespace dale::ErrorInst;
@@ -133,21 +137,91 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
         values.push_back(rest_val);
     }
 
+    std::vector<void *> values2;
+    values2.push_back(&mcontext);
+    i = 0;
+    for (; i < (mc->numberOfRequiredArgs() - 1); i++) {
+        values2.push_back(macro_args[i]);
+    }
+    if (mc->isVarArgs()) {
+        values2.push_back(&(macro_args[i]));
+    }
+
     if (units->debug) {
 #if D_LLVM_VERSION_MINOR >= 5
         llvm::dbgs() << *(mc->llvm_function) << "\n";
 #endif
     }
 
-    DNode *result_dnode = (DNode *)
-        ee->runFunction(mc->llvm_function, values).PointerVal;
+    uint64_t address = 0;
+    address = (uint64_t)
+        llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(mc->symbol.c_str());
+    if (!address) {
+        Function *globfn = units->top()->getGlobalFunction();
+        llvm::Function *gfn = NULL;
+        if (globfn) {
+            gfn = globfn->llvm_function;
+            gfn->removeFromParent();
+        }
+        units->top()->ee->addModule(llvm::CloneModule(units->top()->module));
+        if (gfn) {
+            units->top()->module->getFunctionList().push_back(gfn);
+        }
+        llvm::Function *mc_ffn = units->top()->ee->FindFunctionNamed(mc->symbol.c_str());
+        if (!mc_ffn) {
+            fprintf(stderr, "cannot refetch: '%s'\n", mc->symbol.c_str());
+            abort();
+        }
+        address = units->top()->ee->getFunctionAddress(mc->symbol.c_str());
+    }
+
+    DNode *result_dnode;
+    if (values2.size() == 1) {
+        typedef void *(*MFN)(void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0]);
+    } else if (values2.size() == 2) {
+        typedef void *(*MFN)(void*, void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0], values2[1]);
+    } else if (values2.size() == 3) {
+        typedef void *(*MFN)(void*, void*, void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2]);
+    } else if (values2.size() == 4) {
+        typedef void *(*MFN)(void*, void*, void*, void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2], values2[3]);
+    } else if (values2.size() == 5) {
+        typedef void *(*MFN)(void*, void*, void*, void*, void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2], values2[3], values2[4]);
+    } else {
+        fprintf(stderr, "Need to handle more macro parameters: %u\n",
+            values2.size());
+        abort();
+    }
 
     Node *result_node =
         (result_dnode) ? units->top()->dnc->toNode(result_dnode) : NULL;
 
-    std::vector<llvm::GenericValue> values_pf;
-    values_pf.push_back(mc_val);
-    ee->runFunction(pool_free_fn, values_pf);
+    uint64_t pf_address = 0;
+    Function *pfffn = ctx->getFunction("pool-free", NULL, NULL, 0);
+    llvm::Function *pf_ffn =
+        units->top()->ee->FindFunctionNamed(pfffn->symbol.c_str());
+    if (pf_ffn) {
+        pf_address = units->top()->ee->getFunctionAddress(pfffn->symbol.c_str());
+    } else {
+        pf_address = (uint64_t)
+	    llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(pfffn->symbol.c_str());
+    }
+
+    typedef void (*FFN)(void*);
+    FFN free_function = (FFN) pf_address;
+    free_function(&mcontext);
 
     if (result_node) {
         result_node->addMacroPosition(n);

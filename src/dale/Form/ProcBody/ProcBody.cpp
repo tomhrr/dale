@@ -186,10 +186,10 @@ resolveDeferredGotos(Context *ctx, Node *node, Function *fn,
             marker = block_marker->getFirstNonPHI();
         }
         if (marker) {
-            llvm::BasicBlock::iterator bi = marker;
+            llvm::BasicBlock::iterator bi = marker->getIterator();
             ++bi;
             if (bi != block_marker->end()) {
-                builder.SetInsertPoint(bi);
+                builder.SetInsertPoint(&*bi);
             }
         }
 
@@ -266,16 +266,16 @@ terminateBlocks(Context *ctx, Function *fn, llvm::Function *llvm_fn,
         if (b->size() && b->back().isTerminator()) {
             continue;
         }
-        llvm::IRBuilder<> builder(b);
+        llvm::IRBuilder<> builder(&*b);
         ++b;
         if (b != e) {
-            builder.CreateBr(b);
+            builder.CreateBr(&*b);
             --b;
             continue;
         }
         --b;
 
-        Operation::CloseScope(ctx, fn, b, NULL, true);
+        Operation::CloseScope(ctx, fn, &*b, NULL, true);
 
         /* The underlying error here will have been reported earlier,
          * if there is no last_value. */

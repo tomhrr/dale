@@ -126,7 +126,7 @@ addInitChannelsCall(Context *ctx, llvm::Function *llvm_fn)
             "cannot find init-channels function");
 
     llvm::Function::iterator i = llvm_fn->begin();
-    llvm::BasicBlock *b = i;
+    llvm::BasicBlock *b = &*i;
 
     if (b->empty()) {
         llvm::CallInst::Create(
@@ -489,7 +489,7 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     if (ret_type->is_retval) {
         llvm::Function::arg_iterator llvm_arg_iter = llvm_fn->arg_begin();
         std::advance(llvm_arg_iter, fn->parameters.size());
-        llvm_return_value = llvm_arg_iter;
+        llvm_return_value = &*llvm_arg_iter;
         llvm_return_value->setName("retval");
     }
 

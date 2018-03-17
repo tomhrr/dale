@@ -38,7 +38,7 @@ SavePoint::restore()
         }
         bl->removeFromParent();
         bl->dropAllReferences();
-        blocks.push_back(bl);
+        blocks.push_back(&*bl);
     }
 
     int to_pop_back = block->size() - instruction_index;
