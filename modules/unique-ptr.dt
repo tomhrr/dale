@@ -161,7 +161,7 @@ Expands to a `UniquePtr` definition over the relevant type.
       (fn extern bool ((dst (p (UniquePtr (uq T))))
                        (src (rv-ref (UniquePtr (uq T)))))
         (and (p= dst src)
-             (return))
+             (return true))
         (if (not (null (@:@ dst pointer)))
             (do (destroy (@ dst))
                 0)
