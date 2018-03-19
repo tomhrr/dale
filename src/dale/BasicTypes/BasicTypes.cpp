@@ -251,6 +251,40 @@ void
 makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
              const char *name,
              llvm::Value* (llvm::IRBuilder<>:: *method_name)
+                (llvm::Value*, llvm::Value*, const llvm::Twine &, llvm::MDNode*),
+             Type *ret_type, Type *type)
+{
+    Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, name,
+                                           ret_type, type, type);
+
+    std::vector<Variable *>::iterator iter;
+    iter = fn->parameters.begin();
+
+    llvm::BasicBlock *block =
+        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+                                 fn->llvm_function);
+
+    llvm::IRBuilder<> builder(block);
+    llvm::Twine unused_twine;
+    llvm::Value *ret_val =
+        llvm::cast<llvm::Value>(
+            ((builder).*(method_name))((*iter)->value,
+                                       (*(iter + 1))->value,
+                                       unused_twine,
+                                       NULL)
+        );
+    if (ret_type->base_type == BaseType::Bool) {
+        ret_val = builder.CreateZExt(ret_val,
+                                     ctx->toLLVMType(ret_type,
+                                                     NULL, false));
+    }
+    builder.CreateRet(ret_val);
+}
+
+void
+makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
+             const char *name,
+             llvm::Value* (llvm::IRBuilder<>:: *method_name)
                 (llvm::Value*, llvm::Value*, const llvm::Twine &, bool, bool),
              Type *ret_type, Type *type1, Type *type2)
 {
@@ -471,14 +505,12 @@ addFloatingPoint(Context *ctx, llvm::Module *mod, std::string *once_tag,
     ADD_FLTF("*", &llvm::IRBuilder<>::CreateFMul);
     ADD_FLTF("%", &llvm::IRBuilder<>::CreateFRem);
 
-    /*
     ADD_CMPF("=",  &llvm::IRBuilder<>::CreateFCmpOEQ);
     ADD_CMPF("!=", &llvm::IRBuilder<>::CreateFCmpONE);
     ADD_CMPF("<",  &llvm::IRBuilder<>::CreateFCmpOLT);
     ADD_CMPF("<=", &llvm::IRBuilder<>::CreateFCmpOLE);
     ADD_CMPF(">",  &llvm::IRBuilder<>::CreateFCmpOGT);
     ADD_CMPF(">=", &llvm::IRBuilder<>::CreateFCmpOGE);
-    */
 
     makeUnaryMinus(ctx, mod, once_tag, type);
 }
