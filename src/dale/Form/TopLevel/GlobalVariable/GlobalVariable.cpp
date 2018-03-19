@@ -603,7 +603,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     Function *globfn = units->top()->getGlobalFunction();
     llvm::Function *gfn = NULL;
     if (globfn) {
-        llvm::Function *gfn = globfn->llvm_function;
+        gfn = globfn->llvm_function;
         gfn->removeFromParent();
     }
     units->top()->ee->addModule(llvm::CloneModule(units->top()->module));

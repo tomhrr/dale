@@ -76,7 +76,7 @@ initialise(Context *ctx, llvm::IRBuilder<> *builder, Type *type,
             );
             llvm::Value *aref = builder->Insert(
                 llvm::GetElementPtrInst::Create(
-                    ctx->toLLVMType(type->array_type, NULL, false),
+                    value->getType()->getPointerElementType(),
                     value,
                     llvm::ArrayRef<llvm::Value*>(indices)
                 ),
