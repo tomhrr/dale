@@ -157,15 +157,24 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
     address = (uint64_t)
         llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(mc->symbol.c_str());
     if (!address) {
-        Function *globfn = units->top()->getGlobalFunction();
-        llvm::Function *gfn = NULL;
-        if (globfn) {
-            gfn = globfn->llvm_function;
-            gfn->removeFromParent();
+        std::vector<Function *> global_functions;
+        while (Function *globfn = units->top()->getGlobalFunction()) {
+            global_functions.push_back(globfn);
+            if (llvm::Function *gfn = globfn->llvm_function) {
+                gfn->removeFromParent();
+            }
+            units->top()->popGlobalFunction();
         }
         units->top()->ee->addModule(llvm::CloneModule(units->top()->module));
-        if (gfn) {
-            units->top()->module->getFunctionList().push_back(gfn);
+        for (std::vector<Function *>::reverse_iterator b = global_functions.rbegin(),
+                                                       e = global_functions.rend();
+                b != e;
+                ++b) {
+            Function *globfn = *b;
+            if (llvm::Function *gfn = globfn->llvm_function) {
+                units->top()->module->getFunctionList().push_back(gfn);
+            }
+            units->top()->pushGlobalFunction(globfn);
         }
         llvm::Function *mc_ffn = units->top()->ee->FindFunctionNamed(mc->symbol.c_str());
         if (!mc_ffn) {
