@@ -600,16 +600,26 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
 #endif
     }
 
-    Function *globfn = units->top()->getGlobalFunction();
-    llvm::Function *gfn = NULL;
-    if (globfn) {
-        gfn = globfn->llvm_function;
-        gfn->removeFromParent();
+    std::vector<Function *> global_functions;
+    while (Function *globfn = units->top()->getGlobalFunction()) {
+        global_functions.push_back(globfn);
+        if (llvm::Function *gfn = globfn->llvm_function) {
+            gfn->removeFromParent();
+        }
+        units->top()->popGlobalFunction();
     }
     units->top()->ee->addModule(llvm::CloneModule(units->top()->module));
-    if (gfn) {
-        units->top()->module->getFunctionList().push_back(gfn);
+    for (std::vector<Function *>::reverse_iterator b = global_functions.rbegin(),
+                                                   e = global_functions.rend();
+            b != e;
+            ++b) {
+        Function *globfn = *b;
+        if (llvm::Function *gfn = globfn->llvm_function) {
+            units->top()->module->getFunctionList().push_back(gfn);
+        }
+        units->top()->pushGlobalFunction(globfn);
     }
+
     llvm::Function *bf = units->top()->ee->FindFunctionNamed(wrapper_new_name.c_str());
     std::vector<llvm::GenericValue> values;
     units->top()->ee->getFunctionAddress(wrapper_new_name);
