@@ -157,6 +157,7 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
     address = (uint64_t)
         llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(mc->symbol.c_str());
     if (!address) {
+#if D_LLVM_VERSION_MINOR >= 6
         std::vector<Function *> global_functions;
         while (Function *globfn = units->top()->getGlobalFunction()) {
             global_functions.push_back(globfn);
@@ -181,6 +182,7 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
             fprintf(stderr, "cannot refetch: '%s'\n", mc->symbol.c_str());
             abort();
         }
+#endif
         address = units->top()->ee->getFunctionAddress(mc->symbol.c_str());
     }
 

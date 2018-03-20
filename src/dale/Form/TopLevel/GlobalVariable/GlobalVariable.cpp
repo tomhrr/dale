@@ -9,6 +9,7 @@
 #include "../../Linkage/Linkage.h"
 #include "../../ProcBody/ProcBody.h"
 #include "../../Type/Type.h"
+#include "../../Utils/Utils.h"
 #include "Config.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
@@ -204,9 +205,8 @@ parseLiteralString(Units *units, Node *top, char *data, Type *type,
     var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
     llvm::Constant *const_pchar =
-        llvm::ConstantExpr::getGetElementPtr(var->getType()->getPointerElementType(),
-                                             llvm::cast<llvm::Constant>(var),
-                                             ctx->nt->getTwoLLVMZeros());
+        createConstantGEP(llvm::cast<llvm::Constant>(var),
+                          ctx->nt->getTwoLLVMZeros());
 
     return const_pchar;
 }
@@ -600,6 +600,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
 #endif
     }
 
+#if D_LLVM_VERSION_MINOR >= 6
     std::vector<Function *> global_functions;
     while (Function *globfn = units->top()->getGlobalFunction()) {
         global_functions.push_back(globfn);
@@ -619,6 +620,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
         }
         units->top()->pushGlobalFunction(globfn);
     }
+#endif
 
     llvm::Function *bf = units->top()->ee->FindFunctionNamed(wrapper_new_name.c_str());
     std::vector<llvm::GenericValue> values;

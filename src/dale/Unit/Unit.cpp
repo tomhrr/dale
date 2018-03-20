@@ -49,6 +49,8 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
     if (!linker) {
 #if D_LLVM_VERSION_MINOR <= 2
         linker = new llvm::Linker(path, module, false);
+#elif D_LLVM_VERSION_MINOR <= 5
+        linker = new llvm::Linker(module);
 #else
         linker = new llvm::Linker(*module);
 #endif

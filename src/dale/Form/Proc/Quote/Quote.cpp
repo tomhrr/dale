@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
 #include "../../../llvm_Function.h"
+#include "../../Utils/Utils.h"
 #include "Config.h"
 
 namespace dale
@@ -85,11 +86,8 @@ getTokenPointer(Units *units, std::string *value)
     llvm::Constant *token_gv_const = llvm::cast<llvm::Constant>(token_gv);
 
     llvm::Constant *ptr_to_token =
-        llvm::ConstantExpr::getGetElementPtr(
-            token_gv_const->getType()->getPointerElementType(),
-            token_gv_const,
-            units->top()->ctx->nt->getTwoLLVMZeros()
-        );
+        createConstantGEP(token_gv_const,
+                          units->top()->ctx->nt->getTwoLLVMZeros());
 
     return ptr_to_token;
 }

@@ -5,6 +5,7 @@
 #include "../../../Operation/Cast/Cast.h"
 #include "../../../Operation/Destruct/Destruct.h"
 #include "../Inst/Inst.h"
+#include "../../Utils/Utils.h"
 #include "../../../llvm_Function.h"
 
 using namespace dale::ErrorInst;
@@ -79,14 +80,7 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     llvm::Value *index_ptr =
-        builder.Insert(
-            llvm::GetElementPtrInst::Create(
-                array_value->getType()->getPointerElementType(),
-                array_value,
-                llvm::ArrayRef<llvm::Value*>(indices)
-            ),
-            "aref"
-        );
+        builder.Insert(createGEP(array_value, indices));
 
     pr->block = index_pr.block;
 

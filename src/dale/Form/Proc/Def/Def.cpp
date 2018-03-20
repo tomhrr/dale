@@ -75,11 +75,7 @@ initialise(Context *ctx, llvm::IRBuilder<> *builder, Type *type,
                 llvm::cast<llvm::Value>(ctx->nt->getNativeInt(i))
             );
             llvm::Value *aref = builder->Insert(
-                llvm::GetElementPtrInst::Create(
-                    value->getType()->getPointerElementType(),
-                    value,
-                    llvm::ArrayRef<llvm::Value*>(indices)
-                ),
+                createGEP(value, llvm::ArrayRef<llvm::Value*>(indices)),
                 "aref"
             );
             initialise(ctx, builder, type->array_type, aref, init_fn);
@@ -106,11 +102,9 @@ initialise(Context *ctx, llvm::IRBuilder<> *builder, Type *type,
             );
 
             llvm::Value *sref = builder->Insert(
-                llvm::GetElementPtrInst::Create(
-                    ctx->toLLVMType(type, NULL, false),
-                    value,
-                    llvm::ArrayRef<llvm::Value*>(indices)
-                ),
+                createGEP(value,
+                          llvm::ArrayRef<llvm::Value*>(indices),
+                          ctx->toLLVMType(type, NULL, false)),
                 "sref"
             );
 

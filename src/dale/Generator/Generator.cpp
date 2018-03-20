@@ -348,16 +348,22 @@ Generator::run(std::vector<const char *> *file_paths,
         if (triple.getTriple().empty()) {
             triple.setTriple(getTriple());
         }
-    
+
+#if D_LLVM_VERSION_MINOR <= 5
+        mod->setDataLayout((is_x86_64) ? x86_64_layout : x86_32_layout);
+#else
         llvm::TargetMachine *target_machine = getTargetMachine(mod);
         mod->setDataLayout(target_machine->createDataLayout());
+#endif
 
-        //mod->setDataLayout((is_x86_64) ? x86_64_layout : x86_32_layout);
-
+#if D_LLVM_VERSION_MINOR <= 5
+        llvm::EngineBuilder eb(mod);
+#else
         std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
         llvm::EngineBuilder eb(move(module_ptr));
+#endif
+
         eb.setEngineKind(llvm::EngineKind::JIT);
-        //eb.setEngineKind(llvm::EngineKind::Interpreter);
         std::string error;
         eb.setErrorStr(&error);
         ee = eb.create();

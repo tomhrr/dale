@@ -2,6 +2,7 @@
 #include "../../../Linkage/Linkage.h"
 #include "../../../Error/Error.h"
 #include "../../Proc/Inst/Inst.h"
+#include "../../Utils/Utils.h"
 
 using namespace dale::ErrorInst;
 
@@ -78,10 +79,10 @@ FormLiteralArrayParse(Units *units, Function *dfn, llvm::BasicBlock *block,
 
         llvm::Value *element_storage =
             builder.Insert(
-                llvm::GetElementPtrInst::Create(
-                    llvm_array_type, 
+                createGEP(
                     llvm_array,
-                    llvm::ArrayRef<llvm::Value*>(indices)
+                    llvm::ArrayRef<llvm::Value*>(indices),
+                    llvm_array_type
                 ),
                 "aref"
             );
@@ -95,10 +96,10 @@ FormLiteralArrayParse(Units *units, Function *dfn, llvm::BasicBlock *block,
     indices.push_back(ctx->nt->getNativeInt(0));
     llvm::Value *array_ptr =
         builder.Insert(
-            llvm::GetElementPtrInst::Create(
-                llvm_array_type,
+            createGEP(
                 llvm_array,
-                llvm::ArrayRef<llvm::Value*>(indices)
+                llvm::ArrayRef<llvm::Value*>(indices),
+                llvm_array_type
             ),
             "aref"
         );

@@ -53,6 +53,8 @@ Units::pop()
     if (popped->hasOwnModule()) {
 #if D_LLVM_VERSION_MINOR <= 2
         bool res = current->linker->LinkInModule(popped->module, &link_error);
+#elif D_LLVM_VERSION_MINOR <= 5
+        bool res = current->linker->linkInModule(popped->module, &link_error);
 #else
         std::unique_ptr<llvm::Module> module_ptr(popped->module);
         bool res = current->linker->linkInModule(move(module_ptr));

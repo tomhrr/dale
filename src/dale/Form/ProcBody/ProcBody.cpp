@@ -186,10 +186,18 @@ resolveDeferredGotos(Context *ctx, Node *node, Function *fn,
             marker = block_marker->getFirstNonPHI();
         }
         if (marker) {
+#if D_LLVM_VERSION_MINOR <= 5
+            llvm::BasicBlock::iterator bi = marker;
+#else
             llvm::BasicBlock::iterator bi = marker->getIterator();
+#endif
             ++bi;
             if (bi != block_marker->end()) {
+#if D_LLVM_VERSION_MINOR <= 5
+                builder.SetInsertPoint(bi);
+#else
                 builder.SetInsertPoint(&*bi);
+#endif
             }
         }
 

@@ -19,6 +19,22 @@ namespace dale
  */
 void linkVariablesToFunction(std::vector<Variable *> *vars,
                              llvm::Function *llvm_fn);
+/*! Create a GEP instruction.
+ *  @param value The value to be indexed into.
+ *  @param indices The indices for indexing.
+ *  @param type The pointee type (optional).
+ */
+llvm::Instruction *createGEP(llvm::Value *value,
+                             llvm::ArrayRef<llvm::Value *> indices,
+                             llvm::Type *type = NULL);
+/*! Create a constant GEP instruction.
+ *  @param value The value to be indexed into.
+ *  @param indices The indices for indexing.
+ *  @param type The pointee type (optional).
+ */
+llvm::Constant *createConstantGEP(llvm::Constant *value,
+                                  llvm::ArrayRef<llvm::Value *> indices,
+                                  llvm::Type *type = NULL);
 }
 
 #endif

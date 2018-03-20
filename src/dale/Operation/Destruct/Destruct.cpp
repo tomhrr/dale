@@ -1,5 +1,7 @@
 #include "Destruct.h"
 
+#include "../../Form/Utils/Utils.h"
+
 namespace dale
 {
 namespace Operation
@@ -63,8 +65,7 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
 
         llvm::Value *res =
             builder->Insert(
-                llvm::GetElementPtrInst::Create(
-                    array_value->getType()->getPointerElementType(),
+                createGEP(
                     array_value, llvm::ArrayRef<llvm::Value*>(indices)
                 ),
                 "ap"
@@ -116,10 +117,10 @@ destructStruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
         );
         element.set(element.block, element.type,
                     builder->Insert(
-                        llvm::GetElementPtrInst::Create(
-                            ctx->toLLVMType(pr->type, NULL, false),
+                        createGEP(
                             struct_value,
-                            llvm::ArrayRef<llvm::Value*>(indices)
+                            llvm::ArrayRef<llvm::Value*>(indices),
+                            ctx->toLLVMType(pr->type, NULL, false)
                         ),
                         "sp"
                     ));

@@ -35,4 +35,36 @@ linkVariablesToFunction(std::vector<Variable *> *vars, llvm::Function *llvm_fn)
         (*b)->value = llvm_param;
     }
 }
+
+llvm::Instruction *
+createGEP(llvm::Value *value,
+	  llvm::ArrayRef<llvm::Value *> indices,
+	  llvm::Type *type) {
+#if D_LLVM_VERSION_MINOR <= 5
+    return llvm::GetElementPtrInst::Create(value, indices);
+#else
+    if (!type) {
+        type = value->getType()->getPointerElementType();
+    }
+    return llvm::GetElementPtrInst::Create(
+	type, value, indices
+    );
+#endif
+}
+
+llvm::Constant *
+createConstantGEP(llvm::Constant *value,
+	          llvm::ArrayRef<llvm::Value *> indices,
+	          llvm::Type *type) {
+#if D_LLVM_VERSION_MINOR <= 5
+    return llvm::ConstantExpr::getGetElementPtr(value, indices);
+#else
+    if (!type) {
+        type = value->getType()->getPointerElementType();
+    }
+    return llvm::ConstantExpr::getGetElementPtr(
+        type, value, indices
+    );
+#endif
+}
 }
