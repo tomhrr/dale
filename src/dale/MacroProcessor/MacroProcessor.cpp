@@ -153,11 +153,11 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
 #endif
     }
 
+#if D_LLVM_VERSION_MINOR >= 6
     uint64_t address = 0;
     address = (uint64_t)
         llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(mc->symbol.c_str());
     if (!address) {
-#if D_LLVM_VERSION_MINOR >= 6
         std::vector<Function *> global_functions;
         while (Function *globfn = units->top()->getGlobalFunction()) {
             global_functions.push_back(globfn);
@@ -182,7 +182,6 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
             fprintf(stderr, "cannot refetch: '%s'\n", mc->symbol.c_str());
             abort();
         }
-#endif
         address = units->top()->ee->getFunctionAddress(mc->symbol.c_str());
     }
 
@@ -233,6 +232,17 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
     typedef void (*FFN)(void*);
     FFN free_function = (FFN) pf_address;
     free_function(&mcontext);
+#else
+    DNode *result_dnode = (DNode *)
+        ee->runFunction(mc->llvm_function, values).PointerVal;
+
+    Node *result_node =
+        (result_dnode) ? units->top()->dnc->toNode(result_dnode) : NULL;
+
+    std::vector<llvm::GenericValue> values_pf;
+    values_pf.push_back(mc_val);
+    ee->runFunction(pool_free_fn, values_pf);
+#endif
 
     if (result_node) {
         result_node->addMacroPosition(n);

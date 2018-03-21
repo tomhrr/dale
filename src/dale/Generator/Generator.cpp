@@ -46,7 +46,11 @@
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/Interpreter.h"
+#if D_LLVM_VERSION_MINOR <= 5
+#include "llvm/ExecutionEngine/JIT.h"
+#else
 #include "llvm/ExecutionEngine/MCJIT.h"
+#endif
 #include "llvm/LinkAllPasses.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/TargetRegistry.h"
@@ -357,7 +361,7 @@ Generator::run(std::vector<const char *> *file_paths,
 #endif
 
 #if D_LLVM_VERSION_MINOR <= 5
-        llvm::EngineBuilder eb(mod);
+        llvm::EngineBuilder eb = llvm::EngineBuilder(mod);
 #else
         std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
         llvm::EngineBuilder eb(move(module_ptr));
