@@ -3,8 +3,6 @@ compiler: gcc
 addons:
   apt:
     packages:
-      - llvm-3.2
-      - llvm-3.2-dev
       - llvm-3.3
       - llvm-3.3-dev
       - llvm-3.4
@@ -15,7 +13,6 @@ addons:
       - llvm-3.8-dev
       - libedit-dev
 env:
-  - LLVM=3.2
   - LLVM=3.3
   - LLVM=3.4
   - LLVM=3.5
