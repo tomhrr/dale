@@ -1,6 +1,6 @@
 ## Dale
 
-[![Build Status](https://travis-ci.org/tomhrr/dale.png)](https://travis-ci.org/tomhrr/dale)
+[![Build Status](https://travis-ci.org/tomhrr/dale.svg?branch=master)](https://travis-ci.org/tomhrr/dale)
 
 Dale is a system (no GC) programming language that uses S-expressions
 for syntax and supports syntactic macros. The basic language is
