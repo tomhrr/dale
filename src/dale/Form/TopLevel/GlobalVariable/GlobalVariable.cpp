@@ -14,7 +14,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
 
-#if D_LLVM_VERSION_MINOR >= 8
+#if D_LLVM_VERSION_MINOR >= 6
 #include "llvm/Transforms/Utils/Cloning.h"
 #endif
 
@@ -609,7 +609,14 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
         }
         units->top()->popGlobalFunction();
     }
+#if D_LLVM_VERSION_MINOR == 6
+    std::unique_ptr<llvm::Module> module_ptr(
+        llvm::CloneModule(units->top()->module)
+    );
+    units->top()->ee->addModule(move(module_ptr));
+#else
     units->top()->ee->addModule(llvm::CloneModule(units->top()->module));
+#endif
     for (std::vector<Function *>::reverse_iterator b = global_functions.rbegin(),
                                                    e = global_functions.rend();
             b != e;

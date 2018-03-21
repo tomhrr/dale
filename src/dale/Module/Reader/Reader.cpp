@@ -136,6 +136,16 @@ Reader::loadModule(std::string *path)
         error_msg = eo_module.getError().message();
     }
     buffer.release();
+#elif D_LLVM_VERSION_MINOR <= 6
+    std::string error_msg;
+    llvm::ErrorOr<llvm::Module *> eo_module =
+        llvm::getLazyBitcodeModule(move(buffer),
+                                   llvm::getGlobalContext());
+    llvm::Module *module = eo_module.get();
+    if (!module) {
+        error_msg = eo_module.getError().message();
+    }
+    buffer.release();
 #else
     std::string error_msg;
     llvm::ErrorOr<std::unique_ptr<llvm::Module> > eo_module =

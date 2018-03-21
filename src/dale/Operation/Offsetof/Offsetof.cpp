@@ -39,7 +39,7 @@ OffsetofGet(Unit *unit,
 #if D_LLVM_VERSION_MINOR <= 4
     llvm::DataLayout data_layout(unit->module->getDataLayout());
     return data_layout.getIndexedOffset(llvm_type, indices_aref);
-#elif D_LLVM_VERSION_MINOR <= 5
+#elif D_LLVM_VERSION_MINOR <= 6
     return unit->module->getDataLayout()
                        ->getIndexedOffset(llvm_type, indices_aref);
 #else

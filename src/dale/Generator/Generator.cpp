@@ -24,7 +24,7 @@
 #include "llvm/IRReader/IRReader.h"
 #endif
 
-#if D_LLVM_VERSION_MINOR >= 8
+#if D_LLVM_VERSION_MINOR >= 6
 #include "llvm/Transforms/Utils/Cloning.h"
 #endif
 
@@ -156,6 +156,8 @@ linkModule(llvm::Linker *linker, llvm::Module *mod)
     result = linker->LinkInModule(mod, &error);
 #elif D_LLVM_VERSION_MINOR <= 5
     result = linker->linkInModule(mod, &error);
+#elif D_LLVM_VERSION_MINOR <= 6
+    result = linker->linkInModule(mod);
 #else
     std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
     result = linker->linkInModule(move(module_ptr));
@@ -168,6 +170,8 @@ void
 addDataLayout(llvm::legacy::PassManager *pass_manager, llvm::Module *mod)
 {
 #if D_LLVM_VERSION_MINOR >= 8
+#elif D_LLVM_VERSION_MINOR >= 6
+    pass_manager->add(new llvm::DataLayoutPass());
 #elif D_LLVM_VERSION_MINOR >= 5
     pass_manager->add(new llvm::DataLayoutPass(mod));
 #elif D_LLVM_VERSION_MINOR >= 2
@@ -353,7 +357,7 @@ Generator::run(std::vector<const char *> *file_paths,
             triple.setTriple(getTriple());
         }
 
-#if D_LLVM_VERSION_MINOR <= 5
+#if D_LLVM_VERSION_MINOR <= 6
         mod->setDataLayout((is_x86_64) ? x86_64_layout : x86_32_layout);
 #else
         llvm::TargetMachine *target_machine = getTargetMachine(mod);
@@ -509,7 +513,7 @@ Generator::run(std::vector<const char *> *file_paths,
         ctx->eraseLLVMMacrosAndCTOFunctions();
     }
 
-#if D_LLVM_VERSION_MINOR <= 5
+#if D_LLVM_VERSION_MINOR <= 6
     llvm::formatted_raw_ostream *ostream_formatted =
         new llvm::formatted_raw_ostream(
             ostream,

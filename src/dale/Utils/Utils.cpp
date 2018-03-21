@@ -6,7 +6,7 @@
 #include <cctype>
 #include <sys/stat.h>
 
-#if D_LLVM_VERSION_MINOR >= 8
+#if D_LLVM_VERSION_MINOR >= 6
 #include "llvm/Transforms/Utils/Cloning.h"
 #endif
 
@@ -302,6 +302,12 @@ linkFile(llvm::Linker *linker, const char *path)
                                                llvm::getGlobalContext());
     std::string error;
     bool res = linker->linkInModule(path_mod, &error);
+    assert(!res && "unable to link bitcode file module");
+#elif D_LLVM_VERSION_MINOR <= 6
+    llvm::SMDiagnostic sm_error;
+    std::unique_ptr<llvm::Module> module_ptr(llvm::parseIRFile(path, sm_error,
+                                                               llvm::getGlobalContext()));
+    bool res = linker->linkInModule(module_ptr.get());
     assert(!res && "unable to link bitcode file module");
 #else
     llvm::SMDiagnostic sm_error;

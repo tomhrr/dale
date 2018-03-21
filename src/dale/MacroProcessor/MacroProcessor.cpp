@@ -10,7 +10,7 @@
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/Support/Debug.h"
 
-#if D_LLVM_VERSION_MINOR >= 8
+#if D_LLVM_VERSION_MINOR >= 6
 #include "llvm/Transforms/Utils/Cloning.h"
 #endif
 
@@ -166,7 +166,14 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
             }
             units->top()->popGlobalFunction();
         }
-        units->top()->ee->addModule(llvm::CloneModule(units->top()->module));
+#if D_LLVM_VERSION_MINOR == 6
+	std::unique_ptr<llvm::Module> module_ptr(
+	    llvm::CloneModule(units->top()->module)
+	);
+	units->top()->ee->addModule(move(module_ptr));
+#else
+	units->top()->ee->addModule(llvm::CloneModule(units->top()->module));
+#endif
         for (std::vector<Function *>::reverse_iterator b = global_functions.rbegin(),
                                                        e = global_functions.rend();
                 b != e;
@@ -210,7 +217,7 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
         result_dnode = (DNode *) macro_function(values2[0],
         values2[1], values2[2], values2[3], values2[4]);
     } else {
-        fprintf(stderr, "Need to handle more macro parameters: %u\n",
+        fprintf(stderr, "Need to handle more macro parameters: %lu\n",
             values2.size());
         abort();
     }
