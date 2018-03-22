@@ -171,6 +171,11 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
 	    llvm::CloneModule(units->top()->module)
 	);
 	units->top()->ee->addModule(move(module_ptr));
+#elif D_LLVM_VERSION_MINOR == 7
+	std::unique_ptr<llvm::Module> module_ptr(
+	    llvm::CloneModule(units->top()->module)
+	);
+	units->top()->ee->addModule(move(module_ptr));
 #else
 	units->top()->ee->addModule(llvm::CloneModule(units->top()->module));
 #endif

@@ -156,7 +156,7 @@ linkModule(llvm::Linker *linker, llvm::Module *mod)
     result = linker->LinkInModule(mod, &error);
 #elif D_LLVM_VERSION_MINOR <= 5
     result = linker->linkInModule(mod, &error);
-#elif D_LLVM_VERSION_MINOR <= 6
+#elif D_LLVM_VERSION_MINOR <= 7
     result = linker->linkInModule(mod);
 #else
     std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
@@ -169,7 +169,7 @@ linkModule(llvm::Linker *linker, llvm::Module *mod)
 void
 addDataLayout(llvm::legacy::PassManager *pass_manager, llvm::Module *mod)
 {
-#if D_LLVM_VERSION_MINOR >= 8
+#if D_LLVM_VERSION_MINOR >= 7
 #elif D_LLVM_VERSION_MINOR >= 6
     pass_manager->add(new llvm::DataLayoutPass());
 #elif D_LLVM_VERSION_MINOR >= 5

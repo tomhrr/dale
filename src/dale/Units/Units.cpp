@@ -55,7 +55,7 @@ Units::pop()
         bool res = current->linker->LinkInModule(popped->module, &link_error);
 #elif D_LLVM_VERSION_MINOR <= 5
         bool res = current->linker->linkInModule(popped->module, &link_error);
-#elif D_LLVM_VERSION_MINOR <= 6
+#elif D_LLVM_VERSION_MINOR <= 7
         bool res = current->linker->linkInModule(popped->module);
 #else
         std::unique_ptr<llvm::Module> module_ptr(popped->module);

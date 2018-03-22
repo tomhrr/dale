@@ -303,7 +303,7 @@ linkFile(llvm::Linker *linker, const char *path)
     std::string error;
     bool res = linker->linkInModule(path_mod, &error);
     assert(!res && "unable to link bitcode file module");
-#elif D_LLVM_VERSION_MINOR <= 6
+#elif D_LLVM_VERSION_MINOR <= 7
     llvm::SMDiagnostic sm_error;
     std::unique_ptr<llvm::Module> module_ptr(llvm::parseIRFile(path, sm_error,
                                                                llvm::getGlobalContext()));
