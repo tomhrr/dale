@@ -77,10 +77,10 @@ elseif (${D_LLVM_VERSION_MAJOR} EQUAL 3)
     if (${D_LLVM_VERSION_MINOR} LESS 2)
         message (FATAL_ERROR "LLVM >= 3.2 is required.")
     elseif (${D_LLVM_VERSION_MINOR} GREATER 8)
-        message (FATAL_ERROR "LLVM <= 3.8 is not supported.")
+        message (FATAL_ERROR "LLVM <= 3.8 is required.")
     endif ()
 elseif (${D_LLVM_VERSION_MAJOR} GREATER 3)
-    message (FATAL_ERROR "LLVM <= 3.8 is not supported.")
+    message (FATAL_ERROR "LLVM <= 3.8 is required.")
 endif ()
 
 # Get LLVM configuration details.
