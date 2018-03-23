@@ -32,7 +32,7 @@ llvm::Constant *
 apIntToConstant(llvm::APInt & ap_int)
 {
     llvm::ConstantInt *const_int =
-        llvm::ConstantInt::get(llvm::getGlobalContext(), ap_int);
+        llvm::ConstantInt::get(*getContext(), ap_int);
     return llvm::cast<llvm::Constant>(const_int);
 }
 
@@ -40,7 +40,7 @@ llvm::Constant *
 apFloatToConstant(llvm::APFloat & ap_float)
 {
     llvm::ConstantFP *const_float =
-        llvm::ConstantFP::get(llvm::getGlobalContext(), ap_float);
+        llvm::ConstantFP::get(*getContext(), ap_float);
     return llvm::cast<llvm::Constant>(const_float);
 }
 
@@ -469,7 +469,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
         llvm::cast<llvm::Function>(wrapper_const_fn);
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+        llvm::BasicBlock::Create(*getContext(), "entry",
                                  wrapper_fn);
     llvm::IRBuilder<> builder(block);
 
@@ -531,7 +531,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
 
     llvm::Value *ptr_value =
         ctx->nt->getConstantInt(
-            llvm::IntegerType::get(llvm::getGlobalContext(),
+            llvm::IntegerType::get(*getContext(),
                                    sizeof(char*) * 8),
             ptr_int
         );
@@ -671,7 +671,7 @@ zeroInitialise(Context *ctx, llvm::GlobalVariable *llvm_var,
         llvm_var->setInitializer(
             ctx->nt->getConstantInt(
                 llvm::IntegerType::get(
-                    llvm::getGlobalContext(),
+                    *getContext(),
                     ctx->nt->internalSizeToRealSize(type->getIntegerSize())
                 ),
                 "0"

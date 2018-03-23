@@ -124,17 +124,19 @@ makeFloatFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameters.begin();
+    Variable *first  = *iter;
+    Variable *second = *(++iter);
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+        llvm::BasicBlock::Create(*getContext(), "entry",
                                  fn->llvm_function);
 
     llvm::IRBuilder<> builder(block);
     llvm::Twine unused_twine;
     llvm::Value *ret_val =
         llvm::cast<llvm::Value>(
-            ((builder).*(method_name))((*iter)->value,
-                                       (*(iter + 1))->value,
+            ((builder).*(method_name))(first->value,
+                                       second->value,
                                        unused_twine
 #if D_LLVM_VERSION_MINOR >= 2
                                        , NULL
@@ -157,17 +159,19 @@ makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameters.begin();
+    Variable *first  = *iter;
+    Variable *second = *(++iter);
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+        llvm::BasicBlock::Create(*getContext(), "entry",
                                  fn->llvm_function);
 
     llvm::IRBuilder<> builder(block);
     llvm::Twine unused_twine;
     llvm::Value *ret_val =
         llvm::cast<llvm::Value>(
-            ((builder).*(method_name))((*iter)->value,
-                                       (*(iter + 1))->value,
+            ((builder).*(method_name))(first->value,
+                                       second->value,
                                        unused_twine)
         );
     if (ret_type->base_type == BaseType::Bool) {
@@ -190,17 +194,19 @@ makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameters.begin();
+    Variable *first  = *iter;
+    Variable *second = *(++iter);
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+        llvm::BasicBlock::Create(*getContext(), "entry",
                                  fn->llvm_function);
 
     llvm::IRBuilder<> builder(block);
     llvm::Twine unused_twine;
     llvm::Value *ret_val =
         llvm::cast<llvm::Value>(
-            ((builder).*(method_name))((*iter)->value,
-                                       (*(iter + 1))->value,
+            ((builder).*(method_name))(first->value,
+                                       second->value,
                                        unused_twine,
                                        false)
         );
@@ -224,17 +230,19 @@ makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameters.begin();
+    Variable *first  = *iter;
+    Variable *second = *(++iter);
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+        llvm::BasicBlock::Create(*getContext(), "entry",
                                  fn->llvm_function);
 
     llvm::IRBuilder<> builder(block);
     llvm::Twine unused_twine;
     llvm::Value *ret_val =
         llvm::cast<llvm::Value>(
-            ((builder).*(method_name))((*iter)->value,
-                                       (*(iter + 1))->value,
+            ((builder).*(method_name))(first->value,
+                                       second->value,
                                        unused_twine,
                                        false,
                                        true)
@@ -259,17 +267,19 @@ makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameters.begin();
+    Variable *first  = *iter;
+    Variable *second = *(++iter);
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+        llvm::BasicBlock::Create(*getContext(), "entry",
                                  fn->llvm_function);
 
     llvm::IRBuilder<> builder(block);
     llvm::Twine unused_twine;
     llvm::Value *ret_val =
         llvm::cast<llvm::Value>(
-            ((builder).*(method_name))((*iter)->value,
-                                       (*(iter + 1))->value,
+            ((builder).*(method_name))(first->value,
+                                       second->value,
                                        unused_twine,
                                        NULL)
         );
@@ -293,17 +303,19 @@ makeFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameters.begin();
+    Variable *first  = *iter;
+    Variable *second = *(++iter);
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+        llvm::BasicBlock::Create(*getContext(), "entry",
                                  fn->llvm_function);
 
     llvm::IRBuilder<> builder(block);
     llvm::Twine unused_twine;
     llvm::Value *ret_val =
         llvm::cast<llvm::Value>(
-            ((builder).*(method_name))((*iter)->value,
-                                       (*(iter + 1))->value,
+            ((builder).*(method_name))(first->value,
+                                       second->value,
                                        unused_twine,
                                        false,
                                        true)
@@ -327,20 +339,22 @@ makeShlFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameters.begin();
+    Variable *first  = *iter;
+    Variable *second = *(++iter);
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+        llvm::BasicBlock::Create(*getContext(), "entry",
                                  fn->llvm_function);
 
     ParseResult cast_pr;
-    Operation::Cast(ctx, block, (*(iter + 1))->value,
+    Operation::Cast(ctx, block, second->value,
                     type_int, type, NULL, false, &cast_pr);
 
     llvm::IRBuilder<> builder(cast_pr.block);
     llvm::Twine unused_twine;
     llvm::Value *res =
         llvm::cast<llvm::Value>(
-            builder.CreateShl((*iter)->value, cast_pr.getValue(ctx),
+            builder.CreateShl(first->value, cast_pr.getValue(ctx),
                               unused_twine)
         );
     builder.CreateRet(res);
@@ -357,20 +371,22 @@ makeShrFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
 
     std::vector<Variable *>::iterator iter;
     iter = fn->parameters.begin();
+    Variable *first  = *iter;
+    Variable *second = *(++iter);
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+        llvm::BasicBlock::Create(*getContext(), "entry",
                                  fn->llvm_function);
 
     ParseResult cast_pr;
-    Operation::Cast(ctx, block, (*(iter + 1))->value,
+    Operation::Cast(ctx, block, second->value,
                     type_int, type, NULL, false, &cast_pr);
 
     llvm::IRBuilder<> builder(cast_pr.block);
     llvm::Twine unused_twine;
     llvm::Value *res =
         llvm::cast<llvm::Value>(
-            builder.CreateLShr((*iter)->value, cast_pr.getValue(ctx),
+            builder.CreateLShr(first->value, cast_pr.getValue(ctx),
                                unused_twine)
         );
     builder.CreateRet(res);
@@ -386,7 +402,7 @@ makeUnaryMinus(Context *ctx, llvm::Module *mod, std::string *once_tag,
     iter = fn->parameters.begin();
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+        llvm::BasicBlock::Create(*getContext(), "entry",
                                  fn->llvm_function);
     llvm::IRBuilder<> builder(block);
 
@@ -444,7 +460,7 @@ makeNegateFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
     iter = fn->parameters.begin();
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry",
+        llvm::BasicBlock::Create(*getContext(), "entry",
                                  fn->llvm_function);
     llvm::IRBuilder<> builder(block);
 

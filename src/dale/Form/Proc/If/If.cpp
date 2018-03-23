@@ -44,17 +44,17 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     llvm::BasicBlock *then_block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(),
+        llvm::BasicBlock::Create(*getContext(),
                                  "then", fn->llvm_function);
     llvm::BasicBlock *else_block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(),
+        llvm::BasicBlock::Create(*getContext(),
                                  "else", fn->llvm_function);
 
     llvm::IRBuilder<> builder_cond(cond_pr.block);
     builder_cond.CreateCondBr(
         builder_cond.CreateTrunc(
             cond_pr.getValue(ctx),
-            llvm::Type::getInt1Ty(llvm::getGlobalContext())
+            llvm::Type::getInt1Ty(*getContext())
         ),
         then_block, else_block
     );
@@ -120,7 +120,7 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     if (then_terminates && !else_terminates) {
         llvm::BasicBlock *done_block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(),
+            llvm::BasicBlock::Create(*getContext(),
                                      "done_then_no_else", fn->llvm_function);
 
         llvm::IRBuilder<> builder_final(else_pr.block);
@@ -134,7 +134,7 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     if (else_terminates && !then_terminates) {
         llvm::BasicBlock *done_block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(),
+            llvm::BasicBlock::Create(*getContext(),
                                      "done_else_no_then", fn->llvm_function);
 
         llvm::IRBuilder<> builder_final(then_pr.block);
@@ -154,7 +154,7 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
             || (then_pr.type->isEqualTo(ctx->tr->type_void)
                     && else_pr.type->isEqualTo(ctx->tr->type_void))) {
         llvm::BasicBlock *done_block =
-            llvm::BasicBlock::Create(llvm::getGlobalContext(),
+            llvm::BasicBlock::Create(*getContext(),
                                      "done_different_types", fn->llvm_function);
 
         llvm::IRBuilder<> builder_then_final(then_pr.block);
@@ -168,7 +168,7 @@ FormProcIfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     llvm::BasicBlock *done_block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(),
+        llvm::BasicBlock::Create(*getContext(),
                                  "done_phi", fn->llvm_function);
 
     llvm::IRBuilder<> builder_then(then_pr.block);

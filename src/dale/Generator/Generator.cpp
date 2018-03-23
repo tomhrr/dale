@@ -227,6 +227,9 @@ getTargetMachine(llvm::Module *last_module)
 #if D_LLVM_VERSION_MINOR >= 2
             , target_options
 #endif
+#if D_LLVM_VERSION_MINOR >= 9
+            , llvm::Optional<llvm::Reloc::Model>()
+#endif
         ));
 
     return target_sp.get();

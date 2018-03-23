@@ -124,13 +124,13 @@ Reader::loadModule(std::string *path)
     std::string error_msg;
     llvm::Module *module =
         llvm::getLazyBitcodeModule(buffer.get(),
-                                   llvm::getGlobalContext(),
+                                   *getContext(),
                                    &error_msg);
 #elif D_LLVM_VERSION_MINOR <= 5
     std::string error_msg;
     llvm::ErrorOr<llvm::Module *> eo_module =
         llvm::getLazyBitcodeModule(buffer.get(),
-                                   llvm::getGlobalContext());
+                                   *getContext());
     llvm::Module *module = eo_module.get();
     if (!module) {
         error_msg = eo_module.getError().message();
@@ -140,7 +140,7 @@ Reader::loadModule(std::string *path)
     std::string error_msg;
     llvm::ErrorOr<llvm::Module *> eo_module =
         llvm::getLazyBitcodeModule(move(buffer),
-                                   llvm::getGlobalContext());
+                                   *getContext());
     llvm::Module *module = eo_module.get();
     if (!module) {
         error_msg = eo_module.getError().message();
@@ -150,7 +150,7 @@ Reader::loadModule(std::string *path)
     std::string error_msg;
     llvm::ErrorOr<std::unique_ptr<llvm::Module> > eo_module =
         llvm::getLazyBitcodeModule(move(buffer),
-                                   llvm::getGlobalContext());
+                                   *getContext());
     llvm::Module *module = eo_module.get().get();
     if (!module) {
         error_msg = eo_module.getError().message();

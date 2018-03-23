@@ -26,7 +26,7 @@ addOpaqueStruct(Units *units, const char *name, Node *top, int linkage)
     Context *ctx = units->top()->ctx;
 
     llvm::StructType *llvm_st =
-        llvm::StructType::create(llvm::getGlobalContext(),
+        llvm::StructType::create(*getContext(),
                                  "created_opaque_type");
 
     std::string symbol;

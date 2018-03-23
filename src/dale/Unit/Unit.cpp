@@ -42,7 +42,7 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
     parser = new Parser(lxr, er, path);
 
     if (!module) {
-        module = new llvm::Module(path, llvm::getGlobalContext());
+        module = new llvm::Module(path, *getContext());
     }
     this->module = module;
 
@@ -179,7 +179,7 @@ Unit::makeTemporaryGlobalFunction()
     fn->cto = true;
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", llvm_fn);
+        llvm::BasicBlock::Create(*getContext(), "entry", llvm_fn);
 
     pushGlobalFunction(fn);
     pushGlobalBlock(block);

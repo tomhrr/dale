@@ -1062,7 +1062,7 @@ Context::toLLVMTypePointer(Type *type,
         std::vector<llvm::Type *> types;
         types.push_back(toLLVMType(tr->type_pchar, NULL));
         llvm::ArrayRef<llvm::Type *> llvm_types(types);
-        llvm::LLVMContext &lc = llvm::getGlobalContext();
+        llvm::LLVMContext &lc = *getContext();
         llvm::StructType *st = llvm::StructType::get(lc, llvm_types);
         return llvm::PointerType::getUnqual(st);
     }
@@ -1073,7 +1073,7 @@ llvm::Type *
 Context::toLLVMTypeBase(Type *type,
                         Node *n)
 {
-    llvm::LLVMContext &lc = llvm::getGlobalContext();
+    llvm::LLVMContext &lc = *getContext();
 
     int base_type = type->base_type;
     llvm::Type *lbt = NULL;
@@ -1123,7 +1123,7 @@ Context::toLLVMType_(Type *type,
                      Node *n,
                      bool refs_to_pointers)
 {
-    llvm::LLVMContext &lc = llvm::getGlobalContext();
+    llvm::LLVMContext &lc = *getContext();
 
     if (type->bitfield_size) {
         return llvm::IntegerType::get(lc, type->bitfield_size);

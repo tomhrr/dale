@@ -131,6 +131,9 @@ void error(const char *error_msg, const char *str1, bool show_perror = false);
  *  @param path The path to the file to be linked.
  */
 void linkFile(llvm::Linker *linker, const char *path);
+/*! Get a new context.
+ */
+llvm::LLVMContext* getContext();
 }
 
 #endif

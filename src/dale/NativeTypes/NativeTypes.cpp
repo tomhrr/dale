@@ -1,5 +1,7 @@
 #include "NativeTypes.h"
 
+#include "../Utils/Utils.h"
+
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
@@ -10,7 +12,7 @@ namespace dale
 {
 NativeTypes::NativeTypes()
 {
-    llvm::LLVMContext &lc = llvm::getGlobalContext();
+    llvm::LLVMContext &lc = *getContext();
 
     llvm::Type *native_bool_type =
     native_char_type             = llvm::IntegerType::get(lc, BITS(char));

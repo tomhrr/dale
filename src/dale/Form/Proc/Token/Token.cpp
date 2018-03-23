@@ -130,14 +130,14 @@ parseFloatingPointLiteral(Context *ctx, Type *wanted_type,
             && wanted_type->base_type == BaseType::Float) {
         pr->set(block, ctx->tr->type_float,
                 llvm::ConstantFP::get(
-                    llvm::Type::getFloatTy(llvm::getGlobalContext()),
+                    llvm::Type::getFloatTy(*getContext()),
                     llvm::StringRef(t->str_value.c_str())
                 ));
     } else if (wanted_type
                 && wanted_type->base_type == BaseType::Double) {
         pr->set(block, ctx->tr->type_double,
                 llvm::ConstantFP::get(
-                    llvm::Type::getDoubleTy(llvm::getGlobalContext()),
+                    llvm::Type::getDoubleTy(*getContext()),
                     llvm::StringRef(t->str_value.c_str())
                 ));
     } else if (wanted_type
@@ -150,7 +150,7 @@ parseFloatingPointLiteral(Context *ctx, Type *wanted_type,
     } else {
         pr->set(block, ctx->tr->type_float,
                 llvm::ConstantFP::get(
-                    llvm::Type::getFloatTy(llvm::getGlobalContext()),
+                    llvm::Type::getFloatTy(*getContext()),
                     llvm::StringRef(t->str_value.c_str())
                 ));
     }
@@ -169,7 +169,7 @@ parseIntegerLiteral(Context *ctx, Type *wanted_type,
         pr->set(block,
                 ctx->tr->getBasicType(wanted_type->base_type),
                 ctx->nt->getConstantInt(
-                    llvm::IntegerType::get(llvm::getGlobalContext(),
+                    llvm::IntegerType::get(*getContext(),
                                            int_size),
                     t->str_value.c_str()
                 ));
@@ -193,7 +193,7 @@ parseBoolLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
     if (is_true || is_false) {
         pr->set(block, ctx->tr->type_bool,
                 llvm::ConstantInt::get(
-                    llvm::Type::getInt8Ty(llvm::getGlobalContext()),
+                    llvm::Type::getInt8Ty(*getContext()),
                     is_true
                 ));
     }

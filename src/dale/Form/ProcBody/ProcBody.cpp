@@ -359,7 +359,7 @@ FormProcBodyParse(Units *units, Node *node, Function *fn,
     std::vector<Node *> *lst = node->list;
 
     llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", llvm_fn);
+        llvm::BasicBlock::Create(*getContext(), "entry", llvm_fn);
 
     units->top()->pushGlobalBlock(block);
 

@@ -42,9 +42,12 @@ OffsetofGet(Unit *unit,
 #elif D_LLVM_VERSION_MINOR <= 6
     return unit->module->getDataLayout()
                        ->getIndexedOffset(llvm_type, indices_aref);
-#else
+#elif D_LLVM_VERSION_MINOR <= 8
     return unit->module->getDataLayout()
                        .getIndexedOffset(llvm_type, indices_aref);
+#else
+    return unit->module->getDataLayout()
+                       .getIndexedOffsetInType(llvm_type, indices_aref);
 
 #endif
 }

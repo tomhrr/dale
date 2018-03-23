@@ -141,10 +141,10 @@ parseVaArg64(Units *units, Function *fn, Type *type, llvm::Type *llvm_type,
      * being, this is so if gp_offset > 40. */
 
     llvm::BasicBlock *then_block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(),
+        llvm::BasicBlock::Create(*getContext(),
                                  "then", fn->llvm_function);
     llvm::BasicBlock *else_block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(),
+        llvm::BasicBlock::Create(*getContext(),
                                  "else", fn->llvm_function);
 
     llvm::Value *cond =
@@ -181,15 +181,15 @@ parseVaArg64(Units *units, Function *fn, Type *type, llvm::Type *llvm_type,
             builder_then.CreateAdd(
                 builder_then.CreatePtrToInt(
                     oaa,
-                    llvm::Type::getInt64Ty(llvm::getGlobalContext())
+                    llvm::Type::getInt64Ty(*getContext())
                 ),
                 llvm::ConstantInt::get(
-                    llvm::Type::getInt64Ty(llvm::getGlobalContext()),
+                    llvm::Type::getInt64Ty(*getContext()),
                     8
                 )
             ),
             llvm::PointerType::getUnqual(
-                llvm::Type::getInt8Ty(llvm::getGlobalContext())
+                llvm::Type::getInt8Ty(*getContext())
             )
         ),
         ptr_oaa
@@ -221,7 +221,7 @@ parseVaArg64(Units *units, Function *fn, Type *type, llvm::Type *llvm_type,
     /* Final parts. */
 
     llvm::BasicBlock *done_block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(),
+        llvm::BasicBlock::Create(*getContext(),
                                  "va_done", fn->llvm_function);
 
     builder_then.CreateBr(done_block);

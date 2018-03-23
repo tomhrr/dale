@@ -22,7 +22,7 @@ Alignmentof(Context *ctx, llvm::BasicBlock *block, Type *type,
     elements_llvm.push_back(llvm_type);
 
     llvm::StructType *llvm_as_struct =
-        llvm::StructType::get(llvm::getGlobalContext(),
+        llvm::StructType::get(*getContext(),
                               elements_llvm, false);
 
     llvm::IRBuilder<> builder(block);

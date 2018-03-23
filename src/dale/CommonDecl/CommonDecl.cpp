@@ -10,10 +10,10 @@
 #define BT_FP(t)  BasicTypes::addFloatingPoint(ctx, mod, &current_once_tag, t);
 
 #define AV_INT(n, v) addVariable(unit, n, type_int, nt->getNativeInt(v));
-#define CFP_FLOAT(v) llvm::ConstantFP::get(llvm::Type::getFloatTy(llvm::getGlobalContext()), v)
-#define CFP_DBL(v) llvm::ConstantFP::get(llvm::Type::getDoubleTy(llvm::getGlobalContext()), v)
-#define CFP_FP80(v) llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(llvm::getGlobalContext()), v)
-#define CFP_INF(v) llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(llvm::getGlobalContext()), v)
+#define CFP_FLOAT(v) llvm::ConstantFP::get(llvm::Type::getFloatTy(*getContext()), v)
+#define CFP_DBL(v) llvm::ConstantFP::get(llvm::Type::getDoubleTy(*getContext()), v)
+#define CFP_FP80(v) llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(*getContext()), v)
+#define CFP_INF(v) llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(*getContext()), v)
 
 namespace dale
 {
@@ -206,19 +206,19 @@ addStandardVariables(Unit *unit)
     addVariable(unit, "HUGE_VAL",
                 type_double,
                 llvm::ConstantFP::getInfinity(
-                    llvm::Type::getDoubleTy(llvm::getGlobalContext())
+                    llvm::Type::getDoubleTy(*getContext())
                 ));
 
     addVariable(unit, "HUGE_VALF",
                 type_float,
                 llvm::ConstantFP::getInfinity(
-                    llvm::Type::getFloatTy(llvm::getGlobalContext())
+                    llvm::Type::getFloatTy(*getContext())
                 ));
 
     addVariable(unit, "HUGE_VALL",
                 type_ldbl,
                 llvm::ConstantFP::getInfinity(
-                    llvm::Type::getX86_FP80Ty(llvm::getGlobalContext())
+                    llvm::Type::getX86_FP80Ty(*getContext())
                 ));
 
     return;

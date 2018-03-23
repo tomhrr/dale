@@ -37,7 +37,7 @@ FormProcLabelParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     llvm::BasicBlock *new_block =
-        llvm::BasicBlock::Create(llvm::getGlobalContext(), label_name,
+        llvm::BasicBlock::Create(*getContext(), label_name,
                                  block->getParent());
 
     if (block->size() == 0 || !(block->back().isTerminator())) {

@@ -490,7 +490,7 @@ processVarArgsFunction(Context *ctx, Function *fn,
             value =
                 builder->CreateFPExt(
                     value,
-                    llvm::Type::getDoubleTy(llvm::getGlobalContext())
+                    llvm::Type::getDoubleTy(*getContext())
                 );
             type = ctx->tr->type_double;
         } else if (type->isIntegerType()) {

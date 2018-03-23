@@ -52,7 +52,7 @@ FormProcNullParse(Units *units, Function *fn, llvm::BasicBlock *block,
             llvm::cast<llvm::Value>(
                 builder.CreateICmpEQ(int_res, ctx->nt->getLLVMZero())
             ),
-            llvm::Type::getInt8Ty(llvm::getGlobalContext())
+            llvm::Type::getInt8Ty(*getContext())
         );
 
     ParseResult destruct_pr;

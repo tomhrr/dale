@@ -51,7 +51,7 @@ FormProcPtrLessThanParse(Units *units, Function *fn,
                 ptr_pr1.getValue(ctx),
                 ptr_pr2.getValue(ctx)
             )),
-            llvm::Type::getInt8Ty(llvm::getGlobalContext())
+            llvm::Type::getInt8Ty(*getContext())
         );
 
     ptr_pr1.block = ptr_pr2.block;
