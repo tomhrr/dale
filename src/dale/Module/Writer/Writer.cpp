@@ -3,6 +3,12 @@
 
 #include "../../Serialise/Serialise.h"
 #include "../../Utils/Utils.h"
+#if D_LLVM_VERSION_ORD <= 39
+#include "llvm/Bitcode/ReaderWriter.h"
+#else
+#include "llvm/Bitcode/BitcodeReader.h"
+#include "llvm/Bitcode/BitcodeWriter.h"
+#endif
 
 namespace dale
 {

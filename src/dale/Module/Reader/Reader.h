@@ -2,7 +2,6 @@
 #define DALE_MODULE_READER
 
 #include "../../Context/Context.h"
-#include "llvm/Bitcode/ReaderWriter.h"
 #include "../../llvm_Module.h"
 #include "../../llvm_Linker.h"
 

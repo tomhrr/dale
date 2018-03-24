@@ -41,7 +41,12 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Triple.h"
 #include "llvm/Analysis/Passes.h"
+#if D_LLVM_VERSION_ORD <= 39
 #include "llvm/Bitcode/ReaderWriter.h"
+#else
+#include "llvm/Bitcode/BitcodeReader.h"
+#include "llvm/Bitcode/BitcodeWriter.h"
+#endif
 #include "llvm/CodeGen/LinkAllAsmWriterComponents.h"
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"

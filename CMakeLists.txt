@@ -74,8 +74,8 @@ message (STATUS "System version: ${CMAKE_SYSTEM_VERSION}")
 
 if (${D_LLVM_VERSION_ORD} LESS 32)
     message (FATAL_ERROR "LLVM >= 3.2 is required.")
-elseif (${D_LLVM_VERSION_ORD} GREATER 39)
-    message (FATAL_ERROR "LLVM <= 3.9 is required.")
+elseif (${D_LLVM_VERSION_ORD} GREATER 40)
+    message (FATAL_ERROR "LLVM <= 4.0 is required.")
 endif ()
 
 # Get LLVM configuration details.
@@ -83,7 +83,7 @@ endif ()
 execute_process (COMMAND ${LLVM_CONFIG} --libs
                  OUTPUT_VARIABLE LLVM_LIBS
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-if (${D_LLVM_VERSION_MINOR} GREATER 4)
+if (${D_LLVM_VERSION_ORD} GREATER 34)
     execute_process (COMMAND ${LLVM_CONFIG} --system-libs
                      OUTPUT_VARIABLE LLVM_SYSTEM_LIBS
                      OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -133,7 +133,7 @@ endif ()
 set (DALEC_LIBDIR_FLAGS_ "$ENV{LDFLAGS} ${FFI_LDFLAGS}")
 set (DALEC_LIB_FLAGS_    "")
 
-if (${D_LLVM_VERSION_MINOR} GREATER 4)
+if (${D_LLVM_VERSION_ORD} GREATER 34)
     set (DALEC_LIB_FLAGS_ ${LLVM_SYSTEM_LIBS})
 endif ()
 
@@ -144,7 +144,7 @@ else ()
 endif ()
 
 # LLVM 3.5 relies on C++11.
-if (${D_LLVM_VERSION_MINOR} GREATER 4)
+if (${D_LLVM_VERSION_ORD} GREATER 34)
     set (CXX_FLAGS_EXTRA "-std=c++11")
 else ()
     set (CXX_FLAGS_EXTRA "")
