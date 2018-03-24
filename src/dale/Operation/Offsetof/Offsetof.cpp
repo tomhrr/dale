@@ -36,13 +36,13 @@ OffsetofGet(Unit *unit,
     indices.push_back(ctx->nt->getNativeInt(index));
     llvm::ArrayRef<llvm::Value *> indices_aref(indices);
 
-#if D_LLVM_VERSION_MINOR <= 4
+#if D_LLVM_VERSION_ORD <= 34
     llvm::DataLayout data_layout(unit->module->getDataLayout());
     return data_layout.getIndexedOffset(llvm_type, indices_aref);
-#elif D_LLVM_VERSION_MINOR <= 6
+#elif D_LLVM_VERSION_ORD <= 36
     return unit->module->getDataLayout()
                        ->getIndexedOffset(llvm_type, indices_aref);
-#elif D_LLVM_VERSION_MINOR <= 8
+#elif D_LLVM_VERSION_ORD <= 38
     return unit->module->getDataLayout()
                        .getIndexedOffset(llvm_type, indices_aref);
 #else

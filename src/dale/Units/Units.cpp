@@ -51,11 +51,11 @@ Units::pop()
     std::string link_error;
 
     if (popped->hasOwnModule()) {
-#if D_LLVM_VERSION_MINOR <= 2
+#if D_LLVM_VERSION_ORD <= 32
         bool res = current->linker->LinkInModule(popped->module, &link_error);
-#elif D_LLVM_VERSION_MINOR <= 5
+#elif D_LLVM_VERSION_ORD <= 35
         bool res = current->linker->linkInModule(popped->module, &link_error);
-#elif D_LLVM_VERSION_MINOR <= 7
+#elif D_LLVM_VERSION_ORD <= 37
         bool res = current->linker->linkInModule(popped->module);
 #else
         std::unique_ptr<llvm::Module> module_ptr(popped->module);

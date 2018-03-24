@@ -40,7 +40,7 @@ llvm::Instruction *
 createGEP(llvm::Value *value,
 	  llvm::ArrayRef<llvm::Value *> indices,
 	  llvm::Type *type) {
-#if D_LLVM_VERSION_MINOR <= 6
+#if D_LLVM_VERSION_ORD <= 36
     return llvm::GetElementPtrInst::Create(value, indices);
 #else
     if (!type) {
@@ -56,7 +56,7 @@ llvm::Constant *
 createConstantGEP(llvm::Constant *value,
 	          llvm::ArrayRef<llvm::Value *> indices,
 	          llvm::Type *type) {
-#if D_LLVM_VERSION_MINOR <= 6
+#if D_LLVM_VERSION_ORD <= 36
     return llvm::ConstantExpr::getGetElementPtr(value, indices);
 #else
     if (!type) {

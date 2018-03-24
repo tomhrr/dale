@@ -12,10 +12,10 @@ SizeofGet(Unit *unit,
 {
     Context *ctx = unit->ctx;
     llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
-#if D_LLVM_VERSION_MINOR <= 4
+#if D_LLVM_VERSION_ORD <= 34
     llvm::DataLayout data_layout(unit->module->getDataLayout());
     return data_layout.getTypeSizeInBits(llvm_type) / 8;
-#elif D_LLVM_VERSION_MINOR <= 6
+#elif D_LLVM_VERSION_ORD <= 36
     return unit->module->getDataLayout()->getTypeSizeInBits(llvm_type) / 8;
 #else
     return unit->module->getDataLayout().getTypeSizeInBits(llvm_type) / 8;

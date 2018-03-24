@@ -14,7 +14,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
 
-#if D_LLVM_VERSION_MINOR >= 6
+#if D_LLVM_VERSION_ORD >= 36
 #include "llvm/Transforms/Utils/Cloning.h"
 #endif
 
@@ -594,13 +594,13 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     builder.CreateRet(builder.CreateLoad(new_ptr_value));
 
     if (units->debug) {
-#if D_LLVM_VERSION_MINOR >= 5
+#if D_LLVM_VERSION_ORD >= 35
         llvm::dbgs() << *llvm_fn << "\n";
         llvm::dbgs() << *wrapper_fn << "\n";
 #endif
     }
 
-#if D_LLVM_VERSION_MINOR >= 6
+#if D_LLVM_VERSION_ORD >= 36
     std::vector<Function *> global_functions;
     while (Function *globfn = units->top()->getGlobalFunction()) {
         global_functions.push_back(globfn);
@@ -609,12 +609,12 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
         }
         units->top()->popGlobalFunction();
     }
-#if D_LLVM_VERSION_MINOR == 6
+#if D_LLVM_VERSION_ORD == 36
     std::unique_ptr<llvm::Module> module_ptr(
         llvm::CloneModule(units->top()->module)
     );
     units->top()->ee->addModule(move(module_ptr));
-#elif D_LLVM_VERSION_MINOR == 7
+#elif D_LLVM_VERSION_ORD == 37
     std::unique_ptr<llvm::Module> module_ptr(
         llvm::CloneModule(units->top()->module)
     );

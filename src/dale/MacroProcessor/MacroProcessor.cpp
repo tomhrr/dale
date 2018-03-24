@@ -10,7 +10,7 @@
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/Support/Debug.h"
 
-#if D_LLVM_VERSION_MINOR >= 6
+#if D_LLVM_VERSION_ORD >= 36
 #include "llvm/Transforms/Utils/Cloning.h"
 #endif
 
@@ -148,12 +148,12 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
     }
 
     if (units->debug) {
-#if D_LLVM_VERSION_MINOR >= 5
+#if D_LLVM_VERSION_ORD >= 35
         llvm::dbgs() << *(mc->llvm_function) << "\n";
 #endif
     }
 
-#if D_LLVM_VERSION_MINOR >= 6
+#if D_LLVM_VERSION_ORD >= 36
     uint64_t address = 0;
     address = (uint64_t)
         llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(mc->symbol.c_str());
@@ -166,12 +166,12 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
             }
             units->top()->popGlobalFunction();
         }
-#if D_LLVM_VERSION_MINOR == 6
+#if D_LLVM_VERSION_ORD == 36
 	std::unique_ptr<llvm::Module> module_ptr(
 	    llvm::CloneModule(units->top()->module)
 	);
 	units->top()->ee->addModule(move(module_ptr));
-#elif D_LLVM_VERSION_MINOR == 7
+#elif D_LLVM_VERSION_ORD == 37
 	std::unique_ptr<llvm::Module> module_ptr(
 	    llvm::CloneModule(units->top()->module)
 	);

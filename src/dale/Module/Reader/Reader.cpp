@@ -34,12 +34,12 @@
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 
-#if D_LLVM_VERSION_MINOR <= 4
+#if D_LLVM_VERSION_ORD <= 34
 #include "llvm/Support/system_error.h"
 #else
 #include "llvm/Object/Error.h"
 #endif
-#if D_LLVM_VERSION_MINOR >= 3
+#if D_LLVM_VERSION_ORD >= 33
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/IRReader/IRReader.h"
 #endif
@@ -104,14 +104,14 @@ Reader::~Reader()
 llvm::Module *
 Reader::loadModule(std::string *path)
 {
-#if D_LLVM_VERSION_MINOR <= 4
+#if D_LLVM_VERSION_ORD <= 34
     llvm::OwningPtr<llvm::MemoryBuffer> buffer;
 #endif
 
-#if D_LLVM_VERSION_MINOR <= 3
+#if D_LLVM_VERSION_ORD <= 33
     const llvm::sys::Path sys_path(*path);
     llvm::MemoryBuffer::getFileOrSTDIN(sys_path.c_str(), buffer);
-#elif D_LLVM_VERSION_MINOR <= 4
+#elif D_LLVM_VERSION_ORD <= 34
     llvm::MemoryBuffer::getFileOrSTDIN(*path, buffer);
 #else
     llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> eo_buffer =
@@ -120,13 +120,13 @@ Reader::loadModule(std::string *path)
     std::unique_ptr<llvm::MemoryBuffer> buffer = std::move(eo_buffer.get());
 #endif
 
-#if D_LLVM_VERSION_MINOR <= 4
+#if D_LLVM_VERSION_ORD <= 34
     std::string error_msg;
     llvm::Module *module =
         llvm::getLazyBitcodeModule(buffer.get(),
                                    *getContext(),
                                    &error_msg);
-#elif D_LLVM_VERSION_MINOR <= 5
+#elif D_LLVM_VERSION_ORD <= 35
     std::string error_msg;
     llvm::ErrorOr<llvm::Module *> eo_module =
         llvm::getLazyBitcodeModule(buffer.get(),
@@ -136,7 +136,7 @@ Reader::loadModule(std::string *path)
         error_msg = eo_module.getError().message();
     }
     buffer.release();
-#elif D_LLVM_VERSION_MINOR <= 6
+#elif D_LLVM_VERSION_ORD <= 36
     std::string error_msg;
     llvm::ErrorOr<llvm::Module *> eo_module =
         llvm::getLazyBitcodeModule(move(buffer),
@@ -160,9 +160,9 @@ Reader::loadModule(std::string *path)
 
     assert(module && "cannot load module");
 
-#if D_LLVM_VERSION_MINOR <= 4
+#if D_LLVM_VERSION_ORD <= 34
     bool materialized = module->MaterializeAll(&error_msg);
-#elif D_LLVM_VERSION_MINOR <= 5
+#elif D_LLVM_VERSION_ORD <= 35
     std::error_code ec = module->materializeAllPermanently();
     bool materialized = (bool) ec;
     if (ec) {

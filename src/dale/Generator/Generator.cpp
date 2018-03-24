@@ -14,17 +14,17 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
-#if D_LLVM_VERSION_MINOR <= 4
+#if D_LLVM_VERSION_ORD <= 34
 #include "llvm/Support/system_error.h"
 #else
 #include "llvm/Object/Error.h"
 #endif
-#if D_LLVM_VERSION_MINOR >= 3
+#if D_LLVM_VERSION_ORD >= 33
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/IRReader/IRReader.h"
 #endif
 
-#if D_LLVM_VERSION_MINOR >= 6
+#if D_LLVM_VERSION_ORD >= 36
 #include "llvm/Transforms/Utils/Cloning.h"
 #endif
 
@@ -46,7 +46,7 @@
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/Interpreter.h"
-#if D_LLVM_VERSION_MINOR <= 5
+#if D_LLVM_VERSION_ORD <= 35
 #include "llvm/ExecutionEngine/JIT.h"
 #else
 #include "llvm/ExecutionEngine/MCJIT.h"
@@ -140,7 +140,7 @@ lazyFunctionCreator(const std::string &name)
 std::string
 getTriple()
 {
-#if D_LLVM_VERSION_MINOR >= 2
+#if D_LLVM_VERSION_ORD >= 32
     return llvm::sys::getDefaultTargetTriple();
 #else
     return llvm::sys::getHostTriple();
@@ -152,11 +152,11 @@ linkModule(llvm::Linker *linker, llvm::Module *mod)
 {
     std::string error;
     bool result;
-#if D_LLVM_VERSION_MINOR <= 2
+#if D_LLVM_VERSION_ORD <= 32
     result = linker->LinkInModule(mod, &error);
-#elif D_LLVM_VERSION_MINOR <= 5
+#elif D_LLVM_VERSION_ORD <= 35
     result = linker->linkInModule(mod, &error);
-#elif D_LLVM_VERSION_MINOR <= 7
+#elif D_LLVM_VERSION_ORD <= 37
     result = linker->linkInModule(mod);
 #else
     std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
@@ -169,12 +169,12 @@ linkModule(llvm::Linker *linker, llvm::Module *mod)
 void
 addDataLayout(llvm::legacy::PassManager *pass_manager, llvm::Module *mod)
 {
-#if D_LLVM_VERSION_MINOR >= 7
-#elif D_LLVM_VERSION_MINOR >= 6
+#if D_LLVM_VERSION_ORD >= 37
+#elif D_LLVM_VERSION_ORD >= 36
     pass_manager->add(new llvm::DataLayoutPass());
-#elif D_LLVM_VERSION_MINOR >= 5
+#elif D_LLVM_VERSION_ORD >= 35
     pass_manager->add(new llvm::DataLayoutPass(mod));
-#elif D_LLVM_VERSION_MINOR >= 2
+#elif D_LLVM_VERSION_ORD >= 32
     pass_manager->add(new llvm::DataLayout(mod));
 #else
     pass_manager->add(new llvm::TargetData(mod));
@@ -185,14 +185,14 @@ void
 addPrintModulePass(llvm::legacy::PassManager *pass_manager,
                    llvm::raw_fd_ostream *ostream)
 {
-#if D_LLVM_VERSION_MINOR <= 4
+#if D_LLVM_VERSION_ORD <= 34
     pass_manager->add(llvm::createPrintModulePass(ostream));
 #else
     pass_manager->add(llvm::createPrintModulePass(*ostream));
 #endif
 }
 
-#if D_LLVM_VERSION_MINOR <= 4
+#if D_LLVM_VERSION_ORD <= 34
 std::auto_ptr<llvm::TargetMachine> target_sp;
 #else
 std::shared_ptr<llvm::TargetMachine> target_sp;
@@ -210,13 +210,13 @@ getTargetMachine(llvm::Module *last_module)
         llvm::TargetRegistry::lookupTarget(triple.getTriple(), Err);
     assert(target && "cannot auto-select target for module");
 
-#if D_LLVM_VERSION_MINOR >= 2
+#if D_LLVM_VERSION_ORD >= 32
     llvm::TargetOptions target_options;
 #endif
 
     std::string Features;
     target_sp =
-#if D_LLVM_VERSION_MINOR <= 4
+#if D_LLVM_VERSION_ORD <= 34
         std::auto_ptr<llvm::TargetMachine>
 #else
         std::shared_ptr<llvm::TargetMachine>
@@ -224,10 +224,10 @@ getTargetMachine(llvm::Module *last_module)
         (target->createTargetMachine(
             triple.getTriple(), llvm::sys::getHostCPUName(),
             Features
-#if D_LLVM_VERSION_MINOR >= 2
+#if D_LLVM_VERSION_ORD >= 32
             , target_options
 #endif
-#if D_LLVM_VERSION_MINOR >= 9
+#if D_LLVM_VERSION_ORD >= 39
             , llvm::Optional<llvm::Reloc::Model>()
 #endif
         ));
@@ -360,14 +360,14 @@ Generator::run(std::vector<const char *> *file_paths,
             triple.setTriple(getTriple());
         }
 
-#if D_LLVM_VERSION_MINOR <= 6
+#if D_LLVM_VERSION_ORD <= 36
         mod->setDataLayout((is_x86_64) ? x86_64_layout : x86_32_layout);
 #else
         llvm::TargetMachine *target_machine = getTargetMachine(mod);
         mod->setDataLayout(target_machine->createDataLayout());
 #endif
 
-#if D_LLVM_VERSION_MINOR <= 5
+#if D_LLVM_VERSION_ORD <= 35
         llvm::EngineBuilder eb = llvm::EngineBuilder(mod);
 #else
         std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
@@ -495,7 +495,7 @@ Generator::run(std::vector<const char *> *file_paths,
         }
         pass_manager_builder.populateModulePassManager(pass_manager);
         if (lto) {
-#if D_LLVM_VERSION_MINOR <= 5
+#if D_LLVM_VERSION_ORD <= 35
             pass_manager_builder.populateLTOPassManager(pass_manager, true, true);
 #else
             pass_manager_builder.populateLTOPassManager(pass_manager);
@@ -516,7 +516,7 @@ Generator::run(std::vector<const char *> *file_paths,
         ctx->eraseLLVMMacrosAndCTOFunctions();
     }
 
-#if D_LLVM_VERSION_MINOR <= 6
+#if D_LLVM_VERSION_ORD <= 36
     llvm::formatted_raw_ostream *ostream_formatted =
         new llvm::formatted_raw_ostream(
             ostream,
@@ -529,7 +529,7 @@ Generator::run(std::vector<const char *> *file_paths,
     if (produce == IR) {
         addPrintModulePass(&pass_manager, &ostream);
     } else if (produce == ASM) {
-#if D_LLVM_VERSION_MINOR <= 5
+#if D_LLVM_VERSION_ORD <= 35
         target_machine->setAsmVerbosityDefault(true);
 #endif
         llvm::CodeGenOpt::Level level = llvm::CodeGenOpt::Default;
@@ -543,7 +543,7 @@ Generator::run(std::vector<const char *> *file_paths,
 
     if (debug) {
         mod->dump();
-#if D_LLVM_VERSION_MINOR >= 5
+#if D_LLVM_VERSION_ORD >= 35
         if (llvm::verifyModule(*mod, &(llvm::errs()))) {
             abort();
         }

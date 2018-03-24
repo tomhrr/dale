@@ -1,5 +1,5 @@
 #include "Config.h"
-#if D_LLVM_VERSION_MINOR <= 2
+#if D_LLVM_VERSION_ORD <= 32
 #include "llvm/LinkAllVMCore.h"
 #else
 #include "llvm/LinkAllIR.h"

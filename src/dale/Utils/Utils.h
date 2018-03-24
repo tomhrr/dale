@@ -12,7 +12,7 @@
 #include "../Type/Type.h"
 #include "../Variable/Variable.h"
 
-#if D_LLVM_VERSION_MINOR >= 3
+#if D_LLVM_VERSION_ORD >= 33
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/IRReader/IRReader.h"
 #endif

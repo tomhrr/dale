@@ -1,4 +1,4 @@
-#if D_LLVM_VERSION_MINOR <= 2
+#if D_LLVM_VERSION_ORD <= 32
 #include "llvm/CallingConv.h"
 #else
 #include "llvm/IR/CallingConv.h"

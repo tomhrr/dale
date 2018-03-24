@@ -13,7 +13,7 @@ namespace BasicTypes
 void
 setStandardAttributes(llvm::Function *fn)
 {
-#if D_LLVM_VERSION_MINOR == 2
+#if D_LLVM_VERSION_ORD == 32
     fn->addFnAttr(llvm::Attributes::NoUnwind);
     fn->addFnAttr(llvm::Attributes::ReadOnly);
     fn->addFnAttr(llvm::Attributes::AlwaysInline);
@@ -113,7 +113,7 @@ makeFloatFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                   const char *name,
                   llvm::Value* (llvm::IRBuilder<>:: *method_name)
                       (llvm::Value*, llvm::Value*, const llvm::Twine &
-#if D_LLVM_VERSION_MINOR >= 2
+#if D_LLVM_VERSION_ORD >= 32
                       , llvm::MDNode *
 #endif
                       ),
@@ -138,7 +138,7 @@ makeFloatFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
             ((builder).*(method_name))(first->value,
                                        second->value,
                                        unused_twine
-#if D_LLVM_VERSION_MINOR >= 2
+#if D_LLVM_VERSION_ORD >= 32
                                        , NULL
 #endif
                                        )
