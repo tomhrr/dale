@@ -46,6 +46,11 @@ OffsetofGet(Unit *unit,
     return unit->module->getDataLayout()
                        .getIndexedOffset(llvm_type, indices_aref);
 #else
+    llvm_type =
+        ctx->toLLVMType(type, NULL, false);
+    if (!llvm_type) {
+        return false;
+    }
     return unit->module->getDataLayout()
                        .getIndexedOffsetInType(llvm_type, indices_aref);
 
