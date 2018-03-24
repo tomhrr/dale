@@ -1208,7 +1208,6 @@ nodes are supported.
 @linkage extern
 |#
 (def qq (macro extern (frm rest)
-    (fprintf stderr "qq\n")
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 1))
     (def myargcount (var auto int arg-count))
