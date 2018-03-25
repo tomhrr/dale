@@ -3,8 +3,8 @@ compiler: gcc
 addons:
   apt:
     sources:
-      - llvm-toolchain-precise-4.0
-      - llvm-toolchain-precise-5.0
+      - llvm-toolchain-trusty-4.0
+      - llvm-toolchain-trusty-5.0
     packages:
       - llvm-3.4
       - llvm-3.4-dev
