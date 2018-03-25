@@ -15,8 +15,6 @@ addons:
       - llvm-3.6-dev
       - llvm-3.8
       - llvm-3.8-dev
-      - llvm-3.9
-      - llvm-3.9-dev
       - llvm-4.0
       - llvm-4.0-dev
       - llvm-5.0
@@ -27,7 +25,6 @@ env:
   - LLVM=3.5
   - LLVM=3.6
   - LLVM=3.8
-  - LLVM=3.9
   - LLVM=4.0
   - LLVM=5.0
 script: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-$LLVM . && make && make tests
