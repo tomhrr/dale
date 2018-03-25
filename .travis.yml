@@ -13,10 +13,10 @@ addons:
       - llvm-3.8-dev
       - llvm-3.9
       - llvm-3.9-dev
-      - llvm-4.0
-      - llvm-4.0-dev
-      - llvm-5.0
-      - llvm-5.0-dev
+      - llvm-4
+      - llvm-4-dev
+      - llvm-5
+      - llvm-5-dev
       - libedit-dev
 env:
   - LLVM=3.4
