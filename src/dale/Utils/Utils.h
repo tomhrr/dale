@@ -19,6 +19,8 @@
 
 #if D_LLVM_VERSION_ORD <= 33
 #include "llvm/PassManager.h"
+#else
+#include "llvm/IR/LegacyPassManager.h"
 #endif
 
 #define _unused(x) ((void)x)
