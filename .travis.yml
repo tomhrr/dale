@@ -3,6 +3,7 @@ compiler: gcc
 addons:
   apt:
     sources:
+      - llvm-toolchain-trusty-3.9
       - llvm-toolchain-trusty-4.0
       - llvm-toolchain-trusty-5.0
     packages:
