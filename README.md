@@ -35,7 +35,7 @@ able to be built.  It has been tested on the following:
 
 #### Dependencies
 
-  * LLVM (3.2-4.0)
+  * LLVM (3.2-5.0)
   * libffi
 
 #### Out-of-tree (recommended)

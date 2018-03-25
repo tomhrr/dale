@@ -547,7 +547,11 @@ Generator::run(std::vector<const char *> *file_paths,
     }
 
     if (debug) {
+#if D_LLVM_VERSION_ORD <= 40
         mod->dump();
+#else
+        mod->print(llvm::outs(), nullptr);
+#endif
 #if D_LLVM_VERSION_ORD >= 35
         if (llvm::verifyModule(*mod, &(llvm::errs()))) {
             abort();
