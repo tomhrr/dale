@@ -172,7 +172,7 @@ linkModule(llvm::Linker *linker, llvm::Module *mod)
 }
 
 void
-addDataLayout(llvm::legacy::PassManager *pass_manager, llvm::Module *mod)
+addDataLayout(PassManager *pass_manager, llvm::Module *mod)
 {
 #if D_LLVM_VERSION_ORD >= 37
 #elif D_LLVM_VERSION_ORD >= 36
@@ -187,7 +187,7 @@ addDataLayout(llvm::legacy::PassManager *pass_manager, llvm::Module *mod)
 }
 
 void
-addPrintModulePass(llvm::legacy::PassManager *pass_manager,
+addPrintModulePass(PassManager *pass_manager,
                    llvm::raw_fd_ostream *ostream)
 {
 #if D_LLVM_VERSION_ORD <= 34
@@ -486,7 +486,7 @@ Generator::run(std::vector<const char *> *file_paths,
     llvm::TargetMachine *target_machine = getTargetMachine(last_module);
     llvm::raw_fd_ostream ostream(fileno(output_file), false);
 
-    llvm::legacy::PassManager pass_manager;
+    PassManager pass_manager;
     addDataLayout(&pass_manager, mod);
     pass_manager.add(llvm::createPostDomTree());
 

@@ -17,6 +17,10 @@
 #include "llvm/IRReader/IRReader.h"
 #endif
 
+#if D_LLVM_VERSION_ORD <= 33
+#include "llvm/PassManager.h"
+#endif
+
 #define _unused(x) ((void)x)
 
 #define STRTOUL_FAILED(ret, str, end) \
@@ -26,6 +30,13 @@
 
 namespace dale
 {
+/*! The PassManager type. */
+#if D_LLVM_VERSION_ORD <= 33
+typedef llvm::PassManager PassManager;
+#else
+typedef llvm::legacy::PassManager PassManager;
+#endif
+
 /*! The current executable name (i.e. argv[0]). */
 extern const char *progname;
 /*! Check whether a string represents a decimal number.

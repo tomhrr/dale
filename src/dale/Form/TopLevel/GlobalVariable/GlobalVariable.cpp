@@ -636,7 +636,11 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
 
     llvm::Function *bf = units->top()->ee->FindFunctionNamed(wrapper_new_name.c_str());
     std::vector<llvm::GenericValue> values;
+
+#if D_LLVM_VERSION_ORD >= 34
     units->top()->ee->getFunctionAddress(wrapper_new_name);
+#endif
+
     llvm::GenericValue res2 = units->top()->ee->runFunction(bf, values);
     memcpy(data, res2.PointerVal, 256);
 

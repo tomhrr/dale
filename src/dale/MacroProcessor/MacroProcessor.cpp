@@ -10,6 +10,8 @@
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/Support/Debug.h"
 
+#include <cstdio>
+
 #if D_LLVM_VERSION_ORD >= 36
 #include "llvm/Transforms/Utils/Cloning.h"
 #endif

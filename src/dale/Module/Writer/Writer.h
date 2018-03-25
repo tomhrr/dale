@@ -2,6 +2,7 @@
 #define DALE_MODULE_WRITER
 
 #include "../../Context/Context.h"
+#include "../../Utils/Utils.h"
 #include "../../llvm_Module.h"
 
 #include <string>
@@ -26,7 +27,7 @@ private:
     /*! The LLVM module for the module. */
     llvm::Module *mod;
     /*! The LLVM pass manager for the module. */
-    llvm::legacy::PassManager *pm;
+    PassManager *pm;
     /*! The once tags for the module. */
     std::set<std::string> *included_once_tags;
     /*! The modules included by way of this module. */
@@ -55,7 +56,7 @@ public:
      *  This does not take ownership of any of its arguments.
      */
     Writer(std::string module_name, dale::Context *ctx,
-           llvm::Module *mod, llvm::legacy::PassManager *pm,
+           llvm::Module *mod, PassManager *pm,
            std::set<std::string> *included_once_tags,
            std::set<std::string> *included_modules,
            bool cto);

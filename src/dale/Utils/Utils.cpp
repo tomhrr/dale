@@ -10,6 +10,10 @@
 #include "llvm/Transforms/Utils/Cloning.h"
 #endif
 
+#if D_LLVM_VERSION_ORD <= 32
+#include "llvm/Support/Path.h"
+#endif
+
 namespace dale
 {
 const char *progname = NULL;

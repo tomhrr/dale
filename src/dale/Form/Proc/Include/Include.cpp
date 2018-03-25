@@ -8,6 +8,8 @@
 #include "../../../Lexer/Lexer.h"
 #include "../../../Parser/Parser.h"
 
+#include <cstdio>
+
 using namespace dale::ErrorInst;
 
 namespace dale
