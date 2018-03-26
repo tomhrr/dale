@@ -1,0 +1,1 @@
+./t/error-src/cto-addr-from-non-cto.dt:4:22: error: can only take address of CTO function from macro or other CTO function

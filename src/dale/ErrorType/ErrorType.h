@@ -130,6 +130,8 @@ enum
     RefsNotPermittedHere,
     RetvalsNotPermittedHere,
     CTOFromNonCTO,
+    CTOAddrFromNonCTO,
+    CTOAnonymousFromNonCTO,
 
     DNodeHasNoString,
     DNodeIsNeitherTokenNorList,

@@ -1,0 +1,1 @@
+./t/error-src/cto-anon-from-non-cto.dt:2:22: error: can only use anonymous CTO functions from macros or other CTO functions

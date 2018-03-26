@@ -26,7 +26,7 @@ static int anon_count = 0;
 
 bool
 createAnonymousFunction(Units *units, llvm::BasicBlock *block,
-                        Node *n, ParseResult *pr)
+                        Node *n, Function **anon_fn_ref, ParseResult *pr)
 {
     Context *ctx = units->top()->ctx;
     int preindex = ctx->lv_index;
@@ -42,8 +42,8 @@ createAnonymousFunction(Units *units, llvm::BasicBlock *block,
 
     char buf[16];
     sprintf(buf, "_anon_%d", anon_count++);
-    Function *anon_fn = NULL;
-    FormFunctionParse(units, n, buf, &anon_fn, Linkage::Intern, 1);
+    FormFunctionParse(units, n, buf, anon_fn_ref, Linkage::Intern, 1);
+    Function *anon_fn = *anon_fn_ref;
 
     int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
 
@@ -231,7 +231,17 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
      * create an anonymous function and return a pointer to it. */
 
     if (first->is_token and !first->token->str_value.compare("fn")) {
-        return createAnonymousFunction(units, block, n, pr);
+        Function *anon_fn = NULL;
+        bool result = createAnonymousFunction(units, block, n, &anon_fn, pr);
+        if (!result) {
+            return false;
+        }
+        if (anon_fn->cto && (!fn->cto && !fn->is_macro)) {
+            Error *e = new Error(CTOAnonymousFromNonCTO, n);
+            ctx->er->addError(e);
+            return false;
+        }
+        return result;
     }
 
     /* If wanted_type is present and is a struct, then use

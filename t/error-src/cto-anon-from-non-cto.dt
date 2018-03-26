@@ -1,0 +1,3 @@
+(def main (fn extern-c int (void)
+  (def x (var auto \ (fn (attr cto) int (void) 100)))
+  0))

@@ -129,6 +129,12 @@ FormProcAddressOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         }
     }
 
+    if (target_fn->cto && (!fn->cto && !fn->is_macro)) {
+        Error *e = new Error(CTOAddrFromNonCTO, node);
+        ctx->er->addError(e);
+        return false;
+    }
+
     Type *type = new Type();
     type->is_function = 1;
     type->return_type = target_fn->return_type;

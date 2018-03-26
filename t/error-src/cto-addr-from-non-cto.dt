@@ -1,0 +1,5 @@
+(def mfn (fn (attr cto) intern int (void) 100))
+
+(def main (fn extern-c int (void)
+  (def x (var auto \ (# mfn)))
+  0))

@@ -360,6 +360,12 @@ errorInstanceToString(int error_instance)
     case ErrorInst::CTOFromNonCTO:
         ret = "CTO functions may only be called from macros or other CTO functions";
         break;
+    case ErrorInst::CTOAddrFromNonCTO:
+        ret = "can only take address of CTO function from macro or other CTO function";
+        break;
+    case ErrorInst::CTOAnonymousFromNonCTO:
+        ret = "can only use anonymous CTO functions from macros or other CTO functions";
+        break;
     case ErrorInst::OnlyOneModuleFormPermitted:
         ret = "a 'module' form may only appear once";
         break;
