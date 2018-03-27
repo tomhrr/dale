@@ -63,6 +63,14 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     if (!res) {
         return false;
     }
+    if (!index_pr.type->isIntegerType()) {
+        std::string type_str;
+        index_pr.type->toString(&type_str);
+        Error *e = new Error(IncorrectType, index_node,
+                             "integer", type_str.c_str());
+        ctx->er->addError(e);
+        return false;
+    }
 
     llvm::IRBuilder<> builder(index_pr.block);
     std::vector<llvm::Value *> indices;

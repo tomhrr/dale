@@ -1,0 +1,4 @@
+(def main (fn extern-c int (void)
+  (def x (var auto (array-of 10 int)))
+  (setf ($ x "asdf") 10)
+  0))

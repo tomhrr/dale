@@ -303,7 +303,7 @@ later.)
                       (if (= (@: ev value) -1)
                           (do (report-error mc first "invalid variant type")
                               (return (nullptr DNode)))
-                          (setf ($ found ev) 1))))
+                          (setf ($ found (@: ev value)) 1))))
                 (def cond-form (var auto \
                   (cond (is-true
                          (std.macros.qq true (uq (uq second))))
