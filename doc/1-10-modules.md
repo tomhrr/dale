@@ -74,4 +74,18 @@ identifier as its single argument. If a file is subsequently loaded by
 way of `include`, and that file's first form is a call to `once` with
 the same identifier, the file's remaining forms will be ignored.
 
+### Lazy loading
+
+Module compilation and use depends on the system permitting lazy
+loading of dynamic libraries.  If the system doesn't permit this, then
+compilation will fail when a module M1 depends on a module M2, and M2
+depends on a non-Dale library that isn't passed in via the `-a` (make
+library available at compile-time) option.
+
+NixOS is an example of a system that does not permit lazy loading by
+default, and is affected by this problem.  In the NixOS case, this can
+be worked around by way of the `hardeningDisable=bindnow` option.  See
+[mawled/issues/12](https://github.com/tomhrr/mawled/issues/12) for an
+example case.
+
 [Previous](./1-9-namespaces.md) | [Next](./1-11-form-reference.md)
