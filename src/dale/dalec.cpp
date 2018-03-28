@@ -146,6 +146,39 @@ main(int argc, char **argv)
         }
     }
 
+    /* If any module has been loaded statically, add the runtime
+     * libraries as compile-time libraries, so that LLVM is able to
+     * resolve external symbols during compilation.  (There is
+     * probably a better way to do this.) */
+    if (static_modules.size() or static_mods_all) {
+        for (std::vector<const char*>::iterator b = run_libs.begin(),
+                                                e = run_libs.end();
+                b != e;
+                ++b) {
+            FILE *fp;
+            char libname[256];
+            snprintf(libname, 256, "-l%s", *b);
+            char command[256];
+            snprintf(command, 256, "ld -t %s 2>/dev/null", libname);
+            fp = popen(command, "r");
+            if (fp == NULL) {
+                fprintf(stderr, "Unable to resolve library path");
+                abort();
+            }
+            char line[256];
+            while (fgets(line, sizeof(line) - 1, fp) != NULL) {
+                if (!strncmp(line, libname, strlen(libname))) {
+                    char path[256];
+                    char *start = strchr(line, '/');
+                    char *end   = strchr(line, ')');
+                    strncpy(path, start, (end - start));
+                    path[end - start] = '\0';
+                    compile_libs.push_back(path);
+                }
+            }
+        }
+    }
+
     if (version) {
         printf("%d.%d\n", DALE_VERSION_MAJOR, DALE_VERSION_MINOR);
         exit(0);
