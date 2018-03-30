@@ -69,11 +69,11 @@ FormProcSizeofParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     size_t size = Operation::SizeofGet(units->top(), type);
     pr->set(block, ctx->tr->type_size,
-	    llvm::ConstantInt::get(
-		ctx->toLLVMType(ctx->tr->type_size,
-				NULL, false),
-		size
-	    ));
+            llvm::ConstantInt::get(
+                ctx->toLLVMType(ctx->tr->type_size,
+                                NULL, false),
+                size
+            ));
 
     return true;
 }

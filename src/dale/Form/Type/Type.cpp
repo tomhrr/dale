@@ -255,21 +255,21 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
             return NULL;
         }
 
-	llvm::Constant *size_value = NULL;
-	int unused_size;
-	size_value = parseLiteral(units, ctx->tr->type_int, snd_node, &unused_size);
-	if (!size_value) {
-	    return NULL;
-	}
-	llvm::ConstantInt *size_value_int =
-	    llvm::dyn_cast<llvm::ConstantInt>(size_value);
-	if (!size_value_int) {
-	    Error *e = new Error(ErrorInst::UnableToParseIntegerNoString, snd_node);
-	    ctx->er->addError(e);
-	    return NULL;
-	}
+        llvm::Constant *size_value = NULL;
+        int unused_size;
+        size_value = parseLiteral(units, ctx->tr->type_int, snd_node, &unused_size);
+        if (!size_value) {
+            return NULL;
+        }
+        llvm::ConstantInt *size_value_int =
+            llvm::dyn_cast<llvm::ConstantInt>(size_value);
+        if (!size_value_int) {
+            Error *e = new Error(ErrorInst::UnableToParseIntegerNoString, snd_node);
+            ctx->er->addError(e);
+            return NULL;
+        }
 
-	int size = size_value_int->getZExtValue();
+        int size = size_value_int->getZExtValue();
 
         return ctx->tr->getArrayType(array_type, size);
     }

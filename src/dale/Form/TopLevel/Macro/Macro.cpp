@@ -39,7 +39,7 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
 
     Node *top;
     if (!name) {
-	name = (*node->list)[1]->token->str_value.c_str();
+        name = (*node->list)[1]->token->str_value.c_str();
         top = (*node->list)[2];
     } else {
         top = node;

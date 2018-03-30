@@ -391,8 +391,8 @@ FormProcBodyParse(Units *units, Node *node, Function *fn,
         if (res) {
             next = res_pr.block;
             if (is_last) {
-		bool res = Operation::Copy(units->top()->ctx, fn, (*b),
-					   &res_pr, &res_pr);
+                bool res = Operation::Copy(units->top()->ctx, fn, (*b),
+                                           &res_pr, &res_pr);
                 if (!res) {
                     return false;
                 }

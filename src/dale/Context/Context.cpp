@@ -139,7 +139,7 @@ Context::activateNamespaces(std::vector<std::string> *names)
                                             e = names->end();
             b != e;
             ++b) {
-	bool res = activateNamespace(b->c_str());
+        bool res = activateNamespace(b->c_str());
         if (!res) {
             return false;
         }
@@ -178,7 +178,7 @@ Context::deactivateNamespaces(std::vector<std::string> *names)
                                                     e = names->rend();
             b != e;
             ++b) {
-	bool res = deactivateNamespace(b->c_str());
+        bool res = deactivateNamespace(b->c_str());
         if (!res) {
             return false;
         }

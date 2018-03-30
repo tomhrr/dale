@@ -80,28 +80,28 @@ FormTopLevelIncludeParse(Units *units, Node *node)
                 && new_top->list->size()
                 && new_top->list->at(0)->token
                 && (new_top->list->at(0)->token->str_value.compare("once") == 0)) {
-	    if (!ctx->er->assertArgNums("once", new_top, 1, 1)) {
-		return false;
-	    }
-	    std::vector<Node *> *lst = new_top->list;
-	    Node *once_tag_node = (*lst)[1];
-	    once_tag_node = units->top()->mp->parsePotentialMacroCall(once_tag_node);
-	    if (!once_tag_node) {
-		return false;
-	    }
-	    if (!ctx->er->assertArgIsAtom("once", once_tag_node, "1")) {
-		return false;
-	    }
-	    const char *once_name = once_tag_node->token->str_value.c_str();
-	    std::string once_tag(once_name);
+            if (!ctx->er->assertArgNums("once", new_top, 1, 1)) {
+                return false;
+            }
+            std::vector<Node *> *lst = new_top->list;
+            Node *once_tag_node = (*lst)[1];
+            once_tag_node = units->top()->mp->parsePotentialMacroCall(once_tag_node);
+            if (!once_tag_node) {
+                return false;
+            }
+            if (!ctx->er->assertArgIsAtom("once", once_tag_node, "1")) {
+                return false;
+            }
+            const char *once_name = once_tag_node->token->str_value.c_str();
+            std::string once_tag(once_name);
 
-	    if (units->mr->included_once_tags.find(once_tag) !=
-		    units->mr->included_once_tags.end()) {
+            if (units->mr->included_once_tags.find(once_tag) !=
+                    units->mr->included_once_tags.end()) {
                 return true;
             }
-	    units->mr->included_once_tags.insert(once_tag);
-	    units->top()->once_tag = once_tag;
-	    units->top()->setOnceTag(once_tag);
+            units->mr->included_once_tags.insert(once_tag);
+            units->top()->once_tag = once_tag;
+            units->top()->setOnceTag(once_tag);
             continue;
         }
         do_nodes->push_back(new_top);

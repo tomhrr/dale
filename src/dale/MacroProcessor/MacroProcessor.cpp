@@ -169,17 +169,17 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
             units->top()->popGlobalFunction();
         }
 #if D_LLVM_VERSION_ORD == 36
-	std::unique_ptr<llvm::Module> module_ptr(
-	    llvm::CloneModule(units->top()->module)
-	);
-	units->top()->ee->addModule(move(module_ptr));
+        std::unique_ptr<llvm::Module> module_ptr(
+            llvm::CloneModule(units->top()->module)
+        );
+        units->top()->ee->addModule(move(module_ptr));
 #elif D_LLVM_VERSION_ORD == 37
-	std::unique_ptr<llvm::Module> module_ptr(
-	    llvm::CloneModule(units->top()->module)
-	);
-	units->top()->ee->addModule(move(module_ptr));
+        std::unique_ptr<llvm::Module> module_ptr(
+            llvm::CloneModule(units->top()->module)
+        );
+        units->top()->ee->addModule(move(module_ptr));
 #else
-	units->top()->ee->addModule(llvm::CloneModule(units->top()->module));
+        units->top()->ee->addModule(llvm::CloneModule(units->top()->module));
 #endif
         for (std::vector<Function *>::reverse_iterator b = global_functions.rbegin(),
                                                        e = global_functions.rend();
@@ -240,7 +240,7 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
         pf_address = units->top()->ee->getFunctionAddress(pfffn->symbol.c_str());
     } else {
         pf_address = (uint64_t)
-	    llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(pfffn->symbol.c_str());
+            llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(pfffn->symbol.c_str());
     }
 
     typedef void (*FFN)(void*);

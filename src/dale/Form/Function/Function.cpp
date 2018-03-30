@@ -530,11 +530,11 @@ FormFunctionParse(Units *units, Node *node, const char *name,
 
     if (units->debug) {
 #if D_LLVM_VERSION_ORD >= 35
-	if (llvm::verifyModule(*(units->top()->module),
-			    &(llvm::errs()))) {
-	    llvm::dbgs() << *(llvm_fn) << "\n";
-	    abort();
-	}
+        if (llvm::verifyModule(*(units->top()->module),
+                            &(llvm::errs()))) {
+            llvm::dbgs() << *(llvm_fn) << "\n";
+            abort();
+        }
 #endif
     }
 

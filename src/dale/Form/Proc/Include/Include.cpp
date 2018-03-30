@@ -84,7 +84,7 @@ FormProcIncludeParse(Units *units, Function *fn, llvm::BasicBlock *block,
         do_nodes->push_back(new_top);
     }
     if (ctx->er->getErrorTypeCount(ErrorType::Error) > error_count) {
-	return false;
+        return false;
     }
     Node *wrapper = new Node(do_nodes);
 

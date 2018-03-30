@@ -24,7 +24,7 @@ FormParameterParse(Units *units, Variable *var, Node *node,
     var->linkage = Linkage::Auto;
 
     if (allow_anonymous) {
-	int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
+        int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
         Type *type = FormTypeParse(units, node, allow_anon_structs,
                                    allow_bitfields, allow_refs);
         if (type) {

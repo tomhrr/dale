@@ -35,7 +35,7 @@ FormProcArrayOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     int unused_size;
     size_value = parseLiteral(units, ctx->tr->type_int, size_node, &unused_size);
     if (!size_value) {
-	return false;
+        return false;
     }
     llvm::ConstantInt *size_value_int =
         llvm::dyn_cast<llvm::ConstantInt>(size_value);

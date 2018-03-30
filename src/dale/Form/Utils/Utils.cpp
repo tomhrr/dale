@@ -38,8 +38,8 @@ linkVariablesToFunction(std::vector<Variable *> *vars, llvm::Function *llvm_fn)
 
 llvm::Instruction *
 createGEP(llvm::Value *value,
-	  llvm::ArrayRef<llvm::Value *> indices,
-	  llvm::Type *type) {
+          llvm::ArrayRef<llvm::Value *> indices,
+          llvm::Type *type) {
 #if D_LLVM_VERSION_ORD <= 36
     return llvm::GetElementPtrInst::Create(value, indices);
 #else
@@ -47,15 +47,15 @@ createGEP(llvm::Value *value,
         type = value->getType()->getPointerElementType();
     }
     return llvm::GetElementPtrInst::Create(
-	type, value, indices
+        type, value, indices
     );
 #endif
 }
 
 llvm::Constant *
 createConstantGEP(llvm::Constant *value,
-	          llvm::ArrayRef<llvm::Value *> indices,
-	          llvm::Type *type) {
+                  llvm::ArrayRef<llvm::Value *> indices,
+                  llvm::Type *type) {
 #if D_LLVM_VERSION_ORD <= 36
     return llvm::ConstantExpr::getGetElementPtr(value, indices);
 #else

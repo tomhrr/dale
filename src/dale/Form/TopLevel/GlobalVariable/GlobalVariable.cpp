@@ -502,9 +502,9 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     lvalues.push_back(true);
     lvalues.push_back(false);
     Function *or_move = ctx->getFunction("setf-move-assign", &types,
-					 NULL, false, &lvalues);
+                                         NULL, false, &lvalues);
     Function *or_setf = ctx->getFunction("setf-copy-assign", &call_arg_types,
-					 NULL, 0);
+                                         NULL, 0);
 
     if (or_move && is_rvalue) {
         or_setf = or_move;
