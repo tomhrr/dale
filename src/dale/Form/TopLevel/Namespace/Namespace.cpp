@@ -41,6 +41,11 @@ FormTopLevelNamespaceParse(Units *units, Node *node)
     }
 
     ctx->deactivateNamespace(ns_name);
+    if (units->prefunction_ns) {
+        if (!strcmp(ns_name, units->prefunction_ns->name.c_str())) {
+            units->prefunction_ns = NULL;
+        }
+    }
 
     return true;
 }

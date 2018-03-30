@@ -67,7 +67,8 @@ Context::popUntilNamespace(Namespace *ns)
 
     for (;;) {
         if (active_ns_nodes.size() == 0) {
-            break;
+            fprintf(stderr, "Internal error: no active namespaces left.\n");
+            abort();
         }
         if (active_ns_nodes.back()->ns == ns) {
             break;
@@ -77,7 +78,8 @@ Context::popUntilNamespace(Namespace *ns)
     std::vector<NSNode *> new_used_nodes;
     for (;;) {
         if (used_ns_nodes.size() == 0) {
-            break;
+            fprintf(stderr, "Internal error: no used namespaces left.\n");
+            abort();
         }
         if (used_ns_nodes.back()->ns == ns) {
             break;

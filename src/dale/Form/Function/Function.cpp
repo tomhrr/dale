@@ -308,8 +308,6 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     std::vector<Node *> *lst = node->list;
 
     if (lst->size() < 4) {
-        node->print();
-        printf("\n");
         Error *e = new Error(IncorrectMinimumNumberOfArgs, node, "fn",
                              "3", (lst->size() - 1));
         ctx->er->addError(e);

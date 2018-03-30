@@ -437,6 +437,13 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     nodes.push_back(top);
     Node *wrapper_top = new Node(&nodes);
 
+    std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
+    std::vector<NSNode *> used_ns_nodes   = ctx->used_ns_nodes;
+    if (!units->prefunction_ns) {
+        units->prefunction_ns = ctx->active_ns_nodes.front()->ns;
+    }
+    ctx->popUntilNamespace(units->prefunction_ns);
+
     Function *temp_fn = new Function();
     temp_fn->llvm_function = llvm_fn;
     units->top()->pushGlobalFunction(temp_fn);
@@ -445,6 +452,9 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     FormProcBodyParse(units, wrapper_top, fn, llvm_fn, 0, 0);
     ctx->deactivateNamespace(anon_name.c_str());
     units->top()->popGlobalFunction();
+
+    ctx->active_ns_nodes = active_ns_nodes;
+    ctx->used_ns_nodes   = used_ns_nodes;
 
     int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
     if (error_count_begin != error_count_end) {

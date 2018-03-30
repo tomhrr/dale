@@ -64,12 +64,17 @@ the same as in C.
 ### Arrays
 
 The type of an array of values is `(array-of {n} {type})`, where `{n}`
-is a literal unsigned integer. A zero-sized array may be declared when
-the array is populated during declaration: see
-[Variables](./1-4-variables.md).
+is a literal unsigned integer or an expression that evaluates to one.
+A zero-sized array may be declared when the array is populated during
+declaration: see [Variables](./1-4-variables.md).
 
 The instances where arrays decay into pointers on use are the same as
 in C.
+
+The `{n}` expression is evaluated in a new anonymous scope: if the
+type is specified within a macro or a function, it will not have
+access to the bindings defined in that macro or function.
+Variable-length arrays are not supported, either.
 
 ### Structures
 
