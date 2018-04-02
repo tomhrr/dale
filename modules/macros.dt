@@ -1198,12 +1198,11 @@ nesting.
 The `-nc` versions should only be used when the argument node will not
 be used again.
 
-Argument nodes for the various unquote forms must be DNode pointer
-variable names.  If any other type of argument is provided, the
-unquote form will expand to that argument.  For example, `(qq do (uq
-(mnfv mc 1)))` will expand to `(do (mnfv mc 1))`.  Issue #140 is
-tracking this problem, and will be resolved when arbitrary argument
-nodes are supported.
+Previously, argument nodes for the various special forms had to be
+DNode pointer variable names.  Arbitrary forms as argument nodes are
+now supported.  For example, `(qq identity (uq (mnfv mc 1)))`
+previously expanded to `(identity (mnfv mc 1))`, and now expands to
+`(identity 1)`.
 
 @linkage extern
 |#
@@ -1277,25 +1276,28 @@ nodes are supported.
                             (setv processed-list 1)
                         (do (def checkform (var auto \ (@:' cn list-node next-node)))
                             (setv tempform
-                                (if (not (null (@:' cn list-node
-                                                       next-node
-                                                       token-str)))
-                                    checkform
-                                    (do (setv no-down 1)
-                                        (make-node-maker mc
-                                                    (@:' cn
-                                                          list-node
-                                                          next-node)))))
+                                (if (not (null (@:' checkform list-node)))
+                                    (if (is-unquote-node (@:' checkform list-node))
+                                        (do (setv no-down 1)
+                                            (make-node-maker mc
+                                                             (@:' cn
+                                                                  list-node
+                                                                  next-node)))
+                                        checkform)
+                                    checkform))
                             (if (not (ct-node-checks mc checkform))
                                 (return (nullptr DNode))
                                 true)
+                            (def vn (var auto \ (make-gensym-var-node
+                                                 mc)))
                             (setf ($ blocks block-count) (bqq do
                                 (setv firstnode (uq current-firstnode))
-                                (if (null (uq tempform))
+                                (def (uq vn) (var auto \ (uq tempform)))
+                                (if (null (uq vn))
                                     (do (report-error mc firstnode "unquoting null node")
                                         false)
                                     (do (setv newnode
-                                        (std.macros.copy mc false (uq tempform)))
+                                        (std.macros.copy mc false (uq vn)))
                                         (std.macros.copy-to firstnode newnode)
                                         true))))
                             (setv block-count (+ block-count 1))
@@ -1308,20 +1310,33 @@ nodes are supported.
                             false)
                         (do ;(printf "CN is uq!\n")
                             (setv processed-list 1)
-                        (do (setv tempform (@:' cn list-node next-node))
+                        (do (def checkform (var auto \ (@:' cn list-node next-node)))
+                            (setv tempform
+                                (if (not (null (@:' checkform list-node)))
+                                    (if (is-unquote-node (@:' checkform list-node))
+                                        (do (setv no-down 1)
+                                            (make-node-maker mc
+                                                             (@:' cn
+                                                                  list-node
+                                                                  next-node)))
+                                        checkform)
+                                    checkform))
                             (if (not (ct-node-checks mc tempform))
                                 (return (nullptr DNode))
                                 true)
                             (setv no-down 1)
                             (def vn (var auto \ (make-gensym-var-node
                                                  mc)))
+                            (def vn2  (var auto \ (make-gensym-var-node
+                                                   mc)))
                             (setf ($ blocks block-count) (bqq do
+                                (def (uq vn2) (var auto \ (uq tempform)))
                                 (setv firstnode (uq current-firstnode))
-                                (if (null (uq tempform))
+                                (if (null (uq vn2))
                                     (do (report-error mc firstnode "unquoting null node")
                                         false)
                                     (do (setv newnode (std.macros.copy mc
-                                                        true (uq tempform)))
+                                                        true (uq vn2)))
                                         (std.macros.copy-to firstnode newnode)
                                         (if (not (null (@:@ newnode next-node)))
                                             (do (def (uq vn)
@@ -1342,17 +1357,30 @@ nodes are supported.
                             false)
                         (do ;(printf "CN is uq!\n")
                             (setv processed-list 1)
-                        (do (setv tempform (@:' cn list-node next-node))
+                        (do (def checkform (var auto \ (@:' cn list-node next-node)))
+                            (setv tempform
+                                (if (not (null (@:' checkform list-node)))
+                                    (if (is-unquote-node (@:' checkform list-node))
+                                        (do (setv no-down 1)
+                                            (make-node-maker mc
+                                                             (@:' cn
+                                                                  list-node
+                                                                  next-node)))
+                                        checkform)
+                                    checkform))
                             (if (not (ct-node-checks mc tempform))
                                 (return (nullptr DNode))
                                 true)
+                            (def vn (var auto \ (make-gensym-var-node
+                                                 mc)))
                             (setv no-down 1)
                             (setf ($ blocks block-count) (bqq do
                                 (setv firstnode (uq current-firstnode))
-                                (if (null (uq tempform))
+                                (def (uq vn) (var auto \ (uq tempform)))
+                                (if (null (uq vn))
                                     (do (report-error mc firstnode "unquoting null node")
                                         false)
-                                    (do (setv newnode (uq tempform))
+                                    (do (setv newnode (uq vn))
                                         (std.macros.copy-to firstnode newnode)
                                         true))))
                             (setv block-count (+ block-count 1))
@@ -1365,17 +1393,30 @@ nodes are supported.
                             false)
                         (do ;(printf "CN is uq!\n")
                             (setv processed-list 1)
-                        (do (setv tempform (@:' cn list-node next-node))
+                        (do (def checkform (var auto \ (@:' cn list-node next-node)))
+                            (setv tempform
+                                (if (not (null (@:' checkform list-node)))
+                                    (if (is-unquote-node (@:' checkform list-node))
+                                        (do (setv no-down 1)
+                                            (make-node-maker mc
+                                                             (@:' cn
+                                                                  list-node
+                                                                  next-node)))
+                                        checkform)
+                                    checkform))
                             (if (not (ct-node-checks mc tempform))
                                 (return (nullptr DNode))
                                 true)
+                            (def vn (var auto \ (make-gensym-var-node
+                                                 mc)))
                             (setv no-down 1)
                             (setf ($ blocks block-count) (bqq do
                                 (setv firstnode (uq current-firstnode))
-                                (if (null (uq tempform))
+                                (def (uq vn) (var auto \ (uq tempform)))
+                                (if (null (uq vn))
                                     (do (report-error mc firstnode "unquoting null node")
                                         false)
-                                    (do (setv newnode (uq tempform))
+                                    (do (setv newnode (uq vn))
                                         (std.macros.copy-to firstnode newnode)
                                         (if (not (null (@:@ newnode next-node)))
                                             (do (def tv222

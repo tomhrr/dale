@@ -1,0 +1,17 @@
+(import macros)
+(import stdlib)
+(import unistd)
+
+(def + (fn intern int ((a int) (b int) (c int) (d int))
+  (+ a (+ b (+ c d)))))
+
+(using-namespace std.macros
+  (def test (macro intern (void)
+    (qq identity (uq (mnfv mc 1)))))
+  (def test2 (macro intern (a b c d)
+    (qq + (uql (link-nodes 4 a b c d))))))
+
+(def main (fn extern-c void (void)
+  (printf "%i\n" (test))
+  (printf "%d\n" (test2 1 2 3 4))
+  0))
