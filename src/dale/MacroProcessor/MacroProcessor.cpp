@@ -223,8 +223,20 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
         MFN macro_function = (MFN) address;
         result_dnode = (DNode *) macro_function(values2[0],
         values2[1], values2[2], values2[3], values2[4]);
+    } else if (values2.size() == 6) {
+        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2], values2[3], values2[4], values2[5]);
+    } else if (values2.size() == 7) {
+        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
+                             void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2], values2[3], values2[4], values2[5],
+        values2[6]);
     } else {
-        fprintf(stderr, "Need to handle more macro parameters: %lu\n",
+        fprintf(stderr, "Internal error: need to handle more macro parameters: %lu\n",
             values2.size());
         abort();
     }

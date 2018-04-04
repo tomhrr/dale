@@ -1,0 +1,25 @@
+(import macros)
+
+(using-namespace std.macros
+
+(def defn (macro intern (name linkage type args drop-first-expression rest)
+  (def list (var auto \ (get-varargs-list mc (- (arg-count mc) 5) rest)))
+  (qq def (uq name) (fn (uq linkage) (uq type) (uq args) (uql list)))))
+
+(def a (macro intern (a)
+  (print a)
+  (printf "\n")
+  (qq b float)))
+
+(defn a intern void ((a int)) ;;variable name a gets expanded before defn gets expanded
+  (a this-should-not-be-printed) ;;this gets expanded and prints something, instead of just being dropped
+  (printf "int\n"))
+
+(def b (macro intern (rest)
+  (printf "macro?\n")
+  (qq printf "not-int\n")))
+
+(def main (fn extern-c void (void)
+  (a 1) ;;should print a line with "int", instead "not-int" will be printed
+  (a 1.0))) ;;should print "not-int", instead "int" will be printed
+)
