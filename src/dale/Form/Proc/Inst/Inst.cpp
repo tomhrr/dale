@@ -211,20 +211,24 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
                                   prefixed_with_core, wanted_type, pr);
     }
 
-    std::vector<Node *> *lst = n->list;
-    if (lst->size() == 0) {
+    if (n->list->size() == 0) {
         Error *e = new Error(NoEmptyLists, n);
         ctx->er->addError(e);
         return false;
     }
 
+    std::vector<Node *> *lst = n->list;
+    Node *adjusted = n;
+
     Node *first = (*lst)[0];
     if (!first->is_token) {
-        (*lst)[0] = units->top()->mp->parsePotentialMacroCall(first);
-        first = (*lst)[0];
+        first = units->top()->mp->parsePotentialMacroCall(first);
         if (!first) {
             return false;
         }
+        lst = new std::vector<Node*>(*(n->list));
+        adjusted = new Node(lst);
+        (*lst)[0] = first;
     }
 
     /* If the first node is a token, and it equals "fn", then
@@ -232,12 +236,12 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
 
     if (first->is_token and !first->token->str_value.compare("fn")) {
         Function *anon_fn = NULL;
-        bool result = createAnonymousFunction(units, block, n, &anon_fn, pr);
+        bool result = createAnonymousFunction(units, block, adjusted, &anon_fn, pr);
         if (!result) {
             return false;
         }
         if (anon_fn->cto && (!fn->cto && !fn->is_macro)) {
-            Error *e = new Error(CTOAnonymousFromNonCTO, n);
+            Error *e = new Error(CTOAnonymousFromNonCTO, adjusted);
             ctx->er->addError(e);
             return false;
         }
@@ -250,7 +254,7 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
     if (wanted_type
             && (wanted_type->struct_name.size())
             && (!first->is_token)) {
-        return createWantedStructLiteral(units, fn, block, n, get_address,
+        return createWantedStructLiteral(units, fn, block, adjusted, get_address,
                                          wanted_type, pr);
     }
 
@@ -267,10 +271,10 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
                     && fp_pr.type->points_to
                     && fp_pr.type->points_to->is_function) {
                 return units->top()->fp->parseFunctionPointerCall(
-                    fn, n, &fp_pr, 1, NULL, pr
+                    fn, adjusted, &fp_pr, 1, NULL, pr
                 );
             } else {
-                Error *e = new Error(FirstListElementMustBeAtomOrMacroOrFP, n);
+                Error *e = new Error(FirstListElementMustBeAtomOrMacroOrFP, adjusted);
                 ctx->er->addError(e);
                 return false;
             }
@@ -279,7 +283,7 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
 
     Token *t = first->token;
     if (t->type != TokenType::String) {
-        Error *e = new Error(FirstListElementMustBeSymbol, n);
+        Error *e = new Error(FirstListElementMustBeSymbol, adjusted);
         ctx->er->addError(e);
         return false;
     }
@@ -289,7 +293,7 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
 
     Struct *st = ctx->getStruct(t->str_value.c_str());
     if (st && (lst->size() == 2)) {
-        bool res = createStructLiteral(units, fn, block, n, get_address,
+        bool res = createStructLiteral(units, fn, block, adjusted, get_address,
                                        wanted_type, pr);
         if (res) {
             return true;
@@ -303,7 +307,7 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
             && wanted_type->is_array
             && (!strcmp(t->str_value.c_str(), "array"))) {
         int size;
-        bool res = FormLiteralArrayParse(units, fn, block, n,
+        bool res = FormLiteralArrayParse(units, fn, block, adjusted,
                                          wanted_type, get_address,
                                          &size, pr);
         return res;
@@ -322,7 +326,7 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
 
     if (!prefixed_with_core) {
         pr->type = NULL;
-        bool res = parsePotentialProcCall(units, fn, block, n, get_address,
+        bool res = parsePotentialProcCall(units, fn, block, adjusted, get_address,
                                           wanted_type, pr, &backup_error);
         if (!res) {
             return false;
@@ -330,7 +334,7 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
             return true;
         }
     } else {
-        if (!ctx->er->assertArgNums("core", n, 1, -1)) {
+        if (!ctx->er->assertArgNums("core", adjusted, 1, -1)) {
             return false;
         }
 
@@ -338,7 +342,7 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
         but_one->insert(but_one->begin(), lst->begin() + 1, lst->end());
         lst = but_one;
 
-        n = new Node(but_one);
+        adjusted = new Node(but_one);
         first = (*lst)[0];
 
         if (!first->is_token) {
@@ -369,7 +373,7 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
     standard_core_form_t core_fn =
         CoreForms::getStandard(t->str_value.c_str());
     if (core_fn) {
-        return core_fn(units, fn, block, n,
+        return core_fn(units, fn, block, adjusted,
                        get_address, prefixed_with_core, pr);
     }
 
@@ -378,7 +382,7 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
     macro_core_form_t core_mac =
         CoreForms::getMacro(t->str_value.c_str());
     if (core_mac) {
-        Node *new_node = core_mac(ctx, n);
+        Node *new_node = core_mac(ctx, adjusted);
         if (!new_node) {
             return false;
         }
@@ -388,7 +392,7 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
 
     if (!strcmp(t->str_value.c_str(), "import")) {
         pr->set(block, NULL, NULL);
-        return FormTopLevelImportParse(units, n);
+        return FormTopLevelImportParse(units, adjusted);
     }
 
     /* Not core form/macro, nor function. If the string token is
@@ -441,7 +445,7 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
         funcall_str_node->filename = ctx->er->current_filename;
         lst->insert(lst->begin(), funcall_str_node);
         bool res =
-            FormProcFuncallParse(units, fn, block, n, get_address,
+            FormProcFuncallParse(units, fn, block, adjusted, get_address,
                                  false, pr);
         return res;
     }
@@ -479,7 +483,7 @@ parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
 
     ctx->er->popErrors(last_error_count);
 
-    Error *e = new Error(NotInScope, n, t->str_value.c_str());
+    Error *e = new Error(NotInScope, adjusted, t->str_value.c_str());
     ctx->er->addError(e);
     return false;
 }
