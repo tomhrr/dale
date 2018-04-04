@@ -147,12 +147,36 @@ procedures that can be called using the following logic:
      parameters, the one with the earliest typed parameter is
      preferred.
 
-### Idempotence
+### Evaluation and side effects
 
-Macros may be evaluated more than once per call site by the compiler,
-so it is important that they are idempotent. One exception to this is
-that any errors reported by the macro to the compiler, by way of the
-`report-error` function (see
+For procedure dispatch, the type of each argument needs to be known,
+so each argument needs to be fully evaluated.  Since an argument can
+itself be a macro call, there may be instances where a macro call only
+occurs because of the evaluation necessary for dispatch:
+
+        (def mprint (macro intern (void)
+          (printf "test\n")
+          (nullptr DNode)))
+
+        (def identity (macro intern (ignored returned)
+          returned))
+
+        (def main (fn extern-c int (void)
+          (identity (mprint) (printf "hello\n"))))
+
+During compilation of the above, the string "test" will be printed,
+even though `(mprint)` isn't evaluated directly.  This is because
+`(mprint)` is evaluated as part of determining dispatch for
+`identity`.  (The `ignored` argument in the call to `identity` will
+still be `(mprint)`, though: the evaluation is purely for dispatch,
+and macros always receive unevaluated arguments.)
+
+In addition to the previous consideration, macros in general may be
+evaluated more than once per call site by the compiler.  As a result,
+it is typically safest for macros to avoid side effects, though there
+may be some contexts where that is acceptable.  One exception to this
+is that any errors reported by the macro to the compiler, by way of
+the `report-error` function (see
 [`introspection`](./2-1-introspection.md)), will be cleared by the
 compiler in the event that it is unable to evaluate or otherwise use
 the macro.
