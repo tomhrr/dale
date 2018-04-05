@@ -217,15 +217,12 @@ parseLiteralPointer(Units *units, Node *top, char *data, Type *type,
 {
     Context *ctx = units->top()->ctx;
 
-    if (*data) {
-        uint64_t value = *(uint64_t *) data;
-        if (sizeof(char *) == 4) {
-            value <<= 32;
-        }
-        if (value) {
-            Error *e = new Error(NonNullPointerInGlobalStructDeclaration, top);
-            ctx->er->addError(e);
-        }
+    uint64_t value = *(uint64_t *) data;
+
+    if (value) {
+        Error *e = new Error(NonNullPointerInGlobalStructDeclaration, top);
+        ctx->er->addError(e);
+        return NULL;
     }
 
     llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
@@ -257,6 +254,9 @@ parseLiteralArray(Units *units, Node *top, char *data, Type *type,
 
         llvm::Constant *const_member =
             parseLiteralElement(units, top, mem, type->array_type, size);
+        if (!const_member) {
+            return NULL;
+        }
 
         constants.push_back(const_member);
     }
@@ -654,6 +654,8 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     llvm::GenericValue res2 = units->top()->ee->runFunction(bf, values);
     memcpy(data, res2.PointerVal, 256);
 
+    error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
+
     llvm::Constant *parsed =
         parseLiteralElement(units, top, (char*) &data, type, size);
 
@@ -662,6 +664,11 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
 
     if (parsed) {
         return parsed;
+    }
+
+    error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
+    if (error_count_begin != error_count_end) {
+        return NULL;
     }
 
     std::string type_str;

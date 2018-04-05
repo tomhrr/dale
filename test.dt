@@ -1,0 +1,19 @@
+(import cstdio)
+
+(def myv (var intern int 100))
+(def mys (struct intern ((a int) (b (p int)))))
+(def mysi (var intern mys ((a 10) (b (# myv)))))
+
+#|
+(def mprint (macro intern (void)
+  (printf "%p\n" (# myv))
+  (printf "%d\n" (@: mysi a))
+  (printf "%p\n" (@: mysi b))
+  (nullptr DNode)))
+(mprint)
+
+(def main (fn extern-c int (void)
+  (printf "%p\n" (@: mysi b))
+  (printf "%d\n" (@ (@: mysi b)))
+  0))
+|#
