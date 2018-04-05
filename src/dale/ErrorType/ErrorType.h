@@ -107,7 +107,7 @@ enum
     MustHaveInitialiserForImpliedType,
     MustHaveInitialiserForConstType,
     MustHaveInitialiserForType,
-    NonNullPointerInGlobalStructDeclaration,
+    UnableToResolvePointerAddress,
     TypeNotSupported,
     ValueWillNeverBeNull,
     NoCoreFormNameInMacro,

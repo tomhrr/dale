@@ -218,9 +218,21 @@ parseLiteralPointer(Units *units, Node *top, char *data, Type *type,
     Context *ctx = units->top()->ctx;
 
     uint64_t value = *(uint64_t *) data;
-
     if (value) {
-        Error *e = new Error(NonNullPointerInGlobalStructDeclaration, top);
+        std::vector<Variable *> retrieved;
+        ctx->getRetrievedVariables(&retrieved);
+        for (std::vector<Variable *>::iterator b = retrieved.begin(),
+                                               e = retrieved.end();
+                b != e;
+                ++b) {
+            Variable *var = *b;
+            uint64_t address =
+                units->top()->ee->getGlobalValueAddress(var->symbol.c_str());
+            if (address == value) {
+                return llvm::cast<llvm::Constant>(var->value);
+            }
+        }
+        Error *e = new Error(UnableToResolvePointerAddress, top);
         ctx->er->addError(e);
         return NULL;
     }
@@ -444,6 +456,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     }
     ctx->popUntilNamespace(units->prefunction_ns);
 
+    ctx->enableVariableRetrievalLog();
     Function *temp_fn = new Function();
     temp_fn->llvm_function = llvm_fn;
     units->top()->pushGlobalFunction(temp_fn);
@@ -658,6 +671,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
 
     llvm::Constant *parsed =
         parseLiteralElement(units, top, (char*) &data, type, size);
+    ctx->disableVariableRetrievalLog();
 
     wrapper_fn->eraseFromParent();
     (llvm::cast<llvm::Function>(const_fn))->eraseFromParent();

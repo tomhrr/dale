@@ -280,9 +280,8 @@ errorInstanceToString(int error_instance)
     case ErrorInst::StructContainsPadding:
         ret = "struct contains padding, may cause problems";
         break;
-    case ErrorInst::NonNullPointerInGlobalStructDeclaration:
-        ret = "cannot have non-null non-char pointer value "
-              "in global struct declaration";
+    case ErrorInst::UnableToResolvePointerAddress:
+        ret = "unable to resolve pointer address in struct declaration";
         break;
     case ErrorInst::TypeNotSupported:
         ret = "type %s is not supported on this platform";

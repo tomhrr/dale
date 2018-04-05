@@ -33,6 +33,8 @@ Context::Context(ErrorReporter *er,
 
     active_ns_nodes.push_back(namespaces);
     used_ns_nodes.push_back(namespaces);
+
+    this->var_retrieval_logging = 0;
 }
 
 void
@@ -554,7 +556,11 @@ Context::getVariable(const char *name)
             return NULL;
         }
         const char *var_name = strrchr(name, '.') + 1;
-        return ns->getVariable(var_name);
+        Variable *var = ns->getVariable(var_name);
+        if (var && var_retrieval_logging) {
+            retrieved.push_back(var);
+        }
+        return var;
     }
 
     for (std::vector<NSNode *>::reverse_iterator
@@ -564,6 +570,9 @@ Context::getVariable(const char *name)
             ++rb) {
         Variable *var = (*rb)->ns->getVariable(name);
         if (var) {
+            if (var_retrieval_logging) {
+                retrieved.push_back(var);
+            }
             return var;
         }
     }
@@ -1405,5 +1414,27 @@ bool
 Context::removeDeserialised()
 {
     return removeDeserialised_(namespaces);
+}
+
+void
+Context::enableVariableRetrievalLog()
+{
+    var_retrieval_logging++;
+}
+
+void
+Context::disableVariableRetrievalLog()
+{
+    var_retrieval_logging--;
+    if (!var_retrieval_logging) {
+        retrieved.clear();
+    }
+}
+
+void
+Context::getRetrievedVariables(std::vector<Variable *> *variables)
+{
+    std::copy(retrieved.begin(), retrieved.end(),
+              std::back_inserter(*variables));
 }
 }
