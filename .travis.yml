@@ -7,6 +7,8 @@ addons:
       - llvm-toolchain-trusty-4.0
       - llvm-toolchain-trusty-5.0
     packages:
+      - llvm-3.3
+      - llvm-3.3-dev
       - llvm-3.4
       - llvm-3.4-dev
       - llvm-3.5
@@ -21,6 +23,7 @@ addons:
       - llvm-5.0-dev
       - libedit-dev
 env:
+  - LLVM=3.3
   - LLVM=3.4
   - LLVM=3.5
   - LLVM=3.6
