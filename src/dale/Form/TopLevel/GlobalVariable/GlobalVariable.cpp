@@ -226,6 +226,8 @@ parseLiteralPointer(Units *units, Node *top, char *data, Type *type,
                 b != e;
                 ++b) {
             Variable *var = *b;
+            /* This method isn't supported in LLVM 3.3, and none of
+             * the other EE methods appear to be usable in its stead. */
             uint64_t address =
                 units->top()->ee->getGlobalValueAddress(var->symbol.c_str());
             if (address == value) {
