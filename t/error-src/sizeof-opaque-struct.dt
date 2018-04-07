@@ -1,0 +1,7 @@
+(import cstdio)
+
+(def x (struct opaque ((a int))))
+
+(def main (fn extern-c int (void)
+  (printf "%d\n" (sizeof x))
+  0))
