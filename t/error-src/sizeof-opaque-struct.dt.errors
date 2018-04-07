@@ -1,1 +1,1 @@
-./sizeof-opaque-struct.dt:6:17: error: cannot instantiate opaque struct
+sizeof-opaque-struct.dt:6:17: error: cannot instantiate opaque struct
