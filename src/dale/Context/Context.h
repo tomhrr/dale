@@ -45,11 +45,13 @@ struct NSNode
 class Context
 {
 private:
-    /*! Whether variable retrieval logging is enabled.  This is an
-     *  integer so that nested calls to enable/disable work correctly. */
-    int var_retrieval_logging;
+    /*! Whether retrieval logging is enabled.  This is an integer so
+     *  that nested calls to enable/disable work correctly. */
+    int retrieval_logging;
     /*! Variables that have been retrieved. */
-    std::vector<Variable *> retrieved;
+    std::vector<Variable *> retrieved_var;
+    /*! Functions that have been retrieved. */
+    std::vector<Function *> retrieved_fn;
 
 public:
     /*! The native types for the context. Used primarily for type
@@ -377,18 +379,23 @@ public:
      */
     void relink();
 
-    /*! Start logging variable retrieval.
+    /*! Start logging variable/function retrieval.
      */
-    void enableVariableRetrievalLog();
+    void enableRetrievalLog();
 
-    /*! Stop logging variable retrieval.
+    /*! Stop logging variable/function retrieval.
      */
-    void disableVariableRetrievalLog();
+    void disableRetrievalLog();
 
     /*! Get a list of variables that were retrieved while logging was
      *  enabled.
      */
     void getRetrievedVariables(std::vector<Variable *> *variables);
+
+    /*! Get a list of functions that were retrieved while logging was
+     *  enabled.
+     */
+    void getRetrievedFunctions(std::vector<Function *> *functions);
 
     /*! Print the context's details to stderr. */
     void print();

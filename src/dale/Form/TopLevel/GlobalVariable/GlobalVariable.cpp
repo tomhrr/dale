@@ -219,10 +219,10 @@ parseLiteralPointer(Units *units, Node *top, char *data, Type *type,
 
     uint64_t value = *(uint64_t *) data;
     if (value) {
-        std::vector<Variable *> retrieved;
-        ctx->getRetrievedVariables(&retrieved);
-        for (std::vector<Variable *>::iterator b = retrieved.begin(),
-                                               e = retrieved.end();
+        std::vector<Variable *> retrieved_var;
+        ctx->getRetrievedVariables(&retrieved_var);
+        for (std::vector<Variable *>::iterator b = retrieved_var.begin(),
+                                               e = retrieved_var.end();
                 b != e;
                 ++b) {
             Variable *var = *b;
@@ -235,6 +235,53 @@ parseLiteralPointer(Units *units, Node *top, char *data, Type *type,
 #endif
             if (address == value) {
                 return llvm::cast<llvm::Constant>(var->value);
+            }
+        }
+        std::vector<Function *> retrieved_fn;
+        ctx->getRetrievedFunctions(&retrieved_fn);
+        for (std::vector<Function *>::iterator b = retrieved_fn.begin(),
+                                               e = retrieved_fn.end();
+                b != e;
+                ++b) {
+            Function *fn = *b;
+#if D_LLVM_VERSION_ORD <= 35
+            llvm::Type *llvm_return_type =
+                ctx->toLLVMType(ctx->tr->type_pvoid, top, false);
+            if (!llvm_return_type) {
+                return NULL;
+            }
+            std::vector<llvm::Type*> empty_args;
+            llvm::FunctionType *ft = getFunctionType(llvm_return_type,
+                                                     empty_args, false);
+            std::string new_name;
+            units->top()->getUnusedFunctionName(&new_name);
+
+            llvm::Constant *const_fn =
+                units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
+
+            llvm::Function *llvm_fn = llvm::cast<llvm::Function>(const_fn);
+            llvm_fn->setCallingConv(llvm::CallingConv::C);
+            llvm_fn->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_C));
+
+            llvm::BasicBlock *block =
+                llvm::BasicBlock::Create(*getContext(), "entry",
+                                        llvm_fn);
+            llvm::IRBuilder<> builder(block);
+
+            std::vector<llvm::Value *> call_args;
+            call_args.push_back(fn->llvm_function);
+            builder.CreateRet(llvm::cast<llvm::Value>(fn->llvm_function));
+            std::vector<llvm::GenericValue> values;
+            llvm::GenericValue res =
+                units->top()->ee->runFunction(llvm_fn, values);
+            uint64_t address = (uint64_t) res.PointerVal;
+            llvm_fn->eraseFromParent();
+#else
+            uint64_t address =
+                units->top()->ee->getGlobalValueAddress(fn->symbol.c_str());
+#endif
+            if (address == value) {
+                return llvm::cast<llvm::Constant>(fn->llvm_function);
             }
         }
         Error *e = new Error(UnableToResolvePointerAddress, top);
@@ -360,61 +407,6 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     if (top->is_list
             && (top->list->size() == 2)
             && ((*top->list)[0]->is_token)
-            && (!(*top->list)[0]->token->str_value.compare("#"))
-            && (type->points_to)) {
-        Node *node = (*top->list)[1];
-        node = units->top()->mp->parsePotentialMacroCall(node);
-        if (node && node->is_token) {
-            const char *node_str = node->token->str_value.c_str();
-            Variable *gv = ctx->getVariable(node_str);
-            if (gv) {
-                if (!(type->points_to->isEqualTo(gv->type))) {
-                    std::string want;
-                    std::string got;
-                    gv->type->toString(&got);
-                    type->toString(&want);
-                    Error *e = new Error(IncorrectType, top,
-                                        want.c_str(), got.c_str());
-                    ctx->er->addError(e);
-                    return NULL;
-                }
-                llvm::Constant *const_ptr =
-                    llvm::cast<llvm::Constant>(gv->value);
-                return const_ptr;
-            }
-            Function *fn = ctx->getFunction(node_str, NULL, NULL, 0);
-            if (fn) {
-                /* todo: Refactor, same code appears in Inst. */
-                Type *fn_type = new Type();
-                fn_type->is_function = 1;
-                fn_type->return_type = fn->return_type;
-
-                for (std::vector<Variable *>::iterator
-                        b = fn->parameters.begin(),
-                        e = fn->parameters.end();
-                        b != e;
-                        ++b) {
-                    fn_type->parameter_types.push_back((*b)->type);
-                }
-                fn_type = ctx->tr->getPointerType(fn_type);
-                if (!(type->isEqualTo(fn_type))) {
-                    std::string want;
-                    std::string got;
-                    fn_type->toString(&got);
-                    type->toString(&want);
-                    Error *e = new Error(IncorrectType, top,
-                                        want.c_str(), got.c_str());
-                    ctx->er->addError(e);
-                    return NULL;
-                }
-                llvm::Constant *const_ptr =
-                    llvm::cast<llvm::Constant>(fn->llvm_function);
-                return const_ptr;
-            }
-        }
-    } else if (top->is_list
-            && (top->list->size() == 2)
-            && ((*top->list)[0]->is_token)
             && (!(*top->list)[0]->token->str_value.compare("move"))) {
         is_rvalue = true;
     }
@@ -461,7 +453,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     }
     ctx->popUntilNamespace(units->prefunction_ns);
 
-    ctx->enableVariableRetrievalLog();
+    ctx->enableRetrievalLog();
     Function *temp_fn = new Function();
     temp_fn->llvm_function = llvm_fn;
     units->top()->pushGlobalFunction(temp_fn);
@@ -676,7 +668,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
 
     llvm::Constant *parsed =
         parseLiteralElement(units, top, (char*) &data, type, size);
-    ctx->disableVariableRetrievalLog();
+    ctx->disableRetrievalLog();
 
     wrapper_fn->eraseFromParent();
     (llvm::cast<llvm::Function>(const_fn))->eraseFromParent();

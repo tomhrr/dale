@@ -34,7 +34,7 @@ Context::Context(ErrorReporter *er,
     active_ns_nodes.push_back(namespaces);
     used_ns_nodes.push_back(namespaces);
 
-    this->var_retrieval_logging = 0;
+    this->retrieval_logging = 0;
 }
 
 void
@@ -529,7 +529,12 @@ Context::getFunction(const char *name,
             return NULL;
         }
         const char *fn_name = strrchr(name, '.') + 1;
-        return getFunction_(ns, fn_name, types, closest_fn, is_macro, lvalues);
+        Function *fn =
+            getFunction_(ns, fn_name, types, closest_fn, is_macro, lvalues);
+        if (fn && retrieval_logging) {
+            retrieved_fn.push_back(fn);
+        }
+        return fn;
     }
 
     for (std::vector<NSNode *>::reverse_iterator
@@ -540,6 +545,9 @@ Context::getFunction(const char *name,
         Function *fn =
             getFunction_((*rb)->ns, name, types, closest_fn, is_macro, lvalues);
         if (fn) {
+            if (retrieval_logging) {
+                retrieved_fn.push_back(fn);
+            }
             return fn;
         }
     }
@@ -557,8 +565,8 @@ Context::getVariable(const char *name)
         }
         const char *var_name = strrchr(name, '.') + 1;
         Variable *var = ns->getVariable(var_name);
-        if (var && var_retrieval_logging) {
-            retrieved.push_back(var);
+        if (var && retrieval_logging) {
+            retrieved_var.push_back(var);
         }
         return var;
     }
@@ -570,8 +578,8 @@ Context::getVariable(const char *name)
             ++rb) {
         Variable *var = (*rb)->ns->getVariable(name);
         if (var) {
-            if (var_retrieval_logging) {
-                retrieved.push_back(var);
+            if (retrieval_logging) {
+                retrieved_var.push_back(var);
             }
             return var;
         }
@@ -1417,24 +1425,32 @@ Context::removeDeserialised()
 }
 
 void
-Context::enableVariableRetrievalLog()
+Context::enableRetrievalLog()
 {
-    var_retrieval_logging++;
+    retrieval_logging++;
 }
 
 void
-Context::disableVariableRetrievalLog()
+Context::disableRetrievalLog()
 {
-    var_retrieval_logging--;
-    if (!var_retrieval_logging) {
-        retrieved.clear();
+    retrieval_logging--;
+    if (!retrieval_logging) {
+        retrieved_var.clear();
+        retrieved_fn.clear();
     }
 }
 
 void
 Context::getRetrievedVariables(std::vector<Variable *> *variables)
 {
-    std::copy(retrieved.begin(), retrieved.end(),
+    std::copy(retrieved_var.begin(), retrieved_var.end(),
               std::back_inserter(*variables));
+}
+
+void
+Context::getRetrievedFunctions(std::vector<Function *> *functions)
+{
+    std::copy(retrieved_fn.begin(), retrieved_fn.end(),
+              std::back_inserter(*functions));
 }
 }
