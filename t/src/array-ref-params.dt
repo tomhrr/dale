@@ -1,0 +1,9 @@
+(import cstdio)
+
+(def myfn (fn intern int ((a (ref (array-of 2 float))))
+  1234))
+
+(def main (fn extern-c int (void)
+  (def n (var auto (array-of 2 float) (array 1.0 2.0)))
+  (printf "%d\n" (myfn n))
+  0))

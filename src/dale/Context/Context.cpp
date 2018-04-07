@@ -506,14 +506,17 @@ getFunction_(Namespace *ns,
              std::vector<Type *> *types,
              Function **closest_fn,
              bool is_macro,
-             std::vector<bool> *lvalues)
+             std::vector<bool> *lvalues,
+             std::vector<Type *> *array_types)
 {
     Function *fn =
-        ns->getFunction(name, types, closest_fn, is_macro, false, lvalues);
+        ns->getFunction(name, types, closest_fn, is_macro, false,
+                        lvalues, array_types);
     if (fn) {
         return fn;
     }
-    return ns->getFunction(name, types, closest_fn, is_macro, true, lvalues);
+    return ns->getFunction(name, types, closest_fn, is_macro, true,
+                           lvalues, array_types);
 }
 
 Function *
@@ -521,7 +524,8 @@ Context::getFunction(const char *name,
                      std::vector<Type *> *types,
                      Function **closest_fn,
                      bool is_macro,
-                     std::vector<bool> *lvalues)
+                     std::vector<bool> *lvalues,
+                     std::vector<Type *> *array_types)
 {
     if (strchr(name, '.')) {
         Namespace *ns = getNamespace(name, true);
@@ -530,7 +534,8 @@ Context::getFunction(const char *name,
         }
         const char *fn_name = strrchr(name, '.') + 1;
         Function *fn =
-            getFunction_(ns, fn_name, types, closest_fn, is_macro, lvalues);
+            getFunction_(ns, fn_name, types, closest_fn, is_macro,
+                         lvalues, array_types);
         if (fn && retrieval_logging) {
             retrieved_fn.push_back(fn);
         }
@@ -543,7 +548,8 @@ Context::getFunction(const char *name,
             rb != re;
             ++rb) {
         Function *fn =
-            getFunction_((*rb)->ns, name, types, closest_fn, is_macro, lvalues);
+            getFunction_((*rb)->ns, name, types, closest_fn, is_macro,
+                         lvalues, array_types);
         if (fn) {
             if (retrieval_logging) {
                 retrieved_fn.push_back(fn);

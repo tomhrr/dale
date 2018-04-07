@@ -626,6 +626,8 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
 
     SavePoint sp(ctx, dfn, block);
 
+    std::vector<Type *> array_types;
+
     for (std::vector<Node *>::iterator b = (lst->begin() + 1),
                                        e = lst->end();
             b != e;
@@ -655,14 +657,22 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
             }
 
             call_args.push_back(NULL);
+            array_types.push_back(NULL);
             call_arg_types.push_back(ctx->tr->type_pdnode);
             continue;
         }
 
         block = arg_pr.block;
         if (arg_pr.type->is_array) {
+            array_types.push_back(arg_pr.type);
             arg_pr = ParseResult(block, arg_pr.type_of_address_of_value,
                                  arg_pr.address_of_value);
+        } else if (arg_pr.type_of_address_of_value
+                    && arg_pr.type_of_address_of_value->points_to
+                    && (arg_pr.type_of_address_of_value->points_to->is_array)) {
+            array_types.push_back(arg_pr.type_of_address_of_value->points_to);
+        } else {
+            array_types.push_back(NULL);
         }
         call_args.push_back(arg_pr.getValue(ctx));
         call_arg_types.push_back(arg_pr.type);
@@ -682,7 +692,8 @@ FunctionProcessor::parseFunctionCall(Function *dfn, llvm::BasicBlock *block,
 
     Function *closest_fn = NULL;
     Function *fn = ctx->getFunction(proc_name, &call_arg_types,
-                                    &closest_fn, false, &lvalues);
+                                    &closest_fn, false, &lvalues,
+                                    &array_types);
 
     /* If the function is a macro, set macro_to_call and return false.
      * (It's the caller's responsibility to handle processing of

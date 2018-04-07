@@ -127,6 +127,7 @@ public:
      *  @param is_macro Whether to limit searching to macros only.
      *  @param ignore_arg_constness Ignore argument type constness.
      *  @param lvalues A vector for type lvalue status.
+     *  @param array_types A vector of underlying array types.
      *
      *  pclosest_fn may be NULL. If it is provided, and a function
      *  matching the types cannot be found, then it will be set to a
@@ -144,7 +145,8 @@ public:
                                    Function **pclosest_fn,
                                    bool is_macro,
                                    bool ignore_arg_constness = true,
-                                   std::vector<bool> *lvalues = NULL);
+                                   std::vector<bool> *lvalues = NULL,
+                                   std::vector<Type *> *array_types = NULL);
     /*! Get a variable from this namespace.
      *  @param name The variable name. */
     Variable *getVariable(const char *name);

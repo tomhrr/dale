@@ -73,7 +73,7 @@ parseParameters(Units *units, Node *args_node,
             return false;
         }
 
-        if (var->type->is_array) {
+        if (!var->type->is_reference && var->type->is_array) {
             delete var;
             Error *e = new Error(ArraysCannotBeFunctionParameters,
                                  (*b));

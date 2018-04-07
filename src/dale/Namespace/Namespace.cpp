@@ -223,7 +223,8 @@ Namespace::getFunction(const char *name,
                        Function **pclosest_fn,
                        bool is_macro,
                        bool ignore_arg_constness,
-                       std::vector<bool> *lvalues)
+                       std::vector<bool> *lvalues,
+                       std::vector<Type *> *array_types)
 {
     std::string ss_name(name);
 
@@ -271,6 +272,7 @@ Namespace::getFunction(const char *name,
     std::vector<Type *>::iterator arg_type_iter;
     std::vector<Variable *>::iterator fn_arg_type_iter;
     std::vector<bool>::iterator lvalue_iter;
+    std::vector<Type *>::iterator array_type_iter;
 
     fn_iter = function_list->begin();
 
@@ -301,6 +303,9 @@ Namespace::getFunction(const char *name,
         arg_type_iter    = types->begin();
         if (lvalues) {
             lvalue_iter = lvalues->begin();
+        }
+        if (array_types) {
+            array_type_iter = array_types->begin();
         }
 
         int matched_arg_count = 0;
@@ -360,11 +365,21 @@ Namespace::getFunction(const char *name,
                 }
             }
 
-            bool result =
-                fn_arg_type->canBePassedFrom(
-                    (*arg_type_iter),
-                    ignore_arg_constness
-                );
+            bool result = false;
+            if (array_types && (*array_type_iter) != NULL) {
+                result =
+                    fn_arg_type->canBePassedFrom(
+                        (*array_type_iter),
+                        ignore_arg_constness
+                    );
+            }
+            if (!result) {
+                result =
+                    fn_arg_type->canBePassedFrom(
+                        (*arg_type_iter),
+                        ignore_arg_constness
+                    );
+            }
 
             if (result) {
                 if (current->is_macro) {
@@ -378,6 +393,9 @@ Namespace::getFunction(const char *name,
                 if (lvalues && (lvalue_iter != lvalues->end())) {
                     ++lvalue_iter;
                 }
+                if (array_types && (array_type_iter != array_types->end())) {
+                    ++array_type_iter;
+                }
                 continue;
             } else if (current->is_macro && fn_arg_type->isEqualTo(pdnode)) {
                 ++dnode_count;
@@ -386,6 +404,9 @@ Namespace::getFunction(const char *name,
                 ++matched_arg_count;
                 if (lvalues && (lvalue_iter != lvalues->end())) {
                     ++lvalue_iter;
+                }
+                if (array_types && (array_type_iter != array_types->end())) {
+                    ++array_type_iter;
                 }
                 continue;
             } else {

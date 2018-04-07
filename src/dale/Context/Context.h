@@ -207,7 +207,8 @@ public:
                           std::vector<Type *> *types,
                           Function **closest_fn,
                           bool is_macro,
-                          std::vector<bool> *lvalues = NULL);
+                          std::vector<bool> *lvalues = NULL,
+                          std::vector<Type *> *array_types = NULL);
     /*! Get the variable with the given name.
      *
      *  See Namespace::getVariable.  As per getFunction, this iterates
