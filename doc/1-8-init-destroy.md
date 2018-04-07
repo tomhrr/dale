@@ -11,12 +11,15 @@ An `init` function is defined like so:
         (def init (fn {linkage} bool ((val (ref {type})))
           {body}))
 
-If a variable of the specified type is defined without being
-initialised, this function will be run with that variable as its
-argument.
+If a lexically-scoped variable of the specified type is defined within
+a procedure without being initialised, this function will be run with
+that variable as its argument.
 
 If `init` is not defined over a type, then a variable of that type
 that is not explicitly initialised will have indeterminate state.
+This is also the case for variables defined outside of procedures,
+even if `init` is defined over the type: in those instances, `init`
+must be called explicitly for the variable at runtime.
 
 ### `setf-copy-init`
 

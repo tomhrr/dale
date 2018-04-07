@@ -86,6 +86,12 @@ It should not generally be necessary to use the `new-scope` form in
 user-level code. It is primarily intended for use in control flow
 macros and similar, such as `for`, `while` and `let`.
 
+Variables defined outside of procedures may be initialised using
+arbitrary expressions, including expressions that cause side effects.
+These expressions are evaluated at compile time, rather than runtime.
+If such a variable has a value that must be determined at runtime,
+then that has to be handled by way of a function call at runtime.
+
 ### Local type deduction
 
 If a variable definition includes a `{value}`, the `{type}` may be set
