@@ -235,6 +235,79 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
         result_dnode = (DNode *) macro_function(values2[0],
         values2[1], values2[2], values2[3], values2[4], values2[5],
         values2[6]);
+    } else if (values2.size() == 8) {
+        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
+                             void*, void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2], values2[3], values2[4], values2[5],
+        values2[6], values2[7]);
+    } else if (values2.size() == 9) {
+        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
+                             void*, void*, void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2], values2[3], values2[4], values2[5],
+        values2[6], values2[7], values2[8]);
+    } else if (values2.size() == 10) {
+        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
+                             void*, void*, void*, void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2], values2[3], values2[4], values2[5],
+        values2[6], values2[7], values2[8], values2[9]);
+    } else if (values2.size() == 11) {
+        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
+                             void*, void*, void*, void*, void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2], values2[3], values2[4], values2[5],
+        values2[6], values2[7], values2[8], values2[9], values2[10]);
+    } else if (values2.size() == 12) {
+        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
+                             void*, void*, void*, void*, void*, void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2], values2[3], values2[4], values2[5],
+        values2[6], values2[7], values2[8], values2[9], values2[10],
+        values2[11]);
+    } else if (values2.size() == 13) {
+        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
+                             void*, void*, void*, void*, void*, void*,
+                             void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2], values2[3], values2[4], values2[5],
+        values2[6], values2[7], values2[8], values2[9], values2[10],
+        values2[11], values2[12]);
+    } else if (values2.size() == 14) {
+        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
+                             void*, void*, void*, void*, void*, void*,
+                             void*, void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2], values2[3], values2[4], values2[5],
+        values2[6], values2[7], values2[8], values2[9], values2[10],
+        values2[11], values2[12], values2[13]);
+    } else if (values2.size() == 15) {
+        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
+                             void*, void*, void*, void*, void*, void*,
+                             void*, void*, void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2], values2[3], values2[4], values2[5],
+        values2[6], values2[7], values2[8], values2[9], values2[10],
+        values2[11], values2[12], values2[13], values2[14]);
+    } else if (values2.size() == 16) {
+        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
+                             void*, void*, void*, void*, void*, void*,
+                             void*, void*, void*, void*);
+        MFN macro_function = (MFN) address;
+        result_dnode = (DNode *) macro_function(values2[0],
+        values2[1], values2[2], values2[3], values2[4], values2[5],
+        values2[6], values2[7], values2[8], values2[9], values2[10],
+        values2[11], values2[12], values2[13], values2[14],
+        values2[15]);
     } else {
         fprintf(stderr, "Internal error: need to handle more macro parameters: %lu\n",
             values2.size());
