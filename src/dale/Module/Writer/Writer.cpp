@@ -17,7 +17,7 @@ namespace Module
 Writer::Writer(std::string module_name, dale::Context *ctx,
                llvm::Module *mod, PassManager *pm,
                std::set<std::string> *included_once_tags,
-               std::set<std::string> *included_modules,
+               std::map<std::string, std::vector<std::string>* > *included_modules,
                bool cto)
 {
     this->module_name = module_name;

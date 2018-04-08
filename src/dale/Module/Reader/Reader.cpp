@@ -368,7 +368,7 @@ Reader::run(Context *ctx, llvm::Linker *linker,
     char *data = original_data;
 
     std::set<std::string> once_tags;
-    std::set<std::string> dependencies;
+    std::map<std::string, std::vector<std::string>* > dependencies;
     std::map<std::string, std::string> typemap;
     int cto;
 
@@ -396,13 +396,32 @@ Reader::run(Context *ctx, llvm::Linker *linker,
 
     llvm::Module *new_module = loadModule(&module_path);
 
-    included_modules.insert(lib_module_name);
-
-    for (std::set<std::string>::iterator b = dependencies.begin(),
-                                         e = dependencies.end();
+    std::vector<std::string> *import_forms_str = new std::vector<std::string>();
+    for (std::vector<const char *>::iterator b = import_forms->begin(),
+                                             e = import_forms->end();
             b != e;
             ++b) {
-        bool res = run(ctx, linker, mod, n, (*b).c_str(), NULL);
+        import_forms_str->push_back(std::string(*b));
+    }
+    included_modules.insert(
+        std::pair<std::string, std::vector<std::string>* >(
+            lib_module_name, import_forms_str
+        )
+    );
+
+    for (std::map<std::string, std::vector<std::string>* >::iterator
+            b = dependencies.begin(),
+            e = dependencies.end();
+            b != e;
+            ++b) {
+        std::vector<const char *> import_forms;
+        for (std::vector<std::string>::iterator ib = b->second->begin(),
+                                                ie = b->second->end();
+                ib != ie;
+                ++ib) {
+            import_forms.push_back((*ib).c_str());
+        }
+        bool res = run(ctx, linker, mod, n, b->first.c_str(), &import_forms);
         if (!res) {
             return false;
         }
@@ -444,7 +463,11 @@ Reader::run(Context *ctx, llvm::Linker *linker,
                   included_once_tags.end()
               ));
 
-    included_modules.insert(lib_module_name);
+    included_modules.insert(
+        std::pair<std::string, std::vector<std::string>* >(
+            lib_module_name, import_forms_str
+        )
+    );
 
     dtm_modules.insert(std::pair<std::string, llvm::Module *>(
                             std::string(lib_module_name),

@@ -1,0 +1,3 @@
+(module dtm-preserve-imported2)
+
+(import dtm-preserve-imported1 (mfn1))

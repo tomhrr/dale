@@ -1,0 +1,5 @@
+(import dtm-preserve-imported2)
+
+(def main (fn extern-c int (void)
+  (mfn2)
+  0))

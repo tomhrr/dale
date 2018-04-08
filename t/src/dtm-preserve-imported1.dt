@@ -1,0 +1,4 @@
+(module dtm-preserve-imported1)
+
+(def mfn1 (fn extern int (void) 100))
+(def mfn2 (fn extern int (void) 200))

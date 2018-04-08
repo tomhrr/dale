@@ -31,7 +31,7 @@ private:
     /*! The once tags for the module. */
     std::set<std::string> *included_once_tags;
     /*! The modules included by way of this module. */
-    std::set<std::string> *included_modules;
+    std::map<std::string, std::vector<std::string>* > *included_modules;
     /*! Whether the module is a compile-time-only module. */
     bool cto;
     /*! Write the module's bitcode to disk.
@@ -58,7 +58,7 @@ public:
     Writer(std::string module_name, dale::Context *ctx,
            llvm::Module *mod, PassManager *pm,
            std::set<std::string> *included_once_tags,
-           std::set<std::string> *included_modules,
+           std::map<std::string, std::vector<std::string>* > *included_modules,
            bool cto);
     ~Writer();
 

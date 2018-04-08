@@ -37,7 +37,7 @@ private:
 public:
     std::vector<std::string> *so_paths;
     std::vector<const char *> module_directory_paths;
-    std::set<std::string> included_modules;
+    std::map<std::string, std::vector<std::string>* > included_modules;
     std::set<std::string> included_once_tags;
     std::vector<const char *> include_directory_paths;
     std::map<std::string, llvm::Module *> dtm_modules;
