@@ -12,7 +12,7 @@ namespace dale
 Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
            TypeRegister *tr, llvm::ExecutionEngine *ee, bool is_x86_64,
            Context *ctx, MacroProcessor *mp, FunctionProcessor *fp,
-           llvm::Module *module, llvm::Linker *linker)
+           llvm::Module *module, llvm::Linker *linker, bool line_buffered)
 {
     FILE *mfp = fopen(path, "r");
     if (!mfp) {
@@ -38,7 +38,7 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
     this->mp = mp;
     this->fp = fp;
 
-    Lexer *lxr = new Lexer(mfp);
+    Lexer *lxr = new Lexer(mfp, line_buffered);
     parser = new Parser(lxr, er, path);
 
     if (!module) {

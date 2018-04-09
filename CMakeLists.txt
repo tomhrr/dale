@@ -282,6 +282,124 @@ set_target_properties (dalec PROPERTIES LINK_FLAGS "${DALEC_LINK_FLAGS} ${LLVM_L
 target_link_libraries (dalec ${LLVM_LIBS} ${DALEC_LINK_FLAGS} ${LLVM_LINK_FLAGS})
 install (TARGETS dalec DESTINATION bin)
 
+# Add the REPL.
+
+add_executable (daleci src/dale/daleci.cpp
+                       src/dale/Introspection/Introspection.cpp
+                       src/dale/Operation/Cast/Cast.cpp
+                       src/dale/Operation/Move/Move.cpp
+                       src/dale/Operation/Sizeof/Sizeof.cpp
+                       src/dale/Operation/Offsetof/Offsetof.cpp
+                       src/dale/Operation/Alignmentof/Alignmentof.cpp
+                       src/dale/BasicTypes/BasicTypes.cpp
+                       src/dale/Module/Writer/Writer.cpp
+                       src/dale/Serialise/Serialise.cpp
+                       src/dale/REPL/REPL.cpp
+                       src/dale/Linkage/Linkage.cpp
+                       src/dale/Namespace/Namespace.cpp
+                       src/dale/Context/Context.cpp
+                       src/dale/NamespaceSavePoint/NamespaceSavePoint.cpp
+                       src/dale/ContextSavePoint/ContextSavePoint.cpp
+                       src/dale/Lexer/Lexer.cpp
+                       src/dale/Node/Node.cpp
+                       src/dale/Parser/Parser.cpp
+                       src/dale/Position/Position.cpp
+                       src/dale/Utils/Utils.cpp
+                       src/dale/Token/Token.cpp
+                       src/dale/ErrorType/ErrorType.cpp
+                       src/dale/Error/Error.cpp
+                       src/dale/ErrorReporter/ErrorReporter.cpp
+                       src/dale/ParseResult/ParseResult.cpp
+                       src/dale/Function/Function.cpp
+                       src/dale/BaseType/BaseType.cpp
+                       src/dale/TokenType/TokenType.cpp
+                       src/dale/Type/Type.cpp
+                       src/dale/TypeMap/TypeMap.cpp
+                       src/dale/Variable/Variable.cpp
+                       src/dale/Struct/Struct.cpp
+                       src/dale/NativeTypes/NativeTypes.cpp
+                       src/dale/TypeRegister/TypeRegister.cpp
+                       src/dale/Form/Proc/Goto/Goto.cpp
+                       src/dale/Form/Proc/If/If.cpp
+                       src/dale/Form/Proc/Label/Label.cpp
+                       src/dale/Form/Proc/Return/Return.cpp
+                       src/dale/Form/Proc/Setf/Setf.cpp
+                       src/dale/Form/Proc/Dereference/Dereference.cpp
+                       src/dale/Form/Proc/Sref/Sref.cpp
+                       src/dale/Form/Proc/AddressOf/AddressOf.cpp
+                       src/dale/Form/Proc/Aref/Aref.cpp
+                       src/dale/Form/Proc/PtrEquals/PtrEquals.cpp
+                       src/dale/Form/Proc/PtrAdd/PtrAdd.cpp
+                       src/dale/Form/Proc/PtrSubtract/PtrSubtract.cpp
+                       src/dale/Form/Proc/PtrLessThan/PtrLessThan.cpp
+                       src/dale/Form/Proc/PtrGreaterThan/PtrGreaterThan.cpp
+                       src/dale/Form/Proc/VaStart/VaStart.cpp
+                       src/dale/Form/Proc/VaEnd/VaEnd.cpp
+                       src/dale/Form/Proc/VaArg/VaArg.cpp
+                       src/dale/Form/Proc/Null/Null.cpp
+                       src/dale/Form/Proc/Quote/Quote.cpp
+                       src/dale/Form/Proc/Def/Def.cpp
+                       src/dale/Form/Proc/NullPtr/NullPtr.cpp
+                       src/dale/Form/Proc/Do/Do.cpp
+                       src/dale/Form/Proc/Cast/Cast.cpp
+                       src/dale/Form/Proc/Sizeof/Sizeof.cpp
+                       src/dale/Form/Proc/Offsetof/Offsetof.cpp
+                       src/dale/Form/Proc/Alignmentof/Alignmentof.cpp
+                       src/dale/Form/Proc/Funcall/Funcall.cpp
+                       src/dale/Form/Proc/UsingNamespace/UsingNamespace.cpp
+                       src/dale/Form/Proc/NewScope/NewScope.cpp
+                       src/dale/Form/Proc/ArrayOf/ArrayOf.cpp
+                       src/dale/Form/Proc/Move/Move.cpp
+                       src/dale/Form/ProcBody/ProcBody.cpp
+                       src/dale/Form/Macro/ArrayDeref/ArrayDeref.cpp
+                       src/dale/Form/Macro/StructDeref/StructDeref.cpp
+                       src/dale/Form/Macro/DerefStructDeref/DerefStructDeref.cpp
+                       src/dale/Form/Macro/DerefStruct/DerefStruct.cpp
+                       src/dale/Form/Macro/Setv/Setv.cpp
+                       src/dale/Form/Linkage/Struct/Struct.cpp
+                       src/dale/Form/Linkage/Linkage.cpp
+                       src/dale/Form/Type/Type.cpp
+                       src/dale/Form/Function/Function.cpp
+                       src/dale/Form/Proc/Token/Token.cpp
+                       src/dale/Form/Proc/Inst/Inst.cpp
+                       src/dale/Form/TopLevel/Namespace/Namespace.cpp
+                       src/dale/Form/TopLevel/UsingNamespace/UsingNamespace.cpp
+                       src/dale/Form/TopLevel/Include/Include.cpp
+                       src/dale/Form/TopLevel/Do/Do.cpp
+                       src/dale/Form/TopLevel/GlobalVariable/GlobalVariable.cpp
+                       src/dale/Form/TopLevel/Function/Function.cpp
+                       src/dale/Form/TopLevel/Struct/Struct.cpp
+                       src/dale/Form/TopLevel/Macro/Macro.cpp
+                       src/dale/Form/Struct/Struct.cpp
+                       src/dale/Form/TopLevel/Def/Def.cpp
+                       src/dale/Form/TopLevel/Module/Module.cpp
+                       src/dale/Form/TopLevel/Import/Import.cpp
+                       src/dale/Form/TopLevel/Inst/Inst.cpp
+                       src/dale/Form/Literal/Struct/Struct.cpp
+                       src/dale/Form/Literal/Array/Array.cpp
+                       src/dale/CoreForms/CoreForms.cpp
+                       src/dale/Label/Label.cpp
+                       src/dale/CommonDecl/CommonDecl.cpp
+                       src/dale/Unit/Unit.cpp
+                       src/dale/Units/Units.cpp
+                       src/dale/DNodeConverter/DNodeConverter.cpp
+                       src/dale/MacroProcessor/MacroProcessor.cpp
+                       src/dale/Operation/Coerce/Coerce.cpp
+                       src/dale/Form/Literal/Integer/Integer.cpp
+                       src/dale/FunctionProcessor/FunctionProcessor.cpp
+                       src/dale/Operation/Destruct/Destruct.cpp
+                       src/dale/Operation/Copy/Copy.cpp
+                       src/dale/Operation/CloseScope/CloseScope.cpp
+                       src/dale/Form/Parameter/Parameter.cpp
+                       src/dale/Module/Reader/Reader.cpp
+                       src/dale/SavePoint/SavePoint.cpp
+                       src/dale/Form/Utils/Utils.cpp
+                       src/dale/Form/Proc/Include/Include.cpp)
+set_target_properties (daleci PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS} -I.")
+set_target_properties (daleci PROPERTIES LINK_FLAGS "${DALEC_LINK_FLAGS} ${LLVM_LINK_FLAGS} -rdynamic")
+target_link_libraries (daleci ${LLVM_LIBS} ${DALEC_LINK_FLAGS} ${LLVM_LINK_FLAGS})
+install (TARGETS daleci DESTINATION bin)
+
 # Run tests.
 
 add_custom_target (tests COMMAND ${CMAKE_SOURCE_DIR}/run-tests ${CMAKE_SOURCE_DIR})

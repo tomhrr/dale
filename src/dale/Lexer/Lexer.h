@@ -33,6 +33,8 @@ private:
     bool been_pushed;
     /*! Whether the current position needs to be reset. */
     bool reset_position;
+    /*! Whether to process input line-by-line. */
+    bool line_buffered;
 
     /*! Get the next character. */
     int getchar_();
@@ -42,10 +44,9 @@ private:
 public:
     /*! Construct a new lexer.
      *  @param file The file to read.
-     *  @param line_number The current line number.
-     *  @param column_number The current column number.
+     *  @param line_buffered Whether to process input line-by-line.
      */
-    Lexer(FILE *file, int line_number = 1, int column_number = 1);
+    Lexer(FILE *file, bool line_buffered = false);
     ~Lexer();
     /*! Get the next token.
      *  @param token The token buffer.

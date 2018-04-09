@@ -7,6 +7,7 @@
 src/dale/Config\.h
 dale-bindgen
 dalec
+daleci
 CMakeFiles
 CMakeCache
 CMakeCache.txt

@@ -8,10 +8,11 @@
 
 namespace dale
 {
-Lexer::Lexer(FILE *file, int line_number, int column_number)
+Lexer::Lexer(FILE *file, bool line_buffered)
 {
-    current.setLineAndColumn(line_number, column_number);
+    current.setLineAndColumn(1, 1);
     this->file = file;
+    this->line_buffered = line_buffered;
 
     count = 0;
     index = 0;
@@ -30,9 +31,19 @@ int
 Lexer::getchar_()
 {
     if (count == 0) {
-        int bytes = fread(buf, 1, 8192, file);
-        if (!bytes) {
-            return EOF;
+        size_t bytes;
+        if (line_buffered) {
+            char *line = NULL;
+            getline(&line, &bytes, file);
+            if (!bytes) {
+                return EOF;
+            }
+            strcpy(buf, line);
+        } else {
+            bytes = fread(buf, 1, 8192, file);
+            if (!bytes) {
+                return EOF;
+            }
         }
 
         count = bytes;

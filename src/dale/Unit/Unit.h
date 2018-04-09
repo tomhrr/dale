@@ -83,7 +83,8 @@ public:
     Unit(const char *path, Units *units, ErrorReporter *er,
          NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee,
          bool is_x86_64, Context *ctx, MacroProcessor *mp,
-         FunctionProcessor *fp, llvm::Module *module, llvm::Linker *linker);
+         FunctionProcessor *fp, llvm::Module *module,
+         llvm::Linker *linker, bool line_buffered = false);
     ~Unit();
     /*! Check whether this unit has a once tag.
      */
