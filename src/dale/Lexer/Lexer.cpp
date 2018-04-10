@@ -34,11 +34,12 @@ Lexer::getchar_()
         size_t bytes;
         if (line_buffered) {
             char *line = NULL;
-            getline(&line, &bytes, file);
+            size_t allocated = 0;
+            bytes = getline(&line, &allocated, file);
             if (!bytes) {
                 return EOF;
             }
-            strcpy(buf, line);
+            strncpy(buf, line, bytes);
         } else {
             bytes = fread(buf, 1, 8192, file);
             if (!bytes) {
