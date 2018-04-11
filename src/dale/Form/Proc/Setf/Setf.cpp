@@ -134,6 +134,82 @@ processMovePtrCall(Context *ctx, Function *over_setf,
 }
 
 bool
+FormProcSetfProcess(Units *units, Function *fn, llvm::BasicBlock *block,
+                    Node *node, Node *value_node,
+                    bool get_address, bool prefixed_with_core,
+                    ParseResult *variable_pr, ParseResult *value_pr,
+                    ParseResult *pr)
+{
+    Context *ctx = units->top()->ctx;
+
+    llvm::IRBuilder<> builder(block);
+
+    if (!prefixed_with_core) {
+        Function *over_setf = getMoveAssign(ctx, variable_pr->type,
+                                            value_pr->type);
+        if (over_setf && !value_pr->value_is_lvalue) {
+            return processMovePtrCall(ctx, over_setf, &builder,
+                                      variable_pr, value_pr, pr);
+        }
+    }
+
+    if (!Operation::IsCopyPermitted(ctx, node, variable_pr->type->points_to)) {
+        return false;
+    }
+
+    /* If an overridden setf exists, and value_pr is a value of the
+     * pointee type of variable_pr, then call the overridden setf
+     * after allocating memory for value_pr and copying it into place.
+     * */
+
+    if (!prefixed_with_core
+            && variable_pr->type->points_to->canBeSetFrom(value_pr->type)) {
+        Function *over_setf = getCopyAssign(ctx, variable_pr->type,
+                                            variable_pr->type);
+        if (over_setf) {
+            return processCopyPtrCall(ctx, over_setf, &builder,
+                                      variable_pr, value_pr, pr);
+        }
+    }
+
+    /* If an appropriate setf definition exists, which matches
+     * the arguments exactly, then use it. */
+
+    if (!prefixed_with_core) {
+        Function *over_setf = getCopyAssign(ctx, variable_pr->type,
+                                            value_pr->type);
+        if (over_setf) {
+            return processCopyExactCall(ctx, over_setf, &builder,
+                                        variable_pr, value_pr, pr);
+        }
+    }
+
+    if (variable_pr->type->points_to->canBeSetFrom(value_pr->type)) {
+        builder.CreateStore(value_pr->getValue(ctx),
+                            variable_pr->getValue(ctx));
+
+        ParseResult destruct_pr;
+        bool res = destructTwo(ctx, variable_pr, value_pr,
+                               &destruct_pr, &builder);
+        if (!res) {
+            return false;
+        }
+
+        pr->set(destruct_pr.block, ctx->tr->type_bool,
+                ctx->nt->getLLVMTrue());
+        pr->do_not_copy_with_setf = true;
+        return true;
+    }
+
+    /* This is used to set an error message. */
+    ctx->er->assertTypeEquality("setf", value_node,
+                                value_pr->type,
+                                variable_pr->type->points_to,
+                                false);
+    return false;
+}
+
+bool
 FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
                   Node *node, bool get_address, bool prefixed_with_core,
                   ParseResult *pr)
@@ -187,70 +263,8 @@ FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         value_pr.retval = NULL;
     }
 
-    builder.SetInsertPoint(value_pr.block);
-
-    if (!prefixed_with_core) {
-        Function *over_setf = getMoveAssign(ctx, variable_pr.type,
-                                            value_pr.type);
-        if (over_setf && !value_pr.value_is_lvalue) {
-            return processMovePtrCall(ctx, over_setf, &builder,
-                                      &variable_pr, &value_pr, pr);
-        }
-    }
-
-    if (!Operation::IsCopyPermitted(ctx, node, variable_pr.type->points_to)) {
-        return false;
-    }
-
-    /* If an overridden setf exists, and value_pr is a value of the
-     * pointee type of variable_pr, then call the overridden setf
-     * after allocating memory for value_pr and copying it into place.
-     * */
-
-    if (!prefixed_with_core
-            && variable_pr.type->points_to->canBeSetFrom(value_pr.type)) {
-        Function *over_setf = getCopyAssign(ctx, variable_pr.type,
-                                            variable_pr.type);
-        if (over_setf) {
-            return processCopyPtrCall(ctx, over_setf, &builder,
-                                      &variable_pr, &value_pr, pr);
-        }
-    }
-
-    /* If an appropriate setf definition exists, which matches
-     * the arguments exactly, then use it. */
-
-    if (!prefixed_with_core) {
-        Function *over_setf = getCopyAssign(ctx, variable_pr.type,
-                                            value_pr.type);
-        if (over_setf) {
-            return processCopyExactCall(ctx, over_setf, &builder,
-                                        &variable_pr, &value_pr, pr);
-        }
-    }
-
-    if (variable_pr.type->points_to->canBeSetFrom(value_pr.type)) {
-        builder.CreateStore(value_pr.getValue(ctx),
-                            variable_pr.getValue(ctx));
-
-        ParseResult destruct_pr;
-        bool res = destructTwo(ctx, &variable_pr, &value_pr,
-                               &destruct_pr, &builder);
-        if (!res) {
-            return false;
-        }
-
-        pr->set(destruct_pr.block, ctx->tr->type_bool,
-                ctx->nt->getLLVMTrue());
-        pr->do_not_copy_with_setf = true;
-        return true;
-    }
-
-    /* This is used to set an error message. */
-    ctx->er->assertTypeEquality("setf", (*lst)[2],
-                                value_pr.type,
-                                variable_pr.type->points_to,
-                                false);
-    return false;
+    return FormProcSetfProcess(units, fn, value_pr.block, node, value_node, get_address,
+                               prefixed_with_core, &variable_pr,
+                               &value_pr, pr);
 }
 }

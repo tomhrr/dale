@@ -50,7 +50,7 @@ Parser::getUntilRightParenOrEof(Token *t, Error *e)
 }
 
 Node *
-Parser::getNextList()
+Parser::getNextNode()
 {
     Token ts(TokenType::Null);
     Token te(TokenType::Null);
@@ -70,16 +70,17 @@ Parser::getNextList()
     }
 
     if (ts.type != TokenType::LeftParen) {
-        e.begin = new Position(ts.begin);
-        e.end   = new Position(ts.end);
-        e.instance = ErrorInst::ExpectedLeftParen;
-        erep->addError(e);
-        return NULL;
+        Token *mytoken = new Token(&ts);
+        Node *node = new Node(mytoken);
+        node->filename = filename;
+        ts.begin.copyTo(node->getBeginPos());
+        te.begin.copyTo(node->getEndPos());
+        return node;
     }
 
     int res;
     std::vector<Node*> *list = new std::vector<Node*>;
-    while ((res = getNextListInternal(list)) == 1) {
+    while ((res = getNextNodeInternal(list)) == 1) {
     }
 
     if (res == 0) {
@@ -113,8 +114,29 @@ Parser::getNextList()
     return node;
 }
 
+Node *
+Parser::getNextList()
+{
+    Node *node = getNextNode();
+
+    if (!node) {
+        return node;
+    } else if (node->is_token) {
+        Node n;
+        n.filename = filename;
+        Error e(ErrorInst::Null, &n);
+        e.begin = new Position(node->getBeginPos());
+        e.end   = new Position(node->getEndPos());
+        e.instance = ErrorInst::ExpectedLeftParen;
+        erep->addError(e);
+        return NULL;
+    } else {
+        return node;
+    }
+}
+
 int
-Parser::getNextListInternal(std::vector<Node*> *list)
+Parser::getNextNodeInternal(std::vector<Node*> *list)
 {
     Token t(TokenType::Null);
     Token te(TokenType::Null);
@@ -145,7 +167,7 @@ Parser::getNextListInternal(std::vector<Node*> *list)
         t.end.copyTo(node->getEndPos());
 
         int res;
-        while ((res = (getNextListInternal(sublist))) == 1) {
+        while ((res = (getNextNodeInternal(sublist))) == 1) {
         }
 
         if (res == 0) {

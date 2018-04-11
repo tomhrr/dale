@@ -50,6 +50,7 @@
 #include "llvm/CodeGen/LinkAllAsmWriterComponents.h"
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/ExecutionEngine/Interpreter.h"
 #if D_LLVM_VERSION_ORD <= 35
 #include "llvm/ExecutionEngine/JIT.h"
@@ -84,6 +85,8 @@
 #include "../NativeTypes/NativeTypes.h"
 #include "../Module/Writer/Writer.h"
 #include "../Form/TopLevel/Inst/Inst.h"
+#include "../Form/Proc/Inst/Inst.h"
+#include "../Form/Proc/Setf/Setf.h"
 #include "../Unit/Unit.h"
 #include "../CoreForms/CoreForms.h"
 #include "../CommonDecl/CommonDecl.h"
@@ -240,7 +243,7 @@ getTargetMachine(llvm::Module *last_module)
     return target_sp.get();
 }
 
-int
+void
 REPL::run(std::vector<const char *> *compile_lib_paths,
           std::vector<const char *> *include_paths,
           std::vector<const char *> *module_paths,
@@ -263,10 +266,8 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
 
     init_introspection_functions();
 
-    llvm::Module *last_module = NULL;
-
-    std::vector<std::string> shared_object_paths;  
-    std::vector<const char *> static_module_names; 
+    std::vector<std::string> shared_object_paths;
+    std::vector<const char *> static_module_names;
     Module::Reader mr(module_paths, &shared_object_paths, include_paths,
                       &static_module_names, false, false);
     for (std::vector<const char*>::iterator b = compile_lib_paths->begin(),
@@ -368,7 +369,7 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
         fprintf(stdout, "> ");
         fflush(stdout);
 
-        Node *top = units.top()->parser->getNextList();
+        Node *top = units.top()->parser->getNextNode();
         if (top) {
             nodes.push_back(top);
         }
@@ -393,7 +394,171 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
             }
             break;
         }
-        FormTopLevelInstParse(&units, top);
+
+        bool processed = false;
+        if (top->is_list && top->list->size()) {
+            Node *first = top->list->at(0);
+            if (first->is_token) {
+                std::string *first_str = &(first->token->str_value);
+                if ((first_str->compare("def") == 0) ||
+                    (first_str->compare("do") == 0) ||
+                    (first_str->compare("namespace") == 0) ||
+                    (first_str->compare("include") == 0) ||
+                    (first_str->compare("import") == 0)) {
+                    FormTopLevelInstParse(&units, top);
+                    processed = true;
+                }
+            }
+        }
+        if (!processed) {
+            llvm::Type *llvm_return_type = ctx->toLLVMType(
+                ctx->tr->type_void, top, true);
+            std::vector<llvm::Type*> empty_args;
+            llvm::FunctionType *ft = getFunctionType(llvm_return_type,
+                                                    empty_args, false);
+
+            std::string new_name;
+            units.top()->getUnusedFunctionName(&new_name);
+
+            llvm::Constant *const_fn =
+                units.top()->module->getOrInsertFunction(new_name.c_str(), ft);
+
+            llvm::Function *llvm_fn = llvm::cast<llvm::Function>(const_fn);
+            llvm_fn->setCallingConv(llvm::CallingConv::C);
+            llvm_fn->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_C));
+
+            std::vector<Variable*> args;
+            Function *fn = new Function(ctx->tr->type_void, &args, llvm_fn, 0, &new_name);
+
+            fn->linkage = Linkage::Intern;
+            int error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
+
+            std::vector<Node*> nodes;
+            nodes.push_back(top);
+
+            ctx->enableRetrievalLog();
+            Function *temp_fn = new Function();
+            temp_fn->llvm_function = llvm_fn;
+            units.top()->pushGlobalFunction(temp_fn);
+            ctx->activateAnonymousNamespace();
+            std::string anon_name = ctx->ns()->name;
+
+            llvm::BasicBlock *block =
+                llvm::BasicBlock::Create(*getContext(), "entry", llvm_fn);
+
+            ParseResult res_pr;
+            bool res = FormProcInstParse(&units, fn, block, top, false, false,
+                                         NULL, &res_pr);
+            if (!res) {
+                er.flush();
+                llvm_fn->eraseFromParent();
+                ctx->deactivateNamespace(anon_name.c_str());
+                units.top()->popGlobalFunction();
+                continue;
+            }
+
+            llvm::IRBuilder<> builder(res_pr.block);
+
+            std::string unused_name;
+            units.top()->getUnusedVarName(&unused_name);
+
+            std::string var_name("_");
+
+            Variable *var = ctx->getVariable("_");
+            bool exists = true;
+            if (!var) {
+                exists = false;
+                var = new Variable();
+                var->name.append(var_name);
+                var->once_tag = units.top()->once_tag;
+                var->linkage = Linkage::Intern;
+            }
+            var->symbol.clear();
+            var->symbol.append(unused_name);
+            var->type = res_pr.type;
+            llvm::GlobalVariable *llvm_var =
+                llvm::cast<llvm::GlobalVariable>(
+                    units.top()->module->getOrInsertGlobal(
+                        unused_name.c_str(),
+                        ctx->toLLVMType(res_pr.type, top, false)
+                    )
+                );
+            llvm_var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+            llvm::Type *llvm_type = ctx->toLLVMType(res_pr.type, top, false);
+
+            if (res_pr.type->points_to) {
+                llvm_var->setInitializer(getNullPointer(llvm_type));
+            } else if (res_pr.type->struct_name.size() || res_pr.type->is_array) {
+                llvm_var->setInitializer(
+                    llvm::ConstantAggregateZero::get(llvm_type)
+                );
+            } else if (res_pr.type->isIntegerType()) {
+                llvm_var->setInitializer(
+                    ctx->nt->getConstantInt(
+                        llvm::IntegerType::get(
+                            *getContext(),
+                            ctx->nt->internalSizeToRealSize(res_pr.type->getIntegerSize())
+                        ),
+                        "0"
+                    )
+                );
+            } else if (res_pr.type->isFloatingPointType()) {
+                llvm::ConstantFP *const_float =
+                    llvm::ConstantFP::get(*getContext(), llvm::APFloat((float) 0));
+                llvm_var->setInitializer(
+                    llvm::cast<llvm::Constant>(const_float)
+                );
+            }
+
+            var->value = llvm::cast<llvm::Value>(llvm_var);
+
+            ParseResult var_pr;
+            var_pr.set(res_pr.block, ctx->tr->getPointerType(var->type),
+                       var->value);
+
+            ParseResult pr;
+            bool res5 =
+                FormProcSetfProcess(&units, fn, res_pr.block,
+                                    top, top, false, false,
+                                    &var_pr, &res_pr, &pr);
+            if (!res5) {
+                er.flush();
+                llvm_fn->eraseFromParent();
+                ctx->deactivateNamespace(anon_name.c_str());
+                units.top()->popGlobalFunction();
+                continue;
+            }
+
+            std::string x;
+            res_pr.type->toString(&x);
+            fprintf(stderr, "%s\n", x.c_str());
+
+            builder.CreateRetVoid();
+
+            ctx->deactivateNamespace(anon_name.c_str());
+            if (!exists) {
+                res = ctx->ns()->addVariable(var_name.c_str(), var);
+                if (!res) {
+                    fprintf(stderr, "Internal error: cannot add variable.\n");
+                    abort();
+                }
+            }
+
+            units.top()->popGlobalFunction();
+
+            int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
+            if (error_count_begin != error_count_end) {
+                llvm_fn->replaceAllUsesWith(
+                    llvm::UndefValue::get(llvm_fn->getType())
+                );
+                llvm_fn->eraseFromParent();
+            } else {
+                std::vector<llvm::GenericValue> values;
+                llvm::GenericValue res2 =
+                    units.top()->ee->runFunction(llvm_fn, values);
+                llvm_fn->eraseFromParent();
+            }
+        }
         er.flush();
     }
 }

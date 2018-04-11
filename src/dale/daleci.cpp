@@ -16,21 +16,6 @@
 
 using namespace dale;
 
-static bool
-isEndingOn(const char *string, const char *ending)
-{
-    size_t sl = strlen (string);
-    size_t el = strlen (ending);
-
-    return (sl >= el) && (strcmp (string + (sl - el), ending) == 0);
-}
-
-static bool
-appearsToBeLib(const char *str)
-{
-    return isEndingOn(str, ".o") || isEndingOn(str, ".a");
-}
-
 std::string
 joinWithPrefix(std::vector<const char*> strings,
                const std::string prefix, std::string buffer)
@@ -57,22 +42,14 @@ main(int argc, char **argv)
     std::vector<const char*> bitcode_paths;
     std::vector<const char*> module_paths;
 
-    const char *output_path_arg = NULL;
-    const char *module_name     = NULL;
-
-
-    int produce_set      = 0;
-    int no_linking       = 0;
     int debug            = 0;
     int no_dale_stdlib   = 0;
     int no_stdlib        = 0;
     int no_common        = 0;
-    int found_sm         = 0;
     int version          = 0;
     int print_expansions = 0;
 
     int option_index         = 0;
-    int forced_remove_macros = 0;
 
     static const char *options = "M:a:I:d";
     static struct option long_options[] = {

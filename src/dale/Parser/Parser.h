@@ -33,7 +33,7 @@ private:
      *  indicates that an error occurred, and a return value of 2
      *  indicates EOF.
      */
-    int getNextListInternal(std::vector<Node*> *list);
+    int getNextNodeInternal(std::vector<Node*> *list);
     /*! Delete the node list.
      *  @param list The node list.
      *
@@ -61,6 +61,11 @@ public:
      *  This does not relinquish ownership of the lexer.
      */
     Lexer *getLexer();
+    /*! Get the next node.
+     *
+     *  Ownership of the new node is passed to the caller.
+     */
+    Node *getNextNode();
     /*! Get the next list node.
      *
      *  Ownership of the new node list is passed to the caller.

@@ -24,13 +24,13 @@ public:
      *  @param no_dale_stdlib Whether the drt library should not be imported.
      *  @param print_expansions Whether to print macro expansions.
      */
-    int run(std::vector<const char *> *compile_lib_paths,
-            std::vector<const char *> *include_paths,
-            std::vector<const char *> *module_paths,
-            int debug,
-            int no_common,
-            int no_dale_stdlib,
-            int print_expansions);
+    void run(std::vector<const char *> *compile_lib_paths,
+             std::vector<const char *> *include_paths,
+             std::vector<const char *> *module_paths,
+             int debug,
+             int no_common,
+             int no_dale_stdlib,
+             int print_expansions);
 };
 }
 

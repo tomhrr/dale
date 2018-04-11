@@ -16,6 +16,12 @@ bool
 FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
                   Node *node, bool get_address, bool prefixed_with_core,
                   ParseResult *pr);
+bool
+FormProcSetfProcess(Units *units, Function *fn, llvm::BasicBlock *block,
+                    Node *node, Node *value_node,
+                    bool get_address, bool prefixed_with_core,
+                    ParseResult *variable_pr, ParseResult *value_pr,
+                    ParseResult *pr);
 }
 
 #endif
