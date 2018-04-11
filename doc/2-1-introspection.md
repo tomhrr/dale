@@ -1,6 +1,6 @@
 # Dale
 
-[Previous](./1-11-form-reference.md) | [Next](./2-2-ctype.md)
+[Previous](./1-13-tools.md) | [Next](./2-2-ctype.md)
 
 ## 2.1 introspection
 
@@ -574,5 +574,5 @@ Parameters:
 Determine whether a form is an lvalue.
 
 
-[Previous](./1-11-form-reference.md) | [Next](./2-2-ctype.md)
+[Previous](./1-13-tools.md) | [Next](./2-2-ctype.md)
 

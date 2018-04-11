@@ -1319,7 +1319,9 @@ An example session:
     int
     6
     > (+ 1.0 _)
-    /dev/stdin:7:1: error: overloaded function/macro not in scope: '+' (parameters are float int, closest candidate expects (const float) (const float))
+    /dev/stdin:7:1: error: overloaded function/macro not in scope: '+'
+    (parameters are float int, closest candidate expects (const float)
+    (const float))
     > (+ 1.0 2.0)
     float
 

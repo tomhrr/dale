@@ -1,6 +1,6 @@
 # Dale
 
-[Previous](./1-11-forms-reference.md) | [Next](./1-13-tools.md)
+[Previous](./1-11-form-reference.md) | [Next](./1-13-tools.md)
 
 ## 1.12 REPL
 
@@ -31,7 +31,9 @@ An example session:
     int
     6
     > (+ 1.0 _)
-    /dev/stdin:7:1: error: overloaded function/macro not in scope: '+' (parameters are float int, closest candidate expects (const float) (const float))
+    /dev/stdin:7:1: error: overloaded function/macro not in scope: '+'
+    (parameters are float int, closest candidate expects (const float)
+    (const float))
     > (+ 1.0 2.0)
     float
 
