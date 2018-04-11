@@ -492,7 +492,8 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
                 llvm_var->setInitializer(
                     llvm::ConstantAggregateZero::get(llvm_type)
                 );
-            } else if (res_pr.type->isIntegerType()) {
+            } else if (res_pr.type->isIntegerType() ||
+                            (res_pr.type->base_type == BaseType::Bool)) {
                 llvm_var->setInitializer(
                     ctx->nt->getConstantInt(
                         llvm::IntegerType::get(
