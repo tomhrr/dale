@@ -50,12 +50,9 @@ and so on.
 
 ## <a name="Setup"></a> 1.2 Setup
 
-The Dale compiler is written in C++. It does not depend on any C++11
-features, so most versions of clang/gcc should suffice.
-
 ### External dependencies
 
-  * LLVM (3.2-3.5)
+  * LLVM (3.2-6.0)
   * libffi
 
 ### Supported systems
@@ -120,10 +117,9 @@ Copy the following into a file called `hello-world.dt`:
     
 Compile it and run it:
 
-        user@main:~$ dalec hello-world.dt
-        user@main:~$ ./a.out
+        $ dalec hello-world.dt
+        $ ./a.out
         Hello, world
-        user@main:~$
 
 The compiler manpage has more detail on supported flags, but most
 things are as per other languages' compilers (`-c`, `-o`, etc.).
@@ -192,12 +188,17 @@ the same as in C.
 ### Arrays
 
 The type of an array of values is `(array-of {n} {type})`, where `{n}`
-is a literal unsigned integer. A zero-sized array may be declared when
-the array is populated during declaration: see
-[Variables](#Variables).
+is a literal unsigned integer or an expression that evaluates to one.
+A zero-sized array may be declared when the array is populated during
+declaration: see [Variables](#Variables).
 
 The instances where arrays decay into pointers on use are the same as
 in C.
+
+The `{n}` expression is evaluated in a new anonymous scope: if the
+type is specified within a macro or a function, it will not have
+access to the bindings defined in that macro or function.
+Variable-length arrays are not supported, either.
 
 ### Structures
 
@@ -321,6 +322,12 @@ can be introduced by way of the `new-scope` core form:
 It should not generally be necessary to use the `new-scope` form in
 user-level code. It is primarily intended for use in control flow
 macros and similar, such as `for`, `while` and `let`.
+
+Variables defined outside of procedures may be initialised using
+arbitrary expressions, including expressions that cause side effects.
+These expressions are evaluated at compile time, rather than runtime.
+If such a variable has a value that must be determined at runtime,
+then that has to be handled by way of a function call at runtime.
 
 ### Local type deduction
 
@@ -705,12 +712,36 @@ procedures that can be called using the following logic:
      parameters, the one with the earliest typed parameter is
      preferred.
 
-### Idempotence
+### Evaluation and side effects
 
-Macros may be evaluated more than once per call site by the compiler,
-so it is important that they are idempotent. One exception to this is
-that any errors reported by the macro to the compiler, by way of the
-`report-error` function (see
+For procedure dispatch, the type of each argument needs to be known,
+so each argument needs to be fully evaluated.  Since an argument can
+itself be a macro call, there may be instances where a macro call only
+occurs because of the evaluation necessary for dispatch:
+
+        (def mprint (macro intern (void)
+          (printf "test\n")
+          (nullptr DNode)))
+
+        (def identity (macro intern (ignored returned)
+          returned))
+
+        (def main (fn extern-c int (void)
+          (identity (mprint) (printf "hello\n"))))
+
+During compilation of the above, the string "test" will be printed,
+even though `(mprint)` isn't evaluated directly.  This is because
+`(mprint)` is evaluated as part of determining dispatch for
+`identity`.  (The `ignored` argument in the call to `identity` will
+still be `(mprint)`, though: the evaluation is purely for dispatch,
+and macros always receive unevaluated arguments.)
+
+In addition to the previous consideration, macros in general may be
+evaluated more than once per call site by the compiler.  As a result,
+it is typically safest for macros to avoid side effects, though there
+may be some contexts where that is acceptable.  One exception to this
+is that any errors reported by the macro to the compiler, by way of
+the `report-error` function (see
 [`introspection`](#introspection)), will be cleared by the
 compiler in the event that it is unable to evaluate or otherwise use
 the macro.
@@ -737,12 +768,15 @@ An `init` function is defined like so:
         (def init (fn {linkage} bool ((val (ref {type})))
           {body}))
 
-If a variable of the specified type is defined without being
-initialised, this function will be run with that variable as its
-argument.
+If a lexically-scoped variable of the specified type is defined within
+a procedure without being initialised, this function will be run with
+that variable as its argument.
 
 If `init` is not defined over a type, then a variable of that type
 that is not explicitly initialised will have indeterminate state.
+This is also the case for variables defined outside of procedures,
+even if `init` is defined over the type: in those instances, `init`
+must be called explicitly for the variable at runtime.
 
 ### `setf-copy-init`
 
@@ -952,6 +986,20 @@ To prevent a file from being included more than once, the core form
 identifier as its single argument. If a file is subsequently loaded by
 way of `include`, and that file's first form is a call to `once` with
 the same identifier, the file's remaining forms will be ignored.
+
+### Lazy loading
+
+Module compilation and use depends on the system permitting lazy
+loading of dynamic libraries.  If the system doesn't permit this, then
+compilation will fail when a module M1 depends on a module M2, and M2
+depends on a non-Dale library that isn't passed in via the `-a` (make
+library available at compile-time) option.
+
+NixOS is an example of a system that does not permit lazy loading by
+default, and is affected by this problem.  In the NixOS case, this can
+be worked around by way of the `hardeningDisable=bindnow` option.  See
+[mawled/issues/12](#mawled/issues/12) for an
+example case.
 
 
 
@@ -1242,7 +1290,45 @@ their analogues in C.
 
 
 
-## <a name="Tools"></a> 1.12 Tools
+## <a name="REPL"></a> 1.12 REPL
+
+`daleci` is the REPL executable.  It works like so:
+
+ - Top-level expressions, like variable and procedure definitions and
+   module import statements, are evaluated in the same way as for a
+   compiled program.
+ - Each other expression is evaluated as if it were run within a new
+   anonymous function.  The result of the expression is bound to the
+   variable '\_', unless the expression has a type of `void`, in which
+   case no binding occurs.
+ - On submitting a non-top-level expression, the type of the
+   expression is printed to standard output, followed by the output
+   (if any) of executing the expression.
+ - No modules are imported by default.  The only bindings that are
+   available are those provided implicitly to all programs, such as
+   the base set of arithmetical and relational operators.
+
+An example session:
+
+    > (+ 1 2)
+    int
+    > (+ 3 _)
+    int
+    > (import cstdio)
+    > (printf "%d\n" _)
+    int
+    6
+    > (+ 1.0 _)
+    /dev/stdin:7:1: error: overloaded function/macro not in scope: '+' (parameters are float int, closest candidate expects (const float) (const float))
+    > (+ 1.0 2.0)
+    float
+
+The REPL does not provide any readline/editline-like functionality, so
+using something like `rlwrap` is recommended.
+
+
+
+## <a name="Tools"></a> 1.13 Tools
 
 ### [dale-autowrap](#dale-autowrap)
 
@@ -2216,6 +2302,17 @@ Returns: `(p DNode)`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
+  * `(n int64)`: A int64 integer.
+
+
+
+#### `std.macros.mnfv`
+
+Linkage: `extern`
+Returns: `(p DNode)`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
   * `(f float)`: A float.
 
 
@@ -2558,12 +2655,11 @@ nesting.
 The `-nc` versions should only be used when the argument node will not
 be used again.
 
-Argument nodes for the various unquote forms must be DNode pointer
-variable names.  If any other type of argument is provided, the
-unquote form will expand to that argument.  For example, `(qq do (uq
-(mnfv mc 1)))` will expand to `(do (mnfv mc 1))`.  Issue #140 is
-tracking this problem, and will be resolved when arbitrary argument
-nodes are supported.
+Previously, argument nodes for the various special forms had to be
+DNode pointer variable names.  Arbitrary forms as argument nodes are
+now supported.  For example, `(qq identity (uq (mnfv mc 1)))`
+previously expanded to `(identity (mnfv mc 1))`, and now expands to
+`(identity 1)`.
 
 
 #### `std.macros.get-varargs-list`

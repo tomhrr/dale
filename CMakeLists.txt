@@ -409,6 +409,7 @@ add_dependencies (tests dalec cstdio cstring pthread cfloat ctype cerrno ctime c
 
 add_custom_target (documentation ALL DEPENDS man/dalec.1.gz)
 install (FILES man/dalec.1.gz DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+install (FILES man/daleci.1.gz DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 # Dale programs.  (module-to-markdown was previously built with
 # --static-modules, but there's a problem with that option in some

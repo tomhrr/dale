@@ -1,8 +1,8 @@
 # Dale
 
-[Previous](./1-11-form-reference.md) | [Next](./2-1-introspection.md)
+[Previous](./1-12-repl.md) | [Next](./2-1-introspection.md)
 
-## 1.12 Tools
+## 1.13 Tools
 
 ### [dale-autowrap](../eg/dale-autowrap)
 

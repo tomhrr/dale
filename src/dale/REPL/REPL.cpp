@@ -457,77 +457,78 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
                 continue;
             }
 
-            llvm::IRBuilder<> builder(res_pr.block);
-
-            std::string unused_name;
-            units.top()->getUnusedVarName(&unused_name);
-
-            std::string var_name("_");
-
-            Variable *var = ctx->getVariable("_");
             bool exists = true;
-            if (!var) {
-                exists = false;
-                var = new Variable();
-                var->name.append(var_name);
-                var->once_tag = units.top()->once_tag;
-                var->linkage = Linkage::Intern;
-            }
-            var->symbol.clear();
-            var->symbol.append(unused_name);
-            var->type = res_pr.type;
-            llvm::GlobalVariable *llvm_var =
-                llvm::cast<llvm::GlobalVariable>(
-                    units.top()->module->getOrInsertGlobal(
-                        unused_name.c_str(),
-                        ctx->toLLVMType(res_pr.type, top, false)
-                    )
-                );
-            llvm_var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
-            llvm::Type *llvm_type = ctx->toLLVMType(res_pr.type, top, false);
+            llvm::IRBuilder<> builder(res_pr.block);
+            std::string var_name("_");
+            Variable *var;
+            if (res_pr.type->base_type != BaseType::Void) {
+                std::string unused_name;
+                units.top()->getUnusedVarName(&unused_name);
 
-            if (res_pr.type->points_to) {
-                llvm_var->setInitializer(getNullPointer(llvm_type));
-            } else if (res_pr.type->struct_name.size() || res_pr.type->is_array) {
-                llvm_var->setInitializer(
-                    llvm::ConstantAggregateZero::get(llvm_type)
-                );
-            } else if (res_pr.type->isIntegerType() ||
-                            (res_pr.type->base_type == BaseType::Bool)) {
-                llvm_var->setInitializer(
-                    ctx->nt->getConstantInt(
-                        llvm::IntegerType::get(
-                            *getContext(),
-                            ctx->nt->internalSizeToRealSize(res_pr.type->getIntegerSize())
-                        ),
-                        "0"
-                    )
-                );
-            } else if (res_pr.type->isFloatingPointType()) {
-                llvm::ConstantFP *const_float =
-                    llvm::ConstantFP::get(*getContext(), llvm::APFloat((float) 0));
-                llvm_var->setInitializer(
-                    llvm::cast<llvm::Constant>(const_float)
-                );
-            }
+                var = ctx->getVariable("_");
+                if (!var) {
+                    exists = false;
+                    var = new Variable();
+                    var->name.append(var_name);
+                    var->once_tag = units.top()->once_tag;
+                    var->linkage = Linkage::Intern;
+                }
+                var->symbol.clear();
+                var->symbol.append(unused_name);
+                var->type = res_pr.type;
+                llvm::GlobalVariable *llvm_var =
+                    llvm::cast<llvm::GlobalVariable>(
+                        units.top()->module->getOrInsertGlobal(
+                            unused_name.c_str(),
+                            ctx->toLLVMType(res_pr.type, top, false)
+                        )
+                    );
+                llvm_var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+                llvm::Type *llvm_type = ctx->toLLVMType(res_pr.type, top, false);
 
-            var->value = llvm::cast<llvm::Value>(llvm_var);
+                if (res_pr.type->points_to) {
+                    llvm_var->setInitializer(getNullPointer(llvm_type));
+                } else if (res_pr.type->struct_name.size() || res_pr.type->is_array) {
+                    llvm_var->setInitializer(
+                        llvm::ConstantAggregateZero::get(llvm_type)
+                    );
+                } else if (res_pr.type->isIntegerType() ||
+                                (res_pr.type->base_type == BaseType::Bool)) {
+                    llvm_var->setInitializer(
+                        ctx->nt->getConstantInt(
+                            llvm::IntegerType::get(
+                                *getContext(),
+                                ctx->nt->internalSizeToRealSize(res_pr.type->getIntegerSize())
+                            ),
+                            "0"
+                        )
+                    );
+                } else if (res_pr.type->isFloatingPointType()) {
+                    llvm::ConstantFP *const_float =
+                        llvm::ConstantFP::get(*getContext(), llvm::APFloat((float) 0));
+                    llvm_var->setInitializer(
+                        llvm::cast<llvm::Constant>(const_float)
+                    );
+                }
 
-            ParseResult var_pr;
-            var_pr.set(res_pr.block, ctx->tr->getPointerType(var->type),
-                       var->value);
+                var->value = llvm::cast<llvm::Value>(llvm_var);
 
-            ParseResult pr;
-            bool res5 =
-                FormProcSetfProcess(&units, fn, res_pr.block,
-                                    top, top, false, false,
-                                    &var_pr, &res_pr, &pr);
-            if (!res5) {
-                er.flush();
-                llvm_fn->eraseFromParent();
-                ctx->deactivateNamespace(anon_name.c_str());
-                units.top()->popGlobalFunction();
-                continue;
+                ParseResult var_pr;
+                var_pr.set(res_pr.block, ctx->tr->getPointerType(var->type),
+                           var->value);
+
+                ParseResult pr;
+                bool res5 =
+                    FormProcSetfProcess(&units, fn, res_pr.block,
+                                        top, top, false, false,
+                                        &var_pr, &res_pr, &pr);
+                if (!res5) {
+                    er.flush();
+                    llvm_fn->eraseFromParent();
+                    ctx->deactivateNamespace(anon_name.c_str());
+                    units.top()->popGlobalFunction();
+                    continue;
+                }
             }
 
             std::string x;

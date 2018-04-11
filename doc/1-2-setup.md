@@ -4,12 +4,9 @@
 
 ## 1.2 Setup
 
-The Dale compiler is written in C++. It does not depend on any C++11
-features, so most versions of clang/gcc should suffice.
-
 ### External dependencies
 
-  * LLVM (3.2-3.5)
+  * LLVM (3.2-6.0)
   * libffi
 
 ### Supported systems
@@ -74,10 +71,9 @@ Copy the following into a file called `hello-world.dt`:
     
 Compile it and run it:
 
-        user@main:~$ dalec hello-world.dt
-        user@main:~$ ./a.out
+        $ dalec hello-world.dt
+        $ ./a.out
         Hello, world
-        user@main:~$
 
 The compiler manpage has more detail on supported flags, but most
 things are as per other languages' compilers (`-c`, `-o`, etc.).

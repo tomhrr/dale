@@ -191,6 +191,17 @@ Returns: `(p DNode)`
 Parameters:
 
   * `(mc (p MContext))`: An MContext.
+  * `(n int64)`: A int64 integer.
+
+
+
+#### `std.macros.mnfv`
+
+Linkage: `extern`
+Returns: `(p DNode)`
+Parameters:
+
+  * `(mc (p MContext))`: An MContext.
   * `(f float)`: A float.
 
 
@@ -533,12 +544,11 @@ nesting.
 The `-nc` versions should only be used when the argument node will not
 be used again.
 
-Argument nodes for the various unquote forms must be DNode pointer
-variable names.  If any other type of argument is provided, the
-unquote form will expand to that argument.  For example, `(qq do (uq
-(mnfv mc 1)))` will expand to `(do (mnfv mc 1))`.  Issue #140 is
-tracking this problem, and will be resolved when arbitrary argument
-nodes are supported.
+Previously, argument nodes for the various special forms had to be
+DNode pointer variable names.  Arbitrary forms as argument nodes are
+now supported.  For example, `(qq identity (uq (mnfv mc 1)))`
+previously expanded to `(identity (mnfv mc 1))`, and now expands to
+`(identity 1)`.
 
 
 #### `std.macros.get-varargs-list`

@@ -1,6 +1,6 @@
 # Dale
 
-[Previous](./1-10-modules.md) | [Next](./1-12-tools.md)
+[Previous](./1-10-modules.md) | [Next](./1-12-repl.md)
 
 ## 1.11 Form reference
 
