@@ -143,7 +143,7 @@ for (my $i = 0; $i < @files; $i++) {
     print $fh "# Dale\n\n";
     my $nav_str = '';
     if (!$prev_file) {
-        $prev_file = "1-11-form-reference.md";
+        $prev_file = "1-13-tools.md";
     }
     $nav_str .= "[Previous](./$prev_file)";
     if ($next_file) {
