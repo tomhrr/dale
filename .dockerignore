@@ -1,0 +1,10 @@
+.git
+Dockerfile
+.dockerignore
+CMakeFiles
+CMakeCache.txt
+dalec
+daleci
+*.so
+*.bc
+*.dtm
