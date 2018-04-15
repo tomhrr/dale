@@ -38,11 +38,14 @@ if (NOT D_LLVM_VERSION)
     message (FATAL_ERROR "Unable to retrieve version number from llvm-config executable (${LLVM_CONFIG})")
 endif ()
 
-execute_process (COMMAND git rev-parse --short HEAD
-                 OUTPUT_VARIABLE Dale_VERSION_REV
-                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+set (Dale_VERSION_REV $ENV{Dale_VERSION_REV})
 if (NOT Dale_VERSION_REV)
-    set (Dale_VERSION_REV 0)
+    execute_process (COMMAND git rev-parse --short HEAD
+                     OUTPUT_VARIABLE Dale_VERSION_REV
+                     OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if (NOT Dale_VERSION_REV)
+        set (Dale_VERSION_REV 0)
+    endif ()
 endif ()
 
 set (Dale_VERSION_MAJOR 0)
