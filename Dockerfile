@@ -13,7 +13,12 @@ RUN apt-get install -y \
 RUN mkdir /build
 COPY ./ /build/
 WORKDIR /build
-RUN cmake -DLLVM_CONFIG=/usr/bin/llvm-config .
+ARG Dale_VERSION_REV=0
+RUN Dale_VERSION_REV=${Dale_VERSION_REV} \
+    cmake \
+    -DLLVM_CONFIG=/usr/bin/llvm-config \
+    -DCMAKE_BUILD_TYPE=Release \
+    .
 RUN make -j8
 RUN make install
 CMD sleep 1 && rlwrap daleci
