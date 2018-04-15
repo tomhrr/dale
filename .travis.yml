@@ -2,11 +2,7 @@ sudo: required
 services:
 - docker
 before_install:
-- docker build --build-arg Dale_VERSION_REV=$(git rev-parse --short HEAD) -t tomhrr/dale:0.1.$(git rev-parse --short HEAD) .
-- docker tag tomhrr/dale:0.1.$(git rev-parse --short HEAD) tomhrr/dale:latest
-- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-- docker push tomhrr/dale:0.1.$(git rev-parse --short HEAD)
-- docker push tomhrr/dale:latest
+- if [ "$LLVM" = "5.0" ]; then docker build --build-arg Dale_VERSION_REV=$(git rev-parse --short HEAD) -t tomhrr/dale:0.1.$(git rev-parse --short HEAD) .; docker tag tomhrr/dale:0.1.$(git rev-parse --short HEAD) tomhrr/dale:latest; echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin; docker push tomhrr/dale:0.1.$(git rev-parse --short HEAD); docker push tomhrr/dale:latest; fi
 language: cpp
 compiler: gcc
 addons:
