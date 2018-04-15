@@ -180,7 +180,11 @@ main(int argc, char **argv)
     }
 
     if (version) {
-        printf("%d.%d\n", DALE_VERSION_MAJOR, DALE_VERSION_MINOR);
+        printf("%d.%d", DALE_VERSION_MAJOR, DALE_VERSION_MINOR);
+        if (!strcmp("git", DALE_VERSION_TYPE)) {
+            printf(" (rev %s)", DALE_VERSION_REV);
+        }
+        printf("\n");
         exit(0);
     }
 

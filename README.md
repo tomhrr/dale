@@ -54,6 +54,13 @@ able to be built.  It has been tested on the following:
     make tests
     make install
 
+#### Container (evaluation)
+
+The container runs the REPL by default, but includes bash
+(`/bin/bash`) for more general testing/evaluation.
+
+    docker run -it tomhrr/dale
+
 ### Examples
 
 **hello-world**

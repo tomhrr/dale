@@ -28,6 +28,15 @@ joinWithPrefix(std::vector<const char*> strings,
     return buffer;
 }
 
+void
+printVersion()
+{
+    printf("%d.%d", DALE_VERSION_MAJOR, DALE_VERSION_MINOR);
+    if (!strcmp("git", DALE_VERSION_TYPE)) {
+        printf(" (rev %s)", DALE_VERSION_REV);
+    }
+}
+
 int
 main(int argc, char **argv)
 {
@@ -72,9 +81,14 @@ main(int argc, char **argv)
     }
 
     if (version) {
-        printf("%d.%d\n", DALE_VERSION_MAJOR, DALE_VERSION_MINOR);
+        printVersion();
+        printf("\n");
         exit(0);
     }
+
+    printf("daleci ");
+    printVersion();
+    printf(", ctrl-c to exit\n");
 
     REPL repl; 
     repl.run(&compile_libs,
