@@ -12,6 +12,7 @@ namespace dale
  */
 bool FormTopLevelGlobalVariableParse(Units *units, Node *node, const char *name);
 llvm::Constant *parseLiteral(Units *units, Type *type, Node *top, int *size);
+llvm::Constant *parseLiteralElement(Units *units, Node *top, char *data, Type *type, int *size);
 }
 
 #endif

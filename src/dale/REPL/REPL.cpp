@@ -85,6 +85,7 @@
 #include "../NativeTypes/NativeTypes.h"
 #include "../Module/Writer/Writer.h"
 #include "../Form/TopLevel/Inst/Inst.h"
+#include "../Form/TopLevel/GlobalVariable/GlobalVariable.h"
 #include "../Form/Proc/Inst/Inst.h"
 #include "../Form/Proc/Setf/Setf.h"
 #include "../Unit/Unit.h"
@@ -460,9 +461,10 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
             bool exists = true;
             llvm::IRBuilder<> builder(res_pr.block);
             std::string var_name("_");
+            std::string unused_name;
             Variable *var;
+            llvm::GlobalVariable *llvm_var;
             if (res_pr.type->base_type != BaseType::Void) {
-                std::string unused_name;
                 units.top()->getUnusedVarName(&unused_name);
 
                 var = ctx->getVariable("_");
@@ -476,7 +478,7 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
                 var->symbol.clear();
                 var->symbol.append(unused_name);
                 var->type = res_pr.type;
-                llvm::GlobalVariable *llvm_var =
+                llvm_var =
                     llvm::cast<llvm::GlobalVariable>(
                         units.top()->module->getOrInsertGlobal(
                             unused_name.c_str(),
@@ -556,17 +558,17 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
                 llvm_fn->eraseFromParent();
             } else {
 #if D_LLVM_VERSION_ORD == 36
-		std::unique_ptr<llvm::Module> module_ptr(
-		    llvm::CloneModule(units.top()->module)
-		);
-		units.top()->ee->addModule(move(module_ptr));
+                std::unique_ptr<llvm::Module> module_ptr(
+                    llvm::CloneModule(units.top()->module)
+                );
+                units.top()->ee->addModule(move(module_ptr));
 #elif D_LLVM_VERSION_ORD == 37
-		std::unique_ptr<llvm::Module> module_ptr(
-		    llvm::CloneModule(units.top()->module)
-		);
-		units.top()->ee->addModule(move(module_ptr));
+                std::unique_ptr<llvm::Module> module_ptr(
+                    llvm::CloneModule(units.top()->module)
+                );
+                units.top()->ee->addModule(move(module_ptr));
 #else
-		units.top()->ee->addModule(llvm::CloneModule(units.top()->module));
+                units.top()->ee->addModule(llvm::CloneModule(units.top()->module));
 #endif
                 llvm::Function *bf =
                     units.top()->ee->FindFunctionNamed(new_name.c_str());
@@ -574,9 +576,22 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
 #if D_LLVM_VERSION_ORD >= 34
                 units.top()->ee->getFunctionAddress(new_name.c_str());
 #endif
+
                 llvm::GenericValue res2 =
                     units.top()->ee->runFunction(bf, values);
                 llvm_fn->eraseFromParent();
+
+#if D_LLVM_VERSION_ORD >= 36
+                if (res_pr.type->base_type != BaseType::Void) {
+                    uint64_t address =
+                        units.top()->ee->getGlobalValueAddress(unused_name.c_str());
+                    int size;
+                    llvm::Constant *parsed =
+                        parseLiteralElement(&units, top, (char*)
+                        address, res_pr.type, &size);
+                    llvm_var->setInitializer(parsed);
+                }
+#endif
             }
         }
         er.flush();
