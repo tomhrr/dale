@@ -87,6 +87,7 @@
 #include "../Form/TopLevel/Inst/Inst.h"
 #include "../Form/TopLevel/GlobalVariable/GlobalVariable.h"
 #include "../Form/Proc/Inst/Inst.h"
+#include "../Form/ProcBody/ProcBody.h"
 #include "../Form/Proc/Setf/Setf.h"
 #include "../Unit/Unit.h"
 #include "../CoreForms/CoreForms.h"
@@ -538,6 +539,19 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
             fprintf(stderr, "%s\n", x.c_str());
 
             builder.CreateRetVoid();
+
+            res = resolveDeferredGotos(ctx, top, fn, res_pr.block);
+            if (!res) {
+                return;
+            }
+
+            res = terminateBlocks(ctx, fn, llvm_fn, res_pr.getValue(ctx),
+                                  res_pr.type, top);
+            if (!res) {
+                return;
+            }
+
+            removePostTerminators(llvm_fn);
 
             ctx->deactivateNamespace(anon_name.c_str());
             if (!exists) {
