@@ -302,12 +302,12 @@ install (TARGETS dale LIBRARY DESTINATION lib)
 
 add_executable(daleci src/dale/daleci.cpp)
 target_link_libraries (daleci dale)
-set_target_properties (daleci PROPERTIES COMPILE_FLAGS "-I.")
+set_target_properties (daleci PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS} -I.")
 install (TARGETS daleci DESTINATION bin)
 
 add_executable(dalec src/dale/dalec.cpp)
 target_link_libraries (dalec dale)
-set_target_properties (dalec PROPERTIES COMPILE_FLAGS "-I.")
+set_target_properties (dalec PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS} -I.")
 install (TARGETS dalec DESTINATION bin)
 
 # Run tests.
