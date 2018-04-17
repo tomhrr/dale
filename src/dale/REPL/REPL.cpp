@@ -116,7 +116,7 @@ REPL::~REPL()
 }
 
 void *
-lazyFunctionCreator(const std::string &name)
+lazyFunctionCreatorREPL(const std::string &name)
 {
     void *fn_pointer = find_introspection_function(name.c_str());
     if (fn_pointer) {
@@ -148,7 +148,7 @@ lazyFunctionCreator(const std::string &name)
 }
 
 std::string
-getTriple()
+getTripleREPL()
 {
 #if D_LLVM_VERSION_ORD >= 32
     return llvm::sys::getDefaultTargetTriple();
@@ -157,62 +157,17 @@ getTriple()
 #endif
 }
 
-void
-linkModule(llvm::Linker *linker, llvm::Module *mod)
-{
-    std::string error;
-    bool result;
-#if D_LLVM_VERSION_ORD <= 32
-    result = linker->LinkInModule(mod, &error);
-#elif D_LLVM_VERSION_ORD <= 35
-    result = linker->linkInModule(mod, &error);
-#elif D_LLVM_VERSION_ORD <= 37
-    result = linker->linkInModule(mod);
-#else
-    std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
-    result = linker->linkInModule(move(module_ptr));
-#endif
-    assert(!result && "unable to link module");
-    _unused(result);
-}
-
-void
-addDataLayout(PassManager *pass_manager, llvm::Module *mod)
-{
-#if D_LLVM_VERSION_ORD >= 37
-#elif D_LLVM_VERSION_ORD >= 36
-    pass_manager->add(new llvm::DataLayoutPass());
-#elif D_LLVM_VERSION_ORD >= 35
-    pass_manager->add(new llvm::DataLayoutPass(mod));
-#elif D_LLVM_VERSION_ORD >= 32
-    pass_manager->add(new llvm::DataLayout(mod));
-#else
-    pass_manager->add(new llvm::TargetData(mod));
-#endif
-}
-
-void
-addPrintModulePass(PassManager *pass_manager,
-                   llvm::raw_fd_ostream *ostream)
-{
 #if D_LLVM_VERSION_ORD <= 34
-    pass_manager->add(llvm::createPrintModulePass(ostream));
+std::auto_ptr<llvm::TargetMachine> target_sp_repl;
 #else
-    pass_manager->add(llvm::createPrintModulePass(*ostream));
-#endif
-}
-
-#if D_LLVM_VERSION_ORD <= 34
-std::auto_ptr<llvm::TargetMachine> target_sp;
-#else
-std::shared_ptr<llvm::TargetMachine> target_sp;
+std::shared_ptr<llvm::TargetMachine> target_sp_repl;
 #endif
 llvm::TargetMachine *
-getTargetMachine(llvm::Module *last_module)
+getTargetMachineREPL(llvm::Module *last_module)
 {
     llvm::Triple triple(last_module->getTargetTriple());
     if (triple.getTriple().empty()) {
-        triple.setTriple(getTriple());
+        triple.setTriple(getTripleREPL());
     }
 
     std::string Err;
@@ -225,7 +180,7 @@ getTargetMachine(llvm::Module *last_module)
 #endif
 
     std::string Features;
-    target_sp =
+    target_sp_repl =
 #if D_LLVM_VERSION_ORD <= 34
         std::auto_ptr<llvm::TargetMachine>
 #else
@@ -242,7 +197,7 @@ getTargetMachine(llvm::Module *last_module)
 #endif
         ));
 
-    return target_sp.get();
+    return target_sp_repl.get();
 }
 
 void
@@ -322,13 +277,13 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
 
     llvm::Triple triple(mod->getTargetTriple());
     if (triple.getTriple().empty()) {
-        triple.setTriple(getTriple());
+        triple.setTriple(getTripleREPL());
     }
 
 #if D_LLVM_VERSION_ORD <= 36
     mod->setDataLayout((is_x86_64) ? x86_64_layout : x86_32_layout);
 #else
-    llvm::TargetMachine *target_machine = getTargetMachine(mod);
+    llvm::TargetMachine *target_machine = getTargetMachineREPL(mod);
     mod->setDataLayout(target_machine->createDataLayout());
 #endif
 
@@ -348,7 +303,7 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
                 error.c_str());
         abort();
     }
-    ee->InstallLazyFunctionCreator(&lazyFunctionCreator);
+    ee->InstallLazyFunctionCreator(&lazyFunctionCreatorREPL);
 
     unit->ee = ee;
     unit->mp->ee = ee;

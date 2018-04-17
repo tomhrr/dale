@@ -3,6 +3,7 @@
 *.bc
 *.dtm
 *.so
+*.so.*
 *.swp
 src/dale/Config\.h
 dale-bindgen
