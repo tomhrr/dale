@@ -76,6 +76,13 @@ fail with the error message 'copying is disabled for this type'.
 Multiple `setf-` functions, supporting different source types, may be
 defined over a single destination type.
 
+### `requires-explicit-init`
+
+If a function named `requires-explicit-init` is defined over a type,
+then any lexically-scoped variable of that type must be explicitly
+initialised, regardless of whether an `init` function is also defined
+over the type.
+
 ### `destroy`
 
 Destructors are defined like so:

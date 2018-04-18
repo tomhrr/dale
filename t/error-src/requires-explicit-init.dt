@@ -1,0 +1,7 @@
+(def x (struct intern ((a int) (b int))))
+
+(def requires-explicit-init (fn intern void ((val (ref x)))))
+
+(def main (fn extern-c int (void)
+  (def myx (var auto x))
+  0))

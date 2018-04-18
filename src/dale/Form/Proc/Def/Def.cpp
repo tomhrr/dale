@@ -24,6 +24,16 @@ getInitFn(Context *ctx, Type *type)
     return ctx->getFunction("init", &init_arg_types, NULL, 0);
 }
 
+bool
+typeRequiresExplicitInit(Context *ctx, Type *type)
+{
+    std::vector<Type *> init_arg_types;
+    init_arg_types.push_back(type);
+    Function *fn =
+        ctx->getFunction("requires-explicit-init", &init_arg_types, NULL, 0);
+    return (fn ? true : false);
+}
+
 llvm::Constant *
 parseGlobalLiteral(Units *units, Type *type, Node *node)
 {
@@ -294,6 +304,7 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     Function *init_fn = getInitFn(ctx, type);
+    bool requires_explicit_init = typeRequiresExplicitInit(ctx, type);
     bool is_zero_sized = (type->array_type && (type->array_size == 0));
 
     llvm::IRBuilder<> builder(block);
@@ -322,6 +333,12 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         if (value_node_list->size() == 3) {
             if (type->is_const && !init_fn) {
                 Error *e = new Error(MustHaveInitialiserForConstType,
+                                     value_node);
+                ctx->er->addError(e);
+                return false;
+            }
+            if (requires_explicit_init && !init_fn) {
+                Error *e = new Error(MustHaveInitialiserForType,
                                      value_node);
                 ctx->er->addError(e);
                 return false;
@@ -399,6 +416,12 @@ parseExplicitVarDefinition(Units *units, Function *fn, llvm::BasicBlock *block,
         if (value_node_list->size() == 3) {
             if (type->is_const && !init_fn) {
                 Error *e = new Error(MustHaveInitialiserForConstType,
+                                     value_node);
+                ctx->er->addError(e);
+                return false;
+            }
+            if (requires_explicit_init && !init_fn) {
+                Error *e = new Error(MustHaveInitialiserForType,
                                      value_node);
                 ctx->er->addError(e);
                 return false;

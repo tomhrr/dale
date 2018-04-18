@@ -1,0 +1,1 @@
+requires-explicit-init.dt:6:12: error: must have initialiser for variable of this type
