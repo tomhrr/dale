@@ -737,6 +737,26 @@ to expand to:
              (uql varargs-list))))
 
 #|
+@macro mif
+
+Short for 'macro if'.  Operates in the same way as the core `if` form,
+except that the condition is evaluated at compile-time and the form as
+a whole expands to one of the provided branches.
+
+@linkage extern
+@param condition
+@param then
+@param else
+|#
+(def mif (macro extern (condition then else)
+  (def condition-result (var auto bool false))
+  (let ((result bool (eval-expression mc (q bool) condition
+                                      (cast (# condition-result) (p void)))))
+    (and (not result)
+      (return (nullptr DNode)))
+    (if condition-result then else))))
+
+#|
 @macro no-op
 
 Expands to an empty `do` form, which is a no-op both at the top-level

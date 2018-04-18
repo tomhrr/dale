@@ -1,0 +1,11 @@
+(import stdlib)
+
+(mif true (def x (var intern int 1))
+          (def x (var intern int 2)))
+
+(mif false (def y (var intern int 1))
+           (def y (var intern int 2)))
+
+(def main (fn extern-c int (void)
+  (printf "%d %d\n" x y)
+  0))

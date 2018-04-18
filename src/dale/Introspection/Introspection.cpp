@@ -913,7 +913,8 @@ eval_2D_expression(MContext *mc, DNode *type_form, DNode *form, void *buffer)
     Node *type_node = units->top()->dnc->toNode(type_form);
     type_node = units->top()->mp->parsePotentialMacroCall(type_node);
     Type *type = FormTypeParse(units, type_node, false, false);
-    if (!type->isEqualTo(ctx->tr->type_int)) {
+    if (   !type->isEqualTo(ctx->tr->type_int)
+        && !type->isEqualTo(ctx->tr->type_bool)) {
         Error *e = new Error(UnsupportedEvalExpressionType, type_node);
         units->top()->ctx->er->addError(e);
         return false;
@@ -950,11 +951,20 @@ eval_2D_expression(MContext *mc, DNode *type_form, DNode *form, void *buffer)
         return false;
     }
 
-    llvm::ConstantInt *myint = llvm::dyn_cast<llvm::ConstantInt>(init);
-    if (myint) {
-        int n = myint->getSExtValue();
-        memcpy(buffer, &n, sizeof(int));
-        return true;
+    if (type->isEqualTo(ctx->tr->type_int)) {
+        llvm::ConstantInt *myint = llvm::dyn_cast<llvm::ConstantInt>(init);
+        if (myint) {
+            int n = myint->getSExtValue();
+            memcpy(buffer, &n, sizeof(int));
+            return true;
+        }
+    } else if (type->isEqualTo(ctx->tr->type_bool)) {
+        llvm::ConstantInt *myint = llvm::dyn_cast<llvm::ConstantInt>(init);
+        if (myint) {
+            int n = myint->getSExtValue();
+            memcpy(buffer, &n, sizeof(bool));
+            return true;
+        }
     }
 
     return false;
