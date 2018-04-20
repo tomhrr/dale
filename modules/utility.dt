@@ -13,7 +13,7 @@ algorithm modules.
 (import ctype)
 
 (def tts (fn intern bool ((mc (p MContext)) (T (p DNode)) (buf (p char)))
-  (setv T (eval-macro-call mc T false))
+  (setv T (eval-macro-call mc T false false))
   (if (and (= 0 (@:@ T is-list))
            (std.isdigit (@ (@:@ T token-str))))
       (do (sprintf buf "%s" (@:@ T token-str))
@@ -21,7 +21,7 @@ algorithm modules.
       (type-to-string mc T buf))))
 
 (def ttds (fn intern bool ((mc (p MContext)) (T (p DNode)) (buf (p char)))
-  (setv T (eval-macro-call mc T false))
+  (setv T (eval-macro-call mc T false false))
   (if (and (= 0 (@:@ T is-list))
            (std.isdigit (@ (@:@ T token-str))))
       (do (sprintf buf "%s" (@:@ T token-str))

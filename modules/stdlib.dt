@@ -729,7 +729,7 @@ to expand to:
     (def arg-count (var auto \ (arg-count mc)))
     (setv arg-count (- arg-count 2))
     (def varargs-list (var auto \ (get-varargs-list mc arg-count rest)))
-    (def new-value-list (var auto (p DNode) (eval-macro-call mc value-list true)))
+    (def new-value-list (var auto (p DNode) (eval-macro-call mc value-list true false)))
     (and (null new-value-list)
       (return (nullptr DNode)))
     (qq mfor (uq value-name)
