@@ -971,7 +971,7 @@ eval_2D_expression(MContext *mc, DNode *type_form, DNode *form, void *buffer)
 }
 
 DNode *
-eval_2D_macro_2D_call(MContext *mc, DNode *form, bool mandatory)
+eval_2D_macro_2D_call(MContext *mc, DNode *form, bool mandatory, bool once)
 {
     dale::Units *units = (dale::Units*) mc->units;
     Context *ctx = units->top()->ctx;
@@ -979,7 +979,7 @@ eval_2D_macro_2D_call(MContext *mc, DNode *form, bool mandatory)
     Node *n = units->top()->dnc->toNode(form);
 
     if (!mandatory) {
-        n = units->top()->mp->parsePotentialMacroCall(n);
+        n = units->top()->mp->parsePotentialMacroCall(n, once);
         if (!n) {
             return NULL;
         }
@@ -1013,7 +1013,7 @@ eval_2D_macro_2D_call(MContext *mc, DNode *form, bool mandatory)
             return NULL;
         }
 
-        Node *new_node = units->top()->mp->parsePotentialMacroCall(n);
+        Node *new_node = units->top()->mp->parsePotentialMacroCall(n, once);
         if (!new_node) {
             return NULL;
         }

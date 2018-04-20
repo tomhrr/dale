@@ -68,12 +68,13 @@ public:
     Node* parseMacroCall(Node *n, Function *macro_to_call);
     /*! Parse a potential macro call.
      *  @param n The node list.
+     *  @param once Whether to limit the number of expansions to one.
      *
      *  If the node list does not represent a valid macro call, this
      *  returns the argument node list, unchanged.  Otherwise, it
      *  operates as per parseMacroCall.
      */
-    Node* parsePotentialMacroCall(Node *n);
+    Node* parsePotentialMacroCall(Node *n, bool once = false);
     /*! Initialise the pool-free function pointer.
      *
      *  This must be done at least once before parseMacroCall is first

@@ -1,0 +1,34 @@
+(import stdlib)
+(import introspection)
+
+(using-namespace std.macros
+  (def a (macro intern (void) (q (b))))
+  (def b (macro intern (void) (q (c))))
+  (def c (macro intern (void) (q (d))))
+  (def d (macro intern (void) (q 123)))
+
+  (def macro1 (macro intern (void)
+    (print (eval-macro-call mc (q (a)) false true))
+    (printf "\n")
+    (print (eval-macro-call mc (q (a)) false false))
+    (printf "\n")
+
+    (print (eval-macro-call mc (q (b)) false true))
+    (printf "\n")
+    (print (eval-macro-call mc (q (b)) false false))
+    (printf "\n")
+
+    (print (eval-macro-call mc (q (c)) false true))
+    (printf "\n")
+    (print (eval-macro-call mc (q (c)) false false))
+    (printf "\n")
+
+    (print (eval-macro-call mc (q (d)) false true))
+    (printf "\n")
+    (print (eval-macro-call mc (q (d)) false false))
+    (printf "\n")
+    (return (nullptr DNode))))
+  
+  (macro1))
+
+(def main (fn extern-c int (void) 0))

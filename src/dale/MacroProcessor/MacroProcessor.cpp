@@ -380,7 +380,7 @@ MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
 }
 
 Node *
-MacroProcessor::parsePotentialMacroCall(Node *n)
+MacroProcessor::parsePotentialMacroCall(Node *n, bool once)
 {
     if (n->is_token || !n->is_list) {
         return n;
@@ -471,9 +471,17 @@ MacroProcessor::parsePotentialMacroCall(Node *n)
             && ((*mac_node->list)[0]->is_token)
             && ((*mac_node->list)[0]
                 ->token->str_value.compare("do") == 0)) {
-        return parsePotentialMacroCall((*mac_node->list)[1]);
+        if (once) {
+            return (*mac_node->list)[1];
+        } else {
+            return parsePotentialMacroCall((*mac_node->list)[1]);
+        }
     } else {
-        return parsePotentialMacroCall(mac_node);
+        if (once) {
+            return mac_node;
+        } else {
+            return parsePotentialMacroCall(mac_node);
+        }
     }
 }
 }
