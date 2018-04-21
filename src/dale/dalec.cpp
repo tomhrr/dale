@@ -173,7 +173,7 @@ main(int argc, char **argv)
                     char *end   = strchr(line, ')');
                     strncpy(path, start, (end - start));
                     path[end - start] = '\0';
-                    compile_libs.push_back(path);
+                    compile_libs.push_back(strdup(path));
                 }
             }
         }
