@@ -354,6 +354,21 @@ to expand to:
         (printf "2\n")
 
 
+#### `mif`
+
+Linkage: `extern`
+Parameters:
+
+  * `condition`
+  * `then`
+  * `else`
+
+
+Short for 'macro if'.  Operates in the same way as the core `if` form,
+except that the condition is evaluated at compile-time and the form as
+a whole expands to one of the provided branches.
+
+
 #### `no-op`
 
 Linkage: `extern`

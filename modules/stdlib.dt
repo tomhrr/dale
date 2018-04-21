@@ -744,9 +744,6 @@ except that the condition is evaluated at compile-time and the form as
 a whole expands to one of the provided branches.
 
 @linkage extern
-@param condition
-@param then
-@param else
 |#
 (def mif (macro extern (condition then else)
   (def condition-result (var auto bool false))

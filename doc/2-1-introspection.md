@@ -552,13 +552,21 @@ Parameters:
   * `(mc (p MContext))`: An MContext.
   * `(frm (p DNode))`: The form.
   * `(mandatory bool)`
+  * `(once bool)`
 
 
 Attempts to evaluate the provided form as a macro call, and returns
-the resulting form.  If `mandatory` is true, then any errors related
-to the attempted expansion will be retained, and null will be
-returned.  If it is false, then any errors will be suppressed, and the
-original node will be returned.
+the resulting form.  This function corresponds to Common Lisp's
+`macroexpand` and `macroexpand-1` functions.
+
+If `mandatory` is true, then any errors related to the attempted
+expansion will be retained, and null will be returned.  If it is
+false, then any errors will be suppressed, and the original node will
+be returned.
+
+If `once` is true, then only a single macro expansion will occur, if
+applicable.  If it is false, then macro expansion will continue until
+a form that is not a macro call is returned.
 
 
 #### `is-lvalue`

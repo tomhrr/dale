@@ -95,4 +95,24 @@ They are run when a value of the relevant type goes out of scope.
 If `destroy` is not defined over a particular type, then any attempt
 to call `destroy` on a value of that type will become a no-op.
 
+### Variable declaration and initialisation
+
+There are some additional aspects to variable initialisation that only
+make sense once overridden initialise/copy/move functions have been
+covered:
+
+ - The initialising `{value}` form in a variable declaration has
+   access to the (unintialised) variable by its name.
+ - The result of evaluating `{value}` will be copied/moved into the
+   variable, except when `{value}` is a procedure call named `init`,
+   in which case it is assumed that `{value}` will handle initialising
+   the variable.  An `init` procedure call used in this way may have
+   an arbitrary number of arguments, unlike the `init` that is called
+   implicitly when no `{value}` is provided.
+ - An alternative to using an `init` procedure call is to define a
+   `retval` function instead.  If such a call is used as the `{value}`
+   of a variable declaration, then its `retval` will be the address of
+   the variable, which also allows for avoiding unnecessary
+   copies/moves.
+
 [Previous](./1-7-macros.md) | [Next](./1-9-namespaces.md)

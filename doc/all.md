@@ -852,6 +852,26 @@ They are run when a value of the relevant type goes out of scope.
 If `destroy` is not defined over a particular type, then any attempt
 to call `destroy` on a value of that type will become a no-op.
 
+### Variable declaration and initialisation
+
+There are some additional aspects to variable initialisation that only
+make sense once overridden initialise/copy/move functions have been
+covered:
+
+ - The initialising `{value}` form in a variable declaration has
+   access to the (unintialised) variable by its name.
+ - The result of evaluating `{value}` will be copied/moved into the
+   variable, except when `{value}` is a procedure call named `init`,
+   in which case it is assumed that `{value}` will handle initialising
+   the variable.  An `init` procedure call used in this way may have
+   an arbitrary number of arguments, unlike the `init` that is called
+   implicitly when no `{value}` is provided.
+ - An alternative to using an `init` procedure call is to define a
+   `retval` function instead.  If such a call is used as the `{value}`
+   of a variable declaration, then its `retval` will be the address of
+   the variable, which also allows for avoiding unnecessary
+   copies/moves.
+
 
 
 ## <a name="Namespaces"></a> 1.9 Namespaces
@@ -1895,13 +1915,21 @@ Parameters:
   * `(mc (p MContext))`: An MContext.
   * `(frm (p DNode))`: The form.
   * `(mandatory bool)`
+  * `(once bool)`
 
 
 Attempts to evaluate the provided form as a macro call, and returns
-the resulting form.  If `mandatory` is true, then any errors related
-to the attempted expansion will be retained, and null will be
-returned.  If it is false, then any errors will be suppressed, and the
-original node will be returned.
+the resulting form.  This function corresponds to Common Lisp's
+`macroexpand` and `macroexpand-1` functions.
+
+If `mandatory` is true, then any errors related to the attempted
+expansion will be retained, and null will be returned.  If it is
+false, then any errors will be suppressed, and the original node will
+be returned.
+
+If `once` is true, then only a single macro expansion will occur, if
+applicable.  If it is false, then macro expansion will continue until
+a form that is not a macro call is returned.
 
 
 #### `is-lvalue`
@@ -3050,6 +3078,21 @@ to expand to:
         (printf "0\n")
         (printf "1\n")
         (printf "2\n")
+
+
+#### `mif`
+
+Linkage: `extern`
+Parameters:
+
+  * `condition`
+  * `then`
+  * `else`
+
+
+Short for 'macro if'.  Operates in the same way as the core `if` form,
+except that the condition is evaluated at compile-time and the form as
+a whole expands to one of the provided branches.
 
 
 #### `no-op`
