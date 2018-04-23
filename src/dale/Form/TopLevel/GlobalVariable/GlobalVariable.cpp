@@ -8,6 +8,7 @@
 #include "../../../Operation/Offsetof/Offsetof.h"
 #include "../../Linkage/Linkage.h"
 #include "../../ProcBody/ProcBody.h"
+#include "../../Proc/Token/Token.h"
 #include "../../Type/Type.h"
 #include "../../Utils/Utils.h"
 #include "Config.h"
@@ -391,10 +392,52 @@ parseLiteralElement(Units *units, Node *top, char *data, Type *type,
 llvm::Constant *
 parseLiteral(Units *units, Type *type, Node *top, int *size)
 {
+    Context *ctx = units->top()->ctx;
+    TypeRegister *tr = ctx->tr;
+
+    if (type->isIntegerType()
+            && top->is_token
+            && (top->token->type == TokenType::Int)) {
+        ParseResult pr;
+        parseIntegerLiteral(ctx, type, NULL, top->token, &pr);
+        return llvm::dyn_cast<llvm::Constant>(pr.getValue(ctx));
+    } else if (type->isFloatingPointType()
+            && top->is_token
+            && (top->token->type == TokenType::FloatingPoint)) {
+        ParseResult pr;
+        parseFloatingPointLiteral(ctx, type, NULL, top->token, &pr);
+        return llvm::dyn_cast<llvm::Constant>(pr.getValue(ctx));
+    } else if (top->is_token
+            && (top->token->type == TokenType::StringLiteral)) {
+	std::string var_name;
+	units->top()->getUnusedVarName(&var_name);
+
+	Type *char_array_type = tr->getArrayType(tr->type_char, *size);
+	llvm::Type *llvm_type = ctx->toLLVMType(char_array_type, NULL, false);
+
+	llvm::Module *mod = units->top()->module;
+	assert(!mod->getGlobalVariable(llvm::StringRef(var_name.c_str())));
+
+	llvm::GlobalVariable *var =
+	    llvm::cast<llvm::GlobalVariable>(
+		mod->getOrInsertGlobal(var_name.c_str(), llvm_type)
+	    );
+
+	llvm::Constant *constr_str =
+	    getStringConstantArray(top->token->str_value.c_str());
+	var->setInitializer(constr_str);
+	var->setConstant(true);
+	var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+
+	llvm::Constant *const_pchar =
+	    createConstantGEP(llvm::cast<llvm::Constant>(var),
+			    ctx->nt->getTwoLLVMZeros());
+
+        return const_pchar;
+    }
+
     /* The size argument is only set when parsing a string literal; it
      * will contain the final size of the returned array. */
-
-    Context *ctx = units->top()->ctx;
 
     /* If the argument node is an address-of form for a global
      * variable/function, return the address of that global

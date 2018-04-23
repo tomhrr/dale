@@ -32,3 +32,4 @@ src/html
 src/latex
 core
 *.core
+callgrind.out.*
