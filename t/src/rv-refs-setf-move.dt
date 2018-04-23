@@ -60,10 +60,6 @@
   (def d (var auto mys (move n)))
   true))
 
-(def ga (var intern mys ((a 1) (b 2))))
-(def gb (var intern mys (move ga)))
-(def gc (var intern mys (move gb)))
-
 (def main (fn extern-c int (void)
   (def a (var auto mys (init a 1 2)))
   (def b (var auto mys (init b 1 3)))

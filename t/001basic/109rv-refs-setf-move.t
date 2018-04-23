@@ -7,17 +7,11 @@ my $test_dir = $ENV{"DALE_TEST_DIR"} || ".";
 $ENV{PATH} .= ":.";
 
 use Data::Dumper;
-use Test::More tests => 4;
+use Test::More tests => 3;
 
 my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/rv-refs-setf-move.dt -o rv-refs-setf-move`;
-is(@res, 4, 'Four compilation statements');
 chomp for @res;
-is_deeply(\@res, [
-'setf-copy-init',
-'setf-copy-assign',
-'setf-move-assign',
-'setf-move-assign',
-], 'Got expected results');
+is_deeply(\@res, [], 'Got expected results');
 
 @res = `./rv-refs-setf-move`;
 is($?, 0, 'Program executed successfully');
