@@ -44,6 +44,8 @@ MacroProcessor::setPoolfree()
     }
 }
 
+std::map<std::string, uint64_t> function_map;
+
 Node *
 MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
 {
@@ -157,47 +159,53 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
 
 #if D_LLVM_VERSION_ORD >= 36
     uint64_t address = 0;
-    address = (uint64_t)
-        llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(mc->symbol.c_str());
-    if (!address) {
-        std::vector<Function *> global_functions;
-        while (Function *globfn = units->top()->getGlobalFunction()) {
-            global_functions.push_back(globfn);
-            if (llvm::Function *gfn = globfn->llvm_function) {
-                gfn->removeFromParent();
+    std::map<std::string, uint64_t>::iterator ii = function_map.find(mc->symbol);
+    if (ii != function_map.end()) {
+        address = ii->second;
+    } else {
+        address = (uint64_t)
+            llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(mc->symbol.c_str());
+        if (!address) {
+            std::vector<Function *> global_functions;
+            while (Function *globfn = units->top()->getGlobalFunction()) {
+                global_functions.push_back(globfn);
+                if (llvm::Function *gfn = globfn->llvm_function) {
+                    gfn->removeFromParent();
+                }
+                units->top()->popGlobalFunction();
             }
-            units->top()->popGlobalFunction();
-        }
 #if D_LLVM_VERSION_ORD == 36
-        std::unique_ptr<llvm::Module> module_ptr(
-            llvm::CloneModule(units->top()->module)
-        );
-        units->top()->ee->addModule(move(module_ptr));
+            std::unique_ptr<llvm::Module> module_ptr(
+                llvm::CloneModule(units->top()->module)
+            );
+            units->top()->ee->addModule(move(module_ptr));
 #elif D_LLVM_VERSION_ORD == 37
-        std::unique_ptr<llvm::Module> module_ptr(
-            llvm::CloneModule(units->top()->module)
-        );
-        units->top()->ee->addModule(move(module_ptr));
+            std::unique_ptr<llvm::Module> module_ptr(
+                llvm::CloneModule(units->top()->module)
+            );
+            units->top()->ee->addModule(move(module_ptr));
 #else
-        units->top()->ee->addModule(llvm::CloneModule(units->top()->module));
+            units->top()->ee->addModule(llvm::CloneModule(units->top()->module));
 #endif
-        for (std::vector<Function *>::reverse_iterator b = global_functions.rbegin(),
-                                                       e = global_functions.rend();
-                b != e;
-                ++b) {
-            Function *globfn = *b;
-            if (llvm::Function *gfn = globfn->llvm_function) {
-                units->top()->module->getFunctionList().push_back(gfn);
+            for (std::vector<Function *>::reverse_iterator b = global_functions.rbegin(),
+                                                        e = global_functions.rend();
+                    b != e;
+                    ++b) {
+                Function *globfn = *b;
+                if (llvm::Function *gfn = globfn->llvm_function) {
+                    units->top()->module->getFunctionList().push_back(gfn);
+                }
+                units->top()->pushGlobalFunction(globfn);
             }
-            units->top()->pushGlobalFunction(globfn);
+            llvm::Function *mc_ffn = units->top()->ee->FindFunctionNamed(mc->symbol.c_str());
+            if (!mc_ffn) {
+                fprintf(stderr, "cannot refetch: '%s'\n", mc->symbol.c_str());
+                abort();
+            }
+            address = units->top()->ee->getFunctionAddress(mc->symbol.c_str());
         }
-        llvm::Function *mc_ffn = units->top()->ee->FindFunctionNamed(mc->symbol.c_str());
-        if (!mc_ffn) {
-            fprintf(stderr, "cannot refetch: '%s'\n", mc->symbol.c_str());
-            abort();
-        }
-        address = units->top()->ee->getFunctionAddress(mc->symbol.c_str());
     }
+    function_map.insert(std::pair<std::string, uint64_t>(mc->symbol, address));
 
     DNode *result_dnode;
     if (values2.size() == 1) {
