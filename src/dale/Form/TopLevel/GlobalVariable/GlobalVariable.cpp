@@ -436,6 +436,43 @@ simpleParseLiteral(Units *units, Type *type, Node *top, int *size)
                             ctx->nt->getTwoLLVMZeros());
 
         return const_pchar;
+    } else if (type->array_type) {
+        if (!top->is_list) {
+            return NULL;
+        }
+        std::vector<llvm::Constant *> constants;
+        std::vector<Node *> *lst = top->list;
+        if (lst->size() < 2) {
+            return NULL;
+        }
+        Node *first = lst->at(0);
+        if (!first->is_token || first->token->str_value.compare("array")) {
+            return NULL;
+        }
+
+        for (std::vector<Node *>::iterator b = (lst->begin() + 1),
+                                           e = lst->end();
+                b != e;
+                ++b) {
+            int size;
+            llvm::Constant *constant =
+                simpleParseLiteral(units, type->array_type, *b, &size);
+            if (!constant) {
+                return NULL;
+            }
+
+            constants.push_back(constant);
+        }
+
+        llvm::Constant *const_arr =
+            llvm::ConstantArray::get(
+                llvm::cast<llvm::ArrayType>(
+                    ctx->toLLVMType(type, top, false, false)
+                ),
+                constants
+            );
+
+        return const_arr;
     } else if (type->struct_name.size()) {
         Struct *st = ctx->getStruct(type);
         if (!top->is_list) {
