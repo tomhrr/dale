@@ -61,7 +61,7 @@ void addDataLayout(PassManager *pass_manager, llvm::Module *mod);
 void addPrintModulePass(PassManager *pass_manager,
                         llvm::raw_fd_ostream *ostream);
 llvm::TargetMachine* getTargetMachine(llvm::Module *last_module);
-void setDataLayout(llvm::Module *module);
+void setDataLayout(llvm::Module *module, bool is_x86_64);
 void populateLTOPassManager(llvm::PassManagerBuilder *pass_manager_builder,
                             PassManager *pass_manager);
 llvm_formatted_ostream* getFormattedOstream(llvm::raw_fd_ostream *ostream);

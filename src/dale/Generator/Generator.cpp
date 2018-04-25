@@ -265,7 +265,7 @@ Generator::run(std::vector<const char *> *file_paths,
             triple.setTriple(getTriple());
         }
 
-        setDataLayout(mod);
+        setDataLayout(mod, is_x86_64);
         DECLARE_ENGINE_BUILDER(mod, eb);
 
         eb.setEngineKind(llvm::EngineKind::JIT);
