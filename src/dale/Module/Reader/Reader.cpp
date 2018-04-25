@@ -51,6 +51,7 @@
 
 #include "../../Serialise/Serialise.h"
 #include "../../Utils/Utils.h"
+#include "../../llvmUtils/llvmUtils.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>

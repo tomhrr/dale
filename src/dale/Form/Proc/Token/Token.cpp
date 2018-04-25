@@ -1,5 +1,7 @@
 #include "Token.h"
 
+#include "../../../llvmUtils/llvmUtils.h"
+
 #include <cstdio>
 
 using namespace dale::ErrorInst;

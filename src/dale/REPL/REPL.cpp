@@ -38,6 +38,7 @@
 #include "../llvm_AnalysisVerifier.h"
 #include "../llvm_IRBuilder.h"
 #include "../llvm_PassManager.h"
+#include "../llvmUtils/llvmUtils.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Triple.h"
 #include "llvm/Analysis/Passes.h"
@@ -147,16 +148,6 @@ lazyFunctionCreatorREPL(const std::string &name)
     return NULL;
 }
 
-std::string
-getTripleREPL()
-{
-#if D_LLVM_VERSION_ORD >= 32
-    return llvm::sys::getDefaultTargetTriple();
-#else
-    return llvm::sys::getHostTriple();
-#endif
-}
-
 #if D_LLVM_VERSION_ORD <= 34
 std::auto_ptr<llvm::TargetMachine> target_sp_repl;
 #else
@@ -167,7 +158,7 @@ getTargetMachineREPL(llvm::Module *last_module)
 {
     llvm::Triple triple(last_module->getTargetTriple());
     if (triple.getTriple().empty()) {
-        triple.setTriple(getTripleREPL());
+        triple.setTriple(getTriple());
     }
 
     std::string Err;
@@ -277,7 +268,7 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
 
     llvm::Triple triple(mod->getTargetTriple());
     if (triple.getTriple().empty()) {
-        triple.setTriple(getTripleREPL());
+        triple.setTriple(getTriple());
     }
 
 #if D_LLVM_VERSION_ORD <= 36

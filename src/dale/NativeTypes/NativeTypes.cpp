@@ -1,6 +1,7 @@
 #include "NativeTypes.h"
 
 #include "../Utils/Utils.h"
+#include "../llvmUtils/llvmUtils.h"
 
 #include <cstdlib>
 #include <cstring>

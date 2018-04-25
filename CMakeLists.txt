@@ -203,6 +203,7 @@ add_library(dale SHARED
                  src/dale/Parser/Parser.cpp
                  src/dale/Position/Position.cpp
                  src/dale/Utils/Utils.cpp
+                 src/dale/llvmUtils/llvmUtils.cpp
                  src/dale/Token/Token.cpp
                  src/dale/ErrorType/ErrorType.cpp
                  src/dale/Error/Error.cpp

@@ -1,6 +1,7 @@
 #include "BasicTypes.h"
 #include "Config.h"
 #include "../Form/Utils/Utils.h"
+#include "../llvmUtils/llvmUtils.h"
 
 #define ADD_INTF(name, fn) makeFunction(ctx, mod, once_tag, name, fn, type, type);
 #define ADD_FLTF(name, fn) makeFloatFunction(ctx, mod, once_tag, name, fn, type, type);

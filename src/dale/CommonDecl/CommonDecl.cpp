@@ -1,6 +1,7 @@
 #include "CommonDecl.h"
 
 #include "../BasicTypes/BasicTypes.h"
+#include "../llvmUtils/llvmUtils.h"
 #include <setjmp.h>
 #include <float.h>
 #include <cstdio>

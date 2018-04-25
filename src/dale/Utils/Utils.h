@@ -12,17 +12,6 @@
 #include "../Type/Type.h"
 #include "../Variable/Variable.h"
 
-#if D_LLVM_VERSION_ORD >= 33
-#include "llvm/Support/SourceMgr.h"
-#include "llvm/IRReader/IRReader.h"
-#endif
-
-#if D_LLVM_VERSION_ORD <= 33
-#include "llvm/PassManager.h"
-#else
-#include "llvm/IR/LegacyPassManager.h"
-#endif
-
 #define _unused(x) ((void)x)
 
 #define STRTOUL_FAILED(ret, str, end) \
@@ -32,13 +21,6 @@
 
 namespace dale
 {
-/*! The PassManager type. */
-#if D_LLVM_VERSION_ORD <= 33
-typedef llvm::PassManager PassManager;
-#else
-typedef llvm::legacy::PassManager PassManager;
-#endif
-
 /*! The current executable name (i.e. argv[0]). */
 extern const char *progname;
 /*! Check whether a string represents a decimal number.
@@ -84,14 +66,6 @@ void encodeStandard(const std::string *from, std::string *to);
  */
 bool isValidModuleName(const std::string *name);
 
-/*! Get an LLVM function type.
- *  @param t The return type.
- *  @param v The parameter types.
- *  @param b Whether the function is a varargs function.
- */
-llvm::FunctionType *getFunctionType(llvm::Type *t,
-                                    std::vector<llvm::Type*> &v, bool b);
-
 /*! Stringify a collection of types.
  *  @param begin The beginning iterator.
  *  @param end The ending iterator.
@@ -118,14 +92,6 @@ bool typesToString(std::vector<Variable *>::iterator begin,
  *  @param buf The buffer for the result.
  */
 bool typesToString(std::vector<Variable *> *types, std::string *buf);
-/*! Construct an LLVM string constant data array.
- *  @param data The data for the array.
- */
-llvm::Constant *getStringConstantArray(const char *data);
-/*! Construct an LLVM null pointer for the type.
- *  @param type The type.
- */
-llvm::ConstantPointerNull *getNullPointer(llvm::Type *type);
 /*! Report a fatal error and exit.
  *  @param error_msg The error message.
  *  @param show_perror Whether to use perror to show the current error
@@ -139,14 +105,6 @@ void error(const char *error_msg, bool show_perror = false);
  *  message prior to printing msg.
  */
 void error(const char *error_msg, const char *str1, bool show_perror = false);
-/*! Link a file into the given linker.
- *  @param linker The linker.
- *  @param path The path to the file to be linked.
- */
-void linkFile(llvm::Linker *linker, const char *path);
-/*! Get a new context.
- */
-llvm::LLVMContext* getContext();
 }
 
 #endif

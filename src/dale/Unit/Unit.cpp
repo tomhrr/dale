@@ -2,6 +2,7 @@
 #include "../Lexer/Lexer.h"
 #include "../llvm_Module.h"
 #include "../llvm_Linker.h"
+#include "../llvmUtils/llvmUtils.h"
 #include "../Utils/Utils.h"
 #include "../CommonDecl/CommonDecl.h"
 

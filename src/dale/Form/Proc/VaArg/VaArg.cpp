@@ -5,6 +5,7 @@
 #include "../../Type/Type.h"
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
+#include "../../../llvmUtils/llvmUtils.h"
 
 namespace dale
 {

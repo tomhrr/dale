@@ -2,6 +2,7 @@
 #define DALE_MODULE_WRITER
 
 #include "../../Context/Context.h"
+#include "../../llvmUtils/llvmUtils.h"
 #include "../../Utils/Utils.h"
 #include "../../llvm_Module.h"
 

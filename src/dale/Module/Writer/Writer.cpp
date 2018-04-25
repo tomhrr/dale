@@ -3,6 +3,7 @@
 
 #include "../../Serialise/Serialise.h"
 #include "../../Utils/Utils.h"
+#include "../../llvmUtils/llvmUtils.h"
 #if D_LLVM_VERSION_ORD <= 39
 #include "llvm/Bitcode/ReaderWriter.h"
 #else

@@ -8,6 +8,7 @@
 #include "../Operation/Destruct/Destruct.h"
 #include "../Operation/Copy/Copy.h"
 #include "../Utils/Utils.h"
+#include "../llvmUtils/llvmUtils.h"
 
 #define IMPLICIT 1
 

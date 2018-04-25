@@ -3,6 +3,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
 #include "../../../llvm_Function.h"
+#include "../../../llvmUtils/llvmUtils.h"
 
 using namespace dale::ErrorInst;
 

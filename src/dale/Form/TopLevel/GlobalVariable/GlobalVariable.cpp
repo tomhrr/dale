@@ -6,6 +6,7 @@
 #include "../../../Operation/Copy/Copy.h"
 #include "../../../Operation/Sizeof/Sizeof.h"
 #include "../../../Operation/Offsetof/Offsetof.h"
+#include "../../../llvmUtils/llvmUtils.h"
 #include "../../Linkage/Linkage.h"
 #include "../../ProcBody/ProcBody.h"
 #include "../../Proc/Token/Token.h"

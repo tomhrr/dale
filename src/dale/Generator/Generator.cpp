@@ -38,6 +38,7 @@
 #include "../llvm_AnalysisVerifier.h"
 #include "../llvm_IRBuilder.h"
 #include "../llvm_PassManager.h"
+#include "../llvmUtils/llvmUtils.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Triple.h"
 #include "llvm/Analysis/Passes.h"
@@ -140,16 +141,6 @@ lazyFunctionCreator(const std::string &name)
     fprintf(stderr, "Unable to find symbol (%s) in LFC\n", name.c_str());
     abort();
     return NULL;
-}
-
-std::string
-getTriple()
-{
-#if D_LLVM_VERSION_ORD >= 32
-    return llvm::sys::getDefaultTargetTriple();
-#else
-    return llvm::sys::getHostTriple();
-#endif
 }
 
 void

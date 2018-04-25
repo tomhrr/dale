@@ -2,6 +2,8 @@
 
 #include <cstdio>
 
+#include "../../llvmUtils/llvmUtils.h"
+
 namespace dale
 {
 namespace Operation

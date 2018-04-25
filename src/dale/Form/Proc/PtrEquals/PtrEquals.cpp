@@ -5,6 +5,7 @@
 #include "../Inst/Inst.h"
 #include "../../../llvm_Function.h"
 #include "../../../Operation/Destruct/Destruct.h"
+#include "../../../llvmUtils/llvmUtils.h"
 
 namespace dale
 {
