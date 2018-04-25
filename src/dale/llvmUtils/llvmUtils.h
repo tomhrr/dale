@@ -43,7 +43,7 @@
 #if D_LLVM_VERSION_ORD <= 35
 #define DECLARE_ENGINE_BUILDER(mod, name) llvm::EngineBuilder name = llvm::EngineBuilder(mod);
 #else
-#define DECLARE_ENGINE_BUILDER(mod, name) llvm::EngineBuilder name(move(llvm::CloneModule(mod)))
+#define DECLARE_ENGINE_BUILDER(mod, name) std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod)); llvm::EngineBuilder name(move(module_ptr));
 #endif
 
 namespace dale
