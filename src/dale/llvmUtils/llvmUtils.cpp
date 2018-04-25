@@ -130,6 +130,21 @@ populateLTOPassManager(llvm::PassManagerBuilder *pass_manager_builder,
 #endif
 }
 
+llvm_formatted_ostream*
+getFormattedOstream(llvm::raw_fd_ostream *ostream)
+{
+#if D_LLVM_VERSION_ORD <= 36
+    llvm_formatted_ostream *ostream_formatted =
+        new llvm::formatted_raw_ostream(
+            *ostream,
+            llvm::formatted_raw_ostream::DELETE_STREAM
+        );
+    return ostream_formatted;
+#else
+    return ostream;
+#endif
+}
+
 void
 addPrintModulePass(PassManager *pass_manager,
                    llvm::raw_fd_ostream *ostream)

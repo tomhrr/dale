@@ -407,15 +407,8 @@ Generator::run(std::vector<const char *> *file_paths,
         ctx->eraseLLVMMacrosAndCTOFunctions();
     }
 
-#if D_LLVM_VERSION_ORD <= 36
-    llvm::formatted_raw_ostream *ostream_formatted =
-        new llvm::formatted_raw_ostream(
-            ostream,
-            llvm::formatted_raw_ostream::DELETE_STREAM
-        );
-#else
-    llvm::raw_fd_ostream *ostream_formatted = &ostream;
-#endif
+    llvm_formatted_ostream *ostream_formatted =
+        getFormattedOstream(&ostream);
 
     if (produce == IR) {
         addPrintModulePass(&pass_manager, &ostream);

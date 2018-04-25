@@ -49,6 +49,12 @@ typedef llvm::PassManager PassManager;
 typedef llvm::legacy::PassManager PassManager;
 #endif
 
+#if D_LLVM_VERSION_ORD <= 36
+typedef llvm::formatted_raw_ostream llvm_formatted_ostream;
+#else
+typedef llvm::raw_fd_ostream llvm_formatted_ostream;
+#endif
+
 std::string getTriple();
 void linkModule(llvm::Linker *linker, llvm::Module *mod);
 void addDataLayout(PassManager *pass_manager, llvm::Module *mod);
@@ -58,6 +64,7 @@ llvm::TargetMachine* getTargetMachine(llvm::Module *last_module);
 void setDataLayout(llvm::Module *module);
 void populateLTOPassManager(llvm::PassManagerBuilder *pass_manager_builder,
                             PassManager *pass_manager);
+llvm_formatted_ostream* getFormattedOstream(llvm::raw_fd_ostream *ostream);
 
 /*! Get an LLVM function type.
  *  @param t The return type.

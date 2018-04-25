@@ -6,7 +6,6 @@
 #include <cstring>
 #include <cassert>
 #include <cerrno>
-#include <iostream>
 #include <unistd.h>
 #include <setjmp.h>
 #include <float.h>
@@ -59,7 +58,6 @@
 #include "llvm/ExecutionEngine/MCJIT.h"
 #endif
 #include "llvm/LinkAllPasses.h"
-#include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/FileUtilities.h"
