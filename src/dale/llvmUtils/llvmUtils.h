@@ -40,6 +40,7 @@ typedef llvm::legacy::PassManager PassManager;
 #endif
 
 std::string getTriple();
+void linkModule(llvm::Linker *linker, llvm::Module *mod);
 
 /*! Get an LLVM function type.
  *  @param t The return type.

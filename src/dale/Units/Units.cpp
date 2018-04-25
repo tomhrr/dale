@@ -1,6 +1,7 @@
 #include "Units.h"
 #include "../llvm_Module.h"
 #include "../llvm_Linker.h"
+#include "../llvmUtils/llvmUtils.h"
 
 namespace dale
 {
@@ -51,18 +52,7 @@ Units::pop()
     std::string link_error;
 
     if (popped->hasOwnModule()) {
-#if D_LLVM_VERSION_ORD <= 32
-        bool res = current->linker->LinkInModule(popped->module, &link_error);
-#elif D_LLVM_VERSION_ORD <= 35
-        bool res = current->linker->linkInModule(popped->module, &link_error);
-#elif D_LLVM_VERSION_ORD <= 37
-        bool res = current->linker->linkInModule(popped->module);
-#else
-        std::unique_ptr<llvm::Module> module_ptr(popped->module);
-        bool res = current->linker->linkInModule(move(module_ptr));
-#endif
-        assert(!res && "unable to link modules");
-        _unused(res);
+        linkModule(current->linker, popped->module);
     }
 
     current->ctx->merge(popped->ctx);

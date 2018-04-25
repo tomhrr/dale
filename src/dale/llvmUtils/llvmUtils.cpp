@@ -26,6 +26,25 @@ getTriple()
 #endif
 }
 
+void
+linkModule(llvm::Linker *linker, llvm::Module *mod)
+{
+    std::string error;
+    bool result;
+#if D_LLVM_VERSION_ORD <= 32
+    result = linker->LinkInModule(mod, &error);
+#elif D_LLVM_VERSION_ORD <= 35
+    result = linker->linkInModule(mod, &error);
+#elif D_LLVM_VERSION_ORD <= 37
+    result = linker->linkInModule(mod);
+#else
+    std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
+    result = linker->linkInModule(move(module_ptr));
+#endif
+    assert(!result && "unable to link module");
+    _unused(result);
+}
+
 llvm::FunctionType *
 getFunctionType(llvm::Type *t, std::vector<llvm::Type*> &v, bool b) {
     llvm::ArrayRef<llvm::Type*> array_ref(v);
