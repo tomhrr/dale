@@ -23,6 +23,10 @@
 #include "llvm/IR/LegacyPassManager.h"
 #endif
 
+#if D_LLVM_VERSION_ORD >= 36
+#include "llvm/Transforms/Utils/Cloning.h"
+#endif
+
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
@@ -39,7 +43,7 @@
 #if D_LLVM_VERSION_ORD <= 35
 #define DECLARE_ENGINE_BUILDER(mod, name) llvm::EngineBuilder name = llvm::EngineBuilder(mod);
 #else
-#define DECLARE_ENGINE_BUILDER(mod, name) llvm::EngineBuilder name(llvm::CloneModule(mod))
+#define DECLARE_ENGINE_BUILDER(mod, name) llvm::EngineBuilder name(move(llvm::CloneModule(mod)))
 #endif
 
 namespace dale
