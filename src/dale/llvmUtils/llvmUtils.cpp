@@ -14,6 +14,8 @@
 #include "llvm/Support/Path.h"
 #endif
 
+#include "llvm/ADT/Triple.h"
+
 namespace dale
 {
 std::string
