@@ -45,6 +45,75 @@ linkModule(llvm::Linker *linker, llvm::Module *mod)
     _unused(result);
 }
 
+void
+addDataLayout(PassManager *pass_manager, llvm::Module *mod)
+{
+#if D_LLVM_VERSION_ORD >= 37
+#elif D_LLVM_VERSION_ORD >= 36
+    pass_manager->add(new llvm::DataLayoutPass());
+#elif D_LLVM_VERSION_ORD >= 35
+    pass_manager->add(new llvm::DataLayoutPass(mod));
+#elif D_LLVM_VERSION_ORD >= 32
+    pass_manager->add(new llvm::DataLayout(mod));
+#else
+    pass_manager->add(new llvm::TargetData(mod));
+#endif
+}
+
+#if D_LLVM_VERSION_ORD <= 34
+std::auto_ptr<llvm::TargetMachine> target_sp;
+#else
+std::shared_ptr<llvm::TargetMachine> target_sp;
+#endif
+llvm::TargetMachine *
+getTargetMachine(llvm::Module *last_module)
+{
+    llvm::Triple triple(last_module->getTargetTriple());
+    if (triple.getTriple().empty()) {
+        triple.setTriple(getTriple());
+    }
+
+    std::string Err;
+    const llvm::Target *target =
+        llvm::TargetRegistry::lookupTarget(triple.getTriple(), Err);
+    assert(target && "cannot auto-select target for module");
+
+#if D_LLVM_VERSION_ORD >= 32
+    llvm::TargetOptions target_options;
+#endif
+
+    std::string Features;
+    target_sp =
+#if D_LLVM_VERSION_ORD <= 34
+        std::auto_ptr<llvm::TargetMachine>
+#else
+        std::shared_ptr<llvm::TargetMachine>
+#endif
+        (target->createTargetMachine(
+            triple.getTriple(), llvm::sys::getHostCPUName(),
+            Features
+#if D_LLVM_VERSION_ORD >= 32
+            , target_options
+#endif
+#if D_LLVM_VERSION_ORD >= 39
+            , llvm::Optional<llvm::Reloc::Model>()
+#endif
+        ));
+
+    return target_sp.get();
+}
+
+void
+addPrintModulePass(PassManager *pass_manager,
+                   llvm::raw_fd_ostream *ostream)
+{
+#if D_LLVM_VERSION_ORD <= 34
+    pass_manager->add(llvm::createPrintModulePass(ostream));
+#else
+    pass_manager->add(llvm::createPrintModulePass(*ostream));
+#endif
+}
+
 llvm::FunctionType *
 getFunctionType(llvm::Type *t, std::vector<llvm::Type*> &v, bool b) {
     llvm::ArrayRef<llvm::Type*> array_ref(v);

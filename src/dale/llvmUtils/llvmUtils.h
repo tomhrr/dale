@@ -23,6 +23,8 @@
 #include "llvm/IR/LegacyPassManager.h"
 #endif
 
+#include "llvm/Support/TargetRegistry.h"
+
 #define _unused(x) ((void)x)
 
 #define STRTOUL_FAILED(ret, str, end) \
@@ -41,6 +43,10 @@ typedef llvm::legacy::PassManager PassManager;
 
 std::string getTriple();
 void linkModule(llvm::Linker *linker, llvm::Module *mod);
+void addDataLayout(PassManager *pass_manager, llvm::Module *mod);
+void addPrintModulePass(PassManager *pass_manager,
+                        llvm::raw_fd_ostream *ostream);
+llvm::TargetMachine* getTargetMachine(llvm::Module *last_module);
 
 /*! Get an LLVM function type.
  *  @param t The return type.

@@ -148,49 +148,6 @@ lazyFunctionCreatorREPL(const std::string &name)
     return NULL;
 }
 
-#if D_LLVM_VERSION_ORD <= 34
-std::auto_ptr<llvm::TargetMachine> target_sp_repl;
-#else
-std::shared_ptr<llvm::TargetMachine> target_sp_repl;
-#endif
-llvm::TargetMachine *
-getTargetMachineREPL(llvm::Module *last_module)
-{
-    llvm::Triple triple(last_module->getTargetTriple());
-    if (triple.getTriple().empty()) {
-        triple.setTriple(getTriple());
-    }
-
-    std::string Err;
-    const llvm::Target *target =
-        llvm::TargetRegistry::lookupTarget(triple.getTriple(), Err);
-    assert(target && "cannot auto-select target for module");
-
-#if D_LLVM_VERSION_ORD >= 32
-    llvm::TargetOptions target_options;
-#endif
-
-    std::string Features;
-    target_sp_repl =
-#if D_LLVM_VERSION_ORD <= 34
-        std::auto_ptr<llvm::TargetMachine>
-#else
-        std::shared_ptr<llvm::TargetMachine>
-#endif
-        (target->createTargetMachine(
-            triple.getTriple(), llvm::sys::getHostCPUName(),
-            Features
-#if D_LLVM_VERSION_ORD >= 32
-            , target_options
-#endif
-#if D_LLVM_VERSION_ORD >= 39
-            , llvm::Optional<llvm::Reloc::Model>()
-#endif
-        ));
-
-    return target_sp_repl.get();
-}
-
 void
 REPL::run(std::vector<const char *> *compile_lib_paths,
           std::vector<const char *> *include_paths,
@@ -274,7 +231,7 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
 #if D_LLVM_VERSION_ORD <= 36
     mod->setDataLayout((is_x86_64) ? x86_64_layout : x86_32_layout);
 #else
-    llvm::TargetMachine *target_machine = getTargetMachineREPL(mod);
+    llvm::TargetMachine *target_machine = getTargetMachine(mod);
     mod->setDataLayout(target_machine->createDataLayout());
 #endif
 
