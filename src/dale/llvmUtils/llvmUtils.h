@@ -47,6 +47,7 @@ void addDataLayout(PassManager *pass_manager, llvm::Module *mod);
 void addPrintModulePass(PassManager *pass_manager,
                         llvm::raw_fd_ostream *ostream);
 llvm::TargetMachine* getTargetMachine(llvm::Module *last_module);
+void setDataLayout(llvm::Module *module);
 
 /*! Get an LLVM function type.
  *  @param t The return type.

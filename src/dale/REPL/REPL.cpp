@@ -94,9 +94,6 @@
 #include "../CoreForms/CoreForms.h"
 #include "../CommonDecl/CommonDecl.h"
 
-static const char *x86_64_layout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128";
-static const char *x86_32_layout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32";
-
 extern "C" {
     void init_introspection_functions();
     void *find_introspection_function(const char *);
@@ -228,12 +225,7 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
         triple.setTriple(getTriple());
     }
 
-#if D_LLVM_VERSION_ORD <= 36
-    mod->setDataLayout((is_x86_64) ? x86_64_layout : x86_32_layout);
-#else
-    llvm::TargetMachine *target_machine = getTargetMachine(mod);
-    mod->setDataLayout(target_machine->createDataLayout());
-#endif
+    setDataLayout(mod);
 
 #if D_LLVM_VERSION_ORD <= 35
     llvm::EngineBuilder eb = llvm::EngineBuilder(mod);
