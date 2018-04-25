@@ -266,13 +266,7 @@ Generator::run(std::vector<const char *> *file_paths,
         }
 
         setDataLayout(mod);
-
-#if D_LLVM_VERSION_ORD <= 35
-        llvm::EngineBuilder eb = llvm::EngineBuilder(mod);
-#else
-        std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
-        llvm::EngineBuilder eb(move(module_ptr));
-#endif
+        DECLARE_ENGINE_BUILDER(mod, eb);
 
         eb.setEngineKind(llvm::EngineKind::JIT);
         std::string error;
@@ -395,11 +389,8 @@ Generator::run(std::vector<const char *> *file_paths,
         }
         pass_manager_builder.populateModulePassManager(pass_manager);
         if (lto) {
-#if D_LLVM_VERSION_ORD <= 35
-            pass_manager_builder.populateLTOPassManager(pass_manager, true, true);
-#else
-            pass_manager_builder.populateLTOPassManager(pass_manager);
-#endif
+            populateLTOPassManager(&pass_manager_builder,
+                                   &pass_manager);
         }
     }
 

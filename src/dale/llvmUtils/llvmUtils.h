@@ -24,6 +24,8 @@
 #endif
 
 #include "llvm/Support/TargetRegistry.h"
+#include "llvm/Transforms/IPO.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
 
 #define _unused(x) ((void)x)
 
@@ -31,6 +33,12 @@
     (((((ret) == ULONG_MAX || ((ret) == 0)) && (errno == ERANGE)) \
                 || (((ret) == 0) && ((str) == (end)))))
 #define DECIMAL_RADIX 10
+
+#if D_LLVM_VERSION_ORD <= 35
+#define DECLARE_ENGINE_BUILDER(mod, name) llvm::EngineBuilder name = llvm::EngineBuilder(mod);
+#else
+#define DECLARE_ENGINE_BUILDER(mod, name) llvm::EngineBuilder name(move(llvm::CloneModule(mod)))
+#endif
 
 namespace dale
 {
@@ -48,6 +56,8 @@ void addPrintModulePass(PassManager *pass_manager,
                         llvm::raw_fd_ostream *ostream);
 llvm::TargetMachine* getTargetMachine(llvm::Module *last_module);
 void setDataLayout(llvm::Module *module);
+void populateLTOPassManager(llvm::PassManagerBuilder *pass_manager_builder,
+                            PassManager *pass_manager);
 
 /*! Get an LLVM function type.
  *  @param t The return type.

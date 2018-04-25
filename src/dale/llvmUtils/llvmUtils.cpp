@@ -120,6 +120,17 @@ setDataLayout(llvm::Module *module)
 }
 
 void
+populateLTOPassManager(llvm::PassManagerBuilder *pass_manager_builder,
+                       PassManager *pass_manager)
+{
+#if D_LLVM_VERSION_ORD <= 35
+    pass_manager_builder->populateLTOPassManager(*pass_manager, true, true);
+#else
+    pass_manager_builder->populateLTOPassManager(*pass_manager);
+#endif
+}
+
+void
 addPrintModulePass(PassManager *pass_manager,
                    llvm::raw_fd_ostream *ostream)
 {
@@ -193,14 +204,13 @@ linkFile(llvm::Linker *linker, const char *path)
     _unused(res);
 }
 
-static llvm::LLVMContext* context = NULL;
-
 llvm::LLVMContext*
 getContext()
 {
 #if D_LLVM_VERSION_ORD <= 38
     return &llvm::getGlobalContext();
 #else
+    static llvm::LLVMContext* context = NULL;
     if (context) {
         return context;
     } else {

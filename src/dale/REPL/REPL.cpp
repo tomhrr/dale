@@ -226,13 +226,7 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
     }
 
     setDataLayout(mod);
-
-#if D_LLVM_VERSION_ORD <= 35
-    llvm::EngineBuilder eb = llvm::EngineBuilder(mod);
-#else
-    std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
-    llvm::EngineBuilder eb(move(module_ptr));
-#endif
+    DECLARE_ENGINE_BUILDER(mod, eb);
 
     eb.setEngineKind(llvm::EngineKind::JIT);
     std::string error;
@@ -358,8 +352,8 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
             llvm::IRBuilder<> builder(res_pr.block);
             std::string var_name("_");
             std::string unused_name;
-            Variable *var;
-            llvm::GlobalVariable *llvm_var;
+            Variable *var = NULL;
+            llvm::GlobalVariable *llvm_var = NULL;
             if (res_pr.type->base_type != BaseType::Void) {
                 units.top()->getUnusedVarName(&unused_name);
 
