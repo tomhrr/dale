@@ -1,5 +1,7 @@
 #include "ArrayDeref.h"
 
+#include <vector>
+
 namespace dale {
 Node *FormMacroArrayDerefParse(Context *ctx, Node *n) {
     if (!ctx->er->assertArgNums("@$", n, 2, 2)) {

@@ -1,4 +1,7 @@
 #include "UsingNamespace.h"
+
+#include <vector>
+
 #include "../../../Node/Node.h"
 #include "../../../Units/Units.h"
 #include "../Inst/Inst.h"

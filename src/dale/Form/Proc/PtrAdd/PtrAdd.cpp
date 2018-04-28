@@ -1,3 +1,7 @@
+#include "PtrAdd.h"
+
+#include <vector>
+
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../Operation/Cast/Cast.h"

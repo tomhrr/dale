@@ -1,5 +1,7 @@
 #include "Setv.h"
 
+#include <vector>
+
 namespace dale {
 Node *FormMacroSetvParse(Context *ctx, Node *n) {
     if (!ctx->er->assertArgNums("setv", n, 2, 2)) {

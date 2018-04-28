@@ -1,4 +1,8 @@
 #include "Def.h"
+
+#include <string>
+#include <vector>
+
 #include "../../../BasicTypes/BasicTypes.h"
 #include "../../../CoreForms/CoreForms.h"
 #include "../../../Node/Node.h"
@@ -23,7 +27,7 @@ bool FormTopLevelDefParse(Units *units, Node *node) {
     std::vector<Node *> *lst = node->list;
     if (lst->size() != 3) {
         Error *e = new Error(IncorrectNumberOfArgs, node, "def", 2,
-                             (int)(lst->size() - 1));
+                             static_cast<int>(lst->size() - 1));
         ctx->er->addError(e);
         return false;
     }

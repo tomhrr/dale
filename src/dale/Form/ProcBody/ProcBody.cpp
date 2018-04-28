@@ -1,4 +1,8 @@
 #include "ProcBody.h"
+
+#include <string>
+#include <vector>
+
 #include "../../CoreForms/CoreForms.h"
 #include "../../Function/Function.h"
 #include "../../Node/Node.h"

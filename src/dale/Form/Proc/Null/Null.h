@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_NULL
 #define DALE_FORM_PROC_NULL
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a null pointer check form.
  *  @param units The units context.

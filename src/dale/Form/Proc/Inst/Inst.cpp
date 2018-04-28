@@ -1,5 +1,9 @@
 #include "Inst.h"
 
+#include <algorithm>
+#include <cstdio>
+#include <vector>
+
 #include "../../../CoreForms/CoreForms.h"
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
@@ -15,8 +19,6 @@
 #include "../../Type/Type.h"
 #include "../Funcall/Funcall.h"
 #include "../Token/Token.h"
-
-#include <cstdio>
 
 using namespace dale::ErrorInst;
 
@@ -40,7 +42,7 @@ bool createAnonymousFunction(Units *units, llvm::BasicBlock *block,
         ctx->er->getErrorTypeCount(ErrorType::Error);
 
     char buf[16];
-    sprintf(buf, "_anon_%d", anon_count++);
+    snprintf(buf, sizeof(buf), "_anon_%d", anon_count++);
     FormFunctionParse(units, n, buf, anon_fn_ref, Linkage::Intern, 1);
     Function *anon_fn = *anon_fn_ref;
 
@@ -225,7 +227,7 @@ bool parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
     /* If the first node is a token, and it equals "fn", then
      * create an anonymous function and return a pointer to it. */
 
-    if (first->is_token and !first->token->str_value.compare("fn")) {
+    if (first->is_token && !first->token->str_value.compare("fn")) {
         Function *anon_fn = NULL;
         bool result = createAnonymousFunction(units, block, adjusted,
                                               &anon_fn, pr);

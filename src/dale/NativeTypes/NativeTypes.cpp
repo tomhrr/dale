@@ -1,11 +1,12 @@
 #include "NativeTypes.h"
 
-#include "../Utils/Utils.h"
-#include "../llvmUtils/llvmUtils.h"
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string>
+
+#include "../Utils/Utils.h"
+#include "../llvmUtils/llvmUtils.h"
 
 #define BITS(T) (CHAR_BIT * sizeof(T))
 

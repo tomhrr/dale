@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_FUNCALL
 #define DALE_FORM_PROC_FUNCALL
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a funcall form (function pointer call).
  *  @param units The units context.

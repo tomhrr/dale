@@ -1,4 +1,7 @@
 #include "Parameter.h"
+
+#include <vector>
+
 #include "../../CoreForms/CoreForms.h"
 #include "../../Function/Function.h"
 #include "../../Node/Node.h"
@@ -62,7 +65,7 @@ bool FormParameterParse(Units *units, Variable *var, Node *node,
 
     if (lst->size() != 2) {
         Error *e = new Error(IncorrectParameterTypeNumberOfArgs, node,
-                             2, (int)lst->size());
+                             2, static_cast<int>(lst->size()));
         ctx->er->addError(e);
         return false;
     }

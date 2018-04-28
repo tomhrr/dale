@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_PTRADD
 #define DALE_FORM_PROC_PTRADD
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a pointer addition form.
  *  @param units The units context.

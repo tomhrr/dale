@@ -1,3 +1,7 @@
+#include "Cast.h"
+
+#include <vector>
+
 #include "../../../Operation/Cast/Cast.h"
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"

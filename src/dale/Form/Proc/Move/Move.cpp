@@ -1,3 +1,7 @@
+#include "Move.h"
+
+#include <vector>
+
 #include "../../../Operation/Move/Move.h"
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"

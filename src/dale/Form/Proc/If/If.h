@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_IF
 #define DALE_FORM_PROC_IF
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse an if form.
  *  @param units The units context.

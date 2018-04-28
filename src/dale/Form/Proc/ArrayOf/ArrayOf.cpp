@@ -1,3 +1,7 @@
+#include "ArrayOf.h"
+
+#include <vector>
+
 #include "../../../Form/TopLevel/GlobalVariable/GlobalVariable.h"
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"

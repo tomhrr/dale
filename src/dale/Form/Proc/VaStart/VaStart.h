@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_VASTART
 #define DALE_FORM_PROC_VASTART
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a va-start form.
  *  @param units The units context.

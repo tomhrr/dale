@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_GOTO
 #define DALE_FORM_PROC_GOTO
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a goto form.
  *  @param units The units context.

@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_VAARG
 #define DALE_FORM_PROC_VAARG
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a va-arg instruction.
  *  @param units The units context.

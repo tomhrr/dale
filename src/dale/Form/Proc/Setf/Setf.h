@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_SETF
 #define DALE_FORM_PROC_SETF
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a procedure-body setf statement.
  *  @param units The units context.

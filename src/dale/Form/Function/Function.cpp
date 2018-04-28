@@ -1,4 +1,9 @@
 #include "Function.h"
+
+#include <cstdio>
+#include <string>
+#include <vector>
+
 #include "../../CoreForms/CoreForms.h"
 #include "../../Function/Function.h"
 #include "../../Node/Node.h"
@@ -15,8 +20,6 @@
 #include "Config.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
-
-#include <cstdio>
 
 using namespace dale::ErrorInst;
 

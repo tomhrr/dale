@@ -1,3 +1,7 @@
+#include "Alignmentof.h"
+
+#include <vector>
+
 #include "../../../Operation/Alignmentof/Alignmentof.h"
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"

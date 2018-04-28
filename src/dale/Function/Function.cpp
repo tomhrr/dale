@@ -1,5 +1,10 @@
 #include "Function.h"
 
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "../STL/STL.h"
 
 namespace dale {

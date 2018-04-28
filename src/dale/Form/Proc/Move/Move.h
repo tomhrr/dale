@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_MOVE
 #define DALE_FORM_PROC_MOVE
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a move form.
  *  @param units The units context.

@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_OFFSETOF
 #define DALE_FORM_PROC_OFFSETOF
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse an offsetof form.
  *  @param units The units context.

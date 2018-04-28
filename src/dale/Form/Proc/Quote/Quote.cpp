@@ -1,3 +1,10 @@
+#include "Quote.h"
+
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"

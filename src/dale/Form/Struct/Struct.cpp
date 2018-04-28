@@ -1,4 +1,9 @@
 #include "Struct.h"
+
+#include <cstdio>
+#include <string>
+#include <vector>
+
 #include "../../CoreForms/CoreForms.h"
 #include "../../Function/Function.h"
 #include "../../Node/Node.h"
@@ -11,8 +16,6 @@
 #include "../Parameter/Parameter.h"
 #include "../ProcBody/ProcBody.h"
 #include "../Type/Type.h"
-
-#include <cstdio>
 
 using namespace dale::ErrorInst;
 
@@ -59,7 +62,7 @@ bool addOpaqueStruct(Units *units, const char *name, Node *top,
      * serialising. */
 
     char buf[16];
-    sprintf(buf, "__rs%d", ++retain_struct_index);
+    snprintf(buf, sizeof(buf), "__rs%d", ++retain_struct_index);
     if (!units->top()->module->getFunction(buf)) {
         std::vector<llvm::Type *> args;
         llvm::FunctionType *ft = getFunctionType(llvm_st, args, false);

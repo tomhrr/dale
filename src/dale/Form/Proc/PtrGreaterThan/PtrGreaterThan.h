@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_PTRGREATERTHAN
 #define DALE_FORM_PROC_PTRGREATERTHAN
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a pointer greater-than form.
  *  @param units The units context.

@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_VAEND
 #define DALE_FORM_PROC_VAEND
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a va-end form.
  *  @param units The units context.

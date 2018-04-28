@@ -1,4 +1,7 @@
 #include "GlobalVariable.h"
+
+#include <cstdio>
+
 #include "../../../Linkage/Linkage.h"
 #include "../../../Node/Node.h"
 #include "../../../Operation/Cast/Cast.h"
@@ -16,25 +19,19 @@
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/Support/Debug.h"
 
-#if D_LLVM_VERSION_ORD >= 36
-#include "llvm/Transforms/Utils/Cloning.h"
-#endif
-
-#include <cstdio>
-
 using namespace dale::ErrorInst;
 
 namespace dale {
 llvm::Constant *parseLiteralElement(Units *units, Node *top, char *data,
                                     Type *type, int *size);
 
-llvm::Constant *apIntToConstant(llvm::APInt &ap_int) {
+llvm::Constant *apIntToConstant(llvm::APInt const &ap_int) {
     llvm::ConstantInt *const_int =
         llvm::ConstantInt::get(*getContext(), ap_int);
     return llvm::cast<llvm::Constant>(const_int);
 }
 
-llvm::Constant *apFloatToConstant(llvm::APFloat &ap_float) {
+llvm::Constant *apFloatToConstant(llvm::APFloat const &ap_float) {
     llvm::ConstantFP *const_float =
         llvm::ConstantFP::get(*getContext(), ap_float);
     return llvm::cast<llvm::Constant>(const_float);
@@ -138,7 +135,7 @@ llvm::Constant *parseLiteralStruct(Units *units, Node *top, char *data,
         memcpy(aligned, addr, member_size);
 
         llvm::Constant *member_value = parseLiteralElement(
-            units, top, (char *)aligned, member_type, size);
+            units, top, reinterpret_cast<char *>(aligned), member_type, size);
         if (!member_value) {
             return NULL;
         }
@@ -167,7 +164,7 @@ llvm::Constant *parseLiteralString(Units *units, Node *top, char *data,
     TypeRegister *tr = ctx->tr;
 
     /* data contains a char pointer, hence the cast. */
-    char *str = *(char **)data;
+    char *str = *(reinterpret_cast<char **>(data));
     *size = strlen(str) + 1;
     llvm::Constant *constr_str = getStringConstantArray(str);
 
@@ -198,7 +195,7 @@ llvm::Constant *parseLiteralPointer(Units *units, Node *top, char *data,
                                     Type *type, int *size) {
     Context *ctx = units->top()->ctx;
 
-    uint64_t value = *(uint64_t *)data;
+    uint64_t value = *(reinterpret_cast<uint64_t *>(data));
     if (value) {
         std::vector<Variable *> retrieved_var;
         ctx->getRetrievedVariables(&retrieved_var);
@@ -251,7 +248,7 @@ llvm::Constant *parseLiteralArray(Units *units, Node *top, char *data,
 
     for (int i = 0; i < members; i++) {
         memset(mem, 0, 256);
-        char *member_ptr = ((char *)data) + (i * member_size);
+        char *member_ptr = reinterpret_cast<char *>(data) + (i * member_size);
         memcpy(mem, member_ptr, member_size);
 
         llvm::Constant *const_member = parseLiteralElement(

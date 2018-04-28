@@ -1,3 +1,7 @@
+#include "Return.h"
+
+#include <vector>
+
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../Operation/CloseScope/CloseScope.h"

@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_CAST
 #define DALE_FORM_PROC_CAST
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a cast form.
  *  @param units The units context.

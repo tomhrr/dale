@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_ALIGNMENTOF
 #define DALE_FORM_PROC_ALIGNMENTOF
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse an alignmentof form.
  *  @param units The units context.

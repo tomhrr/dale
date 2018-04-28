@@ -1,3 +1,7 @@
+#include "Sizeof.h"
+
+#include <vector>
+
 #include "../../../Operation/Sizeof/Sizeof.h"
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"

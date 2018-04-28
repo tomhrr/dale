@@ -1,3 +1,8 @@
+#include "AddressOf.h"
+
+#include <string>
+#include <vector>
+
 #include "../../../BaseType/BaseType.h"
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"

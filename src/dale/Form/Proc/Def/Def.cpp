@@ -1,3 +1,8 @@
+#include "Def.h"
+
+#include <string>
+#include <vector>
+
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../Operation/Copy/Copy.h"

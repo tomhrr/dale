@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_DEF
 #define DALE_FORM_PROC_DEF
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a procedure-body def form.
  *  @param units The units context.

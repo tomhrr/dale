@@ -1,3 +1,7 @@
+#include "Offsetof.h"
+
+#include <vector>
+
 #include "../../../Operation/Offsetof/Offsetof.h"
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"

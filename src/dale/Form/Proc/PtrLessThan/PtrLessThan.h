@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_PTRLESSTHAN
 #define DALE_FORM_PROC_PTRLESSTHAN
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a pointer less-than form.
  *  @param units The units context.

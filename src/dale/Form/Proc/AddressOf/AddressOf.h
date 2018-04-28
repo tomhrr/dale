@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_ADDRESSOF
 #define DALE_FORM_PROC_ADDRESSOF
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse an address-of form.
  *  @param units The units context.

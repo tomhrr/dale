@@ -1,3 +1,8 @@
+#include "Dereference.h"
+
+#include <string>
+#include <vector>
+
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../Operation/Destruct/Destruct.h"

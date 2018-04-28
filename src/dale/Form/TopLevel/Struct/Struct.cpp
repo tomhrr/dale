@@ -1,4 +1,7 @@
 #include "Struct.h"
+
+#include <vector>
+
 #include "../../../Units/Units.h"
 #include "../../Struct/Struct.h"
 
@@ -11,7 +14,7 @@ bool FormTopLevelStructParse(Units *units, Node *top,
     if (!name) {
         if (lst->size() < 3) {
             Error *e = new Error(IncorrectMinimumNumberOfArgs, top,
-                                 "struct", 2, (int)(lst->size() - 1));
+                                 "struct", 2, static_cast<int>(lst->size() - 1));
             units->top()->ctx->er->addError(e);
             return false;
         }

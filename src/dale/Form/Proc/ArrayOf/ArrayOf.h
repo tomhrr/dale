@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_ARRAYOF
 #define DALE_FORM_PROC_ARRAYOF
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse an array-of form.
  *  @param units The units context.

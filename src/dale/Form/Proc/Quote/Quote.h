@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_QUOTE
 #define DALE_FORM_PROC_QUOTE
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a procedure-body quote statement.
  *  @param units The units context.

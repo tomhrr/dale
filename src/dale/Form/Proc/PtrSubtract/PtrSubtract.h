@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_PTRSUBTRACT
 #define DALE_FORM_PROC_PTRSUBTRACT
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a pointer subtraction form.
  *  @param units The units context.

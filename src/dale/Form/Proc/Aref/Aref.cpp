@@ -1,3 +1,8 @@
+#include "Aref.h"
+
+#include <string>
+#include <vector>
+
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../Operation/Cast/Cast.h"

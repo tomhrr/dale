@@ -1,5 +1,7 @@
 #include "DerefStruct.h"
 
+#include <vector>
+
 namespace dale {
 Node *FormMacroDerefStructParse(Context *ctx, Node *n) {
     if (!ctx->er->assertArgNums(":@", n, 2, 2)) {

@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_NULLPTR
 #define DALE_FORM_PROC_NULLPTR
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a nullptr form.
  *  @param units The units context.

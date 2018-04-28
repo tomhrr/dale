@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_PTREQUALS
 #define DALE_FORM_PROC_PTREQUALS
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a pointer equals form.
  *  @param units The units context.

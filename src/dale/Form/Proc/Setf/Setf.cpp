@@ -1,3 +1,7 @@
+#include "Setf.h"
+
+#include <vector>
+
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../Operation/Copy/Copy.h"

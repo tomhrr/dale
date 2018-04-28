@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_DEREFERENCE
 #define DALE_FORM_PROC_DEREFERENCE
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a dereference form.
  *  @param units The units context.

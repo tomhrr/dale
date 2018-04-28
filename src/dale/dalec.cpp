@@ -1,12 +1,15 @@
-#include "Generator/Generator.h"
-
 #include <getopt.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string>
+#include <vector>
+
 #include "Config.h"
+#include "Generator/Generator.h"
 #include "Utils/Utils.h"
 
 /*! dalec
@@ -34,8 +37,8 @@ std::string joinWithPrefix(std::vector<const char *> strings,
                            std::string buffer) {
     for (std::vector<const char *>::iterator b = strings.begin(),
                                              e = strings.end();
-         b != e; buffer += " " + prefix + " " + (*b++))
-        ;
+         b != e; buffer += " " + prefix + " " + (*b++)) {
+    }
 
     return buffer;
 }
@@ -91,7 +94,7 @@ int main(int argc, char **argv) {
 
     for (int opt; (opt = getopt_long(argc, argv, options, long_options,
                                      &option_index)) != -1;) {
-        switch ((char)opt) {
+        switch (static_cast<char>(opt)) {
             case 'o': {
                 if (output_path_arg) {
                     error("an output path has already been specified");
@@ -155,7 +158,7 @@ int main(int argc, char **argv) {
             case 'm':
                 module_name = optarg;
                 break;
-        };
+        }
         if (found_sm) {
             found_sm = 0;
             static_modules.push_back(optarg);
@@ -166,15 +169,15 @@ int main(int argc, char **argv) {
      * libraries as compile-time libraries, so that LLVM is able to
      * resolve external symbols during compilation.  (There is
      * probably a better way to do this.) */
-    if (static_modules.size() or static_mods_all) {
+    if (static_modules.size() || static_mods_all) {
         for (std::vector<const char *>::iterator b = run_libs.begin(),
                                                  e = run_libs.end();
              b != e; ++b) {
             FILE *fp;
             char libname[256];
-            snprintf(libname, 256, "-l%s", *b);
+            snprintf(libname, sizeof(libname), "-l%s", *b);
             char command[256];
-            snprintf(command, 256, "ld -t %s 2>/dev/null", libname);
+            snprintf(command, sizeof(command), "ld -t %s 2>/dev/null", libname);
             fp = popen(command, "r");
             if (fp == NULL) {
                 fprintf(stderr, "Unable to resolve library path");
@@ -291,8 +294,8 @@ int main(int argc, char **argv) {
         joinWithPrefix(input_link_files, " ", "");
     for (std::vector<std::string>::iterator b = so_paths.begin(),
                                             e = so_paths.end();
-         b != e; input_link_file_str += " " + (*b++))
-        ;
+         b != e; input_link_file_str += " " + (*b++)) {
+    }
 
     /* Compose the compiler/linker command and execute it. */
     /* DALEC_CC_FLAGS is an undocumented environment variable that can

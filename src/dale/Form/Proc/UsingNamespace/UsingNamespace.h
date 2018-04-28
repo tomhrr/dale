@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_USINGNAMESPACE
 #define DALE_FORM_PROC_USINGNAMESPACE
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a using-namespace form.
  *  @param units The units context.

@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_LABEL
 #define DALE_FORM_PROC_LABEL
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a label form.
  *  @param units The units context.

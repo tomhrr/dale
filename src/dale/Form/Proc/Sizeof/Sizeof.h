@@ -1,6 +1,8 @@
 #ifndef DALE_FORM_PROC_SIZEOF
 #define DALE_FORM_PROC_SIZEOF
 
+#include "../../../Units/Units.h"
+
 namespace dale {
 /*! Parse a sizeof form.
  *  @param units The units context.

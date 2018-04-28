@@ -1,3 +1,7 @@
+#include "UsingNamespace.h"
+
+#include <vector>
+
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
