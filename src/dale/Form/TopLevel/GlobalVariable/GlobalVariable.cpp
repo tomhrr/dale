@@ -240,42 +240,7 @@ parseLiteralPointer(Units *units, Node *top, char *data, Type *type,
                 b != e;
                 ++b) {
             Function *fn = *b;
-#if D_LLVM_VERSION_ORD <= 35
-            llvm::Type *llvm_return_type =
-                ctx->toLLVMType(ctx->tr->type_pvoid, top, false);
-            if (!llvm_return_type) {
-                return NULL;
-            }
-            std::vector<llvm::Type*> empty_args;
-            llvm::FunctionType *ft = getFunctionType(llvm_return_type,
-                                                     empty_args, false);
-            std::string new_name;
-            units->top()->getUnusedFunctionName(&new_name);
-
-            llvm::Constant *const_fn =
-                units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
-
-            llvm::Function *llvm_fn = llvm::cast<llvm::Function>(const_fn);
-            llvm_fn->setCallingConv(llvm::CallingConv::C);
-            llvm_fn->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_C));
-
-            llvm::BasicBlock *block =
-                llvm::BasicBlock::Create(*getContext(), "entry",
-                                        llvm_fn);
-            llvm::IRBuilder<> builder(block);
-
-            std::vector<llvm::Value *> call_args;
-            call_args.push_back(fn->llvm_function);
-            builder.CreateRet(llvm::cast<llvm::Value>(fn->llvm_function));
-            std::vector<llvm::GenericValue> values;
-            llvm::GenericValue res =
-                units->top()->ee->runFunction(llvm_fn, values);
-            uint64_t address = (uint64_t) res.PointerVal;
-            llvm_fn->eraseFromParent();
-#else
-            uint64_t address =
-                units->top()->ee->getGlobalValueAddress(fn->symbol.c_str());
-#endif
+            uint64_t address = functionToAddress(units->top(), fn);
             if (address == value) {
                 return llvm::cast<llvm::Constant>(fn->llvm_function);
             }
@@ -755,10 +720,8 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
     builder.CreateRet(builder.CreateLoad(new_ptr_value));
 
     if (units->debug) {
-#if D_LLVM_VERSION_ORD >= 35
-        llvm::dbgs() << *llvm_fn << "\n";
-        llvm::dbgs() << *wrapper_fn << "\n";
-#endif
+        functionDebugPass(llvm_fn);
+        functionDebugPass(wrapper_fn);
     }
 
     cloneModuleIfRequired(units->top());

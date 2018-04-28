@@ -170,8 +170,16 @@ moduleDebugPass(llvm::Module *mod)
 #endif
 #if D_LLVM_VERSION_ORD >= 35
     if (llvm::verifyModule(*mod, &(llvm::errs()))) {
-	abort();
+        abort();
     }
+#endif
+}
+
+void
+functionDebugPass(llvm::Function *fn)
+{
+#if D_LLVM_VERSION_ORD >= 35
+    llvm::dbgs() << *fn << "\n";
 #endif
 }
 
@@ -205,6 +213,49 @@ variableToAddress(llvm::ExecutionEngine *ee, Variable *var)
 #else
     return ee->getGlobalValueAddress(var->symbol.c_str());
 #endif
+}
+
+uint64_t
+functionToAddress(Unit *unit, Function *fn)
+{
+#if D_LLVM_VERSION_ORD <= 35
+    Context *ctx = unit->ctx;
+    llvm::Type *llvm_return_type =
+        ctx->toLLVMType(ctx->tr->type_pvoid, top, false);
+    if (!llvm_return_type) {
+        return NULL;
+    }
+    std::vector<llvm::Type*> empty_args;
+    llvm::FunctionType *ft = getFunctionType(llvm_return_type,
+                                             empty_args, false);
+    std::string new_name;
+    unit->getUnusedFunctionName(&new_name);
+
+    llvm::Constant *const_fn =
+        unit->module->getOrInsertFunction(new_name.c_str(), ft);
+
+    llvm::Function *llvm_fn = llvm::cast<llvm::Function>(const_fn);
+    llvm_fn->setCallingConv(llvm::CallingConv::C);
+    llvm_fn->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_C));
+
+    llvm::BasicBlock *block =
+        llvm::BasicBlock::Create(*getContext(), "entry",
+                                llvm_fn);
+    llvm::IRBuilder<> builder(block);
+
+    std::vector<llvm::Value *> call_args;
+    call_args.push_back(fn->llvm_function);
+    builder.CreateRet(llvm::cast<llvm::Value>(fn->llvm_function));
+    std::vector<llvm::GenericValue> values;
+    llvm::GenericValue res =
+        unit->ee->runFunction(llvm_fn, values);
+    uint64_t address = (uint64_t) res.PointerVal;
+    llvm_fn->eraseFromParent();
+#else
+    uint64_t address =
+        unit->ee->getGlobalValueAddress(fn->symbol.c_str());
+#endif
+    return address;
 }
 
 void
