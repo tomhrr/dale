@@ -15,6 +15,7 @@
 #endif
 
 #include "llvm/ADT/Triple.h"
+#include "llvm/Support/Debug.h"
 #include "llvm/Support/Host.h"
 
 namespace dale
