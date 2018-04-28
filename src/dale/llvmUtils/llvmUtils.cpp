@@ -298,7 +298,7 @@ void addInlineAttribute(llvm::Function *fn) {
 }
 
 llvm::FunctionType *getFunctionType(llvm::Type *t,
-                                    std::vector<llvm::Type *> &v,
+                                    std::vector<llvm::Type *> const &v,
                                     bool b) {
     llvm::ArrayRef<llvm::Type *> array_ref(v);
     return llvm::FunctionType::get(t, array_ref, b);

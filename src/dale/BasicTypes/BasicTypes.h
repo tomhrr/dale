@@ -1,11 +1,12 @@
 #ifndef DALE_BASICTYPES
 #define DALE_BASICTYPES
 
+#include <string>
+
 #include "../Context/Context.h"
 #include "../Operation/Cast/Cast.h"
 #include "../ParseResult/ParseResult.h"
 #include "../Type/Type.h"
-
 #include "../llvm_Module.h"
 
 namespace dale {

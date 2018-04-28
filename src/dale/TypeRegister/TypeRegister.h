@@ -1,10 +1,11 @@
 #ifndef DALE_TYPEREGISTER
 #define DALE_TYPEREGISTER
 
+#include <map>
+#include <string>
+
 #include "../BaseType/BaseType.h"
 #include "../Type/Type.h"
-
-#include <map>
 
 namespace dale {
 /*! TypeRegister
@@ -15,7 +16,7 @@ namespace dale {
     be fixed properly later.
 */
 class TypeRegister {
-   private:
+    private:
     /*! An array containing instances of all the basic types. */
     Type *basic_types[BASIC_TYPE_COUNT];
     /*! A map from type to pointer type. */
@@ -35,7 +36,7 @@ class TypeRegister {
     /*! A map from fully-qualified struct name to struct type. */
     std::map<std::string, Type *> struct_types;
 
-   public:
+    public:
     /*! The standard constructor. Initialises the basic types. */
     TypeRegister();
     ~TypeRegister();

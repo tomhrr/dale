@@ -13,7 +13,7 @@ namespace dale {
     stored as strings.
 */
 class Token {
-   public:
+    public:
     /*! The token type. */
     int type;
     /*! The token value. */
@@ -37,7 +37,7 @@ class Token {
     /*! Construct a new token using the details of another token.
      *  @param other The other token.
      */
-    Token(Token *other);
+    explicit Token(Token *other);
     ~Token();
 
     /*! Stringify a token.

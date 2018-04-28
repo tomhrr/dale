@@ -1,6 +1,11 @@
 #ifndef DALE_CONTEXT
 #define DALE_CONTEXT
 
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
+
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../Function/Function.h"
 #include "../Linkage/Linkage.h"
@@ -11,10 +16,6 @@
 #include "../Struct/Struct.h"
 #include "../TypeRegister/TypeRegister.h"
 #include "../Variable/Variable.h"
-
-#include <map>
-#include <string>
-#include <vector>
 
 namespace dale {
 struct NSNode {
@@ -41,7 +42,7 @@ struct NSNode {
 
 */
 class Context {
-   private:
+    private:
     /*! Whether retrieval logging is enabled.  This is an integer so
      *  that nested calls to enable/disable work correctly. */
     int retrieval_logging;
@@ -50,7 +51,7 @@ class Context {
     /*! Functions that have been retrieved. */
     std::vector<Function *> retrieved_fn;
 
-   public:
+    public:
     /*! The native types for the context. Used primarily for type
      *  conversion. */
     NativeTypes *nt;

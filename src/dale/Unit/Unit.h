@@ -1,6 +1,9 @@
 #ifndef DALE_UNIT
 #define DALE_UNIT
 
+#include <string>
+#include <vector>
+
 #include "../Context/Context.h"
 #include "../DNodeConverter/DNodeConverter.h"
 #include "../ErrorReporter/ErrorReporter.h"
@@ -27,7 +30,7 @@ class Units;
     also have a single once tag.
 */
 class Unit {
-   private:
+    private:
     /*! The unit's global functions. */
     std::vector<Function *> global_functions;
     /*! The unit's global blocks. */
@@ -45,7 +48,7 @@ class Unit {
     /*! Whether this unit has its own module. */
     bool has_own_module;
 
-   public:
+    public:
     /*! The unit's LLVM module. */
     llvm::Module *module;
     /*! The unit's linker. */

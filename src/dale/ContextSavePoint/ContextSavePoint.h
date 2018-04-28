@@ -1,11 +1,11 @@
 #ifndef DALE_CONTEXT_SAVEPOINT
 #define DALE_CONTEXT_SAVEPOINT
 
-#include "../Context/Context.h"
-#include "../NamespaceSavePoint/NamespaceSavePoint.h"
-
 #include <map>
 #include <string>
+
+#include "../Context/Context.h"
+#include "../NamespaceSavePoint/NamespaceSavePoint.h"
 
 namespace dale {
 struct SPNode {
@@ -21,18 +21,18 @@ struct SPNode {
     determination can be reversed.
 */
 class ContextSavePoint {
-   private:
+    private:
     Context *src_ctx;
     SPNode *nsps;
     NSNode *active;
     int active_count;
     int used_count;
 
-   public:
+    public:
     /*! Construct a new savepoint using the given context.
      *  @param ctx The context.
      */
-    ContextSavePoint(Context *ctx);
+    explicit ContextSavePoint(Context *ctx);
     ~ContextSavePoint();
     /*! Restore the context so it is as it was prior to savepoint
      *  instantiation.

@@ -19,7 +19,7 @@ enum Produce { IR, BitCode, ASM };
     probably shouldn't be a class at all.
 */
 class Generator {
-   public:
+    public:
     Generator();
     ~Generator();
     /*! Compile a set of files into a specific output format.

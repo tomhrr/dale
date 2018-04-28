@@ -1,6 +1,11 @@
 #ifndef DALE_NAMESPACE
 #define DALE_NAMESPACE
 
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
+
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../ErrorType/ErrorType.h"
 #include "../Function/Function.h"
@@ -11,10 +16,6 @@
 #include "../Struct/Struct.h"
 #include "../TypeRegister/TypeRegister.h"
 #include "../Variable/Variable.h"
-
-#include <map>
-#include <string>
-#include <vector>
 
 namespace dale {
 
@@ -38,7 +39,7 @@ namespace dale {
 */
 
 class Namespace {
-   public:
+    public:
     /*! A map from function name to function list. The list is
      *  necessary because functions may be overloaded. Note that both
      *  macros and functions are stored in this map.*/

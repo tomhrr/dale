@@ -7,13 +7,13 @@ namespace dale {
     Represents a position in the code (line and column numbers).
 */
 class Position {
-   private:
+    private:
     /*! The line number. */
     int line_number;
     /*! The column number. */
     int column_number;
 
-   public:
+    public:
     Position();
     /*! Construct a new position with the given co-ordinates.
      *  @param line_number The line number.
@@ -23,7 +23,7 @@ class Position {
     /*! Construct a new position using an existing position.
      *  @param other The other position.
      */
-    Position(Position *other);
+    explicit Position(Position *other);
     /*! Get the line number of the position.
      */
     int getLineNumber();

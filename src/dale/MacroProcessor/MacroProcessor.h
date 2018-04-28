@@ -28,7 +28,7 @@ extern void (*pool_free_fptr)(MContext *);
     Handles macro parsing and execution.
 */
 class MacroProcessor {
-   private:
+    private:
     Units *units;
     Context *ctx;
     /*! Parse a macro call.
@@ -42,7 +42,7 @@ class MacroProcessor {
      */
     Node *parseMacroCall_(Node *n, Function *macro_to_call);
 
-   public:
+    public:
     llvm::ExecutionEngine *ee;
 
     /*! Construct a new macro processor.

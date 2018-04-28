@@ -16,7 +16,7 @@ namespace dale {
     states (by way of error counts).
 */
 class ErrorReporter {
-   public:
+    public:
     /*! The filename of the file currently being processed. */
     const char *current_filename;
     /*! The current list of errors. */
@@ -27,7 +27,7 @@ class ErrorReporter {
     /*! Construct a new ErrorReporter.
      *  @param current_filename The current filename.
      */
-    ErrorReporter(const char *current_filename);
+    explicit ErrorReporter(const char *current_filename);
     ~ErrorReporter();
 
     /*! Add an error.
@@ -35,7 +35,7 @@ class ErrorReporter {
      *
      *  This does not take ownership of the error.
      */
-    void addError(Error &err);
+    void addError(Error const &err);
     /*! Add an error.
      *  @param err The error.
      *

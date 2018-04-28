@@ -2,8 +2,12 @@
 #define DALE_SERIALISE
 
 #include <cstdio>
+#include <map>
+#include <set>
 #include <string>
+#include <utility>
 #include <vector>
+
 #include "../Context/Context.h"
 #include "../Namespace/Namespace.h"
 #include "../Type/Type.h"

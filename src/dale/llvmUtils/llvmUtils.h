@@ -4,7 +4,9 @@
 #include <sys/stat.h>
 #include <cerrno>
 #include <climits>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "../Type/Type.h"
@@ -103,7 +105,7 @@ llvm::Linker *newLinker(const char *path, llvm::Module *mod);
  *  @param b Whether the function is a varargs function.
  */
 llvm::FunctionType *getFunctionType(llvm::Type *t,
-                                    std::vector<llvm::Type *> &v,
+                                    std::vector<llvm::Type *> const &v,
                                     bool b);
 /*! Construct an LLVM string constant data array.
  *  @param data The data for the array.

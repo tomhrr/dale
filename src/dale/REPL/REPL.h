@@ -10,7 +10,7 @@ namespace dale {
     An adaptation of Generator for the REPL use case.
 */
 class REPL {
-   public:
+    public:
     REPL();
     ~REPL();
     /*! Evaluate commands entered via standard input and execute them.

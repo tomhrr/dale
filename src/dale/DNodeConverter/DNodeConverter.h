@@ -10,7 +10,7 @@ namespace dale {
     Nodes.
 */
 class DNodeConverter {
-   private:
+    private:
     ErrorReporter *er;
     Node *numberAtomToNode(DNode *dnode, Node *error_node);
     Node *stringLiteralAtomToNode(DNode *dnode);
@@ -18,13 +18,13 @@ class DNodeConverter {
     Node *atomToNode(DNode *dnode, Node *error_node);
     Node *listToNode(DNode *dnode);
 
-   public:
+    public:
     /*! Construct a new DNodeConverter.
      *  @param er The error reporter.
      *
      *  This does not take ownership of the error reporter.
      */
-    DNodeConverter(ErrorReporter *er);
+    explicit DNodeConverter(ErrorReporter *er);
     Node *toNode(DNode *dnode);
 };
 }

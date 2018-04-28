@@ -1,13 +1,13 @@
 #ifndef DALE_ELEMENT_STRUCT
 #define DALE_ELEMENT_STRUCT
 
-#include "../Linkage/Linkage.h"
-#include "../Type/Type.h"
-#include "../llvm_Module.h"
-
 #include <map>
 #include <string>
 #include <vector>
+
+#include "../Linkage/Linkage.h"
+#include "../Type/Type.h"
+#include "../llvm_Module.h"
 
 namespace dale {
 /*! Struct
@@ -16,7 +16,7 @@ namespace dale {
     indices begin at zero.
 */
 class Struct {
-   public:
+    public:
     /* The struct's LLVM struct type. */
     llvm::StructType *type;
     /* The struct's internal name (mangled, qualified). */

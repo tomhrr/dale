@@ -1,6 +1,8 @@
 #ifndef FORM_UTILS
 #define FORM_UTILS
 
+#include <vector>
+
 #include "../../Function/Function.h"
 #include "../../Node/Node.h"
 #include "../../ParseResult/ParseResult.h"

@@ -21,7 +21,7 @@ namespace dale {
     throughout the form-processing code and the Generator.
 */
 class ParseResult {
-   private:
+    private:
     /*! Set the address of the value.
      *  @param ctx The current context.
      *
@@ -37,7 +37,7 @@ class ParseResult {
     /*! The value. */
     llvm::Value *value;
 
-   public:
+    public:
     /*! The address of the value. */
     llvm::Value *address_of_value;
     /*! The type of the value. */

@@ -2,6 +2,8 @@
 #define DALE_UNITS
 
 #include <stack>
+#include <string>
+
 #include "../Module/Reader/Reader.h"
 #include "../Namespace/Namespace.h"
 #include "../Unit/Unit.h"
@@ -16,11 +18,11 @@ namespace dale {
     highest-level "context" object.
 */
 class Units {
-   private:
+    private:
     /*! The stack of units. */
     std::stack<Unit *> units;
 
-   public:
+    public:
     /*! The module reader. */
     Module::Reader *mr;
     /*! The namespace immediately before the first namespace within
@@ -45,7 +47,7 @@ class Units {
     /*! Construct a new Units object.
      *  @param mr A module reader.
      */
-    Units(Module::Reader *mr);
+    explicit Units(Module::Reader *mr);
     ~Units();
 
     /*! Get the unit at the top of the stack.

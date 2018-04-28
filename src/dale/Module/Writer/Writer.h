@@ -1,12 +1,15 @@
 #ifndef DALE_MODULE_WRITER
 #define DALE_MODULE_WRITER
 
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
+
 #include "../../Context/Context.h"
 #include "../../Utils/Utils.h"
 #include "../../llvmUtils/llvmUtils.h"
 #include "../../llvm_Module.h"
-
-#include <string>
 
 namespace dale {
 namespace Module {
@@ -15,7 +18,7 @@ namespace Module {
     A class for writing Dale modules to disk.
 */
 class Writer {
-   private:
+    private:
     /*! The name of the module. */
     std::string module_name;
     /*! The path prefix for the module. */
@@ -41,7 +44,7 @@ class Writer {
     /*! Write the module's context to disk. */
     bool writeContext();
 
-   public:
+    public:
     /*! The standard constructor.
      *  @param module_name The module name.
      *  @param ctx The module context.

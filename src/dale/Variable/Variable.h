@@ -1,11 +1,10 @@
 #ifndef DALE_ELEMENT_VARIABLE
 #define DALE_ELEMENT_VARIABLE
 
-#include "../Type/Type.h"
-
 #include <cstdlib>
 #include <string>
 
+#include "../Type/Type.h"
 #include "../llvm_AnalysisVerifier.h"
 #include "../llvm_AssemblyPrintModulePass.h"
 #include "../llvm_CallingConv.h"
@@ -21,7 +20,7 @@ namespace dale {
     A class for storing the details of a variable.
 */
 class Variable {
-   public:
+    public:
     /*! The variable's type. */
     Type *type;
     /*! The variable's name (unqualified, unmangled). */

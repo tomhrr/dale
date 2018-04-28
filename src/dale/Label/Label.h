@@ -13,7 +13,7 @@ class Namespace;
     A class for storing the details of a label.
 */
 class Label {
-   public:
+    public:
     /*! The basic block at which this label begins. */
     llvm::BasicBlock *block;
     /*! The namespace active when the label was defined. */

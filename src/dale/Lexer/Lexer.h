@@ -14,7 +14,7 @@ namespace dale {
     Unit.
 */
 class Lexer {
-   private:
+    private:
     /*! The file pointer for the current file. */
     FILE *file;
     /*! The current position. */
@@ -39,12 +39,12 @@ class Lexer {
     /*! Unget a character. */
     void ungetchar_(char c);
 
-   public:
+    public:
     /*! Construct a new lexer.
      *  @param file The file to read.
      *  @param line_buffered Whether to process input line-by-line.
      */
-    Lexer(FILE *file, bool line_buffered = false);
+    explicit Lexer(FILE *file, bool line_buffered = false);
     ~Lexer();
     /*! Get the next token.
      *  @param token The token buffer.

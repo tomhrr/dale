@@ -1,7 +1,10 @@
 #ifndef DALE_ELEMENT_FUNCTION
 #define DALE_ELEMENT_FUNCTION
 
+#include <map>
+#include <string>
 #include <vector>
+
 #include "../DeferredGoto/DeferredGoto.h"
 #include "../Label/Label.h"
 #include "../Type/Type.h"
@@ -13,7 +16,7 @@ namespace dale {
     A class for storing the details of a function.
 */
 class Function {
-   public:
+    public:
     /*! The function's return type. */
     Type *return_type;
     /*! The function's parameters.  These are stored as variables

@@ -27,7 +27,7 @@ void ErrorReporter::addError(Error *err) {
     errors.push_back(err);
 }
 
-void ErrorReporter::addError(Error &err) {
+void ErrorReporter::addError(Error const &err) {
     Error *new_err = new Error(err);
     addError(new_err);
 }

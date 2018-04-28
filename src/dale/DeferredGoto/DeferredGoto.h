@@ -1,6 +1,8 @@
 #ifndef DALE_DEFERREDGOTO
 #define DALE_DEFERREDGOTO
 
+#include <string>
+
 #include "../llvm_Function.h"
 #include "../llvm_LLVMContext.h"
 
@@ -15,7 +17,7 @@ class Namespace;
     resolve deferred gotos once the function has been processed.
 */
 class DeferredGoto {
-   public:
+    public:
     /*! The instruction after which the goto instruction should be
      *  added. This may be NULL, when e.g. the prospective goto will
      *  be the first instruction within the relevant block. */

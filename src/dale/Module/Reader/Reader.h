@@ -1,11 +1,14 @@
 #ifndef DALE_MODULE_READER
 #define DALE_MODULE_READER
 
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
+
 #include "../../Context/Context.h"
 #include "../../llvm_Linker.h"
 #include "../../llvm_Module.h"
-
-#include <string>
 
 namespace dale {
 namespace Module {
@@ -15,7 +18,7 @@ namespace Module {
     list of processed modules.
 */
 class Reader {
-   private:
+    private:
     char *cwd;
     std::set<std::string> static_module_names;
     bool static_modules_all;
@@ -31,7 +34,7 @@ class Reader {
     bool findModule(Context *ctx, Node *n, std::string *lib_module_name,
                     FILE **fh, std::string *prefix);
 
-   public:
+    public:
     std::vector<std::string> *so_paths;
     std::vector<const char *> module_directory_paths;
     std::map<std::string, std::vector<std::string> *> included_modules;

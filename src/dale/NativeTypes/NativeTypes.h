@@ -1,6 +1,8 @@
 #ifndef DALE_NATIVETYPES
 #define DALE_NATIVETYPES
 
+#include <vector>
+
 #include "../llvm_LinkAll.h"
 
 namespace dale {
@@ -12,7 +14,7 @@ namespace dale {
     bits required by the size.  The other methods are documented below.
 */
 class NativeTypes {
-   private:
+    private:
     llvm::IntegerType *native_char_type;
     llvm::IntegerType *native_int_type;
     llvm::IntegerType *native_uint_type;
@@ -32,7 +34,7 @@ class NativeTypes {
     llvm::Value *llvm_one;
     std::vector<llvm::Value *> zeros;
 
-   public:
+    public:
     NativeTypes();
     llvm::IntegerType *getNativeIntType();
     llvm::IntegerType *getNativeUIntType();

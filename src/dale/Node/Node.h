@@ -1,10 +1,10 @@
 #ifndef DALE_NODE
 #define DALE_NODE
 
+#include <vector>
+
 #include "../Position/Position.h"
 #include "../Token/Token.h"
-
-#include <vector>
 
 /*! DNode
 
@@ -35,7 +35,7 @@ namespace dale {
     (atom) node or a list of nodes.
 */
 class Node {
-   public:
+    public:
     /*! Whether the node is a list node. */
     bool is_list;
     /*! Whether the node is a token node. */
@@ -69,19 +69,19 @@ class Node {
      *
      *  This takes ownership of the token.
      */
-    Node(Token *token);
+    explicit Node(Token *token);
     /*! Construct a token node from a string.
      *  @param str The string.
      *
      *  This does not take ownership of the string.
      */
-    Node(const char *str);
+    explicit Node(const char *str);
     /*! Construct a list node.
      *  @param list The list.
      *
      *  This takes ownership of the list.
      */
-    Node(std::vector<Node *> *list);
+    explicit Node(std::vector<Node *> *list);
     ~Node();
     /*! Print the node to the standard output.
      */

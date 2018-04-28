@@ -1,15 +1,15 @@
 #ifndef DALE_ELEMENT_TYPE
 #define DALE_ELEMENT_TYPE
 
-#include "../BaseType/BaseType.h"
-#include "../Linkage/Linkage.h"
-#include "../Node/Node.h"
-#include "../TypeMap/TypeMap.h"
-
 #include <cstdlib>
 #include <map>
 #include <string>
 #include <vector>
+
+#include "../BaseType/BaseType.h"
+#include "../Linkage/Linkage.h"
+#include "../Node/Node.h"
+#include "../TypeMap/TypeMap.h"
 
 #define IGNORE_ARG_CONSTNESS 1
 
@@ -24,7 +24,7 @@ namespace dale {
     instance for a given type.  See TypeRegister.
 */
 class Type {
-   public:
+    public:
     /*! The base type (see BaseType) of the type. */
     int base_type;
 
@@ -68,11 +68,11 @@ class Type {
     /*! Construct a new type with the given base type.
      *  @param base_type The new base type.
      */
-    Type(int base_type);
+    explicit Type(int base_type);
     /*! Construct a new pointer type with the given type.
      *  @param points_to The type to which the new type will point.
      */
-    Type(Type *points_to);
+    explicit Type(Type *points_to);
     ~Type();
 
     /*! Reset all fields of the type.

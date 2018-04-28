@@ -14,7 +14,7 @@ namespace dale {
     appear at the top level.
 */
 class Parser {
-   private:
+    private:
     /*! The lexer for this parser. */
     Lexer *lexer;
     /*! The error reporter for this parser. */
@@ -44,7 +44,7 @@ class Parser {
      */
     void getUntilRightParenOrEof(Token *token, Error *error);
 
-   public:
+    public:
     /*! Construct a new parser.
      *  @param lexer The lexer for the parser.
      *  @param erep The error reporter for the parser.

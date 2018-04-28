@@ -18,7 +18,7 @@ namespace dale {
     begin/end positions.
 */
 class Error {
-   public:
+    public:
     /*! The error instance.  See ErrorType. */
     int instance;
     /*! The position at which the error begins. */

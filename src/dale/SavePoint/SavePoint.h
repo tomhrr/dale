@@ -1,13 +1,13 @@
 #ifndef DALE_SAVEPOINT
 #define DALE_SAVEPOINT
 
-#include "../Context/Context.h"
-#include "../ContextSavePoint/ContextSavePoint.h"
-#include "../NamespaceSavePoint/NamespaceSavePoint.h"
-
 #include <map>
 #include <string>
 #include <vector>
+
+#include "../Context/Context.h"
+#include "../ContextSavePoint/ContextSavePoint.h"
+#include "../NamespaceSavePoint/NamespaceSavePoint.h"
 
 namespace dale {
 /*! SavePoint
@@ -17,7 +17,7 @@ namespace dale {
     that state.
 */
 class SavePoint {
-   private:
+    private:
     int block_count;
     int instruction_index;
     int dg_count;
@@ -26,7 +26,7 @@ class SavePoint {
     llvm::BasicBlock *block;
     ContextSavePoint *csp;
 
-   public:
+    public:
     /*! Construct a new savepoint.
      *  @param ctx The context.
      *  @param fn The current function.

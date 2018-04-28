@@ -1,6 +1,8 @@
 #ifndef DALE_ELEMENT_FUNCTIONPROCESSOR
 #define DALE_ELEMENT_FUNCTIONPROCESSOR
 
+#include <vector>
+
 #include "../Function/Function.h"
 #include "../ParseResult/ParseResult.h"
 
@@ -12,15 +14,15 @@ class Units;
     Handles function execution.
 */
 class FunctionProcessor {
-   private:
+    private:
     /*! The units context. */
     Units *units;
 
-   public:
+    public:
     /*! Construct a new function processor.
      *  @param units The units context.
      */
-    FunctionProcessor(Units *units);
+    explicit FunctionProcessor(Units *units);
     ~FunctionProcessor();
 
     /*! Parse a function pointer call.
