@@ -14,12 +14,6 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Triple.h"
 #include "llvm/Analysis/Passes.h"
-#if D_LLVM_VERSION_ORD <= 39
-#include "llvm/Bitcode/ReaderWriter.h"
-#else
-#include "llvm/Bitcode/BitcodeReader.h"
-#include "llvm/Bitcode/BitcodeWriter.h"
-#endif
 #include "llvm/CodeGen/LinkAllAsmWriterComponents.h"
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/LinkAllPasses.h"
@@ -105,99 +99,6 @@ Reader::Reader(std::vector<const char *> *module_directory_paths,
 Reader::~Reader()
 {
     free(cwd);
-}
-
-llvm::Module *
-Reader::loadModule(std::string *path)
-{
-#if D_LLVM_VERSION_ORD <= 34
-    llvm::OwningPtr<llvm::MemoryBuffer> buffer;
-#endif
-
-#if D_LLVM_VERSION_ORD <= 33
-    const llvm::sys::Path sys_path(*path);
-    llvm::MemoryBuffer::getFileOrSTDIN(sys_path.c_str(), buffer);
-#elif D_LLVM_VERSION_ORD <= 34
-    llvm::MemoryBuffer::getFileOrSTDIN(*path, buffer);
-#else
-    llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> eo_buffer =
-        llvm::MemoryBuffer::getFileOrSTDIN(*path);
-    assert(!eo_buffer.getError() && "cannot load module");
-    std::unique_ptr<llvm::MemoryBuffer> buffer = std::move(eo_buffer.get());
-#endif
-
-#if D_LLVM_VERSION_ORD <= 34
-    std::string error_msg;
-    llvm::Module *module =
-        llvm::getLazyBitcodeModule(buffer.get(),
-                                   *getContext(),
-                                   &error_msg);
-#elif D_LLVM_VERSION_ORD <= 35
-    std::string error_msg;
-    llvm::ErrorOr<llvm::Module *> eo_module =
-        llvm::getLazyBitcodeModule(buffer.get(),
-                                   *getContext());
-    llvm::Module *module = eo_module.get();
-    if (!module) {
-        error_msg = eo_module.getError().message();
-    }
-    buffer.release();
-#elif D_LLVM_VERSION_ORD <= 36
-    std::string error_msg;
-    llvm::ErrorOr<llvm::Module *> eo_module =
-        llvm::getLazyBitcodeModule(move(buffer),
-                                   *getContext());
-    llvm::Module *module = eo_module.get();
-    if (!module) {
-        error_msg = eo_module.getError().message();
-    }
-    buffer.release();
-#elif D_LLVM_VERSION_ORD <= 39
-    std::string error_msg;
-    llvm::ErrorOr<std::unique_ptr<llvm::Module> > eo_module =
-        llvm::getLazyBitcodeModule(move(buffer),
-                                   *getContext());
-    llvm::Module *module = eo_module.get().get();
-    if (!module) {
-        error_msg = eo_module.getError().message();
-    }
-    buffer.release();
-#else
-    std::string error_msg("Unable to load module");
-    llvm::Expected<std::unique_ptr<llvm::Module>> e_module =
-        llvm::getLazyBitcodeModule(buffer->getMemBufferRef(), *getContext());
-    if (!e_module) {
-        fprintf(stderr, "Unable to load module");
-        abort();
-    }
-    llvm::Module *module = e_module.get().get();
-    buffer.release();
-#endif
-
-    assert(module && "cannot load module");
-
-#if D_LLVM_VERSION_ORD <= 34
-    bool materialized = module->MaterializeAll(&error_msg);
-#elif D_LLVM_VERSION_ORD <= 35
-    std::error_code ec = module->materializeAllPermanently();
-    bool materialized = (bool) ec;
-    if (ec) {
-        error_msg = ec.message();
-    }
-#elif D_LLVM_VERSION_ORD <= 39
-    std::error_code ec = module->materializeAll();
-    bool materialized = (bool) ec;
-    if (ec) {
-        error_msg = ec.message();
-    }
-#else
-    llvm::Error ec = module->materializeAll();
-    bool materialized = ((bool) ec);
-#endif
-    assert(!materialized && "failed to materialize module");
-    _unused(materialized);
-
-    return module;
 }
 
 bool

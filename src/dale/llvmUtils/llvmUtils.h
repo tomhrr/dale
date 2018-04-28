@@ -28,6 +28,13 @@
 #include "llvm/Transforms/Utils/Cloning.h"
 #endif
 
+#if D_LLVM_VERSION_ORD <= 39
+#include "llvm/Bitcode/ReaderWriter.h"
+#else
+#include "llvm/Bitcode/BitcodeReader.h"
+#include "llvm/Bitcode/BitcodeWriter.h"
+#endif
+
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
@@ -81,6 +88,7 @@ uint64_t variableToAddress(llvm::ExecutionEngine *ee, Variable *var);
 uint64_t functionToAddress(Unit *unit, Function *fn);
 void cloneModuleIfRequired(Unit *unit);
 void setStandardAttributes(llvm::Function *fn);
+llvm::Module *loadModule(std::string *path);
 
 /*! Get an LLVM function type.
  *  @param t The return type.

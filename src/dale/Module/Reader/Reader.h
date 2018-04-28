@@ -57,10 +57,6 @@ public:
            bool remove_macros);
     ~Reader();
 
-    /*! Load the module from the specified path.
-     *  @param path The path to the module.
-     */
-    llvm::Module *loadModule(std::string *path);
     /*! Load a dynamic library.
      *  @param path The path to the library.
      *  @param add_to_so_paths Whether the dynamic library should be
