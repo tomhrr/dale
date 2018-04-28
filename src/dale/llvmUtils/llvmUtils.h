@@ -73,6 +73,8 @@ void populateLTOPassManager(llvm::PassManagerBuilder *pass_manager_builder,
 llvm_formatted_ostream* getFormattedOstream(llvm::raw_fd_ostream *ostream);
 void moduleDebugPass(llvm::Module *mod);
 void addInlineAttribute(llvm::Function *fn);
+llvm::BasicBlock::iterator instructionToIterator(llvm::Instruction *inst);
+void setInsertPoint(llvm::IRBuilder<> *builder, llvm::BasicBlock::iterator iter);
 
 /*! Get an LLVM function type.
  *  @param t The return type.

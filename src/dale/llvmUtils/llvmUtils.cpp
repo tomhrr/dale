@@ -175,6 +175,28 @@ moduleDebugPass(llvm::Module *mod)
 #endif
 }
 
+llvm::BasicBlock::iterator
+instructionToIterator(llvm::Instruction *inst)
+{
+#if D_LLVM_VERSION_ORD <= 37
+    llvm::BasicBlock::iterator bi = inst;
+    return bi;
+#else
+    llvm::BasicBlock::iterator bi = inst->getIterator();
+    return bi;
+#endif
+}
+
+void
+setInsertPoint(llvm::IRBuilder<> *builder, llvm::BasicBlock::iterator iter)
+{
+#if D_LLVM_VERSION_ORD <= 37
+    builder->SetInsertPoint(iter);
+#else
+    builder->SetInsertPoint(&*iter);
+#endif
+}
+
 void
 addInlineAttribute(llvm::Function *fn)
 {
