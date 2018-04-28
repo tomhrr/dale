@@ -17,6 +17,8 @@
 #include "llvm/ADT/Triple.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/Host.h"
+#include "llvm/Support/MemoryBuffer.h"
+#include "llvm/ExecutionEngine/GenericValue.h"
 
 namespace dale
 {
@@ -222,9 +224,9 @@ functionToAddress(Unit *unit, Function *fn)
 #if D_LLVM_VERSION_ORD <= 35
     Context *ctx = unit->ctx;
     llvm::Type *llvm_return_type =
-        ctx->toLLVMType(ctx->tr->type_pvoid, top, false);
+        ctx->toLLVMType(ctx->tr->type_pvoid, unit, false);
     if (!llvm_return_type) {
-        return NULL;
+        return 0;
     }
     std::vector<llvm::Type*> empty_args;
     llvm::FunctionType *ft = getFunctionType(llvm_return_type,
