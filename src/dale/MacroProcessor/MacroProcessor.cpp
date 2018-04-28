@@ -153,9 +153,7 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
     }
 
     if (units->debug) {
-#if D_LLVM_VERSION_ORD >= 35
-        llvm::dbgs() << *(mc->llvm_function) << "\n";
-#endif
+        functionDebugPass(mc->llvm_function);
     }
 
 #if D_LLVM_VERSION_ORD >= 36

@@ -89,6 +89,7 @@ uint64_t functionToAddress(Unit *unit, Function *fn);
 void cloneModuleIfRequired(Unit *unit);
 void setStandardAttributes(llvm::Function *fn);
 llvm::Module *loadModule(std::string *path);
+llvm::Linker *newLinker(const char *path, llvm::Module *mod);
 
 /*! Get an LLVM function type.
  *  @param t The return type.

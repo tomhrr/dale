@@ -48,13 +48,7 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
     this->module = module;
 
     if (!linker) {
-#if D_LLVM_VERSION_ORD <= 32
-        linker = new llvm::Linker(path, module, false);
-#elif D_LLVM_VERSION_ORD <= 37
-        linker = new llvm::Linker(module);
-#else
-        linker = new llvm::Linker(*module);
-#endif
+        linker = newLinker(path, module);
     }
     this->linker = linker;
 

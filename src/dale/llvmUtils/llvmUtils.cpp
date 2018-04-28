@@ -383,6 +383,18 @@ linkFile(llvm::Linker *linker, const char *path)
     _unused(res);
 }
 
+llvm::Linker *
+newLinker(const char *path, llvm::Module *mod)
+{
+#if D_LLVM_VERSION_ORD <= 32
+    return new llvm::Linker(path, mod, false);
+#elif D_LLVM_VERSION_ORD <= 37
+    return new llvm::Linker(mod);
+#else
+    return new llvm::Linker(*mod);
+#endif
+}
+
 llvm::Module *
 loadModule(std::string *path)
 {
