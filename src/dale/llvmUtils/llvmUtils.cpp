@@ -103,7 +103,11 @@ getTargetMachine(llvm::Module *last_module)
 #endif
         ));
 
-    return target_sp.get();
+    llvm::TargetMachine *tm = target_sp.get();
+#if D_LLVM_VERSION_ORD <= 35
+    tm->setAsmVerbosityDefault(true);
+#endif
+    return tm;
 }
 
 void
@@ -153,6 +157,31 @@ addPrintModulePass(PassManager *pass_manager,
     pass_manager->add(llvm::createPrintModulePass(ostream));
 #else
     pass_manager->add(llvm::createPrintModulePass(*ostream));
+#endif
+}
+
+void
+moduleDebugPass(llvm::Module *mod)
+{
+#if D_LLVM_VERSION_ORD <= 40
+    mod->dump();
+#else
+    mod->print(llvm::outs(), nullptr);
+#endif
+#if D_LLVM_VERSION_ORD >= 35
+    if (llvm::verifyModule(*mod, &(llvm::errs()))) {
+	abort();
+    }
+#endif
+}
+
+void
+addInlineAttribute(llvm::Function *fn)
+{
+#if D_LLVM_VERSION_ORD == 32
+        fn->addFnAttr(llvm::Attributes::AlwaysInline);
+#else
+        fn->addFnAttr(llvm::Attribute::AlwaysInline);
 #endif
 }
 

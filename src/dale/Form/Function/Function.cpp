@@ -470,11 +470,7 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     }
 
     if (always_inline) {
-#if D_LLVM_VERSION_ORD == 32
-        llvm_fn->addFnAttr(llvm::Attributes::AlwaysInline);
-#else
-        llvm_fn->addFnAttr(llvm::Attribute::AlwaysInline);
-#endif
+        addInlineAttribute(llvm_fn);
     }
 
     llvm_fn->setCallingConv(llvm::CallingConv::C);
@@ -530,13 +526,7 @@ FormFunctionParse(Units *units, Node *node, const char *name,
     ctx->deactivateNamespace(anon_name.c_str());
 
     if (units->debug) {
-#if D_LLVM_VERSION_ORD >= 35
-        if (llvm::verifyModule(*(units->top()->module),
-                            &(llvm::errs()))) {
-            llvm::dbgs() << *(llvm_fn) << "\n";
-            abort();
-        }
-#endif
+        moduleDebugPass(units->top()->module);
     }
 
     return true;

@@ -413,9 +413,6 @@ Generator::run(std::vector<const char *> *file_paths,
     if (produce == IR) {
         addPrintModulePass(&pass_manager, &ostream);
     } else if (produce == ASM) {
-#if D_LLVM_VERSION_ORD <= 35
-        target_machine->setAsmVerbosityDefault(true);
-#endif
         llvm::CodeGenOpt::Level level = llvm::CodeGenOpt::Default;
         bool res = target_machine->addPassesToEmitFile(
             pass_manager, *ostream_formatted,
@@ -426,16 +423,7 @@ Generator::run(std::vector<const char *> *file_paths,
     }
 
     if (debug) {
-#if D_LLVM_VERSION_ORD <= 40
-        mod->dump();
-#else
-        mod->print(llvm::outs(), nullptr);
-#endif
-#if D_LLVM_VERSION_ORD >= 35
-        if (llvm::verifyModule(*mod, &(llvm::errs()))) {
-            abort();
-        }
-#endif
+        moduleDebugPass(mod);
     }
 
     pass_manager.run(*mod);

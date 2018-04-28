@@ -71,6 +71,8 @@ void setDataLayout(llvm::Module *module, bool is_x86_64);
 void populateLTOPassManager(llvm::PassManagerBuilder *pass_manager_builder,
                             PassManager *pass_manager);
 llvm_formatted_ostream* getFormattedOstream(llvm::raw_fd_ostream *ostream);
+void moduleDebugPass(llvm::Module *mod);
+void addInlineAttribute(llvm::Function *fn);
 
 /*! Get an LLVM function type.
  *  @param t The return type.
