@@ -224,7 +224,7 @@ functionToAddress(Unit *unit, Function *fn)
 #if D_LLVM_VERSION_ORD <= 35
     Context *ctx = unit->ctx;
     llvm::Type *llvm_return_type =
-        ctx->toLLVMType(ctx->tr->type_pvoid, unit, false);
+        ctx->toLLVMType(ctx->tr->type_pvoid, nullNode(), false);
     if (!llvm_return_type) {
         return 0;
     }
