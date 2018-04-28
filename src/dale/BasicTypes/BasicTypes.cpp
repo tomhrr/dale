@@ -11,20 +11,6 @@ namespace dale
 {
 namespace BasicTypes
 {
-void
-setStandardAttributes(llvm::Function *fn)
-{
-#if D_LLVM_VERSION_ORD == 32
-    fn->addFnAttr(llvm::Attributes::NoUnwind);
-    fn->addFnAttr(llvm::Attributes::ReadOnly);
-    fn->addFnAttr(llvm::Attributes::AlwaysInline);
-#else
-    fn->addFnAttr(llvm::Attribute::NoUnwind);
-    fn->addFnAttr(llvm::Attribute::ReadOnly);
-    fn->addFnAttr(llvm::Attribute::AlwaysInline);
-#endif
-}
-
 Function *
 addSimpleFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
                   const char *name, int linkage, std::string *symbol_name,

@@ -458,19 +458,7 @@ REPL::run(std::vector<const char *> *compile_lib_paths,
                 );
                 llvm_fn->eraseFromParent();
             } else {
-#if D_LLVM_VERSION_ORD == 36
-                std::unique_ptr<llvm::Module> module_ptr(
-                    llvm::CloneModule(units.top()->module)
-                );
-                units.top()->ee->addModule(move(module_ptr));
-#elif D_LLVM_VERSION_ORD == 37
-                std::unique_ptr<llvm::Module> module_ptr(
-                    llvm::CloneModule(units.top()->module)
-                );
-                units.top()->ee->addModule(move(module_ptr));
-#else
-                units.top()->ee->addModule(llvm::CloneModule(units.top()->module));
-#endif
+                cloneModuleIfRequired(units.top());
                 llvm::Function *bf =
                     units.top()->ee->FindFunctionNamed(new_name.c_str());
                 std::vector<llvm::GenericValue> values;

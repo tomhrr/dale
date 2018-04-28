@@ -297,6 +297,20 @@ cloneModuleIfRequired(Unit *unit)
 }
 
 void
+setStandardAttributes(llvm::Function *fn)
+{
+#if D_LLVM_VERSION_ORD == 32
+    fn->addFnAttr(llvm::Attributes::NoUnwind);
+    fn->addFnAttr(llvm::Attributes::ReadOnly);
+    fn->addFnAttr(llvm::Attributes::AlwaysInline);
+#else
+    fn->addFnAttr(llvm::Attribute::NoUnwind);
+    fn->addFnAttr(llvm::Attribute::ReadOnly);
+    fn->addFnAttr(llvm::Attribute::AlwaysInline);
+#endif
+}
+
+void
 addInlineAttribute(llvm::Function *fn)
 {
 #if D_LLVM_VERSION_ORD == 32

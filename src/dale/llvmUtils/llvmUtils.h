@@ -80,6 +80,7 @@ void setInsertPoint(llvm::IRBuilder<> *builder, llvm::BasicBlock::iterator iter)
 uint64_t variableToAddress(llvm::ExecutionEngine *ee, Variable *var);
 uint64_t functionToAddress(Unit *unit, Function *fn);
 void cloneModuleIfRequired(Unit *unit);
+void setStandardAttributes(llvm::Function *fn);
 
 /*! Get an LLVM function type.
  *  @param t The return type.
