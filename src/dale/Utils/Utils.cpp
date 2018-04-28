@@ -1,10 +1,10 @@
 #include "Utils.h"
 
+#include <sys/stat.h>
+#include <cctype>
+#include <cerrno>
 #include <cstdio>
 #include <cstring>
-#include <cerrno>
-#include <cctype>
-#include <sys/stat.h>
 
 #if D_LLVM_VERSION_ORD >= 36
 #include "llvm/Transforms/Utils/Cloning.h"
@@ -14,13 +14,10 @@
 #include "llvm/Support/Path.h"
 #endif
 
-namespace dale
-{
+namespace dale {
 const char *progname = NULL;
 
-bool
-isSimpleFloat(const char *str)
-{
+bool isSimpleFloat(const char *str) {
     int j = 0;
     int hit_period = 0;
     int len = strlen(str);
@@ -44,24 +41,18 @@ isSimpleFloat(const char *str)
     return true;
 }
 
-bool
-isSimpleInt(const char *str)
-{
+bool isSimpleInt(const char *str) {
     int j;
     int len = strlen(str);
-    if ((len >= 3)
-            && (str[0] == '0')
-            && (str[1] == 'x')) {
+    if ((len >= 3) && (str[0] == '0') && (str[1] == 'x')) {
         for (j = 2; j < len; j++) {
             char c = str[j];
             if (!isxdigit(c)) {
                 return false;
             }
         }
-    } else if ((len >= 4)
-            && (str[0] == '-')
-            && (str[1] == '0')
-            && (str[2] == 'x')) {
+    } else if ((len >= 4) && (str[0] == '-') && (str[1] == '0') &&
+               (str[2] == 'x')) {
         for (j = 3; j < len; j++) {
             char c = str[j];
             if (!isxdigit(c)) {
@@ -81,9 +72,7 @@ isSimpleInt(const char *str)
     return true;
 }
 
-bool
-stringFitsInInt(const char *str)
-{
+bool stringFitsInInt(const char *str) {
     if ((strlen(str) == 1) && isdigit(str[0])) {
         return true;
     }
@@ -100,13 +89,10 @@ stringFitsInInt(const char *str)
     len2 = strlen(buf);
 
     return (len1 > len2) ? 0
-           : (len1 < len2) ? 1
-           : (strcmp(str, buf) <= 0);
+                         : (len1 < len2) ? 1 : (strcmp(str, buf) <= 0);
 }
 
-bool
-filesAreEquivalent(const char *path1, const char *path2)
-{
+bool filesAreEquivalent(const char *path1, const char *path2) {
     if (!strcmp(path1, path2)) {
         return true;
     }
@@ -115,34 +101,27 @@ filesAreEquivalent(const char *path1, const char *path2)
     struct stat f2;
 
     if (stat(path1, &f1) == -1) {
-        printf("Unable to stat %s: %s\n",
-               path1,
-               strerror(errno));
+        printf("Unable to stat %s: %s\n", path1, strerror(errno));
         return false;
     }
 
     if (stat(path2, &f2) == -1) {
-        printf("Unable to stat %s: %s\n",
-               path2,
-               strerror(errno));
+        printf("Unable to stat %s: %s\n", path2, strerror(errno));
         return false;
     }
 
     return (f1.st_ino == f2.st_ino);
 }
 
-void
-appendInt(std::string *to, int num)
-{
+void appendInt(std::string *to, int num) {
     char numstr[255];
     sprintf(numstr, "%d", num);
     to->append(numstr);
     return;
 }
 
-void
-splitString(std::string *str, std::vector<std::string> *lst, char c)
-{
+void splitString(std::string *str, std::vector<std::string> *lst,
+                 char c) {
     int index = 0;
     int len = str->length();
 
@@ -157,15 +136,11 @@ splitString(std::string *str, std::vector<std::string> *lst, char c)
     }
 }
 
-void
-encodeStandard(const std::string *from, std::string *to)
-{
+void encodeStandard(const std::string *from, std::string *to) {
     char buf[5];
 
-    for (std::string::const_iterator b = from->begin(),
-                                     e = from->end();
-            b != e;
-            ++b) {
+    for (std::string::const_iterator b = from->begin(), e = from->end();
+         b != e; ++b) {
         char c = *b;
         sprintf(buf, ((isalnum(c) || c == '_') ? "%c" : "$%x"), c);
         to->append(buf);
@@ -174,11 +149,9 @@ encodeStandard(const std::string *from, std::string *to)
     return;
 }
 
-bool
-isValidModuleName(const std::string *name)
-{
+bool isValidModuleName(const std::string *name) {
     int i;
-    for (i = 0; i < (int) name->length(); ++i) {
+    for (i = 0; i < (int)name->length(); ++i) {
         char c = (*name)[i];
         if (!(isalnum(c) || (c == '-') || (c == '_') || (c == '.'))) {
             return false;
@@ -187,11 +160,9 @@ isValidModuleName(const std::string *name)
     return true;
 }
 
-bool
-typesToString(std::vector<Type *>::iterator begin,
-              std::vector<Type *>::iterator end,
-              std::string *buf)
-{
+bool typesToString(std::vector<Type *>::iterator begin,
+                   std::vector<Type *>::iterator end,
+                   std::string *buf) {
     if (begin == end) {
         buf->append("void");
         return true;
@@ -207,17 +178,13 @@ typesToString(std::vector<Type *>::iterator begin,
     return true;
 }
 
-bool
-typesToString(std::vector<Type *> *types, std::string *buf)
-{
+bool typesToString(std::vector<Type *> *types, std::string *buf) {
     return typesToString(types->begin(), types->end(), buf);
 }
 
-bool
-typesToString(std::vector<Variable *>::iterator begin,
-              std::vector<Variable *>::iterator end,
-              std::string *buf)
-{
+bool typesToString(std::vector<Variable *>::iterator begin,
+                   std::vector<Variable *>::iterator end,
+                   std::string *buf) {
     if (begin == end) {
         buf->append("void");
         return true;
@@ -233,15 +200,11 @@ typesToString(std::vector<Variable *>::iterator begin,
     return true;
 }
 
-bool
-typesToString(std::vector<Variable *> *vars, std::string *buf)
-{
+bool typesToString(std::vector<Variable *> *vars, std::string *buf) {
     return typesToString(vars->begin(), vars->end(), buf);
 }
 
-void
-error(const char *error_msg, bool show_perror)
-{
+void error(const char *error_msg, bool show_perror) {
     char buf[1024];
     sprintf(buf, "%s: %s", progname, error_msg);
     if (show_perror) {
@@ -252,9 +215,7 @@ error(const char *error_msg, bool show_perror)
     exit(1);
 }
 
-void
-error(const char *error_msg, const char *str1, bool show_perror)
-{
+void error(const char *error_msg, const char *str1, bool show_perror) {
     char buf[1024];
     sprintf(buf, error_msg, str1);
     error(buf, show_perror);

@@ -1,29 +1,27 @@
 #ifndef DALE_PARSERESULT
 #define DALE_PARSERESULT
 
-#include "../llvm_Module.h"
-#include "../llvm_Function.h"
-#include "../llvm_PassManager.h"
-#include "../llvm_CallingConv.h"
 #include "../llvm_AnalysisVerifier.h"
 #include "../llvm_AssemblyPrintModulePass.h"
+#include "../llvm_CallingConv.h"
+#include "../llvm_Function.h"
 #include "../llvm_IRBuilder.h"
-#include "llvm/Support/raw_ostream.h"
+#include "../llvm_Module.h"
+#include "../llvm_PassManager.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/Support/raw_ostream.h"
 
-#include "../Type/Type.h"
 #include "../Context/Context.h"
+#include "../Type/Type.h"
 
-namespace dale
-{
+namespace dale {
 /*! ParseResult
 
     Represents the result of a computation.  Used extensively
     throughout the form-processing code and the Generator.
 */
-class ParseResult
-{
-private:
+class ParseResult {
+   private:
     /*! Set the address of the value.
      *  @param ctx The current context.
      *
@@ -39,7 +37,7 @@ private:
     /*! The value. */
     llvm::Value *value;
 
-public:
+   public:
     /*! The address of the value. */
     llvm::Value *address_of_value;
     /*! The type of the value. */
@@ -82,7 +80,8 @@ public:
      *  @param type The type.
      *  @param value The value.
      */
-    ParseResult(llvm::BasicBlock *block, Type *type, llvm::Value *value);
+    ParseResult(llvm::BasicBlock *block, Type *type,
+                llvm::Value *value);
     ~ParseResult();
 
     /*! Copy the details of this parse result to another.

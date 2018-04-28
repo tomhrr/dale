@@ -1,23 +1,13 @@
 #ifndef DALE_LINKAGE
 #define DALE_LINKAGE
 
-namespace dale
-{
+namespace dale {
 /*! Linkage
 
     Contains the variable and function linkage definitions.
 */
-namespace Linkage
-{
-enum
-{
-    Null,
-    Auto,
-    Intern,
-    Extern,
-    Extern_C,
-    Extern_Weak
-};
+namespace Linkage {
+enum { Null, Auto, Intern, Extern, Extern_C, Extern_Weak };
 
 /*! Check whether the linkage is an extern linkage.
  *  @param linkage The linkage.
@@ -33,15 +23,8 @@ bool isExternAll(int linkage);
 
     Contains the struct linkage definitions.
 */
-namespace StructLinkage
-{
-enum
-{
-    Null,
-    Intern,
-    Extern,
-    Opaque
-};
+namespace StructLinkage {
+enum { Null, Intern, Extern, Opaque };
 /*! Check whether the linkage is an extern linkage.
  *  @param linkage The linkage.
  */
@@ -52,14 +35,8 @@ bool isExtern(int linkage);
 
     Contains the enum linkage definitions.
 */
-namespace EnumLinkage
-{
-enum
-{
-    Null,
-    Intern,
-    Extern
-};
+namespace EnumLinkage {
+enum { Null, Intern, Extern };
 /*! Check whether the linkage is an extern linkage.
  *  @param linkage The linkage.
  */

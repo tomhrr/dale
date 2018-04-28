@@ -1,16 +1,16 @@
 #ifndef FORM_UTILS
 #define FORM_UTILS
 
-#include "../../Units/Units.h"
+#include "../../Function/Function.h"
 #include "../../Node/Node.h"
 #include "../../ParseResult/ParseResult.h"
-#include "../../Function/Function.h"
-#include "../Type/Type.h"
+#include "../../Units/Units.h"
 #include "../../llvm_Function.h"
+#include "../Type/Type.h"
 
-namespace dale
-{
-/*! Link a list of variables to the corresponding LLVM function arguments.
+namespace dale {
+/*! Link a list of variables to the corresponding LLVM function
+ * arguments.
  *  @param vars The variables.
  *  @param llvm_fn The LLVM function.
  *

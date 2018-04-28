@@ -1,34 +1,31 @@
 #include "Struct.h"
-#include "../../Units/Units.h"
+#include "../../CoreForms/CoreForms.h"
+#include "../../Function/Function.h"
 #include "../../Node/Node.h"
 #include "../../ParseResult/ParseResult.h"
-#include "../../Function/Function.h"
-#include "../../CoreForms/CoreForms.h"
+#include "../../Units/Units.h"
+#include "../../llvmUtils/llvmUtils.h"
+#include "../../llvm_Function.h"
 #include "../Linkage/Linkage.h"
 #include "../Linkage/Struct/Struct.h"
-#include "../Type/Type.h"
 #include "../Parameter/Parameter.h"
 #include "../ProcBody/ProcBody.h"
-#include "../../llvm_Function.h"
-#include "../../llvmUtils/llvmUtils.h"
+#include "../Type/Type.h"
 
 #include <cstdio>
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
+namespace dale {
 static int anon_struct_index = 0;
 static int retain_struct_index = 0;
 
-bool
-addOpaqueStruct(Units *units, const char *name, Node *top, int linkage)
-{
+bool addOpaqueStruct(Units *units, const char *name, Node *top,
+                     int linkage) {
     Context *ctx = units->top()->ctx;
 
     llvm::StructType *llvm_st =
-        llvm::StructType::create(*getContext(),
-                                 "created_opaque_type");
+        llvm::StructType::create(*getContext(), "created_opaque_type");
 
     std::string symbol;
     ctx->ns()->nameToSymbol(name, &symbol);
@@ -64,7 +61,7 @@ addOpaqueStruct(Units *units, const char *name, Node *top, int linkage)
     char buf[16];
     sprintf(buf, "__rs%d", ++retain_struct_index);
     if (!units->top()->module->getFunction(buf)) {
-        std::vector<llvm::Type*> args;
+        std::vector<llvm::Type *> args;
         llvm::FunctionType *ft = getFunctionType(llvm_st, args, false);
         units->top()->module->getOrInsertFunction(buf, ft);
     }
@@ -72,9 +69,7 @@ addOpaqueStruct(Units *units, const char *name, Node *top, int linkage)
     return true;
 }
 
-bool
-FormStructParse(Units *units, Node *top, const char *name)
-{
+bool FormStructParse(Units *units, Node *top, const char *name) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("struct", top, 1, 3)) {
@@ -101,7 +96,8 @@ FormStructParse(Units *units, Node *top, const char *name)
      * three members (name, attributes and linkage), the struct
      * is actually opaque, so return now. */
 
-    if ((lst->size() == 2) || ((lst->size() == 3) && (next_index == 3))) {
+    if ((lst->size() == 2) ||
+        ((lst->size() == 3) && (next_index == 3))) {
         return true;
     }
 
@@ -110,8 +106,8 @@ FormStructParse(Units *units, Node *top, const char *name)
     Node *members_node = (*lst)[next_index];
 
     if (!members_node->is_list) {
-        Error *e = new Error(IncorrectArgType, members_node,
-                             "struct", "a list", "1", "an atom");
+        Error *e = new Error(IncorrectArgType, members_node, "struct",
+                             "a list", "1", "an atom");
         ctx->er->addError(e);
         return false;
     }
@@ -121,8 +117,7 @@ FormStructParse(Units *units, Node *top, const char *name)
     std::vector<Variable *> members_internal;
     for (std::vector<Node *>::iterator b = members->begin(),
                                        e = members->end();
-            b != e;
-            ++b) {
+         b != e; ++b) {
         Variable *var = new Variable();
         var->type = NULL;
 
@@ -147,11 +142,10 @@ FormStructParse(Units *units, Node *top, const char *name)
     /* Convert the members to LLVM types and add the struct to the
      * module. */
 
-    std::vector<llvm::Type*> members_llvm;
+    std::vector<llvm::Type *> members_llvm;
     for (std::vector<Variable *>::iterator b = members_internal.begin(),
                                            e = members_internal.end();
-            b != e;
-            ++b) {
+         b != e; ++b) {
         llvm::Type *type = ctx->toLLVMType((*b)->type, NULL, false);
         if (!type) {
             return false;
@@ -183,7 +177,8 @@ FormStructParse(Units *units, Node *top, const char *name)
      * members. */
     llvm::StructType *opaque_struct_type =
         llvm::cast<llvm::StructType>(st->type);
-    opaque_struct_type->setBody(llvm::ArrayRef<llvm::Type*>(members_llvm));
+    opaque_struct_type->setBody(
+        llvm::ArrayRef<llvm::Type *>(members_llvm));
     st->is_opaque = false;
 
     st->symbol.clear();
@@ -193,8 +188,7 @@ FormStructParse(Units *units, Node *top, const char *name)
 
     for (std::vector<Variable *>::iterator b = members_internal.begin(),
                                            e = members_internal.end();
-            b != e;
-            ++b) {
+         b != e; ++b) {
         st->addMember((*b)->name.c_str(), (*b)->type);
         delete (*b);
     }

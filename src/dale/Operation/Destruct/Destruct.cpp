@@ -2,23 +2,17 @@
 
 #include "../../Form/Utils/Utils.h"
 
-namespace dale
-{
-namespace Operation
-{
-Function *
-getDestructor(Context *ctx, Type *type)
-{
+namespace dale {
+namespace Operation {
+Function *getDestructor(Context *ctx, Type *type) {
     std::vector<Type *> types;
     types.push_back(type);
     Function *fn = ctx->getFunction("destroy", &types, NULL, 0);
     return fn;
 }
 
-bool
-destructArray(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
-              llvm::IRBuilder<> *builder, bool value_is_ptr)
-{
+bool destructArray(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
+                   llvm::IRBuilder<> *builder, bool value_is_ptr) {
     Type *array_type = pr->type->array_type;
     llvm::BasicBlock *block = pr->block;
 
@@ -38,7 +32,8 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
         return true;
     }
 
-    llvm::Type *llvm_array_type = ctx->toLLVMType(pr->type, NULL, false);
+    llvm::Type *llvm_array_type =
+        ctx->toLLVMType(pr->type, NULL, false);
 
     /* Array literals are stored in the variable table as actual
      * arrays, rather than pointers to arrays.  This should be fixed at
@@ -47,33 +42,24 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
 
     if (!pr->getValue(ctx)->getType()->isPointerTy()) {
         array_value = llvm::cast<llvm::Value>(
-            builder->CreateAlloca(llvm_array_type)
-        );
+            builder->CreateAlloca(llvm_array_type));
         builder->CreateStore(pr->getValue(ctx), array_value);
     }
 
     for (int i = (pr->type->array_size - 1); i >= 0; i--) {
         ParseResult element;
-        element.type  = array_type;
+        element.type = array_type;
         element.block = block;
         std::vector<llvm::Value *> indices;
         STL::push_back2(
-            &indices,
-            ctx->nt->getLLVMZero(),
-            llvm::cast<llvm::Value>(ctx->nt->getNativeInt(i))
-        );
+            &indices, ctx->nt->getLLVMZero(),
+            llvm::cast<llvm::Value>(ctx->nt->getNativeInt(i)));
 
-        llvm::Value *res =
-            builder->Insert(
-                createGEP(
-                    array_value, llvm::ArrayRef<llvm::Value*>(indices)
-                ),
-                "ap"
-            );
-        res =
-            (!array_type->is_array)
-                ? builder->CreateLoad(res)
-                : res;
+        llvm::Value *res = builder->Insert(
+            createGEP(array_value,
+                      llvm::ArrayRef<llvm::Value *>(indices)),
+            "ap");
+        res = (!array_type->is_array) ? builder->CreateLoad(res) : res;
         element.set(element.block, element.type, res);
         element.do_not_destruct = false;
         Destruct(ctx, &element, &element, builder);
@@ -84,46 +70,37 @@ destructArray(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
     return true;
 }
 
-bool
-destructStruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
-               llvm::IRBuilder<> *builder, bool value_is_ptr)
-{
+bool destructStruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
+                    llvm::IRBuilder<> *builder, bool value_is_ptr) {
     Struct *st = ctx->getStruct(pr->type);
-    std::vector<Type*> *st_types = &(st->member_types);
+    std::vector<Type *> *st_types = &(st->member_types);
 
     llvm::Value *struct_value;
     if (value_is_ptr) {
         struct_value = pr->getValue(ctx);
     } else {
-        struct_value = llvm::cast<llvm::Value>(
-            builder->CreateAlloca(
-                ctx->toLLVMType(pr->type, NULL, false))
-            );
+        struct_value = llvm::cast<llvm::Value>(builder->CreateAlloca(
+            ctx->toLLVMType(pr->type, NULL, false)));
         builder->CreateStore(pr->getValue(ctx), struct_value);
     }
 
     int i = 0;
-    for (std::vector<Type*>::iterator b = st_types->begin(),
-                                      e = st_types->end();
-            b != e;
-            ++b) {
+    for (std::vector<Type *>::iterator b = st_types->begin(),
+                                       e = st_types->end();
+         b != e; ++b) {
         ParseResult element;
         element.set(ret_pr->block, *b, struct_value);
         std::vector<llvm::Value *> indices;
         STL::push_back2(
-            &indices,
-            ctx->nt->getLLVMZero(),
-            llvm::cast<llvm::Value>(ctx->nt->getNativeInt(i++))
-        );
-        element.set(element.block, element.type,
-                    builder->Insert(
-                        createGEP(
-                            struct_value,
-                            llvm::ArrayRef<llvm::Value*>(indices),
-                            ctx->toLLVMType(pr->type, NULL, false)
-                        ),
-                        "sp"
-                    ));
+            &indices, ctx->nt->getLLVMZero(),
+            llvm::cast<llvm::Value>(ctx->nt->getNativeInt(i++)));
+        element.set(
+            element.block, element.type,
+            builder->Insert(
+                createGEP(struct_value,
+                          llvm::ArrayRef<llvm::Value *>(indices),
+                          ctx->toLLVMType(pr->type, NULL, false)),
+                "sp"));
         element.do_not_destruct = false;
         Destruct(ctx, &element, &element, builder, true);
         ret_pr->block = element.block;
@@ -132,10 +109,8 @@ destructStruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
     return true;
 }
 
-bool
-destruct_(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
-          llvm::IRBuilder<> *builder, bool value_is_ptr)
-{
+bool destruct_(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
+               llvm::IRBuilder<> *builder, bool value_is_ptr) {
     pr->copyTo(ret_pr);
 
     if (pr->do_not_destruct) {
@@ -159,30 +134,26 @@ destruct_(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
     if (value_is_ptr) {
         value_ptr = pr->getValue(ctx);
     } else {
-        value_ptr = llvm::cast<llvm::Value>(
-            builder->CreateAlloca(ctx->toLLVMType(pr->type, NULL, false))
-        );
+        value_ptr = llvm::cast<llvm::Value>(builder->CreateAlloca(
+            ctx->toLLVMType(pr->type, NULL, false)));
         builder->CreateStore(pr->getValue(ctx), value_ptr);
     }
 
     call_args.push_back(value_ptr);
-    builder->CreateCall(
-        fn->llvm_function,
-        llvm::ArrayRef<llvm::Value*>(call_args)
-    );
+    builder->CreateCall(fn->llvm_function,
+                        llvm::ArrayRef<llvm::Value *>(call_args));
 
     return true;
 }
 
-bool
-Destruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
-         llvm::IRBuilder<> *builder, bool value_is_ptr)
-{
+bool Destruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
+              llvm::IRBuilder<> *builder, bool value_is_ptr) {
     bool res;
 
     if (!builder) {
         llvm::IRBuilder<> internal_builder(pr->block);
-        res = destruct_(ctx, pr, ret_pr, &internal_builder, value_is_ptr);
+        res =
+            destruct_(ctx, pr, ret_pr, &internal_builder, value_is_ptr);
     } else {
         res = destruct_(ctx, pr, ret_pr, builder, value_is_ptr);
     }

@@ -6,8 +6,7 @@
 
 #include <map>
 
-namespace dale
-{
+namespace dale {
 /*! TypeRegister
 
     A class for generating and caching types.
@@ -15,29 +14,28 @@ namespace dale
     All returned Types should be treated as const. This will
     be fixed properly later.
 */
-class TypeRegister
-{
-private:
+class TypeRegister {
+   private:
     /*! An array containing instances of all the basic types. */
     Type *basic_types[BASIC_TYPE_COUNT];
     /*! A map from type to pointer type. */
-    std::map<Type*, Type*> pointer_types;
+    std::map<Type *, Type *> pointer_types;
     /*! A map from type to const type. */
-    std::map<Type*, Type*> const_types;
+    std::map<Type *, Type *> const_types;
     /*! A map from type to reference type. */
-    std::map<Type*, Type*> reference_types;
+    std::map<Type *, Type *> reference_types;
     /*! A map from type to rvalue reference type. */
-    std::map<Type*, Type*> rvalue_reference_types;
+    std::map<Type *, Type *> rvalue_reference_types;
     /*! A map from type to retval type. */
-    std::map<Type*, Type*> retval_types;
+    std::map<Type *, Type *> retval_types;
     /*! A map from type, to size, to array type. */
-    std::map<Type*, std::map<size_t, Type*> > array_types;
+    std::map<Type *, std::map<size_t, Type *> > array_types;
     /*! A map from type, to size, to bitfield type. */
-    std::map<Type*, std::map<size_t, Type*> > bitfield_types;
+    std::map<Type *, std::map<size_t, Type *> > bitfield_types;
     /*! A map from fully-qualified struct name to struct type. */
-    std::map<std::string, Type*> struct_types;
+    std::map<std::string, Type *> struct_types;
 
-public:
+   public:
     /*! The standard constructor. Initialises the basic types. */
     TypeRegister();
     ~TypeRegister();

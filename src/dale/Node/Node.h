@@ -1,8 +1,8 @@
 #ifndef DALE_NODE
 #define DALE_NODE
 
-#include "../Token/Token.h"
 #include "../Position/Position.h"
+#include "../Token/Token.h"
 
 #include <vector>
 
@@ -12,8 +12,7 @@
     as the DNode type defined in the drt module, so that DNodes may be
     passed between the compiler and Dale code.
 */
-struct DNode
-{
+struct DNode {
     int is_list;
     char *token_str;
     DNode *list_node;
@@ -29,16 +28,14 @@ struct DNode
     const char *filename;
 };
 
-namespace dale
-{
+namespace dale {
 /*! Node
 
     The core syntactic element class.  Each node is either a token
     (atom) node or a list of nodes.
 */
-class Node
-{
-public:
+class Node {
+   public:
     /*! Whether the node is a list node. */
     bool is_list;
     /*! Whether the node is a token node. */
@@ -47,16 +44,18 @@ public:
     Position list_begin;
     /*! The ending position of the node. */
     Position list_end;
-    /*! The beginning position of the original macro that produced this node. */
+    /*! The beginning position of the original macro that produced this
+     * node. */
     Position macro_begin;
-    /*! The ending position of the original macro that produced this node. */
+    /*! The ending position of the original macro that produced this
+     * node. */
     Position macro_end;
     /*! The token. */
     Token *token;
     /*! The list. */
     std::vector<Node *> *list;
     /*! The name of the file from which the node was parsed. */
-    const char* filename;
+    const char *filename;
 
     /*! Construct a null node.
      *

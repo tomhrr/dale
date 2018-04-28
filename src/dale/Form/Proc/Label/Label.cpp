@@ -1,19 +1,17 @@
-#include "../../../Units/Units.h"
+#include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Function/Function.h"
-#include "../../../llvm_Function.h"
+#include "../../../Units/Units.h"
 #include "../../../llvmUtils/llvmUtils.h"
+#include "../../../llvm_Function.h"
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-bool
-FormProcLabelParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                   Node *node, bool get_address, bool prefixed_with_core,
-                   ParseResult *pr)
-{
+namespace dale {
+bool FormProcLabelParse(Units *units, Function *fn,
+                        llvm::BasicBlock *block, Node *node,
+                        bool get_address, bool prefixed_with_core,
+                        ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("label", node, 1, 1)) {
@@ -37,9 +35,8 @@ FormProcLabelParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    llvm::BasicBlock *new_block =
-        llvm::BasicBlock::Create(*getContext(), label_name,
-                                 block->getParent());
+    llvm::BasicBlock *new_block = llvm::BasicBlock::Create(
+        *getContext(), label_name, block->getParent());
 
     if (block->size() == 0 || !(block->back().isTerminator())) {
         llvm::IRBuilder<> builder(block);

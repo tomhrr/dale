@@ -1,8 +1,7 @@
 #ifndef DALE_FORM_PROC_NULL
 #define DALE_FORM_PROC_NULL
 
-namespace dale
-{
+namespace dale {
 /*! Parse a null pointer check form.
  *  @param units The units context.
  *  @param fn The function currently in scope.
@@ -12,8 +11,9 @@ namespace dale
  *  @param prefixed_with_core (Unused by this form.)
  *  @param pr The parse result for the response.
  */
-bool FormProcNullParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                       Node *node, bool get_address, bool prefixed_with_core,
+bool FormProcNullParse(Units *units, Function *fn,
+                       llvm::BasicBlock *block, Node *node,
+                       bool get_address, bool prefixed_with_core,
                        ParseResult *pr);
 }
 

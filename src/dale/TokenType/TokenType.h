@@ -1,16 +1,13 @@
 #ifndef DALE_TOKENTYPE
 #define DALE_TOKENTYPE
 
-namespace dale
-{
+namespace dale {
 /*! TokenType
 
     Contains the token type definitions and related utility functions.
 */
-namespace TokenType
-{
-enum
-{
+namespace TokenType {
+enum {
     Null,
     LeftParen,
     RightParen,

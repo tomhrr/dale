@@ -5,8 +5,7 @@
 #include "../Units/Units.h"
 #include "../llvm_Module.h"
 
-namespace dale
-{
+namespace dale {
 /*! CoreForms
 
     Provides for checking whether a given binding is already in use as
@@ -22,8 +21,7 @@ typedef bool (*standard_core_form_t)(Units *units, Function *fn,
 typedef Node *(*macro_core_form_t)(Context *ctx, Node *node);
 typedef bool (*toplevel_core_form_t)(Units *units, Node *node);
 
-namespace CoreForms
-{
+namespace CoreForms {
 /*! Initialise the core form functions.
  */
 void init();

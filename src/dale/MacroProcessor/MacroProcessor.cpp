@@ -1,12 +1,12 @@
 #include "MacroProcessor.h"
 
-#include "../Node/Node.h"
-#include "../Form/Proc/Inst/Inst.h"
 #include "../Form/Macro/ArrayDeref/ArrayDeref.h"
-#include "../Form/Macro/StructDeref/StructDeref.h"
-#include "../Form/Macro/DerefStructDeref/DerefStructDeref.h"
 #include "../Form/Macro/DerefStruct/DerefStruct.h"
+#include "../Form/Macro/DerefStructDeref/DerefStructDeref.h"
 #include "../Form/Macro/Setv/Setv.h"
+#include "../Form/Macro/StructDeref/StructDeref.h"
+#include "../Form/Proc/Inst/Inst.h"
+#include "../Node/Node.h"
 #include "../llvmUtils/llvmUtils.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/Support/Debug.h"
@@ -21,35 +21,29 @@
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
+namespace dale {
 llvm::Function *pool_free_fn;
 
 MacroProcessor::MacroProcessor(Units *units, Context *ctx,
-                               llvm::ExecutionEngine* ee)
-{
+                               llvm::ExecutionEngine *ee) {
     this->units = units;
     this->ctx = ctx;
     this->ee = ee;
 }
 
-MacroProcessor::~MacroProcessor()
-{
-}
+MacroProcessor::~MacroProcessor() {}
 
-void
-MacroProcessor::setPoolfree()
-{
+void MacroProcessor::setPoolfree() {
     if (!pool_free_fn) {
-        pool_free_fn = ctx->getFunction("pool-free", NULL, NULL, 0)->llvm_function;
+        pool_free_fn =
+            ctx->getFunction("pool-free", NULL, NULL, 0)->llvm_function;
     }
 }
 
 std::map<std::string, uint64_t> function_map;
 
-Node *
-MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
-{
+Node *MacroProcessor::parseMacroCall_(Node *n,
+                                      Function *macro_to_call) {
     std::vector<Node *> *lst = n->list;
 
     Node *macro_name_node = (*lst)[0];
@@ -67,10 +61,9 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
     }
 
     const char *macro_name = t->str_value.c_str();
-    Function *mc =
-        macro_to_call
-            ? macro_to_call
-            : ctx->getFunction(macro_name, NULL, NULL, 1);
+    Function *mc = macro_to_call
+                       ? macro_to_call
+                       : ctx->getFunction(macro_name, NULL, NULL, 1);
 
     if (!mc) {
         Error *e = new Error(MacroNotInScope, n, macro_name);
@@ -82,19 +75,17 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
 
     if (mc->isVarArgs()) {
         if (size < mc->numberOfRequiredArgs()) {
-            Error *e = new Error(IncorrectMinimumNumberOfArgs,
-                                 n, macro_name,
-                                 (mc->numberOfRequiredArgs() - 1),
-                                 (size - 1));
+            Error *e =
+                new Error(IncorrectMinimumNumberOfArgs, n, macro_name,
+                          (mc->numberOfRequiredArgs() - 1), (size - 1));
             ctx->er->addError(e);
             return NULL;
         }
     } else {
         if (size != mc->numberOfRequiredArgs()) {
-            Error *e = new Error(IncorrectNumberOfArgs,
-                                 n, macro_name,
-                                 (mc->numberOfRequiredArgs() - 1),
-                                 (size - 1));
+            Error *e =
+                new Error(IncorrectNumberOfArgs, n, macro_name,
+                          (mc->numberOfRequiredArgs() - 1), (size - 1));
             ctx->er->addError(e);
             return NULL;
         }
@@ -105,15 +96,14 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
 
     for (std::vector<Node *>::iterator b = lst->begin() + 1,
                                        e = lst->end();
-            b != e;
-            ++b) {
+         b != e; ++b) {
         Node *node = (*b);
         node->addMacroPosition(n);
         DNode *new_dnode = node->toDNode();
         macro_args[macro_args_count++] = new_dnode;
     }
 
-    PoolNode *pn = (PoolNode *) malloc(sizeof(PoolNode));
+    PoolNode *pn = (PoolNode *)malloc(sizeof(PoolNode));
     if (!pn) {
         error("unable to allocate memory", true);
     }
@@ -124,7 +114,7 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
 
     mcontext.arg_count = macro_args_count;
     mcontext.pool_node = pn;
-    mcontext.units     = units;
+    mcontext.units = units;
 
     std::vector<llvm::GenericValue> values;
     llvm::GenericValue mc_val;
@@ -158,136 +148,151 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
 
 #if D_LLVM_VERSION_ORD >= 36
     uint64_t address = 0;
-    std::map<std::string, uint64_t>::iterator ii = function_map.find(mc->symbol);
+    std::map<std::string, uint64_t>::iterator ii =
+        function_map.find(mc->symbol);
     if (ii != function_map.end()) {
         address = ii->second;
     } else {
         address = (uint64_t)
-            llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(mc->symbol.c_str());
+            llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
+                mc->symbol.c_str());
         if (!address) {
             cloneModuleIfRequired(units->top());
-            llvm::Function *mc_ffn = units->top()->ee->FindFunctionNamed(mc->symbol.c_str());
+            llvm::Function *mc_ffn =
+                units->top()->ee->FindFunctionNamed(mc->symbol.c_str());
             if (!mc_ffn) {
-                fprintf(stderr, "cannot refetch: '%s'\n", mc->symbol.c_str());
+                fprintf(stderr, "cannot refetch: '%s'\n",
+                        mc->symbol.c_str());
                 abort();
             }
-            address = units->top()->ee->getFunctionAddress(mc->symbol.c_str());
+            address = units->top()->ee->getFunctionAddress(
+                mc->symbol.c_str());
         }
     }
-    function_map.insert(std::pair<std::string, uint64_t>(mc->symbol, address));
+    function_map.insert(
+        std::pair<std::string, uint64_t>(mc->symbol, address));
 
     DNode *result_dnode;
     if (values2.size() == 1) {
-        typedef void *(*MFN)(void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0]);
+        typedef void *(*MFN)(void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(values2[0]);
     } else if (values2.size() == 2) {
-        typedef void *(*MFN)(void*, void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0], values2[1]);
+        typedef void *(*MFN)(void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(values2[0], values2[1]);
     } else if (values2.size() == 3) {
-        typedef void *(*MFN)(void*, void*, void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2]);
+        typedef void *(*MFN)(void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode =
+            (DNode *)macro_function(values2[0], values2[1], values2[2]);
     } else if (values2.size() == 4) {
-        typedef void *(*MFN)(void*, void*, void*, void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2], values2[3]);
+        typedef void *(*MFN)(void *, void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(values2[0], values2[1],
+                                               values2[2], values2[3]);
     } else if (values2.size() == 5) {
-        typedef void *(*MFN)(void*, void*, void*, void*, void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2], values2[3], values2[4]);
+        typedef void *(*MFN)(void *, void *, void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(
+            values2[0], values2[1], values2[2], values2[3], values2[4]);
     } else if (values2.size() == 6) {
-        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2], values2[3], values2[4], values2[5]);
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *);
+        MFN macro_function = (MFN)address;
+        result_dnode =
+            (DNode *)macro_function(values2[0], values2[1], values2[2],
+                                    values2[3], values2[4], values2[5]);
     } else if (values2.size() == 7) {
-        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
-                             void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2], values2[3], values2[4], values2[5],
-        values2[6]);
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(
+            values2[0], values2[1], values2[2], values2[3], values2[4],
+            values2[5], values2[6]);
     } else if (values2.size() == 8) {
-        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
-                             void*, void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2], values2[3], values2[4], values2[5],
-        values2[6], values2[7]);
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(
+            values2[0], values2[1], values2[2], values2[3], values2[4],
+            values2[5], values2[6], values2[7]);
     } else if (values2.size() == 9) {
-        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
-                             void*, void*, void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2], values2[3], values2[4], values2[5],
-        values2[6], values2[7], values2[8]);
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(
+            values2[0], values2[1], values2[2], values2[3], values2[4],
+            values2[5], values2[6], values2[7], values2[8]);
     } else if (values2.size() == 10) {
-        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
-                             void*, void*, void*, void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2], values2[3], values2[4], values2[5],
-        values2[6], values2[7], values2[8], values2[9]);
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(
+            values2[0], values2[1], values2[2], values2[3], values2[4],
+            values2[5], values2[6], values2[7], values2[8], values2[9]);
     } else if (values2.size() == 11) {
-        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
-                             void*, void*, void*, void*, void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2], values2[3], values2[4], values2[5],
-        values2[6], values2[7], values2[8], values2[9], values2[10]);
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(
+            values2[0], values2[1], values2[2], values2[3], values2[4],
+            values2[5], values2[6], values2[7], values2[8], values2[9],
+            values2[10]);
     } else if (values2.size() == 12) {
-        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
-                             void*, void*, void*, void*, void*, void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2], values2[3], values2[4], values2[5],
-        values2[6], values2[7], values2[8], values2[9], values2[10],
-        values2[11]);
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(
+            values2[0], values2[1], values2[2], values2[3], values2[4],
+            values2[5], values2[6], values2[7], values2[8], values2[9],
+            values2[10], values2[11]);
     } else if (values2.size() == 13) {
-        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
-                             void*, void*, void*, void*, void*, void*,
-                             void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2], values2[3], values2[4], values2[5],
-        values2[6], values2[7], values2[8], values2[9], values2[10],
-        values2[11], values2[12]);
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(
+            values2[0], values2[1], values2[2], values2[3], values2[4],
+            values2[5], values2[6], values2[7], values2[8], values2[9],
+            values2[10], values2[11], values2[12]);
     } else if (values2.size() == 14) {
-        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
-                             void*, void*, void*, void*, void*, void*,
-                             void*, void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2], values2[3], values2[4], values2[5],
-        values2[6], values2[7], values2[8], values2[9], values2[10],
-        values2[11], values2[12], values2[13]);
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(
+            values2[0], values2[1], values2[2], values2[3], values2[4],
+            values2[5], values2[6], values2[7], values2[8], values2[9],
+            values2[10], values2[11], values2[12], values2[13]);
     } else if (values2.size() == 15) {
-        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
-                             void*, void*, void*, void*, void*, void*,
-                             void*, void*, void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2], values2[3], values2[4], values2[5],
-        values2[6], values2[7], values2[8], values2[9], values2[10],
-        values2[11], values2[12], values2[13], values2[14]);
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(
+            values2[0], values2[1], values2[2], values2[3], values2[4],
+            values2[5], values2[6], values2[7], values2[8], values2[9],
+            values2[10], values2[11], values2[12], values2[13],
+            values2[14]);
     } else if (values2.size() == 16) {
-        typedef void *(*MFN)(void*, void*, void*, void*, void*, void*,
-                             void*, void*, void*, void*, void*, void*,
-                             void*, void*, void*, void*);
-        MFN macro_function = (MFN) address;
-        result_dnode = (DNode *) macro_function(values2[0],
-        values2[1], values2[2], values2[3], values2[4], values2[5],
-        values2[6], values2[7], values2[8], values2[9], values2[10],
-        values2[11], values2[12], values2[13], values2[14],
-        values2[15]);
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = (DNode *)macro_function(
+            values2[0], values2[1], values2[2], values2[3], values2[4],
+            values2[5], values2[6], values2[7], values2[8], values2[9],
+            values2[10], values2[11], values2[12], values2[13],
+            values2[14], values2[15]);
     } else {
-        fprintf(stderr, "Internal error: need to handle more macro parameters: %lu\n",
-            values2.size());
+        fprintf(stderr,
+                "Internal error: need to handle more macro parameters: "
+                "%lu\n",
+                values2.size());
         abort();
     }
 
@@ -299,18 +304,20 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
     llvm::Function *pf_ffn =
         units->top()->ee->FindFunctionNamed(pfffn->symbol.c_str());
     if (pf_ffn) {
-        pf_address = units->top()->ee->getFunctionAddress(pfffn->symbol.c_str());
+        pf_address =
+            units->top()->ee->getFunctionAddress(pfffn->symbol.c_str());
     } else {
         pf_address = (uint64_t)
-            llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(pfffn->symbol.c_str());
+            llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
+                pfffn->symbol.c_str());
     }
 
-    typedef void (*FFN)(void*);
-    FFN free_function = (FFN) pf_address;
+    typedef void (*FFN)(void *);
+    FFN free_function = (FFN)pf_address;
     free_function(&mcontext);
 #else
-    DNode *result_dnode = (DNode *)
-        ee->runFunction(mc->llvm_function, values).PointerVal;
+    DNode *result_dnode =
+        (DNode *)ee->runFunction(mc->llvm_function, values).PointerVal;
 
     Node *result_node =
         (result_dnode) ? units->top()->dnc->toNode(result_dnode) : NULL;
@@ -327,12 +334,11 @@ MacroProcessor::parseMacroCall_(Node *n, Function *macro_to_call)
     return result_node;
 }
 
-Node *
-MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
-{
+Node *MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call) {
     int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
     Node *result = parseMacroCall_(n, macro_to_call);
-    int diff = ctx->er->getErrorTypeCount(ErrorType::Error) - error_count;
+    int diff =
+        ctx->er->getErrorTypeCount(ErrorType::Error) - error_count;
     if (diff) {
         Error *e = new Error(MacroExpansionError, n);
         ctx->er->addError(e);
@@ -343,8 +349,7 @@ MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
         if (!filename) {
             filename = "<unknown>";
         }
-        printf("%s:%d:%d: expansion: ",
-               filename,
+        printf("%s:%d:%d: expansion: ", filename,
                n->getBeginPos()->getLineNumber(),
                n->getBeginPos()->getColumnNumber());
         n->print();
@@ -356,9 +361,7 @@ MacroProcessor::parseMacroCall(Node *n, Function *macro_to_call)
     return result;
 }
 
-Node *
-MacroProcessor::parsePotentialMacroCall(Node *n, bool once)
-{
+Node *MacroProcessor::parsePotentialMacroCall(Node *n, bool once) {
     if (n->is_token || !n->is_list) {
         return n;
     }
@@ -375,14 +378,20 @@ MacroProcessor::parsePotentialMacroCall(Node *n, bool once)
 
     const char *macro_name = macro_name_node->token->str_value.c_str();
 
-    Node *(*core_mac)(Context *ctx, Node *n);
+    Node *(*core_mac)(Context * ctx, Node * n);
 
-    core_mac =   (eq("setv")) ? &FormMacroSetvParse
-               : (eq("@$"))   ? &FormMacroArrayDerefParse
-               : (eq(":@"))   ? &FormMacroDerefStructParse
-               : (eq("@:"))   ? &FormMacroStructDerefParse
-               : (eq("@:@"))  ? &FormMacroDerefStructDerefParse
-               : NULL;
+    core_mac =
+        (eq("setv"))
+            ? &FormMacroSetvParse
+            : (eq("@$"))
+                  ? &FormMacroArrayDerefParse
+                  : (eq(":@"))
+                        ? &FormMacroDerefStructParse
+                        : (eq("@:"))
+                              ? &FormMacroStructDerefParse
+                              : (eq("@:@"))
+                                    ? &FormMacroDerefStructDerefParse
+                                    : NULL;
 
     if (core_mac) {
         return core_mac(ctx, n);
@@ -407,18 +416,15 @@ MacroProcessor::parsePotentialMacroCall(Node *n, bool once)
     int error_count = ctx->er->getErrorTypeCount(ErrorType::Error);
     for (std::vector<Node *>::iterator b = lst->begin() + 1,
                                        e = lst->end();
-            b != e;
-            ++b) {
+         b != e; ++b) {
         ParseResult arg_pr;
-        bool res =
-            FormProcInstParse(units, global_fn, block, *b, false, false, NULL,
-                              &arg_pr);
+        bool res = FormProcInstParse(units, global_fn, block, *b, false,
+                                     false, NULL, &arg_pr);
         if (res) {
             /* Add the type. */
             types.push_back(arg_pr.type);
             block = arg_pr.block;
-        }
-        else {
+        } else {
             /* Add a (p DNode) to types. */
             types.push_back(ctx->tr->type_pdnode);
         }
@@ -443,11 +449,9 @@ MacroProcessor::parsePotentialMacroCall(Node *n, bool once)
      * elements, and the first element is 'do', then just return the
      * second element. */
 
-    if ((!mac_node->is_token)
-            && (mac_node->list->size() == 2)
-            && ((*mac_node->list)[0]->is_token)
-            && ((*mac_node->list)[0]
-                ->token->str_value.compare("do") == 0)) {
+    if ((!mac_node->is_token) && (mac_node->list->size() == 2) &&
+        ((*mac_node->list)[0]->is_token) &&
+        ((*mac_node->list)[0]->token->str_value.compare("do") == 0)) {
         if (once) {
             return (*mac_node->list)[1];
         } else {

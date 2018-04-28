@@ -3,16 +3,14 @@
 
 #include "../ErrorReporter/ErrorReporter.h"
 
-namespace dale
-{
+namespace dale {
 /*! DNodeConverter
 
     A very simple class that provides for converting DNodes into
     Nodes.
 */
-class DNodeConverter
-{
-private:
+class DNodeConverter {
+   private:
     ErrorReporter *er;
     Node *numberAtomToNode(DNode *dnode, Node *error_node);
     Node *stringLiteralAtomToNode(DNode *dnode);
@@ -20,7 +18,7 @@ private:
     Node *atomToNode(DNode *dnode, Node *error_node);
     Node *listToNode(DNode *dnode);
 
-public:
+   public:
     /*! Construct a new DNodeConverter.
      *  @param er The error reporter.
      *

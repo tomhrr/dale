@@ -1,10 +1,7 @@
 #include "ParseResult.h"
 
-namespace dale
-{
-void
-ParseResult::init()
-{
+namespace dale {
+void ParseResult::init() {
     block = NULL;
     type = NULL;
     value = NULL;
@@ -23,28 +20,20 @@ ParseResult::init()
     retval_requires_init = false;
 }
 
-ParseResult::ParseResult()
-{
-    init();
-}
+ParseResult::ParseResult() { init(); }
 
 ParseResult::ParseResult(llvm::BasicBlock *block, Type *type,
-                         llvm::Value *value)
-{
+                         llvm::Value *value) {
     init();
     set(block, type, value);
 }
 
-ParseResult::~ParseResult()
-{
-}
+ParseResult::~ParseResult() {}
 
-void
-ParseResult::copyTo(ParseResult *x)
-{
+void ParseResult::copyTo(ParseResult *x) {
     x->treat_as_terminator = treat_as_terminator;
     x->do_not_destruct = do_not_destruct;
-    x->do_not_copy_with_setf =  do_not_copy_with_setf;
+    x->do_not_copy_with_setf = do_not_copy_with_setf;
     x->block = block;
     x->type = type;
     x->value = value;
@@ -58,16 +47,14 @@ ParseResult::copyTo(ParseResult *x)
     x->retval_requires_init = retval_requires_init;
 }
 
-void
-ParseResult::set(llvm::BasicBlock *block, Type *type, llvm::Value *value) {
+void ParseResult::set(llvm::BasicBlock *block, Type *type,
+                      llvm::Value *value) {
     this->block = block;
-    this->type  = type;
+    this->type = type;
     this->value = value;
 }
 
-bool
-ParseResult::setAddressOfValue(Context *ctx)
-{
+bool ParseResult::setAddressOfValue(Context *ctx) {
     if (address_of_value) {
         return true;
     }
@@ -84,25 +71,20 @@ ParseResult::setAddressOfValue(Context *ctx)
     return true;
 }
 
-bool
-ParseResult::getAddressOfValue(Context *ctx, ParseResult *pr)
-{
+bool ParseResult::getAddressOfValue(Context *ctx, ParseResult *pr) {
     bool res = setAddressOfValue(ctx);
     if (!res) {
         return false;
     }
-    Type *new_type =
-        (type_of_address_of_value)
-            ? type_of_address_of_value
-            : ctx->tr->getPointerType(type);
+    Type *new_type = (type_of_address_of_value)
+                         ? type_of_address_of_value
+                         : ctx->tr->getPointerType(type);
 
     pr->set(block, new_type, address_of_value);
     return true;
 }
 
-llvm::Value *
-ParseResult::getValue(Context *ctx)
-{
+llvm::Value *ParseResult::getValue(Context *ctx) {
     if (retval && retval_used) {
         llvm::IRBuilder<> builder(block);
         return builder.CreateLoad(retval);

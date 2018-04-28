@@ -1,16 +1,13 @@
 #include "Inst.h"
-#include "Config.h"
-#include "../../../Units/Units.h"
-#include "../../../Node/Node.h"
 #include "../../../CoreForms/CoreForms.h"
+#include "../../../Node/Node.h"
+#include "../../../Units/Units.h"
+#include "Config.h"
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-bool
-FormTopLevelInstParse(Units *units, Node *node)
-{
+namespace dale {
+bool FormTopLevelInstParse(Units *units, Node *node) {
     Context *ctx = units->top()->ctx;
 
     ctx->deleteAnonymousNamespaces();
@@ -58,7 +55,7 @@ FormTopLevelInstParse(Units *units, Node *node)
     }
 
     const char *form = form_token->str_value.c_str();
-    bool (*toplevel_form)(Units *units, Node *n) =
+    bool (*toplevel_form)(Units * units, Node * n) =
         CoreForms::getTopLevel(form);
     if (toplevel_form) {
         toplevel_form(units, node);

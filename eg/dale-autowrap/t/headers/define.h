@@ -1,1 +1,1 @@
-#define FOO (1<<2)
+#define FOO (1 << 2)

@@ -1,19 +1,14 @@
 #include "Copy.h"
 
-namespace dale
-{
-namespace Operation
-{
-bool
-IsCopyPermitted(Context *ctx, Node *node, Type *type)
-{
+namespace dale {
+namespace Operation {
+bool IsCopyPermitted(Context *ctx, Node *node, Type *type) {
     Struct *st = ctx->getStruct(type);
     if (st) {
-        std::vector<Type*> *st_types = &(st->member_types);
-        for (std::vector<Type*>::iterator b = st_types->begin(),
-                                          e = st_types->end();
-                b != e;
-                ++b) {
+        std::vector<Type *> *st_types = &(st->member_types);
+        for (std::vector<Type *>::iterator b = st_types->begin(),
+                                           e = st_types->end();
+             b != e; ++b) {
             if (!IsCopyPermitted(ctx, node, (*b))) {
                 return false;
             }
@@ -26,7 +21,8 @@ IsCopyPermitted(Context *ctx, Node *node, Type *type)
 
     std::vector<Type *> disabled_types;
     disabled_types.push_back(type);
-    if (ctx->getFunction("setf-copy-disabled", &disabled_types, NULL, 0)) {
+    if (ctx->getFunction("setf-copy-disabled", &disabled_types, NULL,
+                         0)) {
         Error *e = new Error(ErrorInst::CopyDisabled, node);
         ctx->er->addError(e);
         return false;
@@ -35,10 +31,8 @@ IsCopyPermitted(Context *ctx, Node *node, Type *type)
     return true;
 }
 
-bool
-Copy(Context *ctx, Function *fn, Node *node, ParseResult *pr,
-     ParseResult *ret_pr)
-{
+bool Copy(Context *ctx, Function *fn, Node *node, ParseResult *pr,
+          ParseResult *ret_pr) {
     pr->copyTo(ret_pr);
 
     /* If this is a setf function, then don't copy, even if it can be
@@ -73,7 +67,8 @@ Copy(Context *ctx, Function *fn, Node *node, ParseResult *pr,
     std::vector<Type *> types;
     types.push_back(copy_type);
     types.push_back(copy_type);
-    Function *over_setf = ctx->getFunction("setf-copy-init", &types, NULL, false);
+    Function *over_setf =
+        ctx->getFunction("setf-copy-init", &types, NULL, false);
     if (!over_setf) {
         return true;
     }
@@ -89,10 +84,8 @@ Copy(Context *ctx, Function *fn, Node *node, ParseResult *pr,
     std::vector<llvm::Value *> call_args;
     call_args.push_back(result_ptr);
     call_args.push_back(value_ptr);
-    builder.CreateCall(
-        over_setf->llvm_function,
-        llvm::ArrayRef<llvm::Value*>(call_args)
-    );
+    builder.CreateCall(over_setf->llvm_function,
+                       llvm::ArrayRef<llvm::Value *>(call_args));
     llvm::Value *result = builder.CreateLoad(result_ptr);
 
     ret_pr->set(pr->block, pr->type, result);

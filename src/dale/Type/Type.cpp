@@ -3,58 +3,43 @@
 #include "../STL/STL.h"
 #include "../Utils/Utils.h"
 
-#define DEBUG 0
-
 #include <cstdio>
 #include <cstring>
 
-namespace dale
-{
-Type::Type()
-{
-    this->reset();
-}
+namespace dale {
+Type::Type() { this->reset(); }
 
-Type::Type(int new_base_type)
-{
+Type::Type(int new_base_type) {
     this->reset();
     base_type = new_base_type;
 }
 
-Type::Type(Type *new_points_to)
-{
+Type::Type(Type *new_points_to) {
     this->reset();
     points_to = new_points_to;
 }
 
-Type::~Type()
-{
-}
+Type::~Type() {}
 
-void
-Type::reset()
-{
-    base_type       = 0;
-    is_array        = false;
-    array_size      = 0;
-    points_to       = NULL;
-    array_type      = NULL;
-    bitfield_size   = 0;
+void Type::reset() {
+    base_type = 0;
+    is_array = false;
+    array_size = 0;
+    points_to = NULL;
+    array_type = NULL;
+    bitfield_size = 0;
 
-    is_function     = false;
-    return_type     = NULL;
+    is_function = false;
+    return_type = NULL;
 
-    is_const            = false;
-    is_reference        = false;
+    is_const = false;
+    is_reference = false;
     is_rvalue_reference = false;
-    is_retval           = false;
+    is_retval = false;
 }
 
-bool
-Type::isEqualTo(Type *other_type,
-                bool ignore_arg_constness,
-                bool checking_passed_from)
-{
+bool Type::isEqualTo(Type *other_type, bool ignore_arg_constness,
+                     bool checking_passed_from) {
     if (is_reference && other_type->is_rvalue_reference) {
         return false;
     }
@@ -68,7 +53,8 @@ Type::isEqualTo(Type *other_type,
     }
 
     if (is_const != other_type->is_const) {
-        if (!(ignore_arg_constness && !is_const && other_type->is_const)) {
+        if (!(ignore_arg_constness && !is_const &&
+              other_type->is_const)) {
             return false;
         }
     }
@@ -77,7 +63,8 @@ Type::isEqualTo(Type *other_type,
         return false;
     }
 
-    if ((namespaces.size() == 0) ^ (other_type->namespaces.size() == 0)) {
+    if ((namespaces.size() == 0) ^
+        (other_type->namespaces.size() == 0)) {
         return false;
     }
 
@@ -117,11 +104,11 @@ Type::isEqualTo(Type *other_type,
     }
     if (is_function) {
         if (!return_type->isEqualTo(other_type->return_type)) {
-             return false;
+            return false;
         }
         std::vector<Type *>::iterator
-            b  = parameter_types.begin(),
-            e  = parameter_types.end(),
+            b = parameter_types.begin(),
+            e = parameter_types.end(),
             ob = other_type->parameter_types.begin(),
             oe = other_type->parameter_types.end();
         for (; (b != e) && (ob != oe); ++b, ++ob) {
@@ -156,11 +143,8 @@ Type::isEqualTo(Type *other_type,
                                 checking_passed_from);
 }
 
-bool
-Type::canBeSetFrom(Type *value_type,
-                   bool ignore_arg_constness,
-                   bool checking_passed_from)
-{
+bool Type::canBeSetFrom(Type *value_type, bool ignore_arg_constness,
+                        bool checking_passed_from) {
     int iac = (ignore_arg_constness ? 1 : 0);
     int prev_const = value_type->is_const;
     value_type->is_const = 0;
@@ -172,10 +156,8 @@ Type::canBeSetFrom(Type *value_type,
     return result;
 }
 
-bool
-Type::canBePassedFrom(Type *value_type,
-                      bool ignore_arg_constness)
-{
+bool Type::canBePassedFrom(Type *value_type,
+                           bool ignore_arg_constness) {
     int prev_const = is_const;
     is_const = false;
     bool result = canBeSetFrom(value_type, ignore_arg_constness, true);
@@ -183,13 +165,10 @@ Type::canBePassedFrom(Type *value_type,
     return result;
 }
 
-Node *
-Type::toNode()
-{
+Node *Type::toNode() {
     if (struct_name.size()) {
         Token *t = new Token(TokenType::String);
-        std::vector<std::string>::iterator iter =
-            namespaces.begin();
+        std::vector<std::string>::iterator iter = namespaces.begin();
         while (iter != namespaces.end()) {
             t->str_value.append((*iter).c_str());
             t->str_value.append(".");
@@ -204,7 +183,7 @@ Type::toNode()
     }
 
     if (is_const) {
-        std::vector<Node *> *nodes = new std::vector<Node*>;
+        std::vector<Node *> *nodes = new std::vector<Node *>;
 
         Token *t = new Token(TokenType::String);
         t->str_value.append("const");
@@ -219,7 +198,7 @@ Type::toNode()
     }
 
     if (points_to) {
-        std::vector<Node *> *nodes = new std::vector<Node*>;
+        std::vector<Node *> *nodes = new std::vector<Node *>;
 
         Token *t = new Token(TokenType::String);
         t->str_value.append("p");
@@ -232,7 +211,7 @@ Type::toNode()
     }
 
     if (is_array) {
-        std::vector<Node *> *nodes = new std::vector<Node*>;
+        std::vector<Node *> *nodes = new std::vector<Node *>;
 
         Token *t = new Token(TokenType::String);
         t->str_value.append("array-of");
@@ -248,7 +227,7 @@ Type::toNode()
     }
 
     if (is_function) {
-        std::vector<Node *> *nodes = new std::vector<Node*>;
+        std::vector<Node *> *nodes = new std::vector<Node *>;
 
         Token *t = new Token(TokenType::String);
         t->str_value.append("fn");
@@ -257,14 +236,13 @@ Type::toNode()
         Node *ret_type = return_type->toNode();
         nodes->push_back(ret_type);
 
-        std::vector<Node *> *pnodes = new std::vector<Node*>;
+        std::vector<Node *> *pnodes = new std::vector<Node *>;
 
-        std::vector<Type *>::iterator iter =
-            parameter_types.begin();
+        std::vector<Type *>::iterator iter = parameter_types.begin();
         char c[] = "a";
 
         while (iter != parameter_types.end()) {
-            std::vector<Node *> *anode = new std::vector<Node*>;
+            std::vector<Node *> *anode = new std::vector<Node *>;
             Token *tnn = new Token(TokenType::String);
             tnn->str_value.append(c);
             c[0]++;
@@ -288,8 +266,7 @@ Type::toNode()
     return NULL;
 }
 
-void Type::toString(std::string *str)
-{
+void Type::toString(std::string *str) {
     if (is_reference) {
         str->append("(ref ");
         is_reference = false;
@@ -375,8 +352,7 @@ void Type::toString(std::string *str)
 
         for (std::vector<Type *>::iterator pb = parameter_types.begin(),
                                            pe = parameter_types.end();
-                pb != pe;
-                ++pb) {
+             pb != pe; ++pb) {
             (*pb)->toString(str);
             if ((pb + 1) != pe) {
                 str->append(" ");
@@ -390,19 +366,18 @@ void Type::toString(std::string *str)
     return;
 }
 
-Type *Type::makeCopy()
-{
+Type *Type::makeCopy() {
     Type *new_type = new Type();
 
-    new_type->base_type           = base_type;
-    new_type->is_array            = is_array;
-    new_type->array_size          = array_size;
-    new_type->is_function         = is_function;
-    new_type->bitfield_size       = bitfield_size;
-    new_type->is_const            = is_const;
-    new_type->is_reference        = is_reference;
+    new_type->base_type = base_type;
+    new_type->is_array = is_array;
+    new_type->array_size = array_size;
+    new_type->is_function = is_function;
+    new_type->bitfield_size = bitfield_size;
+    new_type->is_const = is_const;
+    new_type->is_reference = is_reference;
     new_type->is_rvalue_reference = is_rvalue_reference;
-    new_type->is_retval           = is_retval;
+    new_type->is_retval = is_retval;
 
     if (points_to) {
         new_type->points_to = points_to->makeCopy();
@@ -434,8 +409,7 @@ Type *Type::makeCopy()
     return new_type;
 }
 
-void Type::toSymbolString(std::string *to)
-{
+void Type::toSymbolString(std::string *to) {
     if (points_to) {
         to->append("P");
         points_to->toSymbolString(to);
@@ -493,8 +467,7 @@ void Type::toSymbolString(std::string *to)
     if (is_function) {
         to->append("F");
         return_type->toSymbolString(to);
-        std::vector<Type *>::iterator iter =
-            parameter_types.begin();
+        std::vector<Type *>::iterator iter = parameter_types.begin();
         while (iter != parameter_types.end()) {
             (*iter)->toSymbolString(to);
             ++iter;
@@ -507,36 +480,28 @@ void Type::toSymbolString(std::string *to)
     abort();
 }
 
-bool Type::isIntegerType()
-{
-    return baseTypeIsIntegerType(base_type);
-}
+bool Type::isIntegerType() { return baseTypeIsIntegerType(base_type); }
 
-bool Type::isSignedIntegerType()
-{
+bool Type::isSignedIntegerType() {
     return baseTypeIsSignedIntegerType(base_type);
 }
 
-int Type::getIntegerSize()
-{
+int Type::getIntegerSize() {
     if (bitfield_size) {
         return 1000 + bitfield_size;
     }
     return integerTypeToSize(base_type);
 }
 
-int Type::getFloatingPointRelativeSize()
-{
+int Type::getFloatingPointRelativeSize() {
     return floatingPointTypeToRelativeSize(base_type);
 }
 
-bool Type::isFloatingPointType()
-{
+bool Type::isFloatingPointType() {
     return baseTypeIsFloatingPointType(base_type);
 }
 
-bool Type::isVarArgs()
-{
+bool Type::isVarArgs() {
     if (parameter_types.size() == 0) {
         return false;
     }
@@ -546,8 +511,7 @@ bool Type::isVarArgs()
     return (back->base_type == BaseType::VarArgs);
 }
 
-int Type::numberOfRequiredArgs()
-{
+int Type::numberOfRequiredArgs() {
     if (parameter_types.size() == 0) {
         return 0;
     }

@@ -6,16 +6,14 @@
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-llvm::Constant *
-stringLiteralToConstant(Units *units, Type *type, Node *node, int *size)
-{
+namespace dale {
+llvm::Constant *stringLiteralToConstant(Units *units, Type *type,
+                                        Node *node, int *size) {
     Context *ctx = units->top()->ctx;
 
     if (!node->is_token) {
-        Error *e = new Error(UnexpectedElement, node,
-                             "atom", "literal", "list");
+        Error *e = new Error(UnexpectedElement, node, "atom", "literal",
+                             "list");
         ctx->er->addError(e);
         return NULL;
     }
@@ -23,26 +21,25 @@ stringLiteralToConstant(Units *units, Type *type, Node *node, int *size)
 
     if (type->base_type == BaseType::Int) {
         if (t->type != TokenType::Int) {
-            Error *e = new Error(UnexpectedElement, node,
-                                 "integer", "literal", t->tokenType());
+            Error *e = new Error(UnexpectedElement, node, "integer",
+                                 "literal", t->tokenType());
             ctx->er->addError(e);
             return NULL;
         }
 
-        return
-            ctx->nt->getConstantInt(ctx->nt->getNativeIntType(),
-                                    t->str_value.c_str());
+        return ctx->nt->getConstantInt(ctx->nt->getNativeIntType(),
+                                       t->str_value.c_str());
     }
 
     int underlying_type =
-          (!type->base_type && type->points_to) ? type->points_to->base_type
-        : (type->is_array)                      ? type->array_type->base_type
-                                                : 0;
+        (!type->base_type && type->points_to)
+            ? type->points_to->base_type
+            : (type->is_array) ? type->array_type->base_type : 0;
 
     if (underlying_type == BaseType::Char) {
         if (t->type != TokenType::StringLiteral) {
-            Error *e = new Error(UnexpectedElement, node,
-                                 "string", "literal", t->tokenType());
+            Error *e = new Error(UnexpectedElement, node, "string",
+                                 "literal", t->tokenType());
             ctx->er->addError(e);
             return NULL;
         }
@@ -65,24 +62,24 @@ stringLiteralToConstant(Units *units, Type *type, Node *node, int *size)
     return NULL;
 }
 
-bool
-parseStringLiteral(Units *units, Context *ctx, llvm::BasicBlock *block,
-                   Node *node, ParseResult *pr)
-{
-    Type *type_char   = ctx->tr->type_char;
-    Type *type_cchar  = ctx->tr->getConstType(type_char);
+bool parseStringLiteral(Units *units, Context *ctx,
+                        llvm::BasicBlock *block, Node *node,
+                        ParseResult *pr) {
+    Type *type_char = ctx->tr->type_char;
+    Type *type_cchar = ctx->tr->getConstType(type_char);
     Type *type_pcchar = ctx->tr->getPointerType(type_cchar);
 
     int size = 0;
-    llvm::Constant *init = stringLiteralToConstant(units, type_pcchar,
-                                                   node, &size);
+    llvm::Constant *init =
+        stringLiteralToConstant(units, type_pcchar, node, &size);
     if (!init) {
         return false;
     }
     Type *str_type_sized =
         ctx->tr->getArrayType(ctx->tr->getConstType(type_char), size);
 
-    llvm::Type *llvm_type = ctx->toLLVMType(str_type_sized, NULL, false);
+    llvm::Type *llvm_type =
+        ctx->toLLVMType(str_type_sized, NULL, false);
     if (!llvm_type) {
         return false;
     }
@@ -90,11 +87,9 @@ parseStringLiteral(Units *units, Context *ctx, llvm::BasicBlock *block,
     std::string varname;
     units->top()->getUnusedVarName(&varname);
 
-    llvm::GlobalVariable *llvm_var =
-        llvm::cast<llvm::GlobalVariable>(
-            units->top()->module->getOrInsertGlobal(varname.c_str(),
-                                                    llvm_type)
-        );
+    llvm::GlobalVariable *llvm_var = llvm::cast<llvm::GlobalVariable>(
+        units->top()->module->getOrInsertGlobal(varname.c_str(),
+                                                llvm_type));
 
     llvm_var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
     llvm_var->setInitializer(init);
@@ -109,8 +104,8 @@ parseStringLiteral(Units *units, Context *ctx, llvm::BasicBlock *block,
 
     bool res = ctx->ns()->addVariable(varname.c_str(), var);
     if (!res) {
-        Error *e = new Error(RedefinitionOfVariable, node,
-                             varname.c_str());
+        Error *e =
+            new Error(RedefinitionOfVariable, node, varname.c_str());
         ctx->er->addError(e);
         return false;
     }
@@ -123,58 +118,46 @@ parseStringLiteral(Units *units, Context *ctx, llvm::BasicBlock *block,
     return true;
 }
 
-void
-parseFloatingPointLiteral(Context *ctx, Type *wanted_type,
-                          llvm::BasicBlock *block, Token *t,
-                          ParseResult *pr)
-{
-    if (wanted_type
-            && wanted_type->base_type == BaseType::Float) {
+void parseFloatingPointLiteral(Context *ctx, Type *wanted_type,
+                               llvm::BasicBlock *block, Token *t,
+                               ParseResult *pr) {
+    if (wanted_type && wanted_type->base_type == BaseType::Float) {
         pr->set(block, ctx->tr->type_float,
                 llvm::ConstantFP::get(
                     llvm::Type::getFloatTy(*getContext()),
-                    llvm::StringRef(t->str_value.c_str())
-                ));
-    } else if (wanted_type
-                && wanted_type->base_type == BaseType::Double) {
+                    llvm::StringRef(t->str_value.c_str())));
+    } else if (wanted_type &&
+               wanted_type->base_type == BaseType::Double) {
         pr->set(block, ctx->tr->type_double,
                 llvm::ConstantFP::get(
                     llvm::Type::getDoubleTy(*getContext()),
-                    llvm::StringRef(t->str_value.c_str())
-                ));
-    } else if (wanted_type
-                && wanted_type->base_type == BaseType::LongDouble) {
+                    llvm::StringRef(t->str_value.c_str())));
+    } else if (wanted_type &&
+               wanted_type->base_type == BaseType::LongDouble) {
         pr->set(block, ctx->tr->type_longdouble,
                 llvm::ConstantFP::get(
                     ctx->nt->getNativeLongDoubleType(),
-                    llvm::StringRef(t->str_value.c_str())
-                ));
+                    llvm::StringRef(t->str_value.c_str())));
     } else {
         pr->set(block, ctx->tr->type_float,
                 llvm::ConstantFP::get(
                     llvm::Type::getFloatTy(*getContext()),
-                    llvm::StringRef(t->str_value.c_str())
-                ));
+                    llvm::StringRef(t->str_value.c_str())));
     }
 
     return;
 }
 
-void
-parseIntegerLiteral(Context *ctx, Type *wanted_type,
-                    llvm::BasicBlock *block, Token *t,
-                    ParseResult *pr)
-{
+void parseIntegerLiteral(Context *ctx, Type *wanted_type,
+                         llvm::BasicBlock *block, Token *t,
+                         ParseResult *pr) {
     if (wanted_type && wanted_type->isIntegerType()) {
-        int int_size =
-            ctx->nt->internalSizeToRealSize(wanted_type->getIntegerSize());
-        pr->set(block,
-                ctx->tr->getBasicType(wanted_type->base_type),
+        int int_size = ctx->nt->internalSizeToRealSize(
+            wanted_type->getIntegerSize());
+        pr->set(block, ctx->tr->getBasicType(wanted_type->base_type),
                 ctx->nt->getConstantInt(
-                    llvm::IntegerType::get(*getContext(),
-                                           int_size),
-                    t->str_value.c_str()
-                ));
+                    llvm::IntegerType::get(*getContext(), int_size),
+                    t->str_value.c_str()));
     } else {
         pr->set(block, ctx->tr->type_int,
                 ctx->nt->getConstantInt(ctx->nt->getNativeIntType(),
@@ -184,32 +167,25 @@ parseIntegerLiteral(Context *ctx, Type *wanted_type,
     return;
 }
 
-void
-parseBoolLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
-                 ParseResult *pr)
-{
+void parseBoolLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
+                      ParseResult *pr) {
     Token *t = node->token;
-    int is_true  = !t->str_value.compare("true");
+    int is_true = !t->str_value.compare("true");
     int is_false = !t->str_value.compare("false");
 
     if (is_true || is_false) {
         pr->set(block, ctx->tr->type_bool,
                 llvm::ConstantInt::get(
-                    llvm::Type::getInt8Ty(*getContext()),
-                    is_true
-                ));
+                    llvm::Type::getInt8Ty(*getContext()), is_true));
     }
 }
 
-void
-parseCharLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
-                 ParseResult *pr)
-{
+void parseCharLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
+                      ParseResult *pr) {
     Token *t = node->token;
 
-    if ((t->str_value.size() >= 3)
-            && (t->str_value[0] == '#')
-            && (t->str_value[1] == '\\')) {
+    if ((t->str_value.size() >= 3) && (t->str_value[0] == '#') &&
+        (t->str_value[1] == '\\')) {
         const char *value = t->str_value.c_str();
         value += 2;
         char c;
@@ -235,21 +211,21 @@ parseCharLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
             c = value[0];
         }
 
-        pr->set(block, ctx->tr->type_char,
-                llvm::ConstantInt::get(ctx->nt->getNativeCharType(), c));
+        pr->set(
+            block, ctx->tr->type_char,
+            llvm::ConstantInt::get(ctx->nt->getNativeCharType(), c));
     }
 }
 
-void
-parseVariableLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
-                     bool get_address, Type *wanted_type, ParseResult *pr)
-{
+void parseVariableLiteral(Context *ctx, llvm::BasicBlock *block,
+                          Node *node, bool get_address,
+                          Type *wanted_type, ParseResult *pr) {
     Token *t = node->token;
     Variable *var = ctx->getVariable(t->str_value.c_str());
 
     if (!var) {
-        Error *e = new Error(VariableNotInScope, node,
-                             t->str_value.c_str());
+        Error *e =
+            new Error(VariableNotInScope, node, t->str_value.c_str());
         ctx->er->addError(e);
         return;
     }
@@ -268,14 +244,16 @@ parseVariableLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
             pr->set(block, var->type, array);
             pr->value_is_lvalue = false;
         } else {
-           llvm::Value *ptr_to_array =
-               builder.CreateGEP(var->value, ctx->nt->getTwoLLVMZeros());
+            llvm::Value *ptr_to_array = builder.CreateGEP(
+                var->value, ctx->nt->getTwoLLVMZeros());
 
-           pr->set(block, ctx->tr->getPointerType(var->type->array_type),
-                   ptr_to_array);
-           pr->address_of_value = var->value;
-           pr->value_is_lvalue = true;
-           pr->type_of_address_of_value = ctx->tr->getPointerType(var->type);
+            pr->set(block,
+                    ctx->tr->getPointerType(var->type->array_type),
+                    ptr_to_array);
+            pr->address_of_value = var->value;
+            pr->value_is_lvalue = true;
+            pr->type_of_address_of_value =
+                ctx->tr->getPointerType(var->type);
         }
         return;
     }
@@ -293,11 +271,10 @@ parseVariableLiteral(Context *ctx, llvm::BasicBlock *block, Node *node,
     pr->value_is_lvalue = 1;
 }
 
-bool
-FormProcTokenParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                   Node *node, bool get_address, bool prefixed_with_core,
-                   Type *wanted_type, ParseResult *pr)
-{
+bool FormProcTokenParse(Units *units, Function *fn,
+                        llvm::BasicBlock *block, Node *node,
+                        bool get_address, bool prefixed_with_core,
+                        Type *wanted_type, ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     Token *t = node->token;
@@ -322,7 +299,8 @@ FormProcTokenParse(Units *units, Function *fn, llvm::BasicBlock *block,
             return true;
         }
 
-        parseVariableLiteral(ctx, block, node, get_address, wanted_type, pr);
+        parseVariableLiteral(ctx, block, node, get_address, wanted_type,
+                             pr);
         if (pr->getValue(ctx)) {
             return true;
         } else {

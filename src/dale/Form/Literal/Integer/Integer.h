@@ -3,8 +3,7 @@
 
 #include "../../../ErrorReporter/ErrorReporter.h"
 
-namespace dale
-{
+namespace dale {
 /*! Parse an integer literal.
  *  @param node The node containing the integer.
  *  @param er The error reporter.

@@ -1,8 +1,7 @@
 #ifndef DALE_FORM_PROC_ADDRESSOF
 #define DALE_FORM_PROC_ADDRESSOF
 
-namespace dale
-{
+namespace dale {
 /*! Parse an address-of form.
  *  @param units The units context.
  *  @param fn The function currently in scope.
@@ -12,10 +11,10 @@ namespace dale
  *  @param prefixed_with_core (Unused by this form.)
  *  @param pr The parse result for the response.
  */
-bool
-FormProcAddressOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                       Node *node, bool get_address, bool prefixed_with_core,
-                       ParseResult *pr);
+bool FormProcAddressOfParse(Units *units, Function *fn,
+                            llvm::BasicBlock *block, Node *node,
+                            bool get_address, bool prefixed_with_core,
+                            ParseResult *pr);
 }
 
 #endif

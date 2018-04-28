@@ -1,23 +1,22 @@
 #ifndef DALE_UNIT
 #define DALE_UNIT
 
-#include "../Parser/Parser.h"
 #include "../Context/Context.h"
-#include "../ErrorReporter/ErrorReporter.h"
-#include "../NativeTypes/NativeTypes.h"
-#include "../TypeRegister/TypeRegister.h"
 #include "../DNodeConverter/DNodeConverter.h"
-#include "../MacroProcessor/MacroProcessor.h"
+#include "../ErrorReporter/ErrorReporter.h"
 #include "../FunctionProcessor/FunctionProcessor.h"
+#include "../MacroProcessor/MacroProcessor.h"
+#include "../NativeTypes/NativeTypes.h"
+#include "../Parser/Parser.h"
+#include "../TypeRegister/TypeRegister.h"
 
 namespace llvm {
-    class Linker;
-    class Module;
-    class ExecutionEngine;
+class Linker;
+class Module;
+class ExecutionEngine;
 }
 
-namespace dale
-{
+namespace dale {
 class Units;
 
 /*! Unit
@@ -27,13 +26,12 @@ class Units;
     well as its context and parser (internal objects).  Each unit may
     also have a single once tag.
 */
-class Unit
-{
-private:
+class Unit {
+   private:
     /*! The unit's global functions. */
-    std::vector<Function*> global_functions;
+    std::vector<Function *> global_functions;
     /*! The unit's global blocks. */
-    std::vector<llvm::BasicBlock*> global_blocks;
+    std::vector<llvm::BasicBlock *> global_blocks;
     /*! The current global function. */
     Function *global_function;
     /*! The current global block. */
@@ -47,7 +45,7 @@ private:
     /*! Whether this unit has its own module. */
     bool has_own_module;
 
-public:
+   public:
     /*! The unit's LLVM module. */
     llvm::Module *module;
     /*! The unit's linker. */

@@ -1,8 +1,7 @@
 #ifndef DALE_FORM_PROC_DEREFERENCE
 #define DALE_FORM_PROC_DEREFERENCE
 
-namespace dale
-{
+namespace dale {
 /*! Parse a dereference form.
  *  @param units The units context.
  *  @param fn The function currently in scope.

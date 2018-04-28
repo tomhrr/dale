@@ -1,28 +1,22 @@
 #include "Namespace.h"
 
-#include "../llvm_LinkAll.h"
 #include "../NativeTypes/NativeTypes.h"
 #include "../STL/STL.h"
 #include "../Utils/Utils.h"
+#include "../llvm_LinkAll.h"
 
 #include <cstdio>
 
-namespace dale
-{
-Namespace::Namespace()
-{
+namespace dale {
+Namespace::Namespace() {
     this->parent_namespace = NULL;
     this->er = NULL;
     this->tr = NULL;
     this->lv_index = 0;
 }
 
-Namespace::Namespace(ErrorReporter *er,
-                     TypeRegister *tr,
-                     std::string name,
-                     Namespace *pns,
-                     int lv_index)
-{
+Namespace::Namespace(ErrorReporter *er, TypeRegister *tr,
+                     std::string name, Namespace *pns, int lv_index) {
     this->er = er;
     this->tr = tr;
     this->name = name;
@@ -40,35 +34,29 @@ Namespace::Namespace(ErrorReporter *er,
         }
         char num[5];
         for (std::vector<std::string>::reverse_iterator
-                b = names.rbegin(),
-                e = names.rend();
-                b != e;
-                ++b) {
+                 b = names.rbegin(),
+                 e = names.rend();
+             b != e; ++b) {
             sprintf(num, "%zu", b->length());
-            symbol_prefix.append(num)
-                         .append(*b);
+            symbol_prefix.append(num).append(*b);
         }
     }
 
     has_symbol_prefix = (symbol_prefix.size() ? true : false);
 }
 
-Namespace::~Namespace()
-{
-    for (std::map<std::string, std::vector<Function*>*>::iterator
-            b = functions.begin(),
-            e = functions.end();
-            b != e;
-            ++b) {
+Namespace::~Namespace() {
+    for (std::map<std::string, std::vector<Function *> *>::iterator
+             b = functions.begin(),
+             e = functions.end();
+         b != e; ++b) {
         STL::deleteElements(b->second);
         delete b->second;
     }
     functions.clear();
 }
 
-bool
-Namespace::setNamespaces(std::vector<std::string> *namespaces)
-{
+bool Namespace::setNamespaces(std::vector<std::string> *namespaces) {
     std::vector<std::string> names;
 
     Namespace *pns = parent_namespace;
@@ -82,23 +70,18 @@ Namespace::setNamespaces(std::vector<std::string> *namespaces)
         pns = pns->parent_namespace;
     }
 
-    for (std::vector<std::string>::reverse_iterator
-            b = names.rbegin(),
-            e = names.rend();
-            b != e;
-            ++b) {
+    for (std::vector<std::string>::reverse_iterator b = names.rbegin(),
+                                                    e = names.rend();
+         b != e; ++b) {
         namespaces->push_back((*b));
     }
 
     return true;
 }
 
-bool
-Namespace::addFunction(const char *name,
-                       Function *function,
-                       Node *n)
-{
-    std::map<std::string, std::vector<Function *>* >::iterator iter;
+bool Namespace::addFunction(const char *name, Function *function,
+                            Node *n) {
+    std::map<std::string, std::vector<Function *> *>::iterator iter;
     std::vector<Function *>::iterator fn_iter;
     function->index = ++lv_index;
 
@@ -106,15 +89,12 @@ Namespace::addFunction(const char *name,
     iter = functions.find(ss_name);
 
     if (iter == functions.end()) {
-        std::vector<Function *> *fns =
-            new std::vector<Function *>;
+        std::vector<Function *> *fns = new std::vector<Function *>;
         fns->push_back(function);
 
         functions.insert(
-            std::pair<std::string, std::vector<Function *> *>(
-                ss_name, fns
-            )
-        );
+            std::pair<std::string, std::vector<Function *> *>(ss_name,
+                                                              fns));
 
         functions_ordered.push_back(function);
         return true;
@@ -141,26 +121,23 @@ Namespace::addFunction(const char *name,
             }
         } else {
             std::vector<Variable *>::iterator
-                fn_pt_begin       = fn->parameters.begin(),
-                fn_pt_end         = fn->parameters.end(),
+                fn_pt_begin = fn->parameters.begin(),
+                fn_pt_end = fn->parameters.end(),
                 function_pt_begin = function->parameters.begin(),
-                function_pt_end   = function->parameters.end();
+                function_pt_end = function->parameters.end();
             if (fn->is_macro) {
                 std::advance(fn_pt_begin, 1);
             } else {
                 std::advance(function_pt_begin, 1);
             }
             if (dale::STL::isEqualToIter(function_pt_begin,
-                                         function_pt_end,
-                                         fn_pt_begin,
+                                         function_pt_end, fn_pt_begin,
                                          fn_pt_end)) {
                 Error *e = new Error(
                     ((fn->is_macro)
-                        ? ErrorInst::FunctionHasSameParamsAsMacro
-                        : ErrorInst::MacroHasSameParamsAsFunction),
-                    (n ? n : nullNode()),
-                    name
-                );
+                         ? ErrorInst::FunctionHasSameParamsAsMacro
+                         : ErrorInst::MacroHasSameParamsAsFunction),
+                    (n ? n : nullNode()), name);
                 er->addError(e);
                 return false;
             }
@@ -174,10 +151,7 @@ Namespace::addFunction(const char *name,
     return true;
 }
 
-bool
-Namespace::addVariable(const char *name,
-                       Variable *variable)
-{
+bool Namespace::addVariable(const char *name, Variable *variable) {
     std::map<std::string, Variable *>::iterator iter;
     std::string ss_name(name);
 
@@ -185,8 +159,7 @@ Namespace::addVariable(const char *name,
 
     if (iter == variables.end()) {
         variables.insert(
-            std::pair<std::string, Variable *>(ss_name, variable)
-        );
+            std::pair<std::string, Variable *>(ss_name, variable));
         variables_ordered.push_back(ss_name);
         variable->index = ++lv_index;
         return true;
@@ -195,10 +168,7 @@ Namespace::addVariable(const char *name,
     }
 }
 
-bool
-Namespace::addStruct(const char *name,
-                     Struct *element_struct)
-{
+bool Namespace::addStruct(const char *name, Struct *element_struct) {
     std::map<std::string, Struct *>::iterator iter;
     std::string ss_name(name);
 
@@ -206,10 +176,7 @@ Namespace::addStruct(const char *name,
 
     if (iter == structs.end()) {
         structs.insert(
-            std::pair<std::string, Struct *>(
-                ss_name, element_struct
-            )
-        );
+            std::pair<std::string, Struct *>(ss_name, element_struct));
         structs_ordered.push_back(ss_name);
         return true;
     } else {
@@ -217,19 +184,16 @@ Namespace::addStruct(const char *name,
     }
 }
 
-Function *
-Namespace::getFunction(const char *name,
-                       std::vector<Type *> *types,
-                       Function **pclosest_fn,
-                       bool is_macro,
-                       bool ignore_arg_constness,
-                       std::vector<bool> *lvalues,
-                       std::vector<Type *> *array_types)
-{
+Function *Namespace::getFunction(const char *name,
+                                 std::vector<Type *> *types,
+                                 Function **pclosest_fn, bool is_macro,
+                                 bool ignore_arg_constness,
+                                 std::vector<bool> *lvalues,
+                                 std::vector<Type *> *array_types) {
     std::string ss_name(name);
 
-    std::map<std::string, std::vector<Function *> *>::iterator
-        iter = functions.find(ss_name);
+    std::map<std::string, std::vector<Function *> *>::iterator iter =
+        functions.find(ss_name);
     if (iter == functions.end()) {
         return NULL;
     }
@@ -243,16 +207,14 @@ Namespace::getFunction(const char *name,
         Function *last_non_declaration = NULL;
 
         for (std::vector<Function *>::reverse_iterator
-                rb = function_list->rbegin(),
-                re = function_list->rend();
-                rb != re;
-                ++rb) {
+                 rb = function_list->rbegin(),
+                 re = function_list->rend();
+             rb != re; ++rb) {
             Function *fn = (*rb);
             if (is_macro == fn->is_macro) {
                 if (!fn->isDeclaration()) {
                     return fn;
-                }
-                else if (!last_non_declaration) {
+                } else if (!last_non_declaration) {
                     last_non_declaration = fn;
                 }
             }
@@ -279,13 +241,13 @@ Namespace::getFunction(const char *name,
     Function *best_va_fn = NULL;
     int best_va_count = -1;
 
-    Function *decl_fn    = NULL;
+    Function *decl_fn = NULL;
     Function *closest_fn = NULL;
     int best_closest_count = -1;
 
-    int best_macro_dnode_count    = 1024;
+    int best_macro_dnode_count = 1024;
     int earliest_macro_type_count = 1024;
-    Function *best_dnode_macro    = NULL;
+    Function *best_dnode_macro = NULL;
     Function *earliest_type_macro = NULL;
 
     int arg_index = -1;
@@ -300,7 +262,7 @@ Namespace::getFunction(const char *name,
         }
 
         fn_arg_type_iter = current->parameters.begin();
-        arg_type_iter    = types->begin();
+        arg_type_iter = types->begin();
         if (lvalues) {
             lvalue_iter = lvalues->begin();
         }
@@ -309,7 +271,7 @@ Namespace::getFunction(const char *name,
         }
 
         int matched_arg_count = 0;
-        bool broke_on_va      = false;
+        bool broke_on_va = false;
         bool broke_on_failure = false;
 
         int dnode_count = 0;
@@ -329,7 +291,8 @@ Namespace::getFunction(const char *name,
              * pointer to this function (if the number of matched
              * arguments is better than that which is currently
              * recorded), and go to the next function. */
-            if ((*fn_arg_type_iter)->type->base_type == BaseType::VarArgs) {
+            if ((*fn_arg_type_iter)->type->base_type ==
+                BaseType::VarArgs) {
                 if (matched_arg_count > best_va_count) {
                     best_va_count = matched_arg_count;
                     best_va_fn = current;
@@ -351,15 +314,17 @@ Namespace::getFunction(const char *name,
             if (lvalues && (lvalue_iter != lvalues->end())) {
                 bool is_lvalue = *lvalue_iter;
 
-                if ((!fn_arg_type->is_const && fn_arg_type->is_reference)
-                        && !is_lvalue) {
+                if ((!fn_arg_type->is_const &&
+                     fn_arg_type->is_reference) &&
+                    !is_lvalue) {
                     broke_on_failure = true;
                     break;
-                } else if (fn_arg_type->is_rvalue_reference && is_lvalue) {
+                } else if (fn_arg_type->is_rvalue_reference &&
+                           is_lvalue) {
                     broke_on_failure = true;
                     break;
-                } else if (fn_arg_type->is_rvalue_reference
-                        && (*arg_type_iter)->is_const) {
+                } else if (fn_arg_type->is_rvalue_reference &&
+                           (*arg_type_iter)->is_const) {
                     broke_on_failure = true;
                     break;
                 }
@@ -367,18 +332,12 @@ Namespace::getFunction(const char *name,
 
             bool result = false;
             if (array_types && (*array_type_iter) != NULL) {
-                result =
-                    fn_arg_type->canBePassedFrom(
-                        (*array_type_iter),
-                        ignore_arg_constness
-                    );
+                result = fn_arg_type->canBePassedFrom(
+                    (*array_type_iter), ignore_arg_constness);
             }
             if (!result) {
-                result =
-                    fn_arg_type->canBePassedFrom(
-                        (*arg_type_iter),
-                        ignore_arg_constness
-                    );
+                result = fn_arg_type->canBePassedFrom(
+                    (*arg_type_iter), ignore_arg_constness);
             }
 
             if (result) {
@@ -393,11 +352,13 @@ Namespace::getFunction(const char *name,
                 if (lvalues && (lvalue_iter != lvalues->end())) {
                     ++lvalue_iter;
                 }
-                if (array_types && (array_type_iter != array_types->end())) {
+                if (array_types &&
+                    (array_type_iter != array_types->end())) {
                     ++array_type_iter;
                 }
                 continue;
-            } else if (current->is_macro && fn_arg_type->isEqualTo(pdnode)) {
+            } else if (current->is_macro &&
+                       fn_arg_type->isEqualTo(pdnode)) {
                 ++dnode_count;
                 ++arg_type_iter;
                 ++fn_arg_type_iter;
@@ -405,7 +366,8 @@ Namespace::getFunction(const char *name,
                 if (lvalues && (lvalue_iter != lvalues->end())) {
                     ++lvalue_iter;
                 }
-                if (array_types && (array_type_iter != array_types->end())) {
+                if (array_types &&
+                    (array_type_iter != array_types->end())) {
                     ++array_type_iter;
                 }
                 continue;
@@ -418,13 +380,13 @@ Namespace::getFunction(const char *name,
             broke_on_failure = true;
         }
 
-        if (!broke_on_failure && !broke_on_va
-                && (arg_type_iter == types->end())) {
+        if (!broke_on_failure && !broke_on_va &&
+            (arg_type_iter == types->end())) {
             /* If the function is a declaration, store it in decl_fn,
              * to use in the event that the real function cannot be
              * found. */
-            if (!current->llvm_function
-                    || (!current->llvm_function->size())) {
+            if (!current->llvm_function ||
+                (!current->llvm_function->size())) {
                 decl_fn = current;
             } else if (!current->is_macro) {
                 return current;
@@ -432,26 +394,27 @@ Namespace::getFunction(const char *name,
         }
 
         if (!broke_on_failure) {
-            if (current->is_macro && (dnode_count < best_macro_dnode_count)) {
+            if (current->is_macro &&
+                (dnode_count < best_macro_dnode_count)) {
                 best_macro_dnode_count = dnode_count;
                 best_dnode_macro = current;
             }
-            if (current->is_macro
-                    && (dnode_count == best_macro_dnode_count)
-                    && (arg_type_iter == types->end())
-                    && (!current->isVarArgs())) {
+            if (current->is_macro &&
+                (dnode_count == best_macro_dnode_count) &&
+                (arg_type_iter == types->end()) &&
+                (!current->isVarArgs())) {
                 best_dnode_macro = current;
             }
-            if (current->is_macro
-                    && (dnode_count == best_macro_dnode_count)
-                    && (arg_type_iter != types->end())
-                    && (current->isVarArgs())) {
+            if (current->is_macro &&
+                (dnode_count == best_macro_dnode_count) &&
+                (arg_type_iter != types->end()) &&
+                (current->isVarArgs())) {
                 best_dnode_macro = current;
             }
-            if (current->is_macro && (local_earliest_macro_type_count
-            < earliest_macro_type_count)) {
+            if (current->is_macro && (local_earliest_macro_type_count <
+                                      earliest_macro_type_count)) {
                 earliest_macro_type_count =
-                local_earliest_macro_type_count;
+                    local_earliest_macro_type_count;
                 earliest_type_macro = current;
             }
         }
@@ -484,16 +447,14 @@ Namespace::getFunction(const char *name,
         int dnode_count = 0;
         for (std::vector<Variable *>::iterator pb = params->begin(),
                                                pe = params->end();
-                pb != pe;
-                ++pb) {
+             pb != pe; ++pb) {
             if ((*pb)->type->isEqualTo(pdnode)) {
                 dnode_count++;
             }
         }
-        best_macro =
-            (dnode_count < best_macro_dnode_count)
-                ? earliest_type_macro
-                : best_dnode_macro;
+        best_macro = (dnode_count < best_macro_dnode_count)
+                         ? earliest_type_macro
+                         : best_dnode_macro;
     }
     if (best_macro) {
         return best_macro;
@@ -513,39 +474,32 @@ Namespace::getFunction(const char *name,
     return NULL;
 }
 
-Variable *
-Namespace::getVariable(const char *name)
-{
+Variable *Namespace::getVariable(const char *name) {
     std::string ss_name(name);
-    std::map<std::string, Variable *>::iterator
-        iter = variables.find(ss_name);
+    std::map<std::string, Variable *>::iterator iter =
+        variables.find(ss_name);
     if (iter != variables.end()) {
         return iter->second;
     }
     return NULL;
 }
 
-Struct *
-Namespace::getStruct(const char *name)
-{
+Struct *Namespace::getStruct(const char *name) {
     std::string ss_name(name);
-    std::map<std::string, Struct *>::iterator
-        iter = structs.find(ss_name);
+    std::map<std::string, Struct *>::iterator iter =
+        structs.find(ss_name);
     if (iter != structs.end()) {
         return iter->second;
     }
     return NULL;
 }
 
-void
-Namespace::getVarsAfterIndex(int index,
-                             std::vector<Variable *> *vars)
-{
+void Namespace::getVarsAfterIndex(int index,
+                                  std::vector<Variable *> *vars) {
     for (std::vector<std::string>::reverse_iterator
-            b = variables_ordered.rbegin(),
-            e = variables_ordered.rend();
-            b != e;
-            ++b) {
+             b = variables_ordered.rbegin(),
+             e = variables_ordered.rend();
+         b != e; ++b) {
         Variable *v = getVariable(b->c_str());
         if (!v->index) {
             continue;
@@ -562,15 +516,12 @@ Namespace::getVarsAfterIndex(int index,
     return;
 }
 
-void
-Namespace::getVarsBeforeIndex(int index,
-                              std::vector<Variable *> *vars)
-{
+void Namespace::getVarsBeforeIndex(int index,
+                                   std::vector<Variable *> *vars) {
     for (std::map<std::string, Variable *>::iterator
-            b = variables.begin(),
-            e = variables.end();
-            b != e;
-            ++b) {
+             b = variables.begin(),
+             e = variables.end();
+         b != e; ++b) {
         Variable *v = b->second;
         if (!v->index) {
             continue;
@@ -587,10 +538,7 @@ Namespace::getVarsBeforeIndex(int index,
     return;
 }
 
-void
-Namespace::nameToSymbol(const char *name,
-                        std::string *new_name)
-{
+void Namespace::nameToSymbol(const char *name, std::string *new_name) {
     new_name->append("_Z");
 
     if (has_symbol_prefix) {
@@ -612,19 +560,15 @@ Namespace::nameToSymbol(const char *name,
     return;
 }
 
-void
-Namespace::functionNameToSymbol(const char *name,
-                                std::string *new_name,
-                                int linkage,
-                                std::vector<Variable *> *types)
-{
+void Namespace::functionNameToSymbol(const char *name,
+                                     std::string *new_name, int linkage,
+                                     std::vector<Variable *> *types) {
     if (linkage == Linkage::Extern_C) {
         char buf[5];
         std::string ss_name(name);
         for (std::string::const_iterator b = ss_name.begin(),
                                          e = ss_name.end();
-                b != e;
-                ++b) {
+             b != e; ++b) {
             char c = *b;
             if (c == '-') {
                 sprintf(buf, "_2D_");
@@ -640,23 +584,21 @@ Namespace::functionNameToSymbol(const char *name,
 
     for (std::vector<Variable *>::iterator b = types->begin(),
                                            e = types->end();
-            b != e;
-            ++b) {
+         b != e; ++b) {
         (*b)->type->toSymbolString(new_name);
     }
 
     return;
 }
 
-void
-Namespace::eraseLLVMMacros()
-{
+void Namespace::eraseLLVMMacros() {
     std::vector<Function *>::reverse_iterator fn_b, fn_e;
 
     std::set<llvm::Function *> erased;
 
     for (fn_b = functions_ordered.rbegin(),
-            fn_e = functions_ordered.rend(); fn_b != fn_e; ++fn_b) {
+        fn_e = functions_ordered.rend();
+         fn_b != fn_e; ++fn_b) {
         Function *fn = (*fn_b);
         if (!fn->is_macro) {
             continue;
@@ -675,15 +617,14 @@ Namespace::eraseLLVMMacros()
     return;
 }
 
-void
-Namespace::eraseLLVMMacrosAndCTOFunctions()
-{
+void Namespace::eraseLLVMMacrosAndCTOFunctions() {
     std::vector<Function *>::reverse_iterator fn_b, fn_e;
 
     std::set<llvm::Function *> erased;
 
     for (fn_b = functions_ordered.rbegin(),
-            fn_e = functions_ordered.rend(); fn_b != fn_e; ++fn_b) {
+        fn_e = functions_ordered.rend();
+         fn_b != fn_e; ++fn_b) {
         Function *fn = (*fn_b);
         if (!fn->is_macro && !fn->cto) {
             continue;
@@ -705,12 +646,9 @@ Namespace::eraseLLVMMacrosAndCTOFunctions()
     return;
 }
 
-void
-Namespace::getFunctionNames(std::set<std::string> *names,
-                            std::string *prefix)
-{
-    std::map<std::string, std::vector<Function*> *>::iterator
-        b, e;
+void Namespace::getFunctionNames(std::set<std::string> *names,
+                                 std::string *prefix) {
+    std::map<std::string, std::vector<Function *> *>::iterator b, e;
 
     if (!prefix) {
         for (b = functions.begin(), e = functions.end(); b != e; ++b) {
@@ -720,29 +658,23 @@ Namespace::getFunctionNames(std::set<std::string> *names,
         b = functions.lower_bound(*prefix);
         e = functions.end();
         for (b = functions.lower_bound(*prefix), e = functions.end();
-                (b != e) && (b->first.find(*prefix) == 0);
-                ++b) {
+             (b != e) && (b->first.find(*prefix) == 0); ++b) {
             names->insert(b->first);
         }
     }
 }
 
-void
-Namespace::getVariables(std::vector<Variable *> *vars)
-{
+void Namespace::getVariables(std::vector<Variable *> *vars) {
     for (std::vector<std::string>::reverse_iterator
-            b = variables_ordered.rbegin(),
-            e = variables_ordered.rend();
-            b != e;
-            ++b) {
+             b = variables_ordered.rbegin(),
+             e = variables_ordered.rend();
+         b != e; ++b) {
         Variable *v = getVariable(b->c_str());
         vars->push_back(v);
     }
 }
 
-bool
-Namespace::merge(Namespace *other)
-{
+bool Namespace::merge(Namespace *other) {
     assert(!name.compare(other->name) &&
            "merging namespaces with different names");
 
@@ -750,17 +682,13 @@ Namespace::merge(Namespace *other)
         lv_index = lv_index + 1;
     }
 
-    std::map<std::string, std::vector<Function *> *>::iterator
-        b, e;
+    std::map<std::string, std::vector<Function *> *>::iterator b, e;
 
     for (b = other->functions.begin(), e = other->functions.end();
-            b != e;
-            ++b) {
-        for (std::vector<Function*>::iterator
-                fb = b->second->begin(),
-                fe = b->second->end();
-                fb != fe;
-                ++fb) {
+         b != e; ++b) {
+        for (std::vector<Function *>::iterator fb = b->second->begin(),
+                                               fe = b->second->end();
+             fb != fe; ++fb) {
             Function *fn = (*fb);
             if (!Linkage::isExternAll(fn->linkage)) {
                 continue;
@@ -771,11 +699,10 @@ Namespace::merge(Namespace *other)
         }
     }
 
-    for (std::map<std::string, Variable*>::iterator
-            b = other->variables.begin(),
-            e = other->variables.end();
-            b != e;
-            ++b) {
+    for (std::map<std::string, Variable *>::iterator
+             b = other->variables.begin(),
+             e = other->variables.end();
+         b != e; ++b) {
         if (!Linkage::isExtern(b->second->linkage)) {
             continue;
         }
@@ -787,11 +714,10 @@ Namespace::merge(Namespace *other)
         _unused(added);
     }
 
-    for (std::map<std::string, Struct*>::iterator
-            b = other->structs.begin(),
-            e = other->structs.end();
-            b != e;
-            ++b) {
+    for (std::map<std::string, Struct *>::iterator
+             b = other->structs.begin(),
+             e = other->structs.end();
+         b != e; ++b) {
         if (!StructLinkage::isExtern(b->second->linkage)) {
             continue;
         }
@@ -806,21 +732,16 @@ Namespace::merge(Namespace *other)
     return true;
 }
 
-bool
-Namespace::regetStructPointers(llvm::Module *mod)
-{
-    for (std::map<std::string, Struct *>::iterator
-            b = structs.begin(),
-            e = structs.end();
-            b != e;
-            ++b) {
+bool Namespace::regetStructPointers(llvm::Module *mod) {
+    for (std::map<std::string, Struct *>::iterator b = structs.begin(),
+                                                   e = structs.end();
+         b != e; ++b) {
         Struct *st = b->second;
         if (!st->symbol.compare("")) {
             continue;
         }
         std::string type_name;
-        type_name.append("struct_")
-                 .append(st->symbol);
+        type_name.append("struct_").append(st->symbol);
 
         llvm::StructType *llvm_st = mod->getTypeByName(type_name);
         if (!llvm_st) {
@@ -835,14 +756,11 @@ Namespace::regetStructPointers(llvm::Module *mod)
     return true;
 }
 
-bool
-Namespace::regetVariablePointers(llvm::Module *mod)
-{
+bool Namespace::regetVariablePointers(llvm::Module *mod) {
     for (std::map<std::string, Variable *>::iterator
-            b = variables.begin(),
-            e = variables.end();
-            b != e;
-            ++b) {
+             b = variables.begin(),
+             e = variables.end();
+         b != e; ++b) {
         Variable *var = b->second;
         /* symbol is only set when the variable's value pointer
          * needs to be updated on merge.  */
@@ -856,64 +774,46 @@ Namespace::regetVariablePointers(llvm::Module *mod)
              * responsibility of the caller. */
             continue;
         }
-        var->value =
-            llvm::cast<llvm::Value>(
-                mod->getOrInsertGlobal(
-                    in->c_str(),
-                    llvm::cast<llvm::PointerType>(
-                        var->value->getType()
-                    )->getElementType()
-                )
-            );
+        var->value = llvm::cast<llvm::Value>(mod->getOrInsertGlobal(
+            in->c_str(),
+            llvm::cast<llvm::PointerType>(var->value->getType())
+                ->getElementType()));
         assert(var->value && "unable to re-get global variable");
     }
 
     return true;
 }
 
-bool
-Namespace::regetFunctionPointers(llvm::Module *mod)
-{
-    std::map<std::string, std::vector<Function *>* >::iterator
-        b, e;
+bool Namespace::regetFunctionPointers(llvm::Module *mod) {
+    std::map<std::string, std::vector<Function *> *>::iterator b, e;
 
     for (b = functions.begin(), e = functions.end(); b != e; ++b) {
-        for (std::vector<Function *>::iterator
-                fb = b->second->begin(),
-                fe = b->second->end();
-                fb != fe;
-                ++fb) {
+        for (std::vector<Function *>::iterator fb = b->second->begin(),
+                                               fe = b->second->end();
+             fb != fe; ++fb) {
             Function *fn = (*fb);
-            fn->llvm_function =
-                mod->getFunction(fn->symbol.c_str());
+            fn->llvm_function = mod->getFunction(fn->symbol.c_str());
         }
     }
 
     return true;
 }
 
-bool
-Namespace::regetPointers(llvm::Module *mod)
-{
+bool Namespace::regetPointers(llvm::Module *mod) {
     regetStructPointers(mod);
     regetVariablePointers(mod);
     regetFunctionPointers(mod);
     return true;
 }
 
-bool
-Namespace::eraseOnceFunctions(std::set<std::string> *once_tags,
-                              llvm::Module *mod)
-{
-    std::map<std::string, std::vector<Function*> *>::iterator
-        b, e;
+bool Namespace::eraseOnceFunctions(std::set<std::string> *once_tags,
+                                   llvm::Module *mod) {
+    std::map<std::string, std::vector<Function *> *>::iterator b, e;
 
     for (b = functions.begin(), e = functions.end(); b != e; ++b) {
-        for (std::vector<Function*>::iterator
-                fb = b->second->begin(),
-                fe = b->second->end();
-                fb != fe;
-                ++fb) {
+        for (std::vector<Function *>::iterator fb = b->second->begin(),
+                                               fe = b->second->end();
+             fb != fe; ++fb) {
             Function *fn = (*fb);
             if (!strcmp(fn->symbol.c_str(), "")) {
                 continue;
@@ -931,15 +831,12 @@ Namespace::eraseOnceFunctions(std::set<std::string> *once_tags,
     return true;
 }
 
-bool
-Namespace::eraseOnceVariables(std::set<std::string> *once_tags,
-                              llvm::Module *mod)
-{
-    for (std::map<std::string, Variable*>::iterator
-            b = variables.begin(),
-            e = variables.end();
-            b != e;
-            ++b) {
+bool Namespace::eraseOnceVariables(std::set<std::string> *once_tags,
+                                   llvm::Module *mod) {
+    for (std::map<std::string, Variable *>::iterator
+             b = variables.begin(),
+             e = variables.end();
+         b != e; ++b) {
         Variable *var = b->second;
         if (!(var->symbol.compare(""))) {
             continue;
@@ -957,13 +854,10 @@ Namespace::eraseOnceVariables(std::set<std::string> *once_tags,
     return true;
 }
 
-bool
-Namespace::removeUnneededStructs(std::set<std::string> *forms,
-                                 std::set<std::string> *found_forms)
-{
-    std::map<std::string, Struct *>::iterator
-        b = structs.begin(),
-        e = structs.end();
+bool Namespace::removeUnneededStructs(
+    std::set<std::string> *forms, std::set<std::string> *found_forms) {
+    std::map<std::string, Struct *>::iterator b = structs.begin(),
+                                              e = structs.end();
     while (b != e) {
         std::set<std::string>::iterator fb = forms->find(b->first);
         if (fb == forms->end()) {
@@ -979,13 +873,10 @@ Namespace::removeUnneededStructs(std::set<std::string> *forms,
     return true;
 }
 
-bool
-Namespace::removeUnneededVariables(std::set<std::string> *forms,
-                                   std::set<std::string> *found_forms)
-{
-    std::map<std::string, Variable *>::iterator
-        b = variables.begin(),
-        e = variables.end();
+bool Namespace::removeUnneededVariables(
+    std::set<std::string> *forms, std::set<std::string> *found_forms) {
+    std::map<std::string, Variable *>::iterator b = variables.begin(),
+                                                e = variables.end();
 
     while (b != e) {
         std::set<std::string>::iterator fb = forms->find(b->first);
@@ -1002,11 +893,9 @@ Namespace::removeUnneededVariables(std::set<std::string> *forms,
     return true;
 }
 
-bool
-Namespace::removeUnneededFunctions(std::set<std::string> *forms,
-                                   std::set<std::string> *found_forms)
-{
-    std::map<std::string, std::vector<Function*> *>::iterator
+bool Namespace::removeUnneededFunctions(
+    std::set<std::string> *forms, std::set<std::string> *found_forms) {
+    std::map<std::string, std::vector<Function *> *>::iterator
         b = functions.begin(),
         e = functions.end();
 
@@ -1016,13 +905,13 @@ Namespace::removeUnneededFunctions(std::set<std::string> *forms,
             functions.erase(b++);
         } else {
             /* If every function is intern, then skip this (but
-             * don't erase, since it will not be merged in any event). */
+             * don't erase, since it will not be merged in any event).
+             */
             bool has_extern = false;
-            for (std::vector<Function*>::iterator
-                    fnb = b->second->begin(),
-                    fne = b->second->end();
-                    fnb != fne;
-                    ++fnb) {
+            for (std::vector<Function *>::iterator
+                     fnb = b->second->begin(),
+                     fne = b->second->end();
+                 fnb != fne; ++fnb) {
                 if (Linkage::isExternAll((*fnb)->linkage)) {
                     has_extern = true;
                     break;
@@ -1038,13 +927,11 @@ Namespace::removeUnneededFunctions(std::set<std::string> *forms,
     return true;
 }
 
-bool
-Namespace::removeDeserialised()
-{
+bool Namespace::removeDeserialised() {
     {
-        std::map<std::string, Variable *>::iterator
-            b = variables.begin(),
-            e = variables.end();
+        std::map<std::string, Variable *>::iterator b = variables
+                                                            .begin(),
+                                                    e = variables.end();
 
         while (b != e) {
             if (!b->second->serialise) {
@@ -1056,9 +943,8 @@ Namespace::removeDeserialised()
     }
 
     {
-        std::map<std::string, Struct *>::iterator
-            b = structs.begin(),
-            e = structs.end();
+        std::map<std::string, Struct *>::iterator b = structs.begin(),
+                                                  e = structs.end();
 
         while (b != e) {
             if (!b->second->serialise) {
@@ -1069,14 +955,13 @@ Namespace::removeDeserialised()
         }
     }
 
-    std::map<std::string, std::vector<Function*> *>::iterator
+    std::map<std::string, std::vector<Function *> *>::iterator
         fb = functions.begin(),
         fe = functions.end();
 
     while (fb != fe) {
-        std::vector<Function*>::iterator
-            fnb = fb->second->begin(),
-            fne = fb->second->end();
+        std::vector<Function *>::iterator fnb = fb->second->begin(),
+                                          fne = fb->second->end();
         while (fnb != fne) {
             if (!(*fnb)->serialise) {
                 fnb = fb->second->erase(fnb);
@@ -1091,47 +976,38 @@ Namespace::removeDeserialised()
     return true;
 }
 
-bool
-Namespace::removeUnneeded(std::set<std::string> *forms,
-                          std::set<std::string> *found_forms)
-{
+bool Namespace::removeUnneeded(std::set<std::string> *forms,
+                               std::set<std::string> *found_forms) {
     removeUnneededFunctions(forms, found_forms);
     removeUnneededVariables(forms, found_forms);
     removeUnneededStructs(forms, found_forms);
     return true;
 }
 
-void
-Namespace::print()
-{
+void Namespace::print() {
     fprintf(stderr, "Namespace: %s\n", name.c_str());
-    fprintf(stderr, "Parent namespace: (%s)\n",
-                    ((parent_namespace != NULL) &&
-                     (parent_namespace->name.c_str()))
-                        ? parent_namespace->name.c_str()
-                        : "(nil)");
+    fprintf(
+        stderr, "Parent namespace: (%s)\n",
+        ((parent_namespace != NULL) && (parent_namespace->name.c_str()))
+            ? parent_namespace->name.c_str()
+            : "(nil)");
 
-    for (std::map<std::string, std::vector<Function*>*>::iterator
-            b = functions.begin(),
-            e = functions.end();
-            b != e;
-            ++b) {
-        fprintf(stderr, "Function: %s (%zu)\n",
-                        b->first.c_str(),
-                        b->second->size());
+    for (std::map<std::string, std::vector<Function *> *>::iterator
+             b = functions.begin(),
+             e = functions.end();
+         b != e; ++b) {
+        fprintf(stderr, "Function: %s (%zu)\n", b->first.c_str(),
+                b->second->size());
     }
-    for (std::map<std::string, Struct *>::iterator
-            b = structs.begin(),
-            e = structs.end();
-            b != e;
-            ++b) {
+    for (std::map<std::string, Struct *>::iterator b = structs.begin(),
+                                                   e = structs.end();
+         b != e; ++b) {
         fprintf(stderr, "Struct: %s\n", b->first.c_str());
     }
     for (std::map<std::string, Variable *>::iterator
-            b = variables.begin(),
-            e = variables.end();
-            b != e;
-            ++b) {
+             b = variables.begin(),
+             e = variables.end();
+         b != e; ++b) {
         fprintf(stderr, "Variable: %s\n", b->first.c_str());
     }
 }

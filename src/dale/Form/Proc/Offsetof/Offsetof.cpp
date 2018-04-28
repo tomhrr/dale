@@ -1,20 +1,18 @@
-#include "../../../Units/Units.h"
+#include "../../../Operation/Offsetof/Offsetof.h"
+#include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Function/Function.h"
-#include "../../../Operation/Offsetof/Offsetof.h"
-#include "../../Type/Type.h"
+#include "../../../Units/Units.h"
 #include "../../../llvm_Function.h"
+#include "../../Type/Type.h"
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-bool
-FormProcOffsetOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                      Node *node, bool get_address, bool prefixed_with_core,
-                      ParseResult *pr)
-{
+namespace dale {
+bool FormProcOffsetOfParse(Units *units, Function *fn,
+                           llvm::BasicBlock *block, Node *node,
+                           bool get_address, bool prefixed_with_core,
+                           ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("offsetof", node, 2, 2)) {
@@ -25,7 +23,8 @@ FormProcOffsetOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     Node *struct_node = (*lst)[1];
     Node *member_node = (*lst)[2];
 
-    struct_node = units->top()->mp->parsePotentialMacroCall(struct_node);
+    struct_node =
+        units->top()->mp->parsePotentialMacroCall(struct_node);
     if (!struct_node) {
         return false;
     }
@@ -42,7 +41,8 @@ FormProcOffsetOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    member_node = units->top()->mp->parsePotentialMacroCall(member_node);
+    member_node =
+        units->top()->mp->parsePotentialMacroCall(member_node);
     if (!member_node) {
         return false;
     }

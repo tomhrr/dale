@@ -1,8 +1,8 @@
 #ifndef DALE_FORM_MACRO_ARRAYDEREF
 #define DALE_FORM_MACRO_ARRAYDEREF
 
-#include "../../../Node/Node.h"
 #include "../../../Context/Context.h"
+#include "../../../Node/Node.h"
 
 namespace dale {
 /*! The array-dereference core macro form.

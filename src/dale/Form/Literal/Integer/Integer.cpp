@@ -8,21 +8,17 @@
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-int
-FormLiteralIntegerParse(Node *node, ErrorReporter *er)
-{
+namespace dale {
+int FormLiteralIntegerParse(Node *node, ErrorReporter *er) {
     if (!node->is_token) {
-        Error *e = new Error(UnexpectedElement, node,
-                             "symbol", "integer", "list");
+        Error *e = new Error(UnexpectedElement, node, "symbol",
+                             "integer", "list");
         er->addError(e);
         return -1;
     }
     if (node->token->type != TokenType::Int) {
-        Error *e = new Error(UnexpectedElement, node,
-                             "integer", "literal",
-                             node->token->tokenType());
+        Error *e = new Error(UnexpectedElement, node, "integer",
+                             "literal", node->token->tokenType());
         er->addError(e);
         return -1;
     }

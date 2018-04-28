@@ -3,20 +3,18 @@
 
 #include <vector>
 
-#include "../Utils/Utils.h"
 #include "../Error/Error.h"
 #include "../Token/Token.h"
+#include "../Utils/Utils.h"
 
-namespace dale
-{
+namespace dale {
 /*! Lexer
 
     The lexer class.  A new lexer should be created for each file: see
     Unit.
 */
-class Lexer
-{
-private:
+class Lexer {
+   private:
     /*! The file pointer for the current file. */
     FILE *file;
     /*! The current position. */
@@ -41,7 +39,7 @@ private:
     /*! Unget a character. */
     void ungetchar_(char c);
 
-public:
+   public:
     /*! Construct a new lexer.
      *  @param file The file to read.
      *  @param line_buffered Whether to process input line-by-line.

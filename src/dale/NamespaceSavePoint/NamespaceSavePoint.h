@@ -3,21 +3,19 @@
 
 #include "../Namespace/Namespace.h"
 
-#include <vector>
-#include <string>
 #include <map>
+#include <string>
+#include <vector>
 
-namespace dale
-{
+namespace dale {
 /*! NamespaceSavePoint
 
     A class for storing the state of a namespace at a given time, and
     for restoring the namespace to that state.  At the moment, this is
     only used by ContextSavePoint.
 */
-class NamespaceSavePoint
-{
-public:
+class NamespaceSavePoint {
+   public:
     /*! Construct a new savepoint using the given namespace.
      *  @param ns The namespace.
      */
@@ -28,7 +26,7 @@ public:
      */
     bool restore();
 
-private:
+   private:
     std::map<std::string, int> function_count;
     int variable_count;
     int struct_count;

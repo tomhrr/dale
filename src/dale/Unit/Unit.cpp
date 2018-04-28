@@ -1,20 +1,19 @@
 #include "Unit.h"
-#include "../Lexer/Lexer.h"
-#include "../llvm_Module.h"
-#include "../llvm_Linker.h"
-#include "../llvmUtils/llvmUtils.h"
-#include "../Utils/Utils.h"
 #include "../CommonDecl/CommonDecl.h"
+#include "../Lexer/Lexer.h"
+#include "../Utils/Utils.h"
+#include "../llvmUtils/llvmUtils.h"
+#include "../llvm_Linker.h"
+#include "../llvm_Module.h"
 
 #include <cstdio>
 
-namespace dale
-{
-Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
-           TypeRegister *tr, llvm::ExecutionEngine *ee, bool is_x86_64,
-           Context *ctx, MacroProcessor *mp, FunctionProcessor *fp,
-           llvm::Module *module, llvm::Linker *linker, bool line_buffered)
-{
+namespace dale {
+Unit::Unit(const char *path, Units *units, ErrorReporter *er,
+           NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee,
+           bool is_x86_64, Context *ctx, MacroProcessor *mp,
+           FunctionProcessor *fp, llvm::Module *module,
+           llvm::Linker *linker, bool line_buffered) {
     FILE *mfp = fopen(path, "r");
     if (!mfp) {
         char buf[1024];
@@ -55,7 +54,7 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
     this->ee = ee;
     this->is_x86_64 = is_x86_64;
     var_count = 0;
-    fn_count  = 0;
+    fn_count = 0;
 
     /* For now, the unused prefix name will be a randomly-generated
      * string. */
@@ -67,23 +66,16 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er, NativeTypes *nt,
     global_block = NULL;
 }
 
-Unit::~Unit()
-{
+Unit::~Unit() {
     if (hasOwnModule()) {
         delete ctx;
     }
     delete parser;
 }
 
-bool
-Unit::hasOnceTag()
-{
-    return (once_tag.size() ? true : false);
-}
+bool Unit::hasOnceTag() { return (once_tag.size() ? true : false); }
 
-bool
-Unit::setOnceTag(std::string new_once_tag)
-{
+bool Unit::setOnceTag(std::string new_once_tag) {
     if (hasOnceTag()) {
         return false;
     }
@@ -92,35 +84,21 @@ Unit::setOnceTag(std::string new_once_tag)
     return true;
 }
 
-Function*
-Unit::getGlobalFunction()
-{
-    return global_function;
-}
+Function *Unit::getGlobalFunction() { return global_function; }
 
-llvm::BasicBlock*
-Unit::getGlobalBlock()
-{
-    return global_block;
-}
+llvm::BasicBlock *Unit::getGlobalBlock() { return global_block; }
 
-void
-Unit::pushGlobalFunction(Function *fn)
-{
+void Unit::pushGlobalFunction(Function *fn) {
     global_functions.push_back(fn);
     global_function = fn;
 }
 
-void
-Unit::pushGlobalBlock(llvm::BasicBlock *block)
-{
+void Unit::pushGlobalBlock(llvm::BasicBlock *block) {
     global_blocks.push_back(block);
     global_block = block;
 }
 
-void
-Unit::popGlobalFunction()
-{
+void Unit::popGlobalFunction() {
     global_functions.pop_back();
     if (global_functions.size()) {
         global_function = global_functions.back();
@@ -129,9 +107,7 @@ Unit::popGlobalFunction()
     }
 }
 
-void
-Unit::popGlobalBlock()
-{
+void Unit::popGlobalBlock() {
     global_blocks.pop_back();
     if (global_blocks.size()) {
         global_block = global_blocks.back();
@@ -140,13 +116,11 @@ Unit::popGlobalBlock()
     }
 }
 
-void
-Unit::makeTemporaryGlobalFunction()
-{
+void Unit::makeTemporaryGlobalFunction() {
     llvm::Type *llvm_return_type =
         ctx->toLLVMType(ctx->tr->type_int, NULL, false);
 
-    std::vector<llvm::Type*> empty_args;
+    std::vector<llvm::Type *> empty_args;
     llvm::FunctionType *ft =
         getFunctionType(llvm_return_type, empty_args, false);
 
@@ -164,12 +138,12 @@ Unit::makeTemporaryGlobalFunction()
     assert(llvm_fnc && "unable to add function to module");
 
     llvm::Function *llvm_fn = llvm::dyn_cast<llvm::Function>(llvm_fnc);
-    assert(llvm_fn && "unable to convert function constant to function");
+    assert(llvm_fn &&
+           "unable to convert function constant to function");
 
     std::vector<Variable *> vars;
-    Function *fn =
-        new Function(ctx->tr->type_int, &vars, llvm_fn, 0,
-                     new std::string(new_name), 0);
+    Function *fn = new Function(ctx->tr->type_int, &vars, llvm_fn, 0,
+                                new std::string(new_name), 0);
     fn->linkage = Linkage::Intern;
     fn->cto = true;
 
@@ -182,9 +156,7 @@ Unit::makeTemporaryGlobalFunction()
     ctx->activateAnonymousNamespace();
 }
 
-void
-Unit::removeTemporaryGlobalFunction()
-{
+void Unit::removeTemporaryGlobalFunction() {
     ctx->deactivateAnonymousNamespace();
     Function *current = getGlobalFunction();
     popGlobalFunction();
@@ -194,9 +166,7 @@ Unit::removeTemporaryGlobalFunction()
 
 static bool added_common_declarations = false;
 
-void
-Unit::addCommonDeclarations()
-{
+void Unit::addCommonDeclarations() {
     CommonDecl::addBasicTypes(this, is_x86_64);
 
     /* The basic math functions and the varargs functions are
@@ -215,43 +185,29 @@ Unit::addCommonDeclarations()
     return;
 }
 
-void
-Unit::getUnusedVarName(std::string *buf)
-{
+void Unit::getUnusedVarName(std::string *buf) {
     char ibuf[16];
     do {
-        sprintf(ibuf, "_dv%c%c%c%c%d",
-                unused_name_prefix[0],
-                unused_name_prefix[1],
-                unused_name_prefix[2],
-                unused_name_prefix[3],
-                var_count++);
+        sprintf(ibuf, "_dv%c%c%c%c%d", unused_name_prefix[0],
+                unused_name_prefix[1], unused_name_prefix[2],
+                unused_name_prefix[3], var_count++);
     } while (module->getGlobalVariable(llvm::StringRef(ibuf)));
 
     buf->append(ibuf);
     return;
 }
 
-void
-Unit::getUnusedFunctionName(std::string *buf)
-{
+void Unit::getUnusedFunctionName(std::string *buf) {
     char ibuf[16];
     do {
-        sprintf(ibuf, "_fn%c%c%c%c%d",
-                unused_name_prefix[0],
-                unused_name_prefix[1],
-                unused_name_prefix[2],
-                unused_name_prefix[3],
-                fn_count++);
+        sprintf(ibuf, "_fn%c%c%c%c%d", unused_name_prefix[0],
+                unused_name_prefix[1], unused_name_prefix[2],
+                unused_name_prefix[3], fn_count++);
     } while (module->getFunction(llvm::StringRef(ibuf)));
 
     buf->append(ibuf);
     return;
 }
 
-bool
-Unit::hasOwnModule()
-{
-    return has_own_module;
-}
+bool Unit::hasOwnModule() { return has_own_module; }
 }

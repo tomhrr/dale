@@ -1,11 +1,10 @@
 #ifndef DALE_ELEMENT_TYPEMAP
 #define DALE_ELEMENT_TYPEMAP
 
-#include <string>
 #include <map>
+#include <string>
 
-namespace dale
-{
+namespace dale {
 /*! TypeMap
 
     Provides functions for adding entries to and retrieving entries

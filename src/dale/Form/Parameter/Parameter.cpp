@@ -1,24 +1,21 @@
 #include "Parameter.h"
-#include "../../Units/Units.h"
+#include "../../CoreForms/CoreForms.h"
+#include "../../Function/Function.h"
 #include "../../Node/Node.h"
 #include "../../ParseResult/ParseResult.h"
-#include "../../Function/Function.h"
-#include "../../CoreForms/CoreForms.h"
-#include "../Linkage/Linkage.h"
-#include "../Type/Type.h"
-#include "../ProcBody/ProcBody.h"
+#include "../../Units/Units.h"
 #include "../../llvm_Function.h"
+#include "../Linkage/Linkage.h"
+#include "../ProcBody/ProcBody.h"
+#include "../Type/Type.h"
 #include "Config.h"
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-bool
-FormParameterParse(Units *units, Variable *var, Node *node,
-                   bool allow_anon_structs, bool allow_bitfields,
-                   bool allow_refs, bool allow_anonymous)
-{
+namespace dale {
+bool FormParameterParse(Units *units, Variable *var, Node *node,
+                        bool allow_anon_structs, bool allow_bitfields,
+                        bool allow_refs, bool allow_anonymous) {
     Context *ctx = units->top()->ctx;
 
     var->linkage = Linkage::Auto;
@@ -41,8 +38,8 @@ FormParameterParse(Units *units, Variable *var, Node *node,
         Token *t = node->token;
 
         if (t->type != TokenType::String) {
-            Error *e = new Error(IncorrectSingleParameterType,
-                                 node, "symbol", t->tokenType());
+            Error *e = new Error(IncorrectSingleParameterType, node,
+                                 "symbol", t->tokenType());
             ctx->er->addError(e);
             return false;
         }
@@ -54,8 +51,8 @@ FormParameterParse(Units *units, Variable *var, Node *node,
             var->type = ctx->tr->type_varargs;
             return true;
         } else {
-            Error *e = new Error(IncorrectSingleParameterType,
-                                 node, "void/...", t->str_value.c_str());
+            Error *e = new Error(IncorrectSingleParameterType, node,
+                                 "void/...", t->str_value.c_str());
             ctx->er->addError(e);
             return false;
         }
@@ -64,8 +61,8 @@ FormParameterParse(Units *units, Variable *var, Node *node,
     std::vector<Node *> *lst = node->list;
 
     if (lst->size() != 2) {
-        Error *e = new Error(IncorrectParameterTypeNumberOfArgs,
-                             node, 2, (int) lst->size());
+        Error *e = new Error(IncorrectParameterTypeNumberOfArgs, node,
+                             2, (int)lst->size());
         ctx->er->addError(e);
         return false;
     }

@@ -1,8 +1,7 @@
 #ifndef DALE_FORM_PROC_ALIGNMENTOF
 #define DALE_FORM_PROC_ALIGNMENTOF
 
-namespace dale
-{
+namespace dale {
 /*! Parse an alignmentof form.
  *  @param units The units context.
  *  @param fn The function currently in scope.

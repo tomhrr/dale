@@ -3,18 +3,15 @@
 
 #define BASIC_TYPE_COUNT 23
 
-namespace dale
-{
+namespace dale {
 /*! BaseType
 
     Contains the base type enums and a few functions for dealing with
     them.  Base types are generally primitive types, though there are
     definitions for Void and VarArgs here as well.
 */
-namespace BaseType
-{
-enum
-{
+namespace BaseType {
+enum {
     /*! The null type. */
     Null,
     /*! The void type. */

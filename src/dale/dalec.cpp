@@ -1,13 +1,13 @@
 #include "Generator/Generator.h"
 
+#include <getopt.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "Config.h"
 #include "Utils/Utils.h"
-#include <cstring>
-#include <cstdlib>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <getopt.h>
-#include <cstdio>
 
 /*! dalec
 
@@ -18,88 +18,80 @@
 
 using namespace dale;
 
-static bool
-isEndingOn(const char *string, const char *ending)
-{
-    size_t sl = strlen (string);
-    size_t el = strlen (ending);
+static bool isEndingOn(const char *string, const char *ending) {
+    size_t sl = strlen(string);
+    size_t el = strlen(ending);
 
-    return (sl >= el) && (strcmp (string + (sl - el), ending) == 0);
+    return (sl >= el) && (strcmp(string + (sl - el), ending) == 0);
 }
 
-static bool
-appearsToBeLib(const char *str)
-{
+static bool appearsToBeLib(const char *str) {
     return isEndingOn(str, ".o") || isEndingOn(str, ".a");
 }
 
-std::string
-joinWithPrefix(std::vector<const char*> strings,
-               const std::string prefix, std::string buffer)
-{
-    for (std::vector<const char*>::iterator b = strings.begin(),
-                                            e = strings.end();
-            b != e;
-            buffer += " " + prefix + " " + (*b++));
+std::string joinWithPrefix(std::vector<const char *> strings,
+                           const std::string prefix,
+                           std::string buffer) {
+    for (std::vector<const char *>::iterator b = strings.begin(),
+                                             e = strings.end();
+         b != e; buffer += " " + prefix + " " + (*b++))
+        ;
 
     return buffer;
 }
 
-int
-main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     srand(time(NULL) + getpid());
 
     progname = argv[0];
 
-    std::vector<const char*> input_files;
-    std::vector<const char*> input_link_files;
-    std::vector<const char*> compile_libs;
-    std::vector<const char*> run_libs;
-    std::vector<const char*> include_paths;
-    std::vector<const char*> run_paths;
-    std::vector<const char*> bitcode_paths;
-    std::vector<const char*> static_modules;
-    std::vector<const char*> module_paths;
+    std::vector<const char *> input_files;
+    std::vector<const char *> input_link_files;
+    std::vector<const char *> compile_libs;
+    std::vector<const char *> run_libs;
+    std::vector<const char *> include_paths;
+    std::vector<const char *> run_paths;
+    std::vector<const char *> bitcode_paths;
+    std::vector<const char *> static_modules;
+    std::vector<const char *> module_paths;
 
     const char *output_path_arg = NULL;
-    const char *module_name     = NULL;
+    const char *module_name = NULL;
 
-    int produce  = ASM;
+    int produce = ASM;
     int optlevel = 0;
 
-    int produce_set      = 0;
-    int no_linking       = 0;
-    int debug            = 0;
-    int no_dale_stdlib   = 0;
-    int no_stdlib        = 0;
-    int remove_macros    = 0;
-    int no_common        = 0;
-    int static_mods_all  = 0;
-    int found_sm         = 0;
-    int enable_cto       = 0;
-    int version          = 0;
+    int produce_set = 0;
+    int no_linking = 0;
+    int debug = 0;
+    int no_dale_stdlib = 0;
+    int no_stdlib = 0;
+    int remove_macros = 0;
+    int no_common = 0;
+    int static_mods_all = 0;
+    int found_sm = 0;
+    int enable_cto = 0;
+    int version = 0;
     int print_expansions = 0;
 
-    int option_index         = 0;
+    int option_index = 0;
     int forced_remove_macros = 0;
 
     static const char *options = "M:m:O:a:I:L:l:o:s:b:cdrR";
     static struct option long_options[] = {
-        { "no-dale-stdlib",   no_argument,       &no_dale_stdlib,   1 },
-        { "no-common",        no_argument,       &no_common,        1 },
-        { "no-stdlib",        no_argument,       &no_stdlib,        1 },
-        { "static-modules",   no_argument,       &static_mods_all,  1 },
-        { "static-module",    required_argument, &found_sm,         1 },
-        { "enable-cto",       no_argument,       &enable_cto,       1 },
-        { "version",          no_argument,       &version,          1 },
-        { "print-expansions", no_argument,       &print_expansions, 1 },
-        { 0, 0, 0, 0 }
-    };
+        {"no-dale-stdlib", no_argument, &no_dale_stdlib, 1},
+        {"no-common", no_argument, &no_common, 1},
+        {"no-stdlib", no_argument, &no_stdlib, 1},
+        {"static-modules", no_argument, &static_mods_all, 1},
+        {"static-module", required_argument, &found_sm, 1},
+        {"enable-cto", no_argument, &enable_cto, 1},
+        {"version", no_argument, &version, 1},
+        {"print-expansions", no_argument, &print_expansions, 1},
+        {0, 0, 0, 0}};
 
     for (int opt; (opt = getopt_long(argc, argv, options, long_options,
-                                     &option_index)) != -1; ) {
-        switch ((char) opt) {
+                                     &option_index)) != -1;) {
+        switch ((char)opt) {
             case 'o': {
                 if (output_path_arg) {
                     error("an output path has already been specified");
@@ -128,17 +120,41 @@ main(int argc, char **argv)
                 }
                 break;
             }
-            case 'd': debug = 1;                                   break;
-            case 'c': no_linking = 1;                              break;
-            case 'r': remove_macros = 1; forced_remove_macros = 1; break;
-            case 'R': remove_macros = 0; forced_remove_macros = 1; break;
-            case 'I': include_paths.push_back(optarg);             break;
-            case 'a': compile_libs.push_back(optarg);              break;
-            case 'L': run_paths.push_back(optarg);                 break;
-            case 'l': run_libs.push_back(optarg);                  break;
-            case 'b': bitcode_paths.push_back(optarg);             break;
-            case 'M': module_paths.push_back(optarg);              break;
-            case 'm': module_name = optarg;                        break;
+            case 'd':
+                debug = 1;
+                break;
+            case 'c':
+                no_linking = 1;
+                break;
+            case 'r':
+                remove_macros = 1;
+                forced_remove_macros = 1;
+                break;
+            case 'R':
+                remove_macros = 0;
+                forced_remove_macros = 1;
+                break;
+            case 'I':
+                include_paths.push_back(optarg);
+                break;
+            case 'a':
+                compile_libs.push_back(optarg);
+                break;
+            case 'L':
+                run_paths.push_back(optarg);
+                break;
+            case 'l':
+                run_libs.push_back(optarg);
+                break;
+            case 'b':
+                bitcode_paths.push_back(optarg);
+                break;
+            case 'M':
+                module_paths.push_back(optarg);
+                break;
+            case 'm':
+                module_name = optarg;
+                break;
         };
         if (found_sm) {
             found_sm = 0;
@@ -151,10 +167,9 @@ main(int argc, char **argv)
      * resolve external symbols during compilation.  (There is
      * probably a better way to do this.) */
     if (static_modules.size() or static_mods_all) {
-        for (std::vector<const char*>::iterator b = run_libs.begin(),
-                                                e = run_libs.end();
-                b != e;
-                ++b) {
+        for (std::vector<const char *>::iterator b = run_libs.begin(),
+                                                 e = run_libs.end();
+             b != e; ++b) {
             FILE *fp;
             char libname[256];
             snprintf(libname, 256, "-l%s", *b);
@@ -170,7 +185,7 @@ main(int argc, char **argv)
                 if (!strncmp(line, libname, strlen(libname))) {
                     char path[256];
                     char *start = strchr(line, '/');
-                    char *end   = strchr(line, ')');
+                    char *end = strchr(line, ')');
                     strncpy(path, start, (end - start));
                     path[end - start] = '\0';
                     compile_libs.push_back(strdup(path));
@@ -198,7 +213,7 @@ main(int argc, char **argv)
      * Input files that end with .o or .a should go straight to the
      * linker. */
     while (optind != argc) {
-        const char *input_file = argv [optind ++];
+        const char *input_file = argv[optind++];
 
         (appearsToBeLib(input_file) ? input_link_files : input_files)
             .push_back(input_file);
@@ -220,10 +235,12 @@ main(int argc, char **argv)
             output_path += ".o";
         } else if (produce_set) {
             /* .unknown should never be reached. */
-            output_path += ((produce == IR)      ? ".ll"
-                          : (produce == ASM)     ? ".s"
-                          : (produce == BitCode) ? ".bc"
-                                                 : ".unknown" );
+            output_path +=
+                ((produce == IR)
+                     ? ".ll"
+                     : (produce == ASM)
+                           ? ".s"
+                           : (produce == BitCode) ? ".bc" : ".unknown");
         } else {
             /* Overwrite what was there. */
             output_path = "a.out";
@@ -239,30 +256,17 @@ main(int argc, char **argv)
     std::string intermediate_output_path =
         output_path + (produce_set ? "" : ".s");
 
-    FILE *output_file =
-        fopen(intermediate_output_path.c_str(), "w");
+    FILE *output_file = fopen(intermediate_output_path.c_str(), "w");
     if (output_file == NULL) {
         error("unable to open %s for writing",
               intermediate_output_path.c_str(), true);
     }
-    int res = generator.run(&input_files,
-                            &bitcode_paths,
-                            &compile_libs,
-                            &include_paths,
-                            &module_paths,
-                            &static_modules,
-                            module_name,
-                            debug,
-                            produce,
-                            optlevel,
-                            remove_macros,
-                            no_common,
-                            no_dale_stdlib,
-                            static_mods_all,
-                            enable_cto,
-                            print_expansions,
-                            &so_paths,
-                            output_file);
+    int res = generator.run(&input_files, &bitcode_paths, &compile_libs,
+                            &include_paths, &module_paths,
+                            &static_modules, module_name, debug,
+                            produce, optlevel, remove_macros, no_common,
+                            no_dale_stdlib, static_mods_all, enable_cto,
+                            print_expansions, &so_paths, output_file);
     if (!res) {
         exit(1);
     }
@@ -276,21 +280,19 @@ main(int argc, char **argv)
     }
 
     /* Prepare the strings to sew the compile command with. */
-    std::string run_path_str =
-      joinWithPrefix(run_paths, "-L", "");
-    std::string run_lib_str =
-      joinWithPrefix(run_libs, "-l", "");
+    std::string run_path_str = joinWithPrefix(run_paths, "-L", "");
+    std::string run_lib_str = joinWithPrefix(run_libs, "-l", "");
     std::string rpath_str =
         strcmp(SYSTEM_NAME, "Darwin")
             ? ""
             : joinWithPrefix(module_paths, "-rpath", "");
 
     std::string input_link_file_str =
-      joinWithPrefix(input_link_files, " ", "");
+        joinWithPrefix(input_link_files, " ", "");
     for (std::vector<std::string>::iterator b = so_paths.begin(),
                                             e = so_paths.end();
-            b != e;
-            input_link_file_str += " " + (*b++));
+         b != e; input_link_file_str += " " + (*b++))
+        ;
 
     /* Compose the compiler/linker command and execute it. */
     /* DALEC_CC_FLAGS is an undocumented environment variable that can
@@ -305,14 +307,12 @@ main(int argc, char **argv)
     if (no_linking) {
         compile_cmd += " -c";
     } else {
-        compile_cmd += input_link_file_str
-                     + " -lm"
-                     + (strcmp(SYSTEM_NAME, "Darwin")
-                           ? " -Wl,--gc-sections"
-                           : "");
+        compile_cmd +=
+            input_link_file_str + " -lm" +
+            (strcmp(SYSTEM_NAME, "Darwin") ? " -Wl,--gc-sections" : "");
     }
-    compile_cmd += run_lib_str + run_path_str + rpath_str
-                 + " -o " + output_path + " " + intermediate_output_path;
+    compile_cmd += run_lib_str + run_path_str + rpath_str + " -o " +
+                   output_path + " " + intermediate_output_path;
     if (aux) {
         compile_cmd += " ";
         compile_cmd += aux;

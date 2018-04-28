@@ -5,6 +5,7 @@
 *.so
 *.so.*
 *.swp
+*.gch
 src/dale/Config\.h
 dale-bindgen
 dalec

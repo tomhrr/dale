@@ -1,19 +1,17 @@
-#include "../../../Units/Units.h"
+#include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Function/Function.h"
-#include "../Inst/Inst.h"
+#include "../../../Units/Units.h"
 #include "../../../llvm_Function.h"
+#include "../Inst/Inst.h"
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-bool
-FormProcFuncallParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                     Node *node, bool get_address, bool prefixed_with_core,
-                     ParseResult *pr)
-{
+namespace dale {
+bool FormProcFuncallParse(Units *units, Function *fn,
+                          llvm::BasicBlock *block, Node *node,
+                          bool get_address, bool prefixed_with_core,
+                          ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("funcall", node, 1, -1)) {

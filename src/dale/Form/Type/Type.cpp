@@ -1,10 +1,10 @@
 #include "Type.h"
 
-#include "../../Units/Units.h"
 #include "../../Form/TopLevel/GlobalVariable/GlobalVariable.h"
-#include "../Struct/Struct.h"
-#include "../Parameter/Parameter.h"
+#include "../../Units/Units.h"
 #include "../Literal/Integer/Integer.h"
+#include "../Parameter/Parameter.h"
+#include "../Struct/Struct.h"
 
 #include <cstdio>
 
@@ -13,9 +13,7 @@ using namespace dale::ErrorInst;
 static int anon_struct_count = 0;
 
 namespace dale {
-Type *
-parseTypeToken(Units *units, Node *node)
-{
+Type *parseTypeToken(Units *units, Node *node) {
     Context *ctx = units->top()->ctx;
 
     Token *token = node->token;
@@ -32,9 +30,9 @@ parseTypeToken(Units *units, Node *node)
     if (base_type != -1) {
         Type *type = ctx->tr->getBasicType(base_type);
         if (type) {
-            if (!units->top()->is_x86_64
-                    && (type->base_type == BaseType::Int128
-                     || type->base_type == BaseType::UInt128)) {
+            if (!units->top()->is_x86_64 &&
+                (type->base_type == BaseType::Int128 ||
+                 type->base_type == BaseType::UInt128)) {
                 Error *e = new Error(TypeNotSupported, node, type_str);
                 ctx->er->addError(e);
                 return NULL;
@@ -57,10 +55,9 @@ parseTypeToken(Units *units, Node *node)
     return NULL;
 }
 
-Type *
-FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
-              bool allow_bitfields, bool allow_refs, bool allow_retvals)
-{
+Type *FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
+                    bool allow_bitfields, bool allow_refs,
+                    bool allow_retvals) {
     Context *ctx = units->top()->ctx;
 
     node = units->top()->mp->parsePotentialMacroCall(node);
@@ -86,7 +83,7 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         return NULL;
     }
 
-    std::vector<Node*> lst_tail;
+    std::vector<Node *> lst_tail;
     if (!strcmp(token->str_value.c_str(), "do")) {
         lst_tail.assign(lst->begin() + 1, lst->end());
         lst = &lst_tail;
@@ -108,9 +105,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
 
     /* If list is a two-element list, where the first element is
      * 'ref', then this is a reference type. */
-    if (lst->size() == 2
-            && fst_node->is_token
-            && !(fst_node->token->str_value.compare("ref"))) {
+    if (lst->size() == 2 && fst_node->is_token &&
+        !(fst_node->token->str_value.compare("ref"))) {
         if (!allow_refs) {
             Error *e = new Error(RefsNotPermittedHere, node);
             ctx->er->addError(e);
@@ -118,9 +114,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         }
         /* Reference types are only permitted at the 'node level' of
          * the type. */
-        Type *reference_type =
-            FormTypeParse(units, snd_node, allow_anon_structs,
-                          allow_bitfields);
+        Type *reference_type = FormTypeParse(
+            units, snd_node, allow_anon_structs, allow_bitfields);
 
         if (reference_type == NULL) {
             return NULL;
@@ -130,9 +125,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
 
     /* If list is a two-element list, where the first element is
      * 'rv-ref', then this is an rvalue reference type. */
-    if (lst->size() == 2
-            && fst_node->is_token
-            && !(fst_node->token->str_value.compare("rv-ref"))) {
+    if (lst->size() == 2 && fst_node->is_token &&
+        !(fst_node->token->str_value.compare("rv-ref"))) {
         if (!allow_refs) {
             Error *e = new Error(RefsNotPermittedHere, node);
             ctx->er->addError(e);
@@ -140,9 +134,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         }
         /* Reference types are only permitted at the 'node level' of
          * the type. */
-        Type *rvalue_reference_type =
-            FormTypeParse(units, snd_node, allow_anon_structs,
-                          allow_bitfields);
+        Type *rvalue_reference_type = FormTypeParse(
+            units, snd_node, allow_anon_structs, allow_bitfields);
 
         if (rvalue_reference_type == NULL) {
             return NULL;
@@ -152,9 +145,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
 
     /* If list is a two-element list, where the first element is
      * 'retval', then this is a retval type. */
-    if (lst->size() == 2
-            && fst_node->is_token
-            && !(fst_node->token->str_value.compare("retval"))) {
+    if (lst->size() == 2 && fst_node->is_token &&
+        !(fst_node->token->str_value.compare("retval"))) {
         if (!allow_retvals) {
             Error *e = new Error(RetvalsNotPermittedHere, node);
             ctx->er->addError(e);
@@ -162,9 +154,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         }
         /* Retval types are only permitted at the 'node level' of
          * the type. */
-        Type *retval_type =
-            FormTypeParse(units, snd_node, allow_anon_structs,
-                          allow_bitfields);
+        Type *retval_type = FormTypeParse(
+            units, snd_node, allow_anon_structs, allow_bitfields);
 
         if (retval_type == NULL) {
             return NULL;
@@ -178,18 +169,18 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
      * in turn be used to create that struct, call
      * parseStructDefinition, and then use that new struct name as the
      * value of this element. */
-    if (allow_anon_structs
-            && lst->size() == 2
-            && fst_node->is_token
-            && !(fst_node->token->str_value.compare("struct"))) {
+    if (allow_anon_structs && lst->size() == 2 && fst_node->is_token &&
+        !(fst_node->token->str_value.compare("struct"))) {
         lst->insert((lst->begin() + 1), new Node("extern"));
 
         char buf[255];
         sprintf(buf, "__as%d", anon_struct_count++);
 
-        int error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
+        int error_count_begin =
+            ctx->er->getErrorTypeCount(ErrorType::Error);
         FormStructParse(units, new Node(lst), buf);
-        int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
+        int error_count_end =
+            ctx->er->getErrorTypeCount(ErrorType::Error);
         if (error_count_begin != error_count_end) {
             return NULL;
         }
@@ -202,10 +193,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
     /* If list is a three-element list, where the first element is
      * 'bf', then this is a bitfield type.  Only return such a type
      * if allow_bitfields is enabled. */
-    if (allow_bitfields
-            && lst->size() == 3
-            && fst_node->is_token
-            && !(fst_node->token->str_value.compare("bf"))) {
+    if (allow_bitfields && lst->size() == 3 && fst_node->is_token &&
+        !(fst_node->token->str_value.compare("bf"))) {
         Type *type = FormTypeParse(units, snd_node, false, false);
         if (!type->isIntegerType()) {
             Error *e = new Error(BitfieldMustHaveIntegerType, node);
@@ -219,18 +208,17 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         return ctx->tr->getBitfieldType(type, size);
     }
 
-    if (fst_node->is_token
-            && !strcmp(fst_node->token->str_value.c_str(), "const")) {
+    if (fst_node->is_token &&
+        !strcmp(fst_node->token->str_value.c_str(), "const")) {
         if (lst->size() != 2) {
-            Error *e = new Error(IncorrectNumberOfArgs, node,
-                                 "const", "1", ((int) lst->size() - 1));
+            Error *e = new Error(IncorrectNumberOfArgs, node, "const",
+                                 "1", ((int)lst->size() - 1));
             ctx->er->addError(e);
             return NULL;
         }
 
-        Type *const_type =
-            FormTypeParse(units, snd_node, allow_anon_structs,
-                          allow_bitfields);
+        Type *const_type = FormTypeParse(
+            units, snd_node, allow_anon_structs, allow_bitfields);
 
         if (const_type == NULL) {
             return NULL;
@@ -238,18 +226,18 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         return ctx->tr->getConstType(const_type);
     }
 
-    if (fst_node->is_token
-            && !strcmp(fst_node->token->str_value.c_str(), "array-of")) {
+    if (fst_node->is_token &&
+        !strcmp(fst_node->token->str_value.c_str(), "array-of")) {
         if (lst->size() != 3) {
-            Error *e = new Error(IncorrectNumberOfArgs, node,
-                                 "array-of", "2", ((int) lst->size() - 1));
+            Error *e =
+                new Error(IncorrectNumberOfArgs, node, "array-of", "2",
+                          ((int)lst->size() - 1));
             ctx->er->addError(e);
             return NULL;
         }
 
-        Type *array_type =
-            FormTypeParse(units, (*lst)[2], allow_anon_structs,
-                          allow_bitfields);
+        Type *array_type = FormTypeParse(
+            units, (*lst)[2], allow_anon_structs, allow_bitfields);
 
         if (array_type == NULL) {
             return NULL;
@@ -257,14 +245,16 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
 
         llvm::Constant *size_value = NULL;
         int unused_size;
-        size_value = parseLiteral(units, ctx->tr->type_int, snd_node, &unused_size);
+        size_value = parseLiteral(units, ctx->tr->type_int, snd_node,
+                                  &unused_size);
         if (!size_value) {
             return NULL;
         }
         llvm::ConstantInt *size_value_int =
             llvm::dyn_cast<llvm::ConstantInt>(size_value);
         if (!size_value_int) {
-            Error *e = new Error(ErrorInst::UnableToParseIntegerNoString, snd_node);
+            Error *e = new Error(
+                ErrorInst::UnableToParseIntegerNoString, snd_node);
             ctx->er->addError(e);
             return NULL;
         }
@@ -274,15 +264,14 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         return ctx->tr->getArrayType(array_type, size);
     }
 
-    if (fst_node->is_token
-            && !strcmp(fst_node->token->str_value.c_str(), "p")) {
+    if (fst_node->is_token &&
+        !strcmp(fst_node->token->str_value.c_str(), "p")) {
         if (!ctx->er->assertArgNums("p", node, 1, 1)) {
             return NULL;
         }
 
-        Type *points_to_type =
-            FormTypeParse(units, snd_node, allow_anon_structs,
-                          allow_bitfields);
+        Type *points_to_type = FormTypeParse(
+            units, snd_node, allow_anon_structs, allow_bitfields);
 
         if (points_to_type == NULL) {
             return NULL;
@@ -290,8 +279,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         return ctx->tr->getPointerType(points_to_type);
     }
 
-    if (fst_node->is_token
-            && !strcmp(fst_node->token->str_value.c_str(), "fn")) {
+    if (fst_node->is_token &&
+        !strcmp(fst_node->token->str_value.c_str(), "fn")) {
         if (!ctx->er->assertArgNums("fn", node, 2, 2)) {
             return NULL;
         }
@@ -312,8 +301,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         Node *params = (*lst)[2];
 
         if (!params->is_list) {
-            Error *e = new Error(UnexpectedElement, node,
-                                 "list", "fn parameters", "symbol");
+            Error *e = new Error(UnexpectedElement, node, "list",
+                                 "fn parameters", "symbol");
             ctx->er->addError(e);
             return NULL;
         }
@@ -321,8 +310,7 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         std::vector<Type *> parameter_types;
         for (std::vector<Node *>::iterator b = params->list->begin(),
                                            e = params->list->end();
-                b != e;
-                ++b) {
+             b != e; ++b) {
             Variable *var = new Variable();
             var->type = NULL;
 
@@ -336,8 +324,8 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
             if (var->type->base_type == BaseType::Void) {
                 delete var;
                 if (params->list->size() != 1) {
-                    Error *e = new Error(VoidMustBeTheOnlyParameter,
-                                         params);
+                    Error *e =
+                        new Error(VoidMustBeTheOnlyParameter, params);
                     ctx->er->addError(e);
                     return NULL;
                 }
@@ -347,15 +335,14 @@ FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
             if (var->type->base_type == BaseType::VarArgs) {
                 if ((params->list->end() - b) != 1) {
                     delete var;
-                    Error *e = new Error(VarArgsMustBeLastParameter,
-                                         params);
+                    Error *e =
+                        new Error(VarArgsMustBeLastParameter, params);
                     ctx->er->addError(e);
                     return NULL;
                 }
                 parameter_types.push_back(var->type);
                 break;
-            }
-;
+            };
             if (var->type->is_function) {
                 delete var;
                 Error *e = new Error(NonPointerFunctionParameter, (*b));

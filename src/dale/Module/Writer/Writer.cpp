@@ -5,16 +5,13 @@
 #include "../../Utils/Utils.h"
 #include "../../llvmUtils/llvmUtils.h"
 
-namespace dale
-{
-namespace Module
-{
-Writer::Writer(std::string module_name, dale::Context *ctx,
-               llvm::Module *mod, PassManager *pm,
-               std::set<std::string> *included_once_tags,
-               std::map<std::string, std::vector<std::string>* > *included_modules,
-               bool cto)
-{
+namespace dale {
+namespace Module {
+Writer::Writer(
+    std::string module_name, dale::Context *ctx, llvm::Module *mod,
+    PassManager *pm, std::set<std::string> *included_once_tags,
+    std::map<std::string, std::vector<std::string> *> *included_modules,
+    bool cto) {
     this->module_name = module_name;
     this->ctx = ctx;
     this->mod = mod;
@@ -26,16 +23,11 @@ Writer::Writer(std::string module_name, dale::Context *ctx,
     this->module_prefix.append(module_name);
 }
 
-Writer::~Writer()
-{
-}
+Writer::~Writer() {}
 
-bool
-Writer::writeBitcode(const char *suffix)
-{
+bool Writer::writeBitcode(const char *suffix) {
     std::string bc_path(module_prefix);
-    bc_path.append(suffix)
-           .append(".bc");
+    bc_path.append(suffix).append(".bc");
 
     FILE *bc = fopen(bc_path.c_str(), "w");
     if (!bc) {
@@ -58,9 +50,7 @@ Writer::writeBitcode(const char *suffix)
     return true;
 }
 
-bool
-Writer::writeSharedObject(const char *suffix)
-{
+bool Writer::writeSharedObject(const char *suffix) {
     std::string asm_path(module_prefix);
     asm_path.append(suffix);
 
@@ -71,9 +61,9 @@ Writer::writeSharedObject(const char *suffix)
 
     std::string cmd;
     cmd.append(LLVM_BIN_DIR "/llc -relocation-model=pic -filetype=asm ")
-       .append(bc_path)
-       .append(" -o ")
-       .append(asm_path);
+        .append(bc_path)
+        .append(" -o ")
+        .append(asm_path);
 
     int res = system(cmd.c_str());
     assert(!res && "unable to assemble bitcode");
@@ -86,14 +76,13 @@ Writer::writeSharedObject(const char *suffix)
     cmd.clear();
     cmd.append(DALE_CC " -shared ");
     if (!strcmp(SYSTEM_NAME, "Darwin")) {
-        cmd.append(" -undefined dynamic_lookup"
-                   " -install_name @rpath/");
+        cmd.append(
+            " -undefined dynamic_lookup"
+            " -install_name @rpath/");
         cmd.append(lib_path);
         cmd.append(" ");
     }
-    cmd.append(asm_path)
-       .append(" -o ")
-       .append(lib_path);
+    cmd.append(asm_path).append(" -o ").append(lib_path);
 
     res = system(cmd.c_str());
     assert(!res && "unable to make library");
@@ -104,9 +93,7 @@ Writer::writeSharedObject(const char *suffix)
     return true;
 }
 
-bool
-Writer::writeContext()
-{
+bool Writer::writeContext() {
     ctx->removeDeserialised();
 
     std::string ctx_module_path(module_prefix);
@@ -114,7 +101,8 @@ Writer::writeContext()
 
     FILE *mod_data = fopen(module_prefix.c_str(), "w");
     if (!mod_data) {
-        error("unable to open %s for writing", module_prefix.c_str(), true);
+        error("unable to open %s for writing", module_prefix.c_str(),
+              true);
     }
 
     assert(mod_data && "cannot create module file");
@@ -136,9 +124,7 @@ Writer::writeContext()
     return true;
 }
 
-bool
-Writer::run()
-{
+bool Writer::run() {
     writeBitcode("");
     writeSharedObject("");
     ctx->regetPointers(mod);

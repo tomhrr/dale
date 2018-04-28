@@ -1,23 +1,17 @@
 #include "Units.h"
-#include "../llvm_Module.h"
-#include "../llvm_Linker.h"
 #include "../llvmUtils/llvmUtils.h"
+#include "../llvm_Linker.h"
+#include "../llvm_Module.h"
 
-namespace dale
-{
-Units::Units(Module::Reader *mr)
-{
+namespace dale {
+Units::Units(Module::Reader *mr) {
     this->mr = mr;
     this->prefunction_ns = NULL;
 }
 
-Units::~Units()
-{
-}
+Units::~Units() {}
 
-Unit*
-Units::top()
-{
+Unit *Units::top() {
     if (!units.size()) {
         assert(false && "no unit available");
         abort();
@@ -25,21 +19,11 @@ Units::top()
     return units.top();
 }
 
-bool
-Units::empty()
-{
-    return units.empty();
-}
+bool Units::empty() { return units.empty(); }
 
-size_t
-Units::size()
-{
-    return units.size();
-}
+size_t Units::size() { return units.size(); }
 
-void
-Units::pop()
-{
+void Units::pop() {
     Unit *popped = units.top();
     units.pop();
 
@@ -61,9 +45,7 @@ Units::pop()
     return;
 }
 
-void
-Units::push(Unit *new_unit)
-{
+void Units::push(Unit *new_unit) {
     if (units.size()) {
         Unit *current = units.top();
         new_unit->ctx->merge(current->ctx);

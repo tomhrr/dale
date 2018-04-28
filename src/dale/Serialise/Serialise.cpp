@@ -4,118 +4,84 @@
 
 #include <cassert>
 
-namespace dale
-{
-void xfwrite(const void *a, size_t b, size_t c, FILE *d)
-{
+namespace dale {
+void xfwrite(const void *a, size_t b, size_t c, FILE *d) {
     size_t res = fwrite(a, b, c, d);
     if (res != c) {
         error("write failed", true);
     }
 }
 
-void serialise(FILE *out, bool a)
-{
-    xfwrite(&a, sizeof(bool), 1, out);
-}
+void serialise(FILE *out, bool a) { xfwrite(&a, sizeof(bool), 1, out); }
 
-void serialise(FILE *out, bool *a)
-{
-    serialise(out, *a);
-}
+void serialise(FILE *out, bool *a) { serialise(out, *a); }
 
-char *deserialise(TypeRegister *tr, char *in, bool *a)
-{
-    *a = *(bool*) in;
+char *deserialise(TypeRegister *tr, char *in, bool *a) {
+    *a = *(bool *)in;
     return in + sizeof(bool);
 }
 
-void serialise(FILE *out, int64_t a)
-{
+void serialise(FILE *out, int64_t a) {
     xfwrite(&a, sizeof(int64_t), 1, out);
 }
 
-void serialise(FILE *out, int64_t *a)
-{
-    serialise(out, *a);
-}
+void serialise(FILE *out, int64_t *a) { serialise(out, *a); }
 
-char *deserialise(TypeRegister *tr, char *in, int64_t *a)
-{
-    *a = *(int64_t*) in;
+char *deserialise(TypeRegister *tr, char *in, int64_t *a) {
+    *a = *(int64_t *)in;
     return in + sizeof(int64_t);
 }
 
-void serialise(FILE *out, char a)
-{
-    xfwrite(&a, sizeof(char), 1, out);
-}
+void serialise(FILE *out, char a) { xfwrite(&a, sizeof(char), 1, out); }
 
-void serialise(FILE *out, char *a)
-{
-    serialise(out, *a);
-}
+void serialise(FILE *out, char *a) { serialise(out, *a); }
 
-char *deserialise(TypeRegister *tr, char *in, char *a)
-{
+char *deserialise(TypeRegister *tr, char *in, char *a) {
     *a = *in;
     return in + 1;
 }
 
-void serialise(FILE *out, int a)
-{
+void serialise(FILE *out, int a) {
     assert(((a >= 0) && (a <= 255)) &&
            "serialised ints must be between 0 and 255 inclusive");
-    uint8_t aa = (uint8_t) a;
+    uint8_t aa = (uint8_t)a;
     xfwrite(&aa, sizeof(uint8_t), 1, out);
 }
 
-void serialise(FILE *out, int *a)
-{
-    serialise(out, *a);
-}
+void serialise(FILE *out, int *a) { serialise(out, *a); }
 
-char *deserialise(TypeRegister *tr, char *in, int *a)
-{
+char *deserialise(TypeRegister *tr, char *in, int *a) {
     uint8_t aa;
-    aa = *(uint8_t*) in;
+    aa = *(uint8_t *)in;
     *a = aa;
     return in + sizeof(uint8_t);
 }
 
-void serialise(FILE *out, size_t s)
-{
-    uint16_t ss = (uint16_t) s;
+void serialise(FILE *out, size_t s) {
+    uint16_t ss = (uint16_t)s;
     xfwrite(&ss, sizeof(uint16_t), 1, out);
 }
 
-void serialise(FILE *out, size_t *s)
-{
-    serialise(out, *s);
-}
+void serialise(FILE *out, size_t *s) { serialise(out, *s); }
 
-char *deserialise(TypeRegister *tr, char *in, size_t *s)
-{
+char *deserialise(TypeRegister *tr, char *in, size_t *s) {
     uint16_t ss;
-    ss = *(uint16_t*) in;
+    ss = *(uint16_t *)in;
     *s = ss;
     return in + sizeof(uint16_t);
 }
 
-void serialise(FILE *out, std::string x)
-{
+void serialise(FILE *out, std::string x) {
     serialise(out, x.length());
     xfwrite(x.c_str(), sizeof(char), x.length(), out);
 }
 
-void serialise(FILE *out, std::string *x)
-{
+void serialise(FILE *out, std::string *x) {
     serialise(out, x->length());
     xfwrite(x->c_str(), sizeof(char), x->length(), out);
 }
 
-char *deserialise(TypeRegister *tr, char *in, std::string *x)
-{
+char *deserialise(TypeRegister *tr, char *in, std::string *x) {
     size_t s;
     in = deserialise(tr, in, &s);
     x->reserve(s);
@@ -127,23 +93,14 @@ char *deserialise(TypeRegister *tr, char *in, std::string *x)
     return in + s;
 }
 
-void serialise(FILE *out, Type *t)
-{
+void serialise(FILE *out, Type *t) {
     /* Shortcut for simple types. */
     char c;
-    if (!t->is_array
-            && !t->array_size
-            && !t->array_type
-            && !t->is_function
-            && !(t->struct_name.size())
-            && !(t->namespaces.size())
-            && !t->points_to
-            && !t->return_type
-            && !(t->parameter_types.size())
-            && !t->is_const
-            && !t->is_reference
-            && !t->bitfield_size
-            && !t->is_retval) {
+    if (!t->is_array && !t->array_size && !t->array_type &&
+        !t->is_function && !(t->struct_name.size()) &&
+        !(t->namespaces.size()) && !t->points_to && !t->return_type &&
+        !(t->parameter_types.size()) && !t->is_const &&
+        !t->is_reference && !t->bitfield_size && !t->is_retval) {
         c = 'S';
         serialise(out, &c);
         serialise(out, &(t->base_type));
@@ -198,8 +155,7 @@ void serialise(FILE *out, Type *t)
     }
 }
 
-char *deserialise(TypeRegister *tr, char *in, Type **t)
-{
+char *deserialise(TypeRegister *tr, char *in, Type **t) {
     char c;
     in = deserialise(tr, in, &c);
     if (c == 'S') {
@@ -258,8 +214,7 @@ char *deserialise(TypeRegister *tr, char *in, Type **t)
     return in;
 }
 
-void serialise(FILE *out, Variable *v)
-{
+void serialise(FILE *out, Variable *v) {
     serialise(out, v->type);
     serialise(out, &(v->name));
     serialise(out, v->linkage);
@@ -272,13 +227,9 @@ void serialise(FILE *out, Variable *v)
     serialise(out, v->once_tag);
 }
 
-void serialise(FILE *out, Variable **v)
-{
-    serialise(out, *v);
-}
+void serialise(FILE *out, Variable **v) { serialise(out, *v); }
 
-char *deserialise(TypeRegister *tr, char *in, Variable *v)
-{
+char *deserialise(TypeRegister *tr, char *in, Variable *v) {
     Type *vt;
     in = deserialise(tr, in, &vt);
     v->type = vt;
@@ -299,16 +250,14 @@ char *deserialise(TypeRegister *tr, char *in, Variable *v)
     return in;
 }
 
-char *deserialise(TypeRegister *tr, char *in, Variable **v)
-{
+char *deserialise(TypeRegister *tr, char *in, Variable **v) {
     Variable *vv = new Variable();
     vv->serialise = false;
     *v = vv;
     return deserialise(tr, in, vv);
 }
 
-void serialise(FILE *out, Function *fn)
-{
+void serialise(FILE *out, Function *fn) {
     serialise(out, fn->return_type);
     serialise(out, &(fn->parameters));
     serialise(out, fn->is_macro);
@@ -321,13 +270,9 @@ void serialise(FILE *out, Function *fn)
     return;
 }
 
-void serialise(FILE *out, Function **fn)
-{
-    serialise(out, *fn);
-}
+void serialise(FILE *out, Function **fn) { serialise(out, *fn); }
 
-char *deserialise(TypeRegister *tr, char *in, Function *fn)
-{
+char *deserialise(TypeRegister *tr, char *in, Function *fn) {
     Type *rt;
     in = deserialise(tr, in, &rt);
     fn->return_type = rt;
@@ -344,16 +289,14 @@ char *deserialise(TypeRegister *tr, char *in, Function *fn)
     return in;
 }
 
-char *deserialise(TypeRegister *tr, char *in, Function **fn)
-{
+char *deserialise(TypeRegister *tr, char *in, Function **fn) {
     Function *ff = new Function();
     ff->serialise = false;
     *fn = ff;
     return deserialise(tr, in, ff);
 }
 
-void serialise(FILE *out, Struct *st)
-{
+void serialise(FILE *out, Struct *st) {
     serialise(out, &(st->is_opaque));
     serialise(out, &(st->member_types));
     serialise(out, &(st->name_to_index));
@@ -364,13 +307,9 @@ void serialise(FILE *out, Struct *st)
     return;
 }
 
-void serialise(FILE *out, Struct **st)
-{
-    serialise(out, *st);
-}
+void serialise(FILE *out, Struct **st) { serialise(out, *st); }
 
-char *deserialise(TypeRegister *tr, char *in, Struct *st)
-{
+char *deserialise(TypeRegister *tr, char *in, Struct *st) {
     st->type = NULL;
     in = deserialise(tr, in, &(st->is_opaque));
     in = deserialise(tr, in, &(st->member_types));
@@ -382,16 +321,14 @@ char *deserialise(TypeRegister *tr, char *in, Struct *st)
     return in;
 }
 
-char *deserialise(TypeRegister *tr, char *in, Struct **st)
-{
+char *deserialise(TypeRegister *tr, char *in, Struct **st) {
     Struct *st_ = new Struct();
     st_->serialise = false;
     *st = st_;
     return deserialise(tr, in, st_);
 }
 
-void serialise(FILE *out, Namespace *ns)
-{
+void serialise(FILE *out, Namespace *ns) {
     serialise(out, &(ns->functions));
     serialise(out, &(ns->variables));
     serialise(out, &(ns->structs));
@@ -400,13 +337,9 @@ void serialise(FILE *out, Namespace *ns)
     return;
 }
 
-void serialise(FILE *out, Namespace **ns)
-{
-    serialise(out, *ns);
-}
+void serialise(FILE *out, Namespace **ns) { serialise(out, *ns); }
 
-char *deserialise(TypeRegister *tr, char *in, Namespace *ns)
-{
+char *deserialise(TypeRegister *tr, char *in, Namespace *ns) {
     in = deserialise(tr, in, &(ns->functions));
     in = deserialise(tr, in, &(ns->variables));
     in = deserialise(tr, in, &(ns->structs));
@@ -425,56 +358,47 @@ char *deserialise(TypeRegister *tr, char *in, Namespace *ns)
     return in;
 }
 
-void serialise(FILE *out, NSNode *nsnode)
-{
+void serialise(FILE *out, NSNode *nsnode) {
     serialise(out, nsnode->ns);
     serialise(out, &(nsnode->children));
 
     return;
 }
 
-void serialise(FILE *out, NSNode **nsnode)
-{
+void serialise(FILE *out, NSNode **nsnode) {
     serialise(out, *nsnode);
 
     return;
 }
 
-char *deserialise(TypeRegister *tr, char *in, NSNode *nsnode)
-{
+char *deserialise(TypeRegister *tr, char *in, NSNode *nsnode) {
     Namespace *ns = new Namespace();
     in = deserialise(tr, in, ns);
     nsnode->ns = ns;
 
-    std::map<std::string, NSNode *> *children = new
-        std::map<std::string, NSNode *>;
+    std::map<std::string, NSNode *> *children =
+        new std::map<std::string, NSNode *>;
     in = deserialise(tr, in, children);
     nsnode->children = *children;
 
     return in;
 }
 
-char *deserialise(TypeRegister *tr, char *in, NSNode **nsnode)
-{
+char *deserialise(TypeRegister *tr, char *in, NSNode **nsnode) {
     NSNode *nsn = new NSNode();
     *nsnode = nsn;
     return deserialise(tr, in, nsn);
 }
 
-void serialise(FILE *out, Context *ctx)
-{
+void serialise(FILE *out, Context *ctx) {
     serialise(out, ctx->namespaces);
 
     return;
 }
 
-void serialise(FILE *out, Context **ctx)
-{
-    serialise(out, *ctx);
-}
+void serialise(FILE *out, Context **ctx) { serialise(out, *ctx); }
 
-char *deserialise(TypeRegister *tr, char *in, Context *ctx)
-{
+char *deserialise(TypeRegister *tr, char *in, Context *ctx) {
     NSNode *nsnode = new NSNode();
     in = deserialise(tr, in, nsnode);
     ctx->namespaces = nsnode;
@@ -482,16 +406,14 @@ char *deserialise(TypeRegister *tr, char *in, Context *ctx)
     return in;
 }
 
-char *deserialise(TypeRegister *tr, char *in, Context **ctx)
-{
+char *deserialise(TypeRegister *tr, char *in, Context **ctx) {
     Context *mc = new Context();
     *ctx = mc;
     return deserialise(tr, in, mc);
 }
 
 char *deserialise_type_vector(TypeRegister *tr, char *in,
-                              std::vector<Type *> *x)
-{
+                              std::vector<Type *> *x) {
     size_t s;
     in = deserialise(tr, in, &s);
     x->reserve(s);

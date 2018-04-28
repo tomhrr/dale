@@ -3,8 +3,7 @@
 
 #include "../../Units/Units.h"
 
-namespace dale
-{
+namespace dale {
 /*! Parse a procedure body form.
  *  @param units The units context.
  *  @param node The node containing the procedure body.
@@ -15,13 +14,14 @@ namespace dale
  *  @param return_value The retval value, if applicable.
  */
 bool FormProcBodyParse(Units *units, Node *node, Function *fn,
-                       llvm::Function *llvm_fn, int skip, bool is_anonymous,
+                       llvm::Function *llvm_fn, int skip,
+                       bool is_anonymous,
                        llvm::Value *return_value = NULL);
 bool resolveDeferredGotos(Context *ctx, Node *node, Function *fn,
                           llvm::BasicBlock *block);
-bool terminateBlocks(Context *ctx, Function *fn, llvm::Function *llvm_fn,
-                     llvm::Value *last_value, Type *last_type,
-                     Node *last_position);
+bool terminateBlocks(Context *ctx, Function *fn,
+                     llvm::Function *llvm_fn, llvm::Value *last_value,
+                     Type *last_type, Node *last_position);
 void removePostTerminators(llvm::Function *llvm_fn);
 }
 

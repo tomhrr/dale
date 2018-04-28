@@ -3,15 +3,13 @@
 
 #include "../Unit/Unit.h"
 
-namespace dale
-{
+namespace dale {
 /*! CommonDecl
 
     Provides functions for adding the common declarations/definitions
     to a unit.
 */
-namespace CommonDecl
-{
+namespace CommonDecl {
 /*! Add the intrinsic va_start and va_end functions to the unit.
  *  @param unit The unit.
  */

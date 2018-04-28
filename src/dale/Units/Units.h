@@ -1,13 +1,12 @@
 #ifndef DALE_UNITS
 #define DALE_UNITS
 
-#include "../Unit/Unit.h"
+#include <stack>
 #include "../Module/Reader/Reader.h"
 #include "../Namespace/Namespace.h"
-#include <stack>
+#include "../Unit/Unit.h"
 
-namespace dale
-{
+namespace dale {
 /*! Units
 
     Whereas a unit is created for each new file that is parsed, a
@@ -16,13 +15,12 @@ namespace dale
     utility classes that remain constant throughout.  Units is the
     highest-level "context" object.
 */
-class Units
-{
-private:
+class Units {
+   private:
     /*! The stack of units. */
     std::stack<Unit *> units;
 
-public:
+   public:
     /*! The module reader. */
     Module::Reader *mr;
     /*! The namespace immediately before the first namespace within
@@ -30,14 +28,16 @@ public:
     Namespace *prefunction_ns;
     /*! The current module name. */
     std::string module_name;
-    /*! Whether the module being compiled is a compile-time-only module. */
+    /*! Whether the module being compiled is a compile-time-only module.
+     */
     bool cto;
     /*! Whether common declarations should be added to each new unit. */
     bool no_common;
     /*! Whether the standard library (libdrt) should be imported into
      *  each new unit. */
     bool no_dale_stdlib;
-    /*! Whether macro expansions should be printed to standard output. */
+    /*! Whether macro expansions should be printed to standard output.
+     */
     bool print_expansions;
     /*! Whether debug mode is enabled. */
     bool debug;

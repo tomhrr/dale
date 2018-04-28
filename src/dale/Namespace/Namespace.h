@@ -1,23 +1,22 @@
 #ifndef DALE_NAMESPACE
 #define DALE_NAMESPACE
 
-#include "../Function/Function.h"
-#include "../Variable/Variable.h"
-#include "../Struct/Struct.h"
-#include "../ErrorType/ErrorType.h"
 #include "../ErrorReporter/ErrorReporter.h"
+#include "../ErrorType/ErrorType.h"
+#include "../Function/Function.h"
 #include "../Linkage/Linkage.h"
-#include "../Node/Node.h"
 #include "../NativeTypes/NativeTypes.h"
-#include "../TypeRegister/TypeRegister.h"
+#include "../Node/Node.h"
 #include "../STL/STL.h"
+#include "../Struct/Struct.h"
+#include "../TypeRegister/TypeRegister.h"
+#include "../Variable/Variable.h"
 
-#include <vector>
-#include <string>
 #include <map>
+#include <string>
+#include <vector>
 
-namespace dale
-{
+namespace dale {
 
 /*! Namespace
 
@@ -38,13 +37,12 @@ namespace dale
     transfers ownership of all of N's bindings to M.
 */
 
-class Namespace
-{
-public:
+class Namespace {
+   public:
     /*! A map from function name to function list. The list is
      *  necessary because functions may be overloaded. Note that both
      *  macros and functions are stored in this map.*/
-    std::map<std::string, std::vector<Function *>* > functions;
+    std::map<std::string, std::vector<Function *> *> functions;
     /*! A map from variable name to variable. */
     std::map<std::string, Variable *> variables;
     /*! A map from struct name to struct. */
@@ -85,16 +83,15 @@ public:
     /*! The normal constructor.
      *  @param er The error reporter.
      *  @param name The namespace name.
-     *  @param parent_namespace The parent namespace object. May be NULL.
-     *  @param lv_index The initial label-variable index for this namespace.
+     *  @param parent_namespace The parent namespace object. May be
+     * NULL.
+     *  @param lv_index The initial label-variable index for this
+     * namespace.
      *
      *  This does not take ownership of any of its pointer arguments.
      */
-    Namespace(ErrorReporter *er,
-              TypeRegister *tr,
-              std::string name,
-              Namespace *parent_namespace,
-              int lv_index);
+    Namespace(ErrorReporter *er, TypeRegister *tr, std::string name,
+              Namespace *parent_namespace, int lv_index);
     ~Namespace();
 
     /*! Add a function to the namespace.
@@ -106,19 +103,15 @@ public:
      *  has the same parameter types as an existing function within
      *  this namespace.
      */
-    bool addFunction(const char *name,
-                     Function *function,
-                     Node *n);
+    bool addFunction(const char *name, Function *function, Node *n);
     /*! Add a variable to the namespace.
      *  @param name The bare name of the variable.
      *  @param variable The variable object. */
-    bool addVariable(const char *name,
-                     Variable *variable);
+    bool addVariable(const char *name, Variable *variable);
     /*! Add a struct to the namespace.
      *  @param name The bare name of the struct.
      *  @param element_struct The struct object. */
-    bool addStruct(const char *name,
-                   Struct *element_struct);
+    bool addStruct(const char *name, Struct *element_struct);
 
     /*! Get a function from this namespace.
      *  @param name The bare name of the function.
@@ -140,13 +133,11 @@ public:
      *  only, because there is no instance where only functions are
      *  relevant.
      */
-    Function *getFunction(const char *name,
-                                   std::vector<Type *> *types,
-                                   Function **pclosest_fn,
-                                   bool is_macro,
-                                   bool ignore_arg_constness = true,
-                                   std::vector<bool> *lvalues = NULL,
-                                   std::vector<Type *> *array_types = NULL);
+    Function *getFunction(const char *name, std::vector<Type *> *types,
+                          Function **pclosest_fn, bool is_macro,
+                          bool ignore_arg_constness = true,
+                          std::vector<bool> *lvalues = NULL,
+                          std::vector<Type *> *array_types = NULL);
     /*! Get a variable from this namespace.
      *  @param name The variable name. */
     Variable *getVariable(const char *name);
@@ -169,20 +160,20 @@ public:
      *  @param index The lower-bound for the index.
      *  @param vars A vector to which the variables will be added.
      *
-     *  'index' in this context means a label-variable index. This function
+     *  'index' in this context means a label-variable index. This
+     * function
      *  recurses upwards. */
-    void getVarsAfterIndex(int index,
-                           std::vector<Variable *> *vars);
+    void getVarsAfterIndex(int index, std::vector<Variable *> *vars);
     /*! Get all of the variables before a certain index.
      *  @param index The upper-bound for the index.
      *  @param vars A vector to which the variables will be added.
      *
-     *  'index' in this context means a label-variable index. This function
+     *  'index' in this context means a label-variable index. This
+     * function
      *  recurses upwards. getVarsAfterIndex and getVarsBeforeIndex are
      *  used only for determining the set of variables that need to be
      *  destructed as at a particular point. */
-    void getVarsBeforeIndex(int index,
-                            std::vector<Variable *> *vars);
+    void getVarsBeforeIndex(int index, std::vector<Variable *> *vars);
 
     /*! Construct a symbol name for a given name.
      *  @param name The bare name.
@@ -224,7 +215,8 @@ public:
     void eraseLLVMMacrosAndCTOFunctions();
 
     /*! Set the namespace names for the current namespace.
-     *  @param namespaces A vector to which the namespace names will be added.
+     *  @param namespaces A vector to which the namespace names will be
+     * added.
      *
      *  For example, if the current namespace's fully-qualified name
      *  is 'a.b.c', the namespaces vector will contain the strings
@@ -260,20 +252,23 @@ public:
      */
     bool regetVariablePointers(llvm::Module *mod);
     /*! Reget all functions' LLVM functions from the module.
-     *  @param mod The module from which the function should be reloaded.
+     *  @param mod The module from which the function should be
+     * reloaded.
      *
      *  Unlike the other 'reget' methods, this one will not fail if a
      *  given function cannot be found in the module.
      */
     bool regetFunctionPointers(llvm::Module *mod);
     /*! Reget all LLVM types/values/functions from the module.
-     *  @param mod The module from which the bindings should be reloaded.
+     *  @param mod The module from which the bindings should be
+     * reloaded.
      *
      *  Calls each of the other 'reget' methods.
      */
     bool regetPointers(llvm::Module *mod);
 
-    /*! Erase LLVM function bodies for functions with a given 'once' tag.
+    /*! Erase LLVM function bodies for functions with a given 'once'
+     * tag.
      *  @param once_tags The current set of 'once' tags.
      *  @param mod The LLVM module to use for erasure.
      *
@@ -284,7 +279,8 @@ public:
      */
     bool eraseOnceFunctions(std::set<std::string> *once_tags,
                             llvm::Module *mod);
-    /*! Erase LLVM variable values for variables with a given 'once' tag.
+    /*! Erase LLVM variable values for variables with a given 'once'
+     * tag.
      *  @param once_tags The current set of 'once' tags.
      *  @param mod The LLVM module to use for erasure.
      *
@@ -321,7 +317,8 @@ public:
                                  std::set<std::string> *found_forms);
     /*! Remove bindings that aren't included in the set of forms.
      *  @param forms The names of bindings that should be retained.
-     *  @param found_forms A set to which found bindings will be added. */
+     *  @param found_forms A set to which found bindings will be added.
+     */
     bool removeUnneeded(std::set<std::string> *forms,
                         std::set<std::string> *found_forms);
 

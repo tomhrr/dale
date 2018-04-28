@@ -4,6 +4,6 @@
 #else
 #include "llvm/LinkAllIR.h"
 #endif
-#include "llvm/LinkAllPasses.h"
 #include "llvm/CodeGen/LinkAllAsmWriterComponents.h"
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
+#include "llvm/LinkAllPasses.h"

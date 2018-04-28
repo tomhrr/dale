@@ -1,20 +1,18 @@
 #ifndef DALE_OPERATION_SIZEOF
 #define DALE_OPERATION_SIZEOF
 
-#include "../../ParseResult/ParseResult.h"
 #include "../../Context/Context.h"
-#include "../../Type/Type.h"
 #include "../../Node/Node.h"
+#include "../../ParseResult/ParseResult.h"
+#include "../../Type/Type.h"
 #include "../../Unit/Unit.h"
 
-#include "../../llvm_Module.h"
 #include "../../llvm_Function.h"
 #include "../../llvm_IRBuilder.h"
+#include "../../llvm_Module.h"
 
-namespace dale
-{
-namespace Operation
-{
+namespace dale {
+namespace Operation {
 /*! Get the size of a particular type.
  *  @param ctx The current context.
  *  @param block The current block.

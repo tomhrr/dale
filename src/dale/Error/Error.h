@@ -3,12 +3,11 @@
 
 #include <string>
 #include <vector>
+#include "../ErrorType/ErrorType.h"
 #include "../Node/Node.h"
 #include "../Position/Position.h"
-#include "../ErrorType/ErrorType.h"
 
-namespace dale
-{
+namespace dale {
 /*! Error
 
     A class for storing the details of an error.
@@ -18,9 +17,8 @@ namespace dale
     cause of the error when that is not obvious from the standard
     begin/end positions.
 */
-class Error
-{
-public:
+class Error {
+   public:
     /*! The error instance.  See ErrorType. */
     int instance;
     /*! The position at which the error begins. */
@@ -47,46 +45,20 @@ public:
      *  integer arguments, which values are used in toString to
      *  populate the format string for the error instance.
      */
-    Error(int instance,
-          Node *node);
-    Error(int instance,
-          Node *node,
-          const char *str1);
-    Error(int instance,
-          Node *node,
-          int num1,
+    Error(int instance, Node *node);
+    Error(int instance, Node *node, const char *str1);
+    Error(int instance, Node *node, int num1, int num2);
+    Error(int instance, Node *node, const char *str1, int num1,
           int num2);
-    Error(int instance,
-          Node *node,
-          const char *str1,
-          int num1,
-          int num2);
-    Error(int instance,
-          Node *node,
-          const char *str1,
-          const char *str2,
+    Error(int instance, Node *node, const char *str1, const char *str2,
           int num1);
-    Error(int instance,
-          Node *node,
-          const char *str1,
-          const char *str2,
-          int num1,
+    Error(int instance, Node *node, const char *str1, const char *str2,
+          int num1, const char *str3);
+    Error(int instance, Node *node, const char *str1, const char *str2);
+    Error(int instance, Node *node, const char *str1, const char *str2,
           const char *str3);
-    Error(int instance,
-          Node *node,
-          const char *str1,
-          const char *str2);
-    Error(int instance,
-          Node *node,
-          const char *str1,
-          const char *str2,
-          const char *str3);
-    Error(int instance,
-          Node *node,
-          const char *str1,
-          const char *str2,
-          const char *str3,
-          const char *str4);
+    Error(int instance, Node *node, const char *str1, const char *str2,
+          const char *str3, const char *str4);
     ~Error();
 
     /*! Get the error type for this error.

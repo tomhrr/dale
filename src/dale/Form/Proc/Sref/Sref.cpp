@@ -1,20 +1,18 @@
-#include "../../../Units/Units.h"
-#include "../../../Node/Node.h"
-#include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Node/Node.h"
 #include "../../../Operation/Destruct/Destruct.h"
-#include "../Inst/Inst.h"
+#include "../../../ParseResult/ParseResult.h"
+#include "../../../Units/Units.h"
 #include "../../../llvm_Function.h"
+#include "../Inst/Inst.h"
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-bool
-FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                  Node *node, bool get_address, bool prefixed_with_core,
-                  ParseResult *pr)
-{
+namespace dale {
+bool FormProcSrefParse(Units *units, Function *fn,
+                       llvm::BasicBlock *block, Node *node,
+                       bool get_address, bool prefixed_with_core,
+                       ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     std::vector<Node *> *lst = node->list;
@@ -37,13 +35,14 @@ FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     if (st_type->struct_name.size() == 0) {
         std::string type_str;
         st_type->toString(&type_str);
-        Error *e = new Error(IncorrectArgType, struct_node,
-                             ":", "a struct", "1", type_str.c_str());
+        Error *e = new Error(IncorrectArgType, struct_node, ":",
+                             "a struct", "1", type_str.c_str());
         ctx->er->addError(e);
         return false;
     }
 
-    member_node = units->top()->mp->parsePotentialMacroCall(member_node);
+    member_node =
+        units->top()->mp->parsePotentialMacroCall(member_node);
     if (!member_node) {
         return false;
     }
@@ -66,9 +65,8 @@ FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     int index = st->nameToIndex(member_name);
 
     if (index == -1) {
-        Error *e = new Error(FieldDoesNotExistInStruct,
-                             member_node, member_name,
-                             st_type->struct_name.c_str());
+        Error *e = new Error(FieldDoesNotExistInStruct, member_node,
+                             member_name, st_type->struct_name.c_str());
         ctx->er->addError(e);
         return false;
     }
@@ -80,7 +78,7 @@ FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     std::vector<llvm::Value *> indices;
     STL::push_back2(&indices, ctx->nt->getNativeInt(0),
-                              ctx->nt->getNativeInt(index));
+                    ctx->nt->getNativeInt(index));
 
     llvm::IRBuilder<> builder(struct_pr.block);
     ParseResult value_pr;
@@ -90,11 +88,11 @@ FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
     struct_pr.block = value_pr.block;
 
-    llvm::Value *vres =
-        builder.CreateGEP(value_pr.getValue(ctx),
-                          llvm::ArrayRef<llvm::Value*>(indices));
+    llvm::Value *vres = builder.CreateGEP(
+        value_pr.getValue(ctx), llvm::ArrayRef<llvm::Value *>(indices));
 
-    pr->set(struct_pr.block, ctx->tr->getPointerType(member_type), vres);
+    pr->set(struct_pr.block, ctx->tr->getPointerType(member_type),
+            vres);
 
     ParseResult destruct_pr;
     res = Operation::Destruct(ctx, &struct_pr, &destruct_pr);

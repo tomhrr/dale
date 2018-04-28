@@ -2,23 +2,20 @@
 #define DALE_MODULE_READER
 
 #include "../../Context/Context.h"
-#include "../../llvm_Module.h"
 #include "../../llvm_Linker.h"
+#include "../../llvm_Module.h"
 
 #include <string>
 
-namespace dale
-{
-namespace Module
-{
+namespace dale {
+namespace Module {
 /*! Reader
 
     A class for reading Dale modules from disk, and maintaining the
     list of processed modules.
 */
-class Reader
-{
-private:
+class Reader {
+   private:
     char *cwd;
     std::set<std::string> static_module_names;
     bool static_modules_all;
@@ -34,10 +31,10 @@ private:
     bool findModule(Context *ctx, Node *n, std::string *lib_module_name,
                     FILE **fh, std::string *prefix);
 
-public:
+   public:
     std::vector<std::string> *so_paths;
     std::vector<const char *> module_directory_paths;
-    std::map<std::string, std::vector<std::string>* > included_modules;
+    std::map<std::string, std::vector<std::string> *> included_modules;
     std::set<std::string> included_once_tags;
     std::vector<const char *> include_directory_paths;
     std::map<std::string, llvm::Module *> dtm_modules;
@@ -49,12 +46,11 @@ public:
      *
      *  This does not take ownership of any of its arguments.
      */
-    Reader(std::vector<const char*> *module_directory_paths,
+    Reader(std::vector<const char *> *module_directory_paths,
            std::vector<std::string> *so_paths,
-           std::vector<const char*> *include_directory_paths,
-           std::vector<const char*> *static_module_names,
-           bool static_modules_all,
-           bool remove_macros);
+           std::vector<const char *> *include_directory_paths,
+           std::vector<const char *> *static_module_names,
+           bool static_modules_all, bool remove_macros);
     ~Reader();
 
     /*! Load a dynamic library.
@@ -75,9 +71,9 @@ public:
      *  @param module_name The module name.
      *  @param import_forms The forms to be imported from the module.
      */
-    bool run(Context *ctx, llvm::Linker *linker, llvm::Module *mod, Node *n,
-             const char *module_name,
-             std::vector<const char*> *import_forms);
+    bool run(Context *ctx, llvm::Linker *linker, llvm::Module *mod,
+             Node *n, const char *module_name,
+             std::vector<const char *> *import_forms);
 };
 }
 }

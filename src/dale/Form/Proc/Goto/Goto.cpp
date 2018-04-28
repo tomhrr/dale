@@ -1,17 +1,15 @@
-#include "../../../Units/Units.h"
-#include "../../../Node/Node.h"
-#include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Node/Node.h"
 #include "../../../Operation/Destruct/Destruct.h"
+#include "../../../ParseResult/ParseResult.h"
+#include "../../../Units/Units.h"
 #include "../../../llvm_Function.h"
 
-namespace dale
-{
-bool
-FormProcGotoParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                  Node *node, bool get_address, bool prefixed_with_core,
-                  ParseResult *pr)
-{
+namespace dale {
+bool FormProcGotoParse(Units *units, Function *fn,
+                       llvm::BasicBlock *block, Node *node,
+                       bool get_address, bool prefixed_with_core,
+                       ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("goto", node, 1, 1)) {
@@ -61,10 +59,8 @@ FormProcGotoParse(Units *units, Function *fn, llvm::BasicBlock *block,
          * because the goto is deferred. */
 
         llvm::IRBuilder<> builder(block);
-        builder.CreateBitCast(
-            ctx->nt->getLLVMZero(),
-            ctx->nt->getNativeIntType()
-        );
+        builder.CreateBitCast(ctx->nt->getLLVMZero(),
+                              ctx->nt->getNativeIntType());
     } else {
         /* Get all the variables that exist within the current scope
          * and have an index greater than the label's index.  Add a
@@ -78,14 +74,12 @@ FormProcGotoParse(Units *units, Function *fn, llvm::BasicBlock *block,
         llvm::IRBuilder<> builder(destruct_pr.block);
         for (std::vector<Variable *>::iterator b = myvars.begin(),
                                                e = myvars.end();
-                b != e;
-                ++b) {
+             b != e; ++b) {
             builder.SetInsertPoint(destruct_pr.block);
             Variable *var = (*b);
             destruct_pr.type = var->type;
             destruct_pr.address_of_value = var->value;
-            destruct_pr.set(destruct_pr.block, destruct_pr.type,
-                            NULL);
+            destruct_pr.set(destruct_pr.block, destruct_pr.type, NULL);
 
             Operation::Destruct(ctx, &destruct_pr, &destruct_pr);
         }

@@ -1,8 +1,7 @@
 #ifndef DALE_FORM_PROC_PTREQUALS
 #define DALE_FORM_PROC_PTREQUALS
 
-namespace dale
-{
+namespace dale {
 /*! Parse a pointer equals form.
  *  @param units The units context.
  *  @param fn The function currently in scope.

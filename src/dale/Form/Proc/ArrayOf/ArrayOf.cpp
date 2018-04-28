@@ -1,20 +1,18 @@
-#include "../../../Units/Units.h"
+#include "../../../Form/TopLevel/GlobalVariable/GlobalVariable.h"
+#include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Function/Function.h"
-#include "../../../Form/TopLevel/GlobalVariable/GlobalVariable.h"
-#include "../../Type/Type.h"
+#include "../../../Units/Units.h"
+#include "../../../llvm_Function.h"
 #include "../../Literal/Array/Array.h"
 #include "../../Literal/Integer/Integer.h"
-#include "../../../llvm_Function.h"
+#include "../../Type/Type.h"
 
-namespace dale
-{
-bool
-FormProcArrayOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                     Node *node, bool get_address, bool prefixed_with_core,
-                     ParseResult *pr)
-{
+namespace dale {
+bool FormProcArrayOfParse(Units *units, Function *fn,
+                          llvm::BasicBlock *block, Node *node,
+                          bool get_address, bool prefixed_with_core,
+                          ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("array-of", node, 3, -1)) {
@@ -33,14 +31,16 @@ FormProcArrayOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     llvm::Constant *size_value = NULL;
     int unused_size;
-    size_value = parseLiteral(units, ctx->tr->type_int, size_node, &unused_size);
+    size_value =
+        parseLiteral(units, ctx->tr->type_int, size_node, &unused_size);
     if (!size_value) {
         return false;
     }
     llvm::ConstantInt *size_value_int =
         llvm::dyn_cast<llvm::ConstantInt>(size_value);
     if (!size_value_int) {
-        Error *e = new Error(ErrorInst::UnableToParseIntegerNoString, size_node);
+        Error *e = new Error(ErrorInst::UnableToParseIntegerNoString,
+                             size_node);
         ctx->er->addError(e);
         return false;
     }
@@ -49,6 +49,7 @@ FormProcArrayOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     Type *array_type = ctx->tr->getArrayType(type, size);
 
     return FormLiteralArrayParse(units, fn, block, data_node,
-                                 array_type, get_address, &unused_size, pr);
+                                 array_type, get_address, &unused_size,
+                                 pr);
 }
 }

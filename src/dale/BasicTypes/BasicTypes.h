@@ -1,23 +1,21 @@
 #ifndef DALE_BASICTYPES
 #define DALE_BASICTYPES
 
-#include "../Type/Type.h"
 #include "../Context/Context.h"
-#include "../ParseResult/ParseResult.h"
 #include "../Operation/Cast/Cast.h"
+#include "../ParseResult/ParseResult.h"
+#include "../Type/Type.h"
 
 #include "../llvm_Module.h"
 
-namespace dale
-{
+namespace dale {
 /*! BasicTypes
 
     Provides a set of functions for instantiating the functions
     required for core types, such as integers and floating-point
     numbers.
 */
-namespace BasicTypes
-{
+namespace BasicTypes {
 /*! Add a unary function to the context and module.
  *  @param ctx The context.
  *  @param mod The LLVM module.
@@ -29,9 +27,10 @@ namespace BasicTypes
  *  The caller has to add instructions to the body of the function, if
  *  required.
  */
-Function *
-addSimpleUnaryFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
-                       const char *name, Type *return_type, Type *type1);
+Function *addSimpleUnaryFunction(Context *ctx, llvm::Module *mod,
+                                 std::string *once_tag,
+                                 const char *name, Type *return_type,
+                                 Type *type1);
 
 /*! Add a binary function to the context and module.
  *  @param ctx The context.
@@ -45,12 +44,13 @@ addSimpleUnaryFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
  *  As with addSimpleUnaryFunction, the caller has to add instructions
  *  to the body of the function, if required.
  */
-Function *
-addSimpleBinaryFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
-                        const char *name, Type *return_type, Type *type1,
-                        Type *type2);
+Function *addSimpleBinaryFunction(Context *ctx, llvm::Module *mod,
+                                  std::string *once_tag,
+                                  const char *name, Type *return_type,
+                                  Type *type1, Type *type2);
 
-/*! Instantiate the functions required for the given signed integer type.
+/*! Instantiate the functions required for the given signed integer
+ * type.
  *  @param ctx The context.
  *  @param mod The LLVM module.
  *  @param once_tag The current once tag, if applicable.
@@ -59,11 +59,11 @@ addSimpleBinaryFunction(Context *ctx, llvm::Module *mod, std::string *once_tag,
  *  At the moment, these functions are +, -, /, *, =, !=, <, <=, >,
  *  >=, <<, >>, &, | and ^.
  */
-void
-addSignedInt(Context *ctx, llvm::Module *mod, std::string *once_tag,
-             Type *type);
+void addSignedInt(Context *ctx, llvm::Module *mod,
+                  std::string *once_tag, Type *type);
 
-/*! Instantiate the functions required for the given floating point type.
+/*! Instantiate the functions required for the given floating point
+ * type.
  *  @param ctx The context.
  *  @param mod The LLVM module.
  *  @param once_tag The current once tag, if applicable.
@@ -72,11 +72,11 @@ addSignedInt(Context *ctx, llvm::Module *mod, std::string *once_tag,
  *  At the moment, these functions are +, -, /, *, =, !=, <, <=, > and
  *  >=.
  */
-void
-addFloatingPoint(Context *ctx, llvm::Module *mod, std::string *once_tag,
-                 Type *type);
+void addFloatingPoint(Context *ctx, llvm::Module *mod,
+                      std::string *once_tag, Type *type);
 
-/*! Instantiate the functions required for the given unsigned integer type.
+/*! Instantiate the functions required for the given unsigned integer
+ * type.
  *  @param ctx The context.
  *  @param mod The LLVM module.
  *  @param once_tag The current once tag, if applicable.
@@ -85,9 +85,8 @@ addFloatingPoint(Context *ctx, llvm::Module *mod, std::string *once_tag,
  *  The functions defined are the same as those for signed integers,
  *  except that complement (~) is also defined over unsigned integers.
  */
-void
-addUnsignedInt(Context *ctx, llvm::Module *mod, std::string *once_tag,
-               Type *type);
+void addUnsignedInt(Context *ctx, llvm::Module *mod,
+                    std::string *once_tag, Type *type);
 }
 }
 

@@ -2,14 +2,12 @@
 
 #include "../Utils/Utils.h"
 
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
 
-namespace dale
-{
-Lexer::Lexer(FILE *file, bool line_buffered)
-{
+namespace dale {
+Lexer::Lexer(FILE *file, bool line_buffered) {
     current.setLineAndColumn(1, 1);
     this->file = file;
     this->line_buffered = line_buffered;
@@ -23,13 +21,9 @@ Lexer::Lexer(FILE *file, bool line_buffered)
     buf[0] = '\0';
 }
 
-Lexer::~Lexer()
-{
-}
+Lexer::~Lexer() {}
 
-int
-Lexer::getchar_()
-{
+int Lexer::getchar_() {
     if (count == 0) {
         size_t bytes;
         if (line_buffered) {
@@ -52,26 +46,22 @@ Lexer::getchar_()
 
         if (been_pushed) {
             been_pushed = false;
-            current.setLineAndColumn(1,1);
+            current.setLineAndColumn(1, 1);
             reset_position = true;
         }
     }
 
     --count;
     char r = buf[index++];
-    return (int) r;
+    return (int)r;
 }
 
-void
-Lexer::ungetchar_(char c)
-{
+void Lexer::ungetchar_(char c) {
     ++count;
     --index;
 }
 
-void
-Lexer::pushText(const char *text)
-{
+void Lexer::pushText(const char *text) {
     int len = strlen(text);
     assert((len + count) <= 8192);
     strcat(buf, text);
@@ -79,33 +69,30 @@ Lexer::pushText(const char *text)
     been_pushed = true;
 }
 
-void
-Lexer::ungetToken(Token *token)
-{
+void Lexer::ungetToken(Token *token) {
     ungot_tokens.push_back(new Token(token));
 }
 
-bool
-Lexer::getNextToken(Token *token, Error *error)
-{
+bool Lexer::getNextToken(Token *token, Error *error) {
     error->instance = ErrorInst::Null;
 
     if (!(ungot_tokens.empty())) {
         Token *popped_token = ungot_tokens.back();
         ungot_tokens.pop_back();
         popped_token->copyTo(token);
-        delete(popped_token);
+        delete (popped_token);
         return true;
     }
 
-    /* Set when a token is hit: will be used for token begin position. */
+    /* Set when a token is hit: will be used for token begin position.
+     */
     int begin_line_count = current.getLineNumber();
-    int begin_col_count  = current.getColumnNumber();
+    int begin_col_count = current.getColumnNumber();
 
     /* Set everytime: will be the last position for the token as well
      * as the current position for the context. */
     int end_line_count = begin_line_count;
-    int end_col_count  = begin_col_count;
+    int end_col_count = begin_col_count;
 
     /* Current character. */
     int c;
@@ -122,11 +109,11 @@ Lexer::getNextToken(Token *token, Error *error)
 
         if (reset_position) {
             begin_line_count = 1;
-            end_line_count   = 1;
+            end_line_count = 1;
 
-            int col_diff     = end_col_count - begin_col_count;
-            begin_col_count  = 1;
-            end_col_count    = col_diff + 1;
+            int col_diff = end_col_count - begin_col_count;
+            begin_col_count = 1;
+            end_col_count = col_diff + 1;
 
             reset_position = false;
         }
@@ -190,20 +177,16 @@ Lexer::getNextToken(Token *token, Error *error)
             }
             type = TokenType::StringLiteral;
             begin_line_count = end_line_count;
-            begin_col_count  = end_col_count;
+            begin_col_count = end_col_count;
 
             /* Read characters until you hit a double-quote. */
-            while ((c = getchar_())
-                    && c != EOF
-                    && ((c != '"')
-                        || (token->str_value.length() &&
-                            (token->str_value[
-                                 token->str_value.length() - 1
-                             ] == '\\')))) {
+            while ((c = getchar_()) && c != EOF &&
+                   ((c != '"') ||
+                    (token->str_value.length() &&
+                     (token->str_value[token->str_value.length() - 1] ==
+                      '\\')))) {
                 if (c == '"') {
-                    token->str_value[
-                        token->str_value.length() - 1
-                    ] = c;
+                    token->str_value[token->str_value.length() - 1] = c;
                 } else {
                     token->str_value.push_back(c);
                 }
@@ -214,8 +197,7 @@ Lexer::getNextToken(Token *token, Error *error)
                 }
             }
             if (c == EOF) {
-                error->instance =
-                    ErrorInst::UnterminatedStringLiteral;
+                error->instance = ErrorInst::UnterminatedStringLiteral;
             } else {
                 end_col_count++;
             }
@@ -231,7 +213,7 @@ Lexer::getNextToken(Token *token, Error *error)
 
             if (c == '\n') {
                 end_line_count++;
-                end_col_count   = 1;
+                end_col_count = 1;
                 begin_col_count = 1;
             } else {
                 end_col_count++;
@@ -258,7 +240,7 @@ Lexer::getNextToken(Token *token, Error *error)
             }
             type = TokenType::LeftParen;
             begin_line_count = end_line_count;
-            begin_col_count  = end_col_count;
+            begin_col_count = end_col_count;
             end_col_count++;
             break;
         }
@@ -271,7 +253,7 @@ Lexer::getNextToken(Token *token, Error *error)
             }
             type = TokenType::RightParen;
             begin_line_count = end_line_count;
-            begin_col_count  = end_col_count;
+            begin_col_count = end_col_count;
             end_col_count++;
             break;
         }
@@ -279,22 +261,21 @@ Lexer::getNextToken(Token *token, Error *error)
         /* Potential integer. */
         if ((!type) && ((c == '-') || isdigit(c))) {
             type = TokenType::Int;
-            begin_col_count  = end_col_count;
+            begin_col_count = end_col_count;
             begin_line_count = end_line_count;
         }
 
         /* Previous potential integer. */
-        if ((type == TokenType::Int)
-                && (token->str_value.size() == 1)
-                && (*(token->str_value.begin()) == '-')
-                && !isdigit(c)) {
+        if ((type == TokenType::Int) &&
+            (token->str_value.size() == 1) &&
+            (*(token->str_value.begin()) == '-') && !isdigit(c)) {
             type = TokenType::String;
         }
 
         /* Plain token. */
         if (!type) {
             type = TokenType::String;
-            begin_col_count  = end_col_count;
+            begin_col_count = end_col_count;
             begin_line_count = end_line_count;
         }
 
@@ -305,14 +286,13 @@ Lexer::getNextToken(Token *token, Error *error)
     token->type = type;
 
     if (type == TokenType::Int) {
-        if ((token->str_value.length() == 1)
-                && (token->str_value[0] == '-')) {
+        if ((token->str_value.length() == 1) &&
+            (token->str_value[0] == '-')) {
             token->type = TokenType::String;
         } else if (strchr(token->str_value.c_str(), '.')) {
             token->type = TokenType::FloatingPoint;
             if (!isSimpleFloat(token->str_value.c_str())) {
-                error->instance =
-                    ErrorInst::InvalidFloatingPointNumber;
+                error->instance = ErrorInst::InvalidFloatingPointNumber;
             }
         } else {
             if (!isSimpleInt(token->str_value.c_str())) {
@@ -324,17 +304,13 @@ Lexer::getNextToken(Token *token, Error *error)
     current.setLineAndColumn(end_line_count, end_col_count);
 
     if (error->instance == ErrorInst::Null) {
-        token->begin.setLineAndColumn(
-            begin_line_count,
-            begin_col_count
-        );
+        token->begin.setLineAndColumn(begin_line_count,
+                                      begin_col_count);
         current.copyTo(&(token->end));
         return true;
     } else {
-        error->begin.setLineAndColumn(
-            begin_line_count,
-            begin_col_count
-        );
+        error->begin.setLineAndColumn(begin_line_count,
+                                      begin_col_count);
         current.copyTo(&(error->end));
         return false;
     }

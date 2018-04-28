@@ -1,24 +1,22 @@
 #ifndef DALE_ELEMENT_STRUCT
 #define DALE_ELEMENT_STRUCT
 
-#include "../Type/Type.h"
 #include "../Linkage/Linkage.h"
+#include "../Type/Type.h"
 #include "../llvm_Module.h"
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
-namespace dale
-{
+namespace dale {
 /*! Struct
 
     A class for storing the details of a struct definition.  Member
     indices begin at zero.
 */
-class Struct
-{
-public:
+class Struct {
+   public:
     /* The struct's LLVM struct type. */
     llvm::StructType *type;
     /* The struct's internal name (mangled, qualified). */
@@ -53,7 +51,7 @@ public:
      *
      *  Returns null if no member with the given name exists.
      */
-    Type* nameToType(const char *name);
+    Type *nameToType(const char *name);
     /*! Get the index of a given member.
      *  @param name The member's name.
      *
@@ -65,7 +63,7 @@ public:
      *
      *  Returns null if the index is invalid.
      */
-    Type* indexToType(int index);
+    Type *indexToType(int index);
     /*! Get the member at a given index.
      *  @param index The index.
      *

@@ -1,8 +1,7 @@
 #ifndef DALE_FORM_PROC_PTRSUBTRACT
 #define DALE_FORM_PROC_PTRSUBTRACT
 
-namespace dale
-{
+namespace dale {
 /*! Parse a pointer subtraction form.
  *  @param units The units context.
  *  @param fn The function currently in scope.

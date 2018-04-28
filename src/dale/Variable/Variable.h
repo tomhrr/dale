@@ -3,27 +3,25 @@
 
 #include "../Type/Type.h"
 
-#include <string>
 #include <cstdlib>
+#include <string>
 
-#include "../llvm_Module.h"
-#include "../llvm_Function.h"
-#include "../llvm_CallingConv.h"
 #include "../llvm_AnalysisVerifier.h"
 #include "../llvm_AssemblyPrintModulePass.h"
+#include "../llvm_CallingConv.h"
+#include "../llvm_Function.h"
 #include "../llvm_IRBuilder.h"
-#include "llvm/Support/raw_ostream.h"
+#include "../llvm_Module.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/Support/raw_ostream.h"
 
-namespace dale
-{
+namespace dale {
 /*! Variable
 
     A class for storing the details of a variable.
 */
-class Variable
-{
-public:
+class Variable {
+   public:
     /*! The variable's type. */
     Type *type;
     /*! The variable's name (unqualified, unmangled). */

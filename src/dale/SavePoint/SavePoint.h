@@ -2,33 +2,31 @@
 #define DALE_SAVEPOINT
 
 #include "../Context/Context.h"
-#include "../NamespaceSavePoint/NamespaceSavePoint.h"
 #include "../ContextSavePoint/ContextSavePoint.h"
+#include "../NamespaceSavePoint/NamespaceSavePoint.h"
 
-#include <vector>
-#include <string>
 #include <map>
+#include <string>
+#include <vector>
 
-namespace dale
-{
+namespace dale {
 /*! SavePoint
 
     A wrapper around ContextSavePoint that also stores the state of a
     given LLVM function at a particular time, and allows for restoring
     that state.
 */
-class SavePoint
-{
-private:
+class SavePoint {
+   private:
     int block_count;
     int instruction_index;
     int dg_count;
-    std::map<std::string, Label*> labels;
+    std::map<std::string, Label *> labels;
     Function *fn;
     llvm::BasicBlock *block;
     ContextSavePoint *csp;
 
-public:
+   public:
     /*! Construct a new savepoint.
      *  @param ctx The context.
      *  @param fn The current function.

@@ -1,21 +1,19 @@
 #ifndef DALE_POSITION
 #define DALE_POSITION
 
-namespace dale
-{
+namespace dale {
 /*! Position
 
     Represents a position in the code (line and column numbers).
 */
-class Position
-{
-private:
+class Position {
+   private:
     /*! The line number. */
     int line_number;
     /*! The column number. */
     int column_number;
 
-public:
+   public:
     Position();
     /*! Construct a new position with the given co-ordinates.
      *  @param line_number The line number.

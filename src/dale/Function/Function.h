@@ -1,21 +1,19 @@
 #ifndef DALE_ELEMENT_FUNCTION
 #define DALE_ELEMENT_FUNCTION
 
+#include <vector>
+#include "../DeferredGoto/DeferredGoto.h"
+#include "../Label/Label.h"
 #include "../Type/Type.h"
 #include "../Variable/Variable.h"
-#include "../Label/Label.h"
-#include "../DeferredGoto/DeferredGoto.h"
-#include <vector>
 
-namespace dale
-{
+namespace dale {
 /*! Function
 
     A class for storing the details of a function.
 */
-class Function
-{
-public:
+class Function {
+   public:
     /*! The function's return type. */
     Type *return_type;
     /*! The function's parameters.  These are stored as variables
@@ -58,18 +56,16 @@ public:
      *  @param llvm_function The LLVM function.
      *  @param is_macro Whether the function is actually a macro.
      *  @param symbol The internal name.
-     *  @param always_inline Whether the function should always be inlined.
+     *  @param always_inline Whether the function should always be
+     * inlined.
      *
      *  return_type and llvm_function are not copied.  parameters
      *  is copied, but the individual variables are not.
      *  symbol is copied.
      */
-    Function(Type *return_type,
-             std::vector<Variable *> *parameters,
-             llvm::Function *llvm_function,
-             bool is_macro,
-             std::string *symbol,
-             bool always_inline = false);
+    Function(Type *return_type, std::vector<Variable *> *parameters,
+             llvm::Function *llvm_function, bool is_macro,
+             std::string *symbol, bool always_inline = false);
     ~Function();
 
     /*! Return a boolean indicating whether the function is a varargs
@@ -102,7 +98,8 @@ public:
      *  @param label The label object.
      */
     bool addLabel(const char *name, Label *label);
-    /*! Check whether a function is a declaration, rather than a definition.
+    /*! Check whether a function is a declaration, rather than a
+     * definition.
      */
     bool isDeclaration();
     /*! Check whether a function is a retval function.

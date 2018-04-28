@@ -1,13 +1,10 @@
 #include "Namespace.h"
-#include "../../../Units/Units.h"
 #include "../../../Node/Node.h"
+#include "../../../Units/Units.h"
 #include "../Inst/Inst.h"
 
-namespace dale
-{
-bool
-FormTopLevelNamespaceParse(Units *units, Node *node)
-{
+namespace dale {
+bool FormTopLevelNamespaceParse(Units *units, Node *node) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("namespace", node, 1, -1)) {
@@ -34,8 +31,7 @@ FormTopLevelNamespaceParse(Units *units, Node *node)
 
     for (std::vector<Node *>::iterator b = (lst->begin() + 2),
                                        e = lst->end();
-            b != e;
-            ++b) {
+         b != e; ++b) {
         FormTopLevelInstParse(units, (*b));
         ctx->er->flush();
     }

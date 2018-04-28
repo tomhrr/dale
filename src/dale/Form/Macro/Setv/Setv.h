@@ -1,8 +1,8 @@
 #ifndef DALE_FORM_MACRO_SETV
 #define DALE_FORM_MACRO_SETV
 
-#include "../../../Node/Node.h"
 #include "../../../Context/Context.h"
+#include "../../../Node/Node.h"
 
 namespace dale {
 /*! The setv core macro form.

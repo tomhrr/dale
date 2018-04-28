@@ -3,8 +3,7 @@
 
 #include "../llvm_LinkAll.h"
 
-namespace dale
-{
+namespace dale {
 /*! NativeTypes
 
     Provides methods for getting the LLVM types that correspond to the
@@ -12,9 +11,8 @@ namespace dale
     self-explanatory, and the get*Size methods return the number of
     bits required by the size.  The other methods are documented below.
 */
-class NativeTypes
-{
-private:
+class NativeTypes {
+   private:
     llvm::IntegerType *native_char_type;
     llvm::IntegerType *native_int_type;
     llvm::IntegerType *native_uint_type;
@@ -34,7 +32,7 @@ private:
     llvm::Value *llvm_one;
     std::vector<llvm::Value *> zeros;
 
-public:
+   public:
     NativeTypes();
     llvm::IntegerType *getNativeIntType();
     llvm::IntegerType *getNativeUIntType();
@@ -75,7 +73,8 @@ public:
      *  @param n The number.
      */
     llvm::ConstantInt *getNativeInt(int n);
-    /*! Get an LLVM constant integer value for the given type and number.
+    /*! Get an LLVM constant integer value for the given type and
+     * number.
      *  @param type The type.
      *  @param nstr The number, as a string.
      *

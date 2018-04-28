@@ -1,8 +1,7 @@
 #ifndef DALE_ERRORTYPE
 #define DALE_ERRORTYPE
 
-namespace dale
-{
+namespace dale {
 /*! ErrorType
 
     Contains the error type and instance enums, and functions for
@@ -10,22 +9,12 @@ namespace dale
     error, warning, diagnostic, debug, and internal.  Error instances
     are split into three categories: lexer, parser, and generator.
 */
-namespace ErrorType
-{
-enum
-{
-    Error = 1,
-    Warning,
-    Diagnostic,
-    Debug,
-    Internal
-};
+namespace ErrorType {
+enum { Error = 1, Warning, Diagnostic, Debug, Internal };
 }
 
-namespace ErrorInst
-{
-enum
-{
+namespace ErrorInst {
+enum {
     Null = 1,
     UnterminatedStringLiteral,
     InvalidInteger,
@@ -170,7 +159,7 @@ int errorInstanceToType(int error_instance);
  *  This string is generally the enum name with a lowercase first
  *  letter.
  */
-const char *errorTypeToString(int error_type);
+const char* errorTypeToString(int error_type);
 }
 
 #endif

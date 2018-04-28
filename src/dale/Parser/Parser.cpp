@@ -1,45 +1,32 @@
 #include "Parser.h"
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 
-namespace dale
-{
+namespace dale {
 Parser::Parser(Lexer *lexer, ErrorReporter *erep,
-               const char *filename)
-{
-    this->lexer      = lexer;
-    this->erep     = erep;
+               const char *filename) {
+    this->lexer = lexer;
+    this->erep = erep;
     this->filename = filename;
 }
 
-Parser::~Parser()
-{
-    delete lexer;
-}
+Parser::~Parser() { delete lexer; }
 
-Lexer *
-Parser::getLexer()
-{
-    return lexer;
-}
+Lexer *Parser::getLexer() { return lexer; }
 
-void
-Parser::deleteNodeList(std::vector<Node *> *list)
-{
+void Parser::deleteNodeList(std::vector<Node *> *list) {
     erep->flush();
 
     for (std::vector<Node *>::iterator b = list->begin(),
                                        e = list->end();
-            b != e; ++b) {
+         b != e; ++b) {
         delete (*b);
     }
 
     delete list;
 }
 
-void
-Parser::getUntilRightParenOrEof(Token *t, Error *e)
-{
+void Parser::getUntilRightParenOrEof(Token *t, Error *e) {
     for (;;) {
         lexer->getNextToken(t, e);
         if ((t->type == TokenType::Eof) ||
@@ -49,9 +36,7 @@ Parser::getUntilRightParenOrEof(Token *t, Error *e)
     }
 }
 
-Node *
-Parser::getNextNode()
-{
+Node *Parser::getNextNode() {
     Token ts(TokenType::Null);
     Token te(TokenType::Null);
     Node n;
@@ -79,7 +64,7 @@ Parser::getNextNode()
     }
 
     int res;
-    std::vector<Node*> *list = new std::vector<Node*>;
+    std::vector<Node *> *list = new std::vector<Node *>;
     while ((res = getNextNodeInternal(list)) == 1) {
     }
 
@@ -99,7 +84,7 @@ Parser::getNextNode()
 
     if (te.type != TokenType::RightParen) {
         e.begin = new Position(te.begin);
-        e.end   = new Position(te.end);
+        e.end = new Position(te.end);
         e.instance = ErrorInst::MissingRightParen;
         erep->addError(e);
         deleteNodeList(list);
@@ -114,9 +99,7 @@ Parser::getNextNode()
     return node;
 }
 
-Node *
-Parser::getNextList()
-{
+Node *Parser::getNextList() {
     Node *node = getNextNode();
 
     if (!node) {
@@ -126,7 +109,7 @@ Parser::getNextList()
         n.filename = filename;
         Error e(ErrorInst::Null, &n);
         e.begin = new Position(node->getBeginPos());
-        e.end   = new Position(node->getEndPos());
+        e.end = new Position(node->getEndPos());
         e.instance = ErrorInst::ExpectedLeftParen;
         erep->addError(e);
         return NULL;
@@ -135,9 +118,7 @@ Parser::getNextList()
     }
 }
 
-int
-Parser::getNextNodeInternal(std::vector<Node*> *list)
-{
+int Parser::getNextNodeInternal(std::vector<Node *> *list) {
     Token t(TokenType::Null);
     Token te(TokenType::Null);
     Node n;
@@ -159,7 +140,7 @@ Parser::getNextNodeInternal(std::vector<Node*> *list)
     }
 
     if (t.type == TokenType::LeftParen) {
-        std::vector<Node*> *sublist = new std::vector<Node*>();
+        std::vector<Node *> *sublist = new std::vector<Node *>();
         Node *node = new Node(sublist);
         list->push_back(node);
         node->filename = filename;
@@ -189,7 +170,7 @@ Parser::getNextNodeInternal(std::vector<Node*> *list)
 
         if (t.type != TokenType::RightParen) {
             e.begin = new Position(t.begin);
-            e.end   = new Position(t.end);
+            e.end = new Position(t.end);
             e.instance = ErrorInst::MissingRightParen;
             erep->addError(e);
             return 0;

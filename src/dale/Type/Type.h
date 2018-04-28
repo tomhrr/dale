@@ -2,19 +2,18 @@
 #define DALE_ELEMENT_TYPE
 
 #include "../BaseType/BaseType.h"
-#include "../Node/Node.h"
 #include "../Linkage/Linkage.h"
+#include "../Node/Node.h"
 #include "../TypeMap/TypeMap.h"
 
+#include <cstdlib>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include <cstdlib>
 
 #define IGNORE_ARG_CONSTNESS 1
 
-namespace dale
-{
+namespace dale {
 /*! Type
 
     A class for storing the details of a type.  (This should probably
@@ -24,9 +23,8 @@ namespace dale
     Putting aside function types, there should generally only be one
     instance for a given type.  See TypeRegister.
 */
-class Type
-{
-public:
+class Type {
+   public:
     /*! The base type (see BaseType) of the type. */
     int base_type;
 
@@ -64,7 +62,7 @@ public:
     /*! For a function type, the return type. */
     Type *return_type;
     /*! For a function type, the parameter types. */
-    std::vector<Type*> parameter_types;
+    std::vector<Type *> parameter_types;
 
     Type();
     /*! Construct a new type with the given base type.
@@ -94,8 +92,7 @@ public:
      *  canBePassedFrom will be used to compare function pointer
      *  arguments.
      */
-    bool isEqualTo(Type *other_type,
-                   bool ignore_arg_constness = false,
+    bool isEqualTo(Type *other_type, bool ignore_arg_constness = false,
                    bool checking_passed_from = false);
     /*! Check whether a variable with this type can be set based on a
      *  value of another type.

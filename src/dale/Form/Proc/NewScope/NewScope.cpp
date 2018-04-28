@@ -1,19 +1,17 @@
-#include "../../../Units/Units.h"
-#include "../../../Node/Node.h"
-#include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Node/Node.h"
 #include "../../../Operation/CloseScope/CloseScope.h"
-#include "../Inst/Inst.h"
-#include "../Do/Do.h"
+#include "../../../ParseResult/ParseResult.h"
+#include "../../../Units/Units.h"
 #include "../../../llvm_Function.h"
+#include "../Do/Do.h"
+#include "../Inst/Inst.h"
 
-namespace dale
-{
-bool
-FormProcNewScopeParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                      Node *node, bool get_address, bool prefixed_with_core,
-                      ParseResult *pr)
-{
+namespace dale {
+bool FormProcNewScopeParse(Units *units, Function *fn,
+                           llvm::BasicBlock *block, Node *node,
+                           bool get_address, bool prefixed_with_core,
+                           ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("new-scope", node, 1, -1)) {

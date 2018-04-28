@@ -1,15 +1,15 @@
 #include "Reader.h"
 #include "Config.h"
 
-#include "../../llvm_LLVMContext.h"
-#include "../../llvm_Module.h"
-#include "../../llvm_Linker.h"
-#include "../../llvm_Function.h"
-#include "../../llvm_CallingConv.h"
-#include "../../llvm_AssemblyPrintModulePass.h"
-#include "../../llvm_ValueSymbolTable.h"
 #include "../../llvm_AnalysisVerifier.h"
+#include "../../llvm_AssemblyPrintModulePass.h"
+#include "../../llvm_CallingConv.h"
+#include "../../llvm_Function.h"
+#include "../../llvm_LLVMContext.h"
+#include "../../llvm_Linker.h"
+#include "../../llvm_Module.h"
 #include "../../llvm_PassManager.h"
+#include "../../llvm_ValueSymbolTable.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Triple.h"
@@ -17,20 +17,20 @@
 #include "llvm/CodeGen/LinkAllAsmWriterComponents.h"
 #include "llvm/CodeGen/LinkAllCodegenComponents.h"
 #include "llvm/LinkAllPasses.h"
-#include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/DynamicLibrary.h"
+#include "llvm/Support/FileUtilities.h"
+#include "llvm/Support/FormattedStream.h"
+#include "llvm/Support/Host.h"
+#include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/Signals.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
-#include "llvm/Support/FileUtilities.h"
-#include "llvm/Support/MemoryBuffer.h"
-#include "llvm/Support/FormattedStream.h"
-#include "llvm/Support/DynamicLibrary.h"
-#include "llvm/Support/Host.h"
-#include "llvm/Support/Signals.h"
-#include "llvm/Support/Debug.h"
+#include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
-#include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 
 #if D_LLVM_VERSION_ORD <= 34
@@ -39,36 +39,32 @@
 #include "llvm/Object/Error.h"
 #endif
 #if D_LLVM_VERSION_ORD >= 33
-#include "llvm/Support/SourceMgr.h"
 #include "llvm/IRReader/IRReader.h"
+#include "llvm/Support/SourceMgr.h"
 #endif
 
 #include "../../Serialise/Serialise.h"
 #include "../../Utils/Utils.h"
 #include "../../llvmUtils/llvmUtils.h"
 
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 using namespace dale::ErrorInst;
 
-static const char *bc_suffix         = ".bc";
-static const char *bc_nm_suffix      = "-nomacros.bc";
-static const char *so_suffix         = ".so";
+static const char *bc_suffix = ".bc";
+static const char *bc_nm_suffix = "-nomacros.bc";
+static const char *so_suffix = ".so";
 static const char *dale_include_path = DALE_INCLUDE_PATH "/";
 
-namespace dale
-{
-namespace Module
-{
+namespace dale {
+namespace Module {
 Reader::Reader(std::vector<const char *> *module_directory_paths,
                std::vector<std::string> *so_paths,
                std::vector<const char *> *include_directory_paths,
                std::vector<const char *> *static_module_names,
-               bool static_modules_all,
-               bool remove_macros)
-{
+               bool static_modules_all, bool remove_macros) {
     cwd = getcwd(NULL, 0);
     this->module_directory_paths.push_back(cwd);
     std::copy(module_directory_paths->begin(),
@@ -88,29 +84,20 @@ Reader::Reader(std::vector<const char *> *module_directory_paths,
     this->remove_macros = remove_macros;
 
     for (std::vector<const char *>::iterator
-            b = static_module_names->begin(),
-            e = static_module_names->end();
-            b != e;
-            ++b) {
+             b = static_module_names->begin(),
+             e = static_module_names->end();
+         b != e; ++b) {
         this->static_module_names.insert(*b);
     }
 }
 
-Reader::~Reader()
-{
-    free(cwd);
-}
+Reader::~Reader() { free(cwd); }
 
-bool
-Reader::addDynamicLibrary(const char *path, bool add_to_so_paths,
-                          bool add_nm_to_so_paths)
-{
+bool Reader::addDynamicLibrary(const char *path, bool add_to_so_paths,
+                               bool add_nm_to_so_paths) {
     std::string error_msg;
-    bool res =
-        llvm::sys::DynamicLibrary::LoadLibraryPermanently(
-            path,
-            &error_msg
-        );
+    bool res = llvm::sys::DynamicLibrary::LoadLibraryPermanently(
+        path, &error_msg);
 
     if (res) {
         fprintf(stderr, "%s\n", error_msg.c_str());
@@ -133,20 +120,17 @@ Reader::addDynamicLibrary(const char *path, bool add_to_so_paths,
     return true;
 }
 
-bool
-removeUnneededForms(Context *ctx, Context *new_ctx,
-                    std::string *lib_module_name, Node *n,
-                    std::vector<const char *> *import_forms)
-{
+bool removeUnneededForms(Context *ctx, Context *new_ctx,
+                         std::string *lib_module_name, Node *n,
+                         std::vector<const char *> *import_forms) {
     if (import_forms->size() == 0) {
         return true;
     }
 
     std::set<std::string> forms_set;
-    for (std::vector<const char*>::iterator b = import_forms->begin(),
-                                            e = import_forms->end();
-            b != e;
-            ++b) {
+    for (std::vector<const char *>::iterator b = import_forms->begin(),
+                                             e = import_forms->end();
+         b != e; ++b) {
         forms_set.insert(std::string(*b));
     }
 
@@ -154,27 +138,24 @@ removeUnneededForms(Context *ctx, Context *new_ctx,
     new_ctx->removeUnneeded(&forms_set, &found);
 
     std::set<std::string> not_found;
-    set_difference(forms_set.begin(), forms_set.end(),
-                   found.begin(),     found.end(),
+    set_difference(forms_set.begin(), forms_set.end(), found.begin(),
+                   found.end(),
                    std::insert_iterator<std::set<std::string> >(
-                       not_found,
-                       not_found.end()
-                   ));
+                       not_found, not_found.end()));
     if (not_found.size() > 0) {
         std::string missing_forms;
         for (std::set<std::string>::iterator b = not_found.begin(),
-                                                e = not_found.end();
-                b != e;
-                ++b) {
+                                             e = not_found.end();
+             b != e; ++b) {
             missing_forms.append(*b).append(", ");
         }
         missing_forms.erase(missing_forms.size() - 2,
                             missing_forms.size() - 1);
         std::string bare_mod_name(*lib_module_name);
         bare_mod_name.replace(0, 3, "");
-        Error *e = new Error(ModuleDoesNotProvideForms, n,
-                             bare_mod_name.c_str(),
-                             missing_forms.c_str());
+        Error *e =
+            new Error(ModuleDoesNotProvideForms, n,
+                      bare_mod_name.c_str(), missing_forms.c_str());
         ctx->er->addError(e);
         return false;
     }
@@ -182,9 +163,7 @@ removeUnneededForms(Context *ctx, Context *new_ctx,
     return true;
 }
 
-void
-readFile(FILE *fh, char **buf_ptr)
-{
+void readFile(FILE *fh, char **buf_ptr) {
     int fd = fileno(fh);
     struct stat buf;
     int fstat_res = fstat(fd, &buf);
@@ -192,39 +171,41 @@ readFile(FILE *fh, char **buf_ptr)
     _unused(fstat_res);
 
     int size = buf.st_size;
-    char *data = (char*) malloc(size);
+    char *data = (char *)malloc(size);
     if (!data) {
         error("unable to allocate memory", true);
     }
     size_t res = fread(data, 1, size, fh);
-    assert((res == (size_t) size) && "unable to read module file");
+    assert((res == (size_t)size) && "unable to read module file");
     _unused(res);
 
     *buf_ptr = data;
 }
 
-bool
-Reader::findModule(Context *ctx, Node *n, std::string *lib_module_name,
-                   FILE **fh, std::string *prefix)
-{
+bool Reader::findModule(Context *ctx, Node *n,
+                        std::string *lib_module_name, FILE **fh,
+                        std::string *prefix) {
     std::string dtm_path;
 
-    for (std::vector<const char *>::iterator b = module_directory_paths.begin(),
-                                             e = module_directory_paths.end();
-            b != e;
-            ++b) {
+    for (std::vector<const char *>::iterator
+             b = module_directory_paths.begin(),
+             e = module_directory_paths.end();
+         b != e; ++b) {
         bool append_slash = (*b)[strlen(*b) - 1] != '/';
         prefix->clear();
         prefix->append(*b).append(append_slash ? "/" : "");
         dtm_path.clear();
-        dtm_path.append(*prefix).append(*lib_module_name).append(".dtm");
+        dtm_path.append(*prefix)
+            .append(*lib_module_name)
+            .append(".dtm");
         *fh = fopen(dtm_path.c_str(), "r");
         if (*fh) {
             break;
         }
     }
     if (!*fh) {
-        Error *e = new Error(FileError, n, dtm_path.c_str(), strerror(errno));
+        Error *e =
+            new Error(FileError, n, dtm_path.c_str(), strerror(errno));
         ctx->er->addError(e);
         return false;
     }
@@ -232,11 +213,9 @@ Reader::findModule(Context *ctx, Node *n, std::string *lib_module_name,
     return true;
 }
 
-bool
-Reader::run(Context *ctx, llvm::Linker *linker,
-            llvm::Module *mod, Node *n, const char *module_name,
-            std::vector<const char*> *import_forms)
-{
+bool Reader::run(Context *ctx, llvm::Linker *linker, llvm::Module *mod,
+                 Node *n, const char *module_name,
+                 std::vector<const char *> *import_forms) {
     std::vector<const char *> empty_forms;
     if (import_forms == NULL) {
         import_forms = &empty_forms;
@@ -248,7 +227,8 @@ Reader::run(Context *ctx, llvm::Linker *linker,
     }
     lib_module_name.append(module_name);
 
-    if (included_modules.find(lib_module_name) != included_modules.end()) {
+    if (included_modules.find(lib_module_name) !=
+        included_modules.end()) {
         return true;
     }
 
@@ -270,7 +250,7 @@ Reader::run(Context *ctx, llvm::Linker *linker,
     char *data = original_data;
 
     std::set<std::string> once_tags;
-    std::map<std::string, std::vector<std::string>* > dependencies;
+    std::map<std::string, std::vector<std::string> *> dependencies;
     std::map<std::string, std::string> typemap;
     int cto;
 
@@ -281,49 +261,46 @@ Reader::run(Context *ctx, llvm::Linker *linker,
     data = deserialise(ctx->tr, data, &typemap);
     free(original_data);
 
-    for (std::map<std::string, std::string>::iterator b = typemap.begin(),
-                                                      e = typemap.end();
-            b != e;
-            ++b) {
+    for (std::map<std::string, std::string>::iterator
+             b = typemap.begin(),
+             e = typemap.end();
+         b != e; ++b) {
         std::string from = (*b).first;
-        std::string to   = (*b).second;
+        std::string to = (*b).second;
         addTypeMapEntry(from.c_str(), to.c_str());
     }
 
     std::string module_path(bc_path);
     std::string module_path_nomacros(bc_path);
 
-    module_path_nomacros.replace(module_path_nomacros.find(".bc"),
-                                 3, bc_nm_suffix);
+    module_path_nomacros.replace(module_path_nomacros.find(".bc"), 3,
+                                 bc_nm_suffix);
 
     llvm::Module *new_module = loadModule(&module_path);
 
-    std::vector<std::string> *import_forms_str = new std::vector<std::string>();
+    std::vector<std::string> *import_forms_str =
+        new std::vector<std::string>();
     for (std::vector<const char *>::iterator b = import_forms->begin(),
                                              e = import_forms->end();
-            b != e;
-            ++b) {
+         b != e; ++b) {
         import_forms_str->push_back(std::string(*b));
     }
     included_modules.insert(
-        std::pair<std::string, std::vector<std::string>* >(
-            lib_module_name, import_forms_str
-        )
-    );
+        std::pair<std::string, std::vector<std::string> *>(
+            lib_module_name, import_forms_str));
 
-    for (std::map<std::string, std::vector<std::string>* >::iterator
-            b = dependencies.begin(),
-            e = dependencies.end();
-            b != e;
-            ++b) {
+    for (std::map<std::string, std::vector<std::string> *>::iterator
+             b = dependencies.begin(),
+             e = dependencies.end();
+         b != e; ++b) {
         std::vector<const char *> import_forms;
         for (std::vector<std::string>::iterator ib = b->second->begin(),
                                                 ie = b->second->end();
-                ib != ie;
-                ++ib) {
+             ib != ie; ++ib) {
             import_forms.push_back((*ib).c_str());
         }
-        bool res = run(ctx, linker, mod, n, b->first.c_str(), &import_forms);
+        bool res =
+            run(ctx, linker, mod, n, b->first.c_str(), &import_forms);
         if (!res) {
             return false;
         }
@@ -338,9 +315,8 @@ Reader::run(Context *ctx, llvm::Linker *linker,
          cto_module_names.end());
 
     bool static_module =
-        (static_modules_all
-            || (static_module_names.find(module_name) !=
-                static_module_names.end()));
+        (static_modules_all || (static_module_names.find(module_name) !=
+                                static_module_names.end()));
 
     bool add_to_so_paths = !cto_module;
     if (add_to_so_paths) {
@@ -351,34 +327,24 @@ Reader::run(Context *ctx, llvm::Linker *linker,
 
     std::set<std::string> all_once_tags;
     std::set_union(included_once_tags.begin(), included_once_tags.end(),
-                   once_tags.begin(),          once_tags.end(),
+                   once_tags.begin(), once_tags.end(),
                    std::insert_iterator<std::set<std::string> >(
-                       all_once_tags,
-                       all_once_tags.end()
-                   ));
+                       all_once_tags, all_once_tags.end()));
     new_ctx->eraseOnceForms(&all_once_tags, new_module);
 
     included_once_tags.clear();
     std::copy(all_once_tags.begin(), all_once_tags.end(),
               std::insert_iterator<std::set<std::string> >(
-                  included_once_tags,
-                  included_once_tags.end()
-              ));
+                  included_once_tags, included_once_tags.end()));
 
     included_modules.insert(
-        std::pair<std::string, std::vector<std::string>* >(
-            lib_module_name, import_forms_str
-        )
-    );
+        std::pair<std::string, std::vector<std::string> *>(
+            lib_module_name, import_forms_str));
 
     dtm_modules.insert(std::pair<std::string, llvm::Module *>(
-                            std::string(lib_module_name),
-                            new_module
-                       ));
+        std::string(lib_module_name), new_module));
     dtm_nm_modules.insert(std::pair<std::string, std::string>(
-                               std::string(lib_module_name),
-                               module_path_nomacros
-                          ));
+        std::string(lib_module_name), module_path_nomacros));
 
     res = removeUnneededForms(ctx, new_ctx, &lib_module_name, n,
                               import_forms);

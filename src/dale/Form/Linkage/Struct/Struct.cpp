@@ -1,23 +1,21 @@
 #include "Struct.h"
-#include "../../../Linkage/Linkage.h"
 #include "../../../Error/Error.h"
+#include "../../../Linkage/Linkage.h"
 
 using namespace dale::ErrorInst;
 
 namespace dale {
-int
-FormLinkageStructParse(Context *ctx, Node *node)
-{
+int FormLinkageStructParse(Context *ctx, Node *node) {
     if (!node->is_token) {
-        Error *e = new Error(UnexpectedElement, node,
-                             "atom", "linkage", "list");
+        Error *e = new Error(UnexpectedElement, node, "atom", "linkage",
+                             "list");
         ctx->er->addError(e);
         return 0;
     }
 
     if (node->token->type != TokenType::String) {
-        Error *e = new Error(UnexpectedElement, node,
-                             "symbol", "linkage", node->token->tokenType());
+        Error *e = new Error(UnexpectedElement, node, "symbol",
+                             "linkage", node->token->tokenType());
         ctx->er->addError(e);
         return 0;
     }

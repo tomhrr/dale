@@ -3,20 +3,18 @@
 
 #include <vector>
 
+#include "../ErrorReporter/ErrorReporter.h"
 #include "../Lexer/Lexer.h"
 #include "../Node/Node.h"
-#include "../ErrorReporter/ErrorReporter.h"
 
-namespace dale
-{
+namespace dale {
 /*! Parser
 
     Self-explanatory.  Only returns node lists, since tokens may not
     appear at the top level.
 */
-class Parser
-{
-private:
+class Parser {
+   private:
     /*! The lexer for this parser. */
     Lexer *lexer;
     /*! The error reporter for this parser. */
@@ -33,7 +31,7 @@ private:
      *  indicates that an error occurred, and a return value of 2
      *  indicates EOF.
      */
-    int getNextNodeInternal(std::vector<Node*> *list);
+    int getNextNodeInternal(std::vector<Node *> *list);
     /*! Delete the node list.
      *  @param list The node list.
      *
@@ -46,7 +44,7 @@ private:
      */
     void getUntilRightParenOrEof(Token *token, Error *error);
 
-public:
+   public:
     /*! Construct a new parser.
      *  @param lexer The lexer for the parser.
      *  @param erep The error reporter for the parser.

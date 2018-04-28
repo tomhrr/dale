@@ -1,12 +1,11 @@
 #include "SavePoint.h"
 
-#include "../llvm_LinkAll.h"
 #include "../NativeTypes/NativeTypes.h"
+#include "../llvm_LinkAll.h"
 
-namespace dale
-{
-SavePoint::SavePoint(Context *ctx, Function *fn, llvm::BasicBlock *block)
-{
+namespace dale {
+SavePoint::SavePoint(Context *ctx, Function *fn,
+                     llvm::BasicBlock *block) {
     block_count = fn->llvm_function->size();
     instruction_index = block->size();
     dg_count = fn->deferred_gotos.size();
@@ -16,22 +15,18 @@ SavePoint::SavePoint(Context *ctx, Function *fn, llvm::BasicBlock *block)
     csp = new ContextSavePoint(ctx);
 }
 
-SavePoint::~SavePoint()
-{
+SavePoint::~SavePoint() {
     if (csp != NULL) {
         delete csp;
     }
 }
 
-bool
-SavePoint::restore()
-{
+bool SavePoint::restore() {
     int block_pop_back = fn->llvm_function->size() - block_count;
-    std::vector<llvm::BasicBlock*> blocks;
+    std::vector<llvm::BasicBlock *> blocks;
     while (block_pop_back--) {
         llvm::Function::iterator bi = fn->llvm_function->begin(),
-                                 be = fn->llvm_function->end(),
-                                 bl;
+                                 be = fn->llvm_function->end(), bl;
         while (bi != be) {
             bl = bi;
             ++bi;
@@ -44,8 +39,7 @@ SavePoint::restore()
     int to_pop_back = block->size() - instruction_index;
     while (to_pop_back--) {
         llvm::BasicBlock::iterator bi = block->begin(),
-                                   be = block->end(),
-                                   bl;
+                                   be = block->end(), bl;
         while (bi != be) {
             bl = bi;
             ++bi;
@@ -63,10 +57,9 @@ SavePoint::restore()
     delete csp;
     csp = NULL;
 
-    for (std::vector<llvm::BasicBlock*>::iterator b = blocks.begin(),
-                                                  e = blocks.end();
-            b != e;
-            ++b) {
+    for (std::vector<llvm::BasicBlock *>::iterator b = blocks.begin(),
+                                                   e = blocks.end();
+         b != e; ++b) {
         delete (*b);
     }
 

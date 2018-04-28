@@ -1,8 +1,7 @@
 #ifndef DALE_FORM_PROC_PTRLESSTHAN
 #define DALE_FORM_PROC_PTRLESSTHAN
 
-namespace dale
-{
+namespace dale {
 /*! Parse a pointer less-than form.
  *  @param units The units context.
  *  @param fn The function currently in scope.

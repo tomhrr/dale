@@ -1,8 +1,8 @@
 #ifndef DALE_FORM_MACRO_DEREFSTRUCTDEREF
 #define DALE_FORM_MACRO_DEREFSTRUCTDEREF
 
-#include "../../../Node/Node.h"
 #include "../../../Context/Context.h"
+#include "../../../Node/Node.h"
 
 namespace dale {
 /*! The dereference-struct-dereference core macro form.

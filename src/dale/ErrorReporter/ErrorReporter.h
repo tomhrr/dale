@@ -2,13 +2,12 @@
 #define DALE_ERRORREPORTER
 
 #include <vector>
-#include "../Position/Position.h"
 #include "../Error/Error.h"
-#include "../Type/Type.h"
 #include "../Node/Node.h"
+#include "../Position/Position.h"
+#include "../Type/Type.h"
 
-namespace dale
-{
+namespace dale {
 /*! ErrorReporter
 
     The ErrorReporter collects errors and provides various assertion
@@ -16,9 +15,8 @@ namespace dale
     It allows for delayed reporting and 'rolling back' to previous
     states (by way of error counts).
 */
-class ErrorReporter
-{
-public:
+class ErrorReporter {
+   public:
     /*! The filename of the file currently being processed. */
     const char *current_filename;
     /*! The current list of errors. */
@@ -37,14 +35,15 @@ public:
      *
      *  This does not take ownership of the error.
      */
-    void addError(Error& err);
+    void addError(Error &err);
     /*! Add an error.
      *  @param err The error.
      *
      *  This takes ownership of the error.
      */
     void addError(Error *err);
-    /*! Get the number of errors of the given type present in the reporter.
+    /*! Get the number of errors of the given type present in the
+     * reporter.
      *  @param error_type The error type (see ErrorType).
      */
     int getErrorTypeCount(int error_type);
@@ -54,7 +53,8 @@ public:
     /*! Pop the last-added error from the reporter.
      */
     Error *popLastError();
-    /*! Pop errors until the reporter contains the given number of errors.
+    /*! Pop errors until the reporter contains the given number of
+     * errors.
      *  @param original_count The number of errors that should be
      *  present after the method completes.
      */
@@ -63,14 +63,15 @@ public:
      */
     void flush();
 
-    /*! Confirm that the argument node represents the native integer type.
+    /*! Confirm that the argument node represents the native integer
+     * type.
      *  @param form_name The form name (for the error message).
      *  @param n The node (for the error message).
      *  @param type The type of the node.
      *  @param arg_number The argument number of the node.
      */
-    bool assertIsIntegerType(const char *form_name, Node *n,
-                             Type *type, const char *arg_number);
+    bool assertIsIntegerType(const char *form_name, Node *n, Type *type,
+                             const char *arg_number);
     /*! Confirm that the argument node represents the native integer
      *  type or a pointer.
      *  @param form_name The form name (for the error message).
@@ -79,15 +80,16 @@ public:
      *  @param arg_number The argument number of the node.
      */
     bool assertIsPointerOrIntegerType(const char *form_name, Node *n,
-                                      Type *type, const char *arg_number);
+                                      Type *type,
+                                      const char *arg_number);
     /*! Confirm that the argument node represents a pointer.
      *  @param form_name The form name (for the error message).
      *  @param n The node (for the error message).
      *  @param type The type of the node.
      *  @param arg_number The argument number of the node.
      */
-    bool assertIsPointerType(const char *form_name, Node *n,
-                             Type *type, const char *arg_number);
+    bool assertIsPointerType(const char *form_name, Node *n, Type *type,
+                             const char *arg_number);
     /*! Confirm that the two types are equal.
      *  @param form_name The form name (for the error message).
      *  @param n The node (for the error message).
@@ -96,9 +98,8 @@ public:
      *  @param ignore_arg_constness Whether to disregard the constness
      *  of the expected type in the comparison.
      */
-    bool assertTypeEquality(const char *form_name, Node *n,
-                            Type *got, Type *expected,
-                            bool ignore_arg_constness);
+    bool assertTypeEquality(const char *form_name, Node *n, Type *got,
+                            Type *expected, bool ignore_arg_constness);
     /*! Confirm that the node is a string literal.
      *  @param form_name The form name (for the error message).
      *  @param n The node.
@@ -115,8 +116,8 @@ public:
      *  If the form does not have a maximum number of arguments, the
      *  value -1 should be provided for max.
      */
-    bool assertArgNums(const char *form_name, Node *n,
-                       int min_args, int max_args);
+    bool assertArgNums(const char *form_name, Node *n, int min_args,
+                       int max_args);
     /*! Confirm that the node is an atom.
      *  @param form_name The form name (for the error message).
      *  @param n The node.

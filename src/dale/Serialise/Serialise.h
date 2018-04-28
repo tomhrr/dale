@@ -4,14 +4,13 @@
 #include <cstdio>
 #include <string>
 #include <vector>
-#include "../Type/Type.h"
-#include "../Variable/Variable.h"
 #include "../Context/Context.h"
 #include "../Namespace/Namespace.h"
+#include "../Type/Type.h"
 #include "../TypeRegister/TypeRegister.h"
+#include "../Variable/Variable.h"
 
-namespace dale
-{
+namespace dale {
 /*! Serialise
 
     Provides module serialisation and deserialisation functions.
@@ -23,25 +22,25 @@ namespace dale
     functions return a pointer to the next position in the input
     stream.
 */
-template<typename T>
+template <typename T>
 void serialise(FILE *out, std::vector<T> *x);
 
 char *deserialise_type_vector(TypeRegister *tr, char *in,
                               std::vector<Type *> *x);
 
-template<typename T>
+template <typename T>
 char *deserialise(TypeRegister *tr, char *in, std::vector<T> *x);
 
-template<typename T>
+template <typename T>
 void serialise(FILE *out, std::vector<T> **x);
 
-template<typename T>
+template <typename T>
 char *deserialise(TypeRegister *tr, char *in, std::vector<T> **x);
 
-template<typename T1, typename T2>
+template <typename T1, typename T2>
 void serialise(FILE *out, std::map<T1, T2> *x);
 
-template<typename T1, typename T2>
+template <typename T1, typename T2>
 char *deserialise(TypeRegister *tr, char *in, std::map<T1, T2> *x);
 
 void xfwrite(const void *a, size_t b, size_t c, FILE *d);
@@ -132,9 +131,8 @@ char *deserialise(TypeRegister *tr, char *in, Context *ctx);
 
 char *deserialise(TypeRegister *tr, char *in, Context **ctx);
 
-template<typename T>
-void serialise(FILE *out, std::vector<T> *x)
-{
+template <typename T>
+void serialise(FILE *out, std::vector<T> *x) {
     size_t s = x->size();
     serialise(out, s);
     for (size_t i = 0; i < s; i++) {
@@ -142,18 +140,16 @@ void serialise(FILE *out, std::vector<T> *x)
     }
 }
 
-template<typename T>
-void serialise(FILE *out, std::vector<T> **x)
-{
+template <typename T>
+void serialise(FILE *out, std::vector<T> **x) {
     serialise(out, *x);
 }
 
 char *deserialise_type_vector(TypeRegister *tr, char *in,
                               std::vector<Type *> *x);
 
-template<typename T>
-char *deserialise(TypeRegister *tr, char *in, std::vector<T> *x)
-{
+template <typename T>
+char *deserialise(TypeRegister *tr, char *in, std::vector<T> *x) {
     size_t s;
     in = deserialise(tr, in, &s);
     x->reserve(s);
@@ -165,30 +161,25 @@ char *deserialise(TypeRegister *tr, char *in, std::vector<T> *x)
     return in;
 }
 
-template<typename T>
-char *deserialise(TypeRegister *tr, char *in, std::vector<T> **x)
-{
+template <typename T>
+char *deserialise(TypeRegister *tr, char *in, std::vector<T> **x) {
     std::vector<T> *b = new std::vector<T>;
     *x = b;
     return deserialise(tr, in, b);
 }
 
-template<typename T>
-void serialise(FILE *out, std::set<T> *x)
-{
+template <typename T>
+void serialise(FILE *out, std::set<T> *x) {
     size_t s = x->size();
     serialise(out, s);
-    for (typename std::set<T>::iterator b = x->begin(),
-            e = x->end();
-            b != e;
-            ++b) {
+    for (typename std::set<T>::iterator b = x->begin(), e = x->end();
+         b != e; ++b) {
         serialise(out, *b);
     }
 }
 
-template<typename T>
-char *deserialise(TypeRegister *tr, char *in, std::set<T> *x)
-{
+template <typename T>
+char *deserialise(TypeRegister *tr, char *in, std::set<T> *x) {
     size_t s;
     in = deserialise(tr, in, &s);
     for (size_t i = 0; i < s; i++) {
@@ -199,36 +190,32 @@ char *deserialise(TypeRegister *tr, char *in, std::set<T> *x)
     return in;
 }
 
-template<typename T>
-char *deserialise(TypeRegister *tr, char *in, std::set<T> **x)
-{
+template <typename T>
+char *deserialise(TypeRegister *tr, char *in, std::set<T> **x) {
     std::set<T> *b = new std::set<T>;
     *x = b;
     return deserialise(tr, in, b);
 }
 
-template<typename T>
-void serialise(FILE *out, std::set<T> **x)
-{
+template <typename T>
+void serialise(FILE *out, std::set<T> **x) {
     serialise(out, *x);
 }
 
-template<typename T1, typename T2>
-void serialise(FILE *out, std::map<T1, T2> *x)
-{
+template <typename T1, typename T2>
+void serialise(FILE *out, std::map<T1, T2> *x) {
     size_t s = x->size();
     serialise(out, s);
-    for (typename std::map<T1, T2>::iterator b = x->begin(), e = x->end();
-            b != e;
-            ++b) {
+    for (typename std::map<T1, T2>::iterator b = x->begin(),
+                                             e = x->end();
+         b != e; ++b) {
         serialise(out, b->first);
         serialise(out, b->second);
     }
 }
 
-template<typename T1, typename T2>
-char *deserialise(TypeRegister *tr, char *in, std::map<T1, T2> *x)
-{
+template <typename T1, typename T2>
+char *deserialise(TypeRegister *tr, char *in, std::map<T1, T2> *x) {
     size_t s;
     in = deserialise(tr, in, &s);
     for (size_t i = 0; i < s; i++) {

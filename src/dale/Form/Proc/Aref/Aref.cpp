@@ -1,22 +1,20 @@
-#include "../../../Units/Units.h"
-#include "../../../Node/Node.h"
-#include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Node/Node.h"
 #include "../../../Operation/Cast/Cast.h"
 #include "../../../Operation/Destruct/Destruct.h"
-#include "../Inst/Inst.h"
-#include "../../Utils/Utils.h"
+#include "../../../ParseResult/ParseResult.h"
+#include "../../../Units/Units.h"
 #include "../../../llvm_Function.h"
+#include "../../Utils/Utils.h"
+#include "../Inst/Inst.h"
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-bool
-FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                  Node *node, bool get_address, bool prefixed_with_core,
-                  ParseResult *pr)
-{
+namespace dale {
+bool FormProcArefParse(Units *units, Function *fn,
+                       llvm::BasicBlock *block, Node *node,
+                       bool get_address, bool prefixed_with_core,
+                       ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("$", node, 2, 2)) {
@@ -34,13 +32,13 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    if (!(initial_array_pr.type->array_type
-       || initial_array_pr.type->points_to)) {
+    if (!(initial_array_pr.type->array_type ||
+          initial_array_pr.type->points_to)) {
         std::string type_str;
         initial_array_pr.type->toString(&type_str);
-        Error *e = new Error(IncorrectArgType, array_node,
-                             "$", "a pointer or array", "1",
-                             type_str.c_str());
+        Error *e =
+            new Error(IncorrectArgType, array_node, "$",
+                      "a pointer or array", "1", type_str.c_str());
         ctx->er->addError(e);
         return false;
     }
@@ -58,16 +56,16 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     ParseResult index_pr;
-    res = FormProcInstParse(units, fn, array_pr.block, index_node, false,
-                            false, NULL, &index_pr);
+    res = FormProcInstParse(units, fn, array_pr.block, index_node,
+                            false, false, NULL, &index_pr);
     if (!res) {
         return false;
     }
     if (!index_pr.type->isIntegerType()) {
         std::string type_str;
         index_pr.type->toString(&type_str);
-        Error *e = new Error(IncorrectType, index_node,
-                             "integer", type_str.c_str());
+        Error *e = new Error(IncorrectType, index_node, "integer",
+                             type_str.c_str());
         ctx->er->addError(e);
         return false;
     }
@@ -75,10 +73,12 @@ FormProcArefParse(Units *units, Function *fn, llvm::BasicBlock *block,
     llvm::IRBuilder<> builder(index_pr.block);
     std::vector<llvm::Value *> indices;
     if (!is_array) {
-        indices.push_back(llvm::cast<llvm::Value>(index_pr.getValue(ctx)));
+        indices.push_back(
+            llvm::cast<llvm::Value>(index_pr.getValue(ctx)));
     } else {
-        STL::push_back2(&indices, ctx->nt->getLLVMZero(),
-                        llvm::cast<llvm::Value>(index_pr.getValue(ctx)));
+        STL::push_back2(
+            &indices, ctx->nt->getLLVMZero(),
+            llvm::cast<llvm::Value>(index_pr.getValue(ctx)));
     }
     llvm::Value *array_value = array_pr.getValue(ctx);
     if (array_pr.type->is_array) {

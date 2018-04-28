@@ -5,17 +5,15 @@
 
 #include "../llvm_PassManager.h"
 
-namespace dale
-{
+namespace dale {
 class Namespace;
 
 /*! Label
 
     A class for storing the details of a label.
 */
-class Label
-{
-public:
+class Label {
+   public:
     /*! The basic block at which this label begins. */
     llvm::BasicBlock *block;
     /*! The namespace active when the label was defined. */

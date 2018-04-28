@@ -1,20 +1,18 @@
-#include "../../../Units/Units.h"
-#include "../../../Node/Node.h"
-#include "../../../ParseResult/ParseResult.h"
-#include "../../../Function/Function.h"
 #include "../../../Operation/Cast/Cast.h"
+#include "../../../Function/Function.h"
+#include "../../../Node/Node.h"
 #include "../../../Operation/Destruct/Destruct.h"
+#include "../../../ParseResult/ParseResult.h"
+#include "../../../Units/Units.h"
+#include "../../../llvm_Function.h"
 #include "../../Type/Type.h"
 #include "../Inst/Inst.h"
-#include "../../../llvm_Function.h"
 
-namespace dale
-{
-bool
-FormProcCastParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                  Node *node, bool get_address, bool prefixed_with_core,
-                  ParseResult *pr)
-{
+namespace dale {
+bool FormProcCastParse(Units *units, Function *fn,
+                       llvm::BasicBlock *block, Node *node,
+                       bool get_address, bool prefixed_with_core,
+                       ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("cast", node, 2, 2)) {
@@ -23,7 +21,7 @@ FormProcCastParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     std::vector<Node *> *lst = node->list;
     Node *value_node = (*lst)[1];
-    Node *type_node  = (*lst)[2];
+    Node *type_node = (*lst)[2];
 
     ParseResult value_pr;
     bool res = FormProcInstParse(units, fn, block, value_node, false,
@@ -31,7 +29,8 @@ FormProcCastParse(Units *units, Function *fn, llvm::BasicBlock *block,
     if (!res) {
         return false;
     }
-    llvm::Type *llvm_type = ctx->toLLVMType(value_pr.type, value_node, false);
+    llvm::Type *llvm_type =
+        ctx->toLLVMType(value_pr.type, value_node, false);
     if (!llvm_type) {
         return false;
     }

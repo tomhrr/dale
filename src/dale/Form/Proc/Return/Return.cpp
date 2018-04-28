@@ -1,19 +1,17 @@
-#include "../../../Units/Units.h"
-#include "../../../Node/Node.h"
-#include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
+#include "../../../Node/Node.h"
 #include "../../../Operation/CloseScope/CloseScope.h"
 #include "../../../Operation/Copy/Copy.h"
-#include "../Inst/Inst.h"
+#include "../../../ParseResult/ParseResult.h"
+#include "../../../Units/Units.h"
 #include "../../../llvm_Function.h"
+#include "../Inst/Inst.h"
 
-namespace dale
-{
-bool
-FormProcReturnParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                    Node *node, bool get_address, bool prefixed_with_core,
-                    ParseResult *pr)
-{
+namespace dale {
+bool FormProcReturnParse(Units *units, Function *fn,
+                         llvm::BasicBlock *block, Node *node,
+                         bool get_address, bool prefixed_with_core,
+                         ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     std::vector<Node *> *lst = node->list;
@@ -22,9 +20,9 @@ FormProcReturnParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    pr->do_not_destruct       = true;
+    pr->do_not_destruct = true;
     pr->do_not_copy_with_setf = true;
-    pr->treat_as_terminator   = true;
+    pr->treat_as_terminator = true;
 
     if (lst->size() == 1) {
         llvm::IRBuilder<> builder(block);
@@ -35,8 +33,8 @@ FormProcReturnParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     ParseResult value_pr;
-    bool res = FormProcInstParse(units, fn, block, (*lst)[1], get_address,
-                                 false, NULL, &value_pr);
+    bool res = FormProcInstParse(units, fn, block, (*lst)[1],
+                                 get_address, false, NULL, &value_pr);
     if (!res) {
         return false;
     }
@@ -48,7 +46,8 @@ FormProcReturnParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    res = Operation::Copy(units->top()->ctx, fn, node, &value_pr, &value_pr);
+    res = Operation::Copy(units->top()->ctx, fn, node, &value_pr,
+                          &value_pr);
     if (!res) {
         return false;
     }

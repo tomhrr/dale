@@ -1,8 +1,7 @@
 #ifndef DALE_FORM_PROC_SETF
 #define DALE_FORM_PROC_SETF
 
-namespace dale
-{
+namespace dale {
 /*! Parse a procedure-body setf statement.
  *  @param units The units context.
  *  @param fn The function currently in scope.
@@ -12,16 +11,16 @@ namespace dale
  *  @param prefixed_with_core Whether to ignore overridden setfs.
  *  @param pr The parse result for the response.
  */
-bool
-FormProcSetfParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                  Node *node, bool get_address, bool prefixed_with_core,
-                  ParseResult *pr);
-bool
-FormProcSetfProcess(Units *units, Function *fn, llvm::BasicBlock *block,
-                    Node *node, Node *value_node,
-                    bool get_address, bool prefixed_with_core,
-                    ParseResult *variable_pr, ParseResult *value_pr,
-                    ParseResult *pr);
+bool FormProcSetfParse(Units *units, Function *fn,
+                       llvm::BasicBlock *block, Node *node,
+                       bool get_address, bool prefixed_with_core,
+                       ParseResult *pr);
+bool FormProcSetfProcess(Units *units, Function *fn,
+                         llvm::BasicBlock *block, Node *node,
+                         Node *value_node, bool get_address,
+                         bool prefixed_with_core,
+                         ParseResult *variable_pr,
+                         ParseResult *value_pr, ParseResult *pr);
 }
 
 #endif

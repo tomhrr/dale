@@ -1,24 +1,22 @@
-#include "../../../Units/Units.h"
-#include "../../../Node/Node.h"
-#include "../../../ParseResult/ParseResult.h"
 #include "../../../Function/Function.h"
-#include "../../../Operation/Destruct/Destruct.h"
-#include "../Inst/Inst.h"
-#include "../../../llvm_Function.h"
 #include "../../../Lexer/Lexer.h"
+#include "../../../Node/Node.h"
+#include "../../../Operation/Destruct/Destruct.h"
+#include "../../../ParseResult/ParseResult.h"
 #include "../../../Parser/Parser.h"
+#include "../../../Units/Units.h"
+#include "../../../llvm_Function.h"
+#include "../Inst/Inst.h"
 
 #include <cstdio>
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-bool
-FormProcIncludeParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                     Node *node, bool get_address, bool prefixed_with_core,
-                     ParseResult *pr)
-{
+namespace dale {
+bool FormProcIncludeParse(Units *units, Function *fn,
+                          llvm::BasicBlock *block, Node *node,
+                          bool get_address, bool prefixed_with_core,
+                          ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("include", node, 1, 1)) {
@@ -34,7 +32,8 @@ FormProcIncludeParse(Units *units, Function *fn, llvm::BasicBlock *block,
     if (!ctx->er->assertArgIsAtom("include", path_node, "1")) {
         return false;
     }
-    if (!ctx->er->assertAtomIsStringLiteral("include", path_node, "1")) {
+    if (!ctx->er->assertAtomIsStringLiteral("include", path_node,
+                                            "1")) {
         return false;
     }
 
@@ -42,10 +41,9 @@ FormProcIncludeParse(Units *units, Function *fn, llvm::BasicBlock *block,
 
     FILE *include_file = NULL;
     for (std::vector<const char *>::iterator
-                b = units->mr->include_directory_paths.begin(),
-                e = units->mr->include_directory_paths.end();
-            b != e;
-            ++b) {
+             b = units->mr->include_directory_paths.begin(),
+             e = units->mr->include_directory_paths.end();
+         b != e; ++b) {
         path_buf.clear();
         path_buf.append((*b));
         if (*(path_buf.rbegin()) != '/') {
@@ -88,8 +86,7 @@ FormProcIncludeParse(Units *units, Function *fn, llvm::BasicBlock *block,
     }
     Node *wrapper = new Node(do_nodes);
 
-    return FormProcInstParse(units, fn, block,
-                             wrapper,
-                             get_address, false, NULL, pr);
+    return FormProcInstParse(units, fn, block, wrapper, get_address,
+                             false, NULL, pr);
 }
 }

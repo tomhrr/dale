@@ -1,11 +1,10 @@
 #ifndef DALE_DEFERREDGOTO
 #define DALE_DEFERREDGOTO
 
-#include "../llvm_LLVMContext.h"
 #include "../llvm_Function.h"
+#include "../llvm_LLVMContext.h"
 
-namespace dale
-{
+namespace dale {
 class Node;
 class Namespace;
 
@@ -15,9 +14,8 @@ class Namespace;
     goto for a label that is not yet in scope. The generator will
     resolve deferred gotos once the function has been processed.
 */
-class DeferredGoto
-{
-public:
+class DeferredGoto {
+   public:
     /*! The instruction after which the goto instruction should be
      *  added. This may be NULL, when e.g. the prospective goto will
      *  be the first instruction within the relevant block. */

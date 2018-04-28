@@ -1,22 +1,22 @@
 #include "Struct.h"
-#include "../../../Linkage/Linkage.h"
 #include "../../../Error/Error.h"
+#include "../../../Linkage/Linkage.h"
 #include "../../../Operation/Cast/Cast.h"
 #include "../../Proc/Inst/Inst.h"
 
 using namespace dale::ErrorInst;
 
 namespace dale {
-bool
-FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                       Node *node, const char *struct_name, Struct *st,
-                       Type *st_type, bool get_address, ParseResult *pr)
-{
+bool FormLiteralStructParse(Units *units, Function *fn,
+                            llvm::BasicBlock *block, Node *node,
+                            const char *struct_name, Struct *st,
+                            Type *st_type, bool get_address,
+                            ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     if (!node->is_list) {
-        Error *e = new Error(UnexpectedElement, node,
-                             "list", "struct initialisers", "atom");
+        Error *e = new Error(UnexpectedElement, node, "list",
+                             "struct initialisers", "atom");
         ctx->er->addError(e);
         return false;
     }
@@ -28,30 +28,28 @@ FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
     llvm::Value *storage =
         llvm::cast<llvm::Value>(builder.CreateAlloca(st->type));
 
-    for (std::vector<Node *>::iterator b = lst->begin(),
-                                       e = lst->end();
-            b != e;
-            ++b) {
+    for (std::vector<Node *>::iterator b = lst->begin(), e = lst->end();
+         b != e; ++b) {
         Node *member_node = (*b);
         if (!member_node->is_list) {
-            Error *e = new Error(UnexpectedElement, member_node,
-                                 "list", "struct initialiser", "atom");
+            Error *e = new Error(UnexpectedElement, member_node, "list",
+                                 "struct initialiser", "atom");
             ctx->er->addError(e);
             return false;
         }
         std::vector<Node *> *member_lst = member_node->list;
         if (member_lst->size() != 2) {
-            Error *e = new Error(UnexpectedElement, member_node,
-                                 "list", "struct initialiser", "atom");
+            Error *e = new Error(UnexpectedElement, member_node, "list",
+                                 "struct initialiser", "atom");
             ctx->er->addError(e);
             return false;
         }
-        Node *name_node  = (*member_lst)[0];
+        Node *name_node = (*member_lst)[0];
         Node *value_node = (*member_lst)[1];
 
         if (!name_node->is_token) {
-            Error *e = new Error(UnexpectedElement, name_node,
-                                 "atom", "struct field name", "list");
+            Error *e = new Error(UnexpectedElement, name_node, "atom",
+                                 "struct field name", "list");
             ctx->er->addError(e);
             return false;
         }
@@ -59,8 +57,8 @@ FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
         const char *name = name_node->token->str_value.c_str();
         Type *type = st->nameToType(name);
         if (!type) {
-            Error *e = new Error(FieldDoesNotExistInStruct,
-                                 name_node, name, struct_name);
+            Error *e = new Error(FieldDoesNotExistInStruct, name_node,
+                                 name, struct_name);
             ctx->er->addError(e);
             return false;
         }
@@ -71,26 +69,25 @@ FormLiteralStructParse(Units *units, Function *fn, llvm::BasicBlock *block,
         STL::push_back2(&indices, ctx->nt->getLLVMZero(),
                         ctx->nt->getNativeInt(index));
 
-        llvm::Value *storage_ptr =
-            builder.CreateGEP(storage,
-                              llvm::ArrayRef<llvm::Value*>(indices));
+        llvm::Value *storage_ptr = builder.CreateGEP(
+            storage, llvm::ArrayRef<llvm::Value *>(indices));
 
         ParseResult value_pr;
-        bool res = FormProcInstParse(units, fn, block, value_node, false,
-                                      false, type, &value_pr);
+        bool res = FormProcInstParse(units, fn, block, value_node,
+                                     false, false, type, &value_pr);
         if (!res) {
             return false;
         }
 
         if (!value_pr.type->isEqualTo(type, 1)) {
-            if ((type->isIntegerType()
-                    && value_pr.type->isIntegerType())
-                    || (type->isFloatingPointType()
-                        && value_pr.type->isFloatingPointType())) {
+            if ((type->isIntegerType() &&
+                 value_pr.type->isIntegerType()) ||
+                (type->isFloatingPointType() &&
+                 value_pr.type->isFloatingPointType())) {
                 ParseResult cast_pr;
-                res = Operation::Cast(ctx, value_pr.block,
-                                      value_pr.getValue(ctx), value_pr.type,
-                                      type, member_node, 0, &cast_pr);
+                res = Operation::Cast(
+                    ctx, value_pr.block, value_pr.getValue(ctx),
+                    value_pr.type, type, member_node, 0, &cast_pr);
                 if (!res) {
                     return false;
                 }

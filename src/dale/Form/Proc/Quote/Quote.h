@@ -1,8 +1,7 @@
 #ifndef DALE_FORM_PROC_QUOTE
 #define DALE_FORM_PROC_QUOTE
 
-namespace dale
-{
+namespace dale {
 /*! Parse a procedure-body quote statement.
  *  @param units The units context.
  *  @param fn The function currently in scope.
@@ -16,10 +15,10 @@ namespace dale
  *  DNode representing that form.  It is similar to ' in CL/Scheme,
  *  except that there's no concept of a 'symbol' as such here.
  */
-bool
-FormProcQuoteParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                   Node *node, bool get_address, bool prefixed_with_core,
-                   ParseResult *pr);
+bool FormProcQuoteParse(Units *units, Function *fn,
+                        llvm::BasicBlock *block, Node *node,
+                        bool get_address, bool prefixed_with_core,
+                        ParseResult *pr);
 }
 
 #endif

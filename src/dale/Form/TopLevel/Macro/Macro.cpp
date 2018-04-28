@@ -1,30 +1,26 @@
 #include "Macro.h"
-#include "Config.h"
-#include "../../../Units/Units.h"
 #include "../../../CoreForms/CoreForms.h"
 #include "../../../Node/Node.h"
+#include "../../../Units/Units.h"
 #include "../../../llvmUtils/llvmUtils.h"
 #include "../../Function/Function.h"
 #include "../../Linkage/Linkage.h"
-#include "../../ProcBody/ProcBody.h"
 #include "../../Parameter/Parameter.h"
+#include "../../ProcBody/ProcBody.h"
 #include "../../Utils/Utils.h"
+#include "Config.h"
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-void
-removeMacro(Context *ctx, const char *name)
-{
-    std::map<std::string, std::vector<Function*>*>::iterator b =
+namespace dale {
+void removeMacro(Context *ctx, const char *name) {
+    std::map<std::string, std::vector<Function *> *>::iterator b =
         ctx->ns()->functions.find(name);
 
     if (b != ctx->ns()->functions.end()) {
         for (std::vector<Function *>::iterator j = b->second->begin(),
                                                k = b->second->end();
-                j != k;
-                ++j) {
+             j != k; ++j) {
             if ((*j)->is_macro) {
                 b->second->erase(j);
                 break;
@@ -33,9 +29,8 @@ removeMacro(Context *ctx, const char *name)
     }
 }
 
-bool
-FormTopLevelMacroParse(Units *units, Node *node, const char *name)
-{
+bool FormTopLevelMacroParse(Units *units, Node *node,
+                            const char *name) {
     Context *ctx = units->top()->ctx;
 
     Node *top;
@@ -54,8 +49,8 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
 
     std::vector<Node *> *lst = top->list;
     if (lst->size() < 3) {
-        Error *e = new Error(IncorrectMinimumNumberOfArgs, top,
-                             "macro", 2, (int) (lst->size() - 1));
+        Error *e = new Error(IncorrectMinimumNumberOfArgs, top, "macro",
+                             2, (int)(lst->size() - 1));
         ctx->er->addError(e);
         return false;
     }
@@ -69,8 +64,8 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
 
     Node *macro_params = (*lst)[2];
     if (!macro_params->is_list) {
-        Error *e = new Error(UnexpectedElement, macro_params,
-                             "list", "macro parameters", "atom");
+        Error *e = new Error(UnexpectedElement, macro_params, "list",
+                             "macro parameters", "atom");
         ctx->er->addError(e);
         return false;
     }
@@ -79,7 +74,7 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
 
     /* An implicit MContext argument is added to every macro. */
 
-    Type *mc_type  = ctx->tr->getStructType("MContext");
+    Type *mc_type = ctx->tr->getStructType("MContext");
     Type *pmc_type = ctx->tr->getPointerType(mc_type);
     Variable *mc_var = new Variable("mc", pmc_type);
     mc_var->linkage = Linkage::Auto;
@@ -96,12 +91,12 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
     std::vector<Node *> *params = macro_params->list;
     for (std::vector<Node *>::iterator b = params->begin(),
                                        e = params->end();
-            b != e;
-            ++b) {
+         b != e; ++b) {
         Variable *var = NULL;
         if (!(*b)->is_token) {
             var = new Variable();
-            FormParameterParse(units, var, (*b), false, false, false, false);
+            FormParameterParse(units, var, (*b), false, false, false,
+                               false);
             if (!var->type) {
                 return false;
             }
@@ -121,8 +116,7 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
                                      macro_params);
                 ctx->er->addError(e);
                 return false;
-            } else if (!value->compare("rest")
-                            && ((b + 1) == e)) {
+            } else if (!value->compare("rest") && ((b + 1) == e)) {
                 var = new Variable();
                 var->type = ctx->tr->type_varargs;
                 var->name.append((*b)->token->str_value);
@@ -139,26 +133,23 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
         }
     }
 
-    std::vector<llvm::Type*> mc_params;
+    std::vector<llvm::Type *> mc_params;
 
     /* Convert to LLVM parameters.  The MContext argument is converted
      * as per its actual type.  The remaining arguments,
      * notwithstanding the macro parameters' 'actual' types, will
      * always be (p DNode)s. */
 
-    mc_params.push_back(ctx->toLLVMType(mc_params_internal[0]->type,
-                                        NULL, false));
+    mc_params.push_back(
+        ctx->toLLVMType(mc_params_internal[0]->type, NULL, false));
 
-    for (std::vector<Variable *>::iterator b = mc_params_internal.begin() + 1,
-                                           e = mc_params_internal.end();
-            b != e;
-            ++b) {
+    for (std::vector<Variable *>::iterator
+             b = mc_params_internal.begin() + 1,
+             e = mc_params_internal.end();
+         b != e; ++b) {
         if ((*b)->type->base_type == BaseType::VarArgs) {
-            mc_params.push_back(
-                ctx->toLLVMType(
-                    ctx->tr->getPointerType(ret_type), NULL, false
-                )
-            );
+            mc_params.push_back(ctx->toLLVMType(
+                ctx->tr->getPointerType(ret_type), NULL, false));
             continue;
         }
         llvm::Type *llvm_type = ctx->toLLVMType(ret_type, NULL, false);
@@ -172,14 +163,15 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
     if (!llvm_ret_type) {
         return false;
     }
-    llvm::FunctionType *ft = getFunctionType(llvm_ret_type, mc_params,
-                                             false);
+    llvm::FunctionType *ft =
+        getFunctionType(llvm_ret_type, mc_params, false);
 
     std::string new_name;
     ctx->ns()->functionNameToSymbol(name, &new_name, linkage,
                                     &mc_params_internal);
 
-    if (units->top()->module->getFunction(llvm::StringRef(new_name.c_str()))) {
+    if (units->top()->module->getFunction(
+            llvm::StringRef(new_name.c_str()))) {
         Error *e = new Error(RedeclarationOfFunctionOrMacro, top, name);
         ctx->er->addError(e);
         return false;
@@ -188,8 +180,7 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
     Namespace *current_ns = (*(ctx->used_ns_nodes.rbegin()))->ns;
     Variable *matching_var = current_ns->getVariable(name);
     if (matching_var) {
-        Error *e = new Error(RedeclarationOfDifferentKind,
-                             node, name);
+        Error *e = new Error(RedeclarationOfDifferentKind, node, name);
         ctx->er->addError(e);
         return false;
     }
@@ -216,12 +207,14 @@ FormTopLevelMacroParse(Units *units, Node *node, const char *name)
         fn->once_tag = units->top()->once_tag;
     }
 
-    /* If the list has only three arguments, the macro is a declaration. */
+    /* If the list has only three arguments, the macro is a declaration.
+     */
     if (lst->size() == 3) {
         return true;
     }
 
-    int error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
+    int error_count_begin =
+        ctx->er->getErrorTypeCount(ErrorType::Error);
 
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;

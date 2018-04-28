@@ -2,52 +2,37 @@
 
 #include "../STL/STL.h"
 
-namespace dale
-{
-Struct::Struct()
-{
-    linkage   = 0;
+namespace dale {
+Struct::Struct() {
+    linkage = 0;
     is_opaque = false;
     serialise = true;
 }
 
-Struct::~Struct()
-{
-}
+Struct::~Struct() {}
 
-bool
-Struct::addMember(const char *name, Type *type)
-{
+bool Struct::addMember(const char *name, Type *type) {
     if (nameToType(name)) {
         return false;
     }
 
     name_to_index.insert(
-        std::pair<std::string, int>(name, member_types.size())
-    );
+        std::pair<std::string, int>(name, member_types.size()));
 
     member_types.push_back(type);
 
     return true;
 }
 
-Type *
-Struct::nameToType(const char *name)
-{
+Type *Struct::nameToType(const char *name) {
     int index = nameToIndex(name);
 
     return (index == -1) ? NULL : member_types[index];
 }
 
-Type *
-Struct::indexToType(int index)
-{
-    return member_types[index];
-}
+Type *Struct::indexToType(int index) { return member_types[index]; }
 
-int
-Struct::nameToIndex(const char *name)
-{
+int Struct::nameToIndex(const char *name) {
     std::map<std::string, int>::iterator iter =
         name_to_index.find(name);
 
@@ -58,9 +43,7 @@ Struct::nameToIndex(const char *name)
     }
 }
 
-const char *
-Struct::indexToName(int index)
-{
+const char *Struct::indexToName(int index) {
     std::map<std::string, int>::iterator iter;
 
     iter = name_to_index.begin();

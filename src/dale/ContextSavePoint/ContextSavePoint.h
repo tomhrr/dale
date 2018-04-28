@@ -4,13 +4,11 @@
 #include "../Context/Context.h"
 #include "../NamespaceSavePoint/NamespaceSavePoint.h"
 
-#include <string>
 #include <map>
+#include <string>
 
-namespace dale
-{
-struct SPNode
-{
+namespace dale {
+struct SPNode {
     NamespaceSavePoint *nsp;
     std::map<std::string, SPNode *> children;
 };
@@ -22,16 +20,15 @@ struct SPNode
     function, so that anything done in order to make that
     determination can be reversed.
 */
-class ContextSavePoint
-{
-private:
+class ContextSavePoint {
+   private:
     Context *src_ctx;
     SPNode *nsps;
     NSNode *active;
     int active_count;
     int used_count;
 
-public:
+   public:
     /*! Construct a new savepoint using the given context.
      *  @param ctx The context.
      */

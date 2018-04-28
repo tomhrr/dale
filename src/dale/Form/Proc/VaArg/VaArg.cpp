@@ -1,14 +1,13 @@
-#include "../../../Units/Units.h"
+#include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Function/Function.h"
+#include "../../../Units/Units.h"
+#include "../../../llvmUtils/llvmUtils.h"
+#include "../../../llvm_Function.h"
 #include "../../Type/Type.h"
 #include "../Inst/Inst.h"
-#include "../../../llvm_Function.h"
-#include "../../../llvmUtils/llvmUtils.h"
 
-namespace dale
-{
+namespace dale {
 /*
 (See the AMD64 ABI draft of 13/01/2010 for more information; most of
 the below is verbatim from there, and the document details the
@@ -83,57 +82,45 @@ Algorithm:
     11. Return the fetched type.
 */
 
-bool
-parseVaArg64(Units *units, Function *fn, Type *type, llvm::Type *llvm_type,
-             ParseResult *arglist_pr, ParseResult *pr)
-{
+bool parseVaArg64(Units *units, Function *fn, Type *type,
+                  llvm::Type *llvm_type, ParseResult *arglist_pr,
+                  ParseResult *pr) {
     Context *ctx = units->top()->ctx;
     llvm::IRBuilder<> builder(arglist_pr->block);
 
     /* 1 to 2. */
 
-    llvm::Value *pvlstr =
-        llvm::cast<llvm::Value>(
-            builder.CreateBitCast(
-                arglist_pr->getValue(ctx),
-                llvm::PointerType::getUnqual(
-                    ctx->getStruct("va-list")->type
-                )
-            )
-        );
+    llvm::Value *pvlstr = llvm::cast<llvm::Value>(builder.CreateBitCast(
+        arglist_pr->getValue(ctx),
+        llvm::PointerType::getUnqual(ctx->getStruct("va-list")->type)));
 
     std::vector<llvm::Value *> indices_gp_offset;
-    STL::push_back2(&indices_gp_offset,
-                    ctx->nt->getLLVMZero(),
+    STL::push_back2(&indices_gp_offset, ctx->nt->getLLVMZero(),
                     ctx->nt->getLLVMZero());
 
     std::vector<llvm::Value *> indices_overflow_arg_area;
-    STL::push_back2(&indices_overflow_arg_area,
-                    ctx->nt->getLLVMZero(),
+    STL::push_back2(&indices_overflow_arg_area, ctx->nt->getLLVMZero(),
                     ctx->nt->getNativeInt(2));
 
     std::vector<llvm::Value *> indices_reg_save_area;
-    STL::push_back2(&indices_reg_save_area,
-                    ctx->nt->getLLVMZero(),
+    STL::push_back2(&indices_reg_save_area, ctx->nt->getLLVMZero(),
                     ctx->nt->getNativeInt(3));
 
-    llvm::Value *ptr_gpo =
-        builder.CreateGEP(pvlstr,
-                          llvm::ArrayRef<llvm::Value*>(indices_gp_offset));
+    llvm::Value *ptr_gpo = builder.CreateGEP(
+        pvlstr, llvm::ArrayRef<llvm::Value *>(indices_gp_offset));
 
     llvm::Value *gpo =
         llvm::cast<llvm::Value>(builder.CreateLoad(ptr_gpo));
 
-    llvm::Value *ptr_oaa =
-        builder.CreateGEP(pvlstr,
-                          llvm::ArrayRef<llvm::Value*>(indices_overflow_arg_area));
+    llvm::Value *ptr_oaa = builder.CreateGEP(
+        pvlstr,
+        llvm::ArrayRef<llvm::Value *>(indices_overflow_arg_area));
 
     llvm::Value *oaa =
         llvm::cast<llvm::Value>(builder.CreateLoad(ptr_oaa));
 
-    llvm::Value *ptr_rsa =
-        builder.CreateGEP(pvlstr,
-                          llvm::ArrayRef<llvm::Value*>(indices_reg_save_area));
+    llvm::Value *ptr_rsa = builder.CreateGEP(
+        pvlstr, llvm::ArrayRef<llvm::Value *>(indices_reg_save_area));
 
     llvm::Value *rsa =
         llvm::cast<llvm::Value>(builder.CreateLoad(ptr_rsa));
@@ -141,18 +128,13 @@ parseVaArg64(Units *units, Function *fn, Type *type, llvm::Type *llvm_type,
     /* Verify whether arguments fit into registers.  For the time
      * being, this is so if gp_offset > 40. */
 
-    llvm::BasicBlock *then_block =
-        llvm::BasicBlock::Create(*getContext(),
-                                 "then", fn->llvm_function);
-    llvm::BasicBlock *else_block =
-        llvm::BasicBlock::Create(*getContext(),
-                                 "else", fn->llvm_function);
+    llvm::BasicBlock *then_block = llvm::BasicBlock::Create(
+        *getContext(), "then", fn->llvm_function);
+    llvm::BasicBlock *else_block = llvm::BasicBlock::Create(
+        *getContext(), "else", fn->llvm_function);
 
-    llvm::Value *cond =
-        builder.CreateICmpUGT(
-            gpo,
-            llvm::ConstantInt::get(ctx->nt->getNativeUIntType(), 40)
-        );
+    llvm::Value *cond = builder.CreateICmpUGT(
+        gpo, llvm::ConstantInt::get(ctx->nt->getNativeUIntType(), 40));
 
     builder.CreateCondBr(cond, then_block, else_block);
 
@@ -162,76 +144,53 @@ parseVaArg64(Units *units, Function *fn, Type *type, llvm::Type *llvm_type,
     /* Then component: 4-6. */
 
     std::vector<llvm::Value *> indices_po1;
-    indices_po1.push_back(llvm::ConstantInt::get(ctx->nt->getNativeUIntType(),
-                          0));
+    indices_po1.push_back(
+        llvm::ConstantInt::get(ctx->nt->getNativeUIntType(), 0));
 
-    llvm::Value *then_ptr_obj =
-        builder_then.CreateGEP(oaa,
-                              llvm::ArrayRef<llvm::Value*>(indices_po1));
+    llvm::Value *then_ptr_obj = builder_then.CreateGEP(
+        oaa, llvm::ArrayRef<llvm::Value *>(indices_po1));
 
-    llvm::Value *then_value=
-        builder_then.CreateLoad(
-            builder_then.CreateBitCast(
-                then_ptr_obj,
-                llvm::PointerType::getUnqual(llvm_type)
-            )
-        );
+    llvm::Value *then_value =
+        builder_then.CreateLoad(builder_then.CreateBitCast(
+            then_ptr_obj, llvm::PointerType::getUnqual(llvm_type)));
 
     builder_then.CreateStore(
         builder_then.CreateIntToPtr(
             builder_then.CreateAdd(
                 builder_then.CreatePtrToInt(
-                    oaa,
-                    llvm::Type::getInt64Ty(*getContext())
-                ),
+                    oaa, llvm::Type::getInt64Ty(*getContext())),
                 llvm::ConstantInt::get(
-                    llvm::Type::getInt64Ty(*getContext()),
-                    8
-                )
-            ),
+                    llvm::Type::getInt64Ty(*getContext()), 8)),
             llvm::PointerType::getUnqual(
-                llvm::Type::getInt8Ty(*getContext())
-            )
-        ),
-        ptr_oaa
-    );
+                llvm::Type::getInt8Ty(*getContext()))),
+        ptr_oaa);
 
     /* Else component: 7 onwards. */
 
     std::vector<llvm::Value *> indices_po2;
     indices_po2.push_back(gpo);
 
-    llvm::Value *ptr_obj =
-        builder_else.CreateGEP(rsa,
-                                llvm::ArrayRef<llvm::Value*>(indices_po2));
+    llvm::Value *ptr_obj = builder_else.CreateGEP(
+        rsa, llvm::ArrayRef<llvm::Value *>(indices_po2));
 
-    llvm::Value *else_value=
-        builder_else.CreateLoad(
-            builder_else.CreateBitCast(
-                ptr_obj,
-                llvm::PointerType::getUnqual(llvm_type)
-            )
-        );
+    llvm::Value *else_value =
+        builder_else.CreateLoad(builder_else.CreateBitCast(
+            ptr_obj, llvm::PointerType::getUnqual(llvm_type)));
 
     builder_else.CreateStore(
-        builder_else.CreateAdd(gpo,
-                                ctx->nt->getNativeInt(8)),
-        ptr_gpo
-    );
+        builder_else.CreateAdd(gpo, ctx->nt->getNativeInt(8)), ptr_gpo);
 
     /* Final parts. */
 
-    llvm::BasicBlock *done_block =
-        llvm::BasicBlock::Create(*getContext(),
-                                 "va_done", fn->llvm_function);
+    llvm::BasicBlock *done_block = llvm::BasicBlock::Create(
+        *getContext(), "va_done", fn->llvm_function);
 
     builder_then.CreateBr(done_block);
     builder_else.CreateBr(done_block);
 
     llvm::IRBuilder<> builder_done(done_block);
 
-    llvm::PHINode *pn =
-        builder_done.CreatePHI(llvm_type, 0);
+    llvm::PHINode *pn = builder_done.CreatePHI(llvm_type, 0);
 
     pn->addIncoming(then_value, then_block);
     pn->addIncoming(else_value, else_block);
@@ -241,11 +200,10 @@ parseVaArg64(Units *units, Function *fn, Type *type, llvm::Type *llvm_type,
     return true;
 }
 
-bool
-FormProcVaArgParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                   Node *node, bool get_address, bool prefixed_with_core,
-                   ParseResult *pr)
-{
+bool FormProcVaArgParse(Units *units, Function *fn,
+                        llvm::BasicBlock *block, Node *node,
+                        bool get_address, bool prefixed_with_core,
+                        ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("va-arg", node, 2, 2)) {
@@ -266,8 +224,7 @@ FormProcVaArgParse(Units *units, Function *fn, llvm::BasicBlock *block,
         return false;
     }
 
-    llvm::Type *llvm_type =
-        ctx->toLLVMType(type, NULL, false, false);
+    llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false, false);
     if (!llvm_type) {
         return false;
     }
@@ -280,7 +237,8 @@ FormProcVaArgParse(Units *units, Function *fn, llvm::BasicBlock *block,
         pr->set(arglist_pr.block, type, res);
         return true;
     } else {
-        return parseVaArg64(units, fn, type, llvm_type, &arglist_pr, pr);
+        return parseVaArg64(units, fn, type, llvm_type, &arglist_pr,
+                            pr);
     }
 }
 }

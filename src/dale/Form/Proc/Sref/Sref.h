@@ -1,8 +1,7 @@
 #ifndef DALE_FORM_PROC_SREF
 #define DALE_FORM_PROC_SREF
 
-namespace dale
-{
+namespace dale {
 /*! Parse an sref form.
  *  @param units The units context.
  *  @param fn The function currently in scope.
@@ -12,9 +11,10 @@ namespace dale
  *  @param prefixed_with_core (Unused by this form.)
  *  @param pr The parse result for the response.
  */
-bool FormProcSrefParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                       Node *node, bool get_address,
-                       bool prefixed_with_core, ParseResult *pr);
+bool FormProcSrefParse(Units *units, Function *fn,
+                       llvm::BasicBlock *block, Node *node,
+                       bool get_address, bool prefixed_with_core,
+                       ParseResult *pr);
 }
 
 #endif

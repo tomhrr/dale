@@ -1,16 +1,13 @@
 #include "Module.h"
-#include "Config.h"
-#include "../../../Units/Units.h"
 #include "../../../Node/Node.h"
+#include "../../../Units/Units.h"
+#include "Config.h"
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-bool
-isValidModuleName(const char *name)
-{
-    for (int i = 0; i < (int) strlen(name); ++i) {
+namespace dale {
+bool isValidModuleName(const char *name) {
+    for (int i = 0; i < (int)strlen(name); ++i) {
         char c = name[i];
         if (!(isalnum(c) || (c == '-') || (c == '_') || (c == '.'))) {
             return false;
@@ -19,9 +16,7 @@ isValidModuleName(const char *name)
     return true;
 }
 
-bool
-FormTopLevelModuleParse(Units *units, Node *node)
-{
+bool FormTopLevelModuleParse(Units *units, Node *node) {
     Context *ctx = units->top()->ctx;
 
     if (units->module_name.size() != 0) {
@@ -68,18 +63,17 @@ FormTopLevelModuleParse(Units *units, Node *node)
     }
     std::vector<Node *> *attr_list = attr_nodes->list;
 
-    if ((attr_list->size() == 0)
-            || !((*attr_list)[0]->is_token)
-            || ((*attr_list)[0]->token->str_value.compare("attr"))) {
-        Error *e = new Error(UnexpectedElement, attr_nodes, "attr", 0, 0);
+    if ((attr_list->size() == 0) || !((*attr_list)[0]->is_token) ||
+        ((*attr_list)[0]->token->str_value.compare("attr"))) {
+        Error *e =
+            new Error(UnexpectedElement, attr_nodes, "attr", 0, 0);
         ctx->er->addError(e);
         return false;
     }
 
-    for (std::vector<Node*>::iterator b = (attr_list->begin() + 1),
-                                      e = attr_list->end();
-            b != e;
-            ++b) {
+    for (std::vector<Node *>::iterator b = (attr_list->begin() + 1),
+                                       e = attr_list->end();
+         b != e; ++b) {
         if ((*b)->is_list) {
             Error *e = new Error(InvalidAttribute, (*b));
             ctx->er->addError(e);

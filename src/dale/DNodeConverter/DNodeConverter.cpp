@@ -5,41 +5,30 @@
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-DNodeConverter::DNodeConverter(ErrorReporter *er)
-{
-    this->er = er;
-}
+namespace dale {
+DNodeConverter::DNodeConverter(ErrorReporter *er) { this->er = er; }
 
-static void
-setNodeMacroPosition(Node *node, DNode *dnode)
-{
+static void setNodeMacroPosition(Node *node, DNode *dnode) {
     node->macro_begin.setLineAndColumn(dnode->macro_begin_line,
                                        dnode->macro_begin_column);
     node->macro_end.setLineAndColumn(dnode->macro_end_line,
                                      dnode->macro_end_column);
 }
 
-static void
-setNodePosition(Node *node, DNode *dnode)
-{
-    node->list_begin.setLineAndColumn(dnode->begin_line, dnode->begin_column);
+static void setNodePosition(Node *node, DNode *dnode) {
+    node->list_begin.setLineAndColumn(dnode->begin_line,
+                                      dnode->begin_column);
     node->list_end.setLineAndColumn(dnode->end_line, dnode->end_column);
     setNodeMacroPosition(node, dnode);
 }
 
-static Token *
-dnodeToNullToken(DNode *dnode)
-{
-    return new Token(TokenType::Null,
-                     dnode->begin_line, dnode->begin_column,
-                     dnode->end_line,   dnode->end_column);
+static Token *dnodeToNullToken(DNode *dnode) {
+    return new Token(TokenType::Null, dnode->begin_line,
+                     dnode->begin_column, dnode->end_line,
+                     dnode->end_column);
 }
 
-Node*
-DNodeConverter::numberAtomToNode(DNode *dnode, Node *error_node)
-{
+Node *DNodeConverter::numberAtomToNode(DNode *dnode, Node *error_node) {
     Token *token = dnodeToNullToken(dnode);
 
     token->str_value.append(dnode->token_str);
@@ -69,9 +58,7 @@ DNodeConverter::numberAtomToNode(DNode *dnode, Node *error_node)
     return n;
 }
 
-Node*
-DNodeConverter::stringLiteralAtomToNode(DNode *dnode)
-{
+Node *DNodeConverter::stringLiteralAtomToNode(DNode *dnode) {
     Token *token = dnodeToNullToken(dnode);
 
     token->type = TokenType::StringLiteral;
@@ -84,9 +71,7 @@ DNodeConverter::stringLiteralAtomToNode(DNode *dnode)
     return n;
 }
 
-Node*
-DNodeConverter::stringAtomToNode(DNode *dnode)
-{
+Node *DNodeConverter::stringAtomToNode(DNode *dnode) {
     Token *token = dnodeToNullToken(dnode);
 
     token->type = TokenType::String;
@@ -98,9 +83,7 @@ DNodeConverter::stringAtomToNode(DNode *dnode)
     return mynode;
 }
 
-Node*
-DNodeConverter::atomToNode(DNode *dnode, Node *error_node)
-{
+Node *DNodeConverter::atomToNode(DNode *dnode, Node *error_node) {
     if (!dnode->token_str || (strlen(dnode->token_str) == 0)) {
         Error *e = new Error(DNodeHasNoString, error_node);
         er->addError(e);
@@ -110,20 +93,18 @@ DNodeConverter::atomToNode(DNode *dnode, Node *error_node)
     char c = (dnode->token_str)[0];
     char d = (dnode->token_str)[1];
     int len = strlen(dnode->token_str);
-    if ((((len > 1) && (c == '-') && (isdigit(d))))
-            || (isdigit(c))) {
+    if ((((len > 1) && (c == '-') && (isdigit(d)))) || (isdigit(c))) {
         return numberAtomToNode(dnode, error_node);
     } else if ((c == '"') &&
-            (dnode->token_str)[strlen(dnode->token_str)-1] == '"') {
+               (dnode->token_str)[strlen(dnode->token_str) - 1] ==
+                   '"') {
         return stringLiteralAtomToNode(dnode);
     } else {
         return stringAtomToNode(dnode);
     }
 }
 
-Node*
-DNodeConverter::listToNode(DNode *dnode)
-{
+Node *DNodeConverter::listToNode(DNode *dnode) {
     std::vector<Node *> *list = new std::vector<Node *>;
 
     DNode *current_node = dnode->list_node;
@@ -139,9 +120,7 @@ DNodeConverter::listToNode(DNode *dnode)
     return final_node;
 }
 
-Node *
-DNodeConverter::toNode(DNode *dnode)
-{
+Node *DNodeConverter::toNode(DNode *dnode) {
     Node error_node;
     setNodePosition(&error_node, dnode);
     error_node.filename = dnode->filename;

@@ -1,25 +1,23 @@
 #ifndef DALE_CONTEXT
 #define DALE_CONTEXT
 
-#include "../Namespace/Namespace.h"
-#include "../Linkage/Linkage.h"
-#include "../Function/Function.h"
-#include "../Variable/Variable.h"
-#include "../Struct/Struct.h"
 #include "../ErrorReporter/ErrorReporter.h"
-#include "../Node/Node.h"
+#include "../Function/Function.h"
+#include "../Linkage/Linkage.h"
+#include "../Namespace/Namespace.h"
 #include "../NativeTypes/NativeTypes.h"
-#include "../TypeRegister/TypeRegister.h"
+#include "../Node/Node.h"
 #include "../STL/STL.h"
+#include "../Struct/Struct.h"
+#include "../TypeRegister/TypeRegister.h"
+#include "../Variable/Variable.h"
 
-#include <vector>
-#include <string>
 #include <map>
+#include <string>
+#include <vector>
 
-namespace dale
-{
-struct NSNode
-{
+namespace dale {
+struct NSNode {
     Namespace *ns;
     std::map<std::string, NSNode *> children;
 };
@@ -42,9 +40,8 @@ struct NSNode
     C's namespaces and bindings to D.
 
 */
-class Context
-{
-private:
+class Context {
+   private:
     /*! Whether retrieval logging is enabled.  This is an integer so
      *  that nested calls to enable/disable work correctly. */
     int retrieval_logging;
@@ -53,7 +50,7 @@ private:
     /*! Functions that have been retrieved. */
     std::vector<Function *> retrieved_fn;
 
-public:
+   public:
     /*! The native types for the context. Used primarily for type
      *  conversion. */
     NativeTypes *nt;
@@ -83,9 +80,7 @@ public:
      *
      *  This does not take ownership of any of its arguments.
      */
-    Context(ErrorReporter *er,
-            NativeTypes *nt,
-            TypeRegister *tr);
+    Context(ErrorReporter *er, NativeTypes *nt, TypeRegister *tr);
     ~Context();
 
     /*! Get the currently-active namespace.
@@ -146,23 +141,20 @@ public:
      *  @param ns_parts An optional vector for storing the argument
      *  name's segments.
      */
-    NSNode *getNSNode(const char *name,
-                      bool ignore_last,
+    NSNode *getNSNode(const char *name, bool ignore_last,
                       std::vector<std::string> *ns_parts);
     /*! Retrieve a namespace node by name.
      *  @param name The name of the namespace.
      *  @param ignore_last Whether to ignore the last segment of the
      *  argument name.
      */
-    NSNode *getNSNode(const char *name,
-                      bool ignore_last);
+    NSNode *getNSNode(const char *name, bool ignore_last);
     /*! Retrieve a namescape by name.
      *  @param name The name of the namespace.
      *  @param ignore_last Whether to ignore the last segment of the
      *  argument name.
      */
-    Namespace *getNamespace(const char *name,
-                            bool ignore_last);
+    Namespace *getNamespace(const char *name, bool ignore_last);
 
     /*! Use a namespace.
      *  @param name The name of the namespace.
@@ -203,10 +195,8 @@ public:
      *  same.  This iterates over the used namespaces, calling that
      *  method.
      */
-    Function *getFunction(const char *name,
-                          std::vector<Type *> *types,
-                          Function **closest_fn,
-                          bool is_macro,
+    Function *getFunction(const char *name, std::vector<Type *> *types,
+                          Function **closest_fn, bool is_macro,
                           std::vector<bool> *lvalues = NULL,
                           std::vector<Type *> *array_types = NULL);
     /*! Get the variable with the given name.
@@ -272,26 +262,18 @@ public:
      *
      *  The other toLLVMType functions should not be used externally.
      */
-    llvm::Type *toLLVMType(Type *type,
-                           Node *n,
+    llvm::Type *toLLVMType(Type *type, Node *n,
                            bool allow_non_first_class = true,
                            bool externally_defined = false,
                            bool refs_to_pointers = false);
-    llvm::Type *toLLVMType_(Type *type,
-                            Node *n,
-                            bool refs_to_pointers);
-    llvm::Type *toLLVMTypeStruct(Type *type,
-                                 Node *n);
-    llvm::Type *toLLVMTypeBase(Type *type,
-                               Node *n);
-    llvm::Type *toLLVMTypeFunction(Type *type,
-                                   Node *n,
+    llvm::Type *toLLVMType_(Type *type, Node *n, bool refs_to_pointers);
+    llvm::Type *toLLVMTypeStruct(Type *type, Node *n);
+    llvm::Type *toLLVMTypeBase(Type *type, Node *n);
+    llvm::Type *toLLVMTypeFunction(Type *type, Node *n,
                                    bool refs_to_pointers);
-    llvm::Type *toLLVMTypePointer(Type *type,
-                                  Node *n,
+    llvm::Type *toLLVMTypePointer(Type *type, Node *n,
                                   bool refs_to_pointers);
-    llvm::Type *toLLVMTypeArray(Type *type,
-                                Node *n);
+    llvm::Type *toLLVMTypeArray(Type *type, Node *n);
 
     /*! Convert a Dale linkage into an LLVM linkage.
      *  @param linkage The Dale linkage.

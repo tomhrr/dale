@@ -1,15 +1,12 @@
 #include "Import.h"
-#include "Config.h"
-#include "../../../Units/Units.h"
 #include "../../../Node/Node.h"
+#include "../../../Units/Units.h"
+#include "Config.h"
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-bool
-FormTopLevelImportParse(Units *units, Node *node)
-{
+namespace dale {
+bool FormTopLevelImportParse(Units *units, Node *node) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("import", node, 1, 2)) {
@@ -36,8 +33,7 @@ FormTopLevelImportParse(Units *units, Node *node)
         std::vector<Node *> *forms_lst = forms_node->list;
         for (std::vector<Node *>::iterator b = forms_lst->begin(),
                                            e = forms_lst->end();
-                b != e;
-                ++b) {
+             b != e; ++b) {
             if (!ctx->er->assertArgIsAtom("import", (*b), "2")) {
                 return false;
             }
@@ -46,8 +42,8 @@ FormTopLevelImportParse(Units *units, Node *node)
     }
 
     bool res =
-        units->mr->run(ctx, units->top()->linker,
-                       units->top()->module, node, name, &import_forms);
+        units->mr->run(ctx, units->top()->linker, units->top()->module,
+                       node, name, &import_forms);
     if (!res) {
         Error *e = new Error(UnableToLoadModule, node, name);
         ctx->er->addError(e);

@@ -1,21 +1,19 @@
-#include "../../../Units/Units.h"
+#include "../../../BaseType/BaseType.h"
+#include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
-#include "../../../Function/Function.h"
-#include "../../../BaseType/BaseType.h"
+#include "../../../Units/Units.h"
+#include "../../../llvm_Function.h"
 #include "../../Type/Type.h"
 #include "../Inst/Inst.h"
-#include "../../../llvm_Function.h"
 
 using namespace dale::ErrorInst;
 
-namespace dale
-{
-bool
-FormProcAddressOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
-                       Node *node, bool get_address, bool prefixed_with_core,
-                       ParseResult *pr)
-{
+namespace dale {
+bool FormProcAddressOfParse(Units *units, Function *fn,
+                            llvm::BasicBlock *block, Node *node,
+                            bool get_address, bool prefixed_with_core,
+                            ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     if (!ctx->er->assertArgNums("#", node, 1, -1)) {
@@ -39,7 +37,8 @@ FormProcAddressOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         }
     }
 
-    int error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
+    int error_count_begin =
+        ctx->er->getErrorTypeCount(ErrorType::Error);
 
     bool res = FormProcInstParse(units, fn, block, (*lst)[1], false,
                                  false, NULL, pr);
@@ -91,8 +90,7 @@ FormProcAddressOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         std::vector<Type *> types;
         for (std::vector<Node *>::iterator b = lst->begin() + 2,
                                            e = lst->end();
-                b != e;
-                ++b) {
+             b != e; ++b) {
             Type *type = FormTypeParse(units, (*b), false, false);
             if (!type) {
                 return false;
@@ -104,7 +102,8 @@ FormProcAddressOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
         }
 
         Function *closest_fn = NULL;
-        target_fn = ctx->getFunction(target_str, &types, &closest_fn, 0);
+        target_fn =
+            ctx->getFunction(target_str, &types, &closest_fn, 0);
 
         std::string args;
         typesToString(&types, &args);
@@ -113,16 +112,15 @@ FormProcAddressOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
             Error *e;
             if (closest_fn) {
                 std::string expected;
-                typesToString(closest_fn->parameters.begin()
-                              + (closest_fn->is_macro ? 1 : 0),
-                              closest_fn->parameters.end(),
-                              &expected);
-                e = new Error(OverloadedFunctionOrMacroNotInScopeWithClosest,
-                              node, target_str, args.c_str(),
-                              expected.c_str());
+                typesToString(closest_fn->parameters.begin() +
+                                  (closest_fn->is_macro ? 1 : 0),
+                              closest_fn->parameters.end(), &expected);
+                e = new Error(
+                    OverloadedFunctionOrMacroNotInScopeWithClosest,
+                    node, target_str, args.c_str(), expected.c_str());
             } else {
-                e = new Error(OverloadedFunctionOrMacroNotInScope,
-                              node, target_str, args.c_str());
+                e = new Error(OverloadedFunctionOrMacroNotInScope, node,
+                              target_str, args.c_str());
             }
             ctx->er->addError(e);
             return false;
@@ -140,10 +138,9 @@ FormProcAddressOfParse(Units *units, Function *fn, llvm::BasicBlock *block,
     type->return_type = target_fn->return_type;
 
     for (std::vector<Variable *>::iterator
-            b = target_fn->parameters.begin(),
-            e = target_fn->parameters.end();
-            b != e;
-            ++b) {
+             b = target_fn->parameters.begin(),
+             e = target_fn->parameters.end();
+         b != e; ++b) {
         type->parameter_types.push_back((*b)->type);
     }
 

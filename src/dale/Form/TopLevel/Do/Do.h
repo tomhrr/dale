@@ -3,8 +3,7 @@
 
 #include "../../../Units/Units.h"
 
-namespace dale
-{
+namespace dale {
 /*! Parse a top-level do form.
  *  @param units The units context.
  *  @param node The node being parsed.

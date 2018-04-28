@@ -1,31 +1,33 @@
 #include "CommonDecl.h"
 
+#include <float.h>
+#include <setjmp.h>
+#include <cstdio>
 #include "../BasicTypes/BasicTypes.h"
 #include "../llvmUtils/llvmUtils.h"
-#include <setjmp.h>
-#include <float.h>
-#include <cstdio>
 
-#define BT_SI(t)  BasicTypes::addSignedInt(ctx, mod, &current_once_tag, t);
-#define BT_UI(t)  BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, t);
-#define BT_FP(t)  BasicTypes::addFloatingPoint(ctx, mod, &current_once_tag, t);
+#define BT_SI(t) \
+    BasicTypes::addSignedInt(ctx, mod, &current_once_tag, t);
+#define BT_UI(t) \
+    BasicTypes::addUnsignedInt(ctx, mod, &current_once_tag, t);
+#define BT_FP(t) \
+    BasicTypes::addFloatingPoint(ctx, mod, &current_once_tag, t);
 
-#define AV_INT(n, v) addVariable(unit, n, type_int, nt->getNativeInt(v));
-#define CFP_FLOAT(v) llvm::ConstantFP::get(llvm::Type::getFloatTy(*getContext()), v)
-#define CFP_DBL(v) llvm::ConstantFP::get(llvm::Type::getDoubleTy(*getContext()), v)
-#define CFP_FP80(v) llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(*getContext()), v)
-#define CFP_INF(v) llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(*getContext()), v)
+#define AV_INT(n, v) \
+    addVariable(unit, n, type_int, nt->getNativeInt(v));
+#define CFP_FLOAT(v) \
+    llvm::ConstantFP::get(llvm::Type::getFloatTy(*getContext()), v)
+#define CFP_DBL(v) \
+    llvm::ConstantFP::get(llvm::Type::getDoubleTy(*getContext()), v)
+#define CFP_FP80(v) \
+    llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(*getContext()), v)
+#define CFP_INF(v) \
+    llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(*getContext()), v)
 
-namespace dale
-{
-namespace CommonDecl
-{
-bool
-addVariable(Unit *unit,
-            const char *name,
-            Type *type,
-            llvm::Constant *init)
-{
+namespace dale {
+namespace CommonDecl {
+bool addVariable(Unit *unit, const char *name, Type *type,
+                 llvm::Constant *init) {
     Context *ctx = unit->ctx;
     llvm::Module *mod = unit->module;
 
@@ -35,18 +37,16 @@ addVariable(Unit *unit,
     var->symbol.append(name);
     var->linkage = Linkage::Extern;
     bool res = ctx->ns()->addVariable(name, var);
-    assert(res); _unused(res);
+    assert(res);
+    _unused(res);
 
-    llvm::Type *var_type =
-        ctx->toLLVMType(type, NULL, false, false);
+    llvm::Type *var_type = ctx->toLLVMType(type, NULL, false, false);
     if (!var_type) {
         return false;
     }
 
-    llvm::GlobalVariable *llvm_var =
-        llvm::cast<llvm::GlobalVariable>(
-            mod->getOrInsertGlobal(name, var_type)
-        );
+    llvm::GlobalVariable *llvm_var = llvm::cast<llvm::GlobalVariable>(
+        mod->getOrInsertGlobal(name, var_type));
 
     llvm_var->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_Weak));
     llvm_var->setInitializer(init);
@@ -55,49 +55,32 @@ addVariable(Unit *unit,
     return true;
 }
 
-void
-addVarargsFunctions(Unit *unit)
-{
+void addVarargsFunctions(Unit *unit) {
     llvm::Module *mod = unit->module;
     Context *ctx = unit->ctx;
     Type *type_pchar = ctx->tr->type_pchar;
 
-    std::vector<llvm::Type*> va_start_args;
+    std::vector<llvm::Type *> va_start_args;
     va_start_args.push_back(ctx->toLLVMType(type_pchar, NULL, false));
 
     llvm::FunctionType *va_start_ft =
-        getFunctionType(
-            ctx->toLLVMType(ctx->tr->type_void, NULL, true),
-            va_start_args,
-            false
-        );
+        getFunctionType(ctx->toLLVMType(ctx->tr->type_void, NULL, true),
+                        va_start_args, false);
 
-    llvm::Function *va_start_fn =
-        llvm::cast<llvm::Function>(
-            mod->getOrInsertFunction(
-                "llvm.va_start",
-                va_start_ft
-            )
-        );
+    llvm::Function *va_start_fn = llvm::cast<llvm::Function>(
+        mod->getOrInsertFunction("llvm.va_start", va_start_ft));
 
     va_start_fn->setCallingConv(llvm::CallingConv::C);
 
-    llvm::Function *va_end_fn =
-        llvm::cast<llvm::Function>(
-            mod->getOrInsertFunction(
-                "llvm.va_end",
-                va_start_ft
-            )
-        );
+    llvm::Function *va_end_fn = llvm::cast<llvm::Function>(
+        mod->getOrInsertFunction("llvm.va_end", va_start_ft));
 
     va_end_fn->setCallingConv(llvm::CallingConv::C);
 
     return;
 }
 
-void
-addBasicTypes(Unit *unit, bool is_x86_64)
-{
+void addBasicTypes(Unit *unit, bool is_x86_64) {
     Context *ctx = unit->ctx;
     llvm::Module *mod = unit->module;
     std::string current_once_tag = unit->once_tag;
@@ -135,92 +118,83 @@ addBasicTypes(Unit *unit, bool is_x86_64)
     BT_FP(tr->type_longdouble);
 }
 
-void
-addVarargsTypes(Unit *unit, bool is_x86_64)
-{
+void addVarargsTypes(Unit *unit, bool is_x86_64) {
     Parser *prsr = unit->parser;
 
-    const char *definition =
-        (is_x86_64)
-            ? "(def va-list "
-                "(struct extern ((a uint32) "
-                                "(b uint32) "
-                                "(c (p char)) "
-                                "(d (p char)))))"
-            : "(def va-list "
-                "(struct extern ((a uint32))))";
+    const char *definition = (is_x86_64)
+                                 ? "(def va-list "
+                                   "(struct extern ((a uint32) "
+                                   "(b uint32) "
+                                   "(c (p char)) "
+                                   "(d (p char)))))"
+                                 : "(def va-list "
+                                   "(struct extern ((a uint32))))";
 
     prsr->getLexer()->pushText(definition);
 }
 
-void
-addStandardVariables(Unit *unit)
-{
+void addStandardVariables(Unit *unit) {
     Context *ctx = unit->ctx;
     NativeTypes *nt = ctx->nt;
 
-    Type *type_int    = ctx->tr->type_int;
-    Type *type_float  = ctx->tr->type_float;
+    Type *type_int = ctx->tr->type_int;
+    Type *type_float = ctx->tr->type_float;
     Type *type_double = ctx->tr->type_double;
-    Type *type_ldbl   = ctx->tr->type_longdouble;
+    Type *type_ldbl = ctx->tr->type_longdouble;
 
-    AV_INT("JMP_BUF_SIZE",     sizeof (jmp_buf));
-    AV_INT("FPOS_T",           sizeof (fpos_t));
-    AV_INT("TIME_T",           sizeof (time_t));
-    AV_INT("CLOCK_T",          sizeof (clock_t));
-    AV_INT("SIZEOF_SHORT",     sizeof (short));
-    AV_INT("SIZEOF_LONG",      sizeof (long));
-    AV_INT("SIZEOF_LONG_LONG", sizeof (long long));
+    AV_INT("JMP_BUF_SIZE", sizeof(jmp_buf));
+    AV_INT("FPOS_T", sizeof(fpos_t));
+    AV_INT("TIME_T", sizeof(time_t));
+    AV_INT("CLOCK_T", sizeof(clock_t));
+    AV_INT("SIZEOF_SHORT", sizeof(short));
+    AV_INT("SIZEOF_LONG", sizeof(long));
+    AV_INT("SIZEOF_LONG_LONG", sizeof(long long));
 
-    AV_INT("FLT_RADIX",     FLT_RADIX);
-    AV_INT("FLT_MANT_DIG",  FLT_MANT_DIG);
-    AV_INT("FLT_DIG",       FLT_DIG);
-    AV_INT("FLT_ROUNDS",    FLT_ROUNDS);
-    AV_INT("FLT_MIN_EXP",   FLT_MIN_EXP);
-    AV_INT("FLT_MAX_EXP",   FLT_MAX_EXP);
+    AV_INT("FLT_RADIX", FLT_RADIX);
+    AV_INT("FLT_MANT_DIG", FLT_MANT_DIG);
+    AV_INT("FLT_DIG", FLT_DIG);
+    AV_INT("FLT_ROUNDS", FLT_ROUNDS);
+    AV_INT("FLT_MIN_EXP", FLT_MIN_EXP);
+    AV_INT("FLT_MAX_EXP", FLT_MAX_EXP);
     AV_INT("LDBL_MANT_DIG", LDBL_MANT_DIG);
-    AV_INT("LDBL_DIG",      LDBL_DIG);
-    AV_INT("DBL_MANT_DIG",  DBL_MANT_DIG);
-    AV_INT("DBL_DIG",       DBL_DIG);
-    AV_INT("DBL_MIN_EXP",   DBL_MIN_EXP);
-    AV_INT("DBL_MAX_EXP",   DBL_MAX_EXP);
-    AV_INT("LDBL_MIN_EXP",  LDBL_MIN_EXP);
-    AV_INT("LDBL_MAX_EXP",  LDBL_MAX_EXP);
-    AV_INT("L_tmpnam",      L_tmpnam);
-    AV_INT("TMP_MAX",       TMP_MAX);
-    AV_INT("FILENAME_MAX",  FILENAME_MAX);
-    AV_INT("FOPEN_MAX",     FOPEN_MAX);
-    AV_INT("RAND_MAX",      RAND_MAX);
-    AV_INT("EXIT_FAILURE",  EXIT_FAILURE);
-    AV_INT("EXIT_SUCCESS",  EXIT_SUCCESS);
+    AV_INT("LDBL_DIG", LDBL_DIG);
+    AV_INT("DBL_MANT_DIG", DBL_MANT_DIG);
+    AV_INT("DBL_DIG", DBL_DIG);
+    AV_INT("DBL_MIN_EXP", DBL_MIN_EXP);
+    AV_INT("DBL_MAX_EXP", DBL_MAX_EXP);
+    AV_INT("LDBL_MIN_EXP", LDBL_MIN_EXP);
+    AV_INT("LDBL_MAX_EXP", LDBL_MAX_EXP);
+    AV_INT("L_tmpnam", L_tmpnam);
+    AV_INT("TMP_MAX", TMP_MAX);
+    AV_INT("FILENAME_MAX", FILENAME_MAX);
+    AV_INT("FOPEN_MAX", FOPEN_MAX);
+    AV_INT("RAND_MAX", RAND_MAX);
+    AV_INT("EXIT_FAILURE", EXIT_FAILURE);
+    AV_INT("EXIT_SUCCESS", EXIT_SUCCESS);
 
-    addVariable(unit, "FLT_EPSILON",  type_float,  CFP_FLOAT(FLT_EPSILON));
-    addVariable(unit, "FLT_MIN",      type_float,  CFP_FLOAT(FLT_MIN));
-    addVariable(unit, "FLT_MAX",      type_float,  CFP_FLOAT(FLT_MAX));
-    addVariable(unit, "DBL_EPSILON",  type_double, CFP_DBL(DBL_EPSILON));
-    addVariable(unit, "DBL_MIN",      type_double, CFP_DBL(DBL_MIN));
-    addVariable(unit, "DBL_MAX",      type_double, CFP_DBL(DBL_MAX));
-    addVariable(unit, "LDBL_EPSILON", type_ldbl,   CFP_FP80(LDBL_EPSILON));
-    addVariable(unit, "LDBL_MIN",     type_ldbl,   CFP_FP80(LDBL_MIN));
-    addVariable(unit, "LDBL_MAX",     type_ldbl,   CFP_FP80(LDBL_MAX));
+    addVariable(unit, "FLT_EPSILON", type_float,
+                CFP_FLOAT(FLT_EPSILON));
+    addVariable(unit, "FLT_MIN", type_float, CFP_FLOAT(FLT_MIN));
+    addVariable(unit, "FLT_MAX", type_float, CFP_FLOAT(FLT_MAX));
+    addVariable(unit, "DBL_EPSILON", type_double, CFP_DBL(DBL_EPSILON));
+    addVariable(unit, "DBL_MIN", type_double, CFP_DBL(DBL_MIN));
+    addVariable(unit, "DBL_MAX", type_double, CFP_DBL(DBL_MAX));
+    addVariable(unit, "LDBL_EPSILON", type_ldbl,
+                CFP_FP80(LDBL_EPSILON));
+    addVariable(unit, "LDBL_MIN", type_ldbl, CFP_FP80(LDBL_MIN));
+    addVariable(unit, "LDBL_MAX", type_ldbl, CFP_FP80(LDBL_MAX));
 
-    addVariable(unit, "HUGE_VAL",
-                type_double,
+    addVariable(unit, "HUGE_VAL", type_double,
                 llvm::ConstantFP::getInfinity(
-                    llvm::Type::getDoubleTy(*getContext())
-                ));
+                    llvm::Type::getDoubleTy(*getContext())));
 
-    addVariable(unit, "HUGE_VALF",
-                type_float,
+    addVariable(unit, "HUGE_VALF", type_float,
                 llvm::ConstantFP::getInfinity(
-                    llvm::Type::getFloatTy(*getContext())
-                ));
+                    llvm::Type::getFloatTy(*getContext())));
 
-    addVariable(unit, "HUGE_VALL",
-                type_ldbl,
+    addVariable(unit, "HUGE_VALL", type_ldbl,
                 llvm::ConstantFP::getInfinity(
-                    llvm::Type::getX86_FP80Ty(*getContext())
-                ));
+                    llvm::Type::getX86_FP80Ty(*getContext())));
 
     return;
 }
