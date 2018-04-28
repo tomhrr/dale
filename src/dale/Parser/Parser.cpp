@@ -83,8 +83,8 @@ Node *Parser::getNextNode() {
     }
 
     if (te.type != TokenType::RightParen) {
-        e.begin = new Position(te.begin);
-        e.end = new Position(te.end);
+        e.begin = Position(te.begin);
+        e.end = Position(te.end);
         e.instance = ErrorInst::MissingRightParen;
         erep->addError(e);
         deleteNodeList(list);
@@ -108,8 +108,8 @@ Node *Parser::getNextList() {
         Node n;
         n.filename = filename;
         Error e(ErrorInst::Null, &n);
-        e.begin = new Position(node->getBeginPos());
-        e.end = new Position(node->getEndPos());
+        e.begin = Position(node->getBeginPos());
+        e.end = Position(node->getEndPos());
         e.instance = ErrorInst::ExpectedLeftParen;
         erep->addError(e);
         return NULL;
@@ -169,8 +169,8 @@ int Parser::getNextNodeInternal(std::vector<Node *> *list) {
         }
 
         if (t.type != TokenType::RightParen) {
-            e.begin = new Position(t.begin);
-            e.end = new Position(t.end);
+            e.begin = Position(t.begin);
+            e.end = Position(t.end);
             e.instance = ErrorInst::MissingRightParen;
             erep->addError(e);
             return 0;
