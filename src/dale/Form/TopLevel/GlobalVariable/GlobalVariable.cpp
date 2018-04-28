@@ -228,13 +228,7 @@ parseLiteralPointer(Units *units, Node *top, char *data, Type *type,
                 b != e;
                 ++b) {
             Variable *var = *b;
-#if D_LLVM_VERSION_ORD <= 35
-            uint64_t address =
-                (uint64_t) units->top()->ee->getPointerToGlobal(llvm::cast<llvm::GlobalValue>(var->value));
-#else
-            uint64_t address =
-                units->top()->ee->getGlobalValueAddress(var->symbol.c_str());
-#endif
+            uint64_t address = variableToAddress(units->top()->ee, var);
             if (address == value) {
                 return llvm::cast<llvm::Constant>(var->value);
             }
@@ -767,39 +761,7 @@ parseLiteral(Units *units, Type *type, Node *top, int *size)
 #endif
     }
 
-#if D_LLVM_VERSION_ORD >= 36
-    std::vector<Function *> global_functions;
-    while (Function *globfn = units->top()->getGlobalFunction()) {
-        global_functions.push_back(globfn);
-        if (llvm::Function *gfn = globfn->llvm_function) {
-            gfn->removeFromParent();
-        }
-        units->top()->popGlobalFunction();
-    }
-#if D_LLVM_VERSION_ORD == 36
-    std::unique_ptr<llvm::Module> module_ptr(
-        llvm::CloneModule(units->top()->module)
-    );
-    units->top()->ee->addModule(move(module_ptr));
-#elif D_LLVM_VERSION_ORD == 37
-    std::unique_ptr<llvm::Module> module_ptr(
-        llvm::CloneModule(units->top()->module)
-    );
-    units->top()->ee->addModule(move(module_ptr));
-#else
-    units->top()->ee->addModule(llvm::CloneModule(units->top()->module));
-#endif
-    for (std::vector<Function *>::reverse_iterator b = global_functions.rbegin(),
-                                                   e = global_functions.rend();
-            b != e;
-            ++b) {
-        Function *globfn = *b;
-        if (llvm::Function *gfn = globfn->llvm_function) {
-            units->top()->module->getFunctionList().push_back(gfn);
-        }
-        units->top()->pushGlobalFunction(globfn);
-    }
-#endif
+    cloneModuleIfRequired(units->top());
 
     llvm::Function *bf = units->top()->ee->FindFunctionNamed(wrapper_new_name.c_str());
     std::vector<llvm::GenericValue> values;

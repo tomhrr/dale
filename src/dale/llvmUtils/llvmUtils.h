@@ -11,6 +11,7 @@
 #include "../llvm_Linker.h"
 #include "../Type/Type.h"
 #include "../Variable/Variable.h"
+#include "../Unit/Unit.h"
 
 #if D_LLVM_VERSION_ORD >= 33
 #include "llvm/Support/SourceMgr.h"
@@ -75,6 +76,8 @@ void moduleDebugPass(llvm::Module *mod);
 void addInlineAttribute(llvm::Function *fn);
 llvm::BasicBlock::iterator instructionToIterator(llvm::Instruction *inst);
 void setInsertPoint(llvm::IRBuilder<> *builder, llvm::BasicBlock::iterator iter);
+uint64_t variableToAddress(llvm::ExecutionEngine *ee, Variable *var);
+void cloneModuleIfRequired(Unit *unit);
 
 /*! Get an LLVM function type.
  *  @param t The return type.

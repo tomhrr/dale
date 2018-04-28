@@ -197,6 +197,54 @@ setInsertPoint(llvm::IRBuilder<> *builder, llvm::BasicBlock::iterator iter)
 #endif
 }
 
+uint64_t
+variableToAddress(llvm::ExecutionEngine *ee, Variable *var)
+{
+#if D_LLVM_VERSION_ORD <= 35
+    return (uint64_t) ee->getPointerToGlobal(llvm::cast<llvm::GlobalValue>(var->value));
+#else
+    return ee->getGlobalValueAddress(var->symbol.c_str());
+#endif
+}
+
+void
+cloneModuleIfRequired(Unit *unit)
+{
+#if D_LLVM_VERSION_ORD >= 36
+    std::vector<Function *> global_functions;
+    while (Function *globfn = unit->getGlobalFunction()) {
+        global_functions.push_back(globfn);
+        if (llvm::Function *gfn = globfn->llvm_function) {
+            gfn->removeFromParent();
+        }
+        unit->popGlobalFunction();
+    }
+#if D_LLVM_VERSION_ORD == 36
+    std::unique_ptr<llvm::Module> module_ptr(
+        llvm::CloneModule(unit->module)
+    );
+    unit->ee->addModule(move(module_ptr));
+#elif D_LLVM_VERSION_ORD == 37
+    std::unique_ptr<llvm::Module> module_ptr(
+        llvm::CloneModule(unit->module)
+    );
+    unit->ee->addModule(move(module_ptr));
+#else
+    unit->ee->addModule(llvm::CloneModule(unit->module));
+#endif
+    for (std::vector<Function *>::reverse_iterator b = global_functions.rbegin(),
+                                                   e = global_functions.rend();
+            b != e;
+            ++b) {
+        Function *globfn = *b;
+        if (llvm::Function *gfn = globfn->llvm_function) {
+            unit->module->getFunctionList().push_back(gfn);
+        }
+        unit->pushGlobalFunction(globfn);
+    }
+#endif
+}
+
 void
 addInlineAttribute(llvm::Function *fn)
 {
