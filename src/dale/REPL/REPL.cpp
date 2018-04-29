@@ -7,11 +7,14 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 #include <cassert>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string>
+#include <vector>
 
 #if D_LLVM_VERSION_ORD <= 34
 #include "llvm/Support/system_error.h"
@@ -21,10 +24,6 @@
 #if D_LLVM_VERSION_ORD >= 33
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/SourceMgr.h"
-#endif
-
-#if D_LLVM_VERSION_ORD >= 36
-#include "llvm/Transforms/Utils/Cloning.h"
 #endif
 
 #include "../llvmUtils/llvmUtils.h"
@@ -391,7 +390,8 @@ void REPL::run(std::vector<const char *> *compile_lib_paths,
                     } else if (res_pr.type->isFloatingPointType()) {
                         llvm::ConstantFP *const_float =
                             llvm::ConstantFP::get(
-                                *getContext(), llvm::APFloat((float)0));
+                                *getContext(),
+                                llvm::APFloat(static_cast<float>(0)));
                         llvm_var->setInitializer(
                             llvm::cast<llvm::Constant>(const_float));
                     }
@@ -477,8 +477,9 @@ void REPL::run(std::vector<const char *> *compile_lib_paths,
                                 unused_name.c_str());
                         int size;
                         llvm::Constant *parsed = parseLiteralElement(
-                            &units, top, (char *)address, res_pr.type,
-                            &size);
+                            &units, top,
+                            reinterpret_cast<char *>(address),
+                            res_pr.type, &size);
                         llvm_var->setInitializer(parsed);
                     }
 #endif

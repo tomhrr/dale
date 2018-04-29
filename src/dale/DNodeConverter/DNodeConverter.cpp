@@ -1,6 +1,8 @@
 #include "DNodeConverter.h"
 
 #include <cstring>
+#include <vector>
+
 #include "../Utils/Utils.h"
 
 using namespace dale::ErrorInst;

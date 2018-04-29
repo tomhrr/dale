@@ -1,10 +1,10 @@
 #include "Lexer.h"
 
-#include "../Utils/Utils.h"
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
+#include "../Utils/Utils.h"
 
 namespace dale {
 Lexer::Lexer(FILE *file, bool line_buffered) {
@@ -53,7 +53,7 @@ int Lexer::getchar_() {
 
     --count;
     char r = buf[index++];
-    return (int)r;
+    return static_cast<int>(r);
 }
 
 void Lexer::ungetchar_(char c) {
@@ -64,7 +64,7 @@ void Lexer::ungetchar_(char c) {
 void Lexer::pushText(const char *text) {
     int len = strlen(text);
     assert((len + count) <= 8192);
-    strcat(buf, text);
+    snprintf(buf + count, len + 1, "%s", text);
     count += len;
     been_pushed = true;
 }

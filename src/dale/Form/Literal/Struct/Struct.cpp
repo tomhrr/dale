@@ -1,4 +1,8 @@
 #include "Struct.h"
+
+#include <string>
+#include <vector>
+
 #include "../../../Error/Error.h"
 #include "../../../Linkage/Linkage.h"
 #include "../../../Operation/Cast/Cast.h"

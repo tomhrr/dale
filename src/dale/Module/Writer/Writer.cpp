@@ -1,9 +1,14 @@
 #include "Writer.h"
-#include "Config.h"
+
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
 
 #include "../../Serialise/Serialise.h"
 #include "../../Utils/Utils.h"
 #include "../../llvmUtils/llvmUtils.h"
+#include "Config.h"
 
 namespace dale {
 namespace Module {

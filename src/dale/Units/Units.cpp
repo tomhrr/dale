@@ -1,4 +1,7 @@
 #include "Units.h"
+
+#include <string>
+
 #include "../llvmUtils/llvmUtils.h"
 #include "../llvm_Linker.h"
 #include "../llvm_Module.h"

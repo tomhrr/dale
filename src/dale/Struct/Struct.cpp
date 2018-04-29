@@ -1,5 +1,9 @@
 #include "Struct.h"
 
+#include <map>
+#include <string>
+#include <utility>
+
 #include "../STL/STL.h"
 
 namespace dale {

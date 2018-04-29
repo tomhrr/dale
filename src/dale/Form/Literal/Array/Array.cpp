@@ -1,4 +1,8 @@
 #include "Array.h"
+
+#include <string>
+#include <vector>
+
 #include "../../../Error/Error.h"
 #include "../../../Linkage/Linkage.h"
 #include "../../Proc/Inst/Inst.h"
@@ -50,14 +54,14 @@ bool FormLiteralArrayParse(Units *units, Function *dfn,
     }
 
     if ((array_type->array_size != 0) &&
-        (array_type->array_size != (int)elements.size())) {
+        (array_type->array_size != static_cast<int>(elements.size()))) {
         Error *e = new Error(IncorrectNumberOfArrayElements, node,
                              elements.size(), array_type->array_size);
         ctx->er->addError(e);
         return false;
     }
 
-    *size = (int)elements.size();
+    *size = static_cast<int>(elements.size());
     array_type = ctx->tr->getArrayType(array_type->array_type, *size);
 
     llvm::Type *llvm_array_type =
@@ -72,7 +76,7 @@ bool FormLiteralArrayParse(Units *units, Function *dfn,
     std::vector<llvm::Value *> indices;
     indices.push_back(ctx->nt->getLLVMZero());
 
-    for (int i = 0; i < (int)elements.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(elements.size()); ++i) {
         indices.push_back(ctx->nt->getNativeInt(i));
 
         llvm::Value *element_storage = builder.Insert(

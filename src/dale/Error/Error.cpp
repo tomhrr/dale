@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
+#include <string>
+
 #include "../ErrorType/ErrorType.h"
 
 namespace dale {
@@ -19,9 +21,9 @@ Error::Error(int instance, Node *node, const char *str1, int num1,
     arg_strings.push_back(str1);
 
     char buf[100];
-    sprintf(buf, "%d", num1);
+    snprintf(buf, sizeof(buf), "%d", num1);
     arg_strings.push_back(buf);
-    sprintf(buf, "%d", num2);
+    snprintf(buf, sizeof(buf), "%d", num2);
     arg_strings.push_back(buf);
 }
 
@@ -32,7 +34,7 @@ Error::Error(int instance, Node *node, const char *str1,
     arg_strings.push_back(str2);
 
     char buf[100];
-    sprintf(buf, "%d", num1);
+    snprintf(buf, sizeof(buf), "%d", num1);
     arg_strings.push_back(buf);
 }
 
@@ -43,7 +45,7 @@ Error::Error(int instance, Node *node, const char *str1,
     arg_strings.push_back(str2);
 
     char buf[100];
-    sprintf(buf, "%d", num1);
+    snprintf(buf, sizeof(buf), "%d", num1);
     arg_strings.push_back(buf);
 
     arg_strings.push_back(str3);
@@ -53,9 +55,9 @@ Error::Error(int instance, Node *node, int num1, int num2) {
     init(instance, node);
 
     char buf[100];
-    sprintf(buf, "%d", num1);
+    snprintf(buf, sizeof(buf), "%d", num1);
     arg_strings.push_back(buf);
-    sprintf(buf, "%d", num2);
+    snprintf(buf, sizeof(buf), "%d", num2);
     arg_strings.push_back(buf);
 }
 
@@ -130,17 +132,18 @@ void Error::toString(std::string *to) {
     const char *main_err_str = errorInstanceToString(instance);
 
     if (arg_strings.size() == 0) {
-        sprintf(msg_buf, "%s", main_err_str);
+        snprintf(msg_buf, sizeof(msg_buf), "%s", main_err_str);
     } else if (arg_strings.size() == 1) {
-        sprintf(msg_buf, main_err_str, arg_strings[0].c_str());
+        snprintf(msg_buf, sizeof(msg_buf), main_err_str,
+                 arg_strings[0].c_str());
     } else if (arg_strings.size() == 2) {
-        sprintf(msg_buf, main_err_str, arg_strings[0].c_str(),
+        snprintf(msg_buf, sizeof(msg_buf), main_err_str, arg_strings[0].c_str(),
                 arg_strings[1].c_str());
     } else if (arg_strings.size() == 3) {
-        sprintf(msg_buf, main_err_str, arg_strings[0].c_str(),
+        snprintf(msg_buf, sizeof(msg_buf), main_err_str, arg_strings[0].c_str(),
                 arg_strings[1].c_str(), arg_strings[2].c_str());
     } else if (arg_strings.size() == 4) {
-        sprintf(msg_buf, main_err_str, arg_strings[0].c_str(),
+        snprintf(msg_buf, sizeof(msg_buf), main_err_str, arg_strings[0].c_str(),
                 arg_strings[1].c_str(), arg_strings[2].c_str(),
                 arg_strings[3].c_str());
     } else {
@@ -149,16 +152,16 @@ void Error::toString(std::string *to) {
     }
 
     if (macro_begin.getLineNumber() != 0) {
-        sprintf(macro_buf, " (see macro at %d:%d)",
-                macro_begin.getLineNumber(),
-                macro_begin.getColumnNumber());
+        snprintf(macro_buf, sizeof(macro_buf), " (see macro at %d:%d)",
+                 macro_begin.getLineNumber(),
+                 macro_begin.getColumnNumber());
     } else {
         macro_buf[0] = '\0';
     }
 
-    sprintf(final_buf, "%s:%d:%d: %s: %s%s", filename,
-            begin.getLineNumber(), begin.getColumnNumber(), type_string,
-            msg_buf, macro_buf);
+    snprintf(final_buf, sizeof(final_buf), "%s:%d:%d: %s: %s%s", filename,
+             begin.getLineNumber(), begin.getColumnNumber(), type_string,
+             msg_buf, macro_buf);
 
     to->append(final_buf);
 }

@@ -1,4 +1,7 @@
 #include "Inst.h"
+
+#include <vector>
+
 #include "../../../CoreForms/CoreForms.h"
 #include "../../../Node/Node.h"
 #include "../../../Units/Units.h"

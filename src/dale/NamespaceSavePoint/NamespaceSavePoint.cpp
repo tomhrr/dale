@@ -1,5 +1,10 @@
 #include "NamespaceSavePoint.h"
 
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "../NativeTypes/NativeTypes.h"
 #include "../llvm_LinkAll.h"
 

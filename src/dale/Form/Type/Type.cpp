@@ -1,12 +1,14 @@
 #include "Type.h"
 
+#include <cstdio>
+#include <string>
+#include <vector>
+
 #include "../../Form/TopLevel/GlobalVariable/GlobalVariable.h"
 #include "../../Units/Units.h"
 #include "../Literal/Integer/Integer.h"
 #include "../Parameter/Parameter.h"
 #include "../Struct/Struct.h"
-
-#include <cstdio>
 
 using namespace dale::ErrorInst;
 
@@ -174,7 +176,7 @@ Type *FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         lst->insert((lst->begin() + 1), new Node("extern"));
 
         char buf[255];
-        sprintf(buf, "__as%d", anon_struct_count++);
+        snprintf(buf, sizeof(buf), "__as%d", anon_struct_count++);
 
         int error_count_begin =
             ctx->er->getErrorTypeCount(ErrorType::Error);
@@ -212,7 +214,7 @@ Type *FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         !strcmp(fst_node->token->str_value.c_str(), "const")) {
         if (lst->size() != 2) {
             Error *e = new Error(IncorrectNumberOfArgs, node, "const",
-                                 "1", ((int)lst->size() - 1));
+                                 "1", (static_cast<int>(lst->size()) - 1));
             ctx->er->addError(e);
             return NULL;
         }
@@ -231,7 +233,7 @@ Type *FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         if (lst->size() != 3) {
             Error *e =
                 new Error(IncorrectNumberOfArgs, node, "array-of", "2",
-                          ((int)lst->size() - 1));
+                          (static_cast<int>(lst->size()) - 1));
             ctx->er->addError(e);
             return NULL;
         }
@@ -342,7 +344,7 @@ Type *FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
                 }
                 parameter_types.push_back(var->type);
                 break;
-            };
+            }
             if (var->type->is_function) {
                 delete var;
                 Error *e = new Error(NonPointerFunctionParameter, (*b));

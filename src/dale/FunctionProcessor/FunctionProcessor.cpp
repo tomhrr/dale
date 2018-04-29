@@ -1,5 +1,10 @@
 #include "FunctionProcessor.h"
 
+#include <algorithm>
+#include <map>
+#include <string>
+#include <vector>
+
 #include "../Form/Proc/Def/Def.h"
 #include "../Form/Proc/Inst/Inst.h"
 #include "../Operation/Cast/Cast.h"
@@ -390,7 +395,7 @@ bool processExternCFunction(Context *ctx, const char *name, Node *n,
             call_arg_types_final.push_back(type);
             continue;
         }
-        if (!parameter->type->isIntegerType() and
+        if (!parameter->type->isIntegerType() &&
             parameter->type->base_type != BaseType::Bool) {
             Error *e =
                 new Error(FunctionNotInScope, n, name,
@@ -398,7 +403,7 @@ bool processExternCFunction(Context *ctx, const char *name, Node *n,
             er->addError(e);
             return false;
         }
-        if (!type->isIntegerType() and
+        if (!type->isIntegerType() &&
             type->base_type != BaseType::Bool) {
             Error *e =
                 new Error(FunctionNotInScope, n, name,

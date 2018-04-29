@@ -1,4 +1,8 @@
 #include "BasicTypes.h"
+
+#include <string>
+#include <vector>
+
 #include "../Form/Utils/Utils.h"
 #include "../llvmUtils/llvmUtils.h"
 #include "Config.h"
@@ -65,7 +69,7 @@ Function *addSimpleUnaryFunction(Context *ctx, llvm::Module *mod,
     type1 = ctx->tr->getConstType(type1);
 
     std::vector<Variable *> new_args_ctx;
-    new_args_ctx.push_back(new Variable((char *)"a", type1));
+    new_args_ctx.push_back(new Variable("a", type1));
 
     std::string new_name;
     ctx->ns()->functionNameToSymbol(name, &new_name, linkage,
@@ -85,8 +89,8 @@ Function *addSimpleBinaryFunction(Context *ctx, llvm::Module *mod,
     type2 = ctx->tr->getConstType(type2);
 
     std::vector<Variable *> new_args_ctx;
-    new_args_ctx.push_back(new Variable((char *)"a", type1));
-    new_args_ctx.push_back(new Variable((char *)"b", type2));
+    new_args_ctx.push_back(new Variable("a", type1));
+    new_args_ctx.push_back(new Variable("b", type2));
 
     std::string new_name;
     ctx->ns()->functionNameToSymbol(name, &new_name, linkage,

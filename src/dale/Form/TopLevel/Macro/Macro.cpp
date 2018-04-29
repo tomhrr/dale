@@ -1,4 +1,9 @@
 #include "Macro.h"
+
+#include <map>
+#include <string>
+#include <vector>
+
 #include "../../../CoreForms/CoreForms.h"
 #include "../../../Node/Node.h"
 #include "../../../Units/Units.h"
@@ -50,7 +55,7 @@ bool FormTopLevelMacroParse(Units *units, Node *node,
     std::vector<Node *> *lst = top->list;
     if (lst->size() < 3) {
         Error *e = new Error(IncorrectMinimumNumberOfArgs, top, "macro",
-                             2, (int)(lst->size() - 1));
+                             2, static_cast<int>(lst->size() - 1));
         ctx->er->addError(e);
         return false;
     }

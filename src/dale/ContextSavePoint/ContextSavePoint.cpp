@@ -1,5 +1,9 @@
 #include "ContextSavePoint.h"
 
+#include <map>
+#include <string>
+#include <utility>
+
 #include "../NativeTypes/NativeTypes.h"
 #include "../llvm_LinkAll.h"
 

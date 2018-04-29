@@ -14,7 +14,8 @@ bool FormTopLevelStructParse(Units *units, Node *top,
     if (!name) {
         if (lst->size() < 3) {
             Error *e = new Error(IncorrectMinimumNumberOfArgs, top,
-                                 "struct", 2, static_cast<int>(lst->size() - 1));
+                                 "struct", 2,
+                                 static_cast<int>(lst->size() - 1));
             units->top()->ctx->er->addError(e);
             return false;
         }

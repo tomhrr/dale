@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <string>
+#include <vector>
+
 namespace dale {
 ErrorReporter::ErrorReporter(const char *current_filename) {
     if (!strcmp(current_filename, "")) {
@@ -33,7 +36,7 @@ void ErrorReporter::addError(Error const &err) {
 }
 
 void ErrorReporter::flush() {
-    assert(error_index <= (int)errors.size());
+    assert(error_index <= static_cast<int>(errors.size()));
 
     std::vector<Error *>::iterator b = errors.begin(), e = errors.end();
     std::advance(b, error_index);
@@ -162,7 +165,7 @@ bool ErrorReporter::assertArgNums(const char *form_name, Node *n,
     std::vector<Node *> *lst = n->list;
     assert(lst);
 
-    int num_args = (int)lst->size() - 1;
+    int num_args = static_cast<int>(lst->size()) - 1;
 
     if (min_args == max_args) {
         if (num_args == min_args) {

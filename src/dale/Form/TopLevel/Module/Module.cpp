@@ -1,4 +1,7 @@
 #include "Module.h"
+
+#include <vector>
+
 #include "../../../Node/Node.h"
 #include "../../../Units/Units.h"
 #include "Config.h"
@@ -7,7 +10,8 @@ using namespace dale::ErrorInst;
 
 namespace dale {
 bool isValidModuleName(const char *name) {
-    for (int i = 0; i < (int)strlen(name); ++i) {
+    int length = strlen(name);
+    for (int i = 0; i < length; ++i) {
         char c = name[i];
         if (!(isalnum(c) || (c == '-') || (c == '_') || (c == '.'))) {
             return false;

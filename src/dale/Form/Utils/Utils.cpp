@@ -1,5 +1,7 @@
 #include "Utils.h"
 
+#include <vector>
+
 #include "../../Function/Function.h"
 #include "../../Node/Node.h"
 #include "../../Operation/Destruct/Destruct.h"

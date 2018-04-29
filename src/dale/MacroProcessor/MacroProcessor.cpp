@@ -1,5 +1,7 @@
 #include "MacroProcessor.h"
 
+#include <cstdio>
+
 #include "../Form/Macro/ArrayDeref/ArrayDeref.h"
 #include "../Form/Macro/DerefStruct/DerefStruct.h"
 #include "../Form/Macro/DerefStructDeref/DerefStructDeref.h"
@@ -10,12 +12,6 @@
 #include "../llvmUtils/llvmUtils.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/Support/Debug.h"
-
-#include <cstdio>
-
-#if D_LLVM_VERSION_ORD >= 36
-#include "llvm/Transforms/Utils/Cloning.h"
-#endif
 
 #define eq(str) !strcmp(macro_name, str)
 

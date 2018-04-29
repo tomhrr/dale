@@ -1,6 +1,8 @@
 #include "GlobalVariable.h"
 
 #include <cstdio>
+#include <string>
+#include <vector>
 
 #include "../../../Linkage/Linkage.h"
 #include "../../../Node/Node.h"
@@ -613,7 +615,8 @@ llvm::Constant *parseLiteral(Units *units, Type *type, Node *top,
     memset(data, 0, 256);
 
     char ptr_int[64];
-    sprintf(ptr_int, "%lld", (long long int)&data);
+    snprintf(ptr_int, sizeof(ptr_int), "%lld",
+             reinterpret_cast<long long int>(&data)); // NOLINT
 
     llvm::Value *ptr_value = ctx->nt->getConstantInt(
         llvm::IntegerType::get(*getContext(), sizeof(char *) * 8),
@@ -646,7 +649,8 @@ llvm::Constant *parseLiteral(Units *units, Type *type, Node *top,
 
     size_t struct_size = Operation::SizeofGet(units->top(), type);
     char struct_size_str[8];
-    sprintf(struct_size_str, "%u", (unsigned)struct_size);
+    snprintf(struct_size_str, sizeof(struct_size_str), "%u",
+             static_cast<unsigned>(struct_size));
 
     std::vector<llvm::Value *> memcpy_args;
     memcpy_args.push_back(builder.CreateBitCast(
@@ -684,7 +688,8 @@ llvm::Constant *parseLiteral(Units *units, Type *type, Node *top,
     error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
 
     llvm::Constant *parsed =
-        parseLiteralElement(units, top, (char *)&data, type, size);
+        parseLiteralElement(units, top, reinterpret_cast<char *>(&data),
+                            type, size);
     ctx->disableRetrievalLog();
 
     wrapper_fn->eraseFromParent();

@@ -1,6 +1,17 @@
 #include "Reader.h"
 #include "Config.h"
 
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include <algorithm>
+#include <map>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "../../llvm_AnalysisVerifier.h"
 #include "../../llvm_AssemblyPrintModulePass.h"
 #include "../../llvm_CallingConv.h"
@@ -46,10 +57,6 @@
 #include "../../Serialise/Serialise.h"
 #include "../../Utils/Utils.h"
 #include "../../llvmUtils/llvmUtils.h"
-
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 using namespace dale::ErrorInst;
 
@@ -171,7 +178,7 @@ void readFile(FILE *fh, char **buf_ptr) {
     _unused(fstat_res);
 
     int size = buf.st_size;
-    char *data = (char *)malloc(size);
+    char *data = reinterpret_cast<char *>(malloc(size));
     if (!data) {
         error("unable to allocate memory", true);
     }

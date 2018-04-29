@@ -1,10 +1,16 @@
 #include "Context.h"
 
+#include <cstdio>
+#include <algorithm>
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
+#include <utility>
+
 #include "../Utils/Utils.h"
 #include "../llvmUtils/llvmUtils.h"
 #include "../llvm_LinkAll.h"
-
-#include <cstdio>
 
 using namespace dale::ErrorInst;
 
@@ -165,7 +171,7 @@ static int anon_count = 0;
 
 bool Context::activateAnonymousNamespace() {
     char buf[10];
-    sprintf(buf, "anon%d", ++anon_count);
+    snprintf(buf, sizeof(buf), "anon%d", ++anon_count);
     return activateNamespace(buf);
 }
 
@@ -816,7 +822,7 @@ llvm::GlobalValue::LinkageTypes Context::toLLVMLinkage(int linkage) {
         default:
             lt = llvm::GlobalValue::ExternalLinkage;
             break;
-    };
+    }
 
     return lt;
 }

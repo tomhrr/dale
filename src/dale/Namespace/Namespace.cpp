@@ -1,11 +1,16 @@
 #include "Namespace.h"
 
+#include <cstdio>
+#include <map>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "../NativeTypes/NativeTypes.h"
 #include "../STL/STL.h"
 #include "../Utils/Utils.h"
 #include "../llvm_LinkAll.h"
-
-#include <cstdio>
 
 namespace dale {
 Namespace::Namespace() {
@@ -37,7 +42,7 @@ Namespace::Namespace(ErrorReporter *er, TypeRegister *tr,
                  b = names.rbegin(),
                  e = names.rend();
              b != e; ++b) {
-            sprintf(num, "%zu", b->length());
+            snprintf(num, sizeof(num), "%zu", b->length());
             symbol_prefix.append(num).append(*b);
         }
     }
@@ -547,7 +552,7 @@ void Namespace::nameToSymbol(const char *name, std::string *new_name) {
     }
 
     char num[4];
-    sprintf(num, "%zu", strlen(name));
+    snprintf(num, sizeof(num), "%zu", strlen(name));
     new_name->append(num);
 
     std::string ss_name(name);
@@ -571,9 +576,9 @@ void Namespace::functionNameToSymbol(const char *name,
              b != e; ++b) {
             char c = *b;
             if (c == '-') {
-                sprintf(buf, "_2D_");
+                snprintf(buf, sizeof(buf), "_2D_");
             } else {
-                sprintf(buf, "%c", c);
+                snprintf(buf, sizeof(buf), "%c", c);
             }
             new_name->append(buf);
         }

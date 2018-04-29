@@ -1,12 +1,15 @@
-#include "REPL/REPL.h"
-
 #include <getopt.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string>
+#include <vector>
+
 #include "Config.h"
+#include "REPL/REPL.h"
 #include "Utils/Utils.h"
 
 /*! daleci
@@ -21,8 +24,8 @@ std::string joinWithPrefix(std::vector<const char *> strings,
                            std::string buffer) {
     for (std::vector<const char *>::iterator b = strings.begin(),
                                              e = strings.end();
-         b != e; buffer += " " + prefix + " " + (*b++))
-        ;
+         b != e; buffer += " " + prefix + " " + (*b++)) {
+    }
 
     return buffer;
 }
@@ -66,7 +69,7 @@ int main(int argc, char **argv) {
 
     for (int opt; (opt = getopt_long(argc, argv, options, long_options,
                                      &option_index)) != -1;) {
-        switch ((char)opt) {
+        switch (static_cast<char>(opt)) {
             case 'd':
                 debug = 1;
                 break;
@@ -79,7 +82,7 @@ int main(int argc, char **argv) {
             case 'M':
                 module_paths.push_back(optarg);
                 break;
-        };
+        }
     }
 
     if (version) {

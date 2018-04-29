@@ -1,11 +1,14 @@
 #include "Include.h"
+
+#include <cstdio>
+#include <string>
+#include <vector>
+
 #include "../../../CommonDecl/CommonDecl.h"
 #include "../../../Form/TopLevel/Inst/Inst.h"
 #include "../../../Node/Node.h"
 #include "../../../Units/Units.h"
 #include "Config.h"
-
-#include <cstdio>
 
 using namespace dale::ErrorInst;
 

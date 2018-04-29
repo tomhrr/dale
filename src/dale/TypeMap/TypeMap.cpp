@@ -1,10 +1,13 @@
 #include "TypeMap.h"
 
-#include "../STL/STL.h"
-#include "../Utils/Utils.h"
-
 #include <cstdio>
 #include <cstring>
+#include <map>
+#include <string>
+#include <utility>
+
+#include "../STL/STL.h"
+#include "../Utils/Utils.h"
 
 namespace dale {
 std::map<std::string, std::string> dale_typemap;

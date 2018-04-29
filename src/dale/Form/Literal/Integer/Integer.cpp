@@ -25,7 +25,7 @@ int FormLiteralIntegerParse(Node *node, ErrorReporter *er) {
 
     const char *num_str = node->token->str_value.c_str();
     char *end_ptr;
-    unsigned long num = strtoul(num_str, &end_ptr, DECIMAL_RADIX);
+    unsigned long num = strtoul(num_str, &end_ptr, DECIMAL_RADIX); // NOLINT
 
     if (STRTOUL_FAILED(num, num_str, end_ptr)) {
         Error *e = new Error(UnableToParseInteger, node,
