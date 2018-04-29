@@ -19,6 +19,8 @@ void FormBoolLiteralParse(Context *ctx, llvm::BasicBlock *block, Node *node,
                           ParseResult *pr);
 void FormCharLiteralParse(Context *ctx, llvm::BasicBlock *block, Node *node,
                           ParseResult *pr);
+bool FormLiteralParse(Units *units, Type *type, Node *node, int *size,
+                      ParseResult *pr);
 }
 
 #endif

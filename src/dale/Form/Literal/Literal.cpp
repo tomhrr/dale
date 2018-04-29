@@ -7,6 +7,7 @@
 #include "../../Linkage/Linkage.h"
 #include "../../Operation/Cast/Cast.h"
 #include "../../llvmUtils/llvmUtils.h"
+#include "../Utils/Utils.h"
 
 using namespace dale::ErrorInst;
 
@@ -218,6 +219,146 @@ void FormCharLiteralParse(Context *ctx, llvm::BasicBlock *block, Node *node,
         pr->set(
             block, ctx->tr->type_char,
             llvm::ConstantInt::get(ctx->nt->getNativeCharType(), c));
+    }
+}
+
+bool FormLiteralParse(Units *units, Type *type, Node *node, int *size,
+                      ParseResult *pr)
+{
+    Context *ctx = units->top()->ctx;
+    TypeRegister *tr = ctx->tr;
+
+    if (type->isIntegerType() && node->is_token &&
+        (node->token->type == TokenType::Int)) {
+        FormIntegerLiteralParse(ctx, type, NULL, node->token, pr);
+        return true;
+    } else if (type->isFloatingPointType() && node->is_token &&
+               (node->token->type == TokenType::FloatingPoint)) {
+        FormFloatingPointLiteralParse(ctx, type, NULL, node->token, pr);
+        return true;
+    } else if (node->is_token &&
+               (node->token->type == TokenType::StringLiteral)) {
+        std::string var_name;
+        units->top()->getUnusedVarName(&var_name);
+
+        *size = strlen(node->token->str_value.c_str()) + 1;
+
+        Type *char_array_type = tr->getArrayType(tr->type_char, *size);
+        llvm::Type *llvm_type =
+            ctx->toLLVMType(char_array_type, NULL, false);
+
+        llvm::Module *mod = units->top()->module;
+        assert(
+            !mod->getGlobalVariable(llvm::StringRef(var_name.c_str())));
+
+        llvm::GlobalVariable *var = llvm::cast<llvm::GlobalVariable>(
+            mod->getOrInsertGlobal(var_name.c_str(), llvm_type));
+
+        llvm::Constant *constr_str =
+            getStringConstantArray(node->token->str_value.c_str());
+        var->setInitializer(constr_str);
+        var->setConstant(true);
+        var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+
+        llvm::Constant *const_pchar =
+            createConstantGEP(llvm::cast<llvm::Constant>(var),
+                              ctx->nt->getTwoLLVMZeros());
+        pr->set(pr->block, type, llvm::dyn_cast<llvm::Value>(const_pchar));
+        return true;
+    } else if (type->array_type) {
+        if (!node->is_list) {
+            return false;
+        }
+        std::vector<llvm::Constant *> constants;
+        std::vector<Node *> *lst = node->list;
+        if (lst->size() < 2) {
+            return false;
+        }
+        Node *first = lst->at(0);
+        if (!first->is_token ||
+            first->token->str_value.compare("array")) {
+            return false;
+        }
+
+        for (std::vector<Node *>::iterator b = (lst->begin() + 1),
+                                           e = lst->end();
+             b != e; ++b) {
+            int size;
+            ParseResult element_pr;
+            bool res = FormLiteralParse(units, type->array_type, *b, &size,
+                                        &element_pr);
+            if (!res) {
+                return false;
+            }
+            llvm::Constant *constant =
+                llvm::dyn_cast<llvm::Constant>(element_pr.getValue(ctx));
+
+            constants.push_back(constant);
+        }
+
+        llvm::Constant *const_arr = llvm::ConstantArray::get(
+            llvm::cast<llvm::ArrayType>(
+                ctx->toLLVMType(type, node, false, false)),
+            constants);
+        pr->set(pr->block, type, llvm::dyn_cast<llvm::Value>(const_arr));
+        return true;
+    } else if (type->struct_name.size()) {
+        Struct *st = ctx->getStruct(type);
+        if (!node->is_list) {
+            return false;
+        }
+        std::vector<llvm::Constant *> constants;
+        std::vector<Node *> *lst = node->list;
+
+        for (std::vector<Node *>::iterator b = lst->begin(),
+                                           e = lst->end();
+             b != e; ++b) {
+            Node *member_node = (*b);
+            if (!member_node->is_list) {
+                return false;
+            }
+            std::vector<Node *> *member_lst = member_node->list;
+            if (member_lst->size() != 2) {
+                return false;
+            }
+            Node *name_node = (*member_lst)[0];
+            Node *value_node = (*member_lst)[1];
+
+            if (!name_node->is_token) {
+                return false;
+            }
+
+            const char *name = name_node->token->str_value.c_str();
+            Type *type = st->nameToType(name);
+            if (!type) {
+                return false;
+            }
+
+            int size;
+            ParseResult element_pr;
+            bool res = FormLiteralParse(units, type, value_node, &size,
+                                        &element_pr);
+            if (!res) {
+                return false;
+            }
+            llvm::Constant *constant =
+                llvm::dyn_cast<llvm::Constant>(element_pr.getValue(ctx));
+            constants.push_back(constant);
+        }
+
+        llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
+        if (!llvm_type) {
+            return false;
+        }
+
+        llvm::StructType *llvm_st =
+            llvm::cast<llvm::StructType>(llvm_type);
+        llvm::Constant *const_st =
+            llvm::ConstantStruct::get(llvm_st, constants);
+        pr->set(pr->block, type, llvm::dyn_cast<llvm::Value>(const_st));
+        return true;
+    } else {
+        return false;
     }
 }
 }

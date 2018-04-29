@@ -25,148 +25,15 @@
 using namespace dale::ErrorInst;
 
 namespace dale {
-llvm::Constant *simpleParseLiteral(Units *units, Type *type, Node *top,
-                                   int *size) {
-    Context *ctx = units->top()->ctx;
-    TypeRegister *tr = ctx->tr;
-
-    if (type->isIntegerType() && top->is_token &&
-        (top->token->type == TokenType::Int)) {
-        ParseResult pr;
-        FormIntegerLiteralParse(ctx, type, NULL, top->token, &pr);
-        return llvm::dyn_cast<llvm::Constant>(pr.getValue(ctx));
-    } else if (type->isFloatingPointType() && top->is_token &&
-               (top->token->type == TokenType::FloatingPoint)) {
-        ParseResult pr;
-        FormFloatingPointLiteralParse(ctx, type, NULL, top->token, &pr);
-        return llvm::dyn_cast<llvm::Constant>(pr.getValue(ctx));
-    } else if (top->is_token &&
-               (top->token->type == TokenType::StringLiteral)) {
-        std::string var_name;
-        units->top()->getUnusedVarName(&var_name);
-
-        *size = strlen(top->token->str_value.c_str()) + 1;
-
-        Type *char_array_type = tr->getArrayType(tr->type_char, *size);
-        llvm::Type *llvm_type =
-            ctx->toLLVMType(char_array_type, NULL, false);
-
-        llvm::Module *mod = units->top()->module;
-        assert(
-            !mod->getGlobalVariable(llvm::StringRef(var_name.c_str())));
-
-        llvm::GlobalVariable *var = llvm::cast<llvm::GlobalVariable>(
-            mod->getOrInsertGlobal(var_name.c_str(), llvm_type));
-
-        llvm::Constant *constr_str =
-            getStringConstantArray(top->token->str_value.c_str());
-        var->setInitializer(constr_str);
-        var->setConstant(true);
-        var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
-
-        llvm::Constant *const_pchar =
-            createConstantGEP(llvm::cast<llvm::Constant>(var),
-                              ctx->nt->getTwoLLVMZeros());
-
-        return const_pchar;
-    } else if (type->array_type) {
-        if (!top->is_list) {
-            return NULL;
-        }
-        std::vector<llvm::Constant *> constants;
-        std::vector<Node *> *lst = top->list;
-        if (lst->size() < 2) {
-            return NULL;
-        }
-        Node *first = lst->at(0);
-        if (!first->is_token ||
-            first->token->str_value.compare("array")) {
-            return NULL;
-        }
-
-        for (std::vector<Node *>::iterator b = (lst->begin() + 1),
-                                           e = lst->end();
-             b != e; ++b) {
-            int size;
-            llvm::Constant *constant =
-                simpleParseLiteral(units, type->array_type, *b, &size);
-            if (!constant) {
-                return NULL;
-            }
-
-            constants.push_back(constant);
-        }
-
-        llvm::Constant *const_arr = llvm::ConstantArray::get(
-            llvm::cast<llvm::ArrayType>(
-                ctx->toLLVMType(type, top, false, false)),
-            constants);
-
-        return const_arr;
-    } else if (type->struct_name.size()) {
-        Struct *st = ctx->getStruct(type);
-        if (!top->is_list) {
-            return NULL;
-        }
-        std::vector<llvm::Constant *> constants;
-        std::vector<Node *> *lst = top->list;
-
-        for (std::vector<Node *>::iterator b = lst->begin(),
-                                           e = lst->end();
-             b != e; ++b) {
-            Node *member_node = (*b);
-            if (!member_node->is_list) {
-                return NULL;
-            }
-            std::vector<Node *> *member_lst = member_node->list;
-            if (member_lst->size() != 2) {
-                return NULL;
-            }
-            Node *name_node = (*member_lst)[0];
-            Node *value_node = (*member_lst)[1];
-
-            if (!name_node->is_token) {
-                return NULL;
-            }
-
-            const char *name = name_node->token->str_value.c_str();
-            Type *type = st->nameToType(name);
-            if (!type) {
-                return NULL;
-            }
-
-            int size;
-            llvm::Constant *constant =
-                simpleParseLiteral(units, type, value_node, &size);
-            if (!constant) {
-                return NULL;
-            }
-            constants.push_back(constant);
-        }
-
-        llvm::Type *llvm_type = ctx->toLLVMType(type, NULL, false);
-        if (!llvm_type) {
-            return NULL;
-        }
-
-        llvm::StructType *llvm_st =
-            llvm::cast<llvm::StructType>(llvm_type);
-        llvm::Constant *const_st =
-            llvm::ConstantStruct::get(llvm_st, constants);
-
-        return const_st;
-    } else {
-        return NULL;
-    }
-}
-
 llvm::Constant *parseLiteral(Units *units, Type *type, Node *top,
                              int *size) {
     Context *ctx = units->top()->ctx;
 
-    llvm::Constant *result = simpleParseLiteral(units, type, top, size);
-    if (result) {
-        return result;
+    ParseResult pr;
+    bool res = FormLiteralParse(units, type, top, size, &pr);
+    if (res) {
+        Context *ctx = units->top()->ctx;
+        return llvm::dyn_cast<llvm::Constant>(pr.getValue(ctx));
     }
 
     /* The size argument is only set when parsing a string literal; it
@@ -306,9 +173,9 @@ llvm::Constant *parseLiteral(Units *units, Type *type, Node *top,
     }
 
     ParseResult cast_pr;
-    bool res = Operation::Cast(ctx, block, ret_storage1,
-                               ctx->tr->getPointerType(type),
-                               ctx->tr->type_pchar, top, 0, &cast_pr);
+    res = Operation::Cast(ctx, block, ret_storage1,
+                          ctx->tr->getPointerType(type),
+                          ctx->tr->type_pchar, top, 0, &cast_pr);
     if (!res) {
         return NULL;
     }
