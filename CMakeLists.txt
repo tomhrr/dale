@@ -294,7 +294,8 @@ add_library(dale SHARED
                  src/dale/SavePoint/SavePoint.cpp
                  src/dale/Form/Utils/Utils.cpp
                  src/dale/Form/Proc/Include/Include.cpp
-                 src/dale/Form/Literal/Literal.cpp)
+                 src/dale/Form/Literal/Literal.cpp
+                 src/dale/Form/Value/Value.cpp)
 set_target_properties (dale PROPERTIES VERSION ${Dale_VERSION})
 set_target_properties (dale PROPERTIES SOVERSION ${Dale_VERSION_MAJOR})
 set_target_properties (dale PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS} -I.")

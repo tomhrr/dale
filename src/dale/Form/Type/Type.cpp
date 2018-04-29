@@ -8,6 +8,7 @@
 #include "../../Units/Units.h"
 #include "../Parameter/Parameter.h"
 #include "../Struct/Struct.h"
+#include "../Value/Value.h"
 
 using namespace dale::ErrorInst;
 
@@ -274,7 +275,7 @@ Type *FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
 
         llvm::Constant *size_value = NULL;
         int unused_size;
-        size_value = parseLiteral(units, ctx->tr->type_int, snd_node,
+        size_value = FormValueParse(units, ctx->tr->type_int, snd_node,
                                   &unused_size);
         if (!size_value) {
             return NULL;

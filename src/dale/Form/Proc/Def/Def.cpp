@@ -15,6 +15,7 @@
 #include "../../TopLevel/GlobalVariable/GlobalVariable.h"
 #include "../../Type/Type.h"
 #include "../../Utils/Utils.h"
+#include "../../Value/Value.h"
 #include "../Inst/Inst.h"
 
 using namespace dale::ErrorInst;
@@ -47,7 +48,7 @@ llvm::Constant *parseGlobalLiteral(Units *units, Type *type,
 
     llvm::Constant *init = NULL;
     int size;
-    init = parseLiteral(units, type, node, &size);
+    init = FormValueParse(units, type, node, &size);
 
     ctx->active_ns_nodes = active_ns_nodes;
     ctx->used_ns_nodes = used_ns_nodes;

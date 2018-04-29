@@ -10,6 +10,7 @@
 #include "../../../llvm_Function.h"
 #include "../../Initialiser/Array/Array.h"
 #include "../../Type/Type.h"
+#include "../../Value/Value.h"
 
 namespace dale {
 bool FormProcArrayOfParse(Units *units, Function *fn,
@@ -35,7 +36,7 @@ bool FormProcArrayOfParse(Units *units, Function *fn,
     llvm::Constant *size_value = NULL;
     int unused_size;
     size_value =
-        parseLiteral(units, ctx->tr->type_int, size_node, &unused_size);
+        FormValueParse(units, ctx->tr->type_int, size_node, &unused_size);
     if (!size_value) {
         return false;
     }

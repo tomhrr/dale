@@ -11,8 +11,6 @@ namespace dale {
  */
 bool FormTopLevelGlobalVariableParse(Units *units, Node *node,
                                      const char *name);
-llvm::Constant *parseLiteral(Units *units, Type *type, Node *top,
-                             int *size);
 }
 
 #endif

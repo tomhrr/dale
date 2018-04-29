@@ -10,6 +10,7 @@
 #include "../Form/Proc/Inst/Inst.h"
 #include "../Form/TopLevel/GlobalVariable/GlobalVariable.h"
 #include "../Form/Type/Type.h"
+#include "../Form/Value/Value.h"
 #include "../Operation/Copy/Copy.h"
 #include "../SavePoint/SavePoint.h"
 #include "../Type/Type.h"
@@ -877,7 +878,7 @@ bool eval_2D_expression(MContext *mc, DNode *type_form, DNode *form,
 
     llvm::Constant *init = NULL;
     int size;
-    init = parseLiteral(units, type, n, &size);
+    init = FormValueParse(units, type, n, &size);
 
     ctx->active_ns_nodes = active_ns_nodes;
     ctx->used_ns_nodes = used_ns_nodes;
