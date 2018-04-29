@@ -69,6 +69,7 @@
 #include "../CommonDecl/CommonDecl.h"
 #include "../Context/Context.h"
 #include "../CoreForms/CoreForms.h"
+#include "../Decoder/Decoder.h"
 #include "../ErrorReporter/ErrorReporter.h"
 #include "../ErrorType/ErrorType.h"
 #include "../Form/Proc/Inst/Inst.h"
@@ -476,7 +477,7 @@ void REPL::run(std::vector<const char *> *compile_lib_paths,
                             units.top()->ee->getGlobalValueAddress(
                                 unused_name.c_str());
                         int size;
-                        llvm::Constant *parsed = parseLiteralElement(
+                        llvm::Constant *parsed = decodeRawData(
                             &units, top,
                             reinterpret_cast<char *>(address),
                             res_pr.type, &size);

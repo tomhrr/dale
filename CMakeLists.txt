@@ -218,6 +218,7 @@ add_library(dale SHARED
                  src/dale/Struct/Struct.cpp
                  src/dale/NativeTypes/NativeTypes.cpp
                  src/dale/TypeRegister/TypeRegister.cpp
+                 src/dale/Decoder/Decoder.cpp
                  src/dale/Form/Proc/Goto/Goto.cpp
                  src/dale/Form/Proc/If/If.cpp
                  src/dale/Form/Proc/Label/Label.cpp
