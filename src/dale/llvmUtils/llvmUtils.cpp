@@ -177,6 +177,9 @@ void moduleDebugPass(llvm::Module *mod) {
 void functionDebugPass(llvm::Function *fn) {
 #if D_LLVM_VERSION_ORD >= 35
     llvm::dbgs() << *fn << "\n";
+    if (llvm::verifyFunction(*fn, &(llvm::errs()))) {
+        abort();
+    }
 #endif
 }
 

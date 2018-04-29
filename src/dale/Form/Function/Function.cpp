@@ -265,12 +265,6 @@ bool FormFunctionParse(Units *units, Node *node, const char *name,
                        bool is_anonymous) {
     Context *ctx = units->top()->ctx;
 
-    if (!name) {
-        Node *name_node = (*(node->list))[1];
-        name = name_node->token->str_value.c_str();
-        node = (*(node->list))[2];
-    }
-
     if (!is_anonymous) {
         units->prefunction_ns = ctx->ns();
     }

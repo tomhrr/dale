@@ -9,8 +9,6 @@
 
 #include "../Type/Type.h"
 #include "../Variable/Variable.h"
-#include "../llvm_Linker.h"
-#include "../llvm_Module.h"
 
 #define _unused(x) ((void)x)
 
@@ -19,6 +17,7 @@
       (((ret) == 0) && ((str) == (end)))))
 #define DECIMAL_RADIX 10
 
+/* Utility functions that do not depend on LLVM classes. */
 namespace dale {
 /*! The current executable name (i.e. argv[0]). */
 extern const char *progname;
