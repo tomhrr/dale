@@ -22,40 +22,14 @@
 using namespace dale::ErrorInst;
 
 namespace dale {
-llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
-                               int *size) {
+bool isRvalue(Node *top) {
+    return (top->is_list && (top->list->size() == 2) &&
+            ((*top->list)[0]->is_token) &&
+            (!(*top->list)[0]->token->str_value.compare("move")));
+}
+
+Function *createFunction(Units *units, Type *type, Node *top) {
     Context *ctx = units->top()->ctx;
-
-    ParseResult pr;
-    bool res = FormLiteralParse(units, type, top, size, &pr);
-    if (res) {
-        Context *ctx = units->top()->ctx;
-        return llvm::dyn_cast<llvm::Constant>(pr.getValue(ctx));
-    }
-
-    /* The size argument is only set when parsing a string literal; it
-     * will contain the final size of the returned array. */
-
-    /* If the argument node is an address-of form for a global
-     * variable/function, return the address of that global
-     * variable/function as a constant value.  This is to get around
-     * the fact that arbitrary pointer values returned from the
-     * function created below will not be valid with respect to global
-     * variables/functions. */
-
-    bool is_rvalue = false;
-    if (top->is_list && (top->list->size() == 2) &&
-        ((*top->list)[0]->is_token) &&
-        (!(*top->list)[0]->token->str_value.compare("move"))) {
-        is_rvalue = true;
-    }
-
-    std::string str;
-    type->toString(&str);
-
-    /* Create an empty no-argument function that returns the specified
-     * type. */
-
     llvm::Type *llvm_return_type = ctx->toLLVMType(type, top, false);
     if (!llvm_return_type) {
         return NULL;
@@ -79,6 +53,28 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
     Function *fn = new Function(type, &args, llvm_fn, 0, &new_name);
 
     fn->linkage = Linkage::Intern;
+
+    return fn;
+}
+
+llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
+                               int *size) {
+    Context *ctx = units->top()->ctx;
+
+    ParseResult pr;
+    bool res = FormLiteralParse(units, type, top, size, &pr);
+    if (res) {
+        return llvm::dyn_cast<llvm::Constant>(pr.getValue(ctx));
+    }
+
+    bool is_rvalue = isRvalue(top);
+
+    Function *fn = createFunction(units, type, top);
+    if (!fn) {
+        return NULL;
+    }
+    llvm::Function *llvm_fn = fn->llvm_function;
+
     int error_count_begin =
         ctx->er->getErrorTypeCount(ErrorType::Error);
 
@@ -94,9 +90,7 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
     ctx->popUntilNamespace(units->prefunction_ns);
 
     ctx->enableRetrievalLog();
-    Function *temp_fn = new Function();
-    temp_fn->llvm_function = llvm_fn;
-    units->top()->pushGlobalFunction(temp_fn);
+    units->top()->pushGlobalFunction(fn);
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;
     FormProcBodyParse(units, wrapper_top, fn, llvm_fn, 0, 0);
@@ -114,6 +108,7 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
         return NULL;
     }
 
+    std::vector<llvm::Type *> empty_args;
     llvm::FunctionType *wrapper_ft = getFunctionType(
         ctx->toLLVMType(ctx->tr->type_pchar, NULL, false), empty_args,
         false);
@@ -135,6 +130,7 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
     llvm::Value *ret = builder.CreateCall(
         llvm_fn, llvm::ArrayRef<llvm::Value *>(call_args));
 
+    llvm::Type *llvm_return_type = ctx->toLLVMType(type, top, false);
     llvm::Value *ret_storage1 = builder.CreateAlloca(llvm_return_type);
     llvm::Value *ret_storage2 = builder.CreateAlloca(llvm_return_type);
     builder.CreateStore(ret, ret_storage2);
@@ -261,7 +257,7 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
     ctx->disableRetrievalLog();
 
     wrapper_fn->eraseFromParent();
-    (llvm::cast<llvm::Function>(const_fn))->eraseFromParent();
+    llvm_fn->eraseFromParent();
 
     if (parsed) {
         return parsed;
