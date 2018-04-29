@@ -1,6 +1,8 @@
 #include "Parser.h"
+
 #include <cstdlib>
 #include <cstring>
+#include <vector>
 
 namespace dale {
 Parser::Parser(Lexer *lexer, ErrorReporter *erep,

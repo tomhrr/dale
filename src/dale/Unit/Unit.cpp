@@ -1,12 +1,15 @@
 #include "Unit.h"
+
+#include <cstdio>
+#include <string>
+#include <vector>
+
 #include "../CommonDecl/CommonDecl.h"
 #include "../Lexer/Lexer.h"
 #include "../Utils/Utils.h"
 #include "../llvmUtils/llvmUtils.h"
 #include "../llvm_Linker.h"
 #include "../llvm_Module.h"
-
-#include <cstdio>
 
 namespace dale {
 Unit::Unit(const char *path, Units *units, ErrorReporter *er,
@@ -17,7 +20,7 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er,
     FILE *mfp = fopen(path, "r");
     if (!mfp) {
         char buf[1024];
-        sprintf(buf, "unable to open %s for reading", path);
+        snprintf(buf, sizeof(buf), "unable to open %s for reading", path);
         error(buf, true);
     }
 
@@ -125,7 +128,7 @@ void Unit::makeTemporaryGlobalFunction() {
         getFunctionType(llvm_return_type, empty_args, false);
 
     char buf[32];
-    sprintf(buf, "_intro%d", fn_count++);
+    snprintf(buf, sizeof(buf), "_intro%d", fn_count++);
 
     std::string new_name;
     ctx->ns()->nameToSymbol(buf, &new_name);
@@ -188,9 +191,10 @@ void Unit::addCommonDeclarations() {
 void Unit::getUnusedVarName(std::string *buf) {
     char ibuf[16];
     do {
-        sprintf(ibuf, "_dv%c%c%c%c%d", unused_name_prefix[0],
-                unused_name_prefix[1], unused_name_prefix[2],
-                unused_name_prefix[3], var_count++);
+        snprintf(ibuf, sizeof(ibuf), "_dv%c%c%c%c%d",
+                 unused_name_prefix[0], unused_name_prefix[1],
+                 unused_name_prefix[2], unused_name_prefix[3],
+                 var_count++);
     } while (module->getGlobalVariable(llvm::StringRef(ibuf)));
 
     buf->append(ibuf);
@@ -200,9 +204,10 @@ void Unit::getUnusedVarName(std::string *buf) {
 void Unit::getUnusedFunctionName(std::string *buf) {
     char ibuf[16];
     do {
-        sprintf(ibuf, "_fn%c%c%c%c%d", unused_name_prefix[0],
-                unused_name_prefix[1], unused_name_prefix[2],
-                unused_name_prefix[3], fn_count++);
+        snprintf(ibuf, sizeof(ibuf), "_fn%c%c%c%c%d",
+                 unused_name_prefix[0], unused_name_prefix[1],
+                 unused_name_prefix[2], unused_name_prefix[3],
+                 fn_count++);
     } while (module->getFunction(llvm::StringRef(ibuf)));
 
     buf->append(ibuf);

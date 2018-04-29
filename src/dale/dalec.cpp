@@ -21,6 +21,7 @@
 
 using namespace dale;
 
+/* Determine whether the given string ends with the given ending. */
 static bool isEndingOn(const char *string, const char *ending) {
     size_t sl = strlen(string);
     size_t el = strlen(ending);
@@ -28,10 +29,14 @@ static bool isEndingOn(const char *string, const char *ending) {
     return (sl >= el) && (strcmp(string + (sl - el), ending) == 0);
 }
 
+/* Determine whether a path is for a file that should be included in
+ * the final linking command without any further processing. */
 static bool appearsToBeLib(const char *str) {
     return isEndingOn(str, ".o") || isEndingOn(str, ".a");
 }
 
+/* Prefix each string from the vector with the given prefix, followed
+ * by a space, and then add the final string to the buffer. */
 std::string joinWithPrefix(std::vector<const char *> strings,
                            const std::string prefix,
                            std::string buffer) {
@@ -41,6 +46,66 @@ std::string joinWithPrefix(std::vector<const char *> strings,
     }
 
     return buffer;
+}
+
+/* Add the runtime libraries as compile-time libraries, so that LLVM
+ * is able to resolve external symbols during compilation.  (There is
+ * probably a better way to do this.) */
+void copyRuntimeToCompileTime(std::vector<const char *> *run_libs,
+                              std::vector<const char *> *compile_libs) {
+    for (std::vector<const char *>::iterator b = run_libs->begin(),
+                                             e = run_libs->end();
+         b != e; ++b) {
+        FILE *fp;
+        char libname[256];
+        snprintf(libname, sizeof(libname), "-l%s", *b);
+        char command[256];
+        snprintf(command, sizeof(command), "ld -t %s 2>/dev/null", libname);
+        fp = popen(command, "r");
+        if (fp == NULL) {
+            fprintf(stderr, "Unable to resolve library path");
+            abort();
+        }
+        char line[256];
+        while (fgets(line, sizeof(line) - 1, fp) != NULL) {
+            if (!strncmp(line, libname, strlen(libname))) {
+                char path[256];
+                char *start = strchr(line, '/');
+                char *end = strchr(line, ')');
+                strncpy(path, start, (end - start));
+                path[end - start] = '\0';
+                compile_libs->push_back(strdup(path));
+            }
+        }
+    }
+}
+
+/* Determine the output path. */
+void getOutputPath(const char *output_path_arg, const char *input_file,
+                   bool no_linking, int produce_set, int produce,
+                   std::string *output_path) {
+    if (output_path_arg) {
+        /* Is given. */
+        *output_path = output_path_arg;
+    } else {
+        /* Otherwise, construct it. */
+        *output_path = input_file;
+
+        if (no_linking) {
+            *output_path += ".o";
+        } else if (produce_set) {
+            /* .unknown should never be reached. */
+            *output_path +=
+                ((produce == IR)
+                     ? ".ll"
+                     : (produce == ASM)
+                           ? ".s"
+                           : (produce == BitCode) ? ".bc" : ".unknown");
+        } else {
+            /* Overwrite what was there. */
+            *output_path = "a.out";
+        }
+    }
 }
 
 int main(int argc, char **argv) {
@@ -165,45 +230,14 @@ int main(int argc, char **argv) {
         }
     }
 
-    /* If any module has been loaded statically, add the runtime
-     * libraries as compile-time libraries, so that LLVM is able to
-     * resolve external symbols during compilation.  (There is
-     * probably a better way to do this.) */
-    if (static_modules.size() || static_mods_all) {
-        for (std::vector<const char *>::iterator b = run_libs.begin(),
-                                                 e = run_libs.end();
-             b != e; ++b) {
-            FILE *fp;
-            char libname[256];
-            snprintf(libname, sizeof(libname), "-l%s", *b);
-            char command[256];
-            snprintf(command, sizeof(command), "ld -t %s 2>/dev/null", libname);
-            fp = popen(command, "r");
-            if (fp == NULL) {
-                fprintf(stderr, "Unable to resolve library path");
-                abort();
-            }
-            char line[256];
-            while (fgets(line, sizeof(line) - 1, fp) != NULL) {
-                if (!strncmp(line, libname, strlen(libname))) {
-                    char path[256];
-                    char *start = strchr(line, '/');
-                    char *end = strchr(line, ')');
-                    strncpy(path, start, (end - start));
-                    path[end - start] = '\0';
-                    compile_libs.push_back(strdup(path));
-                }
-            }
-        }
-    }
-
     if (version) {
-        printf("%d.%d", DALE_VERSION_MAJOR, DALE_VERSION_MINOR);
-        if (!strcmp("git", DALE_VERSION_TYPE)) {
-            printf(" (rev %s)", DALE_VERSION_REV);
-        }
+        printVersion();
         printf("\n");
         exit(0);
+    }
+
+    if (static_modules.size() || static_mods_all) {
+        copyRuntimeToCompileTime(&run_libs, &compile_libs);
     }
 
     /* If the user wants an executable and has not specified either
@@ -225,30 +259,9 @@ int main(int argc, char **argv) {
         error("no input files");
     }
 
-    /* Set output_path. */
     std::string output_path;
-    if (output_path_arg) {
-        /* Is given. */
-        output_path = output_path_arg;
-    } else {
-        /* Otherwise, construct it. */
-        output_path = input_files[0];
-
-        if (no_linking) {
-            output_path += ".o";
-        } else if (produce_set) {
-            /* .unknown should never be reached. */
-            output_path +=
-                ((produce == IR)
-                     ? ".ll"
-                     : (produce == ASM)
-                           ? ".s"
-                           : (produce == BitCode) ? ".bc" : ".unknown");
-        } else {
-            /* Overwrite what was there. */
-            output_path = "a.out";
-        }
-    }
+    getOutputPath(output_path_arg, input_files[0], no_linking,
+                  produce_set, produce, &output_path);
 
     /* Generate an intermediate file, to be compiled and linked later
      * with the system compiler, by building the executable in memory

@@ -1,5 +1,7 @@
 #include "Offsetof.h"
 
+#include <vector>
+
 #include <cstdio>
 
 namespace dale {

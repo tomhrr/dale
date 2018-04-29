@@ -1,5 +1,7 @@
 #include "SavePoint.h"
 
+#include <vector>
+
 #include "../NativeTypes/NativeTypes.h"
 #include "../llvm_LinkAll.h"
 

@@ -432,13 +432,11 @@ bool FormFunctionParse(Units *units, Node *node, const char *name,
     llvm::Function *llvm_fn = llvm::dyn_cast<llvm::Function>(fnc);
 
     /* If llvm_fn is null, then the function already exists and the
-     * extant
-     * function has a different prototype, so it's an invalid
+     * extant function has a different prototype, so it's an invalid
      * redeclaration.  If llvm_fn is not null, but has content, then
-     * it's an
-     * invalid redefinition.  These error conditions should be caught
-     * by isValidDeclaration, but there's no harm in leaving this
-     * check here as a stopgap. */
+     * it's an invalid redefinition.  These error conditions should be
+     * caught by isValidDeclaration, but there's no harm in leaving
+     * this check here as a stopgap. */
     if (!llvm_fn || llvm_fn->size()) {
         fprintf(stderr, "%s\n", symbol.c_str());
         assert(false && "uncaught invalid redeclaration");

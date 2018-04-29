@@ -1,10 +1,15 @@
 #include "llvmUtils.h"
 
 #include <sys/stat.h>
+
 #include <cctype>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
+#include <memory>
+#include <string>
+#include <vector>
+#include <utility>
 
 #if D_LLVM_VERSION_ORD >= 36
 #include "llvm/Transforms/Utils/Cloning.h"
@@ -96,7 +101,7 @@ llvm::TargetMachine *getTargetMachine(llvm::Module *last_module) {
             ,
             llvm::Optional<llvm::Reloc::Model>()
 #endif
-                ));
+                )); // NOLINT
 
     llvm::TargetMachine *tm = target_sp.get();
 #if D_LLVM_VERSION_ORD <= 35
@@ -426,19 +431,19 @@ llvm::Module *loadModule(std::string *path) {
     bool materialized = module->MaterializeAll(&error_msg);
 #elif D_LLVM_VERSION_ORD <= 35
     std::error_code ec = module->materializeAllPermanently();
-    bool materialized = (bool)ec;
+    bool materialized = static_cast<bool>(ec);
     if (ec) {
         error_msg = ec.message();
     }
 #elif D_LLVM_VERSION_ORD <= 39
     std::error_code ec = module->materializeAll();
-    bool materialized = (bool)ec;
+    bool materialized = static_cast<bool>(ec);
     if (ec) {
         error_msg = ec.message();
     }
 #else
     llvm::Error ec = module->materializeAll();
-    bool materialized = ((bool)ec);
+    bool materialized = static_cast<bool>(ec);
 #endif
     assert(!materialized && "failed to materialize module");
     _unused(materialized);

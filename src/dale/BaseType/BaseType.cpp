@@ -2,11 +2,8 @@
 
 #include <cstring>
 
-namespace dale
-{
-int
-getSignedIntegerType(int size)
-{
+namespace dale {
+int getSignedIntegerType(int size) {
     int type;
     switch (size) {
         case 8:     type = BaseType::Int8;      break;
@@ -19,9 +16,7 @@ getSignedIntegerType(int size)
     return type;
 }
 
-int
-getUnsignedIntegerType(int size)
-{
+int getUnsignedIntegerType(int size) {
     int type;
     switch (size) {
         case 8:     type = BaseType::UInt8;      break;
@@ -34,9 +29,7 @@ getUnsignedIntegerType(int size)
     return type;
 }
 
-const char *
-baseTypeToString(int base_type)
-{
+const char * baseTypeToString(int base_type) {
     const char *ret;
     switch (base_type) {
         case BaseType::Void:       ret = "void";        break;
@@ -66,15 +59,13 @@ baseTypeToString(int base_type)
     return ret;
 }
 
-int
-stringToBaseType(const char *str)
-{
+int stringToBaseType(const char *str) {
     return
           (!strcmp(str, "int"))         ? BaseType::Int
         : (!strcmp(str, "void"))        ? BaseType::Void
         : (!strcmp(str, "char"))        ? BaseType::Char
         : (!strcmp(str, "bool"))        ? BaseType::Bool
-        : (!strcmp(str, "uint" ))       ? BaseType::UInt
+        : (!strcmp(str, "uint"))        ? BaseType::UInt
         : (!strcmp(str, "int8"))        ? BaseType::Int8
         : (!strcmp(str, "uint8"))       ? BaseType::UInt8
         : (!strcmp(str, "int16"))       ? BaseType::Int16
@@ -94,9 +85,7 @@ stringToBaseType(const char *str)
                                         : -1;
 }
 
-char
-baseTypeToSymbolChar(int base_type)
-{
+char baseTypeToSymbolChar(int base_type) {
     char c;
     switch (base_type) {
         case BaseType::Void:       c = 'v';             break;
@@ -122,13 +111,11 @@ baseTypeToSymbolChar(int base_type)
         case BaseType::Size:       c = 'w';             break;
         case BaseType::PtrDiff:    c = 'x';             break;
         default:                   c = '?';
-    };
+    }
     return c;
 }
 
-bool
-baseTypeIsIntegerType(int base_type)
-{
+bool baseTypeIsIntegerType(int base_type) {
     return (   base_type == BaseType::Int
             || base_type == BaseType::Char
             || base_type == BaseType::UInt
@@ -147,9 +134,7 @@ baseTypeIsIntegerType(int base_type)
             || base_type == BaseType::UInt128);
 }
 
-bool
-baseTypeIsSignedIntegerType(int base_type)
-{
+bool baseTypeIsSignedIntegerType(int base_type) {
     return (   base_type == BaseType::Int
             || base_type == BaseType::Char
             || base_type == BaseType::Int8
@@ -159,9 +144,7 @@ baseTypeIsSignedIntegerType(int base_type)
             || base_type == BaseType::Int128);
 }
 
-int
-integerTypeToSize(int base_type)
-{
+int integerTypeToSize(int base_type) {
     int size;
     switch (base_type) {
         case BaseType::Char:    size = 8;       break;
@@ -185,17 +168,13 @@ integerTypeToSize(int base_type)
     return size;
 }
 
-bool
-baseTypeIsFloatingPointType(int base_type)
-{
+bool baseTypeIsFloatingPointType(int base_type) {
     return (   base_type == BaseType::Float
             || base_type == BaseType::Double
             || base_type == BaseType::LongDouble);
 }
 
-int
-floatingPointTypeToRelativeSize(int base_type)
-{
+int floatingPointTypeToRelativeSize(int base_type) {
     int size;
     switch (base_type) {
         case BaseType::Float:       size = 1;       break;

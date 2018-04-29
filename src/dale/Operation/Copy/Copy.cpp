@@ -1,5 +1,7 @@
 #include "Copy.h"
 
+#include <vector>
+
 namespace dale {
 namespace Operation {
 bool IsCopyPermitted(Context *ctx, Node *node, Type *type) {

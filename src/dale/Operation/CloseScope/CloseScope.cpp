@@ -1,5 +1,7 @@
 #include "CloseScope.h"
 
+#include <vector>
+
 #include "../Destruct/Destruct.h"
 
 namespace dale {

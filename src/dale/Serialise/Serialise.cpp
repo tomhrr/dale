@@ -1,8 +1,11 @@
 #include "Serialise.h"
 
-#include "../Utils/Utils.h"
-
 #include <cassert>
+#include <map>
+#include <string>
+#include <vector>
+
+#include "../Utils/Utils.h"
 
 namespace dale {
 void xfwrite(const void *a, size_t b, size_t c, FILE *d) {
@@ -17,7 +20,7 @@ void serialise(FILE *out, bool a) { xfwrite(&a, sizeof(bool), 1, out); }
 void serialise(FILE *out, bool *a) { serialise(out, *a); }
 
 char *deserialise(TypeRegister *tr, char *in, bool *a) {
-    *a = *(bool *)in;
+    *a = *(reinterpret_cast<bool *>(in));
     return in + sizeof(bool);
 }
 
@@ -28,7 +31,7 @@ void serialise(FILE *out, int64_t a) {
 void serialise(FILE *out, int64_t *a) { serialise(out, *a); }
 
 char *deserialise(TypeRegister *tr, char *in, int64_t *a) {
-    *a = *(int64_t *)in;
+    *a = *(reinterpret_cast<int64_t *>(in));
     return in + sizeof(int64_t);
 }
 
@@ -52,7 +55,7 @@ void serialise(FILE *out, int *a) { serialise(out, *a); }
 
 char *deserialise(TypeRegister *tr, char *in, int *a) {
     uint8_t aa;
-    aa = *(uint8_t *)in;
+    aa = *(reinterpret_cast<uint8_t *>(in));
     *a = aa;
     return in + sizeof(uint8_t);
 }
@@ -66,7 +69,7 @@ void serialise(FILE *out, size_t *s) { serialise(out, *s); }
 
 char *deserialise(TypeRegister *tr, char *in, size_t *s) {
     uint16_t ss;
-    ss = *(uint16_t *)in;
+    ss = *(reinterpret_cast<uint16_t *>(in));
     *s = ss;
     return in + sizeof(uint16_t);
 }

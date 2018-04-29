@@ -105,6 +105,9 @@ void error(const char *error_msg, bool show_perror = false);
  */
 void error(const char *error_msg, const char *str1,
            bool show_perror = false);
+/*! Print the current version number.
+ */
+void printVersion();
 }
 
 #endif

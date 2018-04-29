@@ -1,5 +1,7 @@
 #include "Cast.h"
 
+#include <string>
+
 #include "../../ErrorType/ErrorType.h"
 
 using namespace dale::ErrorInst;

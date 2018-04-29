@@ -1,11 +1,15 @@
 #include "TypeRegister.h"
 
-#include "../STL/STL.h"
-#include "../Utils/Utils.h"
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "../STL/STL.h"
+#include "../Utils/Utils.h"
 
 namespace dale {
 TypeRegister::TypeRegister() {

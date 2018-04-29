@@ -1,18 +1,15 @@
 #include "Utils.h"
 
 #include <sys/stat.h>
+
 #include <cctype>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
+#include <string>
+#include <vector>
 
-#if D_LLVM_VERSION_ORD >= 36
-#include "llvm/Transforms/Utils/Cloning.h"
-#endif
-
-#if D_LLVM_VERSION_ORD <= 32
-#include "llvm/Support/Path.h"
-#endif
+#include "Config.h"
 
 namespace dale {
 const char *progname = NULL;
@@ -80,7 +77,7 @@ bool stringFitsInInt(const char *str) {
     char buf[20];
     int len1, len2;
 
-    sprintf(buf, "%d", (*str == '-' ? INT_MIN : INT_MAX));
+    snprintf(buf, sizeof(buf), "%d", (*str == '-' ? INT_MIN : INT_MAX));
 
     while (*str++ == '0') {
     }
@@ -115,7 +112,7 @@ bool filesAreEquivalent(const char *path1, const char *path2) {
 
 void appendInt(std::string *to, int num) {
     char numstr[255];
-    sprintf(numstr, "%d", num);
+    snprintf(numstr, sizeof(numstr), "%d", num);
     to->append(numstr);
     return;
 }
@@ -142,7 +139,8 @@ void encodeStandard(const std::string *from, std::string *to) {
     for (std::string::const_iterator b = from->begin(), e = from->end();
          b != e; ++b) {
         char c = *b;
-        sprintf(buf, ((isalnum(c) || c == '_') ? "%c" : "$%x"), c);
+        snprintf(buf, sizeof(buf),
+                 ((isalnum(c) || c == '_') ? "%c" : "$%x"), c);
         to->append(buf);
     }
 
@@ -151,7 +149,7 @@ void encodeStandard(const std::string *from, std::string *to) {
 
 bool isValidModuleName(const std::string *name) {
     int i;
-    for (i = 0; i < (int)name->length(); ++i) {
+    for (i = 0; i < static_cast<int>(name->length()); ++i) {
         char c = (*name)[i];
         if (!(isalnum(c) || (c == '-') || (c == '_') || (c == '.'))) {
             return false;
@@ -206,7 +204,7 @@ bool typesToString(std::vector<Variable *> *vars, std::string *buf) {
 
 void error(const char *error_msg, bool show_perror) {
     char buf[1024];
-    sprintf(buf, "%s: %s", progname, error_msg);
+    snprintf(buf, sizeof(buf), "%s: %s", progname, error_msg);
     if (show_perror) {
         perror(buf);
     } else {
@@ -217,7 +215,14 @@ void error(const char *error_msg, bool show_perror) {
 
 void error(const char *error_msg, const char *str1, bool show_perror) {
     char buf[1024];
-    sprintf(buf, error_msg, str1);
+    snprintf(buf, sizeof(buf), error_msg, str1);
     error(buf, show_perror);
+}
+
+void printVersion() {
+    printf("%d.%d", DALE_VERSION_MAJOR, DALE_VERSION_MINOR);
+    if (!strcmp("git", DALE_VERSION_TYPE)) {
+	printf(" (rev %s)", DALE_VERSION_REV);
+    }
 }
 }

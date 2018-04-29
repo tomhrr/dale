@@ -1,4 +1,12 @@
 #include "Introspection.h"
+
+#include <algorithm>
+#include <map>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "../Form/Proc/Inst/Inst.h"
 #include "../Form/TopLevel/GlobalVariable/GlobalVariable.h"
 #include "../Form/Type/Type.h"
@@ -414,7 +422,7 @@ int fn_2D_by_2D_args_2D_count(MContext *mc, DNode *form,
         std::pair<std::string, std::vector<std::string> *>(
             map_key, fn_by_args_list));
 
-    return (int)fn_by_args_list->size();
+    return static_cast<int>(fn_by_args_list->size());
 }
 
 const char *fn_2D_by_2D_args_2D_name(MContext *mc, DNode *form,
@@ -484,7 +492,7 @@ int fn_2D_by_2D_name_2D_count(MContext *mc, const char *name) {
     fn_by_name.insert(std::pair<std::string, std::vector<Function *> >(
         name, functions));
 
-    return (int)functions.size();
+    return static_cast<int>(functions.size());
 }
 
 int fn_2D_by_2D_name_2D_types_2D_count(MContext *mc, const char *name,
@@ -579,19 +587,19 @@ const char *printf_2D_length(MContext *mc, DNode *t) {
         return "";
     }
 
-    unsigned long addnum = strtoul(str->c_str(), NULL, DECIMAL_RADIX);
+    unsigned long addnum = strtoul(str->c_str(), NULL, DECIMAL_RADIX); // NOLINT
     if (STRTOUL_FAILED(addnum, str->c_str(), NULL)) {
         return "";
     }
     addnum /= 8;
 
-    if (addnum == sizeof(short)) {
+    if (addnum == sizeof(short)) { // NOLINT
         return "h";
     }
-    if (addnum == sizeof(long)) {
+    if (addnum == sizeof(long)) { // NOLINT
         return "l";
     }
-    if (addnum >= sizeof(long long)) {
+    if (addnum >= sizeof(long long)) { // NOLINT
         return "ll";
     }
     return "";
@@ -770,7 +778,7 @@ DNode *input_2D_type(MContext *mc, DNode *fn_name_nd, int index) {
     if (fn->linkage != Linkage::Extern_C) {
         return NULL;
     }
-    if ((int)(fn->parameters.size() - 1) < index) {
+    if (static_cast<int>(fn->parameters.size() - 1) < index) {
         return NULL;
     }
 
@@ -792,7 +800,7 @@ DNode *struct_2D_member_2D_type(MContext *mc, DNode *name, int index) {
     if (!st) {
         return NULL;
     }
-    if ((int)st->member_types.size() < index) {
+    if (static_cast<int>(st->member_types.size()) < index) {
         return NULL;
     }
     return st->member_types[index]->toNode()->toDNode();
@@ -814,7 +822,7 @@ const char *struct_2D_member_2D_name(MContext *mc, DNode *name,
     if (!st) {
         return NULL;
     }
-    if ((int)st->member_types.size() < index) {
+    if (static_cast<int>(st->member_types.size()) < index) {
         return NULL;
     }
     return st->indexToName(index);
@@ -996,39 +1004,64 @@ static std::map<std::string, void *> fns;
 
 void init_introspection_functions() {
     fns.clear();
-    fns["exists-fn"] = (void *)exists_2D_fn;
-    fns["exists-type"] = (void *)exists_2D_type;
-    fns["type-of"] = (void *)type_2D_of;
-    fns["printf-length"] = (void *)printf_2D_length;
-    fns["exists-variable"] = (void *)exists_2D_variable;
-    fns["exists-macro"] = (void *)exists_2D_macro;
-    fns["report-error"] = (void *)report_2D_error;
-    fns["type-to-string"] = (void *)type_2D_to_2D_string;
+    fns["exists-fn"] =
+        reinterpret_cast<void *>(exists_2D_fn);
+    fns["exists-type"] =
+        reinterpret_cast<void *>(exists_2D_type);
+    fns["type-of"] =
+        reinterpret_cast<void *>(type_2D_of);
+    fns["printf-length"] =
+        reinterpret_cast<void *>(printf_2D_length);
+    fns["exists-variable"] =
+        reinterpret_cast<void *>(exists_2D_variable);
+    fns["exists-macro"] =
+        reinterpret_cast<void *>(exists_2D_macro);
+    fns["report-error"] =
+        reinterpret_cast<void *>(report_2D_error);
+    fns["type-to-string"] =
+        reinterpret_cast<void *>(type_2D_to_2D_string);
     fns["type-to-display-string"] =
-        (void *)type_2D_to_2D_display_2D_string;
-    fns["register-type"] = (void *)register_2D_type;
-    fns["struct-member-count"] = (void *)struct_2D_member_2D_count;
-    fns["struct-member-type"] = (void *)struct_2D_member_2D_type;
-    fns["struct-member-name"] = (void *)struct_2D_member_2D_name;
-    fns["input-type"] = (void *)input_2D_type;
-    fns["is-char-type"] = (void *)is_2D_char_2D_type;
-    fns["is-integer-type"] = (void *)is_2D_integer_2D_type;
+        reinterpret_cast<void *>(type_2D_to_2D_display_2D_string);
+    fns["register-type"] =
+        reinterpret_cast<void *>(register_2D_type);
+    fns["struct-member-count"] =
+        reinterpret_cast<void *>(struct_2D_member_2D_count);
+    fns["struct-member-type"] =
+        reinterpret_cast<void *>(struct_2D_member_2D_type);
+    fns["struct-member-name"] =
+        reinterpret_cast<void *>(struct_2D_member_2D_name);
+    fns["input-type"] =
+        reinterpret_cast<void *>(input_2D_type);
+    fns["is-char-type"] =
+        reinterpret_cast<void *>(is_2D_char_2D_type);
+    fns["is-integer-type"] =
+        reinterpret_cast<void *>(is_2D_integer_2D_type);
     fns["is-signed-integer-type"] =
-        (void *)is_2D_signed_2D_integer_2D_type;
+        reinterpret_cast<void *>(is_2D_signed_2D_integer_2D_type);
     fns["is-unsigned-integer-type"] =
-        (void *)is_2D_unsigned_2D_integer_2D_type;
+        reinterpret_cast<void *>(is_2D_unsigned_2D_integer_2D_type);
     fns["is-floating-point-type"] =
-        (void *)is_2D_floating_2D_point_2D_type;
-    fns["is-pointer-type"] = (void *)is_2D_pointer_2D_type;
-    fns["is-pointer-to-type"] = (void *)is_2D_pointer_2D_to_2D_type;
-    fns["pointee-type"] = (void *)pointee_2D_type;
-    fns["fn-by-args-count"] = (void *)fn_2D_by_2D_args_2D_count;
-    fns["fn-by-args-name"] = (void *)fn_2D_by_2D_args_2D_name;
-    fns["has-errors"] = (void *)has_2D_errors;
-    fns["is-const"] = (void *)is_2D_const;
-    fns["eval-expression"] = (void *)eval_2D_expression;
-    fns["eval-macro-call"] = (void *)eval_2D_macro_2D_call;
-    fns["is-lvalue"] = (void *)is_2D_lvalue;
+        reinterpret_cast<void *>(is_2D_floating_2D_point_2D_type);
+    fns["is-pointer-type"] =
+        reinterpret_cast<void *>(is_2D_pointer_2D_type);
+    fns["is-pointer-to-type"] =
+        reinterpret_cast<void *>(is_2D_pointer_2D_to_2D_type);
+    fns["pointee-type"] =
+        reinterpret_cast<void *>(pointee_2D_type);
+    fns["fn-by-args-count"] =
+        reinterpret_cast<void *>(fn_2D_by_2D_args_2D_count);
+    fns["fn-by-args-name"] =
+        reinterpret_cast<void *>(fn_2D_by_2D_args_2D_name);
+    fns["has-errors"] =
+        reinterpret_cast<void *>(has_2D_errors);
+    fns["is-const"] =
+        reinterpret_cast<void *>(is_2D_const);
+    fns["eval-expression"] =
+        reinterpret_cast<void *>(eval_2D_expression);
+    fns["eval-macro-call"] =
+        reinterpret_cast<void *>(eval_2D_macro_2D_call);
+    fns["is-lvalue"] =
+        reinterpret_cast<void *>(is_2D_lvalue);
 }
 
 #define eq(str) !strcmp(name, str)

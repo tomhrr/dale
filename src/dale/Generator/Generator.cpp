@@ -7,12 +7,16 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <string>
+#include <vector>
 
 #if D_LLVM_VERSION_ORD <= 34
 #include "llvm/Support/system_error.h"
@@ -22,10 +26,6 @@
 #if D_LLVM_VERSION_ORD >= 33
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/SourceMgr.h"
-#endif
-
-#if D_LLVM_VERSION_ORD >= 36
-#include "llvm/Transforms/Utils/Cloning.h"
 #endif
 
 #include "../llvmUtils/llvmUtils.h"

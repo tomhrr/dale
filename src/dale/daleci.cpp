@@ -30,13 +30,6 @@ std::string joinWithPrefix(std::vector<const char *> strings,
     return buffer;
 }
 
-void printVersion() {
-    printf("%d.%d", DALE_VERSION_MAJOR, DALE_VERSION_MINOR);
-    if (!strcmp("git", DALE_VERSION_TYPE)) {
-        printf(" (rev %s)", DALE_VERSION_REV);
-    }
-}
-
 int main(int argc, char **argv) {
     srand(time(NULL) + getpid());
 

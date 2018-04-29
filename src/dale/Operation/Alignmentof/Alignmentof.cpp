@@ -1,6 +1,7 @@
 #include "Alignmentof.h"
 
 #include <cstdio>
+#include <vector>
 
 #include "../../llvmUtils/llvmUtils.h"
 

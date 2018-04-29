@@ -1,10 +1,12 @@
 #include "Type.h"
 
-#include "../STL/STL.h"
-#include "../Utils/Utils.h"
-
 #include <cstdio>
 #include <cstring>
+#include <string>
+#include <vector>
+
+#include "../STL/STL.h"
+#include "../Utils/Utils.h"
 
 namespace dale {
 Type::Type() { this->reset(); }

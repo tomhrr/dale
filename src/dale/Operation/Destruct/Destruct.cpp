@@ -1,5 +1,7 @@
 #include "Destruct.h"
 
+#include <vector>
+
 #include "../../Form/Utils/Utils.h"
 
 namespace dale {
