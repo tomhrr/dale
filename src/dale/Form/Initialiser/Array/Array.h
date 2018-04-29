@@ -1,5 +1,5 @@
-#ifndef DALE_FORM_LITERAL_ARRAY
-#define DALE_FORM_LITERAL_ARRAY
+#ifndef DALE_FORM_INITIALISER_ARRAY
+#define DALE_FORM_INITIALISER_ARRAY
 
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
@@ -7,7 +7,7 @@
 #include "../../../Units/Units.h"
 
 namespace dale {
-/*! Parse an array literal.
+/*! Parse an array initialiser.
  *  @param units The units context.
  *  @param fn The current function.
  *  @param block The current block.
@@ -21,10 +21,10 @@ namespace dale {
  *  rather the 'parent' array type.  That is, array_type should be set
  *  on array_type.
  */
-bool FormLiteralArrayParse(Units *units, Function *fn,
-                           llvm::BasicBlock *block, Node *node,
-                           Type *array_type, bool get_address,
-                           int *size, ParseResult *pr);
+bool FormInitialiserArrayParse(Units *units, Function *fn,
+                               llvm::BasicBlock *block, Node *node,
+                               Type *array_type, bool get_address,
+                               int *size, ParseResult *pr);
 }
 
 #endif

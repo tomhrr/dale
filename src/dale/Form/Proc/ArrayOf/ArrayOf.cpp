@@ -8,7 +8,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Units/Units.h"
 #include "../../../llvm_Function.h"
-#include "../../Literal/Array/Array.h"
+#include "../../Initialiser/Array/Array.h"
 #include "../../Literal/Integer/Integer.h"
 #include "../../Type/Type.h"
 
@@ -52,8 +52,8 @@ bool FormProcArrayOfParse(Units *units, Function *fn,
 
     Type *array_type = ctx->tr->getArrayType(type, size);
 
-    return FormLiteralArrayParse(units, fn, block, data_node,
-                                 array_type, get_address, &unused_size,
-                                 pr);
+    return FormInitialiserArrayParse(units, fn, block, data_node,
+                                     array_type, get_address, &unused_size,
+                                     pr);
 }
 }

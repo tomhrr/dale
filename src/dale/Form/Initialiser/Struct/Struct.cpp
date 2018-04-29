@@ -11,11 +11,11 @@
 using namespace dale::ErrorInst;
 
 namespace dale {
-bool FormLiteralStructParse(Units *units, Function *fn,
-                            llvm::BasicBlock *block, Node *node,
-                            const char *struct_name, Struct *st,
-                            Type *st_type, bool get_address,
-                            ParseResult *pr) {
+bool FormInitialiserStructParse(Units *units, Function *fn,
+                                llvm::BasicBlock *block, Node *node,
+                                const char *struct_name, Struct *st,
+                                Type *st_type, bool get_address,
+                                ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     if (!node->is_list) {

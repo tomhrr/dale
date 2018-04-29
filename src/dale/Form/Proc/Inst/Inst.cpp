@@ -13,8 +13,8 @@
 #include "../../../llvm_Function.h"
 
 #include "../../Function/Function.h"
-#include "../../Literal/Array/Array.h"
-#include "../../Literal/Struct/Struct.h"
+#include "../../Initialiser/Array/Array.h"
+#include "../../Initialiser/Struct/Struct.h"
 #include "../../TopLevel/Import/Import.h"
 #include "../../Type/Type.h"
 #include "../Funcall/Funcall.h"
@@ -90,9 +90,9 @@ bool createWantedStructLiteral(Units *units, Function *fn,
     Struct *st = ctx->getStruct(wanted_type);
     assert(st && "cannot load struct");
 
-    bool res = FormLiteralStructParse(units, fn, block, n,
-                                      wanted_type->struct_name.c_str(),
-                                      st, wanted_type, get_address, pr);
+    bool res = FormInitialiserStructParse(units, fn, block, n,
+                                          wanted_type->struct_name.c_str(),
+                                          st, wanted_type, get_address, pr);
     return res;
 }
 
@@ -114,8 +114,8 @@ bool createStructLiteral(Units *units, Function *fn,
         ctx->er->getErrorTypeCount(ErrorType::Error);
 
     bool res =
-        FormLiteralStructParse(units, fn, block, (*lst)[1], "flsp", st,
-                               struct_type, get_address, pr);
+        FormInitialiserStructParse(units, fn, block, (*lst)[1], "flsp", st,
+                                   struct_type, get_address, pr);
     if (!res) {
         ctx->er->popErrors(error_count_begin);
     }
@@ -243,7 +243,7 @@ bool parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     /* If wanted_type is present and is a struct, then use
-     * FormLiteralStructParse, if the first list element is a list. */
+     * FormInitialiserStructParse, if the first list element is a list. */
 
     if (wanted_type && (wanted_type->struct_name.size()) &&
         (!first->is_token)) {
@@ -298,8 +298,8 @@ bool parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
         (!strcmp(t->str_value.c_str(), "array"))) {
         int size;
         bool res =
-            FormLiteralArrayParse(units, fn, block, adjusted,
-                                  wanted_type, get_address, &size, pr);
+            FormInitialiserArrayParse(units, fn, block, adjusted,
+                                      wanted_type, get_address, &size, pr);
         return res;
     }
 

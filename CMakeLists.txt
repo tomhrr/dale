@@ -275,8 +275,8 @@ add_library(dale SHARED
                  src/dale/Form/TopLevel/Module/Module.cpp
                  src/dale/Form/TopLevel/Import/Import.cpp
                  src/dale/Form/TopLevel/Inst/Inst.cpp
-                 src/dale/Form/Literal/Struct/Struct.cpp
-                 src/dale/Form/Literal/Array/Array.cpp
+                 src/dale/Form/Initialiser/Struct/Struct.cpp
+                 src/dale/Form/Initialiser/Array/Array.cpp
                  src/dale/CoreForms/CoreForms.cpp
                  src/dale/Label/Label.cpp
                  src/dale/CommonDecl/CommonDecl.cpp

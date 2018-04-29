@@ -1,12 +1,12 @@
-#ifndef DALE_FORM_LITERAL_STRUCT
-#define DALE_FORM_LITERAL_STRUCT
+#ifndef DALE_FORM_INITIALISER_STRUCT
+#define DALE_FORM_INITIALISER_STRUCT
 
 #include "../../../Context/Context.h"
 #include "../../../Node/Node.h"
 #include "../../../Units/Units.h"
 
 namespace dale {
-/*! Parse a struct literal.
+/*! Parse a struct initialiser.
  *  @param units The units context.
  *  @param fn The current function.
  *  @param block The current block.
@@ -17,11 +17,11 @@ namespace dale {
  *  @param get_address Whether to return the address of the struct.
  *  @param pr The parse result for the array.
  */
-bool FormLiteralStructParse(Units *units, Function *fn,
-                            llvm::BasicBlock *block, Node *node,
-                            const char *struct_name, Struct *st,
-                            Type *st_type, bool get_address,
-                            ParseResult *pr);
+bool FormInitialiserStructParse(Units *units, Function *fn,
+                                llvm::BasicBlock *block, Node *node,
+                                const char *struct_name, Struct *st,
+                                Type *st_type, bool get_address,
+                                ParseResult *pr);
 }
 
 #endif

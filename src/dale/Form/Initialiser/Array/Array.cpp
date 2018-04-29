@@ -11,10 +11,10 @@
 using namespace dale::ErrorInst;
 
 namespace dale {
-bool FormLiteralArrayParse(Units *units, Function *dfn,
-                           llvm::BasicBlock *block, Node *node,
-                           Type *array_type, bool get_address,
-                           int *size, ParseResult *pr) {
+bool FormInitialiserArrayParse(Units *units, Function *dfn,
+                               llvm::BasicBlock *block, Node *node,
+                               Type *array_type, bool get_address,
+                               int *size, ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
     Node *array_list = node;
