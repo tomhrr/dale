@@ -285,7 +285,6 @@ add_library(dale SHARED
                  src/dale/DNodeConverter/DNodeConverter.cpp
                  src/dale/MacroProcessor/MacroProcessor.cpp
                  src/dale/Operation/Coerce/Coerce.cpp
-                 src/dale/Form/Literal/Integer/Integer.cpp
                  src/dale/FunctionProcessor/FunctionProcessor.cpp
                  src/dale/Operation/Destruct/Destruct.cpp
                  src/dale/Operation/Copy/Copy.cpp
@@ -294,7 +293,8 @@ add_library(dale SHARED
                  src/dale/Module/Reader/Reader.cpp
                  src/dale/SavePoint/SavePoint.cpp
                  src/dale/Form/Utils/Utils.cpp
-                 src/dale/Form/Proc/Include/Include.cpp)
+                 src/dale/Form/Proc/Include/Include.cpp
+                 src/dale/Form/Literal/Literal.cpp)
 set_target_properties (dale PROPERTIES VERSION ${Dale_VERSION})
 set_target_properties (dale PROPERTIES SOVERSION ${Dale_VERSION_MAJOR})
 set_target_properties (dale PROPERTIES COMPILE_FLAGS "${LLVM_CXX_FLAGS} -I.")

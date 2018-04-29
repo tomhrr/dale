@@ -14,10 +14,10 @@
 #include "../../../llvmUtils/llvmUtils.h"
 #include "../../../Decoder/Decoder.h"
 #include "../../Linkage/Linkage.h"
-#include "../../Proc/Token/Token.h"
 #include "../../ProcBody/ProcBody.h"
 #include "../../Type/Type.h"
 #include "../../Utils/Utils.h"
+#include "../../Literal/Literal.h"
 #include "Config.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/Support/Debug.h"
@@ -33,12 +33,12 @@ llvm::Constant *simpleParseLiteral(Units *units, Type *type, Node *top,
     if (type->isIntegerType() && top->is_token &&
         (top->token->type == TokenType::Int)) {
         ParseResult pr;
-        parseIntegerLiteral(ctx, type, NULL, top->token, &pr);
+        FormIntegerLiteralParse(ctx, type, NULL, top->token, &pr);
         return llvm::dyn_cast<llvm::Constant>(pr.getValue(ctx));
     } else if (type->isFloatingPointType() && top->is_token &&
                (top->token->type == TokenType::FloatingPoint)) {
         ParseResult pr;
-        parseFloatingPointLiteral(ctx, type, NULL, top->token, &pr);
+        FormFloatingPointLiteralParse(ctx, type, NULL, top->token, &pr);
         return llvm::dyn_cast<llvm::Constant>(pr.getValue(ctx));
     } else if (top->is_token &&
                (top->token->type == TokenType::StringLiteral)) {

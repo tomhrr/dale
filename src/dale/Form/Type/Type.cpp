@@ -6,7 +6,6 @@
 
 #include "../../Form/TopLevel/GlobalVariable/GlobalVariable.h"
 #include "../../Units/Units.h"
-#include "../Literal/Integer/Integer.h"
 #include "../Parameter/Parameter.h"
 #include "../Struct/Struct.h"
 
@@ -15,6 +14,34 @@ using namespace dale::ErrorInst;
 static int anon_struct_count = 0;
 
 namespace dale {
+int parseLiteralIntegerToInt(Node *node, ErrorReporter *er) {
+    if (!node->is_token) {
+        Error *e = new Error(UnexpectedElement, node, "symbol",
+                             "integer", "list");
+        er->addError(e);
+        return -1;
+    }
+    if (node->token->type != TokenType::Int) {
+        Error *e = new Error(UnexpectedElement, node, "integer",
+                             "literal", node->token->tokenType());
+        er->addError(e);
+        return -1;
+    }
+
+    const char *num_str = node->token->str_value.c_str();
+    char *end_ptr;
+    unsigned long num = strtoul(num_str, &end_ptr, DECIMAL_RADIX); // NOLINT
+
+    if (STRTOUL_FAILED(num, num_str, end_ptr)) {
+        Error *e = new Error(UnableToParseInteger, node,
+                             node->token->str_value.c_str());
+        er->addError(e);
+        return -1;
+    }
+
+    return num;
+}
+
 Type *parseTypeToken(Units *units, Node *node) {
     Context *ctx = units->top()->ctx;
 
@@ -203,7 +230,7 @@ Type *FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
             ctx->er->addError(e);
             return NULL;
         }
-        int size = FormLiteralIntegerParse((*lst)[2], ctx->er);
+        int size = parseLiteralIntegerToInt((*lst)[2], ctx->er);
         if (size == -1) {
             return NULL;
         }

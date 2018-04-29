@@ -9,7 +9,6 @@
 #include "../../../Units/Units.h"
 #include "../../../llvm_Function.h"
 #include "../../Initialiser/Array/Array.h"
-#include "../../Literal/Integer/Integer.h"
 #include "../../Type/Type.h"
 
 namespace dale {

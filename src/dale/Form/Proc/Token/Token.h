@@ -24,15 +24,6 @@ bool FormProcTokenParse(Units *units, Function *fn,
                         llvm::BasicBlock *block, Node *node,
                         bool get_address, bool prefixed_with_core,
                         Type *wanted_type, ParseResult *pr);
-void parseIntegerLiteral(Context *ctx, Type *wanted_type,
-                         llvm::BasicBlock *block, Token *t,
-                         ParseResult *pr);
-void parseFloatingPointLiteral(Context *ctx, Type *wanted_type,
-                               llvm::BasicBlock *block, Token *t,
-                               ParseResult *pr);
-bool parseStringLiteral(Units *units, Context *ctx,
-                        llvm::BasicBlock *block, Node *node,
-                        ParseResult *pr);
 }
 
 #endif
