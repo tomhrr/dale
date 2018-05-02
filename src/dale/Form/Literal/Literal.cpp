@@ -67,60 +67,45 @@ llvm::Constant *stringLiteralToConstant(Units *units, Type *type,
     return NULL;
 }
 
-bool FormStringLiteralParse(Units *units, Context *ctx,
+void FormStringLiteralParse(Units *units, Context *ctx,
                             llvm::BasicBlock *block, Node *node,
                             ParseResult *pr) {
     Type *type_char = ctx->tr->type_char;
     Type *type_cchar = ctx->tr->getConstType(type_char);
     Type *type_pcchar = ctx->tr->getPointerType(type_cchar);
 
-    int size = 0;
-    llvm::Constant *init =
-        stringLiteralToConstant(units, type_pcchar, node, &size);
-    if (!init) {
-        return false;
-    }
-    Type *str_type_sized =
-        ctx->tr->getArrayType(ctx->tr->getConstType(type_char), size);
+    TypeRegister *tr = ctx->tr;
+    std::string var_name;
+    units->top()->getUnusedVarName(&var_name);
 
+    size_t pos = 0;
+    std::string value = node->token->str_value;
+    while ((pos = value.find("\\n", pos)) != std::string::npos) {
+	value.replace(pos, 2, "\n");
+    }
+
+    int size = value.size() + 1;
+    Type *char_array_type = tr->getArrayType(tr->type_char, size);
     llvm::Type *llvm_type =
-        ctx->toLLVMType(str_type_sized, NULL, false);
-    if (!llvm_type) {
-        return false;
-    }
+	ctx->toLLVMType(char_array_type, NULL, false);
 
-    std::string varname;
-    units->top()->getUnusedVarName(&varname);
+    llvm::Module *mod = units->top()->module;
+    assert(
+	!mod->getGlobalVariable(llvm::StringRef(var_name.c_str())));
 
-    llvm::GlobalVariable *llvm_var = llvm::cast<llvm::GlobalVariable>(
-        units->top()->module->getOrInsertGlobal(varname.c_str(),
-                                                llvm_type));
+    llvm::GlobalVariable *var = llvm::cast<llvm::GlobalVariable>(
+	mod->getOrInsertGlobal(var_name.c_str(), llvm_type));
 
-    llvm_var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
-    llvm_var->setInitializer(init);
-    llvm_var->setConstant(true);
 
-    Variable *var = new Variable();
-    var->name.append(varname.c_str());
-    var->symbol.append(varname);
-    var->type = str_type_sized;
-    var->value = llvm::cast<llvm::Value>(llvm_var);
-    var->linkage = Linkage::Intern;
+    llvm::Constant *constr_str = getStringConstantArray(value.c_str());
+    var->setInitializer(constr_str);
+    var->setConstant(true);
+    var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
-    bool res = ctx->ns()->addVariable(varname.c_str(), var);
-    if (!res) {
-        Error *e =
-            new Error(RedefinitionOfVariable, node, varname.c_str());
-        ctx->er->addError(e);
-        return false;
-    }
-
-    llvm::IRBuilder<> builder(block);
-    llvm::Value *char_ptr =
-        builder.CreateGEP(llvm::cast<llvm::Value>(var->value),
-                          ctx->nt->getTwoLLVMZeros());
-    pr->set(block, type_pcchar, char_ptr);
-    return true;
+    llvm::Constant *const_pchar =
+	createConstantGEP(llvm::cast<llvm::Constant>(var),
+			    ctx->nt->getTwoLLVMZeros());
+    pr->set(block, type_pcchar, llvm::dyn_cast<llvm::Value>(const_pchar));
 }
 
 void FormFloatingPointLiteralParse(Context *ctx, Type *wanted_type,
@@ -230,40 +215,15 @@ bool FormLiteralParse(Units *units, Type *type, Node *node, int *size,
 
     if (type->isIntegerType() && node->is_token &&
         (node->token->type == TokenType::Int)) {
-        FormIntegerLiteralParse(ctx, type, NULL, node->token, pr);
+        FormIntegerLiteralParse(ctx, type, pr->block, node->token, pr);
         return true;
     } else if (type->isFloatingPointType() && node->is_token &&
                (node->token->type == TokenType::FloatingPoint)) {
-        FormFloatingPointLiteralParse(ctx, type, NULL, node->token, pr);
+        FormFloatingPointLiteralParse(ctx, type, pr->block, node->token, pr);
         return true;
     } else if (node->is_token &&
                (node->token->type == TokenType::StringLiteral)) {
-        std::string var_name;
-        units->top()->getUnusedVarName(&var_name);
-
-        *size = strlen(node->token->str_value.c_str()) + 1;
-
-        Type *char_array_type = tr->getArrayType(tr->type_char, *size);
-        llvm::Type *llvm_type =
-            ctx->toLLVMType(char_array_type, NULL, false);
-
-        llvm::Module *mod = units->top()->module;
-        assert(
-            !mod->getGlobalVariable(llvm::StringRef(var_name.c_str())));
-
-        llvm::GlobalVariable *var = llvm::cast<llvm::GlobalVariable>(
-            mod->getOrInsertGlobal(var_name.c_str(), llvm_type));
-
-        llvm::Constant *constr_str =
-            getStringConstantArray(node->token->str_value.c_str());
-        var->setInitializer(constr_str);
-        var->setConstant(true);
-        var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
-
-        llvm::Constant *const_pchar =
-            createConstantGEP(llvm::cast<llvm::Constant>(var),
-                              ctx->nt->getTwoLLVMZeros());
-        pr->set(pr->block, type, llvm::dyn_cast<llvm::Value>(const_pchar));
+        FormStringLiteralParse(units, ctx, pr->block, node, pr);
         return true;
     } else if (type->array_type) {
         if (!node->is_list) {

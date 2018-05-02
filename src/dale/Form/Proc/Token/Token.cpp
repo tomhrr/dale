@@ -100,7 +100,8 @@ bool FormProcTokenParse(Units *units, Function *fn,
         }
     } else if (t->type == TokenType::StringLiteral) {
         pr->set(pr->block, pr->type, NULL);
-        return FormStringLiteralParse(units, ctx, block, node, pr);
+        FormStringLiteralParse(units, ctx, block, node, pr);
+        return true;
     } else {
         Error *e = new Error(UnableToParseForm, node);
         ctx->er->addError(e);
