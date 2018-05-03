@@ -178,10 +178,10 @@ Variable *processVariable(Units *units, Function *fn, Node *top,
                var->value);
 
     ParseResult setf_pr;
-    bool res5 =
+    bool res =
         FormProcSetfProcess(units, fn, pr->block, top, top, false,
                             false, &var_pr, pr, &setf_pr);
-    if (!res5) {
+    if (!res) {
         return NULL;
     }
 
@@ -313,15 +313,14 @@ bool REPLLoop(Units *units) {
         llvm_fn->eraseFromParent();
     } else {
         cloneModuleIfRequired(units->top());
-        llvm::Function *bf =
+        llvm_fn =
             units->top()->ee->FindFunctionNamed(fn_name.c_str());
         std::vector<llvm::GenericValue> values;
 #if D_LLVM_VERSION_ORD >= 34
         units->top()->ee->getFunctionAddress(fn_name.c_str());
 #endif
 
-        llvm::GenericValue res2 =
-            units->top()->ee->runFunction(bf, values);
+        units->top()->ee->runFunction(llvm_fn, values);
         llvm_fn->eraseFromParent();
 
 #if D_LLVM_VERSION_ORD >= 36

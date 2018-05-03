@@ -42,6 +42,138 @@ void MacroProcessor::setPoolfree() {
 
 std::map<std::string, uint64_t> function_map;
 
+DNode *callMacro(uint64_t address, std::vector<void *> *args) {
+    DNode *result_dnode;
+    if (args->size() == 1) {
+        typedef void *(*MFN)(void *);
+        MFN macro_function = (MFN)address;
+        result_dnode =
+            reinterpret_cast<DNode *>(macro_function((*args)[0]));
+    } else if (args->size() == 2) {
+        typedef void *(*MFN)(void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(
+            macro_function((*args)[0], (*args)[1]));
+    } else if (args->size() == 3) {
+        typedef void *(*MFN)(void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(
+            macro_function((*args)[0], (*args)[1], (*args)[2]));
+    } else if (args->size() == 4) {
+        typedef void *(*MFN)(void *, void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(macro_function(
+            (*args)[0], (*args)[1], (*args)[2], (*args)[3]));
+    } else if (args->size() == 5) {
+        typedef void *(*MFN)(void *, void *, void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(
+            macro_function((*args)[0], (*args)[1], (*args)[2],
+                           (*args)[3], (*args)[4]));
+    } else if (args->size() == 6) {
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(
+            macro_function((*args)[0], (*args)[1], (*args)[2],
+                           (*args)[3], (*args)[4], (*args)[5]));
+    } else if (args->size() == 7) {
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(macro_function(
+            (*args)[0], (*args)[1], (*args)[2], (*args)[3], (*args)[4],
+            (*args)[5], (*args)[6]));
+    } else if (args->size() == 8) {
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(macro_function(
+            (*args)[0], (*args)[1], (*args)[2], (*args)[3], (*args)[4],
+            (*args)[5], (*args)[6], (*args)[7]));
+    } else if (args->size() == 9) {
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(macro_function(
+            (*args)[0], (*args)[1], (*args)[2], (*args)[3], (*args)[4],
+            (*args)[5], (*args)[6], (*args)[7], (*args)[8]));
+    } else if (args->size() == 10) {
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(macro_function(
+            (*args)[0], (*args)[1], (*args)[2], (*args)[3], (*args)[4],
+            (*args)[5], (*args)[6], (*args)[7], (*args)[8],
+            (*args)[9]));
+    } else if (args->size() == 11) {
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(macro_function(
+            (*args)[0], (*args)[1], (*args)[2], (*args)[3], (*args)[4],
+            (*args)[5], (*args)[6], (*args)[7], (*args)[8], (*args)[9],
+            (*args)[10]));
+    } else if (args->size() == 12) {
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(macro_function(
+            (*args)[0], (*args)[1], (*args)[2], (*args)[3], (*args)[4],
+            (*args)[5], (*args)[6], (*args)[7], (*args)[8], (*args)[9],
+            (*args)[10], (*args)[11]));
+    } else if (args->size() == 13) {
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(macro_function(
+            (*args)[0], (*args)[1], (*args)[2], (*args)[3], (*args)[4],
+            (*args)[5], (*args)[6], (*args)[7], (*args)[8], (*args)[9],
+            (*args)[10], (*args)[11], (*args)[12]));
+    } else if (args->size() == 14) {
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(macro_function(
+            (*args)[0], (*args)[1], (*args)[2], (*args)[3], (*args)[4],
+            (*args)[5], (*args)[6], (*args)[7], (*args)[8], (*args)[9],
+            (*args)[10], (*args)[11], (*args)[12], (*args)[13]));
+    } else if (args->size() == 15) {
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(macro_function(
+            (*args)[0], (*args)[1], (*args)[2], (*args)[3], (*args)[4],
+            (*args)[5], (*args)[6], (*args)[7], (*args)[8], (*args)[9],
+            (*args)[10], (*args)[11], (*args)[12], (*args)[13],
+            (*args)[14]));
+    } else if (args->size() == 16) {
+        typedef void *(*MFN)(void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *, void *, void *, void *, void *,
+                             void *);
+        MFN macro_function = (MFN)address;
+        result_dnode = reinterpret_cast<DNode *>(macro_function(
+            (*args)[0], (*args)[1], (*args)[2], (*args)[3], (*args)[4],
+            (*args)[5], (*args)[6], (*args)[7], (*args)[8], (*args)[9],
+            (*args)[10], (*args)[11], (*args)[12], (*args)[13],
+            (*args)[14], (*args)[15]));
+    } else {
+        fprintf(stderr,
+                "Internal error: need to handle more macro parameters: "
+                "%lu\n",
+                args->size());
+        abort();
+    }
+
+    return result_dnode;
+}
+
 Node *MacroProcessor::parseMacroCall_(Node *n,
                                       Function *macro_to_call) {
     std::vector<Node *> *lst = n->list;
@@ -173,134 +305,7 @@ Node *MacroProcessor::parseMacroCall_(Node *n,
     function_map.insert(
         std::pair<std::string, uint64_t>(mc->symbol, address));
 
-    DNode *result_dnode;
-    if (values2.size() == 1) {
-        typedef void *(*MFN)(void *);
-        MFN macro_function = (MFN)address;
-        result_dnode =
-            reinterpret_cast<DNode *>(macro_function(values2[0]));
-    } else if (values2.size() == 2) {
-        typedef void *(*MFN)(void *, void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(
-            macro_function(values2[0], values2[1]));
-    } else if (values2.size() == 3) {
-        typedef void *(*MFN)(void *, void *, void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(
-            macro_function(values2[0], values2[1], values2[2]));
-    } else if (values2.size() == 4) {
-        typedef void *(*MFN)(void *, void *, void *, void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(macro_function(
-            values2[0], values2[1], values2[2], values2[3]));
-    } else if (values2.size() == 5) {
-        typedef void *(*MFN)(void *, void *, void *, void *, void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(
-            macro_function(values2[0], values2[1], values2[2],
-                           values2[3], values2[4]));
-    } else if (values2.size() == 6) {
-        typedef void *(*MFN)(void *, void *, void *, void *, void *,
-                             void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(
-            macro_function(values2[0], values2[1], values2[2],
-                           values2[3], values2[4], values2[5]));
-    } else if (values2.size() == 7) {
-        typedef void *(*MFN)(void *, void *, void *, void *, void *,
-                             void *, void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(macro_function(
-            values2[0], values2[1], values2[2], values2[3], values2[4],
-            values2[5], values2[6]));
-    } else if (values2.size() == 8) {
-        typedef void *(*MFN)(void *, void *, void *, void *, void *,
-                             void *, void *, void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(macro_function(
-            values2[0], values2[1], values2[2], values2[3], values2[4],
-            values2[5], values2[6], values2[7]));
-    } else if (values2.size() == 9) {
-        typedef void *(*MFN)(void *, void *, void *, void *, void *,
-                             void *, void *, void *, void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(macro_function(
-            values2[0], values2[1], values2[2], values2[3], values2[4],
-            values2[5], values2[6], values2[7], values2[8]));
-    } else if (values2.size() == 10) {
-        typedef void *(*MFN)(void *, void *, void *, void *, void *,
-                             void *, void *, void *, void *, void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(macro_function(
-            values2[0], values2[1], values2[2], values2[3], values2[4],
-            values2[5], values2[6], values2[7], values2[8],
-            values2[9]));
-    } else if (values2.size() == 11) {
-        typedef void *(*MFN)(void *, void *, void *, void *, void *,
-                             void *, void *, void *, void *, void *,
-                             void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(macro_function(
-            values2[0], values2[1], values2[2], values2[3], values2[4],
-            values2[5], values2[6], values2[7], values2[8], values2[9],
-            values2[10]));
-    } else if (values2.size() == 12) {
-        typedef void *(*MFN)(void *, void *, void *, void *, void *,
-                             void *, void *, void *, void *, void *,
-                             void *, void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(macro_function(
-            values2[0], values2[1], values2[2], values2[3], values2[4],
-            values2[5], values2[6], values2[7], values2[8], values2[9],
-            values2[10], values2[11]));
-    } else if (values2.size() == 13) {
-        typedef void *(*MFN)(void *, void *, void *, void *, void *,
-                             void *, void *, void *, void *, void *,
-                             void *, void *, void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(macro_function(
-            values2[0], values2[1], values2[2], values2[3], values2[4],
-            values2[5], values2[6], values2[7], values2[8], values2[9],
-            values2[10], values2[11], values2[12]));
-    } else if (values2.size() == 14) {
-        typedef void *(*MFN)(void *, void *, void *, void *, void *,
-                             void *, void *, void *, void *, void *,
-                             void *, void *, void *, void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(macro_function(
-            values2[0], values2[1], values2[2], values2[3], values2[4],
-            values2[5], values2[6], values2[7], values2[8], values2[9],
-            values2[10], values2[11], values2[12], values2[13]));
-    } else if (values2.size() == 15) {
-        typedef void *(*MFN)(void *, void *, void *, void *, void *,
-                             void *, void *, void *, void *, void *,
-                             void *, void *, void *, void *, void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(macro_function(
-            values2[0], values2[1], values2[2], values2[3], values2[4],
-            values2[5], values2[6], values2[7], values2[8], values2[9],
-            values2[10], values2[11], values2[12], values2[13],
-            values2[14]));
-    } else if (values2.size() == 16) {
-        typedef void *(*MFN)(void *, void *, void *, void *, void *,
-                             void *, void *, void *, void *, void *,
-                             void *, void *, void *, void *, void *,
-                             void *);
-        MFN macro_function = (MFN)address;
-        result_dnode = reinterpret_cast<DNode *>(macro_function(
-            values2[0], values2[1], values2[2], values2[3], values2[4],
-            values2[5], values2[6], values2[7], values2[8], values2[9],
-            values2[10], values2[11], values2[12], values2[13],
-            values2[14], values2[15]));
-    } else {
-        fprintf(stderr,
-                "Internal error: need to handle more macro parameters: "
-                "%lu\n",
-                values2.size());
-        abort();
-    }
-
+    DNode *result_dnode = callMacro(address, &values2);
     Node *result_node =
         (result_dnode) ? units->top()->dnc->toNode(result_dnode) : NULL;
 
