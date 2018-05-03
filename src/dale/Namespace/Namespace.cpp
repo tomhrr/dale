@@ -189,6 +189,26 @@ bool Namespace::addStruct(const char *name, Struct *element_struct) {
     }
 }
 
+Function *getFunctionNoTypes(std::vector<Function *> *function_list,
+                             bool is_macro) {
+    Function *last_non_declaration = NULL;
+
+    for (std::vector<Function *>::reverse_iterator
+                rb = function_list->rbegin(),
+                re = function_list->rend();
+            rb != re; ++rb) {
+        Function *fn = (*rb);
+        if (is_macro == fn->is_macro) {
+            if (!fn->isDeclaration()) {
+                return fn;
+            } else if (!last_non_declaration) {
+                last_non_declaration = fn;
+            }
+        }
+    }
+    return last_non_declaration;
+}
+
 Function *Namespace::getFunction(const char *name,
                                  std::vector<Type *> *types,
                                  Function **pclosest_fn, bool is_macro,
@@ -209,22 +229,7 @@ Function *Namespace::getFunction(const char *name,
     }
 
     if (!types) {
-        Function *last_non_declaration = NULL;
-
-        for (std::vector<Function *>::reverse_iterator
-                 rb = function_list->rbegin(),
-                 re = function_list->rend();
-             rb != re; ++rb) {
-            Function *fn = (*rb);
-            if (is_macro == fn->is_macro) {
-                if (!fn->isDeclaration()) {
-                    return fn;
-                } else if (!last_non_declaration) {
-                    last_non_declaration = fn;
-                }
-            }
-        }
-        return last_non_declaration;
+        return getFunctionNoTypes(function_list, is_macro);
     }
 
     /* If types are provided, is_macro is only taken into account if
@@ -235,28 +240,47 @@ Function *Namespace::getFunction(const char *name,
     Type *dnode = tr->getStructType("DNode");
     Type *pdnode = tr->getPointerType(dnode);
 
+    /* The iterator for the functions in the function list. */
     std::vector<Function *>::iterator fn_iter;
+    /* The iterator for the argument types. */
     std::vector<Type *>::iterator arg_type_iter;
+    /* The iterator for each function's parameters. */
     std::vector<Variable *>::iterator fn_arg_type_iter;
+    /* The iterator for the argument lvalue booleans. */
     std::vector<bool>::iterator lvalue_iter;
+    /* The iterator for the argument array types. */
     std::vector<Type *>::iterator array_type_iter;
 
-    fn_iter = function_list->begin();
-
+    /* A pointer to the best current varargs candidate function. */
     Function *best_va_fn = NULL;
+    /* The number of non-varargs arguments in the current best varargs
+     * function. */
     int best_va_count = -1;
 
+    /* A pointer to a matching declaration of a function.  (Definitions
+     * are preferred to declarations.) */
     Function *decl_fn = NULL;
+    /* A pointer to the function that most closely matches the given
+     * types etc., but doesn't satisfy them.  For use in error
+     * messages. */
     Function *closest_fn = NULL;
-    int best_closest_count = -1;
+    /* The number of arguments in the current closest-matching
+     * function. */
+    int closest_count = -1;
 
-    int best_macro_dnode_count = 1024;
-    int earliest_macro_type_count = 1024;
+    /* The current best macro candidate based on number of (p DNode)
+     * arguments (fewer are better). */
     Function *best_dnode_macro = NULL;
+    int best_macro_dnode_count = 1024;
+
+    /* The current best macro candidate based on the earliest non-(p
+     * DNode) type index (earlier is better). */
     Function *earliest_type_macro = NULL;
+    int earliest_macro_type_count = 1024;
 
     int arg_index = -1;
 
+    fn_iter = function_list->begin();
     while (fn_iter != function_list->end()) {
         arg_index++;
 
@@ -414,7 +438,7 @@ Function *Namespace::getFunction(const char *name,
                 (dnode_count == best_macro_dnode_count) &&
                 (arg_type_iter != types->end()) &&
                 (current->isVarArgs())) {
-                best_dnode_macro = current;
+                 best_dnode_macro = current;
             }
             if (current->is_macro && (local_earliest_macro_type_count <
                                       earliest_macro_type_count)) {
@@ -425,8 +449,8 @@ Function *Namespace::getFunction(const char *name,
         }
 
         if (broke_on_failure) {
-            if (matched_arg_count > best_closest_count) {
-                best_closest_count = matched_arg_count;
+            if (matched_arg_count > closest_count) {
+                closest_count = matched_arg_count;
                 closest_fn = current;
             }
         }
