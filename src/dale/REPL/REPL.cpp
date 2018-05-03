@@ -130,6 +130,77 @@ const char *getLibDRTPath() {
     return libdrt_path;
 }
 
+Variable *processVariable(Units *units, Function *fn, Node *top,
+                          ParseResult *pr) {
+    Context *ctx = units->top()->ctx;
+    std::string unused_name;
+    units->top()->getUnusedVarName(&unused_name);
+
+    std::string var_name("_");
+    Variable *var = ctx->getVariable(var_name.c_str());
+    if (!var) {
+        var = new Variable();
+        var->name.append(var_name);
+        var->once_tag = units->top()->once_tag;
+        var->linkage = Linkage::Intern;
+    }
+    var->symbol.clear();
+    var->symbol.append(unused_name);
+    var->type = pr->type;
+    llvm::Type *llvm_type =
+        ctx->toLLVMType(pr->type, top, false);
+    llvm::GlobalVariable *llvm_var =
+        llvm::cast<llvm::GlobalVariable>(
+            units->top()->module->getOrInsertGlobal(
+                unused_name.c_str(), llvm_type));
+    llvm_var->setLinkage(
+        ctx->toLLVMLinkage(Linkage::Intern));
+
+    if (pr->type->points_to) {
+        llvm_var->setInitializer(
+            getNullPointer(llvm_type));
+    } else if (pr->type->struct_name.size() ||
+                pr->type->is_array) {
+        llvm_var->setInitializer(
+            llvm::ConstantAggregateZero::get(
+                llvm_type));
+    } else if (pr->type->isIntegerType() ||
+                (pr->type->base_type ==
+                BaseType::Bool)) {
+        llvm_var->setInitializer(
+            ctx->nt->getConstantInt(
+                llvm::IntegerType::get(
+                    *getContext(),
+                    ctx->nt->internalSizeToRealSize(
+                        pr->type->getIntegerSize())),
+                "0"));
+    } else if (pr->type->isFloatingPointType()) {
+        llvm::ConstantFP *const_float =
+            llvm::ConstantFP::get(
+                *getContext(),
+                llvm::APFloat(static_cast<float>(0)));
+        llvm_var->setInitializer(
+            llvm::cast<llvm::Constant>(const_float));
+    }
+
+    var->value = llvm::cast<llvm::Value>(llvm_var);
+
+    ParseResult var_pr;
+    var_pr.set(pr->block,
+               ctx->tr->getPointerType(var->type),
+               var->value);
+
+    ParseResult setf_pr;
+    bool res5 = FormProcSetfProcess(
+        units, fn, pr->block, top, top, false,
+        false, &var_pr, pr, &setf_pr);
+    if (!res5) {
+        return NULL;
+    }
+
+    return var;
+}
+
 bool REPLLoop(Units *units) {
     Context *ctx = units->top()->ctx;
     ErrorReporter *er = ctx->er;
@@ -201,86 +272,28 @@ bool REPLLoop(Units *units) {
         return true;
     }
 
-    bool exists = true;
-    llvm::IRBuilder<> builder(res_pr.block);
     std::string var_name("_");
-    std::string unused_name;
+    bool exists = (ctx->getVariable(var_name.c_str()) != NULL);
+
     Variable *var = NULL;
     llvm::GlobalVariable *llvm_var = NULL;
     if (res_pr.type->base_type != BaseType::Void) {
-        units->top()->getUnusedVarName(&unused_name);
-
-        var = ctx->getVariable("_");
+        var = processVariable(units, fn, top, &res_pr);
         if (!var) {
-            exists = false;
-            var = new Variable();
-            var->name.append(var_name);
-            var->once_tag = units->top()->once_tag;
-            var->linkage = Linkage::Intern;
-        }
-        var->symbol.clear();
-        var->symbol.append(unused_name);
-        var->type = res_pr.type;
-        llvm_var = llvm::cast<llvm::GlobalVariable>(
-            units->top()->module->getOrInsertGlobal(
-                unused_name.c_str(),
-                ctx->toLLVMType(res_pr.type, top, false)));
-        llvm_var->setLinkage(
-            ctx->toLLVMLinkage(Linkage::Intern));
-        llvm::Type *llvm_type =
-            ctx->toLLVMType(res_pr.type, top, false);
-
-        if (res_pr.type->points_to) {
-            llvm_var->setInitializer(
-                getNullPointer(llvm_type));
-        } else if (res_pr.type->struct_name.size() ||
-                    res_pr.type->is_array) {
-            llvm_var->setInitializer(
-                llvm::ConstantAggregateZero::get(
-                    llvm_type));
-        } else if (res_pr.type->isIntegerType() ||
-                    (res_pr.type->base_type ==
-                    BaseType::Bool)) {
-            llvm_var->setInitializer(
-                ctx->nt->getConstantInt(
-                    llvm::IntegerType::get(
-                        *getContext(),
-                        ctx->nt->internalSizeToRealSize(
-                            res_pr.type->getIntegerSize())),
-                    "0"));
-        } else if (res_pr.type->isFloatingPointType()) {
-            llvm::ConstantFP *const_float =
-                llvm::ConstantFP::get(
-                    *getContext(),
-                    llvm::APFloat(static_cast<float>(0)));
-            llvm_var->setInitializer(
-                llvm::cast<llvm::Constant>(const_float));
-        }
-
-        var->value = llvm::cast<llvm::Value>(llvm_var);
-
-        ParseResult var_pr;
-        var_pr.set(res_pr.block,
-                    ctx->tr->getPointerType(var->type),
-                    var->value);
-
-        ParseResult pr;
-        bool res5 = FormProcSetfProcess(
-            units, fn, res_pr.block, top, top, false,
-            false, &var_pr, &res_pr, &pr);
-        if (!res5) {
-            er->flush();
-            llvm_fn->eraseFromParent();
+            ctx->er->flush();
+            fn->llvm_function->eraseFromParent();
             ctx->deactivateNamespace(anon_name.c_str());
             units->top()->popGlobalFunction();
             return true;
         }
+        llvm_var = llvm::cast<llvm::GlobalVariable>(var->value);
     }
 
-    std::string x;
-    res_pr.type->toString(&x);
-    fprintf(stderr, "%s\n", x.c_str());
+    std::string type_str;
+    res_pr.type->toString(&type_str);
+    fprintf(stderr, "%s\n", type_str.c_str());
 
+    llvm::IRBuilder<> builder(res_pr.block);
     builder.CreateRetVoid();
 
     res = resolveDeferredGotos(ctx, top, fn, res_pr.block);
@@ -335,7 +348,7 @@ bool REPLLoop(Units *units) {
         if (res_pr.type->base_type != BaseType::Void) {
             uint64_t address =
                 units->top()->ee->getGlobalValueAddress(
-                    unused_name.c_str());
+                    var->symbol.c_str());
             int size;
             llvm::Constant *parsed = decodeRawData(
                 units, top,
