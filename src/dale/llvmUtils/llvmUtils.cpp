@@ -25,6 +25,8 @@
 #include "llvm/Support/Host.h"
 #include "llvm/Support/MemoryBuffer.h"
 
+#include "../Units/Units.h"
+
 namespace dale {
 std::string getTriple() {
 #if D_LLVM_VERSION_ORD >= 32
@@ -466,5 +468,34 @@ llvm::LLVMContext *getContext() {
         return context;
     }
 #endif
+}
+
+Function *createFunction(Units *units, Type *type, Node *top) {
+    Context *ctx = units->top()->ctx;
+    llvm::Type *llvm_return_type = ctx->toLLVMType(type, top, true);
+    if (!llvm_return_type) {
+        return NULL;
+    }
+
+    std::vector<llvm::Type *> empty_args;
+    llvm::FunctionType *ft =
+        getFunctionType(llvm_return_type, empty_args, false);
+
+    std::string new_name;
+    units->top()->getUnusedFunctionName(&new_name);
+
+    llvm::Constant *const_fn =
+        units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
+
+    llvm::Function *llvm_fn = llvm::cast<llvm::Function>(const_fn);
+    llvm_fn->setCallingConv(llvm::CallingConv::C);
+    llvm_fn->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_C));
+
+    std::vector<Variable *> args;
+    Function *fn = new Function(type, &args, llvm_fn, 0, &new_name);
+
+    fn->linkage = Linkage::Intern;
+
+    return fn;
 }
 }

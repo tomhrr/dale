@@ -199,6 +199,13 @@ void linkFile(llvm::Linker *linker, const char *path);
 /*! Get a new context.
  */
 llvm::LLVMContext *getContext();
+
+/*! Create a new empty function returning the specified type.
+ *  @param units The units context.
+ *  @param type The return type.
+ *  @param top A reference node for errors.
+ */
+Function *createFunction(Units *units, Type *type, Node *top);
 }
 
 #endif
