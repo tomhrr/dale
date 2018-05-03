@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include "../Form/Linkage/Linkage.h"
+#include "../Form/Proc/Token/Token.h"
+#include "../Form/ProcBody/ProcBody.h"
+#include "../Form/Type/Type.h"
+#include "../Form/Utils/Utils.h"
 #include "../Linkage/Linkage.h"
 #include "../Node/Node.h"
 #include "../Operation/Cast/Cast.h"
@@ -12,11 +17,6 @@
 #include "../Operation/Sizeof/Sizeof.h"
 #include "../Units/Units.h"
 #include "../llvmUtils/llvmUtils.h"
-#include "../Form/Linkage/Linkage.h"
-#include "../Form/Proc/Token/Token.h"
-#include "../Form/ProcBody/ProcBody.h"
-#include "../Form/Type/Type.h"
-#include "../Form/Utils/Utils.h"
 #include "Config.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/Support/Debug.h"
@@ -133,8 +133,9 @@ llvm::Constant *decodeRawStruct(Units *units, Node *top, char *data,
         char aligned[256];
         memcpy(aligned, addr, member_size);
 
-        llvm::Constant *member_value = decodeRawData(
-            units, top, reinterpret_cast<char *>(aligned), member_type, size);
+        llvm::Constant *member_value =
+            decodeRawData(units, top, reinterpret_cast<char *>(aligned),
+                          member_type, size);
         if (!member_value) {
             return NULL;
         }
@@ -247,11 +248,12 @@ llvm::Constant *decodeRawArray(Units *units, Node *top, char *data,
 
     for (int i = 0; i < members; i++) {
         memset(mem, 0, 256);
-        char *member_ptr = reinterpret_cast<char *>(data) + (i * member_size);
+        char *member_ptr =
+            reinterpret_cast<char *>(data) + (i * member_size);
         memcpy(mem, member_ptr, member_size);
 
-        llvm::Constant *const_member = decodeRawData(
-            units, top, mem, type->array_type, size);
+        llvm::Constant *const_member =
+            decodeRawData(units, top, mem, type->array_type, size);
         if (!const_member) {
             return NULL;
         }

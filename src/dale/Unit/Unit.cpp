@@ -20,7 +20,8 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er,
     FILE *mfp = fopen(path, "r");
     if (!mfp) {
         char buf[1024];
-        snprintf(buf, sizeof(buf), "unable to open %s for reading", path);
+        snprintf(buf, sizeof(buf), "unable to open %s for reading",
+                 path);
         error(buf, true);
     }
 

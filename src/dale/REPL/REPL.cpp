@@ -105,18 +105,17 @@ REPL::~REPL() {}
 bool is_x86_64() {
     /* On OS X, SYSTEM_PROCESSOR is i386 even when the underlying
      * processor is x86-64, hence the extra check here. */
-    return ((!strcmp(SYSTEM_PROCESSOR, "x86_64")) ||
-           ((!strcmp(SYSTEM_PROCESSOR, "amd64"))) ||
-           ((!strcmp(SYSTEM_NAME, "Darwin")) &&
-            (sizeof(char *) == 8)));
+    return (
+        (!strcmp(SYSTEM_PROCESSOR, "x86_64")) ||
+        ((!strcmp(SYSTEM_PROCESSOR, "amd64"))) ||
+        ((!strcmp(SYSTEM_NAME, "Darwin")) && (sizeof(char *) == 8)));
 }
 
 /* Return the path to the shared DRT library. */
 const char *getLibDRTPath() {
     const char *libdrt_path = NULL;
     FILE *drt_file = NULL;
-    if ((drt_file =
-                fopen(DALE_LIBRARY_PATH "/libdrt.so", "r"))) {
+    if ((drt_file = fopen(DALE_LIBRARY_PATH "/libdrt.so", "r"))) {
         libdrt_path = DALE_LIBRARY_PATH "/libdrt.so";
     } else if ((drt_file = fopen("./libdrt.so", "r"))) {
         libdrt_path = "./libdrt.so";
@@ -147,38 +146,27 @@ Variable *processVariable(Units *units, Function *fn, Node *top,
     var->symbol.clear();
     var->symbol.append(unused_name);
     var->type = pr->type;
-    llvm::Type *llvm_type =
-        ctx->toLLVMType(pr->type, top, false);
-    llvm::GlobalVariable *llvm_var =
-        llvm::cast<llvm::GlobalVariable>(
-            units->top()->module->getOrInsertGlobal(
-                unused_name.c_str(), llvm_type));
-    llvm_var->setLinkage(
-        ctx->toLLVMLinkage(Linkage::Intern));
+    llvm::Type *llvm_type = ctx->toLLVMType(pr->type, top, false);
+    llvm::GlobalVariable *llvm_var = llvm::cast<llvm::GlobalVariable>(
+        units->top()->module->getOrInsertGlobal(unused_name.c_str(),
+                                                llvm_type));
+    llvm_var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
     if (pr->type->points_to) {
+        llvm_var->setInitializer(getNullPointer(llvm_type));
+    } else if (pr->type->struct_name.size() || pr->type->is_array) {
         llvm_var->setInitializer(
-            getNullPointer(llvm_type));
-    } else if (pr->type->struct_name.size() ||
-                pr->type->is_array) {
-        llvm_var->setInitializer(
-            llvm::ConstantAggregateZero::get(
-                llvm_type));
+            llvm::ConstantAggregateZero::get(llvm_type));
     } else if (pr->type->isIntegerType() ||
-                (pr->type->base_type ==
-                BaseType::Bool)) {
-        llvm_var->setInitializer(
-            ctx->nt->getConstantInt(
-                llvm::IntegerType::get(
-                    *getContext(),
-                    ctx->nt->internalSizeToRealSize(
-                        pr->type->getIntegerSize())),
-                "0"));
+               (pr->type->base_type == BaseType::Bool)) {
+        llvm_var->setInitializer(ctx->nt->getConstantInt(
+            llvm::IntegerType::get(*getContext(),
+                                   ctx->nt->internalSizeToRealSize(
+                                       pr->type->getIntegerSize())),
+            "0"));
     } else if (pr->type->isFloatingPointType()) {
-        llvm::ConstantFP *const_float =
-            llvm::ConstantFP::get(
-                *getContext(),
-                llvm::APFloat(static_cast<float>(0)));
+        llvm::ConstantFP *const_float = llvm::ConstantFP::get(
+            *getContext(), llvm::APFloat(static_cast<float>(0)));
         llvm_var->setInitializer(
             llvm::cast<llvm::Constant>(const_float));
     }
@@ -186,14 +174,13 @@ Variable *processVariable(Units *units, Function *fn, Node *top,
     var->value = llvm::cast<llvm::Value>(llvm_var);
 
     ParseResult var_pr;
-    var_pr.set(pr->block,
-               ctx->tr->getPointerType(var->type),
+    var_pr.set(pr->block, ctx->tr->getPointerType(var->type),
                var->value);
 
     ParseResult setf_pr;
-    bool res5 = FormProcSetfProcess(
-        units, fn, pr->block, top, top, false,
-        false, &var_pr, pr, &setf_pr);
+    bool res5 =
+        FormProcSetfProcess(units, fn, pr->block, top, top, false,
+                            false, &var_pr, pr, &setf_pr);
     if (!res5) {
         return NULL;
     }
@@ -257,13 +244,12 @@ bool REPLLoop(Units *units) {
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;
 
-    llvm::BasicBlock *block = llvm::BasicBlock::Create(
-        *getContext(), "entry", llvm_fn);
+    llvm::BasicBlock *block =
+        llvm::BasicBlock::Create(*getContext(), "entry", llvm_fn);
 
     ParseResult res_pr;
-    bool res =
-        FormProcInstParse(units, fn, block, top, false,
-                          false, NULL, &res_pr);
+    bool res = FormProcInstParse(units, fn, block, top, false, false,
+                                 NULL, &res_pr);
     if (!res) {
         er->flush();
         llvm_fn->eraseFromParent();
@@ -301,9 +287,8 @@ bool REPLLoop(Units *units) {
         return false;
     }
 
-    res = terminateBlocks(ctx, fn, llvm_fn,
-                            res_pr.getValue(ctx), res_pr.type,
-                            top);
+    res = terminateBlocks(ctx, fn, llvm_fn, res_pr.getValue(ctx),
+                          res_pr.type, top);
     if (!res) {
         return false;
     }
@@ -314,17 +299,14 @@ bool REPLLoop(Units *units) {
     if (!exists) {
         res = ctx->ns()->addVariable(var_name.c_str(), var);
         if (!res) {
-            fprintf(
-                stderr,
-                "Internal error: cannot add variable.\n");
+            fprintf(stderr, "Internal error: cannot add variable.\n");
             abort();
         }
     }
 
     units->top()->popGlobalFunction();
 
-    int error_count_end =
-        ctx->er->getErrorTypeCount(ErrorType::Error);
+    int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
     if (error_count_begin != error_count_end) {
         llvm_fn->replaceAllUsesWith(
             llvm::UndefValue::get(llvm_fn->getType()));
@@ -332,12 +314,10 @@ bool REPLLoop(Units *units) {
     } else {
         cloneModuleIfRequired(units->top());
         llvm::Function *bf =
-            units->top()->ee->FindFunctionNamed(
-                fn_name.c_str());
+            units->top()->ee->FindFunctionNamed(fn_name.c_str());
         std::vector<llvm::GenericValue> values;
 #if D_LLVM_VERSION_ORD >= 34
-        units->top()->ee->getFunctionAddress(
-            fn_name.c_str());
+        units->top()->ee->getFunctionAddress(fn_name.c_str());
 #endif
 
         llvm::GenericValue res2 =
@@ -346,13 +326,11 @@ bool REPLLoop(Units *units) {
 
 #if D_LLVM_VERSION_ORD >= 36
         if (res_pr.type->base_type != BaseType::Void) {
-            uint64_t address =
-                units->top()->ee->getGlobalValueAddress(
-                    var->symbol.c_str());
+            uint64_t address = units->top()->ee->getGlobalValueAddress(
+                var->symbol.c_str());
             int size;
             llvm::Constant *parsed = decodeRawData(
-                units, top,
-                reinterpret_cast<char *>(address),
+                units, top, reinterpret_cast<char *>(address),
                 res_pr.type, &size);
             llvm_var->setInitializer(parsed);
         }
@@ -371,9 +349,8 @@ void REPL::run(std::vector<const char *> *compile_lib_paths,
 
     std::vector<std::string> shared_object_paths;
     std::vector<const char *> static_module_names;
-    Module::Reader mr(module_paths, &shared_object_paths,
-                      include_paths, &static_module_names, false,
-                      false);
+    Module::Reader mr(module_paths, &shared_object_paths, include_paths,
+                      &static_module_names, false, false);
 
     for (std::vector<const char *>::iterator
              b = compile_lib_paths->begin(),
@@ -404,9 +381,8 @@ void REPL::run(std::vector<const char *> *compile_lib_paths,
     TypeRegister tr;
     bool x86_64 = is_x86_64();
 
-    Unit *unit =
-        new Unit("/dev/stdin", &units, &er, &nt, &tr, NULL,
-                 x86_64, NULL, NULL, NULL, NULL, NULL, true);
+    Unit *unit = new Unit("/dev/stdin", &units, &er, &nt, &tr, NULL,
+                          x86_64, NULL, NULL, NULL, NULL, NULL, true);
 
     units.push(unit);
     ctx = unit->ctx;
@@ -442,8 +418,7 @@ void REPL::run(std::vector<const char *> *compile_lib_paths,
             unit->addCommonDeclarations();
         } else {
             std::vector<const char *> import_forms;
-            mr.run(ctx, linker, mod, nullNode(), "drt",
-                   &import_forms);
+            mr.run(ctx, linker, mod, nullNode(), "drt", &import_forms);
             units.top()->mp->setPoolfree();
         }
     }

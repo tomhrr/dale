@@ -81,31 +81,29 @@ void FormStringLiteralParse(Units *units, Context *ctx,
     size_t pos = 0;
     std::string value = node->token->str_value;
     while ((pos = value.find("\\n", pos)) != std::string::npos) {
-	value.replace(pos, 2, "\n");
+        value.replace(pos, 2, "\n");
     }
 
     int size = value.size() + 1;
     Type *char_array_type = tr->getArrayType(tr->type_char, size);
     llvm::Type *llvm_type =
-	ctx->toLLVMType(char_array_type, NULL, false);
+        ctx->toLLVMType(char_array_type, NULL, false);
 
     llvm::Module *mod = units->top()->module;
-    assert(
-	!mod->getGlobalVariable(llvm::StringRef(var_name.c_str())));
+    assert(!mod->getGlobalVariable(llvm::StringRef(var_name.c_str())));
 
     llvm::GlobalVariable *var = llvm::cast<llvm::GlobalVariable>(
-	mod->getOrInsertGlobal(var_name.c_str(), llvm_type));
-
+        mod->getOrInsertGlobal(var_name.c_str(), llvm_type));
 
     llvm::Constant *constr_str = getStringConstantArray(value.c_str());
     var->setInitializer(constr_str);
     var->setConstant(true);
     var->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
 
-    llvm::Constant *const_pchar =
-	createConstantGEP(llvm::cast<llvm::Constant>(var),
-			    ctx->nt->getTwoLLVMZeros());
-    pr->set(block, type_pcchar, llvm::dyn_cast<llvm::Value>(const_pchar));
+    llvm::Constant *const_pchar = createConstantGEP(
+        llvm::cast<llvm::Constant>(var), ctx->nt->getTwoLLVMZeros());
+    pr->set(block, type_pcchar,
+            llvm::dyn_cast<llvm::Value>(const_pchar));
 }
 
 void FormFloatingPointLiteralParse(Context *ctx, Type *wanted_type,
@@ -157,8 +155,8 @@ void FormIntegerLiteralParse(Context *ctx, Type *wanted_type,
     return;
 }
 
-void FormBoolLiteralParse(Context *ctx, llvm::BasicBlock *block, Node *node,
-                          ParseResult *pr) {
+void FormBoolLiteralParse(Context *ctx, llvm::BasicBlock *block,
+                          Node *node, ParseResult *pr) {
     Token *t = node->token;
     int is_true = !t->str_value.compare("true");
     int is_false = !t->str_value.compare("false");
@@ -170,8 +168,8 @@ void FormBoolLiteralParse(Context *ctx, llvm::BasicBlock *block, Node *node,
     }
 }
 
-void FormCharLiteralParse(Context *ctx, llvm::BasicBlock *block, Node *node,
-                          ParseResult *pr) {
+void FormCharLiteralParse(Context *ctx, llvm::BasicBlock *block,
+                          Node *node, ParseResult *pr) {
     Token *t = node->token;
 
     if ((t->str_value.size() >= 3) && (t->str_value[0] == '#') &&
@@ -219,8 +217,7 @@ bool arrayLiteralParse(Units *units, Type *type, Node *node,
         return false;
     }
     Node *first = lst->at(0);
-    if (!first->is_token ||
-        first->token->str_value.compare("array")) {
+    if (!first->is_token || first->token->str_value.compare("array")) {
         return false;
     }
 
@@ -258,8 +255,7 @@ bool structLiteralParse(Units *units, Type *type, Node *node,
     std::vector<llvm::Constant *> constants;
     std::vector<Node *> *lst = node->list;
 
-    for (std::vector<Node *>::iterator b = lst->begin(),
-                                       e = lst->end();
+    for (std::vector<Node *>::iterator b = lst->begin(), e = lst->end();
          b != e; ++b) {
         Node *member_node = (*b);
         if (!member_node->is_list) {
@@ -299,8 +295,7 @@ bool structLiteralParse(Units *units, Type *type, Node *node,
         return false;
     }
 
-    llvm::StructType *llvm_st =
-        llvm::cast<llvm::StructType>(llvm_type);
+    llvm::StructType *llvm_st = llvm::cast<llvm::StructType>(llvm_type);
     llvm::Constant *const_st =
         llvm::ConstantStruct::get(llvm_st, constants);
     pr->set(pr->block, type, llvm::dyn_cast<llvm::Value>(const_st));
@@ -317,7 +312,8 @@ bool FormLiteralParse(Units *units, Type *type, Node *node, int *size,
         return true;
     } else if (type->isFloatingPointType() && node->is_token &&
                (node->token->type == TokenType::FloatingPoint)) {
-        FormFloatingPointLiteralParse(ctx, type, pr->block, node->token, pr);
+        FormFloatingPointLiteralParse(ctx, type, pr->block, node->token,
+                                      pr);
         return true;
     } else if (node->is_token &&
                (node->token->type == TokenType::StringLiteral)) {

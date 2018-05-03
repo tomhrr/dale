@@ -8,8 +8,8 @@
 #include <cstring>
 #include <memory>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #if D_LLVM_VERSION_ORD >= 36
 #include "llvm/Transforms/Utils/Cloning.h"
@@ -103,7 +103,7 @@ llvm::TargetMachine *getTargetMachine(llvm::Module *last_module) {
             ,
             llvm::Optional<llvm::Reloc::Model>()
 #endif
-                )); // NOLINT
+                ));  // NOLINT
 
     llvm::TargetMachine *tm = target_sp.get();
 #if D_LLVM_VERSION_ORD <= 35

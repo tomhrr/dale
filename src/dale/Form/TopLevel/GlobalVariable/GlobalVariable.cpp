@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "../../../Decoder/Decoder.h"
 #include "../../../Linkage/Linkage.h"
 #include "../../../Node/Node.h"
 #include "../../../Operation/Cast/Cast.h"
@@ -12,12 +13,11 @@
 #include "../../../Operation/Sizeof/Sizeof.h"
 #include "../../../Units/Units.h"
 #include "../../../llvmUtils/llvmUtils.h"
-#include "../../../Decoder/Decoder.h"
 #include "../../Linkage/Linkage.h"
+#include "../../Literal/Literal.h"
 #include "../../ProcBody/ProcBody.h"
 #include "../../Type/Type.h"
 #include "../../Utils/Utils.h"
-#include "../../Literal/Literal.h"
 #include "../../Value/Value.h"
 #include "Config.h"
 #include "llvm/ExecutionEngine/GenericValue.h"

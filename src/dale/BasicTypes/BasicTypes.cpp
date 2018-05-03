@@ -109,7 +109,7 @@ void makeFloatFunction(Context *ctx, llvm::Module *mod,
                            ,
                            llvm::MDNode *
 #endif
-                           ), // NOLINT
+                           ),  // NOLINT
                        Type *ret_type, Type *type) {
     Function *fn = addSimpleBinaryFunction(ctx, mod, once_tag, name,
                                            ret_type, type, type);
@@ -131,7 +131,7 @@ void makeFloatFunction(Context *ctx, llvm::Module *mod,
             ,
             NULL
 #endif
-            )); // NOLINT
+            ));  // NOLINT
 
     builder.CreateRet(ret_val);
 }

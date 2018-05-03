@@ -128,7 +128,8 @@ Node *nullNode() {
 DNode *Node::toDNode() {
     if (is_token) {
         Token *t = token;
-        DNode *dnode = reinterpret_cast<DNode *>(malloc(sizeof(*dnode)));
+        DNode *dnode =
+            reinterpret_cast<DNode *>(malloc(sizeof(*dnode)));
         if (!dnode) {
             error("unable to allocate memory", true);
         }
@@ -136,7 +137,8 @@ DNode *Node::toDNode() {
         std::string token_str;
         t->toString(&token_str);
 
-        char *sv = reinterpret_cast<char *>(malloc(token_str.length() + 1));
+        char *sv =
+            reinterpret_cast<char *>(malloc(token_str.length() + 1));
         if (!sv) {
             error("unable to allocate memory", true);
         }
@@ -161,7 +163,8 @@ DNode *Node::toDNode() {
 
         return dnode;
     } else if (is_list) {
-        DNode *top_node = reinterpret_cast<DNode *>(malloc(sizeof(*top_node)));
+        DNode *top_node =
+            reinterpret_cast<DNode *>(malloc(sizeof(*top_node)));
         if (!top_node) {
             error("unable to allocate memory", true);
         }

@@ -60,7 +60,8 @@ void copyRuntimeToCompileTime(std::vector<const char *> *run_libs,
         char libname[256];
         snprintf(libname, sizeof(libname), "-l%s", *b);
         char command[256];
-        snprintf(command, sizeof(command), "ld -t %s 2>/dev/null", libname);
+        snprintf(command, sizeof(command), "ld -t %s 2>/dev/null",
+                 libname);
         fp = popen(command, "r");
         if (fp == NULL) {
             fprintf(stderr, "Unable to resolve library path");

@@ -11,8 +11,8 @@
 
 #include "llvm/Support/DynamicLibrary.h"
 
-#include "Config.h"
 #include "../Introspection/Introspection.h"
+#include "Config.h"
 
 namespace dale {
 const char *progname = NULL;
@@ -225,7 +225,7 @@ void error(const char *error_msg, const char *str1, bool show_perror) {
 void printVersion() {
     printf("%d.%d", DALE_VERSION_MAJOR, DALE_VERSION_MINOR);
     if (!strcmp("git", DALE_VERSION_TYPE)) {
-	printf(" (rev %s)", DALE_VERSION_REV);
+        printf(" (rev %s)", DALE_VERSION_REV);
     }
 }
 

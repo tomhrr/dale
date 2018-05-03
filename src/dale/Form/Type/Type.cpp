@@ -31,7 +31,8 @@ int parseLiteralIntegerToInt(Node *node, ErrorReporter *er) {
 
     const char *num_str = node->token->str_value.c_str();
     char *end_ptr;
-    unsigned long num = strtoul(num_str, &end_ptr, DECIMAL_RADIX); // NOLINT
+    unsigned long num =
+        strtoul(num_str, &end_ptr, DECIMAL_RADIX);  // NOLINT
 
     if (STRTOUL_FAILED(num, num_str, end_ptr)) {
         Error *e = new Error(UnableToParseInteger, node,
@@ -241,8 +242,9 @@ Type *FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
     if (fst_node->is_token &&
         !strcmp(fst_node->token->str_value.c_str(), "const")) {
         if (lst->size() != 2) {
-            Error *e = new Error(IncorrectNumberOfArgs, node, "const",
-                                 "1", (static_cast<int>(lst->size()) - 1));
+            Error *e =
+                new Error(IncorrectNumberOfArgs, node, "const", "1",
+                          (static_cast<int>(lst->size()) - 1));
             ctx->er->addError(e);
             return NULL;
         }
@@ -276,7 +278,7 @@ Type *FormTypeParse(Units *units, Node *node, bool allow_anon_structs,
         llvm::Constant *size_value = NULL;
         int unused_size;
         size_value = FormValueParse(units, ctx->tr->type_int, snd_node,
-                                  &unused_size);
+                                    &unused_size);
         if (!size_value) {
             return NULL;
         }

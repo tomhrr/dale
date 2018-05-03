@@ -137,15 +137,16 @@ void Error::toString(std::string *to) {
         snprintf(msg_buf, sizeof(msg_buf), main_err_str,
                  arg_strings[0].c_str());
     } else if (arg_strings.size() == 2) {
-        snprintf(msg_buf, sizeof(msg_buf), main_err_str, arg_strings[0].c_str(),
-                arg_strings[1].c_str());
+        snprintf(msg_buf, sizeof(msg_buf), main_err_str,
+                 arg_strings[0].c_str(), arg_strings[1].c_str());
     } else if (arg_strings.size() == 3) {
-        snprintf(msg_buf, sizeof(msg_buf), main_err_str, arg_strings[0].c_str(),
-                arg_strings[1].c_str(), arg_strings[2].c_str());
+        snprintf(msg_buf, sizeof(msg_buf), main_err_str,
+                 arg_strings[0].c_str(), arg_strings[1].c_str(),
+                 arg_strings[2].c_str());
     } else if (arg_strings.size() == 4) {
-        snprintf(msg_buf, sizeof(msg_buf), main_err_str, arg_strings[0].c_str(),
-                arg_strings[1].c_str(), arg_strings[2].c_str(),
-                arg_strings[3].c_str());
+        snprintf(msg_buf, sizeof(msg_buf), main_err_str,
+                 arg_strings[0].c_str(), arg_strings[1].c_str(),
+                 arg_strings[2].c_str(), arg_strings[3].c_str());
     } else {
         assert(false && "too many argument strings (>4) in the error");
         abort();
@@ -159,9 +160,9 @@ void Error::toString(std::string *to) {
         macro_buf[0] = '\0';
     }
 
-    snprintf(final_buf, sizeof(final_buf), "%s:%d:%d: %s: %s%s", filename,
-             begin.getLineNumber(), begin.getColumnNumber(), type_string,
-             msg_buf, macro_buf);
+    snprintf(final_buf, sizeof(final_buf), "%s:%d:%d: %s: %s%s",
+             filename, begin.getLineNumber(), begin.getColumnNumber(),
+             type_string, msg_buf, macro_buf);
 
     to->append(final_buf);
 }

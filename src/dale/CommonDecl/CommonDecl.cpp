@@ -150,9 +150,9 @@ void addStandardVariables(Unit *unit) {
     AV_INT("FPOS_T", sizeof(fpos_t));
     AV_INT("TIME_T", sizeof(time_t));
     AV_INT("CLOCK_T", sizeof(clock_t));
-    AV_INT("SIZEOF_SHORT", sizeof(short)); // NOLINT
-    AV_INT("SIZEOF_LONG", sizeof(long)); // NOLINT
-    AV_INT("SIZEOF_LONG_LONG", sizeof(long long)); // NOLINT
+    AV_INT("SIZEOF_SHORT", sizeof(short));          // NOLINT
+    AV_INT("SIZEOF_LONG", sizeof(long));            // NOLINT
+    AV_INT("SIZEOF_LONG_LONG", sizeof(long long));  // NOLINT
 
     AV_INT("FLT_RADIX", FLT_RADIX);
     AV_INT("FLT_MANT_DIG", FLT_MANT_DIG);

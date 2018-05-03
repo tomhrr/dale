@@ -13,9 +13,9 @@ bool FormTopLevelStructParse(Units *units, Node *top,
     std::vector<Node *> *lst = top->list;
     if (!name) {
         if (lst->size() < 3) {
-            Error *e = new Error(IncorrectMinimumNumberOfArgs, top,
-                                 "struct", 2,
-                                 static_cast<int>(lst->size() - 1));
+            Error *e =
+                new Error(IncorrectMinimumNumberOfArgs, top, "struct",
+                          2, static_cast<int>(lst->size() - 1));
             units->top()->ctx->er->addError(e);
             return false;
         }

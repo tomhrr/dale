@@ -35,8 +35,8 @@ bool FormProcArrayOfParse(Units *units, Function *fn,
 
     llvm::Constant *size_value = NULL;
     int unused_size;
-    size_value =
-        FormValueParse(units, ctx->tr->type_int, size_node, &unused_size);
+    size_value = FormValueParse(units, ctx->tr->type_int, size_node,
+                                &unused_size);
     if (!size_value) {
         return false;
     }
@@ -53,7 +53,7 @@ bool FormProcArrayOfParse(Units *units, Function *fn,
     Type *array_type = ctx->tr->getArrayType(type, size);
 
     return FormInitialiserArrayParse(units, fn, block, data_node,
-                                     array_type, get_address, &unused_size,
-                                     pr);
+                                     array_type, get_address,
+                                     &unused_size, pr);
 }
 }

@@ -1,12 +1,12 @@
 #include "Context.h"
 
-#include <cstdio>
 #include <algorithm>
+#include <cstdio>
 #include <map>
 #include <set>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "../Utils/Utils.h"
 #include "../llvmUtils/llvmUtils.h"

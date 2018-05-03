@@ -3,20 +3,18 @@
 #include <string>
 #include <vector>
 
+#include "../../Decoder/Decoder.h"
 #include "../../Error/Error.h"
 #include "../../Linkage/Linkage.h"
-#include "../../Operation/Cast/Cast.h"
-#include "../../llvmUtils/llvmUtils.h"
 #include "../../Operation/Cast/Cast.h"
 #include "../../Operation/Copy/Copy.h"
 #include "../../Operation/Offsetof/Offsetof.h"
 #include "../../Operation/Sizeof/Sizeof.h"
 #include "../../Units/Units.h"
 #include "../../llvmUtils/llvmUtils.h"
-#include "../../Decoder/Decoder.h"
-#include "../Utils/Utils.h"
 #include "../Literal/Literal.h"
 #include "../ProcBody/ProcBody.h"
+#include "../Utils/Utils.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
 
 #define MAX_SIZE 256
@@ -70,7 +68,8 @@ llvm::Function *createCopyFunction(Units *units, Type *type, Node *top,
                                    Function *fn, std::string *name) {
     Context *ctx = units->top()->ctx;
 
-    Function *d_copy_fn = createFunction(units, ctx->tr->type_pchar, top);
+    Function *d_copy_fn =
+        createFunction(units, ctx->tr->type_pchar, top);
     *name = d_copy_fn->symbol;
     llvm::Function *copy_fn = d_copy_fn->llvm_function;
 
@@ -120,10 +119,10 @@ llvm::Function *createCopyFunction(Units *units, Type *type, Node *top,
     std::vector<llvm::Value *> memcpy_args;
     memcpy_args.push_back(builder.CreateBitCast(
         builder.CreateLoad(new_ptr_value), llvm_pvoid_type));
-    memcpy_args.push_back(builder.CreateBitCast(
-        ret_cast, llvm_pvoid_type));
     memcpy_args.push_back(
-        llvm::ConstantInt::get(ctx->nt->getNativeSizeType(), struct_size));
+        builder.CreateBitCast(ret_cast, llvm_pvoid_type));
+    memcpy_args.push_back(llvm::ConstantInt::get(
+        ctx->nt->getNativeSizeType(), struct_size));
 
     builder.CreateCall(memcpy_fn->llvm_function,
                        llvm::ArrayRef<llvm::Value *>(memcpy_args));
@@ -160,7 +159,8 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
         return NULL;
     }
     std::string name;
-    llvm::Function *copy_fn = createCopyFunction(units, type, top, fn, &name);
+    llvm::Function *copy_fn =
+        createCopyFunction(units, type, top, fn, &name);
 
     if (units->debug) {
         functionDebugPass(fn->llvm_function);
@@ -183,11 +183,11 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
     char data[MAX_SIZE];
     memcpy(data, fn_result.PointerVal, MAX_SIZE);
 
-    int error_count_begin = ctx->er->getErrorTypeCount(ErrorType::Error);
+    int error_count_begin =
+        ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    llvm::Constant *parsed =
-        decodeRawData(units, top, reinterpret_cast<char *>(&data),
-                      type, size);
+    llvm::Constant *parsed = decodeRawData(
+        units, top, reinterpret_cast<char *>(&data), type, size);
 
     ctx->disableRetrievalLog();
 

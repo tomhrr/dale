@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "../Type/Type.h"
-#include "../Variable/Variable.h"
 #include "../Units/Units.h"
+#include "../Variable/Variable.h"
 
 namespace dale {
 /* Construct an LLVM constant from binary data.
