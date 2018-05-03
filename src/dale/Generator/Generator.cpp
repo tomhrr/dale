@@ -98,38 +98,6 @@ Generator::Generator() {
 
 Generator::~Generator() {}
 
-void *lazyFunctionCreator(const std::string &name) {
-    void *fn_pointer = find_introspection_function(name.c_str());
-    if (fn_pointer) {
-        return fn_pointer;
-    }
-
-    fn_pointer = llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
-        name.c_str());
-    if (fn_pointer) {
-        return fn_pointer;
-    }
-
-    if (name[0] != '_') {
-        /* Try for one beginning with an underscore (OS X-specific). */
-        std::string osx_name;
-        osx_name.append("_");
-        osx_name.append(name);
-
-        fn_pointer =
-            llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
-                osx_name);
-        if (fn_pointer) {
-            return fn_pointer;
-        }
-    }
-
-    fprintf(stderr, "Unable to find symbol (%s) in LFC\n",
-            name.c_str());
-    abort();
-    return NULL;
-}
-
 int Generator::run(std::vector<const char *> *file_paths,
                    std::vector<const char *> *bc_file_paths,
                    std::vector<const char *> *compile_lib_paths,

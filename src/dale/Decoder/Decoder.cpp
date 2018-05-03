@@ -100,7 +100,7 @@ llvm::Constant *decodeRawDouble(char *data) {
 }
 
 llvm::Constant *decodeRawStruct(Units *units, Node *top, char *data,
-                                   Type *type, int *size) {
+                                Type *type, int *size) {
     Context *ctx = units->top()->ctx;
 
     std::vector<llvm::Constant *> constants;
@@ -158,7 +158,7 @@ llvm::Constant *decodeRawStruct(Units *units, Node *top, char *data,
 }
 
 llvm::Constant *decodeRawString(Units *units, Node *top, char *data,
-                                   Type *type, int *size) {
+                                Type *type, int *size) {
     Context *ctx = units->top()->ctx;
     TypeRegister *tr = ctx->tr;
 
@@ -191,7 +191,7 @@ llvm::Constant *decodeRawString(Units *units, Node *top, char *data,
 }
 
 llvm::Constant *decodeRawPointer(Units *units, Node *top, char *data,
-                                    Type *type, int *size) {
+                                 Type *type, int *size) {
     Context *ctx = units->top()->ctx;
 
     uint64_t value = *(reinterpret_cast<uint64_t *>(data));
@@ -233,7 +233,7 @@ llvm::Constant *decodeRawPointer(Units *units, Node *top, char *data,
 }
 
 llvm::Constant *decodeRawArray(Units *units, Node *top, char *data,
-                                  Type *type, int *size) {
+                               Type *type, int *size) {
     Context *ctx = units->top()->ctx;
 
     size_t member_size =

@@ -107,6 +107,10 @@ void error(const char *error_msg, const char *str1,
 /*! Print the current version number.
  */
 void printVersion();
+/*! Find and return the address of the given function.
+ *  @param name The function name.
+ */
+void *lazyFunctionCreator(const std::string &name);
 }
 
 #endif

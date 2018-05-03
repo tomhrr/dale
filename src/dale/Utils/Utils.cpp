@@ -9,7 +9,10 @@
 #include <string>
 #include <vector>
 
+#include "llvm/Support/DynamicLibrary.h"
+
 #include "Config.h"
+#include "../Introspection/Introspection.h"
 
 namespace dale {
 const char *progname = NULL;
@@ -224,5 +227,37 @@ void printVersion() {
     if (!strcmp("git", DALE_VERSION_TYPE)) {
 	printf(" (rev %s)", DALE_VERSION_REV);
     }
+}
+
+void *lazyFunctionCreator(const std::string &name) {
+    void *fn_pointer = find_introspection_function(name.c_str());
+    if (fn_pointer) {
+        return fn_pointer;
+    }
+
+    fn_pointer = llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
+        name.c_str());
+    if (fn_pointer) {
+        return fn_pointer;
+    }
+
+    if (name[0] != '_') {
+        /* Try for one beginning with an underscore (OS X-specific). */
+        std::string osx_name;
+        osx_name.append("_");
+        osx_name.append(name);
+
+        fn_pointer =
+            llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
+                osx_name);
+        if (fn_pointer) {
+            return fn_pointer;
+        }
+    }
+
+    fprintf(stderr, "Unable to find symbol (%s) in LFC.\n",
+            name.c_str());
+    abort();
+    return NULL;
 }
 }
