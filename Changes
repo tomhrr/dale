@@ -1,4 +1,15 @@
 Changelog
 
+0.2     4 May 2018
+        - Added support for LLVM through to version 6.0 (#41).
+        - Implemented move semantics: rvalue references and custom
+          movement functions (#43).
+        - Added a REPL (daleci) (#194).
+        - Added --print-expansions option for debugging macros (#36).
+        - Added a 'q' ('quote') form, for quoting literal forms (#36).
+        - Reimplemented enum support as a library (#82).
+        - Replaced function structs with the more generic 'invoke' (#84).
+        - Fixed many bugs.
+
 0.1     11 April 2015
         - Initial release.

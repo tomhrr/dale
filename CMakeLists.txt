@@ -49,7 +49,7 @@ if (NOT Dale_VERSION_REV)
 endif ()
 
 set (Dale_VERSION_MAJOR 0)
-set (Dale_VERSION_MINOR 1)
+set (Dale_VERSION_MINOR 2)
 set (Dale_VERSION         "${Dale_VERSION_MAJOR}.${Dale_VERSION_MINOR}")
 set (DALE_INCLUDE_PATH    "${CMAKE_INSTALL_PREFIX}/include/dale")
 set (DALE_LIBRARY_PATH    "${CMAKE_INSTALL_PREFIX}/lib/dale")
