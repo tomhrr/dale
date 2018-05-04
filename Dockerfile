@@ -10,7 +10,8 @@ RUN apt-get install -y \
     gdb \
     vim \
     rlwrap \
-    libcurl3
+    libcurl3 \
+    libldap-2.4-2
 RUN mkdir /build
 COPY ./ /build/
 WORKDIR /build
