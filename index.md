@@ -28,6 +28,10 @@ able to be built.
 
 ### Install
 
+#### Releases
+
+  * [dale-0.2](https://github.com/tomhrr/dale/archive/0.2.tar.gz)
+
 #### Dependencies
 
   * LLVM (3.2-6.0)
