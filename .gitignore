@@ -1,3 +1,14 @@
 Gemfile
 Gemfile.lock
 _site
+CMakeCache.txt
+CMakeFiles/
+Config.h
+Makefile
+cmake_install.cmake
+install_manifest.txt
+modules/
+node_modules/
+src/
+t/
+*.swp
