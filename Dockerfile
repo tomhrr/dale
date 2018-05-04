@@ -1,4 +1,4 @@
-FROM debian:unstable
+FROM debian:stable
 
 RUN apt-get update
 RUN apt-get install -y \
@@ -9,9 +9,7 @@ RUN apt-get install -y \
     pkg-config \
     gdb \
     vim \
-    rlwrap \
-    libcurl3 \
-    libldap-2.4-2
+    rlwrap
 RUN mkdir /build
 COPY ./ /build/
 WORKDIR /build
