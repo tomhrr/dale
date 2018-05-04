@@ -9,7 +9,9 @@ RUN apt-get install -y \
     pkg-config \
     gdb \
     vim \
-    rlwrap
+    rlwrap \
+    zlib1g \
+    zlib1g-dev
 RUN mkdir /build
 COPY ./ /build/
 WORKDIR /build
