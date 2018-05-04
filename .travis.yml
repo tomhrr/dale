@@ -28,6 +28,7 @@ addons:
     - llvm-5.0
     - llvm-5.0-dev
     - libedit-dev
+    - libcurl3
 env:
   matrix:
   - LLVM=3.3
