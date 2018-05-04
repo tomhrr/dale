@@ -12,19 +12,14 @@ similar to C, with the following additional features:
   * function structs;
   * reference parameters;
   * initialisers and destructors;
+  * variants;
   * namespaces;
   * modules;
   * concepts; and
   * compiler introspection.
 
-### Supported systems
-
-This should be usable on most Linux/OS X/BSD systems where LLVM is
-able to be built.  It has been tested on the following:
-
-  * Debian 7.8, 8.0 (x86 and x86-64)
-  * OS X 10.9.2
-  * FreeBSD 10.0 (x86-64)
+It should be usable on most Linux/macOS/BSD systems where LLVM is
+able to be built.
 
 ### Documentation
 
@@ -35,7 +30,7 @@ able to be built.  It has been tested on the following:
 
 #### Dependencies
 
-  * LLVM (3.2-3.5)
+  * LLVM (3.2-6.0)
   * libffi
 
 #### Out-of-tree (recommended)
@@ -53,6 +48,13 @@ able to be built.  It has been tested on the following:
     make
     make tests
     make install
+    
+#### Container (evaluation)
+
+The container runs the REPL by default, but includes bash
+(`/bin/bash`) for more general testing/evaluation.
+
+    docker run -it tomhrr/dale
 
 ### Examples
 
@@ -283,9 +285,42 @@ able to be built.  It has been tested on the following:
 > 0 1 2 3 4 5 6 7 8 9 
 ```
 
+**variants**
+
+```
+(import variant)
+(import cstdio)
+
+(def-variant Number ((Int    ((a int)))
+                     (Float  ((a float)))))
+
+(def main (fn extern-c int (void)
+  (let ((ni Number (Int 1))
+        (nf Number (Float 2.0))
+        (na (array-of 2 Number) (array ni nf)))
+    (for (i \ 0) (< i 2) (incv i)
+      (let ((nc Number (@$ na i)))
+        (case nc
+          (Int    (printf "Number is int (%d)\n"    (@:@ nc a)))
+          (Float  (printf "Number is float (%f)\n"  (@:@ nc a)))))))
+  0))
+
+```
+```
+> Number is int (1)
+> Number is float (2.000000)
+```
+
 ### Bugs/problems/suggestions
 
 Please report to the [GitHub issue tracker](https://github.com/tomhrr/dale/issues).
+
+### Discussion
+
+The mailing list address is
+[dale-lang@googlegroups.com](mailto:dale-lang@googlegroups.com).  See
+also
+[https://groups.google.com/forum/#!forum/dale-lang](https://groups.google.com/forum/#!forum/dale-lang).
 
 ### Licence
 
