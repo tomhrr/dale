@@ -300,10 +300,9 @@ Function *Namespace::getFunction(const char *name,
         }
 
         int matched_arg_count = 0;
+        int dnode_count = 0;
         bool broke_on_va = false;
         bool broke_on_failure = false;
-
-        int dnode_count = 0;
 
         /* If this is a macro, then increment the function's parameter
          * types iterator, to account for the implicit MContext
@@ -343,15 +342,21 @@ Function *Namespace::getFunction(const char *name,
             if (lvalues && (lvalue_iter != lvalues->end())) {
                 bool is_lvalue = *lvalue_iter;
 
+                /* If the parameter is a non-const reference, then the
+                 * argument must be an lvalue. */
                 if ((!fn_arg_type->is_const &&
                      fn_arg_type->is_reference) &&
                     !is_lvalue) {
                     broke_on_failure = true;
                     break;
+                /* If the parameter is an rvalue reference, then the
+                 * argument must not be an lvalue. */
                 } else if (fn_arg_type->is_rvalue_reference &&
                            is_lvalue) {
                     broke_on_failure = true;
                     break;
+                /* If the parameter is an rvalue reference, then the
+                 * argument must not be const. */
                 } else if (fn_arg_type->is_rvalue_reference &&
                            (*arg_type_iter)->is_const) {
                     broke_on_failure = true;
@@ -360,46 +365,41 @@ Function *Namespace::getFunction(const char *name,
             }
 
             bool result = false;
+            /* If the argument is an array, check whether it can be
+             * used in its array form. */
             if (array_types && (*array_type_iter) != NULL) {
                 result = fn_arg_type->canBePassedFrom(
                     (*array_type_iter), ignore_arg_constness);
             }
+            /* For all other types, as well as an array argument that
+             * couldn't be used as such, check whether it can be used
+             * in its default form. */
             if (!result) {
                 result = fn_arg_type->canBePassedFrom(
                     (*arg_type_iter), ignore_arg_constness);
             }
 
+            ++arg_type_iter;
+            ++fn_arg_type_iter;
+            if (lvalues && (lvalue_iter != lvalues->end())) {
+                ++lvalue_iter;
+            }
+            if (array_types &&
+                (array_type_iter != array_types->end())) {
+                ++array_type_iter;
+            }
+
             if (result) {
+                ++matched_arg_count;
                 if (current->is_macro) {
                     if (arg_index < local_earliest_macro_type_count) {
                         local_earliest_macro_type_count = arg_index;
                     }
                 }
-                ++arg_type_iter;
-                ++fn_arg_type_iter;
-                ++matched_arg_count;
-                if (lvalues && (lvalue_iter != lvalues->end())) {
-                    ++lvalue_iter;
-                }
-                if (array_types &&
-                    (array_type_iter != array_types->end())) {
-                    ++array_type_iter;
-                }
-                continue;
             } else if (current->is_macro &&
                        fn_arg_type->isEqualTo(pdnode)) {
-                ++dnode_count;
-                ++arg_type_iter;
-                ++fn_arg_type_iter;
                 ++matched_arg_count;
-                if (lvalues && (lvalue_iter != lvalues->end())) {
-                    ++lvalue_iter;
-                }
-                if (array_types &&
-                    (array_type_iter != array_types->end())) {
-                    ++array_type_iter;
-                }
-                continue;
+                ++dnode_count;
             } else {
                 broke_on_failure = true;
                 break;
@@ -446,9 +446,7 @@ Function *Namespace::getFunction(const char *name,
                     local_earliest_macro_type_count;
                 earliest_type_macro = current;
             }
-        }
-
-        if (broke_on_failure) {
+        } else {
             if (matched_arg_count > closest_count) {
                 closest_count = matched_arg_count;
                 closest_fn = current;
