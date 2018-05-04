@@ -12,6 +12,7 @@ RUN apt-get install -y \
     rlwrap \
     zlib1g \
     zlib1g-dev
+
 RUN mkdir /build
 COPY ./ /build/
 WORKDIR /build
