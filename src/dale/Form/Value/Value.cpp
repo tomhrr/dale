@@ -138,7 +138,7 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
     /* Try to parse the value as a literal first. */
 
     ParseResult pr;
-    bool res = FormLiteralParse(units, type, top, size, &pr);
+    bool res = FormLiteralParse(units, type, top, &pr);
     if (res) {
         return llvm::dyn_cast<llvm::Constant>(pr.getValue(ctx));
     }

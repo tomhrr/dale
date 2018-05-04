@@ -17,14 +17,8 @@ similar to C, with the following additional features:
   * concepts; and
   * compiler introspection.
 
-### Supported systems
-
-This should be usable on most Linux/OS X/BSD systems where LLVM is
-able to be built.  It has been tested on the following:
-
-  * Debian 7.8, 8.0 (x86 and x86-64)
-  * OS X 10.9.2
-  * FreeBSD 10.0, 11.0 (x86-64)
+It should be usable on most Linux/maxOS/BSD systems where LLVM is
+able to be built.
 
 ### Documentation
 

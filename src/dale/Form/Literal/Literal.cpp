@@ -224,9 +224,8 @@ bool arrayLiteralParse(Units *units, Type *type, Node *node,
     for (std::vector<Node *>::iterator b = (lst->begin() + 1),
                                        e = lst->end();
          b != e; ++b) {
-        int size;
         ParseResult element_pr;
-        bool res = FormLiteralParse(units, type->array_type, *b, &size,
+        bool res = FormLiteralParse(units, type->array_type, *b,
                                     &element_pr);
         if (!res) {
             return false;
@@ -278,9 +277,8 @@ bool structLiteralParse(Units *units, Type *type, Node *node,
             return false;
         }
 
-        int size;
         ParseResult element_pr;
-        bool res = FormLiteralParse(units, type, value_node, &size,
+        bool res = FormLiteralParse(units, type, value_node,
                                     &element_pr);
         if (!res) {
             return false;
@@ -302,7 +300,7 @@ bool structLiteralParse(Units *units, Type *type, Node *node,
     return true;
 }
 
-bool FormLiteralParse(Units *units, Type *type, Node *node, int *size,
+bool FormLiteralParse(Units *units, Type *type, Node *node,
                       ParseResult *pr) {
     Context *ctx = units->top()->ctx;
 
