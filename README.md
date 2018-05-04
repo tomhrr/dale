@@ -17,7 +17,7 @@ similar to C, with the following additional features:
   * concepts; and
   * compiler introspection.
 
-It should be usable on most Linux/maxOS/BSD systems where LLVM is
+It should be usable on most Linux/macOS/BSD systems where LLVM is
 able to be built.
 
 ### Documentation

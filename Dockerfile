@@ -9,7 +9,8 @@ RUN apt-get install -y \
     pkg-config \
     gdb \
     vim \
-    rlwrap
+    rlwrap \
+    libcurl3
 RUN mkdir /build
 COPY ./ /build/
 WORKDIR /build

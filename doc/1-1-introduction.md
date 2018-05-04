@@ -48,4 +48,19 @@ Note that the language is still very much at the experimental/toy
 stage, so there are likely to be bugs, documentation inconsistencies
 and so on.
 
+### Motivation
+
+The aim with Dale is to see how a language with a minimal C-like core
+plus syntactic macros works in practice, and whether things usually
+implemented within languages can be moved out to libraries if they
+have the appropriate level of support from the core.  As an ongoing
+project, it will retain the following properties:
+
+  * relatively simple core, with new features implemented as libraries
+    wherever possible;
+  * easy interoperation with C code;
+  * no features that impose mandatory performance penalties (e.g. GC);
+    and
+  * one language (no separate macro language).
+
 [Next](./1-2-setup.md)
