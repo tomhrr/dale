@@ -141,6 +141,9 @@ bool Writer::writeContext() {
 bool Writer::run() {
     writeBitcode("");
     writeSharedObject("");
+#if D_LLVM_VERSION_ORD <= 35
+    ctx->regetPointers(mod);
+#endif
     ctx->eraseLLVMMacrosAndCTOFunctions();
     writeBitcode("-nomacros");
     writeSharedObject("-nomacros");
