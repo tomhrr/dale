@@ -40,8 +40,10 @@ bool Writer::writeBitcode(const char *suffix) {
     }
 
     llvm::raw_fd_ostream bc_out(fileno(bc), false);
-    pm->run(*mod);
-    llvm::WriteBitcodeToFile(mod, bc_out);
+    std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
+
+    pm->run(*module_ptr);
+    llvm::WriteBitcodeToFile(module_ptr.get(), bc_out);
     bc_out.flush();
     int res = fflush(bc);
     if (res != 0) {
@@ -132,7 +134,6 @@ bool Writer::writeContext() {
 bool Writer::run() {
     writeBitcode("");
     writeSharedObject("");
-    ctx->regetPointers(mod);
     ctx->eraseLLVMMacrosAndCTOFunctions();
     writeBitcode("-nomacros");
     writeSharedObject("-nomacros");

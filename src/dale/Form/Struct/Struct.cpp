@@ -65,8 +65,19 @@ bool addOpaqueStruct(Units *units, const char *name, Node *top,
     snprintf(buf, sizeof(buf), "__rs%d", ++retain_struct_index);
     if (!units->top()->module->getFunction(buf)) {
         std::vector<llvm::Type *> args;
-        llvm::FunctionType *ft = getFunctionType(llvm_st, args, false);
-        units->top()->module->getOrInsertFunction(buf, ft);
+        args.push_back(llvm_st);
+        llvm::FunctionType *ft =
+            getFunctionType(ctx->toLLVMType(ctx->tr->type_void, NULL, true),
+                            args, false);
+        llvm::Function *fn =
+            llvm::cast<llvm::Function>(
+                units->top()->module->getOrInsertFunction(buf, ft)
+            );
+        fn->setLinkage(llvm::GlobalValue::WeakODRLinkage);
+        llvm::BasicBlock *block =
+            llvm::BasicBlock::Create(*getContext(), "entry", fn);
+        llvm::IRBuilder<> builder(block);
+        builder.CreateRetVoid();
     }
 
     return true;
