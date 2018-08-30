@@ -40,10 +40,17 @@ bool Writer::writeBitcode(const char *suffix) {
     }
 
     llvm::raw_fd_ostream bc_out(fileno(bc), false);
+
+#if D_LLVM_VERSION_ORD <= 35
+    pm->run(*mod);
+    llvm::WriteBitcodeToFile(mod, bc_out);
+#else
     std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
 
     pm->run(*module_ptr);
     llvm::WriteBitcodeToFile(module_ptr.get(), bc_out);
+#endif
+
     bc_out.flush();
     int res = fflush(bc);
     if (res != 0) {
