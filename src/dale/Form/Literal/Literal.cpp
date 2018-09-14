@@ -272,13 +272,13 @@ bool structLiteralParse(Units *units, Type *type, Node *node,
         }
 
         const char *name = name_node->token->str_value.c_str();
-        Type *type = st->nameToType(name);
-        if (!type) {
+        Type *st_type = st->nameToType(name);
+        if (!st_type) {
             return false;
         }
 
         ParseResult element_pr;
-        bool res = FormLiteralParse(units, type, value_node,
+        bool res = FormLiteralParse(units, st_type, value_node,
                                     &element_pr);
         if (!res) {
             return false;

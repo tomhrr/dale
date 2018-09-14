@@ -75,6 +75,7 @@ Unit::~Unit() {
         delete ctx;
     }
     delete parser;
+    delete dnc;
 }
 
 bool Unit::hasOnceTag() { return (once_tag.size() ? true : false); }

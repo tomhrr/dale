@@ -1,5 +1,5 @@
-#ifndef DALE_OPERATION_COPY
-#define DALE_OPERATION_COPY
+#ifndef DALE_OPERATION_MOVE
+#define DALE_OPERATION_MOVE
 
 #include "../../Context/Context.h"
 #include "../../Node/Node.h"

@@ -173,7 +173,7 @@ bool resolveDeferredGotos(Context *ctx, Node *node, Function *fn,
             continue;
         }
 
-        llvm::BasicBlock *block = label->block;
+        llvm::BasicBlock *label_block = label->block;
         llvm::BasicBlock *block_marker = dg->block_marker;
         llvm::Instruction *marker = dg->marker;
 
@@ -235,7 +235,7 @@ bool resolveDeferredGotos(Context *ctx, Node *node, Function *fn,
             }
         }
 
-        builder.CreateBr(block);
+        builder.CreateBr(label_block);
     }
 
     STL::deleteElements(&(fn->deferred_gotos));

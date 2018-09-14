@@ -283,8 +283,8 @@ llvm::Constant *decodeRawData(Units *units, Node *top, char *data,
     }
 
     if (type->isIntegerType()) {
-        int size = nt->internalSizeToRealSize(type->getIntegerSize());
-        return decodeRawInteger(size, data);
+        int real_size = nt->internalSizeToRealSize(type->getIntegerSize());
+        return decodeRawInteger(real_size, data);
     }
 
     if (type->base_type == BaseType::Float) {

@@ -106,12 +106,10 @@ bool FormStructParse(Units *units, Node *top, const char *name) {
         return false;
     }
 
-    /* If the list contains two members (name and linkage), or
-     * three members (name, attributes and linkage), the struct
+    /* If the list contains two members (name and linkage), the struct
      * is actually opaque, so return now. */
 
-    if ((lst->size() == 2) ||
-        ((lst->size() == 3) && (next_index == 3))) {
+    if (lst->size() == 2) {
         return true;
     }
 

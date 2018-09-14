@@ -300,14 +300,14 @@ bool Reader::run(Context *ctx, llvm::Linker *linker, llvm::Module *mod,
              b = dependencies.begin(),
              e = dependencies.end();
          b != e; ++b) {
-        std::vector<const char *> import_forms;
+        std::vector<const char *> dep_import_forms;
         for (std::vector<std::string>::iterator ib = b->second->begin(),
                                                 ie = b->second->end();
              ib != ie; ++ib) {
-            import_forms.push_back((*ib).c_str());
+            dep_import_forms.push_back((*ib).c_str());
         }
         bool res =
-            run(ctx, linker, mod, n, b->first.c_str(), &import_forms);
+            run(ctx, linker, mod, n, b->first.c_str(), &dep_import_forms);
         if (!res) {
             return false;
         }

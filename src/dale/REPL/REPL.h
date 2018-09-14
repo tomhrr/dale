@@ -1,5 +1,5 @@
-#ifndef DALE_GENERATOR
-#define DALE_GENERATOR
+#ifndef DALE_REPL
+#define DALE_REPL
 
 #include <string>
 #include <vector>
