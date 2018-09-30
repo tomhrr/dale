@@ -229,6 +229,11 @@ void printVersion() {
     }
 }
 
+void *fail(void) {
+    fprintf(stderr, "Unable to resolve symbol.\n");
+    abort();
+}
+
 void *lazyFunctionCreator(const std::string &name) {
     void *fn_pointer = find_introspection_function(name.c_str());
     if (fn_pointer) {
@@ -255,9 +260,6 @@ void *lazyFunctionCreator(const std::string &name) {
         }
     }
 
-    fprintf(stderr, "Unable to find symbol (%s) in LFC.\n",
-            name.c_str());
-    abort();
-    return NULL;
+    return (void *) fail;
 }
 }

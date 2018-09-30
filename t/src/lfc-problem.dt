@@ -1,0 +1,9 @@
+(import macros)
+(def f1 (fn intern void (void)))
+(def f2 (fn intern void (void) (f1)))
+(using-namespace std.macros
+  (def m (macro intern (void)
+    (nullptr DNode)))
+  (def m2 (macro intern (void)
+    (m)
+    (nullptr DNode))))
