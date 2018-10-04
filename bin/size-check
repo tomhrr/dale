@@ -3,16 +3,20 @@
 use warnings;
 use strict;
 
-print "opt,static_modules,size\n";
-for my $sm (0..1) {
-    my $flag = ($sm) ? '--static-modules' : '';
-    for my $opt (0..4) {
-        my $res = system("./dalec -O$opt $flag t/src/gh-198.dt -o a.out");
-        if ($res != 0) {
-            die "Compilation failed.";
+print "type,opt,static_modules,size\n";
+for my $type (qw(ir bc as none)) {
+    my $type_flag = ($type eq 'none') ? '' : "-s $type";
+    for my $sm (0..1) {
+        my $sm_flag = ($sm) ? '--static-modules' : '';
+        for my $opt (0..4) {
+            my $res = system("./dalec -O$opt $sm_flag $type_flag ".
+                             "t/src/gh-198.dt -o a.out");
+            if ($res != 0) {
+                die "Compilation failed.";
+            }
+            print "$type,$opt,$sm,".(stat('a.out'))[7]."\n";
+            unlink('a.out');
         }
-        print "$opt,$sm,".(stat('a.out'))[7]."\n";
-        unlink('a.out');
     }
 }
 
