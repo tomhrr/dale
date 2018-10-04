@@ -328,6 +328,7 @@ int Generator::run(std::vector<const char *> *file_paths,
     llvm::PassManagerBuilder pass_manager_builder;
     pass_manager_builder.OptLevel = optlevel;
     pass_manager_builder.DisableUnitAtATime = true;
+    pass_manager_builder.Inliner = llvm::createFunctionInliningPass();
 
     if (optlevel > 0) {
         if (lto) {
