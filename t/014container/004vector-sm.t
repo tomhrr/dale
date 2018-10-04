@@ -7,7 +7,7 @@ my $test_dir = $ENV{"DALE_TEST_DIR"} || ".";
 $ENV{PATH} .= ":.";
 
 use Data::Dumper;
-use Test::More tests => 8;
+use Test::More tests => 9;
 
 my @res = `dalec $ENV{"DALE_TEST_ARGS"} -lm $test_dir/t/src/vector.dt -o vector-big`;
 is($?, 0, 'Compiled successfully');
@@ -20,6 +20,8 @@ system("rm vector-sm");
 @res = `dalec $ENV{"DALE_TEST_ARGS"} -O4 --static-modules -lm $test_dir/t/src/vector.dt -o vector-small`;
 is($?, 0, 'Compiled successfully (optimised)');
 is(@res, 0, 'No compilation errors (optimised)');
+ok(((stat('vector-big'))[7] > (stat('vector-small'))[7]),
+    'Optimised static-module build yields smaller executable');
 
 my $ret = system("./vector-small > out");
 is($ret, 0, 'Program executed successfully');

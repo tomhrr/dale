@@ -352,6 +352,15 @@ int Generator::run(std::vector<const char *> *file_paths,
     if (remove_macros) {
         ctx->eraseLLVMMacrosAndCTOFunctions();
     }
+    if (lto) {
+        for (llvm::Function &fn : *mod) {
+            if (fn.size()) {
+                fn.setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+            }
+        }
+        llvm::Function *main = mod->getFunction("main");
+        main->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_C));
+    }
 
     llvm_formatted_ostream *ostream_formatted =
         getFormattedOstream(&ostream);
