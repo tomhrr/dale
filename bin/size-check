@@ -1,0 +1,19 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+print "opt,static_modules,size\n";
+for my $sm (0..1) {
+    my $flag = ($sm) ? '--static-modules' : '';
+    for my $opt (0..4) {
+        my $res = system("./dalec -O$opt $flag t/src/gh-198.dt -o a.out");
+        if ($res != 0) {
+            die "Compilation failed.";
+        }
+        print "$opt,$sm,".(stat('a.out'))[7]."\n";
+        unlink('a.out');
+    }
+}
+
+1;

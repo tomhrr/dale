@@ -1,0 +1,8 @@
+(import cstdio)
+
+(def main (fn extern-c int (void)
+  (def sum (var auto \ 0))
+  (for (i \ 0) (< i 500000000) (incv i)
+    (setv sum (+ sum i)))
+  (printf "%d\n" sum)
+  0))
