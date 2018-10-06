@@ -354,9 +354,12 @@ int Generator::run(std::vector<const char *> *file_paths,
         ctx->eraseLLVMMacrosAndCTOFunctions();
     }
     if (lto) {
-        for (llvm::Function &fn : *mod) {
-            if (fn.size()) {
-                fn.setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+        for (llvm::Module::iterator b = mod->begin(),
+                                    e = mod->end();
+                b != e;
+                ++b) {
+            if (b->size()) {
+                b->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
             }
         }
         llvm::Function *main = mod->getFunction("main");
