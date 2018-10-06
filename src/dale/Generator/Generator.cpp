@@ -362,6 +362,14 @@ int Generator::run(std::vector<const char *> *file_paths,
                 b->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
             }
         }
+        for (llvm::Module::global_iterator b = mod->global_begin(),
+                                           e = mod->global_end();
+                b != e;
+                ++b) {
+            if (b->hasInitializer()) {
+                b->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+            }
+        }
         llvm::Function *main = mod->getFunction("main");
         main->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_C));
     }
