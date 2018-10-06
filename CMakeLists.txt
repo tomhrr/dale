@@ -347,6 +347,7 @@ add_custom_command (OUTPUT  libarithmetic.so
                     COMMAND ${CMAKE_BINARY_DIR}/dalec
                                 -c ${CMAKE_SOURCE_DIR}/modules/arithmetic.dt
                                 --no-arithmetic
+                                --no-drt
                                 --static-modules)
 add_custom_target (arithmetic ALL DEPENDS libarithmetic.so)
 add_dependencies (arithmetic dalec)
