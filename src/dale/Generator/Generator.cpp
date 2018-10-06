@@ -106,7 +106,8 @@ int Generator::run(std::vector<const char *> *file_paths,
                    std::vector<const char *> *static_module_names,
                    const char *module_name, int debug, int produce,
                    int optlevel, int remove_macros, int no_common,
-                   int no_dale_stdlib, int static_mods_all,
+                   int no_drt, int no_arithmetic,
+                   int static_mods_all,
                    int enable_cto, int print_expansions,
                    std::vector<std::string> *shared_object_paths,
                    FILE *output_file) {
@@ -129,6 +130,10 @@ int Generator::run(std::vector<const char *> *file_paths,
 
     llvm::Module *last_module = NULL;
 
+    if (!no_arithmetic) {
+        static_module_names->push_back("arithmetic");
+    }
+
     Module::Reader mr(module_paths, shared_object_paths, include_paths,
                       static_module_names, static_mods_all,
                       remove_macros);
@@ -139,8 +144,24 @@ int Generator::run(std::vector<const char *> *file_paths,
         mr.addDynamicLibrary((*b), false, false);
     }
 
+    const char *libarithmetic_path = NULL;
     const char *libdrt_path = NULL;
-    if (!no_dale_stdlib) {
+    if (!no_arithmetic) {
+        FILE *arithmetic_file = NULL;
+        if ((arithmetic_file = fopen(DALE_LIBRARY_PATH "/libarithmetic.so", "r"))) {
+            libarithmetic_path = DALE_LIBRARY_PATH "/libarithmetic.so";
+        } else if ((arithmetic_file = fopen("./libarithmetic.so", "r"))) {
+            libarithmetic_path = "./libarithmetic.so";
+        } else {
+            error("unable to find libarithmetic.so");
+        }
+        mr.addDynamicLibrary(libarithmetic_path, false, false);
+        int res = fclose(arithmetic_file);
+        if (res != 0) {
+            error("unable to close %s", libarithmetic_path, true);
+        }
+    }
+    if (!no_drt) {
         FILE *drt_file = NULL;
         if ((drt_file = fopen(DALE_LIBRARY_PATH "/libdrt.so", "r"))) {
             libdrt_path = DALE_LIBRARY_PATH "/libdrt.so";
@@ -155,6 +176,9 @@ int Generator::run(std::vector<const char *> *file_paths,
             error("unable to close %s", libdrt_path, true);
         }
     }
+    if (!module_name && libarithmetic_path) {
+        shared_object_paths->push_back(libarithmetic_path);
+    }
     if (!module_name && libdrt_path) {
         shared_object_paths->push_back(libdrt_path);
     }
@@ -162,7 +186,7 @@ int Generator::run(std::vector<const char *> *file_paths,
     Units units(&mr);
     units.cto = enable_cto;
     units.no_common = no_common;
-    units.no_dale_stdlib = no_dale_stdlib;
+    units.no_drt = no_drt;
     units.print_expansions = print_expansions;
     units.debug = debug;
 
@@ -231,10 +255,14 @@ int Generator::run(std::vector<const char *> *file_paths,
         CommonDecl::addVarargsFunctions(unit);
 
         if (!no_common) {
-            if (no_dale_stdlib) {
+            if (no_arithmetic) {
+		CommonDecl::addBasicTypes(unit, is_x86_64);
+            } else if (no_drt) {
                 unit->addCommonDeclarations();
             } else {
                 std::vector<const char *> import_forms;
+                mr.run(ctx, linker, mod, nullNode(), "arithmetic",
+                       &import_forms);
                 mr.run(ctx, linker, mod, nullNode(), "drt",
                        &import_forms);
                 units.top()->mp->setPoolfree();
@@ -329,6 +357,7 @@ int Generator::run(std::vector<const char *> *file_paths,
     pass_manager_builder.OptLevel = optlevel;
     pass_manager_builder.DisableUnitAtATime = true;
     pass_manager_builder.Inliner = llvm::createFunctionInliningPass();
+    pass_manager.add(llvm::createFunctionInliningPass());
 
     if (optlevel > 0) {
         if (lto) {

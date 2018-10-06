@@ -133,7 +133,8 @@ int main(int argc, char **argv) {
     int produce_set = 0;
     int no_linking = 0;
     int debug = 0;
-    int no_dale_stdlib = 0;
+    int no_arithmetic = 0;
+    int no_drt = 0;
     int no_stdlib = 0;
     int remove_macros = 0;
     int no_common = 0;
@@ -148,7 +149,8 @@ int main(int argc, char **argv) {
 
     static const char *options = "M:m:O:a:I:L:l:o:s:b:cdrR";
     static struct option long_options[] = {
-        {"no-dale-stdlib", no_argument, &no_dale_stdlib, 1},
+        {"no-drt", no_argument, &no_drt, 1},
+        {"no-arithmetic", no_argument, &no_arithmetic, 1},
         {"no-common", no_argument, &no_common, 1},
         {"no-stdlib", no_argument, &no_stdlib, 1},
         {"static-modules", no_argument, &static_mods_all, 1},
@@ -282,7 +284,8 @@ int main(int argc, char **argv) {
                             &include_paths, &module_paths,
                             &static_modules, module_name, debug,
                             produce, optlevel, remove_macros, no_common,
-                            no_dale_stdlib, static_mods_all, enable_cto,
+                            no_drt, no_arithmetic,
+                            static_mods_all, enable_cto,
                             print_expansions, &so_paths, output_file);
     if (!res) {
         exit(1);

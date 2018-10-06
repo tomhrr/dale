@@ -367,7 +367,7 @@ void REPL::run(std::vector<const char *> *compile_lib_paths,
     Units units(&mr);
     units.cto = false;
     units.no_common = no_common;
-    units.no_dale_stdlib = no_dale_stdlib;
+    units.no_drt = no_dale_stdlib;
     units.print_expansions = print_expansions;
     units.debug = debug;
 

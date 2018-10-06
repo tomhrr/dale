@@ -42,8 +42,9 @@ class Generator {
      *                       the final product.
      *  @param no_common Whether common declarations should not be
      * included.
-     *  @param no_dale_stdlib Whether the drt library should not be
-     * imported.
+     *  @param no_drt Whether the drt library should not be imported.
+     *  @param no_arithmetic Whether the arithmetic library should not
+     * be imported.
      *  @param static_mods_all Whether all modules should be linked
      *                         statically.
      *  @param enable_cto Whether the module being compiled is a
@@ -64,7 +65,8 @@ class Generator {
             std::vector<const char *> *static_module_names,
             const char *module_name, int debug, int produce,
             int optlevel, int remove_macros, int no_common,
-            int no_dale_stdlib, int static_mods_all, int enable_cto,
+            int no_drt, int no_arithmetic,
+            int static_mods_all, int enable_cto,
             int print_expansions,
             std::vector<std::string> *shared_object_paths,
             FILE *output_file);

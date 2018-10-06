@@ -343,11 +343,24 @@ add_dependencies (doc dalec programs array variant)
 
 # Compile and install standard library files.
 
+add_custom_command (OUTPUT  libarithmetic.so
+                    COMMAND ${CMAKE_BINARY_DIR}/dalec
+                                -c ${CMAKE_SOURCE_DIR}/modules/arithmetic.dt
+                                --no-arithmetic
+                                --static-modules)
+add_custom_target (arithmetic ALL DEPENDS libarithmetic.so)
+add_dependencies (arithmetic dalec)
+install (FILES          ${CMAKE_BINARY_DIR}/libarithmetic.so
+                        ${CMAKE_BINARY_DIR}/libarithmetic-nomacros.so
+                        ${CMAKE_BINARY_DIR}/libarithmetic.dtm
+                        ${CMAKE_BINARY_DIR}/libarithmetic.bc
+                        ${CMAKE_BINARY_DIR}/libarithmetic-nomacros.bc
+         DESTINATION    lib/dale)
+
 add_custom_command (OUTPUT  libdrt.so
                     COMMAND ${CMAKE_BINARY_DIR}/dalec
                                 -c ${CMAKE_SOURCE_DIR}/modules/drt.dt
-                                -o ./drt.dt.s
-                                --no-dale-stdlib
+                                --no-drt
                                 --static-modules)
 add_custom_target (drt ALL DEPENDS libdrt.so)
 add_dependencies (drt dalec)
@@ -360,7 +373,7 @@ install (FILES          ${CMAKE_BINARY_DIR}/libdrt.so
 
 # Extra 'make clean' files.
 
-set (CLEAN_FILES "libdrt.so;libdrt.bc;libdrt.dtm;libdrt-nomacros.bc;libdrt-nomacros.so;drt.dt.s")
+set (CLEAN_FILES "libdrt.so;libdrt.bc;libdrt.dtm;libdrt-nomacros.bc;libdrt-nomacros.so;libarithmetic.so;libarithmetic.bc;libarithmetic.dtm;libarithmetic-nomacros.bc;libarithmetic-nomacros.so")
 
 macro (standard_library path name)
     add_custom_command(OUTPUT  lib${name}.so
