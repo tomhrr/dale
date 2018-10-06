@@ -363,7 +363,7 @@ add_custom_command (OUTPUT  libdrt.so
                                 --no-drt
                                 --static-modules)
 add_custom_target (drt ALL DEPENDS libdrt.so)
-add_dependencies (drt dalec)
+add_dependencies (drt arithmetic)
 install (FILES          ${CMAKE_BINARY_DIR}/libdrt.so
                         ${CMAKE_BINARY_DIR}/libdrt-nomacros.so
                         ${CMAKE_BINARY_DIR}/libdrt.dtm
