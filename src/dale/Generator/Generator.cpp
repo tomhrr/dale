@@ -82,6 +82,7 @@
 #include "../Unit/Unit.h"
 #include "../Units/Units.h"
 #include "../Utils/Utils.h"
+#include "../BasicTypes/BasicTypes.h"
 
 extern "C" {
 void init_introspection_functions();
@@ -381,6 +382,16 @@ int Generator::run(std::vector<const char *> *file_paths,
     ctx->regetPointers(mod);
     if (remove_macros) {
         ctx->eraseLLVMMacrosAndCTOFunctions();
+    }
+    dale::BasicTypes::initBasicTypeFormStrings();
+    for (std::vector<std::string>::iterator
+            b = dale::BasicTypes::basic_type_form_strings.begin(),
+            e = dale::BasicTypes::basic_type_form_strings.end();
+            b != e;
+            ++b) {
+        llvm::Function *fn =
+            mod->getFunction(*b);
+        fn->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
     }
     if (lto) {
         for (llvm::Module::iterator b = mod->begin(),

@@ -17,6 +17,12 @@ namespace dale {
     numbers.
 */
 namespace BasicTypes {
+extern std::vector<std::string> basic_type_form_strings;
+
+/*! Initialise the basic type form string array.
+ */
+void initBasicTypeFormStrings(void);
+
 /*! Add a unary function to the context and module.
  *  @param ctx The context.
  *  @param mod The LLVM module.
