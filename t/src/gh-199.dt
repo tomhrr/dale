@@ -1,0 +1,5 @@
+(import cstdio)
+(def f (fn (attr cto) intern bool (void)
+  true))
+(def main (fn extern-c int (void)
+  (printf "%d\n" (mif (f) 1 2))))

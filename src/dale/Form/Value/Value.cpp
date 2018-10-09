@@ -151,6 +151,7 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
     ctx->enableRetrievalLog();
 
     Function *fn = createFunction(units, type, top);
+    fn->cto = true;
     if (!fn) {
         return NULL;
     }

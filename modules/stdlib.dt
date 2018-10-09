@@ -750,7 +750,8 @@ a whole expands to one of the provided branches.
   (let ((result bool (eval-expression mc (q bool) condition
                                       (cast (# condition-result) (p void)))))
     (and (not result)
-      (return (nullptr DNode)))
+      (do (report-error mc condition "unable to evaluate condition")
+          (return (nullptr DNode))))
     (if condition-result then else))))
 
 #|
