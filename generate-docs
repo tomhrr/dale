@@ -24,8 +24,9 @@ my @files = qw(
     2-18-shared-ptr.md
     2-19-unique-ptr.md
     2-20-operator-macros.md
-    2-21-bitset-enum.md
-    2-22-variant.md
+    2-21-enum.md
+    2-22-bitset-enum.md
+    2-23-variant.md
     3-1-cerrno.md
     3-2-cfloat.md
     3-3-clocale.md
