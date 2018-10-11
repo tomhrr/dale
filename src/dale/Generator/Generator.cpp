@@ -371,6 +371,21 @@ int Generator::run(std::vector<const char *> *file_paths,
         }
     }
 
+    ctx->regetPointers(mod);
+    if (!no_arithmetic) {
+        dale::BasicTypes::initBasicTypeFormStrings();
+        for (std::vector<std::string>::iterator
+                b = dale::BasicTypes::basic_type_form_strings.begin(),
+                e = dale::BasicTypes::basic_type_form_strings.end();
+                b != e;
+                ++b) {
+            llvm::Function *fn = mod->getFunction(*b);
+            if (fn->size()) {
+                fn->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
+            }
+        }
+    }
+
     if (units.module_name.size() > 0) {
         Module::Writer mw(units.module_name, ctx, mod, &pass_manager,
                           &(mr.included_once_tags),
@@ -379,19 +394,8 @@ int Generator::run(std::vector<const char *> *file_paths,
         return 1;
     }
 
-    ctx->regetPointers(mod);
     if (remove_macros) {
         ctx->eraseLLVMMacrosAndCTOFunctions();
-    }
-    dale::BasicTypes::initBasicTypeFormStrings();
-    for (std::vector<std::string>::iterator
-            b = dale::BasicTypes::basic_type_form_strings.begin(),
-            e = dale::BasicTypes::basic_type_form_strings.end();
-            b != e;
-            ++b) {
-        llvm::Function *fn =
-            mod->getFunction(*b);
-        fn->setLinkage(ctx->toLLVMLinkage(Linkage::Intern));
     }
     if (lto) {
         for (llvm::Module::iterator b = mod->begin(),
