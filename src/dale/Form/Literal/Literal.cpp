@@ -12,6 +12,21 @@
 using namespace dale::ErrorInst;
 
 namespace dale {
+void substituteChars(std::string *str) {
+    size_t pos = 0;
+    while ((pos = str->find("\\n", pos)) != std::string::npos) {
+        str->replace(pos, 2, "\n");
+    }
+    pos = 0;
+    while ((pos = str->find("\\t", pos)) != std::string::npos) {
+        str->replace(pos, 2, "\t");
+    }
+    pos = 0;
+    while ((pos = str->find("\\\\", pos)) != std::string::npos) {
+        str->replace(pos, 2, "\\");
+    }
+}
+
 llvm::Constant *stringLiteralToConstant(Units *units, Type *type,
                                         Node *node, int *size) {
     Context *ctx = units->top()->ctx;
@@ -49,11 +64,8 @@ llvm::Constant *stringLiteralToConstant(Units *units, Type *type,
             return NULL;
         }
 
-        size_t pos = 0;
-        std::string value = t->str_value;
-        while ((pos = value.find("\\n", pos)) != std::string::npos) {
-            value.replace(pos, 2, "\n");
-        }
+        substituteChars(&(t->str_value));
+        std::string value = t->str_value.c_str();
 
         *size = value.size() + 1;
 
@@ -78,11 +90,8 @@ void FormStringLiteralParse(Units *units, Context *ctx,
     std::string var_name;
     units->top()->getUnusedVarName(&var_name);
 
-    size_t pos = 0;
-    std::string value = node->token->str_value;
-    while ((pos = value.find("\\n", pos)) != std::string::npos) {
-        value.replace(pos, 2, "\n");
-    }
+    substituteChars(&(node->token->str_value));
+    std::string value = node->token->str_value.c_str();
 
     int size = value.size() + 1;
     Type *char_array_type = tr->getArrayType(tr->type_char, size);

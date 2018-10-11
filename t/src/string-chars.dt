@@ -1,0 +1,5 @@
+(import cstdio)
+(def main (fn extern-c int (void)
+  (printf "asdf\tasdf\\\n")
+  (printf "\\")
+  0))

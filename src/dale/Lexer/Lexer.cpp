@@ -180,22 +180,28 @@ bool Lexer::getNextToken(Token *token, Error *error) {
             begin_col_count = end_col_count;
 
             /* Read characters until you hit a double-quote. */
-            while ((c = getchar_()) && c != EOF &&
-                   ((c != '"') ||
-                    (token->str_value.length() &&
-                     (token->str_value[token->str_value.length() - 1] ==
-                      '\\')))) {
-                if (c == '"') {
-                    token->str_value[token->str_value.length() - 1] = c;
-                } else {
-                    token->str_value.push_back(c);
+            while ((c = getchar_()) && c != EOF) {
+                int slash = 0;
+                if (c == '\\') {
+                    c = getchar_();
+                    if (c == EOF) {
+                        goto end;
+                    }
+                    if (c != '"') {
+                        token->str_value.push_back('\\');
+                        end_col_count++;
+                    }
+                } else if (c == '"') {
+                    goto end;
                 }
-                if (c == '\n') {
+                token->str_value.push_back(c);
+                if (!slash && (c == '\n')) {
                     end_line_count++;
                 } else {
                     end_col_count++;
                 }
             }
+            end:
             if (c == EOF) {
                 error->instance = ErrorInst::UnterminatedStringLiteral;
             } else {
