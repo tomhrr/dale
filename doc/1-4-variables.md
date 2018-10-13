@@ -23,9 +23,14 @@ Variables are declared like so:
 
         (def {name} (var {linkage} {type} [{value}]))
 
-`{linkage}` is one of `intern`, `extern`, `extern-c` and `auto`. The
-other placeholders are self-explanatory. `auto` is only valid for
-procedure-scoped variables.
+`{linkage}` is one of `intern`, `extern`, `extern-c` and `auto`.  An
+`intern` variable is visible only within the scope of the file where
+it appears.  An `extern` or `extern-c` variable is either a
+definition, in which case it's available globally, or a declaration,
+in which case there must be a definition of the variable somewhere
+else.  An `auto` variable is only valid for procedure-scoped
+variables, and is visible within its lexical scope.  The other
+placeholders are self-explanatory.
 
 `setf` is the core form for setting a variable:
 
