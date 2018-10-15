@@ -1,6 +1,6 @@
 # Dale
 
-[Previous](./2-19-unique-ptr.md) | [Next](./2-21-bitset-enum.md)
+[Previous](./2-19-unique-ptr.md) | [Next](./2-21-enum.md)
 
 ## 2.20 operator-macros
 
@@ -86,5 +86,5 @@ expands to:
 
 
 
-[Previous](./2-19-unique-ptr.md) | [Next](./2-21-bitset-enum.md)
+[Previous](./2-19-unique-ptr.md) | [Next](./2-21-enum.md)
 
