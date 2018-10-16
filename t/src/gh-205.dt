@@ -1,0 +1,7 @@
+(import cstdio)
+
+(def x (var intern (p char) (nullptr char)))
+
+(def main (fn extern-c int (void)
+  (printf "%p\n" x)
+  0))

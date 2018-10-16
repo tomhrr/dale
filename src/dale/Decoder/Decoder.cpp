@@ -163,6 +163,16 @@ llvm::Constant *decodeRawString(Units *units, Node *top, char *data,
     Context *ctx = units->top()->ctx;
     TypeRegister *tr = ctx->tr;
 
+    uint64_t value = *(reinterpret_cast<uint64_t *>(data));
+    if (!value) {
+        llvm::Type *llvm_type =
+            ctx->toLLVMType(type, NULL, false);
+        if (!llvm_type) {
+            return NULL;
+        }
+        return getNullPointer(llvm_type);
+    }
+
     /* data contains a char pointer, hence the cast. */
     char *str = *(reinterpret_cast<char **>(data));
     *size = strlen(str) + 1;
