@@ -50,6 +50,9 @@ class Context {
     std::vector<Variable *> retrieved_var;
     /*! Functions that have been retrieved. */
     std::vector<Function *> retrieved_fn;
+    /*! Active function scopes. It will be an empty vector for global
+     *  variables. */
+    std::vector<int> active_function_scopes;
 
     public:
     /*! The native types for the context. Used primarily for type
@@ -87,12 +90,6 @@ class Context {
     /*! Get the currently-active namespace.
      */
     Namespace *ns();
-    /*! Pop active namespaces until the given namespace has been
-     *  reached.  Does the same thing for used namespaces, save that
-     *  only anonymous namespaces are removed.
-     *  @param ns The namespace that needs to be reached.
-     */
-    bool popUntilNamespace(Namespace *ns);
 
     /*! Activate the namespace with the given name.
      *  @param name The name of the namespace.
@@ -134,6 +131,25 @@ class Context {
      *  name manually after activation.
      */
     bool deactivateAnonymousNamespace();
+
+    /*! Activate a function scope.
+     *
+     *  The function scopes is a set of scopes parallel to namespaces,
+     *  and used to catch invalid variable references to a local
+     *  variable in a different function.
+     *  @return The new function scope. The value is guaranteed to be
+     *  positive.
+     */
+    int activateFunctionScope();
+    /*! Deactivate the current function scope.
+     *  @param scope The function scope to deactivate.
+     */
+    void deactivateFunctionScope(int scope);
+    /*! Get the current active scope.
+     *  @return Returns -1 if currently it's outside of any function
+     *  scope (i.e. the function scope of global variables).
+     */
+    int getCurrentFunctionScope();
 
     /*! Retrieve a namespace node by name.
      *  @param name The name of the namespace.

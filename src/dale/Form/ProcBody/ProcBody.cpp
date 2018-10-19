@@ -334,6 +334,7 @@ bool FormProcBodyParse(Units *units, Node *node, Function *fn,
                        llvm::Function *llvm_fn, int skip,
                        bool is_anonymous, llvm::Value *return_value) {
     Context *ctx = units->top()->ctx;
+    int fnscope = ctx->activateFunctionScope();
 
     std::vector<Node *> *lst = node->list;
 
@@ -372,6 +373,7 @@ bool FormProcBodyParse(Units *units, Node *node, Function *fn,
                 bool res = Operation::Copy(units->top()->ctx, fn, (*b),
                                            &res_pr, &res_pr);
                 if (!res) {
+                    ctx->deactivateFunctionScope(fnscope);
                     return false;
                 }
                 last_value = res_pr.getValue(ctx);
@@ -382,6 +384,7 @@ bool FormProcBodyParse(Units *units, Node *node, Function *fn,
                 bool res =
                     Operation::Destruct(ctx, &res_pr, &destruct_pr);
                 if (!res) {
+                    ctx->deactivateFunctionScope(fnscope);
                     return false;
                 }
                 next = destruct_pr.block;
@@ -391,17 +394,20 @@ bool FormProcBodyParse(Units *units, Node *node, Function *fn,
 
     bool res = resolveDeferredGotos(ctx, node, fn, block);
     if (!res) {
+        ctx->deactivateFunctionScope(fnscope);
         return false;
     }
 
     res = terminateBlocks(ctx, fn, llvm_fn, last_value, last_type,
                           last_position);
     if (!res) {
+        ctx->deactivateFunctionScope(fnscope);
         return false;
     }
 
     removePostTerminators(llvm_fn);
     units->top()->popGlobalBlock();
+    ctx->deactivateFunctionScope(fnscope);
 
     return true;
 }

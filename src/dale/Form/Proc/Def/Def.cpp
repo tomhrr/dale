@@ -37,21 +37,9 @@ bool typeRequiresExplicitInit(Context *ctx, Type *type) {
 
 llvm::Constant *parseGlobalLiteral(Units *units, Type *type,
                                    Node *node) {
-    Context *ctx = units->top()->ctx;
-
-    std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
-    std::vector<NSNode *> used_ns_nodes = ctx->used_ns_nodes;
-    if (!units->prefunction_ns) {
-        units->prefunction_ns = ctx->active_ns_nodes.front()->ns;
-    }
-    ctx->popUntilNamespace(units->prefunction_ns);
-
     llvm::Constant *init = NULL;
     int size;
     init = FormValueParse(units, type, node, &size);
-
-    ctx->active_ns_nodes = active_ns_nodes;
-    ctx->used_ns_nodes = used_ns_nodes;
 
     return init;
 }

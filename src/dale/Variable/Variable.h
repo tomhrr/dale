@@ -42,6 +42,8 @@ class Variable {
     int linkage;
     /*! Whether the variable should be serialised. */
     bool serialise;
+    /*! The function scope the variable is in */
+    int fnscope;
 
     Variable();
     /*! Construct a new variable with the given name and type.

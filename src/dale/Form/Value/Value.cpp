@@ -34,22 +34,12 @@ bool parseFunction(Units *units, Type *type, Node *top, Function *fn) {
     nodes.push_back(top);
     Node *copy_top = new Node(&nodes);
 
-    std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
-    std::vector<NSNode *> used_ns_nodes = ctx->used_ns_nodes;
-    if (!units->prefunction_ns) {
-        units->prefunction_ns = ctx->active_ns_nodes.front()->ns;
-    }
-    ctx->popUntilNamespace(units->prefunction_ns);
-
     units->top()->pushGlobalFunction(fn);
     ctx->activateAnonymousNamespace();
     std::string anon_name = ctx->ns()->name;
     FormProcBodyParse(units, copy_top, fn, llvm_fn, 0, 0);
     ctx->deactivateNamespace(anon_name.c_str());
     units->top()->popGlobalFunction();
-
-    ctx->active_ns_nodes = active_ns_nodes;
-    ctx->used_ns_nodes = used_ns_nodes;
 
     int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
     if (error_count_begin != error_count_end) {
@@ -134,12 +124,14 @@ llvm::Function *createCopyFunction(Units *units, Type *type, Node *top,
 llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
                                int *size) {
     Context *ctx = units->top()->ctx;
+    int fnscope = ctx->activateFunctionScope();
 
     /* Try to parse the value as a literal first. */
 
     ParseResult pr;
     bool res = FormLiteralParse(units, type, top, &pr);
     if (res) {
+        ctx->deactivateFunctionScope(fnscope);
         return llvm::dyn_cast<llvm::Constant>(pr.getValue(ctx));
     }
 
@@ -153,10 +145,12 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
     Function *fn = createFunction(units, type, top);
     fn->cto = true;
     if (!fn) {
+        ctx->deactivateFunctionScope(fnscope);
         return NULL;
     }
     res = parseFunction(units, type, top, fn);
     if (!res) {
+        ctx->deactivateFunctionScope(fnscope);
         return NULL;
     }
     std::string name;
@@ -196,11 +190,13 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
     fn->llvm_function->eraseFromParent();
 
     if (parsed) {
+        ctx->deactivateFunctionScope(fnscope);
         return parsed;
     }
 
     int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
     if (error_count_begin != error_count_end) {
+        ctx->deactivateFunctionScope(fnscope);
         return NULL;
     }
 
@@ -208,6 +204,7 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
     type->toString(&type_str);
     Error *e = new Error(CannotParseLiteral, top, type_str.c_str());
     ctx->er->addError(e);
+    ctx->deactivateFunctionScope(fnscope);
     return NULL;
 }
 }
