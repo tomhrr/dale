@@ -1,2 +1,3 @@
+<unknown>:0:0: error: can't reference variable in a different function: 'asdf'
 t/error-src/invalid-intern-var.dt:5:32: error: variable not in scope: 'asdf'
 t/error-src/invalid-intern-var.dt:6:17: error: variable not in scope: 'testvar'

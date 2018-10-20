@@ -1,1 +1,3 @@
+<unknown>:0:0: error: can't reference variable in a different function: 'var2'
+<unknown>:0:0: error: can't reference variable in a different function: 'var2'
 ./t/error-src/anonymous-scopes.dt:6:17: error: variable not in scope: 'var2' (see macro at 6:11)
