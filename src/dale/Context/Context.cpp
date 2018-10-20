@@ -146,23 +146,19 @@ bool Context::deactivateAnonymousNamespace() {
     return true;
 }
 
-static int function_scope_count = 0;
-
-int Context::activateFunctionScope() {
-    int new_scope = ++function_scope_count;
-    active_function_scopes.push_back(new_scope);
-    return new_scope;
+void Context::activateFunctionScope(Function *fn) {
+    active_function_scopes.push_back(fn);
 }
 
-void Context::deactivateFunctionScope(int scope) {
+void Context::deactivateFunctionScope(Function *fn) {
     assert((active_function_scopes.size() &&
-            active_function_scopes.back() == scope)
+            active_function_scopes.back() == fn)
            && "unmatched function scope");
     active_function_scopes.pop_back();
 }
 
-int Context::getCurrentFunctionScope() {
-    if (!active_function_scopes.size()) return -1;
+Function *Context::getCurrentFunctionScope() {
+    if (!active_function_scopes.size()) return NULL;
     return active_function_scopes.back();
 }
 

@@ -52,7 +52,7 @@ class Context {
     std::vector<Function *> retrieved_fn;
     /*! Active function scopes. It will be an empty vector for global
      *  variables. */
-    std::vector<int> active_function_scopes;
+    std::vector<Function *> active_function_scopes;
 
     public:
     /*! The native types for the context. Used primarily for type
@@ -137,19 +137,18 @@ class Context {
      *  The function scopes is a set of scopes parallel to namespaces,
      *  and used to catch invalid variable references to a local
      *  variable in a different function.
-     *  @return The new function scope. The value is guaranteed to be
-     *  positive.
+     *  @param fn The new function scope.
      */
-    int activateFunctionScope();
+    void activateFunctionScope(Function *fn);
     /*! Deactivate the current function scope.
-     *  @param scope The function scope to deactivate.
+     *  @param fn The function scope to deactivate.
      */
-    void deactivateFunctionScope(int scope);
-    /*! Get the current active scope.
-     *  @return Returns -1 if currently it's outside of any function
+    void deactivateFunctionScope(Function *fn);
+    /*! Get the current active function scope.
+     *  @return Returns NULL, if currently it's outside of any function
      *  scope (i.e. the function scope of global variables).
      */
-    int getCurrentFunctionScope();
+    Function *getCurrentFunctionScope();
 
     /*! Retrieve a namespace node by name.
      *  @param name The name of the namespace.

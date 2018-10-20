@@ -473,9 +473,6 @@ bool FormFunctionParse(Units *units, Node *node, const char *name,
         return true;
     }
 
-    ctx->activateAnonymousNamespace();
-    std::string anon_name = ctx->ns()->name;
-
     units->top()->pushGlobalFunction(fn);
     FormProcBodyParse(units, node, fn, llvm_fn, (next_index + 2),
                       is_anonymous, llvm_return_value);
@@ -487,8 +484,6 @@ bool FormFunctionParse(Units *units, Node *node, const char *name,
         ctx->getVariable("stderr")) {
         addInitChannelsCall(ctx, llvm_fn);
     }
-
-    ctx->deactivateNamespace(anon_name.c_str());
 
     if (units->debug) {
         moduleDebugPass(units->top()->module);
