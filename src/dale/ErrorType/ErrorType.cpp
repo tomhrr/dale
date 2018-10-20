@@ -110,6 +110,9 @@ const char *errorInstanceToString(int error_instance) {
         case ErrorInst::VariableNotInScope:
             ret = "variable not in scope: '%s'";
             break;
+        case ErrorInst::ReferenceVariableInDifferentFunction:
+            ret = "can't reference variable in a different function: '%s'";
+            break;
         case ErrorInst::UnexpectedElement:
             ret = "expected %s for %s (got %s instead)";
             break;

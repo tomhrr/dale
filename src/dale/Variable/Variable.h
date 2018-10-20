@@ -44,7 +44,8 @@ class Variable {
     int linkage;
     /*! Whether the variable should be serialised. */
     bool serialise;
-    /*! The function scope the variable is in */
+    /*! The function scope the variable is in. NULL if it's a global, or
+     *  function scope is not applicable. */
     Function *fn;
 
     Variable();

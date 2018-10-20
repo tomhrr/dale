@@ -40,7 +40,7 @@ bool addVariable(Unit *unit, const char *name, Type *type,
     var->type = type;
     var->symbol.append(name);
     var->linkage = Linkage::Extern;
-    bool res = ctx->ns()->addVariable(name, var);
+    bool res = ctx->addVariable(name, var);
     assert(res);
     _unused(res);
 

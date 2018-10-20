@@ -230,7 +230,7 @@ bool parseImplicitVarDefinition(Units *units, Function *fn,
         llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
     var->value = dst_ptr;
 
-    res = ctx->ns()->addVariable(name, var);
+    res = ctx->addVariable(name, var);
     if (!res) {
         Error *e = new Error(RedefinitionOfVariable, node, name);
         ctx->er->addError(e);
@@ -301,7 +301,7 @@ bool parseExplicitVarDefinition(Units *units, Function *fn,
         var->value = dst_ptr;
         var->linkage = linkage;
 
-        bool res = ctx->ns()->addVariable(name, var);
+        bool res = ctx->addVariable(name, var);
         if (!res) {
             Error *e = new Error(RedefinitionOfVariable, node, name);
             ctx->er->addError(e);
@@ -428,7 +428,7 @@ bool parseExplicitVarDefinition(Units *units, Function *fn,
 
         llvm_var->setInitializer(init);
 
-        bool res = ctx->ns()->addVariable(name, var);
+        bool res = ctx->addVariable(name, var);
         if (!res) {
             Error *e = new Error(RedefinitionOfVariable, node, name);
             ctx->er->addError(e);

@@ -451,7 +451,12 @@ Function *Context::getFunction(const char *name,
     return NULL;
 }
 
-Variable *Context::getVariable(const char *name) {
+bool Context::addVariable(const char* name, Variable *var) {
+    var->fn = getCurrentFunctionScope();
+    return ns()->addVariable(name, var);
+}
+
+Variable* Context::getVariableInner(const char *name) {
     if (strchr(name, '.')) {
         Namespace *ns = getNamespace(name, true);
         if (!ns) {
@@ -479,6 +484,17 @@ Variable *Context::getVariable(const char *name) {
     }
 
     return NULL;
+}
+
+Variable *Context::getVariable(const char *name) {
+    Variable *ret = getVariableInner(name);
+    if (ret && ret->fn && ret->fn != getCurrentFunctionScope()) {
+        Error *e = new Error(ReferenceVariableInDifferentFunction,
+                             nullNode(), name);
+        er->addError(e);
+        return NULL;
+    }
+    return ret;
 }
 
 Struct *Context::getStruct(const char *name) {

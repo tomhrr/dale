@@ -189,7 +189,7 @@ Type *parseReturnType(Units *units, Context *ctx,
     for (std::vector<Variable *>::iterator b = parameters->begin(),
                                            e = parameters->end();
          b != e; ++b) {
-        ctx->ns()->addVariable((*b)->name.c_str(), (*b));
+        ctx->addVariable((*b)->name.c_str(), (*b));
     }
 
     Type *ret_type =

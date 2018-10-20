@@ -54,6 +54,8 @@ class Context {
      *  variables. */
     std::vector<Function *> active_function_scopes;
 
+    Variable *getVariableInner(const char *name);
+
     public:
     /*! The native types for the context. Used primarily for type
      *  conversion. */
@@ -215,10 +217,14 @@ class Context {
                           Function **closest_fn, bool is_macro,
                           std::vector<bool> *lvalues = NULL,
                           std::vector<Type *> *array_types = NULL);
+    /*! Add a variable to the current active namespace and with the
+     *  current active function scope. */
+    bool addVariable(const char *name, Variable *var);
     /*! Get the variable with the given name.
      *
-     *  See Namespace::getVariable.  As per getFunction, this iterates
-     *  over the used namespaces, calling that method.
+     *  See Namespace::getVariable. As per getFunction, this iterates
+     *  over the used namespaces, calling that method. This also takes
+     *  care of function scopes.
      */
     Variable *getVariable(const char *name);
     /*! Get the struct with the given name.

@@ -51,6 +51,7 @@ enum {
     MacroNotInScope,
     FunctionNotInScope,
     VariableNotInScope,
+    ReferenceVariableInDifferentFunction,
     NotInScope,
     UnexpectedElement,
     VoidMustBeTheOnlyParameter,

@@ -69,7 +69,7 @@ bool addVariables(Context *ctx, Node *node, Function *fn,
             }
         }
         bool res =
-            ctx->ns()->addVariable(param_var->name.c_str(), param_var);
+            ctx->addVariable(param_var->name.c_str(), param_var);
         if (!res) {
             Error *e = new Error(RedefinitionOfVariable, node,
                                  param_var->name.c_str());
@@ -105,7 +105,7 @@ bool addRetval(Context *ctx, Node *node, Function *fn,
     var->index = 0;
     var->linkage = Linkage::Auto;
 
-    bool res = ctx->ns()->addVariable(var->name.c_str(), var);
+    bool res = ctx->addVariable(var->name.c_str(), var);
     if (!res) {
         Error *e =
             new Error(RedefinitionOfVariable, node, var->name.c_str());
