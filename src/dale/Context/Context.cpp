@@ -489,9 +489,7 @@ Variable* Context::getVariableInner(const char *name) {
 Variable *Context::getVariable(const char *name) {
     Variable *ret = getVariableInner(name);
     if (ret && ret->fn && ret->fn != getCurrentFunctionScope()) {
-        Error *e = new Error(ReferenceVariableInDifferentFunction,
-                             nullNode(), name);
-        er->addError(e);
+        // the variable can't be referenced as a value
         return NULL;
     }
     return ret;
