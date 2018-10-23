@@ -1,0 +1,16 @@
+(import macros)
+
+(using-namespace std.macros
+  (def check-struct (macro intern (void)
+    (if (exists-type mc (mnfv mc "*Struct*"))
+        (printf "*Struct* exists\n")
+        (printf "*Struct* does not exist\n"))
+    (nullptr DNode))))
+
+(def main (fn extern-c int (void)
+  (def *Struct* (struct intern ((a int))))
+  (check-struct)
+  (def anon-func (var auto \ (fn void (void)
+                               (check-struct))))
+  0))
+

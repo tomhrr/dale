@@ -69,7 +69,7 @@ bool addVariables(Context *ctx, Node *node, Function *fn,
             }
         }
         bool res =
-            ctx->ns()->addVariable(param_var->name.c_str(), param_var);
+            ctx->addVariable(param_var->name.c_str(), param_var);
         if (!res) {
             Error *e = new Error(RedefinitionOfVariable, node,
                                  param_var->name.c_str());
@@ -105,7 +105,7 @@ bool addRetval(Context *ctx, Node *node, Function *fn,
     var->index = 0;
     var->linkage = Linkage::Auto;
 
-    bool res = ctx->ns()->addVariable(var->name.c_str(), var);
+    bool res = ctx->addVariable(var->name.c_str(), var);
     if (!res) {
         Error *e =
             new Error(RedefinitionOfVariable, node, var->name.c_str());
@@ -330,9 +330,9 @@ void removePostTerminators(llvm::Function *llvm_fn) {
     }
 }
 
-bool FormProcBodyParse(Units *units, Node *node, Function *fn,
-                       llvm::Function *llvm_fn, int skip,
-                       bool is_anonymous, llvm::Value *return_value) {
+static bool FormProcBodyParseInner(Units *units, Node *node, Function *fn,
+                                   llvm::Function *llvm_fn, int skip,
+                                   bool is_anonymous, llvm::Value *return_value) {
     Context *ctx = units->top()->ctx;
 
     std::vector<Node *> *lst = node->list;
@@ -405,4 +405,21 @@ bool FormProcBodyParse(Units *units, Node *node, Function *fn,
 
     return true;
 }
+
+bool FormProcBodyParse(Units *units, Node *node, Function *fn,
+                       llvm::Function *llvm_fn, int skip,
+                       bool is_anonymous, llvm::Value *return_value) {
+    Context *ctx = units->top()->ctx;
+    ctx->activateAnonymousNamespace();
+    std::string anon_name = ctx->ns()->name;
+    ctx->activateFunctionScope(fn);
+
+    bool ret = FormProcBodyParseInner(units, node, fn, llvm_fn, skip, is_anonymous, return_value);
+
+    ctx->deactivateFunctionScope(fn);
+    ctx->deactivateNamespace(anon_name.c_str());
+
+    return ret;
+}
+
 }

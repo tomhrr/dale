@@ -37,21 +37,9 @@ bool typeRequiresExplicitInit(Context *ctx, Type *type) {
 
 llvm::Constant *parseGlobalLiteral(Units *units, Type *type,
                                    Node *node) {
-    Context *ctx = units->top()->ctx;
-
-    std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
-    std::vector<NSNode *> used_ns_nodes = ctx->used_ns_nodes;
-    if (!units->prefunction_ns) {
-        units->prefunction_ns = ctx->active_ns_nodes.front()->ns;
-    }
-    ctx->popUntilNamespace(units->prefunction_ns);
-
     llvm::Constant *init = NULL;
     int size;
     init = FormValueParse(units, type, node, &size);
-
-    ctx->active_ns_nodes = active_ns_nodes;
-    ctx->used_ns_nodes = used_ns_nodes;
 
     return init;
 }
@@ -242,7 +230,7 @@ bool parseImplicitVarDefinition(Units *units, Function *fn,
         llvm::cast<llvm::Value>(builder.CreateAlloca(llvm_type));
     var->value = dst_ptr;
 
-    res = ctx->ns()->addVariable(name, var);
+    res = ctx->addVariable(name, var);
     if (!res) {
         Error *e = new Error(RedefinitionOfVariable, node, name);
         ctx->er->addError(e);
@@ -313,7 +301,7 @@ bool parseExplicitVarDefinition(Units *units, Function *fn,
         var->value = dst_ptr;
         var->linkage = linkage;
 
-        bool res = ctx->ns()->addVariable(name, var);
+        bool res = ctx->addVariable(name, var);
         if (!res) {
             Error *e = new Error(RedefinitionOfVariable, node, name);
             ctx->er->addError(e);
@@ -440,7 +428,7 @@ bool parseExplicitVarDefinition(Units *units, Function *fn,
 
         llvm_var->setInitializer(init);
 
-        bool res = ctx->ns()->addVariable(name, var);
+        bool res = ctx->addVariable(name, var);
         if (!res) {
             Error *e = new Error(RedefinitionOfVariable, node, name);
             ctx->er->addError(e);

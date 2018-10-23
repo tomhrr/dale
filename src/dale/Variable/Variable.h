@@ -15,6 +15,8 @@
 #include "llvm/Support/raw_ostream.h"
 
 namespace dale {
+class Function;
+
 /*! Variable
 
     A class for storing the details of a variable.
@@ -42,6 +44,9 @@ class Variable {
     int linkage;
     /*! Whether the variable should be serialised. */
     bool serialise;
+    /*! The function scope the variable is in. NULL if it's a global, or
+     *  function scope is not applicable. */
+    Function *fn;
 
     Variable();
     /*! Construct a new variable with the given name and type.

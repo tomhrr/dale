@@ -34,22 +34,9 @@ bool parseFunction(Units *units, Type *type, Node *top, Function *fn) {
     nodes.push_back(top);
     Node *copy_top = new Node(&nodes);
 
-    std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
-    std::vector<NSNode *> used_ns_nodes = ctx->used_ns_nodes;
-    if (!units->prefunction_ns) {
-        units->prefunction_ns = ctx->active_ns_nodes.front()->ns;
-    }
-    ctx->popUntilNamespace(units->prefunction_ns);
-
     units->top()->pushGlobalFunction(fn);
-    ctx->activateAnonymousNamespace();
-    std::string anon_name = ctx->ns()->name;
     FormProcBodyParse(units, copy_top, fn, llvm_fn, 0, 0);
-    ctx->deactivateNamespace(anon_name.c_str());
     units->top()->popGlobalFunction();
-
-    ctx->active_ns_nodes = active_ns_nodes;
-    ctx->used_ns_nodes = used_ns_nodes;
 
     int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
     if (error_count_begin != error_count_end) {

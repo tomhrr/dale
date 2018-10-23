@@ -221,12 +221,9 @@ bool FormTopLevelMacroParse(Units *units, Node *node,
     int error_count_begin =
         ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    ctx->activateAnonymousNamespace();
-    std::string anon_name = ctx->ns()->name;
     units->top()->pushGlobalFunction(fn);
     FormProcBodyParse(units, top, fn, llvm_fn, 3, 0);
     units->top()->popGlobalFunction();
-    ctx->deactivateNamespace(anon_name.c_str());
 
     int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
 

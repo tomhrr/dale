@@ -108,7 +108,7 @@ const char *errorInstanceToString(int error_instance) {
             ret = "not in scope: '%s'";
             break;
         case ErrorInst::VariableNotInScope:
-            ret = "variable not in scope: '%s'";
+            ret = "variable not in scope or cannot be used as value: '%s'";
             break;
         case ErrorInst::UnexpectedElement:
             ret = "expected %s for %s (got %s instead)";
