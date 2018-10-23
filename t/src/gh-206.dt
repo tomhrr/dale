@@ -1,0 +1,19 @@
+(import variant)
+(import cstdio)
+
+(def Y (struct intern ((a float) (b float))))
+
+(def-variant X ((A ((x uint64)))
+                (B ((x Y)))))
+
+(def dump-hex (fn intern void ((ptr (p uint8)) (n size))
+  (for (i \ 0) (< i (cast n int)) (incv i)
+    (printf " %02x" (@ (p+ ptr i))))
+  (printf "\n")))
+
+(def main (fn extern-c int (void)
+  (def X1 (var auto \ (A (cast 1 uint64))))
+  (dump-hex (cast (# X1) (p uint8)) (sizeof X1))
+  (def X2 (var auto \ (B (Y ((a 1.0) (b 1.0))))))
+  (dump-hex (cast (# X2) (p uint8)) (sizeof X2))
+  0))
