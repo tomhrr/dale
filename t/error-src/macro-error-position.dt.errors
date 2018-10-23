@@ -1,2 +1,2 @@
 ./t/error-src/macro-error-position.dt:9:13: error: invalid type (see macro at 14:27)
-./t/error-src/macro-error-position.dt:15:25: error: variable not in scope: 'a-string'
+./t/error-src/macro-error-position.dt:15:25: error: variable not in scope or cannot be used as value: 'a-string'

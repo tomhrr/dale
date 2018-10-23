@@ -6,7 +6,7 @@ $ENV{"DALE_TEST_ARGS"} ||= "";
 my $test_dir = $ENV{"DALE_TEST_DIR"} || ".";
 $ENV{PATH} .= ":.";
 
-use Test::More tests => 328;
+use Test::More tests => 324;
 
 my @error_files =
     (@ARGV)

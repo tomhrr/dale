@@ -1,1 +1,1 @@
-./t/error-src/ml-comment-line-numbers.dt:19:3: error: variable not in scope: 'asdf'
+./t/error-src/ml-comment-line-numbers.dt:19:3: error: variable not in scope or cannot be used as value: 'asdf'

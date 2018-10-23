@@ -1,2 +1,1 @@
-<unknown>:0:0: error: can't reference variable in a different function: 'x'
-./t/error-src/no-vla.dt:3:30: error: variable not in scope: 'x'
+./t/error-src/no-vla.dt:3:30: error: variable not in scope or cannot be used as value: 'x'
