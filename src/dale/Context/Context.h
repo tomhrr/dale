@@ -50,6 +50,11 @@ class Context {
     std::vector<Variable *> retrieved_var;
     /*! Functions that have been retrieved. */
     std::vector<Function *> retrieved_fn;
+    /*! Active function scopes. It will be an empty vector for global
+     *  variables. */
+    std::vector<Function *> active_function_scopes;
+
+    Variable *getVariableInner(const char *name);
 
     public:
     /*! The native types for the context. Used primarily for type
@@ -87,12 +92,6 @@ class Context {
     /*! Get the currently-active namespace.
      */
     Namespace *ns();
-    /*! Pop active namespaces until the given namespace has been
-     *  reached.  Does the same thing for used namespaces, save that
-     *  only anonymous namespaces are removed.
-     *  @param ns The namespace that needs to be reached.
-     */
-    bool popUntilNamespace(Namespace *ns);
 
     /*! Activate the namespace with the given name.
      *  @param name The name of the namespace.
@@ -134,6 +133,24 @@ class Context {
      *  name manually after activation.
      */
     bool deactivateAnonymousNamespace();
+
+    /*! Activate a function scope.
+     *
+     *  The function scopes is a set of scopes parallel to namespaces,
+     *  and used to catch invalid variable references to a local
+     *  variable in a different function.
+     *  @param fn The new function scope.
+     */
+    void activateFunctionScope(Function *fn);
+    /*! Deactivate the current function scope.
+     *  @param fn The function scope to deactivate.
+     */
+    void deactivateFunctionScope(Function *fn);
+    /*! Get the current active function scope.
+     *  @return Returns NULL, if currently it's outside of any function
+     *  scope (i.e. the function scope of global variables).
+     */
+    Function *getCurrentFunctionScope();
 
     /*! Retrieve a namespace node by name.
      *  @param name The name of the namespace.
@@ -200,10 +217,14 @@ class Context {
                           Function **closest_fn, bool is_macro,
                           std::vector<bool> *lvalues = NULL,
                           std::vector<Type *> *array_types = NULL);
+    /*! Add a variable to the current active namespace and with the
+     *  current active function scope. */
+    bool addVariable(const char *name, Variable *var);
     /*! Get the variable with the given name.
      *
-     *  See Namespace::getVariable.  As per getFunction, this iterates
-     *  over the used namespaces, calling that method.
+     *  See Namespace::getVariable. As per getFunction, this iterates
+     *  over the used namespaces, calling that method. This also takes
+     *  care of function scopes.
      */
     Variable *getVariable(const char *name);
     /*! Get the struct with the given name.

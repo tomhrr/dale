@@ -869,19 +869,9 @@ bool eval_2D_expression(MContext *mc, DNode *type_form, DNode *form,
 
     units->top()->makeTemporaryGlobalFunction();
 
-    std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
-    std::vector<NSNode *> used_ns_nodes = ctx->used_ns_nodes;
-    if (!units->prefunction_ns) {
-        units->prefunction_ns = ctx->active_ns_nodes.front()->ns;
-    }
-    ctx->popUntilNamespace(units->prefunction_ns);
-
     llvm::Constant *init = NULL;
     int size;
     init = FormValueParse(units, type, n, &size);
-
-    ctx->active_ns_nodes = active_ns_nodes;
-    ctx->used_ns_nodes = used_ns_nodes;
 
     units->top()->removeTemporaryGlobalFunction();
 

@@ -297,7 +297,7 @@ bool REPLLoop(Units *units) {
 
     ctx->deactivateNamespace(anon_name.c_str());
     if (!exists) {
-        res = ctx->ns()->addVariable(var_name.c_str(), var);
+        res = ctx->addVariable(var_name.c_str(), var);
         if (!res) {
             fprintf(stderr, "Internal error: cannot add variable.\n");
             abort();

@@ -54,42 +54,6 @@ Context::~Context() { deleteNamespaces(namespaces); }
 
 Namespace *Context::ns() { return active_ns_nodes.back()->ns; }
 
-bool Context::popUntilNamespace(Namespace *ns) {
-    assert(ns && "null argument to popUntilNamespace");
-
-    for (;;) {
-        if (active_ns_nodes.size() == 0) {
-            fprintf(stderr,
-                    "Internal error: no active namespaces left.\n");
-            abort();
-        }
-        if (active_ns_nodes.back()->ns == ns) {
-            break;
-        }
-        active_ns_nodes.pop_back();
-    }
-    std::vector<NSNode *> new_used_nodes;
-    for (;;) {
-        if (used_ns_nodes.size() == 0) {
-            fprintf(stderr,
-                    "Internal error: no used namespaces left.\n");
-            abort();
-        }
-        if (used_ns_nodes.back()->ns == ns) {
-            break;
-        }
-        if (used_ns_nodes.back()->ns->name.compare(0, 4, "anon")) {
-            new_used_nodes.push_back(used_ns_nodes.back());
-        }
-        used_ns_nodes.pop_back();
-    }
-    std::reverse(new_used_nodes.begin(), new_used_nodes.end());
-    std::copy(new_used_nodes.begin(), new_used_nodes.end(),
-              back_inserter(used_ns_nodes));
-
-    return true;
-}
-
 bool Context::activateNamespace(const char *name) {
     assert(active_ns_nodes.size() && "no active namespace nodes");
 
@@ -180,6 +144,22 @@ bool Context::deactivateAnonymousNamespace() {
     used_ns_nodes.pop_back();
 
     return true;
+}
+
+void Context::activateFunctionScope(Function *fn) {
+    active_function_scopes.push_back(fn);
+}
+
+void Context::deactivateFunctionScope(Function *fn) {
+    assert((active_function_scopes.size() &&
+            active_function_scopes.back() == fn)
+           && "unmatched function scope");
+    active_function_scopes.pop_back();
+}
+
+Function *Context::getCurrentFunctionScope() {
+    if (!active_function_scopes.size()) return NULL;
+    return active_function_scopes.back();
 }
 
 NSNode *getNSNodeFromNode(std::vector<std::string> *ns_parts,
@@ -471,7 +451,12 @@ Function *Context::getFunction(const char *name,
     return NULL;
 }
 
-Variable *Context::getVariable(const char *name) {
+bool Context::addVariable(const char* name, Variable *var) {
+    var->fn = getCurrentFunctionScope();
+    return ns()->addVariable(name, var);
+}
+
+Variable* Context::getVariableInner(const char *name) {
     if (strchr(name, '.')) {
         Namespace *ns = getNamespace(name, true);
         if (!ns) {
@@ -499,6 +484,15 @@ Variable *Context::getVariable(const char *name) {
     }
 
     return NULL;
+}
+
+Variable *Context::getVariable(const char *name) {
+    Variable *ret = getVariableInner(name);
+    if (ret && ret->fn && ret->fn != getCurrentFunctionScope()) {
+        // the variable can't be referenced as a value
+        return NULL;
+    }
+    return ret;
 }
 
 Struct *Context::getStruct(const char *name) {

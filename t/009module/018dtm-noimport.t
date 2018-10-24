@@ -17,7 +17,7 @@ my @res =
 ok((not @res), 'No compilation errors');
 @res = map { chomp; $_ } `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/dtm-noimport-user.dt 2>&1`;
 is_deeply(\@res,
-["$test_dir/t/src/dtm-noimport-user.dt:8:19: error: variable not in scope: 'y'"],
+["$test_dir/t/src/dtm-noimport-user.dt:8:19: error: variable not in scope or cannot be used as value: 'y'"],
         'Got correct compilation errors');
 
 `rm libdtm-noimport.bc`;

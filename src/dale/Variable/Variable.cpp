@@ -8,6 +8,7 @@ Variable::Variable() {
     linkage = Linkage::Auto;
     type = NULL;
     value = NULL;
+    fn = NULL;
 }
 
 Variable::Variable(const char *name, Type *type) {
@@ -19,6 +20,7 @@ Variable::Variable(const char *name, Type *type) {
     serialise = true;
     linkage = Linkage::Auto;
     value = NULL;
+    fn = NULL;
 }
 
 Variable::~Variable() {}
@@ -31,6 +33,7 @@ void Variable::copyTo(Variable *other) {
     other->once_tag = this->once_tag;
     other->index = this->index;
     other->linkage = this->linkage;
+    other->fn = this->fn;
 }
 
 bool Variable::isEqualTo(Variable *other) {

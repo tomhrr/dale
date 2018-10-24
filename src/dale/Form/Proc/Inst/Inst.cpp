@@ -31,13 +31,6 @@ bool createAnonymousFunction(Units *units, llvm::BasicBlock *block,
     Context *ctx = units->top()->ctx;
     int preindex = ctx->lv_index;
 
-    std::vector<NSNode *> active_ns_nodes = ctx->active_ns_nodes;
-    std::vector<NSNode *> used_ns_nodes = ctx->used_ns_nodes;
-    if (!units->prefunction_ns) {
-        units->prefunction_ns = ctx->active_ns_nodes.front()->ns;
-    }
-    ctx->popUntilNamespace(units->prefunction_ns);
-
     int error_count_begin =
         ctx->er->getErrorTypeCount(ErrorType::Error);
 
@@ -49,8 +42,6 @@ bool createAnonymousFunction(Units *units, llvm::BasicBlock *block,
     int error_count_end = ctx->er->getErrorTypeCount(ErrorType::Error);
 
     if (error_count_begin != error_count_end) {
-        ctx->active_ns_nodes = active_ns_nodes;
-        ctx->used_ns_nodes = used_ns_nodes;
         return false;
     }
 
@@ -75,9 +66,6 @@ bool createAnonymousFunction(Units *units, llvm::BasicBlock *block,
          b != e; ++b) {
         (*b)->index = 0;
     }
-
-    ctx->active_ns_nodes = active_ns_nodes;
-    ctx->used_ns_nodes = used_ns_nodes;
 
     return true;
 }

@@ -134,7 +134,7 @@ bool FormTopLevelGlobalVariableParse(Units *units, Node *node,
     var->once_tag = units->top()->once_tag;
     var->linkage = linkage;
 
-    bool res = ctx->ns()->addVariable(name, var);
+    bool res = ctx->addVariable(name, var);
     if (!res) {
         Error *e = new Error(RedefinitionOfVariable, def_node, name);
         ctx->er->addError(e);
