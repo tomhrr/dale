@@ -44,11 +44,17 @@ bool Writer::writeBitcode(const char *suffix) {
 #if D_LLVM_VERSION_ORD <= 35
     pm->run(*mod);
     llvm::WriteBitcodeToFile(mod, bc_out);
-#else
+#elif D_LLVM_VERSION_ORD <= 60
     std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
 
     pm->run(*module_ptr);
     llvm::WriteBitcodeToFile(module_ptr.get(), bc_out);
+#else
+    std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(*mod));
+    llvm::Module &mod_ref = static_cast<llvm::Module&>(*module_ptr);
+
+    pm->run(*module_ptr);
+    llvm::WriteBitcodeToFile(mod_ref, bc_out);
 #endif
 
     bc_out.flush();

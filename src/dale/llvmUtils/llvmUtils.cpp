@@ -45,8 +45,11 @@ void linkModule(llvm::Linker *linker, llvm::Module *mod) {
     result = linker->linkInModule(mod, &error);
 #elif D_LLVM_VERSION_ORD <= 37
     result = linker->linkInModule(mod);
-#else
+#elif D_LLVM_VERSION_ORD <= 60
     std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(mod));
+    result = linker->linkInModule(move(module_ptr));
+#else
+    std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(*mod));
     result = linker->linkInModule(move(module_ptr));
 #endif
     assert(!result && "unable to link module");
@@ -271,8 +274,10 @@ void cloneModuleIfRequired(Unit *unit) {
     std::unique_ptr<llvm::Module> module_ptr(
         llvm::CloneModule(unit->module));
     unit->ee->addModule(move(module_ptr));
-#else
+#elif D_LLVM_VERSION_ORD <= 60
     unit->ee->addModule(llvm::CloneModule(unit->module));
+#else
+    unit->ee->addModule(llvm::CloneModule(*(unit->module)));
 #endif
     for (std::vector<Function *>::reverse_iterator
              b = global_functions.rbegin(),

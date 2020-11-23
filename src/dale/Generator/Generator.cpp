@@ -425,9 +425,15 @@ int Generator::run(std::vector<const char *> *file_paths,
         addPrintModulePass(&pass_manager, &ostream);
     } else if (produce == ASM) {
         llvm::CodeGenOpt::Level level = llvm::CodeGenOpt::Default;
+#if D_LLVM_VERSION_ORD <= 60
         bool res = target_machine->addPassesToEmitFile(
             pass_manager, *ostream_formatted,
             llvm::TargetMachine::CGFT_AssemblyFile, level, NULL);
+#else
+        bool res = target_machine->addPassesToEmitFile(
+            pass_manager, *ostream_formatted, NULL,
+            llvm::TargetMachine::CGFT_AssemblyFile, level, NULL);
+#endif
         assert(!res && "unable to add passes to emit file");
         _unused(res);
     }
@@ -439,7 +445,11 @@ int Generator::run(std::vector<const char *> *file_paths,
     pass_manager.run(*mod);
 
     if (produce == BitCode) {
+#if D_LLVM_VERSION_ORD <= 60
         llvm::WriteBitcodeToFile(mod, ostream);
+#else
+        llvm::WriteBitcodeToFile(*mod, ostream);
+#endif
     }
 
     ostream_formatted->flush();
