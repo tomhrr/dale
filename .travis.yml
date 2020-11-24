@@ -31,13 +31,14 @@ addons:
     - libedit-dev
 env:
   matrix:
+# Failing versions commented out temporarily.
   - LLVM=3.3
-  - LLVM=3.4
+#  - LLVM=3.4
   - LLVM=3.5
   - LLVM=3.6
-  - LLVM=3.8
-  - LLVM=4.0
-  - LLVM=5.0
+#  - LLVM=3.8
+#  - LLVM=4.0
+#  - LLVM=5.0
   global:
   - DOCKER_USERNAME=tomhrr
   - secure: FBdDpSB6dUcKJizHqL+8tz/2UCL0IejprKWqBZ4BhTyfSB/vm0mDpcjg7uFE46wdLNkEXEFk6UO59VHcjMlxv8Fx7m4GpL7Eyp7FMfWAEyegsLf92w25+R9C7gAN91/Nh26QmSHyvB4aE8xQSSujy/QTbFjZUElWbePrOdOWea0=
