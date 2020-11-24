@@ -1,51 +1,53 @@
-sudo: required
-dist: trusty
-services:
-- docker
-before_install:
-- if [ "$LLVM" = "5.0" ]; then docker build --build-arg Dale_VERSION_REV=$(git rev-parse --short HEAD) -t tomhrr/dale:0.1.$(git rev-parse --short HEAD) .; docker tag tomhrr/dale:0.1.$(git rev-parse --short HEAD) tomhrr/dale:latest; echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin; docker push tomhrr/dale:0.1.$(git rev-parse --short HEAD); docker push tomhrr/dale:latest; fi
-language: cpp
-compiler: gcc
-addons:
-  apt:
-    sources:
-    - llvm-toolchain-trusty-3.9
-    - llvm-toolchain-trusty-4.0
-    - llvm-toolchain-trusty-5.0
-    packages:
-    - git
-    - llvm-3.3
-    - llvm-3.3-dev
-    - llvm-3.4
-    - llvm-3.4-dev
-    - llvm-3.5
-    - llvm-3.5-dev
-    - llvm-3.6
-    - llvm-3.6-dev
-    - llvm-3.8
-    - llvm-3.8-dev
-    - llvm-4.0
-    - llvm-4.0-dev
-    - llvm-5.0
-    - llvm-5.0-dev
-    - libedit-dev
-env:
-  matrix:
-# Failing versions commented out temporarily.
-  - LLVM=3.3
-#  - LLVM=3.4
-  - LLVM=3.5
-  - LLVM=3.6
-#  - LLVM=3.8
-#  - LLVM=4.0
-#  - LLVM=5.0
-  global:
-  - DOCKER_USERNAME=tomhrr
-  - secure: FBdDpSB6dUcKJizHqL+8tz/2UCL0IejprKWqBZ4BhTyfSB/vm0mDpcjg7uFE46wdLNkEXEFk6UO59VHcjMlxv8Fx7m4GpL7Eyp7FMfWAEyegsLf92w25+R9C7gAN91/Nh26QmSHyvB4aE8xQSSujy/QTbFjZUElWbePrOdOWea0=
-script: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-$LLVM . && make && make tests
-notifications:
-  email:
-    recipients:
-    - tomh5908@gmail.com
-  on_success: never
-  on_failure: change
+jobs:
+  include:
+    - sudo: required
+      dist: trusty
+      services:
+      - docker
+      before_install:
+      - if [ "$LLVM" = "5.0" ]; then docker build --build-arg Dale_VERSION_REV=$(git rev-parse --short HEAD) -t tomhrr/dale:0.1.$(git rev-parse --short HEAD) .; docker tag tomhrr/dale:0.1.$(git rev-parse --short HEAD) tomhrr/dale:latest; echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin; docker push tomhrr/dale:0.1.$(git rev-parse --short HEAD); docker push tomhrr/dale:latest; fi
+      language: cpp
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+          - llvm-toolchain-trusty-3.9
+          - llvm-toolchain-trusty-4.0
+          - llvm-toolchain-trusty-5.0
+          packages:
+          - git
+          - llvm-3.3
+          - llvm-3.3-dev
+          - llvm-3.4
+          - llvm-3.4-dev
+          - llvm-3.5
+          - llvm-3.5-dev
+          - llvm-3.6
+          - llvm-3.6-dev
+          - llvm-3.8
+          - llvm-3.8-dev
+          - llvm-4.0
+          - llvm-4.0-dev
+          - llvm-5.0
+          - llvm-5.0-dev
+          - libedit-dev
+      env:
+        matrix:
+      # Failing versions commented out temporarily.
+        - LLVM=3.3
+      #  - LLVM=3.4
+        - LLVM=3.5
+        - LLVM=3.6
+      #  - LLVM=3.8
+      #  - LLVM=4.0
+      #  - LLVM=5.0
+        global:
+        - DOCKER_USERNAME=tomhrr
+        - secure: FBdDpSB6dUcKJizHqL+8tz/2UCL0IejprKWqBZ4BhTyfSB/vm0mDpcjg7uFE46wdLNkEXEFk6UO59VHcjMlxv8Fx7m4GpL7Eyp7FMfWAEyegsLf92w25+R9C7gAN91/Nh26QmSHyvB4aE8xQSSujy/QTbFjZUElWbePrOdOWea0=
+      script: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-$LLVM . && make && make tests
+      notifications:
+        email:
+          recipients:
+          - tomh5908@gmail.com
+        on_success: never
+        on_failure: change
