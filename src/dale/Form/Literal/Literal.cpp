@@ -1,5 +1,6 @@
 #include "Literal.h"
 
+#include <cstdio>
 #include <string>
 #include <vector>
 
