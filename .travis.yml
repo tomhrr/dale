@@ -1,7 +1,26 @@
 jobs:
   include:
     - sudo: required
-      dist: trusty
+      dist: precise
+      language: cpp
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+          - git
+          - llvm-3.2
+          - llvm-3.2-dev
+          - clang
+          - libedit-dev
+      script: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-3.2 . && make && make tests
+      notifications:
+        email:
+          recipients:
+          - tomh5908@gmail.com
+        on_success: never
+        on_failure: change
+    - sudo: required
+      dist: precise
       language: cpp
       compiler: gcc
       addons:
@@ -77,7 +96,7 @@ jobs:
         on_success: never
         on_failure: change
     - sudo: required
-      dist: trusty
+      dist: xenial
       language: cpp
       compiler: gcc
       addons:
