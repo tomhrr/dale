@@ -67,7 +67,7 @@ project, it will retain the following properties:
 
 ### External dependencies
 
-  * LLVM (3.2-6.0)
+  * LLVM (3.2-7.0)
   * libffi
 
 ### Supported systems
