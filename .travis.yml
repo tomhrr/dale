@@ -171,3 +171,22 @@ jobs:
           - tomh5908@gmail.com
         on_success: never
         on_failure: change
+    - sudo: required
+      dist: focal
+      language: cpp
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+          - git
+          - llvm-8
+          - llvm-8-dev
+          - clang-8
+          - libedit-dev
+      script: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-8 . && make && make tests
+      notifications:
+        email:
+          recipients:
+          - tomh5908@gmail.com
+        on_success: never
+        on_failure: change
