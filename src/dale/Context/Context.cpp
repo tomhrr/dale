@@ -730,12 +730,6 @@ bool Context::rebuildFunction(Function *fn, const char *name,
         mod->getOrInsertFunction(fn->symbol.c_str(), ft);
     fn->llvm_function = llvm::cast<llvm::Function>(fc.getCallee());
 
-    /*
-    fn->llvm_function = llvm::Function::Create(
-        ft, toLLVMLinkage(fn->linkage), fn->symbol.c_str(), mod);
-    fprintf(stderr, "Rebuilding (%s) (%d)\n",
-        fn->symbol.c_str(), fn->linkage);
-    */
     assert(fn->llvm_function && "unable to re-get function");
 
     return true;
