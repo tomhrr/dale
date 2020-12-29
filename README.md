@@ -1,6 +1,6 @@
 ## Dale
 
-[![Build Status](https://github.com/tomhrr/dale/workflows/build/badge.svg?branch=github-actions)](https://github.com/tomhrr/dale/actions)
+[![Build Status](https://github.com/tomhrr/dale/workflows/build/badge.svg?branch=master)](https://github.com/tomhrr/dale/actions)
 [![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/tomhrr/dale.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/tomhrr/dale/context:cpp)
 [![Total Alerts](https://img.shields.io/lgtm/alerts/g/tomhrr/dale.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/tomhrr/dale/alerts)
 
