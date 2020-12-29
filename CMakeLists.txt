@@ -85,8 +85,8 @@ message (STATUS "System version: ${CMAKE_SYSTEM_VERSION}")
 
 if (${D_LLVM_VERSION_ORD} LESS 32)
     message (FATAL_ERROR "LLVM >= 3.2 is required.")
-elseif (${D_LLVM_VERSION_ORD} GREATER 90)
-    message (FATAL_ERROR "LLVM <= 9.0 is required.")
+elseif (${D_LLVM_VERSION_ORD} GREATER 100)
+    message (FATAL_ERROR "LLVM <= 10.0 is required.")
 endif ()
 
 # Get LLVM configuration details.
@@ -154,8 +154,10 @@ else ()
     set (DALEC_LINK_FLAGS_ "${DALEC_LIBDIR_FLAGS_} ${DALEC_LIB_FLAGS_} -ldl")
 endif ()
 
-# LLVM 3.5 relies on C++11.
-if (${D_LLVM_VERSION_ORD} GREATER 34)
+# LLVM 3.5 relies on C++11, and LLVM 10.0 relies on C++14.
+if (${D_LLVM_VERSION_ORD} GREATER_EQUAL 100)
+    set (CXX_FLAGS_EXTRA "-std=c++14")
+elseif (${D_LLVM_VERSION_ORD} GREATER_EQUAL 35)
     set (CXX_FLAGS_EXTRA "-std=c++11")
 else ()
     set (CXX_FLAGS_EXTRA "")

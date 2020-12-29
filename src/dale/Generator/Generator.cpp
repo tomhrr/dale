@@ -433,10 +433,14 @@ int Generator::run(std::vector<const char *> *file_paths,
         bool res = target_machine->addPassesToEmitFile(
             pass_manager, *ostream_formatted,
             llvm::TargetMachine::CGFT_AssemblyFile, level, NULL);
-#else
+#elif D_LLVM_VERSION_ORD <= 90
         bool res = target_machine->addPassesToEmitFile(
             pass_manager, *ostream_formatted, NULL,
             llvm::TargetMachine::CGFT_AssemblyFile, level, NULL);
+#else
+        bool res = target_machine->addPassesToEmitFile(
+            pass_manager, *ostream_formatted, NULL,
+            llvm::CGFT_AssemblyFile, level, NULL);
 #endif
         assert(!res && "unable to add passes to emit file");
         _unused(res);

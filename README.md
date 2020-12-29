@@ -31,7 +31,7 @@ able to be built.
 
 #### Dependencies
 
-  * LLVM (3.2-9.0)
+  * LLVM (3.2-10.0)
   * libffi
 
 #### Out-of-tree (recommended)
