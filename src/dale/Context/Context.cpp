@@ -726,9 +726,14 @@ bool Context::rebuildFunction(Function *fn, const char *name,
     llvm::FunctionType *ft = llvm::FunctionType::get(
         llvm_return_type, llvm::ArrayRef<llvm::Type *>(types), varargs);
 
+#if D_LLVM_VERSION_ORD <= 80
+    fn->llvm_function = llvm::dyn_cast<llvm::Function>(
+        mod->getOrInsertFunction(fn->symbol.c_str(), ft));
+#else
     llvm::FunctionCallee fc =
         mod->getOrInsertFunction(fn->symbol.c_str(), ft);
     fn->llvm_function = llvm::cast<llvm::Function>(fc.getCallee());
+#endif
 
     assert(fn->llvm_function && "unable to re-get function");
 

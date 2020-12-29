@@ -425,6 +425,11 @@ bool FormFunctionParse(Units *units, Node *node, const char *name,
             ? ctx->toLLVMLinkage(override_linkage)
             : ctx->toLLVMLinkage(linkage);
 
+#if D_LLVM_VERSION_ORD <= 80
+    llvm::Constant *fnc =
+        units->top()->module->getOrInsertFunction(symbol.c_str(), ft);
+    llvm::Function *llvm_fn = llvm::dyn_cast<llvm::Function>(fnc);
+#else
     llvm::FunctionCallee llvm_fn_callee =
         units->top()->module->getOrInsertFunction(symbol.c_str(), ft);
     llvm::Function *llvm_fn =
@@ -434,6 +439,7 @@ bool FormFunctionParse(Units *units, Node *node, const char *name,
             ft, ctx->toLLVMLinkage(fn_linkage), symbol.c_str(),
             units->top()->module);
     }
+#endif
 
     /* If llvm_fn is null, then the function already exists and the
      * extant function has a different prototype, so it's an invalid
