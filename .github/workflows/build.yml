@@ -1,0 +1,12 @@
+name: build
+on:
+  push:
+    branches:
+      - github-actions
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - run: sudo apt-get install build-essential llvm-6.0 llvm-6.0-dev clang-6.0 libedit-dev
+      - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-6.0 . && make && make tests
