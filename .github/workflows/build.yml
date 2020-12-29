@@ -4,9 +4,39 @@ on:
     branches:
       - github-actions
 jobs:
-  build:
+  build-3.8:
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@v1
+      - run: sudo apt-get install build-essential llvm-3.8 llvm-3.8-dev clang-3.8 libedit-dev
+      - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-3.8 . && make && make tests
+  build-4:
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@v1
+      - run: sudo apt-get install build-essential llvm-4.0 llvm-4.0-dev clang-4.0 libedit-dev
+      - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-4.0 . && make && make tests
+  build-5:
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@v1
+      - run: sudo apt-get install build-essential llvm-5.0 llvm-5.0-dev clang-5.0 libedit-dev
+      - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-5.0 . && make && make tests
+  build-6:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
       - run: sudo apt-get install build-essential llvm-6.0 llvm-6.0-dev clang-6.0 libedit-dev
       - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-6.0 . && make && make tests
+  build-7:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - run: sudo apt-get install build-essential llvm-7 llvm-7-dev clang-7 libedit-dev
+      - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-7 . && make && make tests
+  build-8:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - run: sudo apt-get install build-essential llvm-8 llvm-8-dev clang-8 libedit-dev
+      - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-8 . && make && make tests
