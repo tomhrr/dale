@@ -69,11 +69,9 @@ bool addOpaqueStruct(Units *units, const char *name, Node *top,
         llvm::FunctionType *ft =
             getFunctionType(ctx->toLLVMType(ctx->tr->type_void, NULL, true),
                             args, false);
-        llvm::Function *fn =
-            llvm::cast<llvm::Function>(
-                units->top()->module->getOrInsertFunction(buf, ft)
-            );
-        fn->setLinkage(llvm::GlobalValue::WeakODRLinkage);
+        llvm::Function *fn = llvm::Function::Create(
+            ft, llvm::GlobalValue::WeakODRLinkage, buf,
+            units->top()->module);
         llvm::BasicBlock *block =
             llvm::BasicBlock::Create(*getContext(), "entry", fn);
         llvm::IRBuilder<> builder(block);

@@ -13,14 +13,14 @@ my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/opaque-struct-redef-2.dt
 is(@res, 0, 'No compilation errors');
 
 @res = `./opaque-struct-redef-2`;
-is($?, 0, 'Program execut-red successfully');
+is($?, 0, 'Program executed successfully');
 
 chomp for @res;
 
 is_deeply(\@res, [
     '10',
     'done'
-], 'Got expect-red results');
+], 'Got expected results');
 
 `rm opaque-struct-redef-2`;
 

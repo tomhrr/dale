@@ -138,13 +138,10 @@ void Unit::makeTemporaryGlobalFunction() {
     assert(!module->getFunction(llvm::StringRef(new_name.c_str())) &&
            "function already exists in module");
 
-    llvm::Constant *llvm_fnc =
-        module->getOrInsertFunction(new_name.c_str(), ft);
-    assert(llvm_fnc && "unable to add function to module");
-
-    llvm::Function *llvm_fn = llvm::dyn_cast<llvm::Function>(llvm_fnc);
-    assert(llvm_fn &&
-           "unable to convert function constant to function");
+    llvm::Function *llvm_fn = llvm::Function::Create(
+        ft, ctx->toLLVMLinkage(Linkage::Intern), new_name.c_str(),
+        module);
+    assert(llvm_fn && "unable to create function");
 
     std::vector<Variable *> vars;
     Function *fn = new Function(ctx->tr->type_int, &vars, llvm_fn, 0,

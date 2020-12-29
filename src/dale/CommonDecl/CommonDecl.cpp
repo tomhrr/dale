@@ -71,13 +71,15 @@ void addVarargsFunctions(Unit *unit) {
         getFunctionType(ctx->toLLVMType(ctx->tr->type_void, NULL, true),
                         va_start_args, false);
 
-    llvm::Function *va_start_fn = llvm::cast<llvm::Function>(
-        mod->getOrInsertFunction("llvm.va_start", va_start_ft));
+    llvm::Function *va_start_fn = llvm::Function::Create(
+        va_start_ft, ctx->toLLVMLinkage(Linkage::Extern_C),
+        "llvm.va_start", mod);
 
     va_start_fn->setCallingConv(llvm::CallingConv::C);
 
-    llvm::Function *va_end_fn = llvm::cast<llvm::Function>(
-        mod->getOrInsertFunction("llvm.va_end", va_start_ft));
+    llvm::Function *va_end_fn = llvm::Function::Create(
+        va_start_ft, ctx->toLLVMLinkage(Linkage::Extern_C),
+        "llvm.va_end", mod);
 
     va_end_fn->setCallingConv(llvm::CallingConv::C);
 

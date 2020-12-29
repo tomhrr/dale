@@ -7,7 +7,7 @@
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/TypeBuilder.h"
-#elif D_LLVM_VERSION_ORD <= 80
+#else
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/IRBuilder.h"
 #endif

@@ -356,13 +356,17 @@ int Generator::run(std::vector<const char *> *file_paths,
 
     llvm::PassManagerBuilder pass_manager_builder;
     pass_manager_builder.OptLevel = optlevel;
+#if D_LLVM_VERSION_ORD <= 80
     pass_manager_builder.DisableUnitAtATime = true;
+#endif
     pass_manager_builder.Inliner = llvm::createFunctionInliningPass();
     pass_manager.add(llvm::createFunctionInliningPass());
 
     if (optlevel > 0) {
         if (lto) {
+#if D_LLVM_VERSION_ORD <= 80
             pass_manager_builder.DisableUnitAtATime = false;
+#endif
         }
         pass_manager_builder.populateModulePassManager(pass_manager);
         if (lto) {

@@ -190,11 +190,10 @@ bool FormTopLevelMacroParse(Units *units, Node *node,
         return false;
     }
 
-    llvm::Constant *fnc =
-        units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
-    llvm::Function *llvm_fn = llvm::dyn_cast<llvm::Function>(fnc);
+    llvm::Function *llvm_fn = llvm::Function::Create(
+        ft, ctx->toLLVMLinkage(linkage), new_name.c_str(),
+        units->top()->module);
     llvm_fn->setCallingConv(llvm::CallingConv::C);
-    llvm_fn->setLinkage(ctx->toLLVMLinkage(linkage));
 
     /* Note that the values of the Variables of the macro's parameter
      * list will not necessarily match the Types of those variables,

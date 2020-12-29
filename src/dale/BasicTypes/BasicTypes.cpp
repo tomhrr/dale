@@ -368,11 +368,10 @@ Function *addSimpleFunction(Context *ctx, llvm::Module *mod,
     std::string new_name;
     ctx->ns()->functionNameToSymbol(name, &new_name, linkage, params);
 
-    llvm::Function *llvm_fn = llvm::cast<llvm::Function>(
-        mod->getOrInsertFunction(new_name.c_str(), ft));
+    llvm::Function *llvm_fn = llvm::Function::Create(
+        ft, llvm::GlobalValue::WeakODRLinkage, new_name.c_str(), mod);
 
     llvm_fn->setCallingConv(llvm::CallingConv::C);
-    llvm_fn->setLinkage(llvm::GlobalValue::WeakODRLinkage);
     setStandardAttributes(llvm_fn);
 
     Function *fn =

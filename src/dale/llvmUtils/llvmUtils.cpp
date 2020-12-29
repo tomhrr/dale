@@ -231,12 +231,10 @@ uint64_t functionToAddress(Unit *unit, Function *fn) {
     std::string new_name;
     unit->getUnusedFunctionName(&new_name);
 
-    llvm::Constant *const_fn =
-        unit->module->getOrInsertFunction(new_name.c_str(), ft);
-
-    llvm::Function *llvm_fn = llvm::cast<llvm::Function>(const_fn);
+    llvm::Function *llvm_fn = llvm::Function::Create(
+        ft, ctx->toLLVMLinkage(Linkage::Extern_C),
+        new_name.c_str(), unit->module);
     llvm_fn->setCallingConv(llvm::CallingConv::C);
-    llvm_fn->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_C));
 
     llvm::BasicBlock *block =
         llvm::BasicBlock::Create(*getContext(), "entry", llvm_fn);
@@ -489,10 +487,10 @@ Function *createFunction(Units *units, Type *type, Node *top) {
     std::string new_name;
     units->top()->getUnusedFunctionName(&new_name);
 
-    llvm::Constant *const_fn =
-        units->top()->module->getOrInsertFunction(new_name.c_str(), ft);
+    llvm::Function *llvm_fn = llvm::Function::Create(
+        ft, ctx->toLLVMLinkage(Linkage::Extern_C), new_name.c_str(),
+        units->top()->module);
 
-    llvm::Function *llvm_fn = llvm::cast<llvm::Function>(const_fn);
     llvm_fn->setCallingConv(llvm::CallingConv::C);
     llvm_fn->setLinkage(ctx->toLLVMLinkage(Linkage::Extern_C));
 
