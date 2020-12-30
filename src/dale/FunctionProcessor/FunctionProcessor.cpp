@@ -172,6 +172,14 @@ bool FunctionProcessor::parseFunctionPointerCall(
     std::vector<llvm::Value *> *extra_call_args, ParseResult *pr) {
     Type *fn_ptr = fn_ptr_pr->type->points_to;
 
+    llvm::FunctionType *fn_type =
+        llvm::dyn_cast<llvm::FunctionType>(
+            units->top()->ctx->toLLVMType(
+                fn_ptr_pr->type->points_to,
+                n, true, false, false
+            )
+        );
+
     llvm::BasicBlock *block = fn_ptr_pr->block;
     std::vector<llvm::Value *> empty;
     if (!extra_call_args) {
@@ -268,6 +276,7 @@ bool FunctionProcessor::parseFunctionPointerCall(
                   &call_args_final);
 
     llvm::Value *call_res = builder.CreateCall(
+        fn_type,
         fn_ptr_pr->getValue(units->top()->ctx),
         llvm::ArrayRef<llvm::Value *>(call_args_final));
 

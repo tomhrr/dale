@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 
+#include "llvm/IR/BasicBlock.h"
 #include "../llvm_PassManager.h"
 
 namespace dale {

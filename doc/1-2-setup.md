@@ -6,7 +6,7 @@
 
 ### External dependencies
 
-  * LLVM (3.2-10.0)
+  * LLVM (3.2-11.0)
   * libffi
 
 ### Supported systems
