@@ -49,9 +49,10 @@ jobs:
       - uses: actions/checkout@v1
       - run: sudo apt-get install build-essential llvm-10 llvm-10-dev clang-10 libedit-dev
       - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-10 . && make && make tests
-  build-11:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v1
-      - run: sudo apt-get install build-essential llvm-11 llvm-11-dev clang-11 libedit-dev
-      - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-11 . && make && make tests
+#  llvm-11 and related packages are not available in any of the images yet.
+#  build-11:
+#    runs-on: ubuntu-20.04
+#    steps:
+#      - uses: actions/checkout@v1
+#      - run: sudo apt-get install build-essential llvm-11 llvm-11-dev clang-11 libedit-dev
+#      - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-11 . && make && make tests
