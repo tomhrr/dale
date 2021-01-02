@@ -290,7 +290,22 @@ Node *MacroProcessor::parseMacroCall_(Node *n,
             llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
                 mc->symbol.c_str());
         if (!address) {
-            cloneModuleIfRequired(units->top());
+            /* Add the modules from the first and second units (if
+             * present), to account for the extra unit that's added in
+             * FormValueParse. */
+            int count = 0;
+            for (std::vector<Unit *>::reverse_iterator
+                    b = units->units.rbegin(),
+                    e = units->units.rend();
+                    b != e;
+                    ++b) {
+                count++;
+                if (count > 2) {
+                    break;
+                }
+                cloneModuleIfRequired(*b);
+            }
+            units->top()->ee->getFunctionAddress(mc->symbol.c_str());
             llvm::Function *mc_ffn =
                 units->top()->ee->FindFunctionNamed(mc->symbol.c_str());
             if (!mc_ffn) {

@@ -70,6 +70,52 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er,
     global_block = NULL;
 }
 
+Unit::Unit(Units *units, ErrorReporter *er,
+           NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee,
+           bool is_x86_64, Context *ctx, MacroProcessor *mp,
+           FunctionProcessor *fp, llvm::Module *module,
+           llvm::Linker *linker, bool line_buffered) {
+    if (!module) {
+        has_own_module = true;
+    }
+
+    er->current_filename = "";
+    dnc = new DNodeConverter(er);
+
+    if (!ctx) {
+        ctx = new Context(er, nt, tr);
+        mp = new MacroProcessor(units, ctx, ee);
+        fp = new FunctionProcessor(units);
+    }
+    this->ctx = ctx;
+    this->mp = mp;
+    this->fp = fp;
+
+    if (!module) {
+        module = new llvm::Module("", *getContext());
+    }
+    this->module = module;
+
+    if (!linker) {
+        linker = newLinker("", module);
+    }
+    this->linker = linker;
+
+    this->ee = ee;
+    this->is_x86_64 = is_x86_64;
+    var_count = 0;
+    fn_count = 0;
+
+    /* For now, the unused prefix name will be a randomly-generated
+     * string. */
+    for (int i = 0; i < 4; i++) {
+        unused_name_prefix[i] = (rand() % 25 + 97);
+    }
+
+    global_function = NULL;
+    global_block = NULL;
+}
+
 Unit::~Unit() {
     if (hasOwnModule()) {
         delete ctx;
@@ -161,8 +207,16 @@ void Unit::makeTemporaryGlobalFunction() {
 void Unit::removeTemporaryGlobalFunction() {
     ctx->deactivateAnonymousNamespace();
     Function *current = getGlobalFunction();
+    if (!current) {
+        fprintf(stderr, "No temporary global function found\n");
+        return;
+    }
     popGlobalFunction();
     popGlobalBlock();
+    if (!current->llvm_function) {
+        fprintf(stderr, "No temporary global LLVM function found\n");
+        return;
+    }
     current->llvm_function->eraseFromParent();
 }
 

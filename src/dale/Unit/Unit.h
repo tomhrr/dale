@@ -86,6 +86,16 @@ class Unit {
          bool is_x86_64, Context *ctx, MacroProcessor *mp,
          FunctionProcessor *fp, llvm::Module *module,
          llvm::Linker *linker, bool line_buffered = false);
+    /*! Construct a new unit.
+     *
+     *  The same as the default constructor, save that no path is
+     *  provided.  See FormValueParse.
+     */
+    Unit(Units *units, ErrorReporter *er,
+         NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee,
+         bool is_x86_64, Context *ctx, MacroProcessor *mp,
+         FunctionProcessor *fp, llvm::Module *module,
+         llvm::Linker *linker, bool line_buffered = false);
     ~Unit();
     /*! Check whether this unit has a once tag.
      */

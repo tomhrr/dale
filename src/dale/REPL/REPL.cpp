@@ -330,7 +330,7 @@ bool REPLLoop(Units *units) {
             int size;
             llvm::Constant *parsed = decodeRawData(
                 units, top, reinterpret_cast<char *>(address),
-                res_pr.type, &size);
+                res_pr.type, &size, units->top()->module);
             llvm_var->setInitializer(parsed);
         }
 #endif

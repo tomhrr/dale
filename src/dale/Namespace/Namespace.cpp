@@ -637,6 +637,11 @@ void Namespace::eraseLLVMMacros() {
         fn->llvm_function = NULL;
         if (erased.find(lfn) == erased.end()) {
             erased.insert(lfn);
+
+	    for (llvm::User *U : lfn->users()) {
+                U->dropAllReferences();
+            }
+
             lfn->eraseFromParent();
         }
     }
@@ -662,6 +667,11 @@ void Namespace::eraseLLVMMacrosAndCTOFunctions() {
         llvm::Function *lfn = fn->llvm_function;
         if (erased.find(lfn) == erased.end()) {
             erased.insert(lfn);
+
+	    for (llvm::User *U : lfn->users()) {
+                U->dropAllReferences();
+            }
+
             llvm::Module *m = lfn->getParent();
             llvm::StringRef x(fn->symbol.c_str());
             if (m->getFunction(x)) {

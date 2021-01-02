@@ -136,18 +136,133 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
      * constant. */
 
     ctx->enableRetrievalLog();
+    llvm::Module *prev_mod = units->top()->module;
+
+    /* Most of the logic here is about creating a new LLVM module for
+     * the function used to parse the value, to avoid needing to
+     * recompile the entire existing module, and then linking the
+     * appropriate bindings etc. into place in that new module. */
+
+    Unit *unit = new Unit(units, ctx->er, ctx->nt, ctx->tr, NULL,
+                          true, ctx, units->top()->mp,
+                          units->top()->fp, NULL, NULL);
+    units->push(unit);
 
     Function *fn = createFunction(units, type, top);
     fn->cto = true;
     if (!fn) {
+        units->units.pop_back();
+        ctx->regetPointers(units->top()->module);
         return NULL;
     }
     res = parseFunction(units, type, top, fn);
     if (!res) {
+        units->units.pop_back();
+        ctx->regetPointers(units->top()->module);
         return NULL;
     }
     std::string name;
     llvm::Function *copy_fn =
+        createCopyFunction(units, type, top, fn, &name);
+
+    std::vector<Function *> functions;
+    ctx->getRetrievedFunctions(&functions);
+    std::set<std::string> seen_functions;
+    for (std::vector<Function *>::iterator b = functions.begin(),
+                                           e = functions.end();
+            b != e;
+            ++b) {
+        Function *fn = *b;
+        if (seen_functions.find(fn->symbol) != seen_functions.end()) {
+            continue;
+        }
+	void *fn_pointer =
+            llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
+                fn->symbol.c_str()
+            );
+	if (!fn_pointer) {
+            llvm::Function *llvm_fn =
+                units->top()->ee->FindFunctionNamed(fn->symbol.c_str());
+            if (!llvm_fn) {
+                for (std::vector<Unit *>::reverse_iterator
+                        b = units->units.rbegin(),
+                        e = units->units.rend();
+                        b != e;
+                        ++b) {
+                    llvm::Function *llvm_fn =
+                        (*b)->module->getFunction(fn->symbol.c_str());
+                    if (llvm_fn) {
+                        cloneModuleIfRequired((*b));
+                        break;
+                    }
+                }
+            }
+	}
+        int linkage = fn->linkage;
+        if ((linkage == Linkage::Extern_Weak)
+                || (linkage == Linkage::Intern)) {
+            linkage = Linkage::Extern;
+        }
+        llvm::Function *llvm_fn =
+            llvm::Function::Create(fn->llvm_function->getFunctionType(),
+                                   ctx->toLLVMLinkage(linkage),
+                                   fn->symbol.c_str(),
+                                   unit->module);
+        llvm_fn->setLinkage(ctx->toLLVMLinkage(linkage));
+        fn->llvm_function = llvm_fn;
+        seen_functions.insert(fn->symbol);
+    }
+
+    std::vector<Variable *> variables;
+    ctx->getRetrievedVariables(&variables);
+    std::set<std::string> seen_variables;
+    for (std::vector<Variable *>::iterator
+            b = variables.begin(),
+            e = variables.end();
+            b != e;
+            ++b) {
+        Variable *var = *b;
+        if (seen_variables.find(var->symbol) != seen_variables.end()) {
+            continue;
+        }
+	llvm::GlobalVariable *llvm_var_prev =
+            llvm::cast<llvm::GlobalVariable>(var->value);
+
+        llvm::Type *llvm_type =
+            ctx->toLLVMType(var->type, top, false, true, false);
+
+	llvm::GlobalVariable *llvm_var =
+            llvm::cast<llvm::GlobalVariable>(
+                unit->module->getOrInsertGlobal(var->symbol.c_str(),
+					        llvm_type)
+            );
+	llvm_var->setLinkage(ctx->toLLVMLinkage(var->linkage));
+	llvm_var->setInitializer(llvm_var_prev->getInitializer());
+        var->value = llvm::cast<llvm::Value>(llvm_var);
+
+        seen_variables.insert(var->symbol);
+    }
+
+    copy_fn->eraseFromParent();
+    fn->llvm_function->eraseFromParent();
+
+    fn = createFunction(units, type, top);
+    fn->cto = true;
+    if (!fn) {
+        units->units.pop_back();
+        ctx->regetPointers(units->top()->module);
+
+        return NULL;
+    }
+    res = parseFunction(units, type, top, fn);
+    if (!res) {
+        units->units.pop_back();
+        ctx->regetPointers(units->top()->module);
+
+        return NULL;
+    }
+    name.clear();
+    copy_fn =
         createCopyFunction(units, type, top, fn, &name);
 
     if (units->debug) {
@@ -161,7 +276,10 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
         units->top()->ee->FindFunctionNamed(name.c_str());
 
 #if D_LLVM_VERSION_ORD >= 34
-    units->top()->ee->getFunctionAddress(name);
+    uint64_t addr = units->top()->ee->getFunctionAddress(name);
+    if (!addr) {
+        abort();
+    }
 #endif
 
     std::vector<llvm::GenericValue> values;
@@ -174,13 +292,17 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
     int error_count_begin =
         ctx->er->getErrorTypeCount(ErrorType::Error);
 
-    llvm::Constant *parsed = decodeRawData(
-        units, top, reinterpret_cast<char *>(&data), type, size);
+    llvm::Constant *parsed =
+        decodeRawData(units, top, reinterpret_cast<char *>(&data), type, size,
+                      prev_mod);
 
     ctx->disableRetrievalLog();
 
     copy_fn->eraseFromParent();
     fn->llvm_function->eraseFromParent();
+    delete units->top()->module;
+    units->units.pop_back();
+    ctx->regetPointers(units->top()->module);
 
     if (parsed) {
         return parsed;

@@ -100,7 +100,8 @@ llvm::Constant *decodeRawDouble(char *data) {
 }
 
 llvm::Constant *decodeRawStruct(Units *units, Node *top, char *data,
-                                Type *type, int *size) {
+                                Type *type, int *size,
+                                llvm::Module *prev_mod) {
     Context *ctx = units->top()->ctx;
 
     std::vector<llvm::Constant *> constants;
@@ -135,7 +136,7 @@ llvm::Constant *decodeRawStruct(Units *units, Node *top, char *data,
 
         llvm::Constant *member_value =
             decodeRawData(units, top, reinterpret_cast<char *>(aligned),
-                          member_type, size);
+                          member_type, size, prev_mod);
         if (!member_value) {
             return NULL;
         }
@@ -159,7 +160,8 @@ llvm::Constant *decodeRawStruct(Units *units, Node *top, char *data,
 }
 
 llvm::Constant *decodeRawString(Units *units, Node *top, char *data,
-                                Type *type, int *size) {
+                                Type *type, int *size,
+                                llvm::Module *prev_mod) {
     Context *ctx = units->top()->ctx;
     TypeRegister *tr = ctx->tr;
 
@@ -185,11 +187,10 @@ llvm::Constant *decodeRawString(Units *units, Node *top, char *data,
     llvm::Type *llvm_type =
         ctx->toLLVMType(char_array_type, NULL, false);
 
-    llvm::Module *mod = units->top()->module;
-    assert(!mod->getGlobalVariable(llvm::StringRef(var_name.c_str())));
+    assert(!prev_mod->getGlobalVariable(llvm::StringRef(var_name.c_str())));
 
     llvm::GlobalVariable *var = llvm::cast<llvm::GlobalVariable>(
-        mod->getOrInsertGlobal(var_name.c_str(), llvm_type));
+        prev_mod->getOrInsertGlobal(var_name.c_str(), llvm_type));
 
     var->setInitializer(constr_str);
     var->setConstant(true);
@@ -197,7 +198,6 @@ llvm::Constant *decodeRawString(Units *units, Node *top, char *data,
 
     llvm::Constant *const_pchar = createConstantGEP(
         llvm::cast<llvm::Constant>(var), ctx->nt->getTwoLLVMZeros());
-
     return const_pchar;
 }
 
@@ -216,7 +216,20 @@ llvm::Constant *decodeRawPointer(Units *units, Node *top, char *data,
             Variable *var = *b;
             uint64_t address = variableToAddress(units->top()->ee, var);
             if (address == value) {
-                return llvm::cast<llvm::Constant>(var->value);
+                /* Iterate over the modules to find the 'real'
+                 * variable. */
+                for (std::vector<Unit *>::reverse_iterator
+                        b = units->units.rbegin() + 1,
+                        e = units->units.rend();
+                        b != e;
+                        ++b) {
+                    llvm::Module *mod = (*b)->module;
+                    llvm::GlobalVariable *gv =
+                        mod->getGlobalVariable(var->symbol, true);
+                    if (gv && !gv->isDeclaration()) {
+                        return llvm::cast<llvm::Constant>(gv);
+                    }
+                }
             }
         }
         std::vector<Function *> retrieved_fn;
@@ -227,7 +240,20 @@ llvm::Constant *decodeRawPointer(Units *units, Node *top, char *data,
             Function *fn = *b;
             uint64_t address = functionToAddress(units->top(), fn);
             if (address == value) {
-                return llvm::cast<llvm::Constant>(fn->llvm_function);
+                /* Iterate over the modules to find the 'real'
+                 * function. */
+                for (std::vector<Unit *>::reverse_iterator
+                        b = units->units.rbegin(),
+                        e = units->units.rend();
+                        b != e;
+                        ++b) {
+                    llvm::Module *mod = (*b)->module;
+                    llvm::Function *llvm_fn =
+                        mod->getFunction(fn->symbol);
+                    if (llvm_fn && !llvm_fn->isDeclaration()) {
+                        return llvm::cast<llvm::Constant>(llvm_fn);
+                    }
+                }
             }
         }
         Error *e = new Error(UnableToResolvePointerAddress, top);
@@ -244,7 +270,8 @@ llvm::Constant *decodeRawPointer(Units *units, Node *top, char *data,
 }
 
 llvm::Constant *decodeRawArray(Units *units, Node *top, char *data,
-                               Type *type, int *size) {
+                               Type *type, int *size,
+                               llvm::Module *prev_mod) {
     Context *ctx = units->top()->ctx;
 
     size_t member_size =
@@ -263,7 +290,7 @@ llvm::Constant *decodeRawArray(Units *units, Node *top, char *data,
         memcpy(mem, member_ptr, member_size);
 
         llvm::Constant *const_member =
-            decodeRawData(units, top, mem, type->array_type, size);
+            decodeRawData(units, top, mem, type->array_type, size, prev_mod);
         if (!const_member) {
             return NULL;
         }
@@ -280,7 +307,8 @@ llvm::Constant *decodeRawArray(Units *units, Node *top, char *data,
 }
 
 llvm::Constant *decodeRawData(Units *units, Node *top, char *data,
-                              Type *type, int *size) {
+                              Type *type, int *size,
+                              llvm::Module *prev_mod) {
     Context *ctx = units->top()->ctx;
     NativeTypes *nt = ctx->nt;
 
@@ -306,12 +334,12 @@ llvm::Constant *decodeRawData(Units *units, Node *top, char *data,
     }
 
     if (type->struct_name.size()) {
-        return decodeRawStruct(units, top, data, type, size);
+        return decodeRawStruct(units, top, data, type, size, prev_mod);
     }
 
     if (type->points_to &&
         (type->points_to->base_type == BaseType::Char)) {
-        return decodeRawString(units, top, data, type, size);
+        return decodeRawString(units, top, data, type, size, prev_mod);
     }
 
     if (type->points_to) {
@@ -319,7 +347,7 @@ llvm::Constant *decodeRawData(Units *units, Node *top, char *data,
     }
 
     if (type->is_array) {
-        return decodeRawArray(units, top, data, type, size);
+        return decodeRawArray(units, top, data, type, size, prev_mod);
     }
 
     std::string type_str;

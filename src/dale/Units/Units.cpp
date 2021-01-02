@@ -19,7 +19,7 @@ Unit *Units::top() {
         assert(false && "no unit available");
         abort();
     }
-    return units.top();
+    return units.back();
 }
 
 bool Units::empty() { return units.empty(); }
@@ -27,14 +27,14 @@ bool Units::empty() { return units.empty(); }
 size_t Units::size() { return units.size(); }
 
 void Units::pop() {
-    Unit *popped = units.top();
-    units.pop();
+    Unit *popped = units.back();
+    units.pop_back();
 
     if (empty()) {
         return;
     }
 
-    Unit *current = units.top();
+    Unit *current = units.back();
 
     std::string link_error;
 
@@ -50,11 +50,11 @@ void Units::pop() {
 
 void Units::push(Unit *new_unit) {
     if (units.size()) {
-        Unit *current = units.top();
+        Unit *current = units.back();
         new_unit->ctx->merge(current->ctx);
         new_unit->ee = current->ee;
     }
-    units.push(new_unit);
+    units.push_back(new_unit);
 
     return;
 }

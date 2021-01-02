@@ -18,11 +18,9 @@ namespace dale {
     highest-level "context" object.
 */
 class Units {
-    private:
-    /*! The stack of units. */
-    std::stack<Unit *> units;
-
     public:
+    /*! The stack of units. */
+    std::vector<Unit *> units;
     /*! The module reader. */
     Module::Reader *mr;
     /*! The namespace immediately before the first namespace within
