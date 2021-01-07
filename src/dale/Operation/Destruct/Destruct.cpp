@@ -78,6 +78,7 @@ bool destructStruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
     std::vector<Type *> *st_types = &(st->member_types);
 
     llvm::Value *struct_value;
+    int s0 = builder->GetInsertBlock()->size();
     if (value_is_ptr) {
         struct_value = pr->getValue(ctx);
     } else {
@@ -85,6 +86,7 @@ bool destructStruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
             ctx->toLLVMType(pr->type, NULL, false)));
         builder->CreateStore(pr->getValue(ctx), struct_value);
     }
+    int s1 = builder->GetInsertBlock()->size();
 
     int i = 0;
     for (std::vector<Type *>::iterator b = st_types->begin(),
@@ -106,6 +108,32 @@ bool destructStruct(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
         element.do_not_destruct = false;
         Destruct(ctx, &element, &element, builder, true);
         ret_pr->block = element.block;
+    }
+
+    /* If the only instructions that have been added are GEP
+     * instructions, then remove those instructions, as well as the
+     * store and the alloca (and possibly a load), because the
+     * destruct operation is a no-op. */
+
+    int s2 = builder->GetInsertBlock()->size();
+    int skip = s1;
+    bool has_non_gep = false;
+    for (const llvm::Instruction &I : *(builder->GetInsertBlock())) {
+        if (skip > 0) {
+            skip--;
+            continue;
+        }
+        if (I.getOpcode() != llvm::Instruction::GetElementPtr) {
+            has_non_gep = true;
+            break;
+        }
+    }
+    if (!has_non_gep) {
+        int to_remove = s2 - s0;
+        llvm::BasicBlock *bb = builder->GetInsertBlock();
+        while (to_remove--) {
+            bb->back().eraseFromParent();
+        }
     }
 
     return true;
