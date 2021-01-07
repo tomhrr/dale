@@ -64,10 +64,12 @@ bool ParseResult::setAddressOfValue(Context *ctx) {
     if (!llvm_type) {
         return false;
     }
-    address_of_value = builder.CreateAlloca(llvm_type);
-    /* todo: if retval is present, that should probably be returned
-     * instead. */
-    builder.CreateStore(getValue(ctx), address_of_value);
+    if (retval && retval_used) {
+        address_of_value = retval;
+    } else {
+        address_of_value = builder.CreateAlloca(llvm_type);
+        builder.CreateStore(getValue(ctx), address_of_value);
+    }
     return true;
 }
 
