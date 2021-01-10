@@ -675,7 +675,7 @@ void findIndirectObjectsForVariable(llvm::GlobalVariable *gv,
                 if (llvm::GlobalVariable *sub_gv =
                         llvm::dyn_cast<llvm::GlobalVariable>(c)) {
                     indirect_variables->push_back(sub_gv);
-                } else if (llvm::Operator *opt = 
+                } else if (llvm::Operator *opt =
                         llvm::dyn_cast<llvm::Operator>(c)) {
                     findIndirectObjectsForOp(opt, gv->getParent(),
                                              indirect_functions,
@@ -790,7 +790,7 @@ void linkRetrievedObjects(llvm::Module *mod, Node *top,
             fn->getName().str()
         );
         llvm::SmallVector<llvm::ReturnInst*, 8> returns;
-        
+
         if (fn->size() > 0) {
             CloneFunctionInto(new_fn, fn, vmap, false, returns);
         }
@@ -807,7 +807,7 @@ void linkRetrievedObjects(llvm::Module *mod, Node *top,
         );
         fn->llvm_function = new_fn;
     }
-            
+
     for (std::vector<Variable *>::iterator
             b = arg_variables->begin(),
             e = arg_variables->end();
