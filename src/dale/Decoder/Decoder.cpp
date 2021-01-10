@@ -243,7 +243,7 @@ llvm::Constant *decodeRawPointer(Units *units, Node *top, char *data,
                 /* Iterate over the modules to find the 'real'
                  * function. */
                 for (std::vector<Unit *>::reverse_iterator
-                        b = units->units.rbegin(),
+                        b = units->units.rbegin() + 1,
                         e = units->units.rend();
                         b != e;
                         ++b) {

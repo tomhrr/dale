@@ -289,22 +289,20 @@ Node *MacroProcessor::parseMacroCall_(Node *n,
         address = (uint64_t)
             llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
                 mc->symbol.c_str());
+
         if (!address) {
-            /* Add the modules from the first and second units (if
-             * present), to account for the extra unit that's added in
-             * FormValueParse. */
-            int count = 0;
-            for (std::vector<Unit *>::reverse_iterator
-                    b = units->units.rbegin(),
-                    e = units->units.rend();
-                    b != e;
-                    ++b) {
-                count++;
-                if (count > 2) {
-                    break;
-                }
-                cloneModuleIfRequired(*b);
-            }
+            Unit *unit = new Unit(units, ctx->er, ctx->nt, ctx->tr, NULL,
+                                  true, ctx, units->top()->mp,
+                                  units->top()->fp, NULL, NULL);
+            units->push(unit);
+            std::vector<Function *> functions;
+            functions.push_back(mc);
+            std::vector<Variable *> variables;
+            linkRetrievedObjects(units->top()->module, n, &functions,
+                                 &variables);
+
+            cloneModuleIfRequired(units->top());
+
             units->top()->ee->getFunctionAddress(mc->symbol.c_str());
             llvm::Function *mc_ffn =
                 units->top()->ee->FindFunctionNamed(mc->symbol.c_str());
@@ -315,6 +313,10 @@ Node *MacroProcessor::parseMacroCall_(Node *n,
             }
             address = units->top()->ee->getFunctionAddress(
                 mc->symbol.c_str());
+
+            delete units->top()->module;
+            units->units.pop_back();
+            ctx->regetPointers(units->top()->module);
         }
     }
     function_map.insert(
