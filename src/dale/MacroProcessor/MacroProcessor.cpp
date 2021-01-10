@@ -314,8 +314,7 @@ Node *MacroProcessor::parseMacroCall_(Node *n,
             address = units->top()->ee->getFunctionAddress(
                 mc->symbol.c_str());
 
-            // todo: leaking for now: there are "use still stuck around" problems that need to be dealt with.
-            // delete units->top()->module;
+            delete units->top()->module;
             units->units.pop_back();
             ctx->regetPointers(units->top()->module);
         }
