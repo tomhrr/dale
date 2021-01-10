@@ -210,6 +210,17 @@ llvm::LLVMContext *getContext();
  *  @param top A reference node for errors.
  */
 Function *createFunction(Units *units, Type *type, Node *top);
+
+/*! Link the specified functions/variables into the current module,
+ *  inlining anything not already available.
+ *  @param mod The top-level module.
+ *  @param top A reference node for errors.
+ *  @param functions The functions to link into the module.
+ *  @param variables The variables to link into the module.
+ */
+void linkRetrievedObjects(llvm::Module *mod, Node *top,
+                          std::vector<Function *> *functions,
+                          std::vector<Variable *> *variables);
 }
 
 #endif

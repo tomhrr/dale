@@ -501,4 +501,323 @@ Function *createFunction(Units *units, Type *type, Node *top) {
 
     return fn;
 }
+
+void findIndirectObjectsForInst(const llvm::Instruction *I,
+                                llvm::Module *mod,
+                                std::vector<llvm::Function *> *indirect_functions,
+                                std::vector<llvm::GlobalVariable *> *indirect_variables);
+
+void findIndirectObjectsForOp(const llvm::Operator *opt,
+                              llvm::Module *mod,
+                              std::vector<llvm::Function *> *indirect_functions,
+                              std::vector<llvm::GlobalVariable *> *indirect_variables) {
+    for (const llvm::Value *operand : opt->operands()) {
+        if (const llvm::GlobalVariable *gv = llvm::dyn_cast<llvm::GlobalVariable>(operand)) {
+            llvm::StringRef name = gv->getName();
+            llvm::GlobalVariable *mod_gv = mod->getGlobalVariable(name, true);
+            if (mod_gv) {
+                indirect_variables->push_back(mod_gv);
+            } else {
+                fprintf(stderr, "did not find variable\n");
+                abort();
+            }
+        } else if (const llvm::Function *fn = llvm::dyn_cast<llvm::Function>(operand)) {
+            llvm::StringRef name = fn->getName();
+            llvm::Function *mod_fn = mod->getFunction(name);
+            if (mod_fn) {
+                indirect_functions->push_back(mod_fn);
+            } else {
+                fprintf(stderr, "did not find function\n");
+                abort();
+            }
+        } else if (const llvm::Instruction *inst = llvm::dyn_cast<llvm::Instruction>(operand)) {
+            findIndirectObjectsForInst(inst, mod,
+                indirect_functions, indirect_variables);
+        } else if (const llvm::Operator *opt = llvm::dyn_cast<llvm::Operator>(operand)) {
+            findIndirectObjectsForOp(opt, mod,
+                indirect_functions, indirect_variables);
+        }
+    }
+}
+
+void findIndirectObjectsForInst(const llvm::Instruction *inst,
+                                llvm::Module *mod,
+                                std::vector<llvm::Function *> *indirect_functions,
+                                std::vector<llvm::GlobalVariable *> *indirect_variables) {
+    for (const llvm::Value *operand : inst->operands()) {
+        if (const llvm::GlobalVariable *gv = llvm::dyn_cast<llvm::GlobalVariable>(operand)) {
+            llvm::StringRef name = gv->getName();
+            llvm::GlobalVariable *mod_gv = mod->getGlobalVariable(name, true);
+            if (mod_gv) {
+                indirect_variables->push_back(mod_gv);
+            } else {
+                fprintf(stderr, "did not find variable\n");
+                abort();
+            }
+        } else if (const llvm::Function *fn = llvm::dyn_cast<llvm::Function>(operand)) {
+            llvm::StringRef name = fn->getName();
+            llvm::Function *mod_fn = mod->getFunction(name);
+            if (mod_fn) {
+                indirect_functions->push_back(mod_fn);
+            } else {
+                fprintf(stderr, "did not find function\n");
+                abort();
+            }
+        } else if (const llvm::Instruction *inst = llvm::dyn_cast<llvm::Instruction>(operand)) {
+            findIndirectObjectsForInst(inst, mod,
+                indirect_functions, indirect_variables);
+        } else if (const llvm::Operator *opt = llvm::dyn_cast<llvm::Operator>(operand)) {
+            findIndirectObjectsForOp(opt, mod,
+                indirect_functions, indirect_variables);
+        }
+    }
+}
+
+void findIndirectObjectsForFunction(llvm::Function *llvm_fn,
+                         std::vector<llvm::Function *> *indirect_functions,
+                         std::vector<llvm::GlobalVariable *> *indirect_variables) {
+    for (const llvm::BasicBlock &block : *llvm_fn) {
+        for (const llvm::Instruction &inst : block) {
+            findIndirectObjectsForInst(&inst, llvm_fn->getParent(),
+                                       indirect_functions,
+                                       indirect_variables);
+            if (inst.getOpcode() == llvm::Instruction::Call) {
+                const llvm::CallInst *call_inst =
+                    llvm::dyn_cast<llvm::CallInst>(&inst);
+                llvm::Function *call_inst_fn =
+                    call_inst->getCalledFunction();
+                if (call_inst_fn) {
+                    indirect_functions->push_back(call_inst_fn);
+                }
+            }
+        }
+    }
+}
+
+bool addFunction(llvm::Function *llvm_fn, llvm::Module *mod,
+                 llvm::ValueToValueMapTy *vmap) {
+    std::string name = llvm_fn->getName().str();
+    void *fn_pointer =
+        llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
+            name.c_str()
+        );
+    llvm::Function *new_fn =
+        llvm::Function::Create(
+            llvm_fn->getFunctionType(),
+            (fn_pointer ? llvm::GlobalValue::ExternalLinkage
+                        : llvm_fn->getLinkage()),
+            name.c_str(),
+            mod
+        );
+    vmap->insert(std::pair<const llvm::Value *, llvm::Value *>(llvm_fn, new_fn));
+    llvm::Function::arg_iterator DestI = new_fn->arg_begin();
+    for (const llvm::Argument & I : llvm_fn->args()) {
+        if (vmap->count(&I) == 0) {
+            DestI->setName(I.getName());
+            vmap->insert(std::pair<const llvm::Value *, llvm::Value *>(&I, &*DestI++));
+        }
+    }
+
+    return (!fn_pointer);
+}
+
+bool addVariable(llvm::GlobalVariable *gv, llvm::Module *mod,
+                 llvm::ValueToValueMapTy *vmap) {
+    std::string name = gv->getName().str();
+    llvm::Type *pt = gv->getType()->getPointerElementType();
+    llvm::GlobalVariable *llvm_var =
+	llvm::cast<llvm::GlobalVariable>(
+	    mod->getOrInsertGlobal(name.c_str(),
+			           pt)
+	);
+    llvm_var->setLinkage(gv->getLinkage());
+    if (gv->isConstant()) {
+	llvm_var->setConstant(true);
+    }
+    vmap->insert(std::pair<const llvm::Value *, llvm::Value *>(gv, llvm_var));
+    return true;
+}
+
+void setInitializer(Context *ctx,
+                    llvm::GlobalVariable *from,
+                    llvm::GlobalVariable *to) {
+    llvm::Type *pt = from->getType()->getPointerElementType();
+    if (from->hasInitializer()) {
+        to->setInitializer(from->getInitializer());
+    } else {
+        llvm::Constant *init = NULL;
+        if (pt->isPointerTy()) {
+            init = getNullPointer(pt);
+        } else if (pt->isStructTy()) {
+            init = llvm::ConstantAggregateZero::get(pt);
+        } else if (pt->isIntegerTy()) {
+            init = ctx->nt->getConstantInt(llvm::dyn_cast<llvm::IntegerType>(pt), "0");
+        }
+        if (init) {
+            to->setInitializer(init);
+        } else {
+            llvm::dbgs() << "No initializer for " << *to << "\n";
+            abort();
+        }
+    }
+}
+
+void findIndirectObjectsForVariable(llvm::GlobalVariable *gv,
+    std::vector<llvm::Function *> *indirect_functions,
+    std::vector<llvm::GlobalVariable *> *indirect_variables) {
+    if (gv->hasInitializer()) {
+        llvm::Constant *c = gv->getInitializer();
+        if (llvm::ConstantStruct *cs =
+                llvm::dyn_cast<llvm::ConstantStruct>(c)) {
+            int els = cs->getNumOperands();
+            for (int i = 0; i < els; i++) {
+                llvm::Constant *c = cs->getAggregateElement(i);
+                if (llvm::GlobalVariable *sub_gv =
+                        llvm::dyn_cast<llvm::GlobalVariable>(c)) {
+                    indirect_variables->push_back(sub_gv);
+                } else if (llvm::Operator *opt = 
+                        llvm::dyn_cast<llvm::Operator>(c)) {
+                    findIndirectObjectsForOp(opt, gv->getParent(),
+                                             indirect_functions,
+                                             indirect_variables);
+                }
+            }
+        } else if (llvm::GlobalVariable *gv =
+                llvm::dyn_cast<llvm::GlobalVariable>(c)) {
+            indirect_variables->push_back(gv);
+        }
+    }
+}
+
+void linkRetrievedObjects(llvm::Module *mod, Node *top,
+                          std::vector<Function *> *arg_functions,
+                          std::vector<Variable *> *arg_variables) {
+    std::set<std::string> seen_functions;
+    std::set<std::string> seen_variables;
+
+    std::vector<llvm::Function *> functions;
+    std::vector<llvm::GlobalVariable *> variables;
+
+    std::vector<llvm::Function *> functions_to_clone;
+    std::vector<llvm::GlobalVariable *> variables_to_init;
+
+    for (std::vector<Function *>::iterator
+            b = arg_functions->begin(),
+            e = arg_functions->end();
+            b != e;
+            ++b) {
+        functions.push_back((*b)->llvm_function);
+    }
+    for (std::vector<Variable *>::iterator
+            b = arg_variables->begin(),
+            e = arg_variables->end();
+            b != e;
+            ++b) {
+        variables.push_back(llvm::dyn_cast<llvm::GlobalVariable>((*b)->value));
+    }
+
+    llvm::ValueToValueMapTy vmap;
+
+    while (functions.size() || variables.size()) {
+        if (functions.size()) {
+            llvm::Function *fn = functions.back();
+            functions.pop_back();
+            if (seen_functions.find(fn->getName().str()) != seen_functions.end()) {
+                continue;
+            }
+            bool needs_clone = addFunction(fn, mod, &vmap);
+            if (needs_clone) {
+                functions_to_clone.push_back(fn);
+            }
+            findIndirectObjectsForFunction(
+                fn,
+                &functions,
+                &variables
+            );
+            seen_functions.insert(fn->getName().str());
+            continue;
+        }
+        if (variables.size()) {
+            llvm::GlobalVariable *gv = variables.back();
+            variables.pop_back();
+            if (seen_variables.find(gv->getName().str()) != seen_variables.end()) {
+                continue;
+            }
+            addVariable(gv, mod, &vmap);
+            findIndirectObjectsForVariable(
+                gv,
+                &functions,
+                &variables
+            );
+            seen_variables.insert(gv->getName().str());
+            variables_to_init.push_back(gv);
+        }
+    }
+
+    for (std::vector<llvm::GlobalVariable *>::iterator
+            b = variables_to_init.begin(),
+            e = variables_to_init.end();
+            b != e;
+            ++b) {
+        llvm::GlobalVariable *gv = *b;
+        llvm::GlobalVariable *new_gv = mod->getGlobalVariable(
+            gv->getName(), true
+        );
+        if (!new_gv) {
+            fprintf(stderr, "unable to find new global variable %s\n",
+                gv->getName().str().c_str());
+            abort();
+        }
+	if (gv->hasInitializer()) {
+	    new_gv->setInitializer(MapValue(gv->getInitializer(), vmap));
+        }
+    }
+
+    for (std::vector<llvm::Function *>::iterator
+            b = functions_to_clone.begin(),
+            e = functions_to_clone.end();
+            b != e;
+            ++b) {
+        llvm::Function *fn = *b;
+        std::string name = fn->getName().str();
+        if (name == "llvm.va_end") {
+            continue;
+        }
+        if (name == "llvm.va_start") {
+            continue;
+        }
+        llvm::Function *new_fn = mod->getFunction(
+            fn->getName().str()
+        );
+        llvm::SmallVector<llvm::ReturnInst*, 8> returns;
+        
+        if (fn->size() > 0) {
+            CloneFunctionInto(new_fn, fn, vmap, false, returns);
+        }
+    }
+
+    for (std::vector<Function *>::iterator
+            b = arg_functions->begin(),
+            e = arg_functions->end();
+            b != e;
+            ++b) {
+        Function *fn = *b;
+        llvm::Function *new_fn = mod->getFunction(
+            fn->symbol.c_str()
+        );
+        fn->llvm_function = new_fn;
+    }
+            
+    for (std::vector<Variable *>::iterator
+            b = arg_variables->begin(),
+            e = arg_variables->end();
+            b != e;
+            ++b) {
+        Variable *var = *b;
+        llvm::GlobalVariable *new_var = mod->getGlobalVariable(
+            var->symbol, true
+        );
+        var->value = new_var;
+    }
+}
 }
