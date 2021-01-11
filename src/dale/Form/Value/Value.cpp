@@ -230,9 +230,10 @@ llvm::Constant *FormValueParse(Units *units, Type *type, Node *top,
     copy_fn->eraseFromParent();
     fn->llvm_function->eraseFromParent();
 
-    delete units->top()->module;
+    llvm::Module *mod = units->top()->module;
     units->units.pop_back();
     ctx->regetPointers(units->top()->module);
+    delete mod;
 
     if (parsed) {
         return parsed;

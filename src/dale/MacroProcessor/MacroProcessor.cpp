@@ -314,9 +314,10 @@ Node *MacroProcessor::parseMacroCall_(Node *n,
             address = units->top()->ee->getFunctionAddress(
                 mc->symbol.c_str());
 
-            delete units->top()->module;
+            llvm::Module *mod = units->top()->module;
             units->units.pop_back();
             ctx->regetPointers(units->top()->module);
+            delete mod;
         }
     }
     function_map.insert(
