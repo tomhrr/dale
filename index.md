@@ -1,6 +1,8 @@
 ## Dale
 
-[![Build Status](https://travis-ci.org/tomhrr/dale.png)](https://travis-ci.org/tomhrr/dale)
+[![Build Status](https://github.com/tomhrr/dale/workflows/build/badge.svg?branch=master)](https://github.com/tomhrr/dale/actions)
+[![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/tomhrr/dale.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/tomhrr/dale/context:cpp)
+[![Total Alerts](https://img.shields.io/lgtm/alerts/g/tomhrr/dale.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/tomhrr/dale/alerts)
 
 Dale is a system (no GC) programming language that uses S-expressions
 for syntax and supports syntactic macros. The basic language is
@@ -9,7 +11,6 @@ similar to C, with the following additional features:
   * local type deduction;
   * overloaded functions;
   * anonymous functions;
-  * function structs;
   * reference parameters;
   * initialisers and destructors;
   * variants;
@@ -31,10 +32,11 @@ able to be built.
 #### Releases
 
   * [dale-0.2](https://github.com/tomhrr/dale/archive/0.2.tar.gz)
+  * [dale-0.3](https://github.com/tomhrr/dale/archive/0.3.tar.gz)
 
 #### Dependencies
 
-  * LLVM (3.2-6.0)
+  * LLVM (3.2-11.0)
   * libffi
 
 #### Out-of-tree (recommended)
@@ -212,7 +214,7 @@ The container runs the REPL by default, but includes bash
 
 ```
 (import introspection)
-(import macros)
+(import stdlib)
 
 (using-namespace std.macros
   (def assert-is-struct (macro intern (st)
@@ -228,6 +230,7 @@ The container runs the REPL by default, but includes bash
 ```
 ```
 > ./error-reporting.dt:13:23: error: struct type does not exist (see macro at 13:5)
+> ./error-reporting.dt:13:5: error: macro expansion error (see previous)
 ```
 
 **derivations**
@@ -281,7 +284,7 @@ The container runs the REPL by default, but includes bash
     (let ((b \ (begin arr))
           (e \ (end arr)))
       (for true (!= b e) (setv b (successor b))
-        (printf "%d " (@source b))))
+        (printf "%d " (@ (source b)))))
     (printf "\n")
     0)))
 ```
