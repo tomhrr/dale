@@ -52,7 +52,7 @@ assembly that can't be processed by the system's compiler, then errors
 about 'unknown directives', problems with relocation and similar may
 be seen.  The easiest way to fix this is to get the version of `clang`
 that corresponds to the version of LLVM used for the build (per
-`-DLLVM\_CONFIG`) and set it to be used as part of the build via the
+`-DLLVM_CONFIG`) and set it to be used as part of the build via the
 `-DCC` option.  For example, on current Debian (Buster):
 
     apt-get install llvm-7-dev clang-7
