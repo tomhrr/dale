@@ -25,12 +25,6 @@ From the 'dale' directory, for an out-of-tree (recommended) build:
         make tests
         make install
     
-cmake needs to know the location of the ffi.h header. If this isn't
-found in a default location, then it has to be provided during the
-third step: e.g.
-
-        cmake ../dale -DFFI_INCLUDE_DIR=/usr/include/i386-linux-gnu/
-
 By default, the installation prefix is `/usr/local/`. The compiler
 executable (`dalec`) is installed to `/usr/local/bin`, its manpage is
 installed to `/usr/local/share/man`, and all libraries are installed
@@ -40,21 +34,30 @@ The tests are written using Perl. `IPC::Run` is the only non-core
 dependency required for testing: it can be installed by running `cpan
 IPC::Run`, or by way of the system package manager.
 
-### Building on OS X
+### Common build problems
+
+#### FFI
+
+cmake needs to know the location of the ffi.h header. If this isn't
+found in a default location, then it has to be provided during the
+third step: e.g.
+
+        cmake ../dale -DFFI_INCLUDE_DIR=/usr/include/i386-linux-gnu/
+
+#### C compiler
 
 Internally, the compiler uses the system's C compiler (`cc`) for
 assembly and linking. If the version of LLVM being used produces
-assembly that can't be handled by the system's compiler, then errors
-about 'unknown directives' may be seen. The easiest way to fix this is
-to make sure that `cc` maps to a version of `clang` that refers to the
-same version of LLVM as that set via DLLVM\_CONFIG. With Homebrew,
-this is done like so:
+assembly that can't be processed by the system's compiler, then errors
+about 'unknown directives', problems with relocation and similar may
+be seen.  The easiest way to fix this is to get the version of `clang`
+that corresponds to the version of LLVM used for the build (per
+`-DLLVM\_CONFIG`) and set it to be used as part of the build via the
+`-DCC` option.  For example, on current Debian (Buster):
 
-        brew install llvm --with-clang
-        ln -s /usr/local/Cellar/llvm/{version}/bin/clang /usr/local/bin/cc
-        export PATH=/usr/local/bin:$PATH
-
-prior to running a build as per the previous instructions.
+    apt-get install llvm-7-dev clang-7
+    cmake ../dale -DLLVM_CONFIG=/usr/bin/llvm-config-7 \
+                  -DCC=/usr/bin/clang-7
 
 ### Hello world
 

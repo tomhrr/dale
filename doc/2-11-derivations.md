@@ -109,7 +109,7 @@ macro.
 Linkage: `extern`
 Parameters:
 
-  * `(T Struct)`: The struct type node.
+  * `(T Type)`: The struct type node.
 
 
 Expands to `=`, `!=`, `<`, `<=`, `>` and `>=` functions over the
