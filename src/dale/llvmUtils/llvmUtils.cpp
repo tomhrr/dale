@@ -530,11 +530,11 @@ void findIndirectObjectsForOp(const llvm::Operator *opt,
                 fprintf(stderr, "did not find function\n");
                 abort();
             }
-        } else if (const llvm::Instruction *inst = llvm::dyn_cast<llvm::Instruction>(operand)) {
-            findIndirectObjectsForInst(inst, mod,
+        } else if (const llvm::Instruction *sub_inst = llvm::dyn_cast<llvm::Instruction>(operand)) {
+            findIndirectObjectsForInst(sub_inst, mod,
                 indirect_functions, indirect_variables);
-        } else if (const llvm::Operator *opt = llvm::dyn_cast<llvm::Operator>(operand)) {
-            findIndirectObjectsForOp(opt, mod,
+        } else if (const llvm::Operator *sub_opt = llvm::dyn_cast<llvm::Operator>(operand)) {
+            findIndirectObjectsForOp(sub_opt, mod,
                 indirect_functions, indirect_variables);
         }
     }
@@ -563,11 +563,11 @@ void findIndirectObjectsForInst(const llvm::Instruction *inst,
                 fprintf(stderr, "did not find function\n");
                 abort();
             }
-        } else if (const llvm::Instruction *inst = llvm::dyn_cast<llvm::Instruction>(operand)) {
-            findIndirectObjectsForInst(inst, mod,
+        } else if (const llvm::Instruction *sub_inst = llvm::dyn_cast<llvm::Instruction>(operand)) {
+            findIndirectObjectsForInst(sub_inst, mod,
                 indirect_functions, indirect_variables);
-        } else if (const llvm::Operator *opt = llvm::dyn_cast<llvm::Operator>(operand)) {
-            findIndirectObjectsForOp(opt, mod,
+        } else if (const llvm::Operator *sub_opt = llvm::dyn_cast<llvm::Operator>(operand)) {
+            findIndirectObjectsForOp(sub_opt, mod,
                 indirect_functions, indirect_variables);
         }
     }
@@ -682,9 +682,9 @@ void findIndirectObjectsForVariable(llvm::GlobalVariable *gv,
                                              indirect_variables);
                 }
             }
-        } else if (llvm::GlobalVariable *gv =
+        } else if (llvm::GlobalVariable *sub_gv =
                 llvm::dyn_cast<llvm::GlobalVariable>(c)) {
-            indirect_variables->push_back(gv);
+            indirect_variables->push_back(sub_gv);
         }
     }
 }
