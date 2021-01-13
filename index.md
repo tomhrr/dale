@@ -54,6 +54,10 @@ able to be built.
     make
     make tests
     make install
+
+#### Common build problems
+
+See [Common build problems](./doc/1-2-setup.md#common-build-problems).
     
 #### Container (evaluation)
 
