@@ -129,6 +129,24 @@ const char *getLibDRTPath() {
     return libdrt_path;
 }
 
+/* Return the path to the shared arithmetic library. */
+const char *getLibArithmeticPath() {
+    const char *libarithmetic_path = NULL;
+    FILE *arithmetic_file = NULL;
+    if ((arithmetic_file = fopen(DALE_LIBRARY_PATH "/libarithmetic.so", "r"))) {
+        libarithmetic_path = DALE_LIBRARY_PATH "/libarithmetic.so";
+    } else if ((arithmetic_file = fopen("./libarithmetic.so", "r"))) {
+        libarithmetic_path = "./libarithmetic.so";
+    } else {
+        error("unable to find libarithmetic.so");
+    }
+    int res = fclose(arithmetic_file);
+    if (res != 0) {
+        error("unable to close %s", libarithmetic_path, true);
+    }
+    return libarithmetic_path;
+}
+
 Variable *processVariable(Units *units, Function *fn, Node *top,
                           ParseResult *pr) {
     Context *ctx = units->top()->ctx;
@@ -362,6 +380,10 @@ void REPL::run(std::vector<const char *> *compile_lib_paths,
         const char *libdrt_path = getLibDRTPath();
         mr.addDynamicLibrary(libdrt_path, false, false);
         shared_object_paths.push_back(libdrt_path);
+
+        const char *libarithmetic_path = getLibArithmeticPath();
+        mr.addDynamicLibrary(libarithmetic_path, false, false);
+        shared_object_paths.push_back(libarithmetic_path);
     }
 
     Units units(&mr);
