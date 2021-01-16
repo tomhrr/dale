@@ -1,5 +1,12 @@
 Changelog
 
+0.3     16 January 2020
+        - Added support for LLVM through to version 11.0.
+        - Create separate modules for macro execution and global value
+          parsing, to improve compilation times.
+        - Fixed various bugs/issues (#195, #198, #199, #202, #203,
+          #206).
+
 0.2     4 May 2018
         - Added support for LLVM through to version 6.0 (#41).
         - Implemented move semantics: rvalue references and custom
