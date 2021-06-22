@@ -65,7 +65,7 @@ The container runs the REPL by default, but includes bash
 
 **hello-world**
 
-```
+```lisp
 (import cstdio)
 
 (def main (fn extern-c int (void)
@@ -77,7 +77,7 @@ The container runs the REPL by default, but includes bash
 
 **hello-name**
 
-```
+```lisp
 (import cstdio)
 
 (def main (fn extern-c int (void)
@@ -90,7 +90,7 @@ The container runs the REPL by default, but includes bash
 
 **type-deduction**
 
-```
+```lisp
 (import cstdio)
 (import stdlib)
 
@@ -105,7 +105,7 @@ The container runs the REPL by default, but includes bash
 
 **overloading**
 
-```
+```lisp
 (import cstdio)
 (import cstdlib)
 
@@ -128,7 +128,7 @@ The container runs the REPL by default, but includes bash
 
 **anonymous-functions**
 
-```
+```lisp
 (import cstdio)
 (import stdlib)
 
@@ -142,7 +142,7 @@ The container runs the REPL by default, but includes bash
 
 **macros**
 
-```
+```lisp
 (import cstdio)
 (import stdlib)
 (import macros)
@@ -164,7 +164,7 @@ The container runs the REPL by default, but includes bash
 
 **typed-macros**
 
-```
+```lisp
 (import cstdio)
 (import macros)
 
@@ -181,7 +181,7 @@ The container runs the REPL by default, but includes bash
 
 **introspection**
 
-```
+```lisp
 (import introspection)
 (import stdlib)
 
@@ -211,7 +211,7 @@ The container runs the REPL by default, but includes bash
 
 **error-reporting**
 
-```
+```lisp
 (import introspection)
 (import stdlib)
 
@@ -234,7 +234,7 @@ The container runs the REPL by default, but includes bash
 
 **derivations**
 
-```
+```lisp
 (import derivations)
 
 (def Point (struct intern ((x int) (y int))))
@@ -261,7 +261,7 @@ The container runs the REPL by default, but includes bash
 
 **containers**
 
-```
+```lisp
 (import vector)
 (import array)
 (import algorithms)
@@ -293,7 +293,7 @@ The container runs the REPL by default, but includes bash
 
 **variants**
 
-```
+```lisp
 (import variant)
 (import cstdio)
 
