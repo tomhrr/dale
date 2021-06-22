@@ -65,7 +65,7 @@ The container runs the REPL by default, but includes bash
 
 **hello-world**
 
-```scheme
+```clojure
 (import cstdio)
 
 (def main (fn extern-c int (void)
@@ -77,7 +77,7 @@ The container runs the REPL by default, but includes bash
 
 **hello-name**
 
-```scheme
+```clojure
 (import cstdio)
 
 (def main (fn extern-c int (void)
@@ -90,7 +90,7 @@ The container runs the REPL by default, but includes bash
 
 **type-deduction**
 
-```scheme
+```clojure
 (import cstdio)
 (import stdlib)
 
@@ -105,7 +105,7 @@ The container runs the REPL by default, but includes bash
 
 **overloading**
 
-```scheme
+```clojure
 (import cstdio)
 (import cstdlib)
 
@@ -128,7 +128,7 @@ The container runs the REPL by default, but includes bash
 
 **anonymous-functions**
 
-```scheme
+```clojure
 (import cstdio)
 (import stdlib)
 
@@ -142,7 +142,7 @@ The container runs the REPL by default, but includes bash
 
 **macros**
 
-```scheme
+```clojure
 (import cstdio)
 (import stdlib)
 (import macros)
@@ -164,7 +164,7 @@ The container runs the REPL by default, but includes bash
 
 **typed-macros**
 
-```scheme
+```clojure
 (import cstdio)
 (import macros)
 
@@ -181,7 +181,7 @@ The container runs the REPL by default, but includes bash
 
 **introspection**
 
-```scheme
+```clojure
 (import introspection)
 (import stdlib)
 
@@ -211,7 +211,7 @@ The container runs the REPL by default, but includes bash
 
 **error-reporting**
 
-```scheme
+```clojure
 (import introspection)
 (import stdlib)
 
@@ -234,7 +234,7 @@ The container runs the REPL by default, but includes bash
 
 **derivations**
 
-```scheme
+```clojure
 (import derivations)
 
 (def Point (struct intern ((x int) (y int))))
@@ -261,7 +261,7 @@ The container runs the REPL by default, but includes bash
 
 **containers**
 
-```scheme
+```clojure
 (import vector)
 (import array)
 (import algorithms)
@@ -293,7 +293,7 @@ The container runs the REPL by default, but includes bash
 
 **variants**
 
-```scheme
+```clojure
 (import variant)
 (import cstdio)
 
