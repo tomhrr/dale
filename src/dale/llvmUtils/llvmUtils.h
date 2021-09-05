@@ -106,9 +106,9 @@ void addPrintModulePass(PassManager *pass_manager,
 llvm::TargetMachine *getTargetMachine(llvm::Module *mod);
 /*! Set the data layout for the module.
  *  @param mod The module.
- *  @param is_x86_64 Whether compilation is for x86-64.
+ *  @param arch The current architecture.
  */
-void setDataLayout(llvm::Module *mod, bool is_x86_64);
+void setDataLayout(llvm::Module *mod, int arch);
 /*! Add the LTO passes to the pass manager.
  *  @param pass_manager_builder The pass manager builder.
  *  @param pass_manager The pass manager.

@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "../Arch/Arch.h"
 #include "../Form/Utils/Utils.h"
 #include "../llvmUtils/llvmUtils.h"
 #include "Config.h"
@@ -17,8 +18,10 @@
 namespace dale {
 namespace BasicTypes {
 std::vector<std::string> basic_type_form_strings;
-void initBasicTypeFormStrings(void) {
-    const char *basic_type_form_strings_cc[317] = {
+void initBasicTypeFormStrings(int arch) {
+
+
+    const char *basic_type_form_strings_cc[282] = {
         "_Z1$2bii",
         "_Z1$2dii",
         "_Z1$2fii",
@@ -265,41 +268,6 @@ void initBasicTypeFormStrings(void) {
         "_Z2$3e$3esi",
         "_Z1$7es",
         "_Z1$2ds",
-        "_Z1$2btt",
-        "_Z1$2dtt",
-        "_Z1$2ftt",
-        "_Z1$2att",
-        "_Z1$25tt",
-        "_Z1$26tt",
-        "_Z1$7ctt",
-        "_Z1$5ett",
-        "_Z1$3dtt",
-        "_Z2$21$3dtt",
-        "_Z1$3ctt",
-        "_Z2$3c$3dtt",
-        "_Z1$3ett",
-        "_Z2$3e$3dtt",
-        "_Z2$3c$3cti",
-        "_Z2$3e$3eti",
-        "_Z1$2dt",
-        "_Z1$2buu",
-        "_Z1$2duu",
-        "_Z1$2fuu",
-        "_Z1$2auu",
-        "_Z1$25uu",
-        "_Z1$26uu",
-        "_Z1$7cuu",
-        "_Z1$5euu",
-        "_Z1$3duu",
-        "_Z2$21$3duu",
-        "_Z1$3cuu",
-        "_Z2$3c$3duu",
-        "_Z1$3euu",
-        "_Z2$3e$3duu",
-        "_Z2$3c$3cui",
-        "_Z2$3e$3eui",
-        "_Z1$7eu",
-        "_Z1$2du",
         "_Z1$2bff",
         "_Z1$2dff",
         "_Z1$2fff",
@@ -337,8 +305,50 @@ void initBasicTypeFormStrings(void) {
         "_Z2$3e$3daa",
         "_Z1$2da",
     };
-    for (int i = 0; i < 317; i++) {
+    const char *basic_type_form_strings_cc_128[35] = {
+        "_Z1$2btt",
+        "_Z1$2dtt",
+        "_Z1$2ftt",
+        "_Z1$2att",
+        "_Z1$25tt",
+        "_Z1$26tt",
+        "_Z1$7ctt",
+        "_Z1$5ett",
+        "_Z1$3dtt",
+        "_Z2$21$3dtt",
+        "_Z1$3ctt",
+        "_Z2$3c$3dtt",
+        "_Z1$3ett",
+        "_Z2$3e$3dtt",
+        "_Z2$3c$3cti",
+        "_Z2$3e$3eti",
+        "_Z1$2dt",
+        "_Z1$2buu",
+        "_Z1$2duu",
+        "_Z1$2fuu",
+        "_Z1$2auu",
+        "_Z1$25uu",
+        "_Z1$26uu",
+        "_Z1$7cuu",
+        "_Z1$5euu",
+        "_Z1$3duu",
+        "_Z2$21$3duu",
+        "_Z1$3cuu",
+        "_Z2$3c$3duu",
+        "_Z1$3euu",
+        "_Z2$3e$3duu",
+        "_Z2$3c$3cui",
+        "_Z2$3e$3eui",
+        "_Z1$7eu",
+        "_Z1$2du",
+    };
+    for (int i = 0; i < 282; i++) {
         basic_type_form_strings.push_back(basic_type_form_strings_cc[i]);
+    }
+    if (arch == Arch::X86_64) {
+        for (int i = 0; i < 36; i++) {
+            basic_type_form_strings.push_back(basic_type_form_strings_cc_128[i]);
+        }
     }
 }
 

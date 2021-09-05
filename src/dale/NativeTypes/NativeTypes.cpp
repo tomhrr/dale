@@ -25,7 +25,8 @@ NativeTypes::NativeTypes() {
 
     native_float_type = llvm::Type::getFloatTy(lc);
     native_double_type = llvm::Type::getDoubleTy(lc);
-    native_longdouble_type = llvm::Type::getX86_FP80Ty(lc);
+    native_longdouble_type = llvm::Type::getDoubleTy(lc);
+    //native_longdouble_type = llvm::Type::getX86_FP80Ty(lc);
 
     native_ptr_size = CHAR_BIT * sizeof(char *);
     native_int_size = CHAR_BIT * sizeof(int);

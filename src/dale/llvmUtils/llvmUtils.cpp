@@ -115,7 +115,7 @@ llvm::TargetMachine *getTargetMachine(llvm::Module *last_module) {
     return tm;
 }
 
-void setDataLayout(llvm::Module *module, bool is_x86_64) {
+void setDataLayout(llvm::Module *module, int arch) {
 #if D_LLVM_VERSION_ORD <= 36
     static const char *x86_64_layout =
         "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:"
@@ -127,7 +127,14 @@ void setDataLayout(llvm::Module *module, bool is_x86_64) {
         "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:"
         "32:32-"
         "f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32";
-    module->setDataLayout((is_x86_64) ? x86_64_layout : x86_32_layout);
+    if (arch == Arch::X86_64) {
+        module->setDataLayout(x86_64_layout);
+    } else if (arch == Arch::X86) {
+        module->setDataLayout(x86_32_layout);
+    } else {
+        fprintf(stderr, "With LLVM <= 3.6, only X86 and X86-64 are supported\n");
+        abort();
+    }
 #else
     llvm::TargetMachine *target_machine = getTargetMachine(module);
     module->setDataLayout(target_machine->createDataLayout());

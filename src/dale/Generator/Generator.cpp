@@ -28,6 +28,7 @@
 #include "llvm/Support/SourceMgr.h"
 #endif
 
+#include "../Arch/Arch.h"
 #include "../llvmUtils/llvmUtils.h"
 #include "../llvm_AnalysisVerifier.h"
 #include "../llvm_AssemblyPrintModulePass.h"
@@ -122,10 +123,16 @@ int Generator::run(std::vector<const char *> *file_paths,
 
     /* On OS X, SYSTEM_PROCESSOR is i386 even when the underlying
      * processor is x86-64, hence the extra check here. */
-    bool is_x86_64 =
-        ((!strcmp(SYSTEM_PROCESSOR, "x86_64")) ||
-         ((!strcmp(SYSTEM_PROCESSOR, "amd64"))) ||
-         ((!strcmp(SYSTEM_NAME, "Darwin")) && (sizeof(char *) == 8)));
+    int arch = 0;
+    if ((!strcmp(SYSTEM_PROCESSOR, "x86_64")) ||
+            ((!strcmp(SYSTEM_PROCESSOR, "amd64"))) ||
+            ((!strcmp(SYSTEM_NAME, "Darwin")) && (sizeof(char *) == 8))) {
+        arch = Arch::X86_64;
+    } else if (!strcmp(SYSTEM_PROCESSOR, "aarch64")) {
+        arch = Arch::AARCH64;
+    } else {
+        arch = Arch::X86;
+    }
 
     init_introspection_functions();
 
@@ -225,7 +232,7 @@ int Generator::run(std::vector<const char *> *file_paths,
         assert(!units.size());
 
         Unit *unit = new Unit(filename, &units, &er, &nt, &tr, NULL,
-                              is_x86_64, NULL, NULL, NULL, NULL, NULL);
+                              arch, NULL, NULL, NULL, NULL, NULL);
         units.push(unit);
         ctx = unit->ctx;
         mod = unit->module;
@@ -236,7 +243,7 @@ int Generator::run(std::vector<const char *> *file_paths,
             triple.setTriple(getTriple());
         }
 
-        setDataLayout(mod, is_x86_64);
+        setDataLayout(mod, arch);
         DECLARE_ENGINE_BUILDER(mod, eb);
 
         eb.setEngineKind(llvm::EngineKind::JIT);
@@ -257,7 +264,7 @@ int Generator::run(std::vector<const char *> *file_paths,
 
         if (!no_common) {
             if (no_arithmetic) {
-		CommonDecl::addBasicTypes(unit, is_x86_64);
+		CommonDecl::addBasicTypes(unit, arch);
             } else if (no_drt) {
                 unit->addCommonDeclarations();
             } else {
@@ -377,7 +384,7 @@ int Generator::run(std::vector<const char *> *file_paths,
 
     ctx->regetPointers(mod);
     if (!no_arithmetic) {
-        dale::BasicTypes::initBasicTypeFormStrings();
+        dale::BasicTypes::initBasicTypeFormStrings(arch);
         for (std::vector<std::string>::iterator
                 b = dale::BasicTypes::basic_type_form_strings.begin(),
                 e = dale::BasicTypes::basic_type_form_strings.end();

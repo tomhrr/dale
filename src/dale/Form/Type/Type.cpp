@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "../../Arch/Arch.h"
 #include "../../Form/TopLevel/GlobalVariable/GlobalVariable.h"
 #include "../../Units/Units.h"
 #include "../Parameter/Parameter.h"
@@ -61,7 +62,7 @@ Type *parseTypeToken(Units *units, Node *node) {
     if (base_type != -1) {
         Type *type = ctx->tr->getBasicType(base_type);
         if (type) {
-            if (!units->top()->is_x86_64 &&
+            if ((units->top()->arch != Arch::X86_64) &&
                 (type->base_type == BaseType::Int128 ||
                  type->base_type == BaseType::UInt128)) {
                 Error *e = new Error(TypeNotSupported, node, type_str);

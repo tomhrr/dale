@@ -67,8 +67,8 @@ class Unit {
     FunctionProcessor *fp;
     /*! The unit's once tag (optional). */
     std::string once_tag;
-    /*! Whether this is an x86-64 platform. */
-    bool is_x86_64;
+    /*! The current architecture. */
+    int arch;
 
     /*! Construct a new unit.
      *  @param path The path to the file being parsed.
@@ -76,14 +76,14 @@ class Unit {
      *  @param nt The native types object.
      *  @param tr The type register.
      *  @param ee The execution engine.
-     *  @param is_x86_64 Whether this is an x86-64 platform.
+     *  @param arch The current architecture.
      *
      *  A new context and parser will be instantiated on construction,
      *  ownership of both being retained by the unit.
      */
     Unit(const char *path, Units *units, ErrorReporter *er,
          NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee,
-         bool is_x86_64, Context *ctx, MacroProcessor *mp,
+         int arch, Context *ctx, MacroProcessor *mp,
          FunctionProcessor *fp, llvm::Module *module,
          llvm::Linker *linker, bool line_buffered = false);
     /*! Construct a new unit.
@@ -93,7 +93,7 @@ class Unit {
      */
     Unit(Units *units, ErrorReporter *er,
          NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee,
-         bool is_x86_64, Context *ctx, MacroProcessor *mp,
+         int arch, Context *ctx, MacroProcessor *mp,
          FunctionProcessor *fp, llvm::Module *module,
          llvm::Linker *linker, bool line_buffered = false);
     ~Unit();

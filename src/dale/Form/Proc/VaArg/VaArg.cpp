@@ -2,16 +2,21 @@
 
 #include <vector>
 
+#include "../../../Arch/Arch.h"
 #include "../../../Function/Function.h"
 #include "../../../Node/Node.h"
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Units/Units.h"
+#include "../../../Operation/Alignmentof/Alignmentof.h"
+#include "../../../Operation/Sizeof/Sizeof.h"
 #include "../../../llvmUtils/llvmUtils.h"
 #include "../../../llvm_Function.h"
 #include "../../Type/Type.h"
 #include "../Inst/Inst.h"
 
 namespace dale {
+llvm::Function *va_arg_aarch64 = NULL;
+
 /*
 (See the AMD64 ABI draft of 13/01/2010 for more information; most of
 the below is verbatim from there, and the document details the
@@ -233,16 +238,144 @@ bool FormProcVaArgParse(Units *units, Function *fn,
         return false;
     }
 
-    if (!units->top()->is_x86_64) {
-        /* Use the default va-arg intrinsic implementation. */
-        llvm::IRBuilder<> builder(block);
-        llvm::Value *res =
-            builder.CreateVAArg(arglist_pr.getValue(ctx), llvm_type);
-        pr->set(arglist_pr.block, type, res);
-        return true;
-    } else {
+    int arch = units->top()->arch;
+    if (arch == Arch::X86_64) {
         return parseVaArg64(units, fn, type, llvm_type, &arglist_pr,
                             pr);
+    } else if (arch == Arch::X86) {
+        /* Use the default va-arg intrinsic implementation. */
+        llvm::IRBuilder<> builder(block);
+        llvm::Value *res2 =
+            builder.CreateVAArg(arglist_pr.getValue(ctx), llvm_type);
+        pr->set(arglist_pr.block, type, res2);
+        return true;
+    } else if (arch == Arch::AARCH64) {
+        if (!va_arg_aarch64) {
+            va_arg_aarch64 =
+                ctx->getFunction("va-arg-aarch64", NULL, NULL, 0)->llvm_function;
+            if (!va_arg_aarch64) {
+                fprintf(stderr, "va-arg-aarch64 not found!");
+                abort();
+            }
+        }
+
+        /* Determine the type enum for the type. */
+        int type_enum = 0;
+        Struct *st = NULL;
+        if (type->is_array
+                && ((type->array_type->base_type == BaseType::Double) ||
+                    (type->array_type->base_type == BaseType::Float))
+                && (type->array_size <= 4)) {
+            type_enum = 1;
+        }
+        if (type->struct_name.size() > 0) {
+            st = ctx->getStruct(type);
+            std::vector<Type *> *member_types = &(st->member_types);
+            std::set<int> base_types;
+            for (std::vector<Type *>::iterator b = member_types->begin(),
+                                               e = member_types->end();
+                    b != e;
+                    ++b) {
+                base_types.insert((*b)->base_type);
+            }
+            if ((member_types->size() <= 4)
+                    && (base_types.size() == 1)
+                    && ((base_types.find(BaseType::Double) != base_types.end()) ||
+                        (base_types.find(BaseType::Float)  != base_types.end()))) {
+                type_enum = 1;
+            }
+        }
+        if ((type->base_type == BaseType::Double) ||
+                (type->base_type == BaseType::Float)) {
+            type_enum = 2;
+        }
+
+        /* Determine the alignment and size of the type. */
+        ParseResult alignment_pr;
+        bool res1 = Operation::Alignmentof(ctx, block, type, &alignment_pr);
+        if (!res1) {
+            return false;
+        }
+        int sizeof_type = Operation::SizeofGet(units->top(), type);
+        if (!sizeof_type) {
+            return false;
+        }
+
+        /* If the type enum is 1, then pass in the retval as the buffer,
+         * plus the number of elements in the type. */
+        llvm::IRBuilder<> builder(arglist_pr.block);
+        llvm::Value *buffer = NULL;
+        llvm::Value *elements = NULL;
+        if (type_enum != 1) {
+            buffer = getNullPointer(ctx->toLLVMType(
+                                        ctx->tr->getPointerType(
+                                            ctx->tr->type_void
+                                        ), node, true));
+            elements = ctx->nt->getLLVMZero();
+        } else {
+            if (pr->retval) {
+                buffer = pr->retval;
+                pr->retval_used = 1;
+                pr->retval_type = ctx->tr->getPointerType(type);
+            } else {
+                buffer = builder.CreateAlloca(ctx->toLLVMType(type, node, true));
+            }
+            elements =
+                ctx->nt->getNativeInt(
+                    type->is_array ? type->array_size
+                                : st->member_types.size()
+                );
+        }
+
+        /* Call the helper function. */
+        std::vector<llvm::Value *> call_args;
+        call_args.push_back(arglist_pr.getValue(ctx));
+        call_args.push_back(ctx->nt->getNativeInt(type_enum));
+        call_args.push_back(alignment_pr.getValue(ctx));
+        call_args.push_back(llvm::ConstantInt::get(ctx->nt->getNativeSizeType(), sizeof_type));
+        call_args.push_back(buffer);
+        call_args.push_back(elements);
+        llvm::Value *ret =
+            builder.CreateCall(va_arg_aarch64,
+                                llvm::ArrayRef<llvm::Value *>(call_args));
+
+        /* If the type enum is 1, nothing else needs to be done.
+         * Otherwise, cast/copy the value for the return. */
+        if (type_enum == 1) {
+            if (pr->retval) {
+                pr->set(arglist_pr.block, type, ret);
+            } else {
+                llvm::Value *bc =
+                    builder.CreateBitCast(ret,
+                                        ctx->toLLVMType(
+                                            ctx->tr->getPointerType(type),
+                                            node, true));
+                llvm::Value *loaded =
+                    builder.CreateLoad(bc);
+                pr->set(arglist_pr.block, type, loaded);
+            }
+            return true;
+        } else {
+            llvm::Value *bc =
+                builder.CreateBitCast(ret,
+                                      ctx->toLLVMType(
+                                        ctx->tr->getPointerType(type),
+                                        node, true));
+            llvm::Value *loaded =
+                builder.CreateLoad(bc);
+            if (pr->retval) {
+                builder.CreateStore(loaded, pr->retval);
+                pr->retval_used = 1;
+                pr->retval_type = ctx->tr->getPointerType(type);
+                pr->set(arglist_pr.block, type, ret);
+            } else {
+                pr->set(arglist_pr.block, type, loaded);
+            }
+            return true;
+        }
+    } else {
+        fprintf(stderr, "Unsupported architecture for va-arg\n");
+        abort();
     }
 }
 }

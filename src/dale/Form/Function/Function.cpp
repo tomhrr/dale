@@ -420,16 +420,16 @@ bool FormFunctionParse(Units *units, Node *node, const char *name,
         return false;
     }
 
-    int fn_linkage =
-        (lst->size() == (unsigned)(next_index + 2))
-            ? ctx->toLLVMLinkage(override_linkage)
-            : ctx->toLLVMLinkage(linkage);
-
 #if D_LLVM_VERSION_ORD <= 80
     llvm::Constant *fnc =
         units->top()->module->getOrInsertFunction(symbol.c_str(), ft);
     llvm::Function *llvm_fn = llvm::dyn_cast<llvm::Function>(fnc);
 #else
+    int fn_linkage =
+        (lst->size() == (unsigned)(next_index + 2))
+            ? ctx->toLLVMLinkage(override_linkage)
+            : ctx->toLLVMLinkage(linkage);
+
     llvm::FunctionCallee llvm_fn_callee =
         units->top()->module->getOrInsertFunction(symbol.c_str(), ft);
     llvm::Function *llvm_fn =

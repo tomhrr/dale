@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.7)
 
 project(Dale)
 
@@ -184,6 +184,7 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 add_library(dale SHARED
                  Config.h
+                 src/dale/Arch/Arch.cpp
                  src/dale/Introspection/Introspection.cpp
                  src/dale/Operation/Cast/Cast.cpp
                  src/dale/Operation/Move/Move.cpp

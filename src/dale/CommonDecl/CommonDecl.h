@@ -16,16 +16,16 @@ namespace CommonDecl {
 void addVarargsFunctions(Unit *unit);
 /*! Add the basic type functions to the unit.
  *  @param unit The unit.
- *  @param is_x86_64 Whether the current platform is x86-64.
+ *  @param arch The architecture.
  *
  *  See BasicTypes.
  */
-void addBasicTypes(Unit *unit, bool is_x86_64);
+void addBasicTypes(Unit *unit, int arch);
 /*! Add the va-list type to the unit.
  *  @param unit The unit.
- *  @param is_x86_64 Whether the current platform is x86-64.
+ *  @param arch The architecture.
  */
-void addVarargsTypes(Unit *unit, bool is_x86_64);
+void addVarargsTypes(Unit *unit, int arch);
 /*! Add the standard variables to the unit.
  *  @param unit The unit.
  *

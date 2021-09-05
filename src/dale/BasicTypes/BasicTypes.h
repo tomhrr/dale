@@ -20,8 +20,9 @@ namespace BasicTypes {
 extern std::vector<std::string> basic_type_form_strings;
 
 /*! Initialise the basic type form string array.
+ *  @param arch The current architecture.
  */
-void initBasicTypeFormStrings(void);
+void initBasicTypeFormStrings(int arch);
 
 /*! Add a unary function to the context and module.
  *  @param ctx The context.

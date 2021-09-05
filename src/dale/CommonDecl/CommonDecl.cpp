@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "../Arch/Arch.h"
 #include "../BasicTypes/BasicTypes.h"
 #include "../llvmUtils/llvmUtils.h"
 
@@ -25,8 +26,8 @@
     llvm::ConstantFP::get(llvm::Type::getDoubleTy(*getContext()), v)
 #define CFP_FP80(v) \
     llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(*getContext()), v)
-#define CFP_INF(v) \
-    llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(*getContext()), v)
+#define CFP_FP128(v) \
+    llvm::ConstantFP::get(llvm::Type::getFP128Ty(*getContext()), v)
 
 namespace dale {
 namespace CommonDecl {
@@ -86,7 +87,7 @@ void addVarargsFunctions(Unit *unit) {
     return;
 }
 
-void addBasicTypes(Unit *unit, bool is_x86_64) {
+void addBasicTypes(Unit *unit, int arch) {
     Context *ctx = unit->ctx;
     llvm::Module *mod = unit->module;
     std::string current_once_tag = unit->once_tag;
@@ -108,13 +109,11 @@ void addBasicTypes(Unit *unit, bool is_x86_64) {
     BT_UI(tr->type_uint32);
     BT_UI(tr->type_uint64);
 
-    /* i128 (actually any integer type with a size of more than 64
-     * bits) does not work properly in some respects on x86-32 (see
-     * http://llvm.org/bugs/show_bug.cgi?id=2660).  Rather than
-     * allowing the hobbled support to be had, disable it completely.
-     * */
-
-    if (is_x86_64) {
+    /* i128 does not work properly in some respects on x86-32 (see
+     * http://llvm.org/bugs/show_bug.cgi?id=2660) or aarch64.  Rather
+     * than allowing the hobbled support to be had, disable it
+     * completely.  */
+    if (arch == Arch::X86_64) {
         BT_SI(tr->type_int128);
         BT_UI(tr->type_uint128);
     }
@@ -124,17 +123,29 @@ void addBasicTypes(Unit *unit, bool is_x86_64) {
     BT_FP(tr->type_longdouble);
 }
 
-void addVarargsTypes(Unit *unit, bool is_x86_64) {
+void addVarargsTypes(Unit *unit, int arch) {
     Parser *prsr = unit->parser;
 
-    const char *definition = (is_x86_64)
-                                 ? "(def va-list "
-                                   "(struct extern ((a uint32) "
-                                   "(b uint32) "
-                                   "(c (p char)) "
-                                   "(d (p char)))))"
-                                 : "(def va-list "
-                                   "(struct extern ((a uint32))))";
+    const char *definition = NULL;
+    if (arch == Arch::X86_64) {
+        definition = "(def va-list "
+                       "(struct extern "
+                          "((a uint32) "
+                           "(b uint32) "
+                           "(c (p char)) "
+                           "(d (p char)))))";
+    } else if (arch == Arch::AARCH64) {
+        definition = "(def va-list "
+                       "(struct extern "
+                         " ((stack (p void)) "
+                          " (gr-top (p void)) "
+                          " (vr-top (p void)) "
+                          " (gr-offs int) "
+                          " (vr-offs int))))";
+    } else {
+        definition = "(def va-list "
+                       "(struct extern ((a uint32))))";
+    }
 
     prsr->getLexer()->pushText(definition);
 }
@@ -142,6 +153,7 @@ void addVarargsTypes(Unit *unit, bool is_x86_64) {
 void addStandardVariables(Unit *unit) {
     Context *ctx = unit->ctx;
     NativeTypes *nt = ctx->nt;
+    int arch = unit->arch;
 
     Type *type_int = ctx->tr->type_int;
     Type *type_float = ctx->tr->type_float;
@@ -182,25 +194,35 @@ void addStandardVariables(Unit *unit) {
                 CFP_FLOAT(FLT_EPSILON));
     addVariable(unit, "FLT_MIN", type_float, CFP_FLOAT(FLT_MIN));
     addVariable(unit, "FLT_MAX", type_float, CFP_FLOAT(FLT_MAX));
-    addVariable(unit, "DBL_EPSILON", type_double, CFP_DBL(DBL_EPSILON));
-    addVariable(unit, "DBL_MIN", type_double, CFP_DBL(DBL_MIN));
-    addVariable(unit, "DBL_MAX", type_double, CFP_DBL(DBL_MAX));
-    addVariable(unit, "LDBL_EPSILON", type_ldbl,
-                CFP_FP80(LDBL_EPSILON));
-    addVariable(unit, "LDBL_MIN", type_ldbl, CFP_FP80(LDBL_MIN));
-    addVariable(unit, "LDBL_MAX", type_ldbl, CFP_FP80(LDBL_MAX));
-
-    addVariable(unit, "HUGE_VAL", type_double,
-                llvm::ConstantFP::getInfinity(
-                    llvm::Type::getDoubleTy(*getContext())));
-
     addVariable(unit, "HUGE_VALF", type_float,
                 llvm::ConstantFP::getInfinity(
                     llvm::Type::getFloatTy(*getContext())));
 
-    addVariable(unit, "HUGE_VALL", type_ldbl,
+    addVariable(unit, "DBL_EPSILON", type_double, CFP_DBL(DBL_EPSILON));
+    addVariable(unit, "DBL_MIN", type_double, CFP_DBL(DBL_MIN));
+    addVariable(unit, "DBL_MAX", type_double, CFP_DBL(DBL_MAX));
+    addVariable(unit, "HUGE_VAL", type_double,
                 llvm::ConstantFP::getInfinity(
-                    llvm::Type::getX86_FP80Ty(*getContext())));
+                    llvm::Type::getDoubleTy(*getContext())));
+
+    if ((arch == Arch::X86_64) || (arch == Arch::X86)) {
+        addVariable(unit, "LDBL_EPSILON", type_ldbl,
+                    CFP_FP80(LDBL_EPSILON));
+        addVariable(unit, "LDBL_MIN", type_ldbl, CFP_FP80(LDBL_MIN));
+        addVariable(unit, "LDBL_MAX", type_ldbl, CFP_FP80(LDBL_MAX));
+        addVariable(unit, "HUGE_VALL", type_ldbl,
+                    llvm::ConstantFP::getInfinity(
+                        llvm::Type::getX86_FP80Ty(*getContext())));
+    } else if (arch == Arch::AARCH64) {
+        /* todo: pretty sure FP128 should work here, but it doesn't. */
+        addVariable(unit, "LDBL_EPSILON", type_ldbl,
+                    CFP_DBL(LDBL_EPSILON));
+        addVariable(unit, "LDBL_MIN", type_ldbl, CFP_DBL(LDBL_MIN));
+        addVariable(unit, "LDBL_MAX", type_ldbl, CFP_DBL(LDBL_MAX));
+        addVariable(unit, "HUGE_VALL", type_ldbl,
+                    llvm::ConstantFP::getInfinity(
+                        llvm::Type::getDoubleTy(*getContext())));
+    }
 
     return;
 }

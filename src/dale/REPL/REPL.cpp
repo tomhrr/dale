@@ -26,6 +26,7 @@
 #include "llvm/Support/SourceMgr.h"
 #endif
 
+#include "../Arch/Arch.h"
 #include "../llvmUtils/llvmUtils.h"
 #include "../llvm_AnalysisVerifier.h"
 #include "../llvm_AssemblyPrintModulePass.h"
@@ -101,14 +102,19 @@ REPL::REPL() {
 
 REPL::~REPL() {}
 
-/* Determine whether the current system is an x86-64 system. */
-bool is_x86_64() {
-    /* On OS X, SYSTEM_PROCESSOR is i386 even when the underlying
-     * processor is x86-64, hence the extra check here. */
-    return (
-        (!strcmp(SYSTEM_PROCESSOR, "x86_64")) ||
-        ((!strcmp(SYSTEM_PROCESSOR, "amd64"))) ||
-        ((!strcmp(SYSTEM_NAME, "Darwin")) && (sizeof(char *) == 8)));
+/* Determine the current architecture. */
+int get_architecture() {
+    int arch = 0;
+    if ((!strcmp(SYSTEM_PROCESSOR, "x86_64")) ||
+            ((!strcmp(SYSTEM_PROCESSOR, "amd64"))) ||
+            ((!strcmp(SYSTEM_NAME, "Darwin")) && (sizeof(char *) == 8))) {
+        arch = Arch::X86_64;
+    } else if (!strcmp(SYSTEM_PROCESSOR, "aarch64")) {
+        arch = Arch::AARCH64;
+    } else {
+        arch = Arch::X86;
+    }
+    return arch;
 }
 
 /* Return the path to the shared DRT library. */
@@ -400,10 +406,10 @@ void REPL::run(std::vector<const char *> *compile_lib_paths,
     ErrorReporter er("");
     NativeTypes nt;
     TypeRegister tr;
-    bool x86_64 = is_x86_64();
+    int arch = get_architecture();
 
     Unit *unit = new Unit("/dev/stdin", &units, &er, &nt, &tr, NULL,
-                          x86_64, NULL, NULL, NULL, NULL, NULL, true);
+                          arch, NULL, NULL, NULL, NULL, NULL, true);
 
     units.push(unit);
     ctx = unit->ctx;
@@ -415,7 +421,7 @@ void REPL::run(std::vector<const char *> *compile_lib_paths,
         triple.setTriple(getTriple());
     }
 
-    setDataLayout(mod, x86_64);
+    setDataLayout(mod, arch);
     DECLARE_ENGINE_BUILDER(mod, eb);
 
     eb.setEngineKind(llvm::EngineKind::JIT);

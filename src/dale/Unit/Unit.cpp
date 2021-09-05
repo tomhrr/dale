@@ -14,7 +14,7 @@
 namespace dale {
 Unit::Unit(const char *path, Units *units, ErrorReporter *er,
            NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee,
-           bool is_x86_64, Context *ctx, MacroProcessor *mp,
+           int arch, Context *ctx, MacroProcessor *mp,
            FunctionProcessor *fp, llvm::Module *module,
            llvm::Linker *linker, bool line_buffered) {
     FILE *mfp = fopen(path, "r");
@@ -56,7 +56,7 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er,
     this->linker = linker;
 
     this->ee = ee;
-    this->is_x86_64 = is_x86_64;
+    this->arch = arch;
     var_count = 0;
     fn_count = 0;
 
@@ -72,7 +72,7 @@ Unit::Unit(const char *path, Units *units, ErrorReporter *er,
 
 Unit::Unit(Units *units, ErrorReporter *er,
            NativeTypes *nt, TypeRegister *tr, llvm::ExecutionEngine *ee,
-           bool is_x86_64, Context *ctx, MacroProcessor *mp,
+           int arch, Context *ctx, MacroProcessor *mp,
            FunctionProcessor *fp, llvm::Module *module,
            llvm::Linker *linker, bool line_buffered) {
     if (!module) {
@@ -102,7 +102,7 @@ Unit::Unit(Units *units, ErrorReporter *er,
     this->linker = linker;
 
     this->ee = ee;
-    this->is_x86_64 = is_x86_64;
+    this->arch = arch;
     var_count = 0;
     fn_count = 0;
 
@@ -223,7 +223,7 @@ void Unit::removeTemporaryGlobalFunction() {
 static bool added_common_declarations = false;
 
 void Unit::addCommonDeclarations() {
-    CommonDecl::addBasicTypes(this, is_x86_64);
+    CommonDecl::addBasicTypes(this, arch);
 
     /* The basic math functions and the varargs functions are
      * added to every module, but the structs are not, because
@@ -235,7 +235,7 @@ void Unit::addCommonDeclarations() {
     }
     added_common_declarations = true;
 
-    CommonDecl::addVarargsTypes(this, is_x86_64);
+    CommonDecl::addVarargsTypes(this, arch);
     CommonDecl::addStandardVariables(this);
 
     return;
