@@ -85,8 +85,8 @@ message (STATUS "System version: ${CMAKE_SYSTEM_VERSION}")
 
 if (${D_LLVM_VERSION_ORD} LESS 32)
     message (FATAL_ERROR "LLVM >= 3.2 is required.")
-elseif (${D_LLVM_VERSION_ORD} GREATER 110)
-    message (FATAL_ERROR "LLVM <= 11.0 is required.")
+elseif (${D_LLVM_VERSION_ORD} GREATER 120)
+    message (FATAL_ERROR "LLVM <= 12.0 is required.")
 endif ()
 
 # Get LLVM configuration details.

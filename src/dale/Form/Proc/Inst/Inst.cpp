@@ -376,11 +376,12 @@ bool parseInternal(Units *units, Function *fn, llvm::BasicBlock *block,
     }
 
     /* Not core form/macro, nor function. If the string token is
-     * 'destroy', then treat this as a no-op (because it's annoying to
-     * have to check, in macros, whether destroy happens to be
-     * implemented over a particular type). */
+     * 'init' or 'destroy', then treat this as a no-op (because it's
+     * annoying to have to check, in macros, whether destroy happens
+     * to be implemented over a particular type). */
 
-    if (!(t->str_value.compare("destroy"))) {
+    if (!(t->str_value.compare("init"))
+            || !(t->str_value.compare("destroy"))) {
         pr->set(block, ctx->tr->type_void, NULL);
         return true;
     }

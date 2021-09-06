@@ -10,6 +10,7 @@
 #include "../NativeTypes/NativeTypes.h"
 #include "../STL/STL.h"
 #include "../Utils/Utils.h"
+#include "../llvmUtils/llvmUtils.h"
 #include "../llvm_LinkAll.h"
 
 namespace dale {
@@ -780,11 +781,19 @@ bool Namespace::regetStructPointers(llvm::Module *mod) {
         std::string type_name;
         type_name.append("struct_").append(st->symbol);
 
+#if D_LLVM_VERSION_ORD >= 120
+        llvm::StructType *llvm_st = llvm::StructType::getTypeByName(*getContext(), type_name);
+#else
         llvm::StructType *llvm_st = mod->getTypeByName(type_name);
+#endif
         if (!llvm_st) {
             type_name.clear();
             type_name.append(st->symbol);
+#if D_LLVM_VERSION_ORD >= 120
+            llvm_st = llvm::StructType::getTypeByName(*getContext(), type_name);
+#else
             llvm_st = mod->getTypeByName(type_name);
+#endif
         }
         assert(llvm_st && "could not get type for struct");
         st->type = llvm_st;
