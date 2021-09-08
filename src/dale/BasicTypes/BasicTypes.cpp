@@ -19,8 +19,6 @@ namespace dale {
 namespace BasicTypes {
 std::vector<std::string> basic_type_form_strings;
 void initBasicTypeFormStrings(int arch) {
-
-
     const char *basic_type_form_strings_cc[282] = {
         "_Z1$2bii",
         "_Z1$2dii",
@@ -346,7 +344,7 @@ void initBasicTypeFormStrings(int arch) {
         basic_type_form_strings.push_back(basic_type_form_strings_cc[i]);
     }
     if (arch == Arch::X86_64) {
-        for (int i = 0; i < 36; i++) {
+        for (int i = 0; i < 35; i++) {
             basic_type_form_strings.push_back(basic_type_form_strings_cc_128[i]);
         }
     }

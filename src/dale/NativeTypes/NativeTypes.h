@@ -35,7 +35,7 @@ class NativeTypes {
     std::vector<llvm::Value *> zeros;
 
     public:
-    NativeTypes();
+    NativeTypes(int arch);
     llvm::IntegerType *getNativeIntType();
     llvm::IntegerType *getNativeUIntType();
     llvm::IntegerType *getNativeCharType();

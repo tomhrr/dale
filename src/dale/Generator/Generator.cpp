@@ -117,10 +117,6 @@ int Generator::run(std::vector<const char *> *file_paths,
         return 0;
     }
 
-    NativeTypes nt;
-    TypeRegister tr;
-    llvm::ExecutionEngine *ee = NULL;
-
     /* On OS X, SYSTEM_PROCESSOR is i386 even when the underlying
      * processor is x86-64, hence the extra check here. */
     int arch = 0;
@@ -133,6 +129,10 @@ int Generator::run(std::vector<const char *> *file_paths,
     } else {
         arch = Arch::X86;
     }
+
+    NativeTypes nt(arch);
+    TypeRegister tr;
+    llvm::ExecutionEngine *ee = NULL;
 
     init_introspection_functions();
 

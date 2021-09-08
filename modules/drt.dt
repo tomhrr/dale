@@ -82,13 +82,22 @@ implicitly where necessary.
     (@:@ mc arg-count)))
 
 ; See https://github.com/ARM-software/abi-aa/releases/download/2021Q1/aapcs64.pdf.
+(def va-list-aarch64
+  (struct extern ((stack (p void))
+                  (gr-top (p void))
+                  (vr-top (p void))
+                  (gr-offs int)
+                  (vr-offs int))))
+
 (def va-arg-aarch64
-  (fn _extern-weak (p void) ((arglist (p va-list))
+  (fn _extern-weak (p void) ((arglistv (p void))
                              (typenum int)
                              (alignment size)
                              (size size)
                              (buffer (p void))
                              (elements int))
+    (def arglist (var auto (p va-list-aarch64)
+                           (cast arglistv (p va-list-aarch64))))
     (def offs (var auto int 0))
     (def nreg (var auto int 0))
     (if (= typenum 0)

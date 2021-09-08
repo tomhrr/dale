@@ -404,9 +404,9 @@ void REPL::run(std::vector<const char *> *compile_lib_paths,
     llvm::Linker *linker = NULL;
 
     ErrorReporter er("");
-    NativeTypes nt;
     TypeRegister tr;
     int arch = get_architecture();
+    NativeTypes nt(arch);
 
     Unit *unit = new Unit("/dev/stdin", &units, &er, &nt, &tr, NULL,
                           arch, NULL, NULL, NULL, NULL, NULL, true);

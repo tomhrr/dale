@@ -5,13 +5,14 @@
 #include <cstring>
 #include <string>
 
+#include "../Arch/Arch.h"
 #include "../Utils/Utils.h"
 #include "../llvmUtils/llvmUtils.h"
 
 #define BITS(T) (CHAR_BIT * sizeof(T))
 
 namespace dale {
-NativeTypes::NativeTypes() {
+NativeTypes::NativeTypes(int arch) {
     llvm::LLVMContext &lc = *getContext();
 
     llvm::Type *native_bool_type = native_char_type =
@@ -25,8 +26,14 @@ NativeTypes::NativeTypes() {
 
     native_float_type = llvm::Type::getFloatTy(lc);
     native_double_type = llvm::Type::getDoubleTy(lc);
-    native_longdouble_type = llvm::Type::getDoubleTy(lc);
-    //native_longdouble_type = llvm::Type::getX86_FP80Ty(lc);
+    if ((arch == Arch::X86_64) || (arch == Arch::X86)) {
+        native_longdouble_type = llvm::Type::getX86_FP80Ty(lc);
+    } else if (arch == Arch::AARCH64) {
+        native_longdouble_type = llvm::Type::getFP128Ty(lc);
+    } else {
+        fprintf(stderr, "No long double type configured for architecture\n");
+        abort();
+    }
 
     native_ptr_size = CHAR_BIT * sizeof(char *);
     native_int_size = CHAR_BIT * sizeof(int);

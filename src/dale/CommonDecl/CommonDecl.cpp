@@ -214,14 +214,16 @@ void addStandardVariables(Unit *unit) {
                     llvm::ConstantFP::getInfinity(
                         llvm::Type::getX86_FP80Ty(*getContext())));
     } else if (arch == Arch::AARCH64) {
-        /* todo: pretty sure FP128 should work here, but it doesn't. */
         addVariable(unit, "LDBL_EPSILON", type_ldbl,
-                    CFP_DBL(LDBL_EPSILON));
-        addVariable(unit, "LDBL_MIN", type_ldbl, CFP_DBL(LDBL_MIN));
-        addVariable(unit, "LDBL_MAX", type_ldbl, CFP_DBL(LDBL_MAX));
+                    CFP_FP128(LDBL_EPSILON));
+        addVariable(unit, "LDBL_MIN", type_ldbl, CFP_FP128(LDBL_MIN));
+        addVariable(unit, "LDBL_MAX", type_ldbl, CFP_FP128(LDBL_MAX));
         addVariable(unit, "HUGE_VALL", type_ldbl,
                     llvm::ConstantFP::getInfinity(
-                        llvm::Type::getDoubleTy(*getContext())));
+                        llvm::Type::getFP128Ty(*getContext())));
+    } else {
+        fprintf(stderr, "No long double type configured for architecture\n");
+        abort();
     }
 
     return;
