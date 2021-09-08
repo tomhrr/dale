@@ -329,7 +329,15 @@ bool FormProcVaArgParse(Units *units, Function *fn,
 
         /* Call the helper function. */
         std::vector<llvm::Value *> call_args;
-        call_args.push_back(arglist_pr.getValue(ctx));
+        call_args.push_back(
+            builder.CreateBitCast(
+                arglist_pr.getValue(ctx),
+                ctx->toLLVMType(
+                    ctx->tr->getPointerType(ctx->tr->type_void),
+                    node, true
+                )
+            )
+        );
         call_args.push_back(ctx->nt->getNativeInt(type_enum));
         call_args.push_back(alignment_pr.getValue(ctx));
         call_args.push_back(llvm::ConstantInt::get(ctx->nt->getNativeSizeType(), sizeof_type));
