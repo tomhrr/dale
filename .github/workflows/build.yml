@@ -1,20 +1,14 @@
 name: build
 on: push
 jobs:
-  build-3-8:
-    runs-on: ubuntu-16.04
-    steps:
-      - uses: actions/checkout@v1
-      - run: sudo apt-get install build-essential llvm-3.8 llvm-3.8-dev clang-3.8 libedit-dev
-      - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-3.8 . && make && make tests
   build-4:
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
       - run: sudo apt-get install build-essential llvm-4.0 llvm-4.0-dev clang-4.0 libedit-dev
       - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-4.0 . && make && make tests
   build-5:
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
       - run: sudo apt-get install build-essential llvm-5.0 llvm-5.0-dev clang-5.0 libedit-dev
@@ -49,10 +43,15 @@ jobs:
       - uses: actions/checkout@v1
       - run: sudo apt-get install build-essential llvm-10 llvm-10-dev clang-10 libedit-dev
       - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-10 . && make && make tests
-#  llvm-11 and related packages are not available in any of the images yet.
-#  build-11:
-#    runs-on: ubuntu-20.04
-#    steps:
-#      - uses: actions/checkout@v1
-#      - run: sudo apt-get install build-essential llvm-11 llvm-11-dev clang-11 libedit-dev
-#      - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-11 . && make && make tests
+  build-11:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - run: sudo apt-get install build-essential llvm-11 llvm-11-dev clang-11 libedit-dev
+      - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-11 . && make && make tests
+  build-12:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - run: sudo apt-get install build-essential llvm-12 llvm-12-dev clang-12 libedit-dev
+      - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-12 . && make && make tests

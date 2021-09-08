@@ -799,7 +799,13 @@ void linkRetrievedObjects(llvm::Module *mod, Node *top,
         llvm::SmallVector<llvm::ReturnInst*, 8> returns;
 
         if (fn->size() > 0) {
+#if D_LLVM_VERSION_ORD >= 130
+            CloneFunctionInto(new_fn, fn, vmap,
+                              llvm::CloneFunctionChangeType::LocalChangesOnly,
+                              returns);
+#else
             CloneFunctionInto(new_fn, fn, vmap, false, returns);
+#endif
         }
     }
 
