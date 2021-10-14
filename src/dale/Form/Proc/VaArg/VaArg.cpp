@@ -272,6 +272,7 @@ bool FormProcVaArgParse(Units *units, Function *fn,
         }
 
         /* Call the helper function. */
+        llvm::IRBuilder<> builder(arglist_pr.block);
         std::vector<llvm::Value *> call_args;
         call_args.push_back(
             builder.CreateBitCast(
