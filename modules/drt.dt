@@ -184,3 +184,24 @@ implicitly where necessary.
             (cast (& (+ (+ arg (cast size int64)) (cast 7 int64)) (cast -8 int64))
                   (p void)))
       (return (cast arg (p void)))))
+
+; See https://developer.apple.com/documentation/xcode/writing-arm64-code-for-apple-platforms.
+; todo: this doesn't cover every case (e.g. some struct definitions),
+; but the common cases appear to be fine.
+(def va-list-arm64-apple
+  (struct extern ((stack (p void)))))
+
+(def va-arg-arm64-apple
+  (fn _extern-weak (p void) ((arglistv (p void))
+                             (alignment size)
+                             (size size))
+    (def arglist (var auto (p va-list-arm64-apple)
+                           (cast arglistv (p va-list-arm64-apple))))
+    (def arg (var auto int64 (cast (@:@ arglist stack) int64)))
+    (if (> alignment (cast 8 size))
+        (setv arg (& (+ arg (cast 15 int64)) (cast -16 int64)))
+        0)
+    (setf (:@ arglist stack)
+          (cast (& (+ (+ arg (cast size int64)) (cast 7 int64)) (cast -8 int64))
+                (p void)))
+    (return (cast arg (p void)))))

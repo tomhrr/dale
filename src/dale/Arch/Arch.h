@@ -12,7 +12,8 @@ namespace Arch {
 enum {
     X86,
     X86_64,
-    AARCH64
+    AARCH64,
+    ARM64_APPLE
 };
 }
 }

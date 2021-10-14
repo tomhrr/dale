@@ -30,6 +30,8 @@ NativeTypes::NativeTypes(int arch) {
         native_longdouble_type = llvm::Type::getX86_FP80Ty(lc);
     } else if (arch == Arch::AARCH64) {
         native_longdouble_type = llvm::Type::getFP128Ty(lc);
+    } else if (arch == Arch::ARM64_APPLE) {
+        native_longdouble_type = llvm::Type::getDoubleTy(lc);
     } else {
         fprintf(stderr, "No long double type configured for architecture\n");
         abort();

@@ -42,7 +42,11 @@ std::string joinWithPrefix(std::vector<const char *> strings,
                            std::string buffer) {
     for (std::vector<const char *>::iterator b = strings.begin(),
                                              e = strings.end();
-         b != e; buffer += " " + prefix + " " + (*b++)) {
+            b != e;
+            ++b) {
+        if (strlen(*b) != 0) {
+            buffer += " " + prefix + " " + *b;
+        }
     }
 
     return buffer;

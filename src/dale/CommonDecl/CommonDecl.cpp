@@ -221,6 +221,13 @@ void addStandardVariables(Unit *unit) {
         addVariable(unit, "HUGE_VALL", type_ldbl,
                     llvm::ConstantFP::getInfinity(
                         llvm::Type::getFP128Ty(*getContext())));
+    } else if (arch == Arch::ARM64_APPLE) {
+	addVariable(unit, "LDBL_EPSILON", type_double, CFP_DBL(DBL_EPSILON));
+	addVariable(unit, "LDBL_MIN", type_double, CFP_DBL(DBL_MIN));
+	addVariable(unit, "LDBL_MAX", type_double, CFP_DBL(DBL_MAX));
+	addVariable(unit, "HUGE_VALL", type_double,
+		    llvm::ConstantFP::getInfinity(
+			llvm::Type::getDoubleTy(*getContext())));
     } else {
         fprintf(stderr, "No long double type configured for architecture\n");
         abort();

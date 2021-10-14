@@ -105,7 +105,10 @@ REPL::~REPL() {}
 /* Determine the current architecture. */
 int get_architecture() {
     int arch = 0;
-    if ((!strcmp(SYSTEM_PROCESSOR, "x86_64")) ||
+    if ((!strcmp(SYSTEM_PROCESSOR, "arm64"))
+            && (!strcmp(SYSTEM_NAME, "Darwin"))) {
+        arch = Arch::ARM64_APPLE;
+    } else if ((!strcmp(SYSTEM_PROCESSOR, "x86_64")) ||
             ((!strcmp(SYSTEM_PROCESSOR, "amd64"))) ||
             ((!strcmp(SYSTEM_NAME, "Darwin")) && (sizeof(char *) == 8))) {
         arch = Arch::X86_64;

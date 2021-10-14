@@ -6,8 +6,18 @@ $ENV{"DALE_TEST_ARGS"} ||= "";
 my $test_dir = $ENV{"DALE_TEST_DIR"} || ".";
 $ENV{PATH} .= ":.";
 
+use lib "$test_dir/t/lib";
+use Dale;
+use Test::More;
+
+my $is_arm64_apple = Dale::is_arm64_apple($test_dir);
+
 use Data::Dumper;
-use Test::More tests => 3;
+if ($is_arm64_apple) {
+    plan skip_all => 'Test does not work on arm64 Apple';
+} else {
+    plan tests => 3;
+}
 
 my @res = `dalec $ENV{"DALE_TEST_ARGS"} $test_dir/t/src/misc-globals.dt -o misc-globals `;
 is_deeply(\@res, [], 'No compilation errors');

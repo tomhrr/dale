@@ -259,6 +259,19 @@ void *lazyFunctionCreator(const std::string &name) {
             return fn_pointer;
         }
     }
+    if (name[0] == '_') {
+        /* Try for one without an underscore (ARM64 Apple-specific). */
+        std::string arm64_apple_name;
+        arm64_apple_name.append(name);
+        arm64_apple_name.erase(0, 1);
+
+        fn_pointer =
+            llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
+                arm64_apple_name);
+        if (fn_pointer) {
+            return fn_pointer;
+        }
+    }
 
     return (void *) fail;
 }

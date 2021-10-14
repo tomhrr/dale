@@ -15,7 +15,8 @@
 #include "../Inst/Inst.h"
 
 namespace dale {
-llvm::Function *va_arg_aarch64 = NULL;
+llvm::Function *va_arg_aarch64     = NULL;
+llvm::Function *va_arg_arm64_apple = NULL;
 
 /*
 (See the AMD64 ABI draft of 13/01/2010 for more information; most of
@@ -248,6 +249,59 @@ bool FormProcVaArgParse(Units *units, Function *fn,
         llvm::Value *res2 =
             builder.CreateVAArg(arglist_pr.getValue(ctx), llvm_type);
         pr->set(arglist_pr.block, type, res2);
+        return true;
+    } else if (arch == Arch::ARM64_APPLE) {
+        if (!va_arg_arm64_apple) {
+            va_arg_arm64_apple =
+                ctx->getFunction("va-arg-arm64-apple", NULL, NULL, 0)->llvm_function;
+            if (!va_arg_arm64_apple) {
+                fprintf(stderr, "va-arg-arm64-apple not found!");
+                abort();
+            }
+        }
+
+        /* Determine the alignment and size of the type. */
+        ParseResult alignment_pr;
+        bool res1 = Operation::Alignmentof(ctx, block, type, &alignment_pr);
+        if (!res1) {
+            return false;
+        }
+        int sizeof_type = Operation::SizeofGet(units->top(), type);
+        if (!sizeof_type) {
+            return false;
+        }
+
+        /* Call the helper function. */
+        std::vector<llvm::Value *> call_args;
+        call_args.push_back(
+            builder.CreateBitCast(
+                arglist_pr.getValue(ctx),
+                ctx->toLLVMType(
+                    ctx->tr->getPointerType(ctx->tr->type_void),
+                    node, true
+                )
+            )
+        );
+        call_args.push_back(alignment_pr.getValue(ctx));
+        call_args.push_back(llvm::ConstantInt::get(ctx->nt->getNativeSizeType(), sizeof_type));
+        llvm::Value *ret =
+            builder.CreateCall(va_arg_arm64_apple,
+                                llvm::ArrayRef<llvm::Value *>(call_args));
+        llvm::Value *bc =
+            builder.CreateBitCast(ret,
+                                  ctx->toLLVMType(
+                                    ctx->tr->getPointerType(type),
+                                    node, true));
+        llvm::Value *loaded =
+            builder.CreateLoad(bc);
+        if (pr->retval) {
+            builder.CreateStore(loaded, pr->retval);
+            pr->retval_used = 1;
+            pr->retval_type = ctx->tr->getPointerType(type);
+            pr->set(arglist_pr.block, type, ret);
+        } else {
+            pr->set(arglist_pr.block, type, loaded);
+        }
         return true;
     } else if (arch == Arch::AARCH64) {
         if (!va_arg_aarch64) {
