@@ -142,6 +142,10 @@ void addVarargsTypes(Unit *unit, int arch) {
                           " (vr-top (p void)) "
                           " (gr-offs int) "
                           " (vr-offs int))))";
+    } else if (arch == Arch::ARM64_APPLE) {
+        definition = "(def va-list "
+                       "(struct extern "
+                         " ((stack (p void)))))";
     } else {
         definition = "(def va-list "
                        "(struct extern ((a uint32))))";
