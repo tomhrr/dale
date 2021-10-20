@@ -1,0 +1,12 @@
+(import cstdio)
+(import macros)
+
+(def main (fn extern-c int (void)
+  (let ((n  \ 100)
+        (pn \ (cast (# n) (p void))))
+    (printf "Pre-add\n")
+    (setv pn (p+ pn 1))
+    (printf "Pre-subtract\n")
+    (setv pn (p- pn 1))
+    (printf "Finished\n")
+    0)))

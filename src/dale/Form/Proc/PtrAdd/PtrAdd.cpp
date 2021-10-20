@@ -54,7 +54,9 @@ bool FormProcPtrAddParse(Units *units, Function *fn,
 
     if (addend_pr.type->isIntegerType()) {
         size_t size =
-            Operation::SizeofGet(units->top(), ptr_pr.type->points_to);
+            (ptr_pr.type->points_to->base_type == BaseType::Void)
+                ? 1
+                : Operation::SizeofGet(units->top(), ptr_pr.type->points_to);
 
         ParseResult addend_value_pr;
         res = Operation::Cast(
