@@ -104,7 +104,7 @@ llvm::TargetMachine *getTargetMachine(llvm::Module *last_module) {
 #endif
 #if D_LLVM_VERSION_ORD >= 39
             ,
-            llvm::Optional<llvm::Reloc::Model>()
+            llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_)
 #endif
                 ));  // NOLINT
 
