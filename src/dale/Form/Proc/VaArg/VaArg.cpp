@@ -243,7 +243,7 @@ bool FormProcVaArgParse(Units *units, Function *fn,
     if (arch == Arch::X86_64) {
         return parseVaArg64(units, fn, type, llvm_type, &arglist_pr,
                             pr);
-    } else if (arch == Arch::X86) {
+    } else if ((arch == Arch::X86) || (arch == Arch::PPC64LE)) {
         /* Use the default va-arg intrinsic implementation. */
         llvm::IRBuilder<> builder(block);
         llvm::Value *res2 =

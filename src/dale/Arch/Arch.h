@@ -13,7 +13,8 @@ enum {
     X86,
     X86_64,
     AARCH64,
-    ARM64_APPLE
+    ARM64_APPLE,
+    PPC64LE
 };
 }
 }
