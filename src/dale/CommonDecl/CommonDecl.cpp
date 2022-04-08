@@ -28,6 +28,8 @@
     llvm::ConstantFP::get(llvm::Type::getX86_FP80Ty(*getContext()), v)
 #define CFP_FP128(v) \
     llvm::ConstantFP::get(llvm::Type::getFP128Ty(*getContext()), v)
+#define CFP_PPC_FP128(v) \
+    llvm::ConstantFP::get(llvm::Type::getPPC_FP128Ty(*getContext()), v)
 
 namespace dale {
 namespace CommonDecl {
@@ -234,12 +236,12 @@ void addStandardVariables(Unit *unit) {
 			llvm::Type::getDoubleTy(*getContext())));
     } else if (arch == Arch::PPC64LE) {
         addVariable(unit, "LDBL_EPSILON", type_ldbl,
-                    CFP_FP128(LDBL_EPSILON));
-        addVariable(unit, "LDBL_MIN", type_ldbl, CFP_FP128(LDBL_MIN));
-        addVariable(unit, "LDBL_MAX", type_ldbl, CFP_FP128(LDBL_MAX));
+                    CFP_PPC_FP128(LDBL_EPSILON));
+        addVariable(unit, "LDBL_MIN", type_ldbl, CFP_PPC_FP128(LDBL_MIN));
+        addVariable(unit, "LDBL_MAX", type_ldbl, CFP_PPC_FP128(LDBL_MAX));
         addVariable(unit, "HUGE_VALL", type_ldbl,
                     llvm::ConstantFP::getInfinity(
-                        llvm::Type::getFP128Ty(*getContext())));
+                        llvm::Type::getPPC_FP128Ty(*getContext())));
     } else {
         fprintf(stderr, "No long double type configured for architecture\n");
         abort();
