@@ -20,8 +20,8 @@ similar to C, with the following additional features:
   * compiler introspection.
 
 It should be usable on most Linux/macOS/BSD systems where LLVM is
-able to be built.  It has been tested on x86-64 (all) and ARM64
-(Linux, macOS).
+able to be built.  It has been tested on x86-64 (all), ARM64
+(Linux, macOS) and ppc64le (Linux).
 
 ### Documentation
 

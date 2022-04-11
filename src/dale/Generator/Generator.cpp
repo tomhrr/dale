@@ -129,6 +129,8 @@ int Generator::run(std::vector<const char *> *file_paths,
         arch = Arch::X86_64;
     } else if (!strcmp(SYSTEM_PROCESSOR, "aarch64")) {
         arch = Arch::AARCH64;
+    } else if (!strcmp(SYSTEM_PROCESSOR, "ppc64le")) {
+	arch = Arch::PPC64LE;
     } else {
         arch = Arch::X86;
     }
