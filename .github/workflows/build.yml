@@ -56,13 +56,13 @@ jobs:
       - run: sudo apt-get install build-essential llvm-12 llvm-12-dev clang-12 libedit-dev
       - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-12 . && make && make tests
   build-13:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v1
       - run: sudo apt-get install build-essential llvm-13 llvm-13-dev clang-13 libedit-dev
       - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-13 . && make && make tests
   build-14:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v1
       - run: sudo apt-get install build-essential llvm-14 llvm-14-dev clang-14 libedit-dev
