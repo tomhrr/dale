@@ -59,7 +59,7 @@ llvm::Value *builderCreateGEP(llvm::IRBuilder<> *builder,
     if (!type) {
         type = value->getType()->getPointerElementType();
     }
-    return builder->CreateGEP(value, indices, type);
+    return builder->CreateGEP(type, value, indices);
 #endif
 }
 

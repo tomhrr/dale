@@ -841,7 +841,7 @@ llvm::Value *createLoad(llvm::IRBuilder<> *builder,
     return builder->CreateLoad(value);
 #else
     if (!type) {
-        type = value->getType();
+        type = value->getType()->getPointerElementType();
     }
     return builder->CreateLoad(type, value);
 #endif
