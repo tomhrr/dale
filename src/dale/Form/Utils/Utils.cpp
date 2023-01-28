@@ -49,6 +49,20 @@ llvm::Instruction *createGEP(llvm::Value *value,
 #endif
 }
 
+llvm::Value *builderCreateGEP(llvm::IRBuilder<> *builder,
+                              llvm::Value *value,
+                              llvm::ArrayRef<llvm::Value *> indices,
+                              llvm::Type *type) {
+#if D_LLVM_VERSION_ORD <= 130
+    return builder->CreateGEP(value, indices);
+#else
+    if (!type) {
+        type = value->getType()->getPointerElementType();
+    }
+    return builder->CreateGEP(value, indices, type);
+#endif
+}
+
 llvm::Constant *createConstantGEP(llvm::Constant *value,
                                   llvm::ArrayRef<llvm::Value *> indices,
                                   llvm::Type *type) {

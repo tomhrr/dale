@@ -29,6 +29,16 @@ void linkVariablesToFunction(std::vector<Variable *> *vars,
 llvm::Instruction *createGEP(llvm::Value *value,
                              llvm::ArrayRef<llvm::Value *> indices,
                              llvm::Type *type = NULL);
+/*! Add a GEP call.
+ *  @param builder The builder for the GEP call.
+ *  @param value The value to be indexed into.
+ *  @param indices The indices for indexing.
+ *  @param type The pointee type (optional).
+ */
+llvm::Value *builderCreateGEP(llvm::IRBuilder<> *builder,
+                              llvm::Value *value,
+                              llvm::ArrayRef<llvm::Value *> indices,
+                              llvm::Type *type = NULL);
 /*! Create a constant GEP instruction.
  *  @param value The value to be indexed into.
  *  @param indices The indices for indexing.

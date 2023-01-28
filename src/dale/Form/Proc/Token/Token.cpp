@@ -37,7 +37,8 @@ void parseVariableLiteral(Context *ctx, llvm::BasicBlock *block,
             pr->set(block, var->type, array);
             pr->value_is_lvalue = false;
         } else {
-            llvm::Value *ptr_to_array = createGEP(
+            llvm::Value *ptr_to_array = builderCreateGEP(
+                &builder,
                 var->value, ctx->nt->getTwoLLVMZeros());
 
             pr->set(block,

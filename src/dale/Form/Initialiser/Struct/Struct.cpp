@@ -74,8 +74,8 @@ bool FormInitialiserStructParse(Units *units, Function *fn,
         STL::push_back2(&indices, ctx->nt->getLLVMZero(),
                         ctx->nt->getNativeInt(index));
 
-        llvm::Value *storage_ptr = createGEP(
-            storage, llvm::ArrayRef<llvm::Value *>(indices));
+        llvm::Value *storage_ptr = builderCreateGEP(
+            &builder, storage, llvm::ArrayRef<llvm::Value *>(indices));
 
         ParseResult value_pr;
         bool res = FormProcInstParse(units, fn, block, value_node,

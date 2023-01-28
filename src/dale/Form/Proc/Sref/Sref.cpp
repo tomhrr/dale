@@ -94,7 +94,8 @@ bool FormProcSrefParse(Units *units, Function *fn,
     }
     struct_pr.block = value_pr.block;
 
-    llvm::Value *vres = createGEP(
+    llvm::Value *vres = builderCreateGEP(
+        &builder,
         value_pr.getValue(ctx), llvm::ArrayRef<llvm::Value *>(indices));
 
     pr->set(struct_pr.block, ctx->tr->getPointerType(member_type),

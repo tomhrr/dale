@@ -19,7 +19,9 @@ bool Coerce(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
             llvm::IRBuilder<> builder(block);
 
             llvm::Value *charpointer =
-                createGEP(llvm::cast<llvm::Value>(value),
+                builderCreateGEP(
+                          &builder,
+                          llvm::cast<llvm::Value>(value),
                           ctx->nt->getTwoLLVMZeros());
 
             pr->set(block, to_type, charpointer);

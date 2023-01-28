@@ -117,20 +117,23 @@ bool parseVaArg64(Units *units, Function *fn, Type *type,
     STL::push_back2(&indices_reg_save_area, ctx->nt->getLLVMZero(),
                     ctx->nt->getNativeInt(3));
 
-    llvm::Value *ptr_gpo = createGEP(
+    llvm::Value *ptr_gpo = builderCreateGEP(
+        &builder,
         pvlstr, llvm::ArrayRef<llvm::Value *>(indices_gp_offset));
 
     llvm::Value *gpo =
         llvm::cast<llvm::Value>(createLoad(&builder, ptr_gpo));
 
-    llvm::Value *ptr_oaa = createGEP(
+    llvm::Value *ptr_oaa = builderCreateGEP(
+        &builder,
         pvlstr,
         llvm::ArrayRef<llvm::Value *>(indices_overflow_arg_area));
 
     llvm::Value *oaa =
         llvm::cast<llvm::Value>(createLoad(&builder, ptr_oaa));
 
-    llvm::Value *ptr_rsa = createGEP(
+    llvm::Value *ptr_rsa = builderCreateGEP(
+        &builder,
         pvlstr, llvm::ArrayRef<llvm::Value *>(indices_reg_save_area));
 
     llvm::Value *rsa =
@@ -158,7 +161,8 @@ bool parseVaArg64(Units *units, Function *fn, Type *type,
     indices_po1.push_back(
         llvm::ConstantInt::get(ctx->nt->getNativeUIntType(), 0));
 
-    llvm::Value *then_ptr_obj = createGEP(
+    llvm::Value *then_ptr_obj = builderCreateGEP(
+        &builder_then,
         oaa, llvm::ArrayRef<llvm::Value *>(indices_po1));
 
     llvm::Value *then_value =
@@ -181,7 +185,8 @@ bool parseVaArg64(Units *units, Function *fn, Type *type,
     std::vector<llvm::Value *> indices_po2;
     indices_po2.push_back(gpo);
 
-    llvm::Value *ptr_obj = createGEP(
+    llvm::Value *ptr_obj = builderCreateGEP(
+        &builder_else,
         rsa, llvm::ArrayRef<llvm::Value *>(indices_po2));
 
     llvm::Value *else_value =
