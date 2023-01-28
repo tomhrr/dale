@@ -89,9 +89,6 @@ llvm::TargetMachine *getTargetMachine(llvm::Module *last_module) {
     llvm::TargetOptions target_options;
 #endif
 
-    fprintf(stderr, "TPLE IS '%s'\n", triple.getTriple().c_str());
-    fprintf(stderr, "ARCH IS %d\n", llvm::Triple(triple.getTriple()).getArch());
-
     std::string Features;
     target_sp =
 #if D_LLVM_VERSION_ORD <= 34
