@@ -38,7 +38,11 @@
 #endif
 
 #include "llvm/Support/FormattedStream.h"
+#if D_LLVM_VERSION_ORD <= 130
 #include "llvm/Support/TargetRegistry.h"
+#else
+#include "llvm/MC/TargetRegistry.h"
+#endif
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
