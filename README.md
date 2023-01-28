@@ -32,7 +32,7 @@ able to be built.  It has been tested on x86-64 (all), ARM64
 
 #### Dependencies
 
-  * LLVM (3.2-13.0)
+  * LLVM (3.2-14.0)
   * libffi
 
 #### Out-of-tree (recommended)
