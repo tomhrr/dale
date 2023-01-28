@@ -67,6 +67,11 @@
  * required for backwards compatibility with older versions of LLVM
  * should be contained within the corresponding implementation file. */
 namespace dale {
+/* todo: not sure why it's necessary to forward-declare this given
+ * that Unit.h is included earlier, but anyway. */
+class Units;
+class Unit;
+
 /*! The PassManager type. */
 #if D_LLVM_VERSION_ORD <= 33
 typedef llvm::PassManager PassManager;
@@ -221,6 +226,15 @@ Function *createFunction(Units *units, Type *type, Node *top);
 void linkRetrievedObjects(llvm::Module *mod, Node *top,
                           std::vector<Function *> *functions,
                           std::vector<Variable *> *variables);
+
+/*! Create a load instruction using the builder.
+ *  @param builder The builder.
+ *  @param value The value on which the load should be performed.
+ *  @param type The type of the value (optional).
+ */
+llvm::Value *createLoad(llvm::IRBuilder<> *builder,
+                        llvm::Value *value,
+                        llvm::Type *type = NULL);
 }
 
 #endif

@@ -1,5 +1,7 @@
 #include "Coerce.h"
 
+#include "../../Form/Utils/Utils.h"
+
 namespace dale {
 namespace Operation {
 bool Coerce(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
@@ -17,8 +19,8 @@ bool Coerce(Context *ctx, llvm::BasicBlock *block, llvm::Value *value,
             llvm::IRBuilder<> builder(block);
 
             llvm::Value *charpointer =
-                builder.CreateGEP(llvm::cast<llvm::Value>(value),
-                                  ctx->nt->getTwoLLVMZeros());
+                createGEP(llvm::cast<llvm::Value>(value),
+                          ctx->nt->getTwoLLVMZeros());
 
             pr->set(block, to_type, charpointer);
             return true;

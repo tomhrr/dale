@@ -89,10 +89,10 @@ bool ParseResult::getAddressOfValue(Context *ctx, ParseResult *pr) {
 llvm::Value *ParseResult::getValue(Context *ctx) {
     if (retval && retval_used) {
         llvm::IRBuilder<> builder(block);
-        return builder.CreateLoad(retval);
+        return createLoad(&builder, retval);
     } else if (!value && address_of_value) {
         llvm::IRBuilder<> builder(block);
-        value = builder.CreateLoad(address_of_value);
+        value = createLoad(&builder, address_of_value);
         return value;
     } else {
         return value;

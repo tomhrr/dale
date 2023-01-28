@@ -89,6 +89,9 @@ llvm::TargetMachine *getTargetMachine(llvm::Module *last_module) {
     llvm::TargetOptions target_options;
 #endif
 
+    fprintf(stderr, "TPLE IS '%s'\n", triple.getTriple().c_str());
+    fprintf(stderr, "ARCH IS %d\n", llvm::Triple(triple.getTriple()).getArch());
+
     std::string Features;
     target_sp =
 #if D_LLVM_VERSION_ORD <= 34
@@ -833,4 +836,18 @@ void linkRetrievedObjects(llvm::Module *mod, Node *top,
         var->value = new_var;
     }
 }
+
+llvm::Value *createLoad(llvm::IRBuilder<> *builder,
+                        llvm::Value *value,
+                        llvm::Type *type) {
+#if D_LLVM_VERSION_ORD < 140
+    return builder->CreateLoad(value);
+#else
+    if (!type) {
+        type = value->getType();
+    }
+    return builder->CreateLoad(type, value);
+#endif
+}
+
 }

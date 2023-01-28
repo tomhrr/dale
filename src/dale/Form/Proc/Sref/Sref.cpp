@@ -9,6 +9,7 @@
 #include "../../../ParseResult/ParseResult.h"
 #include "../../../Units/Units.h"
 #include "../../../llvm_Function.h"
+#include "../../Utils/Utils.h"
 #include "../Inst/Inst.h"
 
 using namespace dale::ErrorInst;
@@ -93,7 +94,7 @@ bool FormProcSrefParse(Units *units, Function *fn,
     }
     struct_pr.block = value_pr.block;
 
-    llvm::Value *vres = builder.CreateGEP(
+    llvm::Value *vres = createGEP(
         value_pr.getValue(ctx), llvm::ArrayRef<llvm::Value *>(indices));
 
     pr->set(struct_pr.block, ctx->tr->getPointerType(member_type),

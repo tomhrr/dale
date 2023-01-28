@@ -13,6 +13,7 @@
 
 #include "../Context/Context.h"
 #include "../Type/Type.h"
+#include "../llvmUtils/llvmUtils.h"
 
 namespace dale {
 /*! ParseResult

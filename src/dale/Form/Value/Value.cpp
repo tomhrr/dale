@@ -105,7 +105,7 @@ llvm::Function *createCopyFunction(Units *units, Type *type, Node *top,
 
     std::vector<llvm::Value *> memcpy_args;
     memcpy_args.push_back(builder.CreateBitCast(
-        builder.CreateLoad(new_ptr_value), llvm_pvoid_type));
+        createLoad(&builder, new_ptr_value), llvm_pvoid_type));
     memcpy_args.push_back(
         builder.CreateBitCast(ret_cast, llvm_pvoid_type));
     memcpy_args.push_back(llvm::ConstantInt::get(
@@ -114,7 +114,7 @@ llvm::Function *createCopyFunction(Units *units, Type *type, Node *top,
     builder.CreateCall(memcpy_fn->llvm_function,
                        llvm::ArrayRef<llvm::Value *>(memcpy_args));
 
-    builder.CreateRet(builder.CreateLoad(new_ptr_value));
+    builder.CreateRet(createLoad(&builder, new_ptr_value));
     return copy_fn;
 }
 

@@ -12,6 +12,7 @@
 #include "../../../llvmUtils/llvmUtils.h"
 #include "../../../llvm_Function.h"
 #include "../../Type/Type.h"
+#include "../../Utils/Utils.h"
 #include "../Inst/Inst.h"
 
 namespace dale {
@@ -116,24 +117,24 @@ bool parseVaArg64(Units *units, Function *fn, Type *type,
     STL::push_back2(&indices_reg_save_area, ctx->nt->getLLVMZero(),
                     ctx->nt->getNativeInt(3));
 
-    llvm::Value *ptr_gpo = builder.CreateGEP(
+    llvm::Value *ptr_gpo = createGEP(
         pvlstr, llvm::ArrayRef<llvm::Value *>(indices_gp_offset));
 
     llvm::Value *gpo =
-        llvm::cast<llvm::Value>(builder.CreateLoad(ptr_gpo));
+        llvm::cast<llvm::Value>(createLoad(&builder, ptr_gpo));
 
-    llvm::Value *ptr_oaa = builder.CreateGEP(
+    llvm::Value *ptr_oaa = createGEP(
         pvlstr,
         llvm::ArrayRef<llvm::Value *>(indices_overflow_arg_area));
 
     llvm::Value *oaa =
-        llvm::cast<llvm::Value>(builder.CreateLoad(ptr_oaa));
+        llvm::cast<llvm::Value>(createLoad(&builder, ptr_oaa));
 
-    llvm::Value *ptr_rsa = builder.CreateGEP(
+    llvm::Value *ptr_rsa = createGEP(
         pvlstr, llvm::ArrayRef<llvm::Value *>(indices_reg_save_area));
 
     llvm::Value *rsa =
-        llvm::cast<llvm::Value>(builder.CreateLoad(ptr_rsa));
+        llvm::cast<llvm::Value>(createLoad(&builder, ptr_rsa));
 
     /* Verify whether arguments fit into registers.  For the time
      * being, this is so if gp_offset > 40. */
@@ -157,11 +158,11 @@ bool parseVaArg64(Units *units, Function *fn, Type *type,
     indices_po1.push_back(
         llvm::ConstantInt::get(ctx->nt->getNativeUIntType(), 0));
 
-    llvm::Value *then_ptr_obj = builder_then.CreateGEP(
+    llvm::Value *then_ptr_obj = createGEP(
         oaa, llvm::ArrayRef<llvm::Value *>(indices_po1));
 
     llvm::Value *then_value =
-        builder_then.CreateLoad(builder_then.CreateBitCast(
+        createLoad(&builder_then, builder_then.CreateBitCast(
             then_ptr_obj, llvm::PointerType::getUnqual(llvm_type)));
 
     builder_then.CreateStore(
@@ -180,11 +181,11 @@ bool parseVaArg64(Units *units, Function *fn, Type *type,
     std::vector<llvm::Value *> indices_po2;
     indices_po2.push_back(gpo);
 
-    llvm::Value *ptr_obj = builder_else.CreateGEP(
+    llvm::Value *ptr_obj = createGEP(
         rsa, llvm::ArrayRef<llvm::Value *>(indices_po2));
 
     llvm::Value *else_value =
-        builder_else.CreateLoad(builder_else.CreateBitCast(
+        createLoad(&builder_else, builder_else.CreateBitCast(
             ptr_obj, llvm::PointerType::getUnqual(llvm_type)));
 
     builder_else.CreateStore(
@@ -294,7 +295,7 @@ bool FormProcVaArgParse(Units *units, Function *fn,
                                     ctx->tr->getPointerType(type),
                                     node, true));
         llvm::Value *loaded =
-            builder.CreateLoad(bc);
+            createLoad(&builder, bc);
         if (pr->retval) {
             builder.CreateStore(loaded, pr->retval);
             pr->retval_used = 1;
@@ -414,7 +415,7 @@ bool FormProcVaArgParse(Units *units, Function *fn,
                                             ctx->tr->getPointerType(type),
                                             node, true));
                 llvm::Value *loaded =
-                    builder.CreateLoad(bc);
+                    createLoad(&builder, bc);
                 pr->set(arglist_pr.block, type, loaded);
             }
             return true;
@@ -425,7 +426,7 @@ bool FormProcVaArgParse(Units *units, Function *fn,
                                         ctx->tr->getPointerType(type),
                                         node, true));
             llvm::Value *loaded =
-                builder.CreateLoad(bc);
+                createLoad(&builder, bc);
             if (pr->retval) {
                 builder.CreateStore(loaded, pr->retval);
                 pr->retval_used = 1;

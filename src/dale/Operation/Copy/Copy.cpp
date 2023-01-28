@@ -88,7 +88,7 @@ bool Copy(Context *ctx, Function *fn, Node *node, ParseResult *pr,
     call_args.push_back(value_ptr);
     builder.CreateCall(over_setf->llvm_function,
                        llvm::ArrayRef<llvm::Value *>(call_args));
-    llvm::Value *result = builder.CreateLoad(result_ptr);
+    llvm::Value *result = createLoad(&builder, result_ptr);
 
     ret_pr->set(pr->block, pr->type, result);
     ret_pr->freshly_copied = 1;

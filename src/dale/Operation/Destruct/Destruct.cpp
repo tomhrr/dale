@@ -61,7 +61,7 @@ bool destructArray(Context *ctx, ParseResult *pr, ParseResult *ret_pr,
             createGEP(array_value,
                       llvm::ArrayRef<llvm::Value *>(indices)),
             "ap");
-        res = (!array_type->is_array) ? builder->CreateLoad(res) : res;
+        res = (!array_type->is_array) ? createLoad(builder, res) : res;
         element.set(element.block, element.type, res);
         element.do_not_destruct = false;
         Destruct(ctx, &element, &element, builder);

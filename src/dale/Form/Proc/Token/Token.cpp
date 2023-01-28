@@ -5,6 +5,7 @@
 
 #include "../../../llvmUtils/llvmUtils.h"
 #include "../../Literal/Literal.h"
+#include "../../Utils/Utils.h"
 
 using namespace dale::ErrorInst;
 
@@ -32,11 +33,11 @@ void parseVariableLiteral(Context *ctx, llvm::BasicBlock *block,
     /* Array-type variables. */
     if (var->type->is_array) {
         if (wanted_type && var->type->isEqualTo(wanted_type)) {
-            llvm::Value *array = builder.CreateLoad(var->value);
+            llvm::Value *array = createLoad(&builder, var->value);
             pr->set(block, var->type, array);
             pr->value_is_lvalue = false;
         } else {
-            llvm::Value *ptr_to_array = builder.CreateGEP(
+            llvm::Value *ptr_to_array = createGEP(
                 var->value, ctx->nt->getTwoLLVMZeros());
 
             pr->set(block,
@@ -58,7 +59,7 @@ void parseVariableLiteral(Context *ctx, llvm::BasicBlock *block,
 
     /* All other variables. */
     pr->set(block, var->type,
-            llvm::cast<llvm::Value>(builder.CreateLoad(var->value)));
+            llvm::cast<llvm::Value>(createLoad(&builder, var->value)));
     pr->address_of_value = var->value;
     pr->value_is_lvalue = 1;
 }

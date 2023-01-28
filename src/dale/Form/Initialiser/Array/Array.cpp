@@ -108,7 +108,7 @@ bool FormInitialiserArrayParse(Units *units, Function *dfn,
         pr->type = array_type;
         pr->set(
             pr->block, pr->type,
-            llvm::cast<llvm::Value>(builder.CreateLoad(llvm_array)));
+            llvm::cast<llvm::Value>(createLoad(&builder, llvm_array)));
     }
 
     return true;

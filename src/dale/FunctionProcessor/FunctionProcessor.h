@@ -7,6 +7,7 @@
 #include "../ParseResult/ParseResult.h"
 
 namespace dale {
+class ParseResult;
 class Units;
 
 /*! FunctionProcessor

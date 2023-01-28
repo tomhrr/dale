@@ -7,6 +7,7 @@
 #include "../../../Linkage/Linkage.h"
 #include "../../../Operation/Cast/Cast.h"
 #include "../../Proc/Inst/Inst.h"
+#include "../../Utils/Utils.h"
 
 using namespace dale::ErrorInst;
 
@@ -73,7 +74,7 @@ bool FormInitialiserStructParse(Units *units, Function *fn,
         STL::push_back2(&indices, ctx->nt->getLLVMZero(),
                         ctx->nt->getNativeInt(index));
 
-        llvm::Value *storage_ptr = builder.CreateGEP(
+        llvm::Value *storage_ptr = createGEP(
             storage, llvm::ArrayRef<llvm::Value *>(indices));
 
         ParseResult value_pr;
@@ -116,7 +117,7 @@ bool FormInitialiserStructParse(Units *units, Function *fn,
     if (get_address) {
         pr->set(block, ctx->tr->getPointerType(st_type), storage);
     } else {
-        llvm::Value *final_value = builder.CreateLoad(storage);
+        llvm::Value *final_value = createLoad(&builder, storage);
         pr->set(block, st_type, final_value);
         pr->address_of_value = storage;
         pr->value_is_lvalue = true;

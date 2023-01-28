@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "../../llvmUtils/llvmUtils.h"
+#include "../../Form/Utils/Utils.h"
 
 namespace dale {
 namespace Operation {
@@ -30,8 +31,9 @@ bool Alignmentof(Context *ctx, llvm::BasicBlock *block, Type *type,
     values.push_back(ctx->nt->getLLVMZero());
     values.push_back(ctx->nt->getLLVMOne());
     llvm::Value *pointer =
-        builder.CreateGEP(llvm::ConstantPointerNull::get(lpt),
-                          llvm::ArrayRef<llvm::Value *>(values));
+        createConstantGEP(llvm::ConstantPointerNull::get(lpt),
+                          llvm::ArrayRef<llvm::Value *>(values),
+                          lpt);
 
     llvm::Value *res =
         builder.CreatePtrToInt(pointer, ctx->nt->getNativeSizeType());

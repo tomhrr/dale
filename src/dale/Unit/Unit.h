@@ -21,6 +21,7 @@ class ExecutionEngine;
 
 namespace dale {
 class Units;
+class FunctionProcessor;
 
 /*! Unit
 

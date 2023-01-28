@@ -151,7 +151,7 @@ bool processReferenceTypes(std::vector<llvm::Value *> *call_args,
                 builder.CreateCall(
                     or_setf_move->llvm_function,
                     llvm::ArrayRef<llvm::Value *>(or_call_args));
-                (*call_args_final)[i] = builder.CreateLoad(dst_ptr);
+                (*call_args_final)[i] = createLoad(&builder, dst_ptr);
             } else if (!args_cast) {
                 bool res =
                     Operation::Copy(ctx, dfn, (*call_arg_nodes)[i],
@@ -287,7 +287,7 @@ bool FunctionProcessor::parseFunctionPointerCall(
             ParseResult x;
             x.value_is_lvalue = false;
             x.set(block, fn_ptr->return_type,
-                  builder.CreateLoad(call_args_final.back()));
+                  createLoad(&builder, call_args_final.back()));
             x.address_of_value = call_args_final.back();
             x.type_of_address_of_value =
                 units->top()->ctx->tr->getPointerType(
@@ -775,7 +775,7 @@ bool FunctionProcessor::parseFunctionCall(
             ParseResult x;
             x.value_is_lvalue = false;
             x.set(block, fn->return_type,
-                  builder.CreateLoad(call_args_final.back()));
+                    createLoad(&builder, call_args_final.back()));
             x.address_of_value = call_args_final.back();
             x.type_of_address_of_value =
                 units->top()->ctx->tr->getPointerType(fn->return_type);
