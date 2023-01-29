@@ -1,8 +1,6 @@
 ## Dale
 
 [![Build Status](https://github.com/tomhrr/dale/workflows/build/badge.svg?branch=master)](https://github.com/tomhrr/dale/actions)
-[![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/tomhrr/dale.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/tomhrr/dale/context:cpp)
-[![Total Alerts](https://img.shields.io/lgtm/alerts/g/tomhrr/dale.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/tomhrr/dale/alerts)
 
 Dale is a system (no GC) programming language that uses S-expressions
 for syntax and supports syntactic macros. The basic language is
@@ -36,7 +34,7 @@ able to be built.
 
 #### Dependencies
 
-  * LLVM (3.2-11.0)
+  * LLVM (3.2-14.0)
   * libffi
 
 #### Out-of-tree (recommended)
