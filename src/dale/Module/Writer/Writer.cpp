@@ -70,7 +70,7 @@ bool Writer::writeBitcode(const char *suffix) {
     return true;
 }
 
-bool Writer::writeSharedObject(const char *suffix) {
+bool Writer::writeLibraries(const char *suffix) {
     std::string asm_path(module_prefix);
     asm_path.append(suffix);
 
@@ -106,6 +106,17 @@ bool Writer::writeSharedObject(const char *suffix) {
 
     res = system(cmd.c_str());
     assert(!res && "unable to make library");
+
+    std::string object_path(module_prefix);
+    object_path.append(suffix);
+    object_path.append(".o");
+
+    cmd.clear();
+    cmd.append(DALE_CC).append(" -c ")
+       .append(asm_path).append(" -o ").append(object_path);
+
+    res = system(cmd.c_str());
+    assert(!res && "unable to make object file");
 
     res = remove(asm_path.c_str());
     assert(!res && "unable to remove temporary assembly file");
@@ -146,13 +157,13 @@ bool Writer::writeContext() {
 
 bool Writer::run() {
     writeBitcode("");
-    writeSharedObject("");
+    writeLibraries("");
 #if D_LLVM_VERSION_ORD <= 35
     ctx->regetPointers(mod);
 #endif
     ctx->eraseLLVMMacrosAndCTOFunctions();
     writeBitcode("-nomacros");
-    writeSharedObject("-nomacros");
+    writeLibraries("-nomacros");
     writeContext();
     return true;
 }
