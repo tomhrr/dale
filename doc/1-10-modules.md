@@ -28,19 +28,27 @@ is the module name:
   * `lib{name}.dtm`
     * Contains metadata about the module's bindings (functions,
       variables, structs, etc.).
-  
+
   * `lib{name}.bc`
     * The LLVM bitcode for the compiled module.
-  
+
+  * `lib{name}.o`
+    * The object file for the compiled module.
+
   * `lib{name}.so`
     * The dynamic library for the compiled module.
-  
-  * `lib{name}-nomacros.bc`, `lib{name}-nomacros.so`
-    * As per `lib{name}.bc` and `lib{name}.so`, respectively, except
+
+  * `lib{name}-nomacros.bc`, `lib{name}-nomacros.o`, `lib{name}-nomacros.so`
+    * As per the corresponding `lib{name}` files, except
       that all of the macros have been removed.
 
 Bindings within a module that have `intern` linkage will not be
 available outside of the module.
+
+Dale does not make use of the object files (e.g. `lib{name}.o`) when
+importing a module.  They are produced in case they are needed in a
+linking process managed separately from Dale: for example, when
+statically linking a module's functions into a C or C++ program.
 
 ### Use
 
