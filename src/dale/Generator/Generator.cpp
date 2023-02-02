@@ -161,45 +161,6 @@ int Generator::run(std::vector<const char *> *file_paths,
         mr.addDynamicLibrary((*b), false, false);
     }
 
-    const char *libarithmetic_path = NULL;
-    const char *libdrt_path = NULL;
-    if (!no_arithmetic) {
-        FILE *arithmetic_file = NULL;
-        if ((arithmetic_file = fopen(DALE_LIBRARY_PATH "/libarithmetic.so", "r"))) {
-            libarithmetic_path = DALE_LIBRARY_PATH "/libarithmetic.so";
-        } else if ((arithmetic_file = fopen("./libarithmetic.so", "r"))) {
-            libarithmetic_path = "./libarithmetic.so";
-        } else {
-            error("unable to find libarithmetic.so");
-        }
-        mr.addDynamicLibrary(libarithmetic_path, false, false);
-        int res = fclose(arithmetic_file);
-        if (res != 0) {
-            error("unable to close %s", libarithmetic_path, true);
-        }
-    }
-    if (!no_drt) {
-        FILE *drt_file = NULL;
-        if ((drt_file = fopen(DALE_LIBRARY_PATH "/libdrt.so", "r"))) {
-            libdrt_path = DALE_LIBRARY_PATH "/libdrt.so";
-        } else if ((drt_file = fopen("./libdrt.so", "r"))) {
-            libdrt_path = "./libdrt.so";
-        } else {
-            error("unable to find libdrt.so");
-        }
-        mr.addDynamicLibrary(libdrt_path, false, false);
-        int res = fclose(drt_file);
-        if (res != 0) {
-            error("unable to close %s", libdrt_path, true);
-        }
-    }
-    if (!module_name && libarithmetic_path) {
-        shared_object_paths->push_back(libarithmetic_path);
-    }
-    if (!module_name && libdrt_path) {
-        shared_object_paths->push_back(libdrt_path);
-    }
-
     Units units(&mr);
     units.cto = enable_cto;
     units.no_common = no_common;
