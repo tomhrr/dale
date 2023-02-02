@@ -384,7 +384,6 @@ macro (standard_library path name)
                        COMMAND ${CMAKE_BINARY_DIR}/dalec
                                ${DALE_FLAGS}
                                -c ${CMAKE_SOURCE_DIR}/${path}
-                               -o ./${name}.dt.s
                        DEPENDS ${CMAKE_SOURCE_DIR}/${path})
     add_custom_target(${name} ALL DEPENDS lib${name}.so)
     add_dependencies(${name} dalec ${ARGV2} ${ARGV3} ${ARGV4} ${ARGV5})
@@ -394,7 +393,7 @@ macro (standard_library path name)
                             ${CMAKE_BINARY_DIR}/lib${name}.bc
                             ${CMAKE_BINARY_DIR}/lib${name}-nomacros.bc
              DESTINATION    lib/dale)
-    set (CLEAN_FILES "${CLEAN_FILES};lib${name}.so;lib${name}-nomacros.so;lib${name}.dtm;lib${name}.bc;lib${name}-nomacros.bc;${name}.dt.s")
+    set (CLEAN_FILES "${CLEAN_FILES};lib${name}.so;lib${name}-nomacros.so;lib${name}.dtm;lib${name}.bc;lib${name}-nomacros.bc")
 endmacro ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

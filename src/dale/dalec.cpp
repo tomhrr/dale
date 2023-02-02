@@ -294,6 +294,15 @@ int main(int argc, char **argv) {
     if (!res) {
         exit(1);
     }
+    if (res == 2) {
+        /* A module was created, so there's no need to do anything
+         * else. */
+        if (output_path_arg) {
+            fprintf(stderr, "warning: output path is ignored when building a module");
+        }
+        remove(intermediate_output_path.c_str());
+        exit(0);
+    }
     res = fflush(output_file);
     if (res != 0) {
         error("unable to flush the intermediate output file", true);

@@ -38,9 +38,9 @@ class Writer {
     /*! Write the module's bitcode to disk.
      *  @param suffix A string to append to the module name. */
     bool writeBitcode(const char *suffix);
-    /*! Write the module's shared object to disk.
+    /*! Write the module's shared object and object file to disk.
      *  @param suffix A string to append to the module name. */
-    bool writeSharedObject(const char *suffix);
+    bool writeLibraries(const char *suffix);
     /*! Write the module's context to disk. */
     bool writeContext();
 

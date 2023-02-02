@@ -372,7 +372,7 @@ int Generator::run(std::vector<const char *> *file_paths,
                           &(mr.included_once_tags),
                           &(mr.included_modules), units.cto);
         mw.run();
-        return 1;
+        return 2;
     }
 
     if (remove_macros) {
