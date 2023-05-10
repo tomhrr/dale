@@ -9,13 +9,17 @@ if (NOT LLVM_CONFIG)
     message (FATAL_ERROR "llvm-config executable not found. Re-run cmake with -DLLVM_CONFIG={path-to-llvm-config}.")
 endif()
 
-execute_process (COMMAND ${LLVM_CONFIG} --help
-                 RESULT_VARIABLE RESULT
-                 OUTPUT_QUIET
-                 ERROR_QUIET)
-if (NOT ${RESULT} EQUAL 1)
-    message (FATAL_ERROR "Unable to execute '${LLVM_CONFIG}': ${RESULT}")
-endif ()
+# This check is supposed to confirm that the llvm-config executable
+# exists and can be executed, but --help appears to return 0 on macOS
+# at least.  There is probably a better way to check for this.
+
+# execute_process (COMMAND ${LLVM_CONFIG} --help
+#                  RESULT_VARIABLE RESULT
+#                  OUTPUT_QUIET
+#                  ERROR_QUIET)
+# if (NOT ${RESULT} EQUAL 1)
+#     message (FATAL_ERROR "Unable to execute '${LLVM_CONFIG}': ${RESULT}")
+# endif ()
 
 execute_process (COMMAND ${LLVM_CONFIG} --version
                  OUTPUT_VARIABLE D_LLVM_VERSION
