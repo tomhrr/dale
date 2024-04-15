@@ -2,6 +2,7 @@
 #define DALE_ELEMENT_TYPE
 
 #include <cstdlib>
+#include <cstdint>
 #include <map>
 #include <string>
 #include <vector>

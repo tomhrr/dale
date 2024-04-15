@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <cerrno>
 #include <climits>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>

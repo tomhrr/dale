@@ -2,6 +2,7 @@
 #define DALE_SERIALISE
 
 #include <cstdio>
+#include <cstdint>
 #include <map>
 #include <set>
 #include <string>
