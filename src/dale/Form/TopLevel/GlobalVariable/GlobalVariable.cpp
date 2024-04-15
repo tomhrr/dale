@@ -84,6 +84,12 @@ bool FormTopLevelGlobalVariableParse(Units *units, Node *node,
     }
 
     int linkage = FormLinkageParse(ctx, linkage_node);
+    if (linkage == Linkage::Auto) {
+        Error *e =
+            new Error(AutoLinkageNotPermitted, linkage_node);
+        ctx->er->addError(e);
+        return false;
+    }
 
     Type *ret_type = FormTypeParse(units, type_node, false, false);
     if (ret_type == NULL) {

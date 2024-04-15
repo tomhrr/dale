@@ -8,7 +8,7 @@
 
 (std.concepts.instantiate Set int)
 (std.concepts.instantiate Vector int)
-(def debug (var auto bool false))
+(def debug (var intern bool false))
 
 (def print-set
   (fn intern void ((sp (ref (Set int))))

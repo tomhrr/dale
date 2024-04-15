@@ -1,0 +1,2 @@
+t/error-src/auto-linkage.dt:1:14: error: auto linkage not permitted outside of function scope
+t/error-src/auto-linkage.dt:4:16: error: auto linkage not permitted outside of function scope

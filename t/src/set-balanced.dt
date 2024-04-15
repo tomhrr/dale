@@ -5,7 +5,7 @@
 (import set)
 
 (std.concepts.instantiate Set int)
-(def debug (var auto bool true))
+(def debug (var intern bool true))
 
 (def print-set
   (fn intern void ((sp (ref (Set int))))

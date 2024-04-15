@@ -440,6 +440,10 @@ const char *errorInstanceToString(int error_instance) {
                 "must have constant initialiser for function-scoped "
                 "intern variable";
             break;
+        case ErrorInst::AutoLinkageNotPermitted:
+            ret =
+                "auto linkage not permitted outside of function scope";
+            break;
         default:
             ret = "(Unknown)";
     }

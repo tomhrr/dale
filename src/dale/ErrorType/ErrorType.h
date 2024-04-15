@@ -121,6 +121,7 @@ enum {
     CTOFromNonCTO,
     CTOAddrFromNonCTO,
     CTOAnonymousFromNonCTO,
+    AutoLinkageNotPermitted,
 
     DNodeHasNoString,
     DNodeIsNeitherTokenNorList,

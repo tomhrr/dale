@@ -1,0 +1,4 @@
+(def v1 (var auto int 100))
+
+(namespace n
+  (def v2 (var auto int 100)))
