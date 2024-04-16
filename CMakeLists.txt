@@ -28,12 +28,18 @@ execute_process (COMMAND ${LLVM_CONFIG} --bindir
                  OUTPUT_VARIABLE LLVM_BIN_DIR
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-string(REGEX MATCH "[^0-9]*([^.]+)\.([^.]+).*" _ ${D_LLVM_VERSION})
-set(D_LLVM_VERSION_MAJOR ${CMAKE_MATCH_1})
-set(D_LLVM_VERSION_MINOR ${CMAKE_MATCH_2})
+string (REGEX MATCH "[^0-9]*([^.]+)\.([^.]+).*" _ ${D_LLVM_VERSION})
+set (D_LLVM_VERSION_MAJOR ${CMAKE_MATCH_1})
+set (D_LLVM_VERSION_MINOR ${CMAKE_MATCH_2})
 
 if (NOT D_LLVM_VERSION)
     message (FATAL_ERROR "Unable to retrieve version number from llvm-config executable (${LLVM_CONFIG})")
+endif ()
+if (NOT D_LLVM_VERSION_MAJOR)
+    message (FATAL_ERROR "Unable to retrieve major version number from LLVM version number (${D_LLVM_VERSION})")
+endif ()
+if (NOT DEFINED D_LLVM_VERSION_MINOR)
+    message (FATAL_ERROR "Unable to retrieve minor version number from LLVM version number (${D_LLVM_VERSION})")
 endif ()
 
 set (Dale_VERSION_REV $ENV{Dale_VERSION_REV})
