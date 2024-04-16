@@ -177,6 +177,12 @@ must also implement `LessThanComparable`.
       (struct extern ((first  (uq Tk))
                       (second (uq Tv)))))
 
+    (def init
+      (fn extern bool ((val (ref (uq pairtypenode))))
+        (memset (cast val (p void)) 0 (sizeof (uq pairtypenode)))
+        (init (:@ val first))
+        (init (:@ val second))))
+
     (def setf-move-init
       (fn extern bool ((dst (p (uq pairtypenode)))
                        (src (rv-ref (uq pairtypenode))))
