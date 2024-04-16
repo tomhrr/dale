@@ -27,16 +27,10 @@ execute_process (COMMAND ${LLVM_CONFIG} --version
 execute_process (COMMAND ${LLVM_CONFIG} --bindir
                  OUTPUT_VARIABLE LLVM_BIN_DIR
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process (COMMAND echo ${D_LLVM_VERSION}
-                 COMMAND sed -e "s/[^0-9].*//"
-                 OUTPUT_VARIABLE D_LLVM_VERSION_MAJOR
-                 OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process (COMMAND echo ${D_LLVM_VERSION}
-                 COMMAND sed -e "s/[0-9]*\\.//"
-                 COMMAND sed -e "s/svn//"
-                 COMMAND sed -e "s/\\..*//"
-                 OUTPUT_VARIABLE D_LLVM_VERSION_MINOR
-                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+string(REGEX MATCH "[^0-9]*([^.]+)\.([^.]+).*" _ ${D_LLVM_VERSION})
+set(D_LLVM_VERSION_MAJOR ${CMAKE_MATCH_1})
+set(D_LLVM_VERSION_MINOR ${CMAKE_MATCH_2})
 
 if (NOT D_LLVM_VERSION)
     message (FATAL_ERROR "Unable to retrieve version number from llvm-config executable (${LLVM_CONFIG})")
