@@ -83,9 +83,15 @@ jobs:
       - uses: actions/cache/restore@v4
         id: vcpkg-cache
         with:
-          path: llvm-build
-          key: 1
-      - run: vcpkg install pkgconf libffi
+          path: C:\vcpkg
+          key: vcpkg-cache
+      - if: steps.vcpkg-cache.outputs.cache-hit != 'true'
+        run: vcpkg install pkgconf libffi
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: C:\vcpkg
+          key: vcpkg-cache
       #https://github.com/llvm/actions/blob/main/setup-windows/vs_setup.bat
       - name: llvm setup windows
         uses: llvm/actions/setup-windows@main
@@ -95,21 +101,16 @@ jobs:
         id: cache
         with:
           path: llvm-build
-          key: 1
-      - uses: actions/checkout@v4
-        if: steps.cache.outputs.cache-hit != 'true'
+          key: llvm-build
+      - if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
         with:
           repository: llvm/llvm-project
           ref: llvmorg-14.0.6
           path: llvm-project
           clean: false
-      - uses: actions/checkout@v4
-        with:
-          path: dale
-      - run: pwd
-      - run: ls
-      - name: populate llvm if not cached
-        if: steps.cache.outputs.cache-hit != 'true'
+      - if: steps.cache.outputs.cache-hit != 'true'
+        name: populate llvm if not cached
         run: |
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS='clang' -S .\llvm-project\llvm\ -B llvm-build
           cd llvm-build
@@ -118,7 +119,10 @@ jobs:
         if: always()
         with:
           path: llvm-build
-          key: 1
+          key: llvm-build
+      - uses: actions/checkout@v4
+        with:
+          path: dale
       - run: cmake -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake -DLLVM_CONFIG="D:\a\dale\dale\llvm-build\bin\llvm-config.exe" -G Ninja -S dale -B dale-build
       - run: |
           cd dale-build
