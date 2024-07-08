@@ -1,0 +1,2 @@
+variant-member.dt:8:22: error: list required for variant members (see macro at 6:9)
+variant-member.dt:6:9: error: macro expansion error (see previous) (see macro at 8:1)

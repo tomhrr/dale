@@ -1,0 +1,17 @@
+(import variant)
+(import macros)
+
+(using-namespace std.macros
+  (def def-ordered-variant (macro intern (name cons)
+    (qq def-variant (uq name) cons))))
+
+(def-ordered-variant Instr
+  ((Doge ((a int)))
+   Soge
+   (Quoge ((a int) (b int)))))
+  
+(def main (fn extern-c
+              int
+              ((argc int)
+               (argv (p (p char))))
+  (return 0)))
