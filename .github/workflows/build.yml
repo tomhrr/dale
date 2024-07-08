@@ -75,4 +75,4 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - run: brew install llvm@14
-      - run: PATH="/usr/local/opt/llvm@14/bin:$PATH" cmake . && make -j$(nproc) && make tests
+      - run: PATH="/opt/homebrew/opt/llvm@14/bin:$PATH" cmake . && make -j$(nproc) && make tests
