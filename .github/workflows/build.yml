@@ -70,9 +70,11 @@ jobs:
       - uses: actions/checkout@v1
       - run: sudo apt-get install build-essential llvm-14 llvm-14-dev clang-14 libedit-dev
       - run: cmake -DLLVM_CONFIG=/usr/bin/llvm-config-14 . && make && make tests
-  build-macos-14:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v1
-      - run: brew install llvm@14
-      - run: PATH="/opt/homebrew/opt/llvm@14/bin:$PATH" cmake . && make -j$(nproc) && make tests
+# This job appears to be running as expected, but times out before
+# completion for some reason.
+#  build-macos-14:
+#    runs-on: macos-latest
+#    steps:
+#      - uses: actions/checkout@v1
+#      - run: brew install llvm@14
+#      - run: PATH="/opt/homebrew/opt/llvm@14/bin:$PATH" cmake . && make -j$(nproc) && make tests
