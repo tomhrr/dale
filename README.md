@@ -1,6 +1,6 @@
 ## Dale
 
-[![Build Status](https://github.com/tomhrr/dale/actions/workflows/build/badge.svg?branch=master)](https://github.com/tomhrr/dale/actions)
+[![Build Status](https://github.com/tomhrr/dale/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/tomhrr/dale/actions)
 
 Dale is a system (no GC) programming language that uses S-expressions
 for syntax and supports syntactic macros. The basic language is
