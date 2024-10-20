@@ -98,6 +98,8 @@ endif ()
 execute_process (COMMAND ${LLVM_CONFIG} --libs
                  OUTPUT_VARIABLE LLVM_LIBS
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
+separate_arguments(LLVM_LIBS NATIVE_COMMAND ${LLVM_LIBS})
+
 if (${D_LLVM_VERSION_ORD} GREATER 34)
     execute_process (COMMAND ${LLVM_CONFIG} --system-libs
                      OUTPUT_VARIABLE LLVM_SYSTEM_LIBS
